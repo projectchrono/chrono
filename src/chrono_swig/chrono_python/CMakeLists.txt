@@ -186,10 +186,17 @@ else()
    target_compile_options(core PRIVATE "-Wno-unused-variable")
 endif()
 
+if(MULTI_CONFIG)
+  set(CHPY_LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/$<CONFIG>/pychrono")
+else()
+  set(CHPY_LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono")
+endif()
+
+
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(core PROPERTIES
                       PROJECT_LABEL "Chrono_python_core"
-                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                      LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                       SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                       )
 
@@ -260,7 +267,7 @@ endif()
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(fea PROPERTIES
                       PROJECT_LABEL "Chrono_python_fea"
-                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                      LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                       SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                       )
 
@@ -300,7 +307,7 @@ endif()
 # Copy the __init__.py (BUILD) file in the package
 add_custom_command(TARGET core
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/pychrono)
+                   COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/__init__.py)
 
 # ---------- Pychrono in INSTALL tree
 
@@ -349,7 +356,7 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(postprocess PROPERTIES
                         PROJECT_LABEL "Chrono_python_postprocess"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -422,7 +429,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(irrlicht PROPERTIES
                         PROJECT_LABEL "Chrono_python_irrlicht"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -498,7 +505,7 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(pardisomkl PROPERTIES
                         PROJECT_LABEL "Chrono_python_pardisomkl"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -580,7 +587,7 @@ if(CH_ENABLE_MODULE_CASCADE)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(cascade PROPERTIES
                         PROJECT_LABEL "Chrono_python_cascade"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -672,7 +679,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(vehicle PROPERTIES
                         PROJECT_LABEL "Chrono_python_vehicle"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -747,7 +754,7 @@ if(CH_ENABLE_MODULE_SENSOR)
     # Ensure that the PYD library file is generated in the bin/ directory.
     set_target_properties(sensor PROPERTIES
             PROJECT_LABEL "Chrono_python_sensor"
-            LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+            LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
             SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
             )
   
@@ -830,7 +837,7 @@ endif()
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(robot PROPERTIES 
                         PROJECT_LABEL "Chrono_python_robot"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -897,7 +904,7 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(parsers PROPERTIES
                         PROJECT_LABEL "Chrono_python_parsers"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -991,7 +998,7 @@ if(CH_ENABLE_MODULE_ROS)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(ros PROPERTIES
                         PROJECT_LABEL "Chrono_python_ros"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
