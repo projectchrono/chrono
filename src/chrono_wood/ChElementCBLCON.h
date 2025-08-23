@@ -156,10 +156,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	void ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mStrain, ChVector3d& curvature);
 	///
 	///
-	/// Compute stress at a CBLCON facet . TODO : seems unused
-	///
-	void ComputeStress(ChVector3d& mstress);
-	///
 	///	
 	virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
     /// Computes the local (material) stiffness matrix of the element:

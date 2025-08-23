@@ -262,30 +262,6 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
 
 
 
-// TODO: this is not used consider deleting
-void ChElementCBLCON::ComputeStress(ChVector3d& mstress) {
-    ChVector3d mstrain;
-    ChVector3d curvature;
-    // Displacement and rotation increment of nodes:
-    this->ComputeStrainIncrement(dofs_increment, mstrain, curvature);
-    //std::cout<<"\nmstrain:\n"<<mstrain<<std::endl;
-    //
-    double E0=this->section-> Get_material()->Get_E0();
-    double alpha=this->section-> Get_material()->Get_alpha();
-    //
-    double epsQ=pow(mstrain[0]*mstrain[0]+alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5);
-    double strsQ=E0*epsQ;
-    //
-    if (epsQ!=0) {
-        mstress[0]=strsQ*mstrain[0]/epsQ;
-        mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
-        mstress[2]=alpha*strsQ*mstrain[2]/epsQ;
-    }else{
-        mstress.Set(0.0);
-    }
-}
-
-
 void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
     // Mass Matrix
 
