@@ -49,9 +49,12 @@ ChWoodMaterialVECT::~ChWoodMaterialVECT() {}
 // statec(10): internal work
 // statec(11): crack opening
 
-void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVector3d& eigenstrain, double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& strain, ChVector3d& curvature, ChVector3d& eigenstrain, double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {
     	ChVector3d mstrain;
-    	ChVector3d mcurvature;	
+    	ChVector3d mcurvature;
+
+        ChVector3d dmstrain;
+    	ChVector3d dmcurvature;
 	//
 	double E0=this->Get_E0();
 	double alpha=this->Get_alpha();	
@@ -61,7 +64,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		E0=E0*random_field;
 	//std::cout<<"E0: "<<E0<<" alpha: "<<alpha<<std::endl;	
 	// 	
-	mstrain=statev.segment(0,3)+dmstrain.eigen()-eigenstrain.eigen();
+	mstrain = strain.eigen() - eigenstrain.eigen();
+    dmstrain = strain - statev.segment(0,3);
 	//	
 	//
 	double epsQ, epsQN;
@@ -75,9 +79,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		epsQN = mstrain[0];
 	}else{	
 		double multiplier=this->GetCoupleMultiplier()/3.;
-		mcurvature=statev.segment(12,3)+dmcurvature.eigen();
-		//std::cout<<"mstrain: "<<mstrain<<" mcurvature: "<<mcurvature<<std::endl;
-		//std::cout<<"curvature: "<<mcurvature<<std::endl;		
+        mcurvature = curvature; // TODO: no eigencurvature ?
+		dmcurvature = curvature - statev.segment(12,3);
 				
 		epsQN = std::sqrt(mstrain[0] * mstrain[0] + multiplier*( mcurvature[1]*mcurvature[1]*w2 + mcurvature[2]*mcurvature[2]*h2));
 		epsT = std::sqrt(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]+multiplier*mcurvature[0]*mcurvature[0]*(w2+h2));

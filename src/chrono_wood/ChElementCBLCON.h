@@ -153,7 +153,7 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	///
 	/// Compute strain at a CBLCON facet 
 	///
-	void ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mStrain, ChVector3d& curvature);
+	void ComputeStrain(ChVectorN<double, 12>& displ, ChVector3d& mStrain, ChVector3d& curvature);
 	///
 	///
 	///	
@@ -327,9 +327,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 
     ChQuaternion<> q_element_abs_rot;
     ChQuaternion<> q_element_ref_rot;
-    
-    ChVectorN<double, 12> dofs_increment;
-    ChVectorN<double, 12> dofs_old;
 
     bool disable_corotate;
     bool force_symmetric_stiffness;

@@ -30,6 +30,7 @@
 #include <ostream>
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
 
 namespace chrono {
@@ -172,24 +173,26 @@ void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
     // If large deflection disabled, return displacement in global frame
     // TODO: Go back to this function when we decide how to enable and formulate large deflection
     auto getDisplacement = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
-        ChVector3d local_disp;
+        ChVector3d global_disp;
         if (!LargeDeflection)
-            local_disp = node->Frame().GetPos() - node->GetX0().GetPos();
+            global_disp = node->Frame().GetPos() - node->GetX0().GetPos();
         else
-            local_disp = node->Frame().GetPos() - node->GetX0().GetPos(); // TODO: temporary
-        return local_disp;
+            global_disp = node->Frame().GetPos() - node->GetX0().GetPos(); // TODO: temporary
+        return global_disp;
     };
 
     // Node rotations
     // If Large deflection disabled, return rotation in global frame
     // TODO: Go back to this function when we decide how to enable and formulate large deflection
     auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
+        ChQuaternion<> global_dq = node->Frame().GetRot() * node->GetX0().GetRot().GetConjugate();
         ChVector3d delta_rot_dir;
         double delta_rot_angle;
+
         if (!LargeDeflection)
-            node->Frame().GetRot().GetAngleAxis(delta_rot_angle, delta_rot_dir);
+            global_dq.GetAngleAxis(delta_rot_angle, delta_rot_dir);
         else
-            node->Frame().GetRot().GetAngleAxis(delta_rot_angle, delta_rot_dir); // TODO: temporary
+            global_dq.GetAngleAxis(delta_rot_angle, delta_rot_dir); // TODO: temporary
         // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
         // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
         // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
@@ -222,12 +225,12 @@ void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
 }
 
 
-void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mstrain, ChVector3d& curvature) {
+void ChElementCBLCON::ComputeStrain(ChVectorN<double, 12>& displ, ChVector3d& mstrain, ChVector3d& curvature) {
     //
-    ChVector3d ui = displ_incr.segment(0,3);
-    ChVector3d ri = displ_incr.segment(3,3);
-    ChVector3d uj = displ_incr.segment(6,3);
-    ChVector3d rj = displ_incr.segment(9,3);
+    ChVector3d ui = displ.segment(0,3);
+    ChVector3d ri = displ.segment(3,3);
+    ChVector3d uj = displ.segment(6,3);
+    ChVector3d rj = displ.segment(9,3);
     ChVector3d xc_xi;
     ChVector3d xc_xj;
     double linv = 1.0 / this->length;
@@ -482,12 +485,6 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     //
     this->UpdateRotation();
     //
-    // Initialize total displacement increment
-    //
-    ChVectorDynamic<> displ(12);
-    this->GetStateBlock(displ);
-    dofs_old=displ;
-    //
     // Initiliaze state variables:
     //
     // All state variables initialized at zero, which is the value in the Section constructor
@@ -707,11 +704,10 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
     assert(section);
 
-    // Displacement and rotation increment of nodes:
+    // Displacement and rotation of nodes:
     ChVectorDynamic<> displ(12);
-    this->GetStateBlock(displ);
-    dofs_increment = displ - dofs_old; // TODO JBC: Rotations are not additive, in general this is wrong for rotation DOFS and the approximation only holds for infinitesimal rotations, with error ~ angle !
-    dofs_old = displ;
+    this->GetStateBlock(displ); // TODO: bad Chrono design, there is no reason for that function to exist in higher-level parent with dynamic vector since it is never used outside of element. Each element should decide how to handle their DOFS
+    ChVectorN<double, 12> dofs = displ;
 
     //
     // Get facet area and length of beam
@@ -728,18 +724,18 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     auto mysection=this->section;
     ChVector3d mstress;
-    ChVector3d dmstrain;
+    ChVector3d mstrain;
     ChVector3d mcouple;
-    ChVector3d dcurvature;
+    ChVector3d curvature;
     StateVarVector statev;
-    this->ComputeStrainIncrement(dofs_increment, dmstrain, dcurvature);
+    this->ComputeStrain(dofs, mstrain, curvature);
     statev=mysection->Get_StateVar();
     double width=mysection->GetWidth()/2;
     double height=mysection->GetHeight()/2;
     double random_field =mysection->GetRandomField();
 
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
-    mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, statev, area, width, height, random_field, mstress, mcouple);
+    mysection->Get_material()->ComputeStress(mstrain, curvature, nonMechanicalStrain, length, statev, area, width, height, random_field, mstress, mcouple);
 
 
     mysection->Set_StateVar(statev);

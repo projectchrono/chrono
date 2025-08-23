@@ -105,7 +105,7 @@ class ChWoodApi ChWoodMaterialVECT {
     double GetCoupleContrib2EquStrainFlag() const { return m_CoupleContrib2EquStrain; }
     void SetCoupleContrib2EquStrainFlag(double CoupleContrib2EquStrain) { m_CoupleContrib2EquStrain = CoupleContrib2EquStrain; }	
     /// Compute stresses from given strains and state variables.
-    void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, ChVector3d& eigeinstrain, double &len, StateVarVector& statev, double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple);
+    void ComputeStress(ChVector3d& strain, ChVector3d& curvature, ChVector3d& eigeinstrain, double &len, StateVarVector& statev, double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple);
     //void ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& curvature_incr, double &length, StateVarVector& statev, double& width, double& height, double& random_field, ChVector3d& stress, ChVector3d& surfacic_couple);
     //
     
