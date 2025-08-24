@@ -60,6 +60,7 @@
 
 #include "chrono/fea/ChMesh.h"
 
+#include "chrono/output/ChOutput.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
@@ -67,7 +68,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
@@ -238,6 +238,7 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChTexture.i"
 %import(module = "pychrono.core") "../../../chrono/fea/ChMesh.h"
 
+%import(module = "pychrono.core") "../../../chrono/output/ChOutput.h"
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
@@ -346,8 +347,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %ignore chrono::vehicle::VehiclePartTag;
 %include "../../../chrono_vehicle/ChSubsysDefs.h"
 %include "chrono_models/vehicle/ChVehicleModelDefs.h"
-//TODO: conversion from std::vectors of ChVehicleOutput
-%include "../../../chrono_vehicle/ChVehicleOutput.h"
 %include "../../../chrono_vehicle/ChVehicleModelData.h"
 %include "../../../chrono_vehicle/ChPart.h"
 %include "../../../chrono_vehicle/ChWorldFrame.h"

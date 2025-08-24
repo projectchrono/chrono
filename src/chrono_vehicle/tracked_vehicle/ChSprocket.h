@@ -159,7 +159,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     /// Output data for this subsystem's component list to the specified database.
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     ChVector3d m_rel_loc;                                    ///< sprocket subsystem location relative to chassis
     std::shared_ptr<ChBody> m_gear;                          ///< sprocket gear body

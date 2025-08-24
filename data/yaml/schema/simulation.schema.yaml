@@ -175,7 +175,7 @@ simulation:
                       default: Z
                   location:
                       <<: *VECTOR3D
-                      description: Initial camera location (x, y, z)
+                      description: Initial camera location
                       default: [0, -1, 0]
                   target:
                       <<: *VECTOR3D

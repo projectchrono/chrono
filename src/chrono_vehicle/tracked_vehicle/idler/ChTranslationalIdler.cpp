@@ -175,7 +175,7 @@ void ChTranslationalIdler::ExportComponentList(rapidjson::Document& jsonDocument
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChTranslationalIdler::Output(ChVehicleOutput& database) const {
+void ChTranslationalIdler::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

@@ -199,7 +199,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
                               const ChColor& color);
 
     /// Output data for all modeling components in the track test rig system.
-    virtual void Output(int frame, ChVehicleOutput& database) const override;
+    virtual void Output(int frame, ChOutput& database) const override;
 
     /// Collect data for plotting
     void CollectPlotData(double time);

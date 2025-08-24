@@ -303,7 +303,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 };
 
 /// @} vehicle_wheeled_suspension

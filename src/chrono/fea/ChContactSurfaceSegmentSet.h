@@ -32,7 +32,7 @@ namespace fea {
 
 /// Contact segment for FEA elements that use XYZ nodes.
 /// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
-class ChApi ChContactSegmentXYZ : public ChContactable_2vars {
+class ChApi ChContactSegmentXYZ : public ChContactable {
   public:
     ChContactSegmentXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
                         std::shared_ptr<ChNodeFEAxyz> node2,
@@ -161,7 +161,7 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars {
 
 /// Contact segment for FEA elements that use XYZRot nodes.
 /// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
-class ChApi ChContactSegmentXYZRot : public ChContactable_2vars /*, public ChLoadableU*/ {
+class ChApi ChContactSegmentXYZRot : public ChContactable /*, public ChLoadableU*/ {
   public:
     ChContactSegmentXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
                            std::shared_ptr<ChNodeFEAxyzrot> node2,

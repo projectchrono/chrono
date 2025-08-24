@@ -189,7 +189,7 @@ class CH_VEHICLE_API ChPitmanArmShafts : public ChSteering {
   private:
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     bool m_rigid;  ///< true for a rigid steering column
 

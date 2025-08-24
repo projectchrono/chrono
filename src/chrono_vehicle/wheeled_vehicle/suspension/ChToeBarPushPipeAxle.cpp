@@ -621,7 +621,7 @@ void ChToeBarPushPipeAxle::ExportComponentList(rapidjson::Document& jsonDocument
     ChPart::ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChToeBarPushPipeAxle::Output(ChVehicleOutput& database) const {
+void ChToeBarPushPipeAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

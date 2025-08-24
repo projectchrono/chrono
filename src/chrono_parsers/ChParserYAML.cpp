@@ -1419,9 +1419,9 @@ ChJoint::Type ChParserYAML::ReadJointType(const YAML::Node& a) {
     std::string type = ToUpper(a.as<std::string>());
     if (type == "LOCK") {
         return ChJoint::Type::LOCK;
-    } else if (type == "POINT LINE") {
+    } else if (type == "POINT_LINE") {
         return ChJoint::Type::POINTLINE;
-    } else if (type == "POINT PLANE") {
+    } else if (type == "POINT_PLANE") {
         return ChJoint::Type::POINTPLANE;
     } else if (type == "REVOLUTE") {
         return ChJoint::Type::REVOLUTE;
@@ -1569,18 +1569,19 @@ utils::ChBodyGeometry ChParserYAML::ReadGeometry(const YAML::Node& d) {
                     utils::ChBodyGeometry::ConvexHullsShape(GetDatafilePath(filename), matID));
             } else if (type == "MESH") {
                 ChAssertAlways(shape["filename"]);
-                ChAssertAlways(shape["contact_radius"]);
                 std::string filename = shape["filename"].as<std::string>();
-                double radius = shape["contact_radius"].as<double>();
                 ChVector3d pos = VNULL;
                 ChQuaterniond rot = QUNIT;
                 double scale = 1;
+                double radius = 0;
                 if (shape["location"])
                     pos = ChParserYAML::ReadVector(shape["location"]);
                 if (shape["orientation"])
                     rot = ChParserYAML::ReadRotation(shape["orientation"]);
                 if (shape["scale"])
                     scale = shape["scale"].as<double>();
+                if (shape["contact_radius"])
+                    radius = shape["contact_radius"].as<double>();
                 geometry.coll_meshes.push_back(
                     utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale, radius, matID));
             }

@@ -226,7 +226,7 @@ void ChDistanceIdler::ExportComponentList(rapidjson::Document& jsonDocument) con
     ExportJointList(jsonDocument, joints);
 }
 
-void ChDistanceIdler::Output(ChVehicleOutput& database) const {
+void ChDistanceIdler::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

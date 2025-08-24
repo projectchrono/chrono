@@ -400,7 +400,7 @@ void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) c
     ExportCouplesList(jsonDocument, couples);
 }
 
-void ChPitmanArmShafts::Output(ChVehicleOutput& database) const {
+void ChPitmanArmShafts::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

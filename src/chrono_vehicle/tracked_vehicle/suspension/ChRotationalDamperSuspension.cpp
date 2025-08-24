@@ -243,7 +243,7 @@ void ChRotationalDamperSuspension::ExportComponentList(rapidjson::Document& json
     ExportRotSpringList(jsonDocument, rot_springs);
 }
 
-void ChRotationalDamperSuspension::Output(ChVehicleOutput& database) const {
+void ChRotationalDamperSuspension::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

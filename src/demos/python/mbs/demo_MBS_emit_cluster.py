@@ -172,7 +172,7 @@ sys.GetSolver().AsIterative().SetMaxIterations(40)
 sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Add one force accumulator to each body in the system
-for body in sys.GetBodies()
+for body in sys.GetBodies():
     body.AddAccumulator()
 
 # Simulation loop

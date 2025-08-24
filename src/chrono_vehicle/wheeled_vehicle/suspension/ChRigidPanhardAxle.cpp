@@ -425,7 +425,7 @@ void ChRigidPanhardAxle::ExportComponentList(rapidjson::Document& jsonDocument) 
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChRigidPanhardAxle::Output(ChVehicleOutput& database) const {
+void ChRigidPanhardAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

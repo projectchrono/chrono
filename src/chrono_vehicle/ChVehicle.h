@@ -25,10 +25,10 @@
 #include <numeric>
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/output/ChOutput.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPowertrainAssembly.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -217,14 +217,14 @@ class CH_VEHICLE_API ChVehicle {
     void SetCollisionSystemType(ChCollisionSystem::Type collsys_type);
 
     /// Enable output for this vehicle system.
-    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
+    void SetOutput(ChOutput::Type type,   ///< [int] type of output DB
                    const std::string& out_dir,   ///< [in] output directory name
                    const std::string& out_name,  ///< [in] rootname of output file
                    double output_step            ///< [in] interval between output times
     );
 
     /// Enable output for this vehicle system using an existing output stream.
-    void SetOutput(ChVehicleOutput::Type type,  ///< [int] type of output DB
+    void SetOutput(ChOutput::Type type,  ///< [int] type of output DB
                    std::ostream& out_stream,    ///< [in] output stream
                    double output_step           ///< [in] interval between output times
     );
@@ -280,7 +280,7 @@ class CH_VEHICLE_API ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const {}
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(int frame, ChVehicleOutput& database) const {}
+    virtual void Output(int frame, ChOutput& database) const {}
 
   protected:
     /// Construct a vehicle system with an underlying ChSystem.
@@ -317,8 +317,7 @@ class CH_VEHICLE_API ChVehicle {
     ChFrame<> m_com;         ///< current vehicle COM (relative to the vehicle reference frame)
     ChMatrix33<> m_inertia;  ///< current total vehicle inertia (Relative to the vehicle COM frame)
 
-    bool m_output;                 ///< generate ouput for this vehicle system
-    ChVehicleOutput* m_output_db;  ///< vehicle output database
+    ChOutput* m_output_db;  ///< vehicle output database (no output if nullptr)
     double m_output_step;          ///< output time step
     double m_next_output_time;     ///< time for next output
     int m_output_frame;            ///< current output frame

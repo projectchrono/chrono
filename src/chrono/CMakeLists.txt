@@ -71,7 +71,7 @@ set(Chrono_serialization_SOURCES
     serialization/ChObjectExplorer.cpp
     serialization/ChArchiveJSON.cpp
     serialization/ChArchiveXML.cpp
-    serialization/ChOutputASCII.cpp
+    serialization/ChArchiveASCII.cpp
     )
 set(Chrono_serialization_HEADERS
     serialization/ChArchive.h
@@ -79,7 +79,7 @@ set(Chrono_serialization_HEADERS
     serialization/ChObjectExplorer.h
     serialization/ChArchiveJSON.h
     serialization/ChArchiveXML.h
-    serialization/ChOutputASCII.h
+    serialization/ChArchiveASCII.h
     )
 source_group(serialization FILES ${Chrono_serialization_SOURCES} ${Chrono_serialization_HEADERS})
 
@@ -1124,6 +1124,27 @@ if(BUILD_BENCHMARKING)
 endif()
 source_group(utils FILES ${Chrono_utils_SOURCES} ${Chrono_utils_HEADERS})
 
+# Output group
+
+set(Chrono_output_HEADERS
+    output/ChOutput.h
+    output/ChOutputASCII.h
+)
+set(Chrono_output_SOURCES
+    output/ChOutputASCII.cpp
+)
+if (HDF5_FOUND)
+    set(Chrono_output_HEADERS ${Chrono_output_HEADERS}
+        output/ChOutputHDF5.h
+    )
+    set(Chrono_output_SOURCES ${Chrono_output_SOURCES}
+        output/ChOutputHDF5.cpp
+    )
+endif()
+source_group(output FILES ${Chrono_output_SOURCES} ${Chrono_output_HEADERS})
+
+
+
 # -------------------------------------------------------------------------------------------------
 # Third-party files
 # -------------------------------------------------------------------------------------------------
@@ -1269,6 +1290,7 @@ set(Chrono_SOURCES
     ${Chrono_collision_multicore_SOURCES}
     ${Chrono_collision_bullet_SOURCES}
     ${Chrono_utils_SOURCES}
+    ${Chrono_output_SOURCES}
 )
 
 set(Chrono_HEADERS
@@ -1300,6 +1322,7 @@ set(Chrono_HEADERS
     ${Chrono_collision_multicore_HEADERS}
     ${Chrono_collision_bullet_HEADERS}
     ${Chrono_utils_HEADERS}
+    ${Chrono_output_HEADERS}
 )
 
 set(Chrono_thirdparty_FILES
@@ -1402,6 +1425,28 @@ endif()
 
 if(UNIX)
   target_link_libraries(Chrono_core PUBLIC pthread)
+endif()
+
+if(HDF5_FOUND)
+    if(TARGET hdf5::hdf5-static)
+        message(STATUS "Linking static HDF5 libraries")
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5-static)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_cpp-static)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl-static)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl_cpp-static)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_tools-static)
+    elseif(TARGET hdf5::hdf5-shared)
+        message(STATUS "Linking shared HDF5 libraries")
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5-shared)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_cpp-shared)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl-shared)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl_cpp-shared)
+        target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_tools-shared)
+    else()
+        target_compile_definitions(Chrono_core PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${HDF5_COMPILE_DEFS}>)
+        target_include_directories(Chrono_core PUBLIC ${HDF5_INCLUDE_DIRS})
+        target_link_libraries(Chrono_core PUBLIC ${HDF5_CXX_LIBRARIES})
+    endif()
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.

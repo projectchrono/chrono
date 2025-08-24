@@ -118,7 +118,7 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     ElementType m_element_type;
     bool m_constrain_curvature;

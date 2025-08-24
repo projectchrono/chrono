@@ -28,7 +28,7 @@ namespace fea {
 /// @{
 
 /// Proxy to FEA nodes, to grant them the features needed for collision detection.
-class ChApi ChContactNodeXYZ : public ChContactable_1vars {
+class ChApi ChContactNodeXYZ : public ChContactable {
   public:
     ChContactNodeXYZ(ChNodeFEAxyz* node = nullptr, ChContactSurface* contact_surface = nullptr);
 
@@ -147,7 +147,7 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars {
 // currently not the case. As such, we need to also implement this ChContactNodeXYZRot as a proxy to ChNodeFEAxyzrot.
 
 /// Proxy to FEA nodes with 3 xyz + 3 rot coords, to grant them the features needed for collision detection.
-class ChApi ChContactNodeXYZRot : public ChContactable_1vars {
+class ChApi ChContactNodeXYZRot : public ChContactable {
   public:
     ChContactNodeXYZRot(ChNodeFEAxyzrot* node = nullptr, ChContactSurface* contact_surface = nullptr);
 
