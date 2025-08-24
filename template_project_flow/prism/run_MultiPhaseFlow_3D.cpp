@@ -238,38 +238,50 @@ int main(int argc, char** argv) {
     // Create a material, that must be assigned to each element and set its parameters
     auto mmaterial = chrono_types::make_shared<ChFlow3D>();
     //mmaterial->SetSpecificHeatCapacity(1.1E6);
-    mmaterial->SetMoistureCapacity(3.4E-7);
-    mmaterial->SetDiffusivityConstants(1.5, 0.00005, 1.5);
+    //mmaterial->SetMoistureCapacity(3.4E-7);
+    mmaterial->SetDiffusivityConstants(1.5,0.00005,1.5);
+    mmaterial->SetDiffusionParameters(
+        2700.0,        // Eas_over_R [K]
+        6.0 / 3600,    //0.607/3600,  // D*_1 [mm^2/s] (D_1=D*_1*c [kg/m/s]) 
+        0.085 / 3600, //0.0054/3600, // D*_0 [mm^2/s] (D_0=D*_0*c [Kg/m/s])
+        3.0            //n_h [-]
+    );
     //mmaterial->SetDiffusivityConstants(2.5, 2.5, 2.5);
     //mmaterial->SetDensity(2400);
     mmaterial->SetDensity(2329.0E-9);
     mmaterial->SetHydrationParameters(
-    0.7,          // water to cement ratio
+    0.4,          // water to cement ratio
     4167.0,       // A1c [1/s]
-    0.05,         // A2c [-]
+    0.005,         // A2c [-]
     8.0,          // eta_c [-]
     5.5,          // a_fi [-]
     4.0,          // b_fi [-]
-    5000.0,       // Eac/R [K]
-    1.032 * 0.7 / (0.194 + 0.7) // alpha_infinity [-]
+    5000.0       // Eac/R [K]
+    );
+    mmaterial->SetSilicaReactionParameters(
+    9700.0,               // Eas_over_R [K]
+    20.0e+11/3600,        // B1_S [1/s]
+    1.0e-6,               // B2_S [-]
+    8.0,                  // B3_S [-]
+    0.9                   // B5_S [-]
     );
     mmaterial->SetHeatParameters(
-    1.1E6,         // ct
-    1.5,           // Heat conductivity
-    500.0E6,       // Cement hydration heat Q_hydr_inf
-    780.0E6        // Silica fume hydration heat Q_S_inf
+    1.1E6,         // ct specific Heat capacity (J/(kg*K)) 1J=1N*m = N*mm/kg/K
+    1.5,           // Heat conductivity (W/(m*K))  1 W=1 N*m/s = N/s/K
+    500.0E6,       // Cement hydration heat Q_hydr_inf (range 400~550 kJ/kg) [N*mm/kg]
+    780.0E6        // Silica fume hydration heat Q_S_inf [N*mm/kg]
     );
 
     mmaterial->SetMatParameters(
-    2329.0E-9,      // Density
-    446.0E-9,          // cement content
-    0.0E-9,            // SILICA content
-    789E-9,            // AGGREGATE content
-    0.253,          // k_c
-    1.5,            // g_1
-    0.25,           // k_vg_c
-    0.36,           // k_vg_s
-    1500.0          // Q_over_R
+    2329.0E-9,      // Density kg/mm^3
+    446.0E-9,       // cement content kg/mm^3
+    50.0E-9,         // SILICA content kg/mm^3
+    789E-9,         // AGGREGATE content kg/mm^3
+    0.253,          // k_c  [-]
+    1.5,            // g_1  [-]
+    0.25,           // k_vg_c [-]
+    0.36,           // k_vg_s [-]
+    1500.0          // Q_over_R [K]
     );
 
 
@@ -294,16 +306,17 @@ int main(int argc, char** argv) {
 
     for (unsigned int iele = 0; iele < my_mesh->GetNumElements(); iele++) {
         if (auto elem = std::dynamic_pointer_cast<ChElementSpringPPP>(my_mesh->GetElement(iele))) {
-            ChVectorDynamic<> ElStateTemp(8);
-            ElStateTemp(0) = 0.0; 
-            ElStateTemp(1) = 0.0; // dalpha_dt
-            ElStateTemp(2) = 0.0; 
-            ElStateTemp(3) = 0.0;
-            ElStateTemp(4) = 3.4E-7; 
-            ElStateTemp(5) = 312.2e-9;
-            ElStateTemp(6) = 1.0; 
-            ElStateTemp(7) = 0.0;
-            elem->SetElementStateVariable(ElStateTemp);
+            ChVectorDynamic<> elem_state(8);
+            elem_state(0) = 0.0; 
+            elem_state(1) = 0.0; // dalpha_dt
+            elem_state(2) = 0.0; 
+            elem_state(3) = 0.0;
+            elem_state(4) = 0.0; 
+            elem_state(5) = 0.0;
+            elem_state(6) = 0.0; 
+            elem_state(7) = 0.0;
+            elem_state(8) = 0.0;
+            elem->SetElementStateVariable(elem_state);
         }
     }
 
@@ -313,9 +326,9 @@ int main(int argc, char** argv) {
     // for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
     //     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i));
     //     auto cz=node->GetPos().z();
-    //     if (cz <= 499.0 && cz >= 1.0) {
+    //     if (cz <= 499.9 && cz >= 0.1) {
     //         all_nodes.push_back(node);
-    //         node->SetFixed(true);   
+    //         //node->SetFixed(true);   
     //         node->SetFieldVal(Initialcondition);  // field: temperature [K]  	     	
     //     }       
     // }
@@ -327,32 +340,42 @@ int main(int argc, char** argv) {
     }
 
     // Select the nodes on the top surface of the mesh
-    // ChVector3d RightBC(0.0, 0.0, 0.0);
-    // std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> top_nodes;	    
-    // for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
-    //     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
-    //     auto cz=node->GetPos().z();
-    //     if (cz>499.0) {
-    //     //if (cz>0.049) {
-    //     	top_nodes.push_back(node);  
-    //         node->SetFixed(true);   
-    //         node->SetFieldVal(RightBC);  // field: temperature [K]	     	
-    //     }       
-    // }
+    // ChVector3d RightBC(283.0, 1.0, 283.0); // saturated condition
+    //   ChVector3d RightBC(293.0, 0.5, 293.0); // isotherm condition
+    // ChVector3d RightBC(293.0, 1.0, 293.0); 
+     //std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> top_nodes;	    
+     //for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
+     //    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
+     //    auto cz=node->GetPos().z();
+     //    if (cz>499.9) {
+     //    //if (cz>0.049) {
+     //    	top_nodes.push_back(node);  
+     //        node->SetFixed(true); 
+     //        // node->SetFixedX(true);
+     //        // node->SetFixedY(false);
+     //        // node->SetFixedZ(false);
+     //        node->SetFieldVal(RightBC);  // field: temperature [K]	     	
+     //    }       
+     //}
 
     // Select the nodes on the bottom surface of the mesh
-    // ChVector3d LeftBC(393.0, 1.0, 393.0);
-    // std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> bottom_nodes;
-    // for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
-    //     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
-    //     auto cz=node->GetPos().z();
-    //     if (cz<1.0) {
-    //     //if (cz<0.01) {
-    //     	bottom_nodes.push_back(node);    
-    //         node->SetFixed(true);    
-    //         node->SetFieldVal(LeftBC);  // field: temperature [K]	   	
-    //     }       
-    // }
+    // ChVector3d LeftBC(283.0, 1.0, 283.0);
+    //   ChVector3d LeftBC(293.0, 0.5, 293.0);
+    // ChVector3d LeftBC(293.0, 1.0, 293.0);
+     //std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> bottom_nodes;
+     //for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
+     //    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
+     //    auto cz=node->GetPos().z();
+     //    if (cz<0.1) {
+     //    //if (cz<0.01) {
+     //    	bottom_nodes.push_back(node);    
+     //        node->SetFixed(true); 
+     //        // node->SetFixedX(true);
+     //        // node->SetFixedY(false);
+     //        // node->SetFixedZ(false);   
+     //        node->SetFieldVal(LeftBC);  // field: temperature [K]	   	
+     //    }       
+     //}
        
     // We do not want gravity effect on FEA elements in this demo
     my_mesh->SetAutomaticGravity(false);
@@ -380,8 +403,8 @@ int main(int argc, char** argv) {
     // Use MINRES solver to handle stiffness matrices.
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sys.SetSolver(solver);
-    solver->SetMaxIterations(150);
-    solver->SetTolerance(1e-6);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-15);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(true);
@@ -393,7 +416,9 @@ int main(int argc, char** argv) {
     // print temperature at the nodes along x axis and y=0
     for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(inode))) {
-            if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6) {
+            //if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6) {
+            if (abs(mnode->GetPos().z() - 250.0) < 0.5) {
+            // if (abs(mnode->GetPos().z() - 0.0) < 2) {
                 histfile  << "0.0" << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " " << mnode->GetFieldVal().y() << "\n";
             }
         }
@@ -401,11 +426,16 @@ int main(int argc, char** argv) {
 
     std::ofstream histfile1;
     histfile1.open(out_dir+history_filename1, std::ios::out);   
-    histfile1  << "time" << " "  << "element ID" << " " << "ALPHA" <<  "\n";
+    histfile1  << "time" << " "  << "element ID" << " " <<"node" << " " << "ALPHA" << " " << "Silica reaction" <<  "\n";
     for (unsigned int iele = 0; iele < my_mesh->GetNumElements(); iele++) {
             if (auto elementBm = std::dynamic_pointer_cast<ChElementSpringPPP>(my_mesh->GetElement(iele)))  {
-                //histfile1  << "0.0" << " " << elementBm->GetAlpha() << "\n";
-                histfile1 << "0.0" << " " << iele << " " << elementBm->GetAlpha() << "\n";
+                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(elementBm->GetNode(0));
+                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(elementBm->GetNode(1));
+                double z_center = 0.5 * (node0->GetPos().z() + node1->GetPos().z());
+                if (std::abs(z_center - 250.0) < 0.5) {
+                        histfile1 << "0.0" << " " << iele << " " << z_center << " " << elementBm->GetAlpha() << " " << elementBm->GetAlphas() << "\n";
+                }
+               // histfile1 << "0.0" << " " << iele << " " << elementBm->GetAlpha() << "\n";
             }
     }
     
@@ -417,10 +447,10 @@ int main(int argc, char** argv) {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     std::cout << "DYNAMIC ANALYSIS STARTED! \n\n";
 
-    double timestep = 2*24*36; //3153600.0; // seconds
-    double simtime = 2*24*3600; //20 * 365 * 24 * 60 * 60; // seconds
+    double timestep = 3600; //2*24*36; //3153600.0; // seconds
+    double simtime = 2200*3600; //350*3600; //20 * 365 * 24 * 60 * 60; // seconds
     int stepnum=0;
-    int VTKint=10;
+    int VTKint=2;
     int HISTint=5;
 
     // Write VTK file for nodal temperature
@@ -468,8 +498,10 @@ int main(int argc, char** argv) {
         // }
             for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(inode))) {
-                    if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6) {
-                        histfile  << sim_time << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " " << mnode->GetFieldVal().y() << "\n";
+                    //if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6 && abs(mnode->GetPos().z() - 250.0) < 8.0) {
+                    if (abs(mnode->GetPos().z() - 250.0) < 0.5) {
+                    //if (abs(mnode->GetPos().z() - 0.0) < 2) {
+                        histfile  << sim_time/3600 << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " " << mnode->GetFieldVal().y() << "\n";
                     }
                 }
             }
@@ -479,8 +511,12 @@ int main(int argc, char** argv) {
         if (stepnum % VTKint == 0) {
             for (unsigned int iele = 0; iele < my_mesh->GetNumElements(); iele++) {
                 if (auto elementBm = std::dynamic_pointer_cast<ChElementSpringPPP>(my_mesh->GetElement(iele)))  {
-                    //histfile << sim_time << " " << iele << " " << elementBm->GetAlpha() << "\n";
-                    histfile1 << sim_time << " " << iele << " " << elementBm->GetAlpha() << "\n";
+                    auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(elementBm->GetNode(0));
+                    auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(elementBm->GetNode(1));
+                    double z_center = 0.5 * (node0->GetPos().z() + node1->GetPos().z());
+                    if (std::abs(z_center - 250.0) < 0.5) {
+                        histfile1 << sim_time/3600 << " " << iele << " " << z_center << " " << elementBm->GetAlpha() << " " << elementBm->GetAlphas() << "\n";
+                    }
                 }
             }
         }
