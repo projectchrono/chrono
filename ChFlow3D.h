@@ -105,11 +105,20 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       // ConstitutiveMatrix(2,1) = 0.0;      
       // ConstitutiveMatrix(2,2) *= 1.0;
 
+      double Qh_R = this->GetQh_R();
+      double D1 = this->GetD1();
+      double D0 = this->GetD0();
+      double nh = this->Getnh();
+
+      double ixs = std::exp(Qh_R/296.0 - Qh_R/tp);
+      double k_inf = D1/(1.0+(D1/D0-1.0)*(std::pow((1.0-std::min(hp,1.0)),nh)));            
+      double Dh = ixs * k_inf;
+
       ConstitutiveMatrix(0,0) *= 1.0;
       ConstitutiveMatrix(0,1) = 0.0;
       ConstitutiveMatrix(0,2) = 0.0; 
       ConstitutiveMatrix(1,0) = 0.0;    
-      ConstitutiveMatrix(1,1) *= 1.0;
+      ConstitutiveMatrix(1,1) = 1.0 * Dh;
       ConstitutiveMatrix(1,2) = 0.0;
       ConstitutiveMatrix(2,0) = 0.0;
       ConstitutiveMatrix(2,1) = 0.0;      
@@ -119,7 +128,7 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
     }
 
     /// Compute the mass matrix
-    ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixM(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP, double m_cap) override {
+    ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixM(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP) override {
       // Retrieve element interpolated nodal values 
       double tp = NValP(0);
       double hp = NValP(1);
@@ -129,6 +138,9 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       double tDtp = NValDtP(0);
       double hDtp = NValDtP(1);
       double thirdVarDtp = NValDtP(2);
+
+      double m_cap = GetCurrentCap();
+      //std::cout << "m_cap = " << m_cap;
     
       // define M(h, T, ...) 
       // ConstitutiveMatrixM(0,0) = 1.0 * m_density * c_mass_specific_heat_capacity ;
@@ -141,7 +153,7 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       // ConstitutiveMatrixM(2,1) *= 1.0;
       // ConstitutiveMatrixM(2,2) = 1.0 * m_density * c_mass_specific_heat_capacity;
 
-      ConstitutiveMatrixM(0,0) = 1.0 * m_density * ct ;
+      ConstitutiveMatrixM(0,0) = 1.0 * rho * ct ;
       ConstitutiveMatrixM(0,1) *= 0.0;
       ConstitutiveMatrixM(0,2) *= 0.0;
       ConstitutiveMatrixM(1,0) *= 0.0;
@@ -149,21 +161,22 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       ConstitutiveMatrixM(1,2) *= 0.0;
       ConstitutiveMatrixM(2,0) *= 0.0;
       ConstitutiveMatrixM(2,1) *= 0.0;
-      ConstitutiveMatrixM(2,2) = 1.0 * m_density * ct;
+      ConstitutiveMatrixM(2,2) = 1.0 * rho * ct;
 
-      //std::cout << "m_cap = " << m_cap;
           
       return ConstitutiveMatrixM; 
     }
 
     /// Compute source term vector
-    ChMatrixDynamic<> ComputeUpdatedConstitutiveVectorS(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP, double dalpha_dt) override {
+    ChMatrixDynamic<> ComputeUpdatedConstitutiveVectorS(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP, 
+                                                        double dalpha_dt, double AA,
+                                                        double dalphas_dt, double AAS) override {
       // Retrieve element interpolated nodal values 
       // ChVectorDynamic<> ElStateTemp(4);
       // ElStateTemp = this->GetElementStateVariable();
 
       double tp = NValP(0);
-      double hp = NValP(1);
+      double hp = NValP(1); 
       double thirdVarp = NValP(2);
           
       // Retrieve rate of element interpolated nodal values 
@@ -176,11 +189,14 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       // ConstitutiveVectorS(1) = 0.0;
       // ConstitutiveVectorS(2) = 0.0;
 
-      ConstitutiveVectorS(0) = -CEMENT * Q_hydr_inf * dalpha_dt;
-      ConstitutiveVectorS(1) = k_c * CEMENT * dalpha_dt / CEMENT;
+      //ConstitutiveVectorS(0) = -CEMENT * Q_hydr_inf * dalpha_dt;
+      //ConstitutiveVectorS(1) = (k_c * CEMENT + AA) * dalpha_dt / CEMENT;
+      ConstitutiveVectorS(0) = - CEMENT * Q_hydr_inf * dalpha_dt - SILICA * Q_S_inf * dalphas_dt;
+      ConstitutiveVectorS(1) = ((k_c * CEMENT + AA) * dalpha_dt + AAS * dalphas_dt) / CEMENT;
       ConstitutiveVectorS(2) = 0.0;
 
       //std::cout << "Q_hydr = " << ConstitutiveVectorS(0) << " dalpha_dt_2=" << dalpha_dt;
+      //std::cout << "AA = " << AA;
 
       // printf("CEMENT:      %1.6E\n", CEMENT);
       // printf("Q_hydr_inf:      %1.6E\n", Q_hydr_inf);
