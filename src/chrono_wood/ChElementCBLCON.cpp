@@ -727,18 +727,37 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector3d mstrain;
     ChVector3d mcouple;
     ChVector3d curvature;
-    StateVarVector statev;
+
     this->ComputeStrain(dofs, mstrain, curvature);
-    statev=mysection->Get_StateVar();
     double width=mysection->GetWidth()/2;
     double height=mysection->GetHeight()/2;
     double random_field =mysection->GetRandomField();
-
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
-    mysection->Get_material()->ComputeStress(mstrain, curvature, nonMechanicalStrain, length, statev, area, width, height, random_field, mstress, mcouple);
+    StateVarVector statev_old = mysection->Get_StateVar();
+    StateVarVector statev_new;
+    mysection->Get_material()->ComputeStress(mstrain, curvature, nonMechanicalStrain, length, statev_old, statev_new, area, width, height, random_field, mstress, mcouple);
 
+    mysection->Set_StateVarNew(statev_new);
 
-    mysection->Set_StateVar(statev);
+    // Code below replicates current behavior: updates state variables at every call to ComputeInternalForces, which is incorrect!
+    // TODO: to update at every step, we will need to call the function below (or equivalent, at the end of every step).
+    //       The Element has no idea how the timestepper operates, so we would have to do this outside of this Class.
+    //       and requires modifications to the base parent classes for the elements, and Chrono timestepper behavior.
+    //
+    //       A quick and dirty way to do this for now is to manually update the state variables inside the "run step" loop in the `main()` function of our compiled demos, e.g.:
+    // 
+    //          while (sys.GetChTime() < duration) {
+    //              sys.DoStepDynamics(timestep);
+    //              for (auto& element : my_mesh->GetElements()) {
+    //                  if (auto connector = std::dynamic_pointer_cast<ChElementCBLCON>(element)) {
+    //                      connector->GetSection()->UpdateStateVariables();
+    //                  }
+    //              }
+    //          }
+    // 
+    // 
+
+    mysection->Set_StateVar(statev_new);
 
     ChVector3d force = area * (nmL_tr * mstress);
     ChVector3d xc_xi;

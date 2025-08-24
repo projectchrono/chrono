@@ -36,10 +36,12 @@ ChBeamSectionCBLCON::ChBeamSectionCBLCON( std::shared_ptr<ChWoodMaterialVECT> ma
                                        )
     : m_material{material}, m_area{area}, m_center{center}, m_facetFrame{facetFrame} {
         m_state.setZero();
+        m_state_new.setZero();
 }
 
 ChBeamSectionCBLCON::ChBeamSectionCBLCON() {
 	m_state.setZero();
+    m_state_new.setZero();
 };
 
 ChBeamSectionCBLCON::~ChBeamSectionCBLCON() {};
