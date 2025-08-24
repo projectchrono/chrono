@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Refactoring of Chrono::FSI and the Chrono SPH solver](#changed-refactoring-of-chronofsi-and-the-chrono-sph-solver)
+  - [\[Added\] YAML specification of Chrono models and simulations](#added-yaml-specification-of-chrono-models-and-simulations)
   - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
   - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
   - [\[Added\] New Chrono::VSG features and capabilities](#added-new-chronovsg-features-and-capabilities)
@@ -116,6 +118,26 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Changed] Refactoring of Chrono::FSI and the Chrono SPH solver
+
+The Chrono::FSI module was redesigned in order to:
+- separate the interface between the multibody solver and a fluid solver; 
+- redesign the Chrono SPH solver to seamlessly support different equations of motion (Navier-Stokes for fluid dynamics and continuous representation of granular dynamics);
+- enhance accuracy, robustness, and performance;
+- extend the FSI interface to improve its modeling, visualization, and post-processing capabilities.
+
+Enabling the Chrono::FSI module, now creates two separate libraries: (1) a generic FSI library which allows coupling Chrono rigid and flexible multibody systems to an arbitrary hydrodynamics solver, and (2) an FSI-aware SPH solver which can be coupled through the generic FSI interface to a Chrono multibody simulation.
+
+
+**TODO**
+
+## [Added] YAML specification of Chrono models and simulations
+
+The new `ChParserYAML` parser, available in the Chrono::Parsers module, allows definition of Chrono models and Chrono simulations via specification files in YAML format, thus providing a mechanism for creating, simulating, and visualizing Chrono systems without the need to write (C++, C#, or Python) code.
+Consult the Chrono::Parsers module [documentation](https://api.projectchrono.org/manual_parsers.html) for details on supported modeling elements and the YAML schema of model description and simulation description files.
+
+Currently, the Chrono YAML parser supports rigid multibody systems, with FEA support coming in the near future.
 
 ## [Added] Chrono::Peridynamics module
 

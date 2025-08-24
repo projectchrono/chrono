@@ -96,6 +96,9 @@ int main(int argc, char* argv[]) {
     bool render = parser.Render();
     double render_fps = parser.GetRenderFPS();
     CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
+    const ChVector3d& camera_location = parser.GetCameraLocation();
+    const ChVector3d& camera_target = parser.GetCameraTarget();
+    bool enable_shadows = parser.EnableShadows();
 
     // Print system hierarchy
     ////sys->ShowHierarchy(std::cout);
@@ -124,9 +127,8 @@ int main(int argc, char* argv[]) {
                 vis_irr->Initialize();
                 vis_irr->AddLogo();
                 vis_irr->AddTypicalLights();
-                vis_irr->AddCamera(ChVector3d(2, -6, 0), ChVector3d(2, 0, 0));
+                vis_irr->AddCamera(camera_location, camera_target);
                 vis_irr->AttachSystem(sys.get());
-                vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(VNULL, Q_ROTATE_Y_TO_Z), ChColor(0.4f, 0.4f, 0.4f));
 
                 vis = vis_irr;
 #endif
@@ -138,7 +140,7 @@ int main(int argc, char* argv[]) {
                 auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
                 vis_vsg->AttachSystem(sys.get());
                 vis_vsg->SetWindowTitle("YAML model - " + model_name);
-                vis_vsg->AddCamera(ChVector3d(2, -8, 0), ChVector3d(2, 0, 0));
+                vis_vsg->AddCamera(camera_location, camera_target);
                 vis_vsg->SetWindowSize(1280, 800);
                 vis_vsg->SetWindowPosition(100, 100);
                 vis_vsg->SetBackgroundColor(ChColor(0.4f, 0.45f, 0.55f));
@@ -146,8 +148,9 @@ int main(int argc, char* argv[]) {
                 vis_vsg->SetCameraAngleDeg(40.0);
                 vis_vsg->SetLightIntensity(1.0f);
                 vis_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
-                vis_vsg->EnableShadows();
-                vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(VNULL, Q_ROTATE_Y_TO_Z), ChColor(0.4f, 0.4f, 0.4f));
+                vis_vsg->EnableShadows(enable_shadows);
+                vis_vsg->ToggleAbsFrameVisibility();
+                vis_vsg->SetAbsFrameScale(2.0);
                 vis_vsg->Initialize();
 
                 vis = vis_vsg;
@@ -162,14 +165,18 @@ int main(int argc, char* argv[]) {
     double time = 0;
     int render_frame = 0;
 
-    while (time_end <= 0 || time < time_end) {
-        if (render && time >= render_frame / render_fps) {
+    while (true) {
+        if (render) {
             if (!vis->Run())
                 break;
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
-            render_frame++;
+            if (time >= render_frame / render_fps) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+                render_frame++;
+            }
+        } else if (time_end > 0 || time >= time_end) {
+            break;
         }
 
         sys->DoStepDynamics(time_step);

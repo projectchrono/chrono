@@ -651,7 +651,7 @@ void ChMacPhersonStrut::ExportComponentList(rapidjson::Document& jsonDocument) c
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChMacPhersonStrut::Output(ChVehicleOutput& database) const {
+void ChMacPhersonStrut::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

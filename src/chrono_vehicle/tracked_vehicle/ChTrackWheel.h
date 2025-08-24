@@ -108,7 +108,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     std::shared_ptr<ChBody> m_wheel;                 ///< track wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< wheel revolute joint

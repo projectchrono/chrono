@@ -49,7 +49,7 @@ class ChSystem;
 ///
 /// Further info at the @ref rigid_bodies manual page.
 
-class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
+class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable, public ChLoadableUVW {
   public:
     ChBody();
     ChBody(const ChBody& other);
@@ -536,9 +536,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     // INTERFACE TO ChContactable
 
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
 
-    virtual ChVariables* GetVariables1() override { return &this->variables; }
+    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_1vars<6>(&variables); }
 
     /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() override { return this->IsActive(); }
@@ -599,20 +599,19 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// For a ChBody, this updates the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
     /// Used only for rolling friction NSC contacts.
-    virtual void ComputeJacobianForRollingContactPart(
-        const ChVector3d& abs_point,
-        ChMatrix33<>& contact_plane,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second) override;
+    virtual void ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      ChConstraintTuple* jacobian_tuple_N,
+                                                      ChConstraintTuple* jacobian_tuple_U,
+                                                      ChConstraintTuple* jacobian_tuple_V,
+                                                      bool second) override;
 
     /// Used by some SMC code
     virtual double GetContactableMass() override { return this->GetMass(); }

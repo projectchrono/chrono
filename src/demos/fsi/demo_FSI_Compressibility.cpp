@@ -199,12 +199,14 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
             vis->Render();
             render_frame++;
         }
+#endif
 
         sysFSI.DoStepDynamics(dT);
 

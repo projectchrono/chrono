@@ -712,7 +712,7 @@ void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDo
     ExportRotSpringList(jsonDocument, rot_springs);
 }
 
-void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
+void ChGenericWheeledSuspension::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

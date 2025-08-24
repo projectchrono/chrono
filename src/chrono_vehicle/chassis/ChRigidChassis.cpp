@@ -69,7 +69,7 @@ void ChRigidChassis::ExportComponentList(rapidjson::Document& jsonDocument) cons
     ExportMarkerList(jsonDocument, m_markers);
 }
 
-void ChRigidChassis::Output(ChVehicleOutput& database) const {
+void ChRigidChassis::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -114,7 +114,7 @@ void ChRigidChassisRear::ExportComponentList(rapidjson::Document& jsonDocument) 
     ExportMarkerList(jsonDocument, m_markers);
 }
 
-void ChRigidChassisRear::Output(ChVehicleOutput& database) const {
+void ChRigidChassisRear::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,30 +12,29 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ASCII text vehicle output database.
+// ASCII text Chrono output database.
 //
 // =============================================================================
 
-#ifndef CH_VEHICLE_OUTPUT_ASCII_H
-#define CH_VEHICLE_OUTPUT_ASCII_H
+#ifndef CH_OUTPUT_ASCII_H
+#define CH_OUTPUT_ASCII_H
 
 #include <string>
 #include <fstream>
 
-#include "chrono_vehicle/ChVehicleOutput.h"
+#include "chrono/output/ChOutput.h"
 
 namespace chrono {
-namespace vehicle {
 
-/// @addtogroup vehicle
+/// @addtogroup chrono_output
 /// @{
 
-/// ASCII text vehicle output database.
-class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
+/// ASCII text Chrono output database.
+class ChApi ChOutputASCII : public ChOutput {
   public:
-    ChVehicleOutputASCII(const std::string& filename);
-    ChVehicleOutputASCII(std::ostream& stream);
-    ~ChVehicleOutputASCII();
+    ChOutputASCII(const std::string& filename);
+    ChOutputASCII(std::ostream& stream);
+    ~ChOutputASCII();
 
   private:
     virtual void WriteTime(int frame, double time) override;
@@ -55,9 +54,8 @@ class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
     std::ofstream m_file_stream;
 };
 
-/// @} vehicle
+/// @} chrono_output
 
-}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

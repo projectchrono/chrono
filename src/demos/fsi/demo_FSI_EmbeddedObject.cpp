@@ -158,7 +158,8 @@ int main(int argc, char* argv[]) {
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
             std::string mesh_filename = GetChronoDataFile("models/sphere.obj");
-            geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius, 0.01, 0));
+            geometry->coll_meshes.push_back(
+                utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL, radius, 0.01, 0));
             break;
         }
         case ObjectShape::BOX_PRIMITIVE: {
@@ -307,6 +308,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -323,6 +325,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Call the FSI solver
         fsi.DoStepDynamics(step_size);

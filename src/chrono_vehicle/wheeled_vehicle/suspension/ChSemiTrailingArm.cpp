@@ -362,7 +362,7 @@ void ChSemiTrailingArm::ExportComponentList(rapidjson::Document& jsonDocument) c
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChSemiTrailingArm::Output(ChVehicleOutput& database) const {
+void ChSemiTrailingArm::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

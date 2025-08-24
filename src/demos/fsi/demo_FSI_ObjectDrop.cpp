@@ -48,7 +48,7 @@ using std::endl;
 ChVector3d fsize(0.8, 0.8, 1.2);
 
 // Object type
-enum class ObjectShape { SPHERE_PRIMITIVE, CYLINDER_PRIMITIVE, MESH };
+enum class ObjectShape { BOX_PRIMITIVE, SPHERE_PRIMITIVE, CYLINDER_PRIMITIVE, MESH };
 ObjectShape object_shape = ObjectShape::CYLINDER_PRIMITIVE;
 
 // Mesh specification (for object_shape = ObjectShape::MESH)
@@ -234,6 +234,15 @@ int main(int argc, char* argv[]) {
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     geometry->materials.push_back(ChContactMaterialData());
     switch (object_shape) {
+        case ObjectShape::BOX_PRIMITIVE: {
+            ChVector3d size(0.20, 0.20, 0.10);
+            bottom_offset = size.z() / 2;
+            ChBox box(size);
+            mass = density * box.GetVolume();
+            inertia = mass * box.GetGyration();
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, box));
+            break;
+        }
         case ObjectShape::SPHERE_PRIMITIVE: {
             double radius = 0.12;
             bottom_offset = radius;
@@ -262,7 +271,7 @@ int main(int argc, char* argv[]) {
             inertia *= density;
             bottom_offset = mesh_bottom_offset;
             geometry->coll_meshes.push_back(
-                utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_obj_filename, VNULL, mesh_scale, 0.01, 0));
+                utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_obj_filename, VNULL, mesh_scale, 0.01, 0));
             break;
         }
     }
@@ -283,8 +292,9 @@ int main(int argc, char* argv[]) {
     // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true, true);
 
-    std::cout << "Body mass = " << mass << std::endl;
-    std::cout << "Body inertia\n" << inertia << std::endl;
+    cout << "FSI body: " << endl;
+    cout << "   mass = " << mass << endl;
+    cout << "   inertia\n" << inertia << endl;
 
     // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(fsize.z()));
@@ -297,6 +307,11 @@ int main(int argc, char* argv[]) {
 
     // Initialize FSI problem
     fsi.Initialize();
+
+    auto domain_aabb = fsi.GetComputationalDomain();
+    cout << "Computational domain: " << endl;
+    cout << "   min: " << domain_aabb.min << endl;
+    cout << "   max: " << domain_aabb.max << endl;
 
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Object_Drop/";
@@ -399,6 +414,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -421,6 +437,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Call the FSI solver
         fsi.DoStepDynamics(step_size);

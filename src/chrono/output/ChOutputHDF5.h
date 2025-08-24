@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,31 +12,30 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ASCII text vehicle output database.
+// ASCII text Chrono output database.
 //
 // =============================================================================
 
-#ifndef CH_VEHICLE_OUTPUT_HDF5_H
-#define CH_VEHICLE_OUTPUT_HDF5_H
+#ifndef CH_OUTPUT_HDF5_H
+#define CH_OUTPUT_HDF5_H
 
 #include <string>
 #include <fstream>
 
-#include "chrono_vehicle/ChVehicleOutput.h"
+#include "chrono/output/ChOutput.h"
 
 #include "H5Cpp.h"
 
 namespace chrono {
-namespace vehicle {
 
-/// @addtogroup vehicle
+/// @addtogroup chrono_output
 /// @{
 
-/// HDF5 vehicle output database.
-class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
+/// HDF5 Chrono output database.
+class ChApi ChOutputHDF5 : public ChOutput {
   public:
-    ChVehicleOutputHDF5(const std::string& filename);
-    ~ChVehicleOutputHDF5();
+    ChOutputHDF5(const std::string& filename);
+    ~ChOutputHDF5();
 
   private:
     virtual void WriteTime(int frame, double time) override;
@@ -77,9 +76,8 @@ class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
     static const H5::CompType& getBodyLoadType();
 };
 
-/// @} vehicle
+/// @} chrono_output
 
-}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

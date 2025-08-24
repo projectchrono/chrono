@@ -346,6 +346,7 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
 
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -360,6 +361,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Write penetration depth to file
         double d_pen = fzDim + sphere_radius + 0.5 * init_spacing - sphere->GetPos().z();

@@ -25,6 +25,9 @@ namespace fea {
 ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact_surface) {
     m_node = node;
     m_container = contact_surface;
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_node->Variables());
 }
 
 void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -36,17 +39,21 @@ void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
 
 void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                      ChMatrix33<>& contact_plane,
-                                                     type_constraint_tuple& jacobian_tuple_N,
-                                                     type_constraint_tuple& jacobian_tuple_U,
-                                                     type_constraint_tuple& jacobian_tuple_V,
+                                                     ChConstraintTuple* jacobian_tuple_N,
+                                                     ChConstraintTuple* jacobian_tuple_U,
+                                                     ChConstraintTuple* jacobian_tuple_V,
                                                      bool second) {
     ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<3>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<3>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<3>*>(jacobian_tuple_V);
+
+    tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
@@ -54,17 +61,14 @@ ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
 }
 
 // -----------------------------------------------------------------------------
-//  ChContactNodeXYZsphere
-
-ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* node, ChContactSurface* contact_surface)
-    : ChContactNodeXYZ(node, contact_surface) {}
-
-// -----------------------------------------------------------------------------
 //  ChContactNodeXYZRot
 
 ChContactNodeXYZRot::ChContactNodeXYZRot(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface) {
     m_node = node;
     m_container = contact_surface;
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_node->Variables());
 }
 
 void ChContactNodeXYZRot::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -76,28 +80,26 @@ void ChContactNodeXYZRot::ContactForceLoadResidual_F(const ChVector3d& F,
 
 void ChContactNodeXYZRot::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                         ChMatrix33<>& contact_plane,
-                                                        type_constraint_tuple& jacobian_tuple_N,
-                                                        type_constraint_tuple& jacobian_tuple_U,
-                                                        type_constraint_tuple& jacobian_tuple_V,
+                                                        ChConstraintTuple* jacobian_tuple_N,
+                                                        ChConstraintTuple* jacobian_tuple_U,
+                                                        ChConstraintTuple* jacobian_tuple_V,
                                                         bool second) {
     ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
+
+    tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactNodeXYZRot::GetPhysicsItem() {
     return m_container->GetPhysicsItem();
 }
-
-// -----------------------------------------------------------------------------
-//  ChContactNodeXYZRotSphere
-
-ChContactNodeXYZRotSphere::ChContactNodeXYZRotSphere(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface)
-    : ChContactNodeXYZRot(node, contact_surface) {}
 
 // -----------------------------------------------------------------------------
 //  ChContactSurfaceNodeCloud
@@ -109,7 +111,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> node, cons
     if (!node)
         return;
 
-    auto contact_node = chrono_types::make_shared<ChContactNodeXYZsphere>(node.get(), this);
+    auto contact_node = chrono_types::make_shared<ChContactNodeXYZ>(node.get(), this);
     auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     contact_node->AddCollisionShape(point_shape);
 
@@ -125,7 +127,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, c
     if (!node)
         return;
 
-    auto contact_node = chrono_types::make_shared<ChContactNodeXYZRotSphere>(node.get(), this);
+    auto contact_node = chrono_types::make_shared<ChContactNodeXYZRot>(node.get(), this);
     auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     contact_node->AddCollisionShape(point_shape);
 

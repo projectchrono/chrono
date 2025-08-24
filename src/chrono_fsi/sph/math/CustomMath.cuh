@@ -1588,13 +1588,29 @@ __host__ __device__ inline Real3 sgn(Real3 a) {
 
 __host__ __device__ inline Real3 user_BC_U(Real3 Pos) {
     Real3 vel = make_Real3(0.0, 0.0, 0.0);
-    //   User define fucntion for U goes here
+    //   User define function for U goes here
     if (Pos.z >= 1.025 && Pos.x <= 0.5 && Pos.x >= -0.5) {
         vel = make_Real3(1, 0, 0);
     }
 
     return vel;
 }
+
+// -----------------------------------------------------------------------------
+
+// Given a unit vector x, calculate unit vectors y and z such that [x y z] represents a rotation matrix.
+__host__ __device__ inline void get_orthogonal_axes(const Real3& x, Real3& y, Real3& z) {
+    Real3 y_tmp = make_Real3(0, 1, 0);
+    if (x.y > 0.9 || x.y < -0.9) {
+        y_tmp.x = 1;
+        y_tmp.y = 0;
+    }
+
+    z = get_normalized(cross(x, y_tmp));
+    y = cross(z, x);
+}
+
+// -----------------------------------------------------------------------------
 
 __host__ __device__ inline bool IsFinite(Real3 v) {
 #ifdef __CUDA_ARCH__

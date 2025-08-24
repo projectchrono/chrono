@@ -31,16 +31,17 @@ class ContactReporter (chrono.ReportContactCallback):
         self.m_box2 = box2
         super().__init__()
 
-    def OnReportContact(         self,
-                                 pA,
-                                 pB,
-                                 plane_coord,
-                                 distance,
-                                 eff_radius,
-                                 cforce,
-                                 ctorque,
-                                 modA,
-                                 modB):
+    def OnReportContact(self,
+                        pA,
+                        pB,
+                        plane_coord,
+                        distance,
+                        eff_radius,
+                        cforce,
+                        ctorque,
+                        modA,
+                        modB,
+                        cnstr_offset):
         frc = plane_coord * cforce;
         bodyA = chrono.CastToChBody(modA)
         bodyB = chrono.CastToChBody(modB)

@@ -215,7 +215,7 @@ void ChTrackShoeBandBushing::ExportComponentList(rapidjson::Document& jsonDocume
     ExportBodyLoadList(jsonDocument, m_web_bushings);
 }
 
-void ChTrackShoeBandBushing::Output(ChVehicleOutput& database) const {
+void ChTrackShoeBandBushing::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

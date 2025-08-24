@@ -1,70 +1,70 @@
 
-#include "chrono/serialization/ChOutputASCII.h"
+#include "chrono/serialization/ChArchiveASCII.h"
 
 namespace chrono {
 
-ChOutputASCII::ChOutputASCII(std::ostream& stream_out) : m_ostream(stream_out) {
+ChArchiveOutASCII::ChArchiveOutASCII(std::ostream& stream_out) : m_ostream(stream_out) {
     tablevel = 0;
     use_versions = false;
     suppress_names = false;
 }
-ChOutputASCII::~ChOutputASCII() {}
+ChArchiveOutASCII::~ChArchiveOutASCII() {}
 
-void ChOutputASCII::SetSuppressNames(bool msu) {
+void ChArchiveOutASCII::SetSuppressNames(bool msu) {
     suppress_names = msu;
 }
 
-std::ostream& ChOutputASCII::GetStream() {
+std::ostream& ChArchiveOutASCII::GetStream() {
     return m_ostream;
 }
 
-void ChOutputASCII::indent() {
+void ChArchiveOutASCII::indent() {
     for (int i = 0; i < tablevel; ++i)
         m_ostream << "\t";
 }
-void ChOutputASCII::out(ChNameValue<unsigned int> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<unsigned int> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<char> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<char> bVal) {
     indent();
     m_ostream << bVal.name();
     m_ostream << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<float> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<float> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<double> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<double> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<int> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<int> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<bool> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<bool> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<std::string> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<std::string> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
@@ -72,21 +72,21 @@ void ChOutputASCII::out(ChNameValue<std::string> bVal) {
     m_ostream << bVal.value();
     m_ostream << "\"\n";
 }
-void ChOutputASCII::out(ChNameValue<unsigned long> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<unsigned long> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<unsigned long long> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<unsigned long long> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
     m_ostream << bVal.value();
     m_ostream << "\n";
 }
-void ChOutputASCII::out(ChNameValue<ChEnumMapperBase> bVal) {
+void ChArchiveOutASCII::out(ChNameValue<ChEnumMapperBase> bVal) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "\t";
@@ -95,7 +95,7 @@ void ChOutputASCII::out(ChNameValue<ChEnumMapperBase> bVal) {
     m_ostream << mstr;
     m_ostream << "\"\n";
 }
-void ChOutputASCII::out_array_pre(ChValue& bVal, size_t msize) {
+void ChArchiveOutASCII::out_array_pre(ChValue& bVal, size_t msize) {
     indent();
     if (!suppress_names) {
         m_ostream << bVal.name() << "  ";
@@ -106,8 +106,8 @@ void ChOutputASCII::out_array_pre(ChValue& bVal, size_t msize) {
     m_ostream << "[ \n";
     ++tablevel;
 }
-void ChOutputASCII::out_array_between(ChValue& bVal, size_t msize) {}
-void ChOutputASCII::out_array_end(ChValue& bVal, size_t msize) {
+void ChArchiveOutASCII::out_array_between(ChValue& bVal, size_t msize) {}
+void ChArchiveOutASCII::out_array_end(ChValue& bVal, size_t msize) {
     --tablevel;
     indent();
     m_ostream << "] \n";
@@ -116,7 +116,7 @@ void ChOutputASCII::out_array_end(ChValue& bVal, size_t msize) {
 
 // for custom c++ objects:
 
-void ChOutputASCII::out(ChValue& bVal, bool tracked, size_t obj_ID) {
+void ChArchiveOutASCII::out(ChValue& bVal, bool tracked, size_t obj_ID) {
     indent();
     if (!suppress_names)
         m_ostream << bVal.name() << "  ";
@@ -130,7 +130,7 @@ void ChOutputASCII::out(ChValue& bVal, bool tracked, size_t obj_ID) {
     bVal.CallArchiveOut(*this);
     --tablevel;
 }
-void ChOutputASCII::out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
+void ChArchiveOutASCII::out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
     const char* classname = bVal.GetClassRegisteredName().c_str();
     indent();
     if (!suppress_names)

@@ -667,7 +667,7 @@ void ChToeBarRigidPanhardAxle::ExportComponentList(rapidjson::Document& jsonDocu
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChToeBarRigidPanhardAxle::Output(ChVehicleOutput& database) const {
+void ChToeBarRigidPanhardAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

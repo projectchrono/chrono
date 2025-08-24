@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,17 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a vehicle output database.
+// Base class for a Chrono output database.
 //
 // =============================================================================
 
-#ifndef CH_VEHICLE_OUTPUT_H
-#define CH_VEHICLE_OUTPUT_H
+#ifndef CH_OUTPUT_H
+#define CH_OUTPUT_H
 
 #include <vector>
 #include <string>
 
-#include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono/core/ChApiCE.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -35,22 +35,21 @@
 #include "chrono/physics/ChLoadsBody.h"
 
 namespace chrono {
-namespace vehicle {
 
-/// @addtogroup vehicle
+/// @addtogroup chrono_output
 /// @{
 
-/// Base class for a vehicle output database.
-class CH_VEHICLE_API ChVehicleOutput {
+/// Base class for a Chrono output database.
+class ChApi ChOutput {
   public:
-    enum Type {
+    enum class Type {
         ASCII,  ///< ASCII text
-        JSON,   ///< JSON
-        HDF5    ///< HDF-5
+        HDF5,   ///< HDF-5
+        NONE    ///< no output
     };
 
-    ChVehicleOutput() {}
-    virtual ~ChVehicleOutput() {}
+    ChOutput() {}
+    virtual ~ChOutput() {}
 
     virtual void WriteTime(int frame, double time) = 0;
 
@@ -67,9 +66,8 @@ class CH_VEHICLE_API ChVehicleOutput {
     virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
 };
 
-/// @} vehicle
+/// @} chrono_output
 
-}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

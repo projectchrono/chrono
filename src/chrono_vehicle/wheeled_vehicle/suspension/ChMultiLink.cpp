@@ -750,7 +750,7 @@ void ChMultiLink::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChMultiLink::Output(ChVehicleOutput& database) const {
+void ChMultiLink::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

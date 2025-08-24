@@ -83,17 +83,36 @@ int main(int argc, char* argv[]) {
     my_python.Run("print('In:Python - Passed variable d from c++, d=', d)");
 
     //
-    // TEST 5   -   errors and exceptions
+    // TEST 5   -   set/retrieve numeric containers to/from a python list variable (in __main__ namespace)
+    //
+
+    std::cout << "\n\n PyChrono Test 5.\n";
+    std::vector<double> stdvec = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0};  // input as std::vector
+    my_python.SetList("numvec", stdvec);
+    my_python.Run("numvec = [ii * 2 for ii in numvec]\n");  // double each element
+    ChVectorDynamic<> eigvec;
+    my_python.GetList("numvec", eigvec);  // retrieve it as ChVectorDynamic<>, if desired
+    std::cout << "Doubled C++ numeric vector: " << eigvec.transpose() << "\n";
+
+    ChMatrixDynamic<> mymatr(3, 3);
+    mymatr.setIdentity();
+    my_python.SetMatrix("matr", mymatr);
+    my_python.Run("matr = [[ii * 3 for ii in row] for row in matr]\n");  // triple each element
+    my_python.GetMatrix("matr", mymatr);
+    std::cout << "Tripled C++ numeric matrix:\n" << mymatr << "\n";
+
+    //
+    // TEST 6   -   errors and exceptions
     //
 
     // In the previous examples we didn't have any syntax errors.
     // In general, it is wise to enclose Python commands in a try-catch block
     // because errors are handled with exceptions:
 
-    std::cout << "\n\n PyChrono Test 5.\n";
+    std::cout << "\n\n PyChrono Test 6.\n";
     try {
         my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
-    } catch (std::exception) {
+    } catch (std::exception&) {
         std::cout << "Ok, Python parsing error caught as expected.\n";
     }
 

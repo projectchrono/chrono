@@ -17,7 +17,7 @@
 #include <list>
 
 #include "chrono/physics/ChContactContainer.h"
-#include "chrono/physics/ChContactTuple.h"
+#include "chrono/physics/ChContact.h"
 #include "chrono/collision/multicore/ChCollisionData.h"
 #include "chrono_multicore/ChApiMulticore.h"
 #include "chrono_multicore/ChDataManager.h"
@@ -30,8 +30,6 @@ namespace chrono {
 /// Class representing a container of many contacts, implemented as a linked list of contact tuples.
 class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
   public:
-    typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;
-
     ChContactContainerMulticore(ChMulticoreDataManager* dc);
     ChContactContainerMulticore(const ChContactContainerMulticore& other);
     virtual ~ChContactContainerMulticore();
@@ -73,7 +71,7 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
 
     /// Return the list of contacts between rigid bodies
-    const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }
+    const std::list<ChContact*>& GetContactList() const { return contacts; }
 
     /// Process the contact between the two specified collision shapes on the two specified bodies
     /// (compute composite material properties and load in global data structure).
@@ -82,9 +80,9 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     ChMulticoreDataManager* data_manager;
 
   protected:
-    int n_added_6_6;
-    std::list<ChContact_6_6*> contactlist_6_6;
-    std::list<ChContact_6_6*>::iterator lastcontact_6_6;
+    int n_added;
+    std::list<ChContact*> contacts;
+    std::list<ChContact*>::iterator last_contact;
 
     using ChContactContainer::AddContact;
 

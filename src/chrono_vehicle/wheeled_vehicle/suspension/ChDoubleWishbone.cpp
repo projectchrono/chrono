@@ -658,7 +658,7 @@ void ChDoubleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChDoubleWishbone::Output(ChVehicleOutput& database) const {
+void ChDoubleWishbone::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

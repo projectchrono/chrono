@@ -277,6 +277,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render SPH particles
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -292,6 +293,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         if (sim_frame % 1000 == 0) {
             std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRtf() << std::endl;

@@ -583,7 +583,7 @@ void ChSolidBellcrankThreeLinkAxle::ExportComponentList(rapidjson::Document& jso
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChSolidBellcrankThreeLinkAxle::Output(ChVehicleOutput& database) const {
+void ChSolidBellcrankThreeLinkAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

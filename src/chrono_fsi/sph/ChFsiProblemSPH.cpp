@@ -69,10 +69,6 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     m_sysFSI.SetVerbose(m_verbose);
 }
 
-ChFsiProblemCartesian::ChFsiProblemCartesian(ChSystem& sys, double spacing) : ChFsiProblemSPH(sys, spacing) {}
-
-ChFsiProblemCylindrical::ChFsiProblemCylindrical(ChSystem& sys, double spacing) : ChFsiProblemSPH(sys, spacing) {}
-
 void ChFsiProblemSPH::SetVerbose(bool verbose) {
     m_sysFSI.SetVerbose(verbose);
     m_verbose = verbose;
@@ -137,12 +133,13 @@ void ChFsiProblemSPH::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
 }
 
 void ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
-                                       const ChVector3d& pos,
+                                       const ChFramed& pos,
                                        const std::string& obj_filename,
                                        const ChVector3d& interior_point,
                                        double scale) {
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-    geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, interior_point, scale));
+    geometry->coll_meshes.push_back(
+        utils::ChBodyGeometry::TrimeshShape(pos.GetPos(), pos.GetRot(), obj_filename, interior_point, scale));
     AddRigidBody(body, geometry, true, true);
 }
 
@@ -647,6 +644,8 @@ void ChFsiProblemSPH::WriteReconstructedSurface(const std::string& dir, const st
 
 // ============================================================================
 
+ChFsiProblemCartesian::ChFsiProblemCartesian(ChSystem& sys, double spacing) : ChFsiProblemSPH(sys, spacing) {}
+
 void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {
     if (m_verbose) {
         cout << "Construct ChFsiProblemSPH from data files" << endl;
@@ -1011,14 +1010,32 @@ size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // bo
     return m_bce.size();
 }
 
-std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
-    WavemakerType type,                        // wave generator type
-    const ChVector3d& pos,                     // reference position
-    const ChVector3d& box_size,                // box dimensions
-    double depth,                              // fluid depth
-    std::shared_ptr<ChFunction> piston_fun,    // piston actuation function
-    std::shared_ptr<WaveTankProfile> profile,  // profile for tank bottom
-    bool end_wall                              // include end wall
+ChVector3i ChFsiProblemCartesian::Snap2Grid(const ChVector3d& point) {
+    return ChVector3i((int)std::round(point.x() / m_spacing),  //
+                      (int)std::round(point.y() / m_spacing),  //
+                      (int)std::round(point.z() / m_spacing));
+}
+
+ChVector3d ChFsiProblemCartesian::Grid2Point(const ChVector3i& p) {
+    return ChVector3d(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
+}
+
+// ============================================================================
+
+ChFsiProblemWavetank::ChFsiProblemWavetank(ChSystem& sys, double spacing)
+    : ChFsiProblemCartesian(sys, spacing), m_periodic_BC(false), m_end_wall(true) {}
+
+void ChFsiProblemWavetank::SetProfile(std::shared_ptr<Profile> profile, bool end_wall) {
+    m_profile = profile;
+    m_end_wall = end_wall;
+}
+
+std::shared_ptr<ChBody> ChFsiProblemWavetank::ConstructWaveTank(
+    WavemakerType type,                    // wave generator type
+    const ChVector3d& pos,                 // reference position
+    const ChVector3d& box_size,            // box dimensions
+    double depth,                          // fluid depth
+    std::shared_ptr<ChFunction> actuation  // actuation function
 ) {
     // Number of BCE layers
     int bce_layers = m_sysSPH.GetNumBCELayers();
@@ -1041,10 +1058,12 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
     bce.reserve(num_bce);
 
     // Generate SPH, bottom BCE, and side BCE points
-    int Iz0 = 0;  // fluid start index at bottom
+    int Iy0 = m_periodic_BC ? 0 : bce_layers;  // lateral BCE width (no lateral walls if periodic BC)
+    int Iz0 = 0;                               // fluid start index at bottom
+
     for (int Ix = 0; Ix < Nx; Ix++) {
-        double x = Ix * m_spacing;               // current downstream location
-        double z = profile ? (*profile)(x) : 0;  // bottom height
+        double x = Ix * m_spacing;                   // current downstream location
+        double z = m_profile ? (*m_profile)(x) : 0;  // bottom height
 
         ////std::cout << x << "  " << z << std::endl;
 
@@ -1059,7 +1078,7 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
             }
         }
 
-        for (int Iy = -bce_layers; Iy < 0; Iy++) {
+        for (int Iy = -Iy0; Iy < 0; Iy++) {
             for (int Iz = Iz0 - bce_layers; Iz < Nzc + bce_layers; Iz++) {
                 bce.push_back(ChVector3i(Ix, Iy, Iz));           // BCE markers on positive side
                 bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, Iz));  // BCE markers on negative side
@@ -1069,12 +1088,13 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
 
     // Generate BCE points around wavemaker body (extend to negative Ix)
     for (int Ix = -bce_layers; Ix < 0; Ix++) {
-        for (int Iy = -bce_layers; Iy < Ny + bce_layers; Iy++) {
+        for (int Iy = -Iy0; Iy < Ny + Iy0; Iy++) {
             for (int Iz = 1; Iz <= bce_layers; Iz++) {
                 bce.push_back(ChVector3i(Ix, Iy, -Iz));  // BCE markers below bottom height
             }
         }
-        for (int Iy = -bce_layers; Iy < 0; Iy++) {
+
+        for (int Iy = -Iy0; Iy < 0; Iy++) {
             for (int Iz = -bce_layers; Iz < Nzc + bce_layers; Iz++) {
                 bce.push_back(ChVector3i(Ix, Iy, Iz));           // BCE markers on positive side
                 bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, Iz));  // BCE markers on negative side
@@ -1083,12 +1103,12 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
     }
 
     // Generate end wall BCE points (force end wall if no profile, i.e. if flat bottom)
-    if (!profile)
-        end_wall = true;
+    if (!m_profile)
+        m_end_wall = true;
 
-    if (end_wall) {
+    if (m_end_wall) {
         for (int Ix = Nx; Ix < Nx + bce_layers; Ix++) {
-            for (int Iy = -bce_layers; Iy < Ny + bce_layers; Iy++) {
+            for (int Iy = -Iy0; Iy < Ny + Iy0; Iy++) {
                 for (int Iz = Iz0 - bce_layers; Iz < Nzc + bce_layers; Iz++) {
                     bce.push_back(ChVector3i(Ix, Iy, Iz));
                 }
@@ -1113,6 +1133,16 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
 
     m_offset_sph = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
     m_offset_bce = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
+
+    // If using periodic BC in lateral direction, explicitly set computational domain and BC types
+    if (m_periodic_BC) {
+        auto y_min = (0 + 0.5) * m_spacing;
+        auto y_max = ((Ny - 1) - 0.5) * m_spacing;
+        auto aabb_min = ChVector3d(-bce_layers * m_spacing, y_min, -bce_layers * m_spacing);
+        auto aabb_max = ChVector3d((Nx + bce_layers) * m_spacing, y_max, (Nzc + bce_layers) * m_spacing);
+        m_domain_aabb = ChAABB(m_offset_sph + aabb_min, m_offset_sph + aabb_max);
+        m_bc_type = BC_Y_PERIODIC;
+    }
 
     // Visualization assets for wavetank container
     double thickness = (bce_layers - 1) * m_spacing;
@@ -1139,7 +1169,7 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
         m_ground->AddVisualShape(shape, ChFramed(pos + loc, QUNIT));
     }
 
-    if (end_wall) {
+    if (m_end_wall) {
         ChVector3d size(thickness, width, height - Iz0 * m_spacing);
         ChVector3d loc(box_size.x() / 2 + thickness / 2 + m_spacing, 0, Iz0 * m_spacing / 2 + box_size.z() / 2 +
     m_spacing); auto shape = chrono_types::make_shared<ChVisualShapeBox>(size); shape->SetColor(color);
@@ -1167,7 +1197,7 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
 
             auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
             motor->Initialize(body, m_ground, ChFramed(body->GetPos(), Q_ROTATE_Z_TO_X));
-            motor->SetMotorFunction(piston_fun);
+            motor->SetMotorFunction(actuation);
             sysMBS.AddLink(motor);
 
             break;
@@ -1189,7 +1219,7 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
 
             auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
             motor->Initialize(body, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
-            motor->SetMotorFunction(piston_fun);
+            motor->SetMotorFunction(actuation);
             sysMBS.AddLink(motor);
 
             break;
@@ -1210,17 +1240,9 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
     return body;
 }
 
-ChVector3i ChFsiProblemCartesian::Snap2Grid(const ChVector3d& point) {
-    return ChVector3i((int)std::round(point.x() / m_spacing),  //
-                      (int)std::round(point.y() / m_spacing),  //
-                      (int)std::round(point.z() / m_spacing));
-}
-
-ChVector3d ChFsiProblemCartesian::Grid2Point(const ChVector3i& p) {
-    return ChVector3d(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
-}
-
 // ============================================================================
+
+ChFsiProblemCylindrical::ChFsiProblemCylindrical(ChSystem& sys, double spacing) : ChFsiProblemSPH(sys, spacing) {}
 
 void ChFsiProblemCylindrical::Construct(double radius_inner,
                                         double radius_outer,
@@ -1254,7 +1276,8 @@ void ChFsiProblemCylindrical::Construct(double radius_inner,
     }
 
     if (m_verbose) {
-        cout << "Construct cylinder ChFsiProblemSPH;  num. SPH particles: " << m_sph.size() << " (" << m_sph.size() << ")" << endl;
+        cout << "Construct cylinder ChFsiProblemSPH;  num. SPH particles: " << m_sph.size() << " (" << m_sph.size()
+             << ")" << endl;
     }
 
     m_offset_sph = pos;
@@ -1355,7 +1378,8 @@ size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
     }
 
     if (m_verbose) {
-        cout << "Construct cylinder container;  num. bndry. BCE markers: " << m_bce.size() << " (" << m_bce.size() << ")" << endl;
+        cout << "Construct cylinder container;  num. bndry. BCE markers: " << m_bce.size() << " (" << m_bce.size()
+             << ")" << endl;
     }
 
     m_offset_bce = pos;

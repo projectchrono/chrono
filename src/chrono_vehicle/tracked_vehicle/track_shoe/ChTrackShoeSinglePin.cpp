@@ -147,7 +147,7 @@ void ChTrackShoeSinglePin::ExportComponentList(rapidjson::Document& jsonDocument
     ExportBodyList(jsonDocument, bodies);
 }
 
-void ChTrackShoeSinglePin::Output(ChVehicleOutput& database) const {
+void ChTrackShoeSinglePin::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(false);
-        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::KINDLMANN);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::FAST);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
         // VSG visual system (attach visFSI as plugin)
@@ -246,6 +246,7 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < t_end) {
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -262,6 +263,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         fsi.DoStepDynamics(step_size);
 

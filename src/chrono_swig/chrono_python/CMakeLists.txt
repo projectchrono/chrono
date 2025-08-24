@@ -24,7 +24,7 @@ if(DEFINED CH_CONDA_INSTALL)
     message(FATAL_ERROR "Installation directory not specified. Set CH_INSTALL_PYTHON_PACKAGE")
   else()
     message(STATUS "Override the CH_INSTALL_PYTHON with CH_INSTALL_PYTHON_PACKAGE")
-    set (CH_INSTALL_PYTHON "${CH_INSTALL_PYTHON_PACKAGE}")
+    file(TO_CMAKE_PATH "${CH_INSTALL_PYTHON_PACKAGE}" CH_INSTALL_PYTHON)
   endif()
 
   if (NOT DEFINED CH_PYCHRONO_DATA_PATH)
@@ -48,7 +48,6 @@ set(DBG_SCRIPT FALSE)
 #-----------------------------------------------------------------------------
 
 message(STATUS "Find Python")
-set(Python_ADDITIONAL_VERSIONS 3.4)
 find_package(Python3 REQUIRED 
              COMPONENTS Interpreter Development
              OPTIONAL_COMPONENTS NumPy)
@@ -137,7 +136,11 @@ else()
   set(PYC_DATA_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 
   # Default path to Chrono::Sensor shaders/ directory (in INSTALL tree)
-  set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
+  if(CH_USE_CUDA_NVRTC)
+    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
+  else()
+    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/")
+  endif()
 
   # Generate the __init__.py file using substitution variables and place it in a temporary place
   configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
@@ -183,10 +186,17 @@ else()
    target_compile_options(core PRIVATE "-Wno-unused-variable")
 endif()
 
+if(MULTI_CONFIG)
+  set(CHPY_LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/$<CONFIG>/pychrono")
+else()
+  set(CHPY_LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono")
+endif()
+
+
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(core PROPERTIES
                       PROJECT_LABEL "Chrono_python_core"
-                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                      LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                       SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                       )
 
@@ -198,17 +208,14 @@ set(CHPY_CORE_PYD_PATH $<TARGET_FILE_DIR:core>)
 
 add_custom_command(TARGET core
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_CORE_PYD_PATH}/pychrono)
-add_custom_command(TARGET core
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH}/pychrono)
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH})
 
 # Install .pyd binary module (.so on linux)
 install(TARGETS core
         EXPORT ChronoTargets
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
 # Install .py module wrapper
 install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
@@ -260,7 +267,7 @@ endif()
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(fea PROPERTIES
                       PROJECT_LABEL "Chrono_python_fea"
-                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                      LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                       SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                       )
 
@@ -273,18 +280,15 @@ set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/fea.py")
 set(CHPY_FEA_PYD_PATH $<TARGET_FILE_DIR:fea>)
 
 add_custom_command(TARGET fea
-                 POST_BUILD
-                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_FEA_PYD_PATH}/pychrono)
-add_custom_command(TARGET fea
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH}/pychrono)
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH})
 
 # Install .pyd binary module (.so on linux)
 install(TARGETS fea
         EXPORT ChronoTargets
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 # Install .py module wrapper
 install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -303,7 +307,7 @@ endif()
 # Copy the __init__.py (BUILD) file in the package
 add_custom_command(TARGET core
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/pychrono)
+                   COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/__init__.py)
 
 # ---------- Pychrono in INSTALL tree
 
@@ -352,7 +356,7 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(postprocess PROPERTIES
                         PROJECT_LABEL "Chrono_python_postprocess"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -367,17 +371,14 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 
   add_custom_command(TARGET postprocess
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_POSTPROCESS_PYD_PATH}/pychrono)
-  add_custom_command(TARGET postprocess
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_POSTPROCESS_PY_FILE} ${CHPY_POSTPROCESS_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_POSTPROCESS_PY_FILE} ${CHPY_POSTPROCESS_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS postprocess
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_POSTPROCESS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -428,7 +429,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(irrlicht PROPERTIES
                         PROJECT_LABEL "Chrono_python_irrlicht"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -445,17 +446,14 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
   add_custom_command(TARGET irrlicht
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_IRRLICHT_PYD_PATH}/pychrono)
-  add_custom_command(TARGET irrlicht
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_IRRLICHT_PY_FILE} ${CHPY_IRRLICHT_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_IRRLICHT_PY_FILE} ${CHPY_IRRLICHT_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS irrlicht
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_IRRLICHT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -507,7 +505,7 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(pardisomkl PROPERTIES
                         PROJECT_LABEL "Chrono_python_pardisomkl"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -521,18 +519,15 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
   set(CHPY_MKL_PYD_PATH $<TARGET_FILE_DIR:pardisomkl>)
 
   add_custom_command(TARGET pardisomkl
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_MKL_PYD_PATH}/pychrono)
-  add_custom_command(TARGET pardisomkl
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_MKL_PY_FILE} ${CHPY_MKL_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_MKL_PY_FILE} ${CHPY_MKL_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS pardisomkl
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_MKL_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -592,7 +587,7 @@ if(CH_ENABLE_MODULE_CASCADE)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(cascade PROPERTIES
                         PROJECT_LABEL "Chrono_python_cascade"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -606,18 +601,15 @@ if(CH_ENABLE_MODULE_CASCADE)
   set(CHPY_CASCADE_PYD_PATH $<TARGET_FILE_DIR:cascade>)
 
   add_custom_command(TARGET cascade
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_CASCADE_PYD_PATH}/pychrono)
-  add_custom_command(TARGET cascade
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CASCADE_PY_FILE} ${CHPY_CASCADE_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CASCADE_PY_FILE} ${CHPY_CASCADE_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS cascade
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_CASCADE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -687,7 +679,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(vehicle PROPERTIES
                         PROJECT_LABEL "Chrono_python_vehicle"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -705,18 +697,15 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   set(CHPY_VEHICLE_PYD_PATH $<TARGET_FILE_DIR:vehicle>)
 
   add_custom_command(TARGET vehicle
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VEHICLE_PYD_PATH}/pychrono)
-  add_custom_command(TARGET vehicle
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VEHICLE_PY_FILE} ${CHPY_VEHICLE_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VEHICLE_PY_FILE} ${CHPY_VEHICLE_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS vehicle
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -765,7 +754,7 @@ if(CH_ENABLE_MODULE_SENSOR)
     # Ensure that the PYD library file is generated in the bin/ directory.
     set_target_properties(sensor PROPERTIES
             PROJECT_LABEL "Chrono_python_sensor"
-            _DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+            LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
             SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
             )
   
@@ -780,17 +769,14 @@ if(CH_ENABLE_MODULE_SENSOR)
 
     add_custom_command(TARGET sensor
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_SENSOR_PYD_PATH}/pychrono)
-    add_custom_command(TARGET sensor
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_SENSOR_PY_FILE} ${CHPY_SENSOR_PYD_PATH}/pychrono)
+            COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_SENSOR_PY_FILE} ${CHPY_SENSOR_PYD_PATH})
 
     # Install .pyd binary module (.so on linux)
     install(TARGETS sensor
             EXPORT ChronoTargets
-            RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-            LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-            ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+            RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+            LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+            ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
     # Install .py module wrapper
     install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -851,7 +837,7 @@ endif()
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(robot PROPERTIES 
                         PROJECT_LABEL "Chrono_python_robot"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -860,25 +846,22 @@ endif()
   add_dependencies(robot core)
 
   # Copy PY file in a package dir 
-  set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/robot.py")
+  set(CHPY_ROBOT_PY_FILE "${CMAKE_SWIG_OUTDIR}/robot.py")
 
-  set(CHPY_VEHICLE_PYD_PATH $<TARGET_FILE_DIR:robot>)
+  set(CHPY_ROBOT_PYD_PATH $<TARGET_FILE_DIR:robot>)
 
-  add_custom_command(TARGET robot
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VEHICLE_PYD_PATH}/pychrono)
   add_custom_command(TARGET robot
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VEHICLE_PY_FILE} ${CHPY_VEHICLE_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_ROBOT_PY_FILE} ${CHPY_ROBOT_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS robot
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
-  install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+  install(FILES "${CHPY_ROBOT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
 #-----------------------------------------------------------------------------
 # MODULE for the parser python wrapper.
@@ -921,7 +904,7 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(parsers PROPERTIES
                         PROJECT_LABEL "Chrono_python_parsers"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -935,18 +918,15 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   set(CHPY_PARSERS_PYD_PATH $<TARGET_FILE_DIR:parsers>)
 
   add_custom_command(TARGET parsers
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_PARSERS_PYD_PATH}/pychrono)
-  add_custom_command(TARGET parsers
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_PARSERS_PY_FILE} ${CHPY_PARSERS_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_PARSERS_PY_FILE} ${CHPY_PARSERS_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS parsers
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_PARSERS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -1018,7 +998,7 @@ if(CH_ENABLE_MODULE_ROS)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(ros PROPERTIES
                         PROJECT_LABEL "Chrono_python_ros"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -1032,18 +1012,15 @@ if(CH_ENABLE_MODULE_ROS)
   set(CHPY_ROS_PYD_PATH $<TARGET_FILE_DIR:ros>)
 
   add_custom_command(TARGET ros
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_ROS_PYD_PATH}/pychrono)
-  add_custom_command(TARGET ros
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_ROS_PY_FILE} ${CHPY_ROS_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_ROS_PY_FILE} ${CHPY_ROS_PYD_PATH})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ros
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_ROS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 

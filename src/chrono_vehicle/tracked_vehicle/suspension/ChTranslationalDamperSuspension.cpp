@@ -279,7 +279,7 @@ void ChTranslationalDamperSuspension::ExportComponentList(rapidjson::Document& j
     }
 }
 
-void ChTranslationalDamperSuspension::Output(ChVehicleOutput& database) const {
+void ChTranslationalDamperSuspension::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

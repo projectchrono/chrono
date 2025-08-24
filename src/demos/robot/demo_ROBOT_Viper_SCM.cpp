@@ -286,12 +286,10 @@ int main(int argc, char* argv[]) {
     }
 
     while (vis->Run()) {
-#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->SetCameraTarget(Body_1->GetPos());
         vis->Render();
         vis->EndScene();
-#endif
 
         if (output) {
             // write drive torques of all four wheels into file

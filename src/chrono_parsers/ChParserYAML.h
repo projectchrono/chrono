@@ -72,9 +72,13 @@ class ChApiParsers ChParserYAML {
     double GetTimestep() const { return m_sim.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
-    bool Render() const { return m_sim.render; }
-    double GetRenderFPS() const { return m_sim.render_fps; }
-    CameraVerticalDir GetCameraVerticalDir() const { return m_sim.camera_vertical; }
+
+    bool Render() const { return m_sim.visualization.render; }
+    double GetRenderFPS() const { return m_sim.visualization.render_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_sim.visualization.camera_vertical; }
+    const ChVector3d& GetCameraLocation() const { return m_sim.visualization.camera_location; }
+    const ChVector3d& GetCameraTarget() const { return m_sim.visualization.camera_target; }
+    bool EnableShadows() const { return m_sim.visualization.enable_shadows; }
 
     /// Create and return a Chrono system configured from cached simulation parameters.
     /// If no YAML simulation file was loaded, this function returns a ChSystemNSC with default settings.
@@ -102,6 +106,46 @@ class ChApiParsers ChParserYAML {
 
   private:
     /// Simulation and run-time visualization parameters.
+    struct SolverParams {
+        SolverParams();
+        void PrintInfo();
+
+        ChSolver::Type type;
+        bool lock_sparsity_pattern;
+        bool use_sparsity_pattern_learner;
+        double tolerance;
+        bool enable_diagonal_preconditioner;
+        int max_iterations;
+        double overrelaxation_factor;
+        double sharpness_factor;
+    };
+
+    struct IntegratorParams {
+        IntegratorParams();
+        void PrintInfo();
+
+        ChTimestepper::Type type;
+        double rtol;
+        double atol_states;
+        double atol_multipliers;
+        int max_iterations;
+        bool use_stepsize_control;
+        bool use_modified_newton;
+    };
+
+    struct VisParams {
+        VisParams();
+        void PrintInfo();
+
+        VisualizationType type;
+        bool render;
+        double render_fps;
+        CameraVerticalDir camera_vertical;
+        ChVector3d camera_location;
+        ChVector3d camera_target;
+        bool enable_shadows;
+    };
+
     struct SimParams {
         SimParams();
         void PrintInfo();
@@ -109,8 +153,6 @@ class ChApiParsers ChParserYAML {
         ChVector3d gravity;
 
         ChContactMethod contact_method;
-        ChTimestepper::Type integrator_type;
-        ChSolver::Type solver_type;
 
         int num_threads_chrono;
         int num_threads_collision;
@@ -121,12 +163,15 @@ class ChApiParsers ChParserYAML {
         double end_time;
         bool enforce_realtime;
 
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
+        SolverParams solver;
+        IntegratorParams integrator;
+        VisParams visualization;
     };
 
   private:
+    enum class DataPathType { ABS, REL };
+    enum class BodyLoadType {FORCE, TORQUE};
+
     /// Internal specification of a body.
     struct Body {
         Body();
@@ -135,6 +180,8 @@ class ChApiParsers ChParserYAML {
         std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
         ChVector3d pos;                                   ///< body position (relative to instance frame)
         ChQuaterniond rot;                                ///< body orientation (relative to instance frame)
+        ChVector3d lin_vel;                               ///< initial linear velocity
+        ChVector3d ang_vel;                               ///< initial angular velocity (in body frame)
         bool is_fixed;                                    ///< indicate if body fixed relative to global frame
         double mass;                                      ///< body mass
         ChFramed com;                                     ///< centroidal frame (relative to body frame)
@@ -154,6 +201,7 @@ class ChApiParsers ChParserYAML {
         std::string body2;                            ///< identifier of 2nd body
         ChFramed frame;                               ///< joint frame (relative to instance frame)
         std::shared_ptr<ChJoint::BushingData> bdata;  ///< bushing data
+        bool is_kinematic;                            ///< indicate if kinematic joint or bushing
     };
 
     /// Internal specification of a distance constraint.
@@ -197,6 +245,20 @@ class ChApiParsers ChParserYAML {
         std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
     };
 
+    /// Internal specification of a body load (applied force or torque).
+    struct BodyLoad {
+        BodyLoad();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
+        BodyLoadType type;                                ///< load type: force or torque
+        std::string body;                                 ///< body to which the load is applied
+        bool local_load;                                  ///< load provided in local frame?
+        bool local_point;                                 ///< point provided in local frame?
+        ChVector3d value;                                 ///< load value (force or torque)
+        ChVector3d point;                                 ///< force application point
+    };
+
     /// Motor actuation type.
     enum class MotorActuation {
         POSITION,  ///< position-level (displacement or angle)
@@ -236,6 +298,9 @@ class ChApiParsers ChParserYAML {
     };
 
   private:
+    /// Return the path to the specified data file.
+    std::string GetDatafilePath(const std::string& filename);
+
     /// Load and return a ChVector3d from the specified node.
     ChVector3d ReadVector(const YAML::Node& a);
 
@@ -256,8 +321,10 @@ class ChApiParsers ChParserYAML {
     ///  Load and return a ChColor from the specified node.
     ChColor ReadColor(const YAML::Node& a);
 
+    DataPathType ReadDataPathType(const YAML::Node& a);
     ChSolver::Type ReadSolverType(const YAML::Node& a);
     ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
+    VisualizationType ReadVisualizationType(const YAML::Node& a);
 
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
@@ -287,6 +354,9 @@ class ChApiParsers ChParserYAML {
     /// The TSDA free angle is also set if the particular functor type defines it.
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctor(const YAML::Node& td, double& free_angle);
 
+    /// Load and return the body load type from the specified node.
+    BodyLoadType ReadBodyLoadType(const YAML::Node& a);
+
     /// Load and return a motor actuation type from the specified node.
     MotorActuation ReadMotorActuationType(const YAML::Node& a);
 
@@ -302,17 +372,24 @@ class ChApiParsers ChParserYAML {
     /// Utility function to find the ChBodyAuxRef with specified name.
     std::shared_ptr<ChBodyAuxRef> FindBody(const std::string& name) const;
 
+    /// Set Chrono solver parameters.
+    void SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso);
+
+    /// Set Chrono integrator parameters.
+    void SetIntegrator(ChSystem& sys, const IntegratorParams& params);
+
     /// Return motor actuation type as a string.
     static std::string GetMotorActuationTypeString(MotorActuation type);
 
   private:
-    SimParams m_sim;  ///< simulation and visualization parameters
+    SimParams m_sim;  ///< simulation parameters
 
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints
+    std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
     std::unordered_map<std::string, TSDA> m_tsdas;                ///< TSDA force elements
     std::unordered_map<std::string, RSDA> m_rsdas;                ///< RSDA force elements
-    std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
+    std::unordered_map<std::string, BodyLoad> m_body_loads;       ///< body load elements
     std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
 
@@ -323,6 +400,10 @@ class ChApiParsers ChParserYAML {
     std::string m_name;    ///< name of the YAML model
     bool m_use_degrees;    ///< all angles given in degrees (default: true)
     int m_instance_index;  ///< index of the last model instance created
+
+    DataPathType m_data_path;
+    std::string m_rel_path;
+    std::string m_script_directory;
 };
 
 /// @} parsers_module
