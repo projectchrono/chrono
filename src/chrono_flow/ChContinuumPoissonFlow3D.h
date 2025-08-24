@@ -40,7 +40,6 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
     double a_fi = 0;
     double b_fi = 0;
     double Eac_over_R = 0;
-    double alpha_infinity = 0;
     double rho = 0;
     double CEMENT = 0;
     double SILICA = 0;
@@ -54,7 +53,18 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
     double Lampda = 0; 
     double Q_hydr_inf = 0; 
     double Q_S_inf = 0; 
-    double m_c = 0;
+    double Qh_R = 0;
+    double D1 = 0; 
+    double D0 = 0; 
+    double nh = 0; 
+    //double m_c = 0;
+    double current_m_cap;
+    double Eas_over_R = 0;
+    double B1_S = 0;
+    double B2_S = 0;
+    double B3_S = 0;
+    double B5_S = 0;
+
 
 
 
@@ -77,13 +87,7 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
       return IdentityMatrix; 
     }
 
-    // virtual ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixM(ChVectorDynamic<>& NVal, ChVectorDynamic<>& NValDt) { 
-    //   ChMatrixDynamic<> IdentityMatrix;
-    //   IdentityMatrix.setIdentity(3, 3);
-    //   return IdentityMatrix; 
-    // }
-
-    virtual ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixM(ChVectorDynamic<>& NVal, ChVectorDynamic<>& NValDt, double m_cap) { 
+    virtual ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixM(ChVectorDynamic<>& NVal, ChVectorDynamic<>& NValDt) { 
       ChMatrixDynamic<> IdentityMatrix;
       IdentityMatrix.setIdentity(3, 3);
       return IdentityMatrix; 
@@ -95,23 +99,14 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
     //   return IdentityMatrix; 
     // }
 
-    virtual ChMatrixDynamic<> ComputeUpdatedConstitutiveVectorS(ChVectorDynamic<>& NVal, ChVectorDynamic<>& NValDt, double dalpha_dt) { 
+    virtual ChMatrixDynamic<> ComputeUpdatedConstitutiveVectorS(ChVectorDynamic<>& NVal, ChVectorDynamic<>& NValDt, 
+                                                                double dalpha_dt, double AA, double dalphas_dt, double AAS) { 
       ChMatrixDynamic<> IdentityMatrix;
       IdentityMatrix.setIdentity(3, 3);
       return IdentityMatrix; 
     }
 
-    // private:
-    // ChVectorDynamic<> ElementState; 
-
-    // public:
-
-    // void SetElementStateVariable(ChVectorDynamic<>& ElState) { ElementState = ElState; }
-    // const ChVectorDynamic<>& GetElementStateVariable() { return ElementState; }
-
-    
-
-    void SetHydrationParameters(double wct, double A1, double A2, double eta, double af, double bf, double Eac, double alphainf) {
+    void SetHydrationParameters(double wct, double A1, double A2, double eta, double af, double bf, double Eac) {
         W_mct = wct;
         A_1c = A1;
         A_2c = A2;
@@ -119,7 +114,6 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
         a_fi = af;
         b_fi = bf;
         Eac_over_R = Eac;
-        alpha_infinity = alphainf;
         
     }
 
@@ -130,7 +124,21 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
     double GetAf() const { return a_fi; }
     double GetBf() const { return b_fi; }
     double GetEacOverR() const { return Eac_over_R; }
-    double GetAlphaInfinity() const { return alpha_infinity; }
+
+    void SetSilicaReactionParameters(double Eas, double B1, double B2, double B3, double B5) {
+        Eas_over_R = Eas;
+        B1_S = B1;
+        B2_S = B2;
+        B3_S = B3;
+        B5_S = B5;
+        
+    }
+
+    double GetEasOverR() const { return Eas_over_R; }
+    double GetB1() const { return B1_S; }
+    double GetB2() const { return B2_S; }
+    double GetB3() const { return B3_S; }
+    double GetB5() const { return B5_S; }
 
     void SetHeatParameters(double ct1, double Lampda1, double Q_hydr_inf1, double Q_S_inf1) {       
         
@@ -146,13 +154,27 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
     double GetQ_hydr_inf_1() const { return Q_hydr_inf; }
     double GetQ_S_inf_1() const { return Q_S_inf; }
 
-    void SetMoistureCapacity(double m_c1) {       
-    
-       m_c = m_c1; 
+    void SetDiffusionParameters(double Qh_R1, double D11, double D01, double nh1) {       
+        
+       Qh_R = Qh_R1;
+       D1 = D11; 
+       D0 = D01; 
+       nh = nh1; 
         
     }
+
+    double GetQh_R() const { return Qh_R; }
+    double GetD1() const { return D1; }
+    double GetD0() const { return D0; }
+    double Getnh() const { return nh; }
+
+    // void SetMoistureCapacity(double m_c1) {       
     
-    double Getmc_1() const { return m_c; }
+    //    m_c = m_c1; 
+        
+    // }
+    
+    // double Getmc_1() const { return m_c; }
 
 
     void SetMatParameters(double rho1, double CEMENT1, double SILICA1, double AGGREGATE1, double k_c1, 
@@ -179,6 +201,10 @@ class ChFlowApi ChContinuumPoissonFlow3D : public ChContinuumMaterial {
     double Getk_vg_c_1() const { return k_vg_c; }
     double Getk_vg_s_1() const { return k_vg_s; }
     double GetQ_over_R_1() const { return Q_over_R; }
+
+
+  void SetCurrentCap(double val) { current_m_cap = val; }
+  double GetCurrentCap() const { return current_m_cap; }
     
 };
 

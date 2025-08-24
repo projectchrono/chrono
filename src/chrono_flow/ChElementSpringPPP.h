@@ -241,10 +241,11 @@ class ChFlowApi ChElementSpringPPP : public ChElementGeneric,
     double GetAlphas() const { return ElementState.size() > 0 ? ElementState(2) : 0.0; }
     double GetAlphas_dt() const { return ElementState.size() > 0 ? ElementState(3) : 0.0; }
 
-    double Getmoisture_cap() const { return ElementState.size() > 0 ? ElementState(4) : 3.4E-7; }
-    double Getwe() const { return ElementState.size() > 0 ? ElementState(5) : 312.2e-9; }
-    double GetmSaturation() const { return ElementState.size() > 0 ? ElementState(6) : 1.0; }
-    double GetPorosity() const { return ElementState.size() > 0 ? ElementState(7) : 0.0; }
+    double GetAA() const { return ElementState.size() > 0 ? ElementState(4) : 0.0; }
+    double GetAAS() const { return ElementState.size() > 0 ? ElementState(5) : 0.0; }
+    double Getwe() const { return ElementState.size() > 0 ? ElementState(6) : 0.0; }
+    double GetmSaturation() const { return ElementState.size() > 0 ? ElementState(7) : 0.0; }
+    double GetPorosity() const { return ElementState.size() > 0 ? ElementState(8) : 0.0; }
 
 
 };
