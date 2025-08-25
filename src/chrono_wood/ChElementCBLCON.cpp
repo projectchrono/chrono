@@ -755,8 +755,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     //              }
     //          }
     // 
-    // 
-
+    // Comment line below and add code above to your CBL demo to implement update at end of step only
     mysection->Set_StateVar(statev_new);
 
     ChVector3d force = area * (nmL_tr * mstress);
