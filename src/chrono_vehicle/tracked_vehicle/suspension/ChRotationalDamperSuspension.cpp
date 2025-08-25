@@ -255,7 +255,7 @@ void ChRotationalDamperSuspension::Output(ChOutput& database) const {
     std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     m_joint->IsKinematic() ? joints.push_back(m_joint->GetAsLink()) : bushings.push_back(m_joint->GetAsBushing());
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);

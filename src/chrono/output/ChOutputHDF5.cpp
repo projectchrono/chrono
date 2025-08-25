@@ -100,6 +100,18 @@ struct bodyload_info {
     double tx, ty, tz;  // joint reaction torque
 };
 
+struct linmotor_info {
+    int id;        // motor identifier
+    double x, xd;  // motor position and speed
+    double f;      // motor force
+};
+
+struct rotmotor_info {
+    int id;        // motor identifier
+    double x, xd;  // motor angle and angular speed
+    double t;      // motor torque
+};
+
 H5::CompType* ChOutputHDF5::m_body_type = nullptr;
 H5::CompType* ChOutputHDF5::m_bodyaux_type = nullptr;
 H5::CompType* ChOutputHDF5::m_shaft_type = nullptr;
@@ -109,6 +121,8 @@ H5::CompType* ChOutputHDF5::m_couple_type = nullptr;
 H5::CompType* ChOutputHDF5::m_linspring_type = nullptr;
 H5::CompType* ChOutputHDF5::m_rotspring_type = nullptr;
 H5::CompType* ChOutputHDF5::m_bodyload_type = nullptr;
+H5::CompType* ChOutputHDF5::m_linmotor_type = nullptr;
+H5::CompType* ChOutputHDF5::m_rotmotor_type = nullptr;
 
 const H5::CompType& ChOutputHDF5::getBodyType() {
     if (!m_body_type) {
@@ -250,7 +264,7 @@ const H5::CompType& ChOutputHDF5::getRotSpringType() {
                 m_rotspring_type->insertMember("id", HOFFSET(rotspring_info, id), H5::PredType::NATIVE_INT);
                 m_rotspring_type->insertMember("x", HOFFSET(rotspring_info, x), H5::PredType::NATIVE_DOUBLE);
                 m_rotspring_type->insertMember("xd", HOFFSET(rotspring_info, xd), H5::PredType::NATIVE_DOUBLE);
-                m_rotspring_type->insertMember("force", HOFFSET(rotspring_info, t), H5::PredType::NATIVE_DOUBLE);
+                m_rotspring_type->insertMember("torque", HOFFSET(rotspring_info, t), H5::PredType::NATIVE_DOUBLE);
             }
         };
         static Initializer ListInitializationGuard;
@@ -277,10 +291,41 @@ const H5::CompType& ChOutputHDF5::getBodyLoadType() {
     return *m_bodyload_type;
 }
 
+const H5::CompType& ChOutputHDF5::getLinMotorType() {
+    if (!m_linmotor_type) {
+        struct Initializer {
+            Initializer() {
+                m_linmotor_type = new H5::CompType(sizeof(linmotor_info));
+                m_linmotor_type->insertMember("id", HOFFSET(linmotor_info, id), H5::PredType::NATIVE_INT);
+                m_linmotor_type->insertMember("x", HOFFSET(linmotor_info, x), H5::PredType::NATIVE_DOUBLE);
+                m_linmotor_type->insertMember("xd", HOFFSET(linmotor_info, xd), H5::PredType::NATIVE_DOUBLE);
+                m_linmotor_type->insertMember("force", HOFFSET(linmotor_info, f), H5::PredType::NATIVE_DOUBLE);
+            }
+        };
+        static Initializer ListInitializationGuard;
+    }
+    return *m_linmotor_type;
+}
+
+const H5::CompType& ChOutputHDF5::getRotMotorType() {
+    if (!m_rotmotor_type) {
+        struct Initializer {
+            Initializer() {
+                m_rotmotor_type = new H5::CompType(sizeof(rotmotor_info));
+                m_rotmotor_type->insertMember("id", HOFFSET(rotmotor_info, id), H5::PredType::NATIVE_INT);
+                m_rotmotor_type->insertMember("x", HOFFSET(rotmotor_info, x), H5::PredType::NATIVE_DOUBLE);
+                m_rotmotor_type->insertMember("xd", HOFFSET(rotmotor_info, xd), H5::PredType::NATIVE_DOUBLE);
+                m_rotmotor_type->insertMember("torque", HOFFSET(rotmotor_info, t), H5::PredType::NATIVE_DOUBLE);
+            }
+        };
+        static Initializer ListInitializationGuard;
+    }
+    return *m_rotmotor_type;
+}
+
 // -----------------------------------------------------------------------------
 
-ChOutputHDF5::ChOutputHDF5(const std::string& filename)
-    : m_frame_group(nullptr), m_section_group(nullptr) {
+ChOutputHDF5::ChOutputHDF5(const std::string& filename) : m_frame_group(nullptr), m_section_group(nullptr) {
     m_fileHDF5 = new H5::H5File(filename, H5F_ACC_TRUNC);
     H5::Group frames_group(m_fileHDF5->createGroup("/Frames"));
 }
@@ -304,6 +349,9 @@ ChOutputHDF5::~ChOutputHDF5() {
     delete m_couple_type;
     delete m_linspring_type;
     delete m_rotspring_type;
+    delete m_bodyload_type;
+    delete m_linmotor_type;
+    delete m_rotmotor_type;
 }
 
 // -----------------------------------------------------------------------------
@@ -525,7 +573,7 @@ void ChOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>
     set.write(info.data(), getRotSpringType());
 }
 
-void ChOutputHDF5::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
+void ChOutputHDF5::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
     if (loads.empty())
         return;
     auto crt_group = m_section_group ? m_section_group : m_frame_group;
@@ -544,6 +592,46 @@ void ChOutputHDF5::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBo
 
     H5::DataSet set = crt_group->createDataSet("Body-body Loads", getBodyLoadType(), dataspace);
     set.write(info.data(), getBodyLoadType());
+}
+
+void ChOutputHDF5::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
+    if (motors.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
+        return;
+
+    auto nmotors = motors.size();
+    hsize_t dim[] = {nmotors};
+    H5::DataSpace dataspace(1, dim);
+    std::vector<linmotor_info> info(nmotors);
+    for (auto i = 0; i < nmotors; i++) {
+        info[i] = {motors[i]->GetIdentifier(), motors[i]->GetMotorPos(), motors[i]->GetMotorPosDt(),
+                   motors[i]->GetMotorForce()};
+    }
+
+    H5::DataSet set = crt_group->createDataSet("Lin Motors", getLinMotorType(), dataspace);
+    set.write(info.data(), getLinMotorType());
+}
+
+void ChOutputHDF5::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
+    if (motors.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
+        return;
+
+    auto nmotors = motors.size();
+    hsize_t dim[] = {nmotors};
+    H5::DataSpace dataspace(1, dim);
+    std::vector<linmotor_info> info(nmotors);
+    for (auto i = 0; i < nmotors; i++) {
+        info[i] = {motors[i]->GetIdentifier(), motors[i]->GetMotorAngle(), motors[i]->GetMotorAngleDt(),
+                   motors[i]->GetMotorTorque()};
+    }
+
+    H5::DataSet set = crt_group->createDataSet("Rot Motors", getRotMotorType(), dataspace);
+    set.write(info.data(), getRotMotorType());
 }
 
 }  // end namespace chrono

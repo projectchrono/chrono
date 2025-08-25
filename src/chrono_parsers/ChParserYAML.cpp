@@ -1001,12 +1001,12 @@ void ChParserYAML::Output(ChSystem& sys, int frame) {
         m_output_db->WriteSection("instance" + std::to_string(i++));
         m_output_db->WriteAuxRefBodies(data.bodies);
         m_output_db->WriteJoints(data.joints);
-        m_output_db->WriteBodyLoads(data.bushings);
+        m_output_db->WriteBodyBodyLoads(data.bushings);
         ////m_output_db->WriteConstraints(data.constraints);
         m_output_db->WriteLinSprings(data.tsdas);
         m_output_db->WriteRotSprings(data.rsdas);
-        ////m_output_db->WriteLinMotors(data.lin_motors);
-        ////m_output_db->WriteRotMotors(data.rot_motors);
+        m_output_db->WriteLinMotors(data.lin_motors);
+        m_output_db->WriteRotMotors(data.rot_motors);
     }
 }
 

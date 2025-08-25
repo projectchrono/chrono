@@ -49,7 +49,9 @@ class ChApi ChOutputHDF5 : public ChOutput {
     virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) override;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) override;
-    virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
+    virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
+    virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
+    virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
     H5::H5File* m_fileHDF5;
     H5::Group* m_frame_group;
@@ -64,6 +66,8 @@ class ChApi ChOutputHDF5 : public ChOutput {
     static H5::CompType* m_linspring_type;
     static H5::CompType* m_rotspring_type;
     static H5::CompType* m_bodyload_type;
+    static H5::CompType* m_linmotor_type;
+    static H5::CompType* m_rotmotor_type;
 
     static const H5::CompType& getBodyType();
     static const H5::CompType& getBodyAuxType();
@@ -74,6 +78,8 @@ class ChApi ChOutputHDF5 : public ChOutput {
     static const H5::CompType& getLinSpringType();
     static const H5::CompType& getRotSpringType();
     static const H5::CompType& getBodyLoadType();
+    static const H5::CompType& getLinMotorType();
+    static const H5::CompType& getRotMotorType();
 };
 
 /// @} chrono_output

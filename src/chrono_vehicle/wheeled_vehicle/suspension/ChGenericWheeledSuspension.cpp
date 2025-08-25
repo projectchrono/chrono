@@ -738,7 +738,7 @@ void ChGenericWheeledSuspension::Output(ChOutput& database) const {
     for (const auto& item : m_dists)
         joints.push_back(item.second.dist);
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     for (const auto& item : m_tsdas)

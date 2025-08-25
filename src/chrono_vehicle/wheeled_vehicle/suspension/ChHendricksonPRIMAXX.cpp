@@ -792,7 +792,7 @@ void ChHendricksonPRIMAXX::Output(ChOutput& database) const {
         joints.push_back(m_distTierod[1]);
     }
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_shockLB[0]);
