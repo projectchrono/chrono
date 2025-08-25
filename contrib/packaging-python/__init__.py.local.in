@@ -20,6 +20,9 @@ if sys.platform == 'win32' and sys.version_info >= (3,8):
             os.add_dll_directory(item_posix)
         except:
             pass
+if sys.platform == 'win32':
+    # Resolve Chrono DLLs, like Chrono_core.dll
+    os.add_dll_directory(idir.parent)
 
 try:
     from . import core
