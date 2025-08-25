@@ -349,7 +349,7 @@ inline const char* ChUtils_GetFilename() {
 // geometry/   classes
 %include "ChGeometry.i"
 
-
+%include "ChBodyGeometry.i"
 
 
 //collision classes
