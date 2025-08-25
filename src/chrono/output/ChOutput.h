@@ -64,6 +64,18 @@ class ChApi ChOutput {
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) = 0;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) = 0;
     virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
+
+    static std::string GetOutputTypeAsString(Type type) {
+        switch (type) {
+            case Type::NONE:
+                return "NONE";
+            case Type::ASCII:
+                return "ASCII";
+            case Type::HDF5:
+                return "HDF5";
+        }
+        return "NONE";
+    }
 };
 
 /// @} chrono_output

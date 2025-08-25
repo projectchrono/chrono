@@ -359,6 +359,9 @@ void ChOutputHDF5::WriteSection(const std::string& name) {
 void ChOutputHDF5::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
     if (bodies.empty())
         return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
+        return;
 
     auto nbodies = bodies.size();
     hsize_t dim[] = {nbodies};
@@ -370,12 +373,15 @@ void ChOutputHDF5::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodie
         info[i] = {bodies[i]->GetIdentifier(), p.x(), p.y(), p.z(), q.e0(), q.e1(), q.e2(), q.e3()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Bodies", getBodyType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Bodies", getBodyType(), dataspace);
     set.write(info.data(), getBodyType());
 }
 
 void ChOutputHDF5::WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) {
     if (bodies.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto nbodies = bodies.size();
@@ -388,12 +394,15 @@ void ChOutputHDF5::WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAux
         info[i] = {bodies[i]->GetIdentifier(), p.x(), p.y(), p.z(), q.e0(), q.e1(), q.e2(), q.e3()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Bodies AuxRef", getBodyAuxType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Bodies AuxRef", getBodyAuxType(), dataspace);
     set.write(info.data(), getBodyAuxType());
 }
 
 void ChOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) {
     if (markers.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto nmarkers = markers.size();
@@ -407,12 +416,15 @@ void ChOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& ma
         info[i] = {markers[i]->GetIdentifier(), p.x(), p.y(), p.z(), pd.x(), pd.y(), pd.z(), pdd.x(), pdd.y(), pdd.z()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Markers", getMarkerType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Markers", getMarkerType(), dataspace);
     set.write(info.data(), getMarkerType());
 }
 
 void ChOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
     if (shafts.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto nshafts = shafts.size();
@@ -424,12 +436,15 @@ void ChOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shaf
                    shafts[i]->GetAppliedLoad()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Shafts", getShaftType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Shafts", getShaftType(), dataspace);
     set.write(info.data(), getShaftType());
 }
 
 void ChOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
     if (joints.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto njoints = joints.size();
@@ -443,12 +458,15 @@ void ChOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joint
         info[i] = {joints[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Joints", getJointType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Joints", getJointType(), dataspace);
     set.write(info.data(), getJointType());
 }
 
 void ChOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     if (couples.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto ncouples = couples.size();
@@ -463,12 +481,15 @@ void ChOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple
         };
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Couples", getCoupleType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Couples", getCoupleType(), dataspace);
     set.write(info.data(), getCoupleType());
 }
 
 void ChOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     if (springs.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto nsprings = springs.size();
@@ -480,12 +501,15 @@ void ChOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>
                    springs[i]->GetForce()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Lin Springs", getLinSpringType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Lin Springs", getLinSpringType(), dataspace);
     set.write(info.data(), getLinSpringType());
 }
 
 void ChOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     if (springs.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto nsprings = springs.size();
@@ -497,12 +521,15 @@ void ChOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>
                    springs[i]->GetTorque()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Rot Springs", getRotSpringType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Rot Springs", getRotSpringType(), dataspace);
     set.write(info.data(), getRotSpringType());
 }
 
 void ChOutputHDF5::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
     if (loads.empty())
+        return;
+    auto crt_group = m_section_group ? m_section_group : m_frame_group;
+    if (!crt_group)
         return;
 
     auto nloads = loads.size();
@@ -515,7 +542,7 @@ void ChOutputHDF5::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBo
         info[i] = {loads[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z()};
     }
 
-    H5::DataSet set = m_section_group->createDataSet("Body-body Loads", getBodyLoadType(), dataspace);
+    H5::DataSet set = crt_group->createDataSet("Body-body Loads", getBodyLoadType(), dataspace);
     set.write(info.data(), getBodyLoadType());
 }
 
