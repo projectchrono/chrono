@@ -44,6 +44,11 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChForceFunctors.h"
 
+#include "chrono/output/ChOutputASCII.h"
+#ifdef CHRONO_HAS_HDF5
+    #include "chrono/output/ChOutputHDF5.h"
+#endif
+
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
@@ -256,6 +261,16 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
         }
     } else {
         m_sim.visualization.render = false;
+    }
+
+    // Output (optional)
+    if (sim["output"]) {
+        ChAssertAlways(sim["output"]["type"]);
+        m_sim.output.type = ReadOutputType(sim["output"]["type"]);
+        if (sim["output"]["fps"])
+            m_sim.output.fps = sim["output"]["fps"].as<double>();
+        if (sim["output"]["output_directory"])
+            m_sim.output.dir = sim["output"]["output_directory"].as<std::string>();
     }
 
     if (m_verbose)
@@ -683,22 +698,6 @@ void ChParserYAML::SetIntegrator(ChSystem& sys, const IntegratorParams& params) 
     }
 }
 
-std::shared_ptr<ChSystem> ChParserYAML::CreateSystem() {
-    if (!m_sim_loaded) {
-        cerr << "[ChParserYAML::CreateSystem] Warning: no YAML simulation file loaded." << endl;
-        cerr << "Returning a default ChSystemNSC." << endl;
-        return chrono_types::make_shared<ChSystemNSC>();
-    }
-
-    auto sys = ChSystem::Create(m_sim.contact_method);
-    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
-
-    SetSimulationParameters(*sys);
-
-    return sys;
-}
-
 void ChParserYAML::SetSimulationParameters(ChSystem& sys) {
     if (!m_sim_loaded) {
         cerr << "[ChParserYAML::SetSimulationParameters] Warning: no YAML simulation file loaded." << endl;
@@ -715,6 +714,24 @@ void ChParserYAML::SetSimulationParameters(ChSystem& sys) {
 
     SetSolver(sys, m_sim.solver, m_sim.num_threads_pardiso);
     SetIntegrator(sys, m_sim.integrator);
+}
+
+std::shared_ptr<ChSystem> ChParserYAML::CreateSystem() {
+    if (!m_sim_loaded) {
+        cerr << "[ChParserYAML::CreateSystem] Warning: no YAML simulation file loaded." << endl;
+        cerr << "Returning a default ChSystemNSC." << endl;
+        return chrono_types::make_shared<ChSystemNSC>();
+    }
+
+    // Create a Chrono system of specified type
+    auto sys = ChSystem::Create(m_sim.contact_method);
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
+
+    // Set solver and intergrator parameters
+    SetSimulationParameters(*sys);
+
+    return sys;
 }
 
 // -----------------------------------------------------------------------------
@@ -736,6 +753,8 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
 
     m_instance_index++;
 
+    m_output_data.push_back(OutputData());
+
     // Create a load container for bushings and body forces
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
     sys.Add(load_container);
@@ -754,6 +773,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         body->SetAngVelLocal(item.second.ang_vel);
         sys.AddBody(body);
         item.second.body.push_back(body);
+        m_output_data.back().bodies.push_back(body);
     }
 
     // Create joints (kinematic or bushings)
@@ -766,10 +786,13 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
                                                         body2,                            //
                                                         model_frame * item.second.frame,  //
                                                         item.second.bdata);
-        if (joint->IsKinematic())
+        if (joint->IsKinematic()) {
             sys.AddLink(joint->GetAsLink());
-        else
+            m_output_data.back().joints.push_back(joint->GetAsLink());
+        } else {
             load_container->Add(joint->GetAsBushing());
+            m_output_data.back().bushings.push_back(joint->GetAsBushing());
+        }
         item.second.joint.push_back(joint);
     }
 
@@ -783,6 +806,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         dist->Initialize(body1, body2, false, model_frame * item.second.point1, model_frame * item.second.point2);
         sys.AddLink(dist);
         item.second.dist.push_back(dist);
+        m_output_data.back().constraints.push_back(dist);
     }
 
     // Create TSDAs
@@ -796,6 +820,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         tsda->RegisterForceFunctor(item.second.force);
         sys.AddLink(tsda);
         item.second.tsda.push_back(tsda);
+        m_output_data.back().tsdas.push_back(tsda);
     }
 
     // Create RSDAs
@@ -814,6 +839,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         rsda->RegisterTorqueFunctor(item.second.torque);
         sys.AddLink(rsda);
         item.second.rsda.push_back(rsda);
+        m_output_data.back().rsdas.push_back(rsda);
     }
 
     // Create body loads
@@ -832,6 +858,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         load->SetName(model_prefix + item.first);
         load_container->Add(load);
         item.second.load.push_back(load);
+        m_output_data.back().loads.push_back(load);
     }
 
     // Create linear motors
@@ -861,6 +888,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
         sys.AddLink(motor);
         item.second.motor.push_back(motor);
+        m_output_data.back().lin_motors.push_back(motor);
     }
 
     // Create rotation motors
@@ -890,6 +918,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
         sys.AddLink(motor);
         item.second.motor.push_back(motor);
+        m_output_data.back().rot_motors.push_back(motor);
     }
 
     // Create body collision models
@@ -943,6 +972,46 @@ void ChParserYAML::Depopulate(ChSystem& sys, int instance_index) {
 
 // -----------------------------------------------------------------------------
 
+void ChParserYAML::Output(ChSystem& sys, int frame) {
+    if (m_sim.output.type == ChOutput::Type::NONE)
+        return;
+
+    // Create the output DB if needed
+    if (!m_output_db) {
+        std::string filename = m_sim.output.dir + "/" + m_name;
+        switch (m_sim.output.type) {
+            case ChOutput::Type::ASCII:
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename + ".txt");
+                break;
+            case ChOutput::Type::HDF5:
+#ifdef CHRONO_HAS_HDF5
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5");
+                break;
+#else
+                return;
+#endif
+        }
+    }
+
+    // Output simulation results at current frame for all model instances
+    m_output_db->WriteTime(frame, sys.GetChTime());
+
+    int i = 0;
+    for (const auto& data : m_output_data) {
+        m_output_db->WriteSection("instance" + std::to_string(i++));
+        m_output_db->WriteAuxRefBodies(data.bodies);
+        m_output_db->WriteJoints(data.joints);
+        m_output_db->WriteBodyBodyLoads(data.bushings);
+        ////m_output_db->WriteConstraints(data.constraints);
+        m_output_db->WriteLinSprings(data.tsdas);
+        m_output_db->WriteRotSprings(data.rsdas);
+        m_output_db->WriteLinMotors(data.lin_motors);
+        m_output_db->WriteRotMotors(data.rot_motors);
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 ChParserYAML::SolverParams::SolverParams()
     : type(ChSolver::Type::BARZILAIBORWEIN),
       lock_sparsity_pattern(false),
@@ -970,6 +1039,8 @@ ChParserYAML::VisParams::VisParams()
       camera_location({0, -1, 0}),
       camera_target({0, 0, 0}),
       enable_shadows(true) {}
+
+ChParserYAML::OutputParameters::OutputParameters() : type(ChOutput::Type::NONE), fps(100), dir(".") {}
 
 ChParserYAML::SimParams::SimParams()
     : gravity({0, 0, -9.8}),
@@ -1051,6 +1122,8 @@ void ChParserYAML::SimParams::PrintInfo() {
     integrator.PrintInfo();
     cout << endl;
     visualization.PrintInfo();
+    cout << endl;
+    output.PrintInfo();
 }
 
 void ChParserYAML::VisParams::PrintInfo() {
@@ -1066,6 +1139,18 @@ void ChParserYAML::VisParams::PrintInfo() {
     cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
     cout << "  camera location:      " << camera_location << endl;
     cout << "  camera target:        " << camera_target << endl;
+}
+
+void ChParserYAML::OutputParameters::PrintInfo() {
+    if (type == ChOutput::Type::NONE) {
+        cout << "no output" << endl;
+        return;
+    }
+
+    cout << "output" << endl;
+    cout << "  type:                 " << ChOutput::GetOutputTypeAsString(type) << endl;
+    cout << "  output FPS:           " << fps << endl;
+    cout << "  outut directory:      " << dir << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -1382,6 +1467,15 @@ VisualizationType ChParserYAML::ReadVisualizationType(const YAML::Node& a) {
     if (type == "COLLISION")
         return VisualizationType::COLLISION;
     return VisualizationType::NONE;
+}
+
+ChOutput::Type ChParserYAML::ReadOutputType(const YAML::Node& a) {
+    auto type = ToUpper(a.as<std::string>());
+    if (type == "ASCII")
+        return ChOutput::Type::ASCII;
+    if (type == "HDF5")
+        return ChOutput::Type::HDF5;
+    return ChOutput::Type::NONE;
 }
 
 // -----------------------------------------------------------------------------

@@ -634,7 +634,7 @@ void ChTrackShoeDoublePin::Output(ChOutput& database) const {
 
     database.WriteBodies(bodies);
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 }
 
 }  // end namespace vehicle

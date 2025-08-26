@@ -387,7 +387,7 @@ void ChSemiTrailingArm::Output(ChOutput& database) const {
     m_revoluteArm[1]->IsKinematic() ? joints.push_back(m_revoluteArm[1]->GetAsLink())
                                     : bushings.push_back(m_revoluteArm[1]->GetAsBushing());
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

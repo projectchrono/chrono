@@ -33,6 +33,8 @@
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLinkMotorLinear.h"
+#include "chrono/physics/ChLinkMotorRotation.h"
 
 namespace chrono {
 
@@ -63,7 +65,21 @@ class ChApi ChOutput {
     virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) = 0;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) = 0;
-    virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
+    virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
+    virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
+    virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
+
+    static std::string GetOutputTypeAsString(Type type) {
+        switch (type) {
+            case Type::NONE:
+                return "NONE";
+            case Type::ASCII:
+                return "ASCII";
+            case Type::HDF5:
+                return "HDF5";
+        }
+        return "NONE";
+    }
 };
 
 /// @} chrono_output

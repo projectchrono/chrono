@@ -213,7 +213,7 @@ void ChBalancer::Output(ChOutput& database) const {
     m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
                                        : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 }
 
 }  // end namespace vehicle
