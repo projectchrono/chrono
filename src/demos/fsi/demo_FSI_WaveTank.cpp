@@ -36,6 +36,8 @@
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#else
+    #include "chrono/solver/ChIterativeSolverLS.h"
 #endif
 
 #ifdef CHRONO_VSG
