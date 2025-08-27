@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     // Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     // Only the first call of a distinct filename loads from disc; uses instancing.
     auto objmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
-    objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    objmesh->SetFilename(GetChronoDataFile("models/forklift/body.glb"));
 
     body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(0, 0.0, 2)));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(3, 0.0, 2.5)));
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
     auto Zup = QuatFromAngleX(-CH_PI_2);
 
     auto sceneMesh1 = chrono_types::make_shared<ChVisualShapeModelFile>();
-    sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
+    sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.glb"));
     int teapotId1 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector3d(0, 3.5, 3), Zup));
     if (teapotId1 == -1)
         std::cerr << "Could not get teapot!" << std::endl;

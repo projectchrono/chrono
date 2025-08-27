@@ -1035,7 +1035,7 @@ void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
 }
 
 void ChVisualSystemVSG::SetLightIntensity(float intensity) {
-    m_lightIntensity = ChClamp(intensity, 0.0f, 1.0f);
+    m_lightIntensity = vsg::sRGB_to_linear(ChClamp(intensity, 0.0f, 1.0f));
 }
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
