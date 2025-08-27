@@ -735,7 +735,10 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_current_time(0),
       m_fps(0) {
     m_windowTitle = string("Window Title");
-    m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
+    // skybox from ChIrrlicht
+    // m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
+    // skybox from vsg examples
+    m_skyboxPath = string("vsg/textures/vsg_skybox.ktx");
     m_labelFontPath = string("vsg/fonts/OpenSans-Bold.vsgb");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
@@ -1096,12 +1099,13 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0f, 1.0f, 1.0f);
-    ambientLight->intensity = 0.2f;
+    //ambientLight->intensity = 0.2f; //before sRGB
+    ambientLight->intensity = vsg::sRGB_to_linear(0.2f);
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
-    directionalLight->intensity = m_lightIntensity;
+    directionalLight->intensity = vsg::sRGB_to_linear(m_lightIntensity);
     if (m_use_shadows) {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
@@ -1132,7 +1136,7 @@ void ChVisualSystemVSG::Initialize() {
         auto overheadLight = vsg::DirectionalLight::create();
         overheadLight->name = "head light";
         overheadLight->color.set(1.0f, 1.0f, 1.0f);
-        overheadLight->intensity = 0.2f;
+        overheadLight->intensity = vsg::sRGB_to_linear(0.2f);
         if (m_yup)
             overheadLight->direction.set(-ce * ca, -se, -ce * sa);
         else
