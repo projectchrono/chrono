@@ -103,10 +103,12 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
     shaderSet->addDescriptorBinding("mrMap", "VSG_METALLROUGHNESS_MAP", MATERIAL_DESCRIPTOR_SET, 1,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}));
+                                    vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}),
+                                    vsg::CoordinateSpace::LINEAR);
     shaderSet->addDescriptorBinding("normalMap", "VSG_NORMAL_MAP", MATERIAL_DESCRIPTOR_SET, 2,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}));
+                                    vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}),
+                                    vsg::CoordinateSpace::LINEAR);
     shaderSet->addDescriptorBinding("aoMap", "VSG_LIGHTMAP_MAP", MATERIAL_DESCRIPTOR_SET, 3,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
@@ -118,9 +120,11 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
     shaderSet->addDescriptorBinding("opacityMap", "VSG_OPACITY_MAP", MATERIAL_DESCRIPTOR_SET, 7,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
+                                    vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}),
+                                    vsg::CoordinateSpace::LINEAR);
     shaderSet->addDescriptorBinding("PbrData", "", MATERIAL_DESCRIPTOR_SET, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                    VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create());
+                                    VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create(),
+                                    vsg::CoordinateSpace::LINEAR);
 
     shaderSet->addDescriptorBinding("jointMatrices", "VSG_SKINNING", MATERIAL_DESCRIPTOR_SET, 11,
                                     VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT,
@@ -153,7 +157,7 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
     shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{
         {"VSG_INSTANCE_POSITIONS", "VSG_DISPLACEMENT_MAP"}, vsg::TranslationAndDisplacementMapArrayState::create()});
     shaderSet->definesArrayStates.push_back(
-                                            vsg::DefinesArrayState{{"VSG_INSTANCE_POSITIONS"}, vsg::TranslationArrayState::create()});
+        vsg::DefinesArrayState{{"VSG_INSTANCE_POSITIONS"}, vsg::TranslationArrayState::create()});
     shaderSet->definesArrayStates.push_back(
         vsg::DefinesArrayState{{"VSG_DISPLACEMENT_MAP"}, vsg::DisplacementMapArrayState::create()});
     shaderSet->definesArrayStates.push_back(
@@ -260,6 +264,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKdTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKdTexture(), options);
+        image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -281,6 +286,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKeTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKeTexture(), options);
+        image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -300,6 +306,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKsTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKsTexture(), options);
+        image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -319,6 +326,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetOpacityTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetOpacityTexture(), options);
+        image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -338,6 +346,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetNormalMapTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetNormalMapTexture(), options);
+        image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -357,6 +366,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetAmbientOcclusionTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetAmbientOcclusionTexture(), options);
+        image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =

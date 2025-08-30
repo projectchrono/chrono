@@ -54,7 +54,7 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    outColor = textureLod(envMap, UVW, 0);
+    outColor = 0.7*textureLod(envMap, UVW, 0);
 }
 )";
 

@@ -736,9 +736,9 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_fps(0) {
     m_windowTitle = string("Window Title");
     // skybox from ChIrrlicht
-    // m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
+    m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
     // skybox from vsg examples
-    m_skyboxPath = string("vsg/textures/vsg_skybox.ktx");
+    // m_skyboxPath = string("vsg/textures/vsg_skybox.ktx");
     m_labelFontPath = string("vsg/fonts/OpenSans-Bold.vsgb");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
@@ -765,6 +765,9 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_options = vsg::Options::create();
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
     m_options->paths.push_back(GetChronoDataPath());
+
+    m_options->setValue("image_format", vsg::CoordinateSpace::LINEAR);
+    m_options->setValue("vertex_color_space", vsg::CoordinateSpace::LINEAR);
 
     // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
@@ -901,8 +904,7 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!"
-                  << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << std::endl;
         return;
     }
     m_windowWidth = size[0];
@@ -1099,7 +1101,7 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0f, 1.0f, 1.0f);
-    //ambientLight->intensity = 0.2f; //before sRGB
+    // ambientLight->intensity = 0.2f; //before sRGB
     ambientLight->intensity = vsg::sRGB_to_linear(0.2f);
 
     auto directionalLight = vsg::DirectionalLight::create();
