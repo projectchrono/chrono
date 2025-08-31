@@ -28,8 +28,6 @@
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 #include "chrono_vsg/utils/ChUtilsVSG.h"
 
-#include "chrono_thirdparty/stb/stb_image_write.h"
-
 namespace chrono {
 namespace vsg3d {
 
@@ -2965,6 +2963,8 @@ void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, Ch
 }
 
 void ChVisualSystemVSG::ExportScreenImage() {
+    // code taken from vsgExamples vsgscreenshot.cpp
+    
     auto width = m_window->extent2D().width;
     auto height = m_window->extent2D().height;
 
@@ -2986,17 +2986,15 @@ void ChVisualSystemVSG::ExportScreenImage() {
     vkGetPhysicalDeviceFormatProperties(*(physicalDevice), sourceImageFormat, &srcFormatProperties);
 
     VkFormatProperties destFormatProperties;
-    vkGetPhysicalDeviceFormatProperties(*(physicalDevice), VK_FORMAT_R8G8B8A8_UNORM, &destFormatProperties);
+    vkGetPhysicalDeviceFormatProperties(*(physicalDevice), VK_FORMAT_R8G8B8A8_SRGB, &destFormatProperties);
 
     bool supportsBlit = ((srcFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) != 0) &&
                         ((destFormatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0);
 
     if (supportsBlit) {
         // we can automatically convert the image format when blit, so take advantage of it to ensure RGBA
-        targetImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
+        targetImageFormat = VK_FORMAT_R8G8B8A8_SRGB;
     }
-
-    // vsg::info("supportsBlit = ", supportsBlit);
 
     //
     // 2) create image to write to
@@ -3156,12 +3154,10 @@ void ChVisualSystemVSG::ExportScreenImage() {
 
     size_t destRowWidth = width * sizeof(vsg::ubvec4);
     vsg::ref_ptr<vsg::Data> imageData;
-    unsigned char* outPtr = (unsigned char*)malloc(width * height * 4);
     if (destRowWidth == subResourceLayout.rowPitch) {
-        auto mappedData = vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0,
-                                                                   vsg::Data::Properties{targetImageFormat},
-                                                                   subResourceLayout.rowPitch * height);
-        std::memcpy(outPtr, mappedData->data(), width * height * 4);
+        imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
+                                                                vsg::Data::Properties{targetImageFormat}, width,
+                                                                height);  // deviceMemory, offset, flags and dimensions
     } else {
         // Map the buffer memory and assign as a ubyteArray that will automatically unmap itself on destruction.
         // A ubyteArray is used as the graphics buffer memory is not contiguous like vsg::Array2D, so map to a flat
@@ -3169,25 +3165,16 @@ void ChVisualSystemVSG::ExportScreenImage() {
         auto mappedData = vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0,
                                                                    vsg::Data::Properties{targetImageFormat},
                                                                    subResourceLayout.rowPitch * height);
+        imageData = vsg::ubvec4Array2D::create(width, height, vsg::Data::Properties{targetImageFormat});
         for (uint32_t row = 0; row < height; ++row) {
-            std::memcpy(outPtr + row * destRowWidth, mappedData->dataPointer(row * subResourceLayout.rowPitch),
+            std::memcpy(imageData->dataPointer(row * width), mappedData->dataPointer(row * subResourceLayout.rowPitch),
                         destRowWidth);
         }
     }
-    int ok = -1;
-    if (m_imageFilename.rfind(".png") != std::string::npos) {
-        ok = stbi_write_png(m_imageFilename.c_str(), width, height, 4, outPtr, 0);
-    } else if (m_imageFilename.rfind(".tga") != std::string::npos) {
-        ok = stbi_write_tga(m_imageFilename.c_str(), width, height, 4, outPtr);
-    } else if (m_imageFilename.rfind(".bmp") != std::string::npos) {
-        ok = stbi_write_bmp(m_imageFilename.c_str(), width, height, 4, outPtr);
-    } else if (m_imageFilename.rfind(".jpg") != std::string::npos ||
-               m_imageFilename.rfind(".jpeg") != std::string::npos) {
-        ok = stbi_write_jpg(m_imageFilename.c_str(), width, height, 4, outPtr, 90);
-    } else {
-        vsg::info("Couldn't figure out desired graphics format! Use one of (*.png | *.tga | *.bmp | *.jpg | *.jpeg)");
+
+    if (!vsg::write(imageData, m_imageFilename, m_options)) {
+        std::cout << "Failed to write color buffer to " << m_imageFilename << std::endl;
     }
-    free(outPtr);
 }
 
 }  // namespace vsg3d
