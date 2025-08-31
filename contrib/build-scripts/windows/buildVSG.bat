@@ -34,6 +34,7 @@ set BUILDDEBUG=ON
     set VSGEXAMPLES_SOURCE_DIR="C:/Sources/vsgExamples"
     set ASSIMP_SOURCE_DIR="C:/Sources/assimp"  
     set DRACO_SOURCE_DIR="C:/Sources/draco"
+    set GLSLANG_SOURCE_DIR="C:/Sources/glslang"
 )
 
 @rem ------------------------------------------------------------------------
@@ -76,6 +77,14 @@ if "%~1" NEQ "" (
     git clone -c advice.detachedHead=false --depth 1 --branch 1.5.7 "https://github.com/google/draco.git" "download_vsg/draco"
     set DRACO_SOURCE_DIR="download_vsg/draco"
 
+    echo " ... glslang"
+    git clone -c advice.detachedHead=false --depth 1 --branch 15.4.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
+    set GLSLANG_SOURCE_DIR="download_vsg/glslang"
+
+    cd download_vsg/glslang/
+    python update_glslang_sources.py
+    cd ../..
+
 ) else (
     echo "Using provided source directories"
 )
@@ -83,6 +92,23 @@ if "%~1" NEQ "" (
 @rem -----------------------------------------------------------------------
 
 rmdir /S/Q %VSG_INSTALL_DIR% 2>nul
+
+@rem --- glslang ------------------------------------------------------------
+
+rmdir /S/Q build_glslang 2>nul
+cmake -B build_glslang -S %GLSLANG_SOURCE_DIR% ^
+      -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
+      -DCMAKE_DEBUG_POSTFIX="_d" 
+
+cmake --build build_glslang --config Release
+cmake --install build_glslang --config Release --prefix %VSG_INSTALL_DIR%
+if %BUILDDEBUG% EQU ON (
+    cmake --build build_glslang --config Debug
+    cmake --install build_glslang --config Debug --prefix %VSG_INSTALL_DIR%
+) else (
+    echo "No Debug build of glslang"
+)
+
 
 rem --- draco --------------------------------------------------------------
 
