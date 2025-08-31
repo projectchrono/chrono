@@ -28,10 +28,10 @@
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 #include "chrono_vsg/utils/ChUtilsVSG.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vsg3d {
-
-using namespace std;
 
 // -----------------------------------------------------------------------------
 
@@ -732,12 +732,12 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_old_time(0),
       m_current_time(0),
       m_fps(0) {
-    m_windowTitle = string("Window Title");
+    m_windowTitle = std::string("Window Title");
     // skybox from ChIrrlicht
-    m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
+    m_skyboxPath = std::string("vsg/textures/chrono_skybox.ktx2");
     // skybox from vsg examples
-    // m_skyboxPath = string("vsg/textures/vsg_skybox.ktx");
-    m_labelFontPath = string("vsg/fonts/OpenSans-Bold.vsgb");
+    // m_skyboxPath = std::string("vsg/textures/vsg_skybox.ktx");
+    m_labelFontPath = std::string("vsg/fonts/OpenSans-Bold.vsgb");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
     m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
@@ -1779,7 +1779,7 @@ void ChVisualSystemVSG::SetLinkLabelsScale(double length) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
+void ChVisualSystemVSG::WriteImageToFile(const std::string& filename) {
     m_imageFilename = filename;
     m_capture_image = true;
 }
@@ -2434,7 +2434,7 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
             // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
             // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
             auto grp =
-                !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != string::npos
+                !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != std::string::npos
                     ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE, material, transform, wireframe)
                     : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, wireframe);
             group->addChild(grp);
@@ -2493,15 +2493,17 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             const auto& filename = model_file->GetFilename();
             const auto& scale = model_file->GetScale();
+
             size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
+            ////transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
+            transform->matrix = vsg::dmat4CH(X_SM, scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
             // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, filename, m_options));
-            map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
+            std::map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
             objIt = m_objCache.find(objHashValue);
             if (objIt == m_objCache.end()) {
                 auto node = vsg::read_cast<vsg::Node>(filename, m_options);
