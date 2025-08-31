@@ -811,29 +811,35 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
             continue;
 
         if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-            bool irrmesh_already_loaded = false;
-            if (GetSceneManager()->getMeshCache()->getMeshByName(obj->GetFilename().c_str()))
-                irrmesh_already_loaded = true;
-            IAnimatedMesh* genericMesh = GetSceneManager()->getMesh(obj->GetFilename().c_str());
-            if (genericMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeShape(obj, node);
-                ISceneNode* mchildnode = GetSceneManager()->addAnimatedMeshSceneNode(genericMesh, mproxynode);
-                mproxynode->drop();
+            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            trimesh_shape->SetMesh(trimesh);
+            trimesh_shape->SetMutable(false);
 
-                // mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
-
-                // Note: the Irrlicht loader of .OBJ files flips the X to correct its left-handed nature, but
-                // this goes wrong with our assemblies and links. Restore the X flipping of the mesh.
-                if (!irrmesh_already_loaded)
-                    mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh());
-
-                mchildnode->setPosition(shape_m4.getTranslation());
-                mchildnode->setRotation(shape_m4.getRotationDegrees());
-                mchildnode->setScale(core::vector3dfCH(obj->GetScale()));
-
-                SetVisualMaterial(mchildnode, shape);
-                mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true);
+            // Create a number of Irrlicht mesh buffers equal to the number of materials.
+            // If no materials defined, create a single mesh buffer.
+            SMesh* smesh = new SMesh;
+            int nbuffers = (int)trimesh_shape->GetNumMaterials();
+            nbuffers = std::max(nbuffers, 1);
+            for (int ibuffer = 0; ibuffer < nbuffers; ibuffer++) {
+                CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
+                smesh->addMeshBuffer(buffer);
+                buffer->drop();
             }
+
+            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(trimesh_shape, node);
+            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(smesh, mproxynode);
+            smesh->drop();
+
+            mchildnode->setPosition(shape_m4.getTranslation());
+            mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+            mproxynode->Update();  // force syncing of triangle positions & face indexes
+            mproxynode->drop();
+
+            SetVisualMaterial(mchildnode, shape);
+            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh_shape->IsWireframe());
+            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh_shape->IsBackfaceCull());
         } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
             // Create a number of Irrlicht mesh buffers equal to the number of materials.
             // If no materials defined, create a single mesh buffer.
