@@ -93,6 +93,7 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
+                     bool& use_variable_time_step,
                      std::string& boundary_method,
                      std::string& viscosity_method) {
     ChCLI cli(argv[0], "FSI object drop demo");
@@ -100,12 +101,15 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
-    cli.AddOption<bool>("Output", "output", "Enable collection of output files");
+    std::string output_particle_data_str = output ? "true" : "false";
+    cli.AddOption<std::string>("Output", "output_particle_data", "Enable collection of output files",
+                               output_particle_data_str);
     cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
 
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
     cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
-    cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+    std::string snapshots_str = snapshots ? "true" : "false";
+    cli.AddOption<std::string>("Visualization", "snapshots", "Enable writing snapshot image files", snapshots_str);
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
@@ -114,6 +118,9 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<std::string>("Physics", "viscosity_method",
                                "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)",
                                "artificial_unilateral");
+    std::string use_variable_time_step_str = use_variable_time_step ? "true" : "false";
+    cli.AddOption<std::string>("Physics", "use_variable_time_step", "true/false to use variable time step",
+                               use_variable_time_step_str);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -123,9 +130,9 @@ bool GetProblemSpecs(int argc,
     t_end = cli.GetAsType<double>("t_end");
 
     verbose = !cli.GetAsType<bool>("quiet");
-    output = cli.GetAsType<bool>("output");
+    output = parse_bool(cli.GetAsType<std::string>("output_particle_data"));
     render = !cli.GetAsType<bool>("no_vis");
-    snapshots = cli.GetAsType<bool>("snapshots");
+    snapshots = parse_bool(cli.GetAsType<std::string>("snapshots"));
 
     output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
@@ -134,7 +141,7 @@ bool GetProblemSpecs(int argc,
 
     boundary_method = cli.GetAsType<std::string>("boundary_method");
     viscosity_method = cli.GetAsType<std::string>("viscosity_method");
-
+    use_variable_time_step = parse_bool(cli.GetAsType<std::string>("use_variable_time_step"));
     return true;
 }
 
@@ -153,10 +160,11 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
     bool snapshots = false;
     int ps_freq = 1;
+    bool use_variable_time_step = true;
     std::string boundary_method = "adami";
     std::string viscosity_method = "artificial_unilateral";
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_method, viscosity_method)) {
+                         use_variable_time_step, boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -191,7 +199,8 @@ int main(int argc, char* argv[]) {
     sph_params.num_bce_layers = num_bce_layers;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
-    sph_params.max_velocity = 8.0;
+    // Compute max velocity as root of 2*g*h
+    sph_params.max_velocity = 4.538;
     sph_params.shifting_method = ShiftingMethod::XSPH;
     sph_params.shifting_xsph_eps = 0.5;
     sph_params.artificial_viscosity = 0.03;
@@ -201,6 +210,7 @@ int main(int argc, char* argv[]) {
     sph_params.num_proximity_search_steps = ps_freq;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
+    sph_params.use_variable_time_step = use_variable_time_step;
 
     // Set boundary and viscosity types
     if (boundary_method == "holmes") {
@@ -396,9 +406,19 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
-    std::string out_file = out_dir + "/results.txt";
+    std::string out_file;
+    if (use_variable_time_step) {
+        out_file = out_dir + "/results_variable_time_step.txt";
+    } else {
+        out_file = out_dir + "/results_fixed_time_step.txt";
+    }
     std::ofstream ofile(out_file, std::ios::trunc);
-
+    double exchange_info;
+    if (use_variable_time_step) {
+        exchange_info = 5 * step_size;
+    } else {
+        exchange_info = step_size;
+    }
     ChTimer timer;
     timer.start();
     while (time < t_end) {
@@ -440,15 +460,36 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Call the FSI solver
-        fsi.DoStepDynamics(step_size);
+        fsi.DoStepDynamics(exchange_info);
 
-        time += step_size;
+        time += exchange_info;
         sim_frame++;
     }
     timer.stop();
+    ofile.close();
+    std::cout << "End Time: " << t_end << std::endl;
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
-    ofile.close();
+    // Write RTF file
+    std::ofstream rtf_file;
+    if (use_variable_time_step) {
+        rtf_file.open(out_dir + "/rtf_variable_time_step.txt", std::ios::trunc);
+    } else {
+        rtf_file.open(out_dir + "/rtf_fixed_time_step.txt", std::ios::trunc);
+    }
+    rtf_file << "time (s)"
+             << "\t"
+             << "wall clock time (s)"
+             << "\t"
+             << "RTF" << endl;
+    double rtf = timer() / t_end;
+    rtf_file << t_end << "\t" << timer() << "\t" << rtf << endl;
+    rtf_file.close();
+
+    if (use_variable_time_step) {
+        fsi.PrintFSIStats();
+        fsi.PrintFluidSystemSPHTimeSteps(out_dir + "/time_steps.txt");
+    }
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
