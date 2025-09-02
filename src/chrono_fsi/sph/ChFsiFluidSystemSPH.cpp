@@ -2915,6 +2915,13 @@ ChVector3d ChFsiFluidSystemSPH::GetGravitationalAcceleration() const {
 }
 
 double ChFsiFluidSystemSPH::GetSoundSpeed() const {
+    // This can be called even before Initialize() is called (For instance DepthPressurePropertiesCallback in
+    // ChFsiProblemSPH) This means that we need to update Cs based on the current set of parameters.
+    if (m_paramsH->elastic_SPH) {
+        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+    } else {
+        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    }
     return m_paramsH->Cs;
 }
 
