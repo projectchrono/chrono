@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Wei Hu, Radu Serban
+// Author: Luning Bakke, Huzaifa Mustafa Unjhawala
 // =============================================================================
 
 #include <cassert>

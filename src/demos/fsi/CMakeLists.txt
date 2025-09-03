@@ -7,6 +7,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_Compressibility
    demo_FSI_Poiseuille_flow
    demo_FSI_SingleWheelTest
+   demo_FSI_SlopedSingleWheelTest
    demo_FSI_Kernels
    demo_FSI_ObjectDrop
    demo_FSI_CylindricalTank
