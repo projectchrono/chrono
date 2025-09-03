@@ -765,7 +765,8 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_options->paths.push_back(GetChronoDataPath());
 
     m_options->setValue("image_format", vsg::CoordinateSpace::LINEAR);
-    m_options->setValue("vertex_color_space", vsg::CoordinateSpace::LINEAR);
+    m_options->setValue("vertex_color_space", vsg::CoordinateSpace::sRGB);
+    m_options->setValue("material_color_space", vsg::CoordinateSpace::LINEAR);
 
     // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
@@ -1035,7 +1036,7 @@ void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
 }
 
 void ChVisualSystemVSG::SetLightIntensity(float intensity) {
-    m_lightIntensity = vsg::sRGB_to_linear(ChClamp(intensity, 0.0f, 1.0f));
+    m_lightIntensity = ChClamp(intensity, 0.0f, 1.0f);
 }
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
@@ -1099,18 +1100,17 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0f, 1.0f, 1.0f);
-    // ambientLight->intensity = 0.2f; //before sRGB
-    ambientLight->intensity = vsg::sRGB_to_linear(0.2f);
+    ambientLight->intensity = 0.2f * m_lightIntensity;  // before sRGB
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
-    directionalLight->intensity = vsg::sRGB_to_linear(m_lightIntensity);
+    directionalLight->intensity = vsg::linear_to_sRGB(m_lightIntensity);
     if (m_use_shadows) {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity *= 0.8f;  // try to avoid saturation due to additional lights
+        directionalLight->intensity = 0.8f * m_lightIntensity;  // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -1136,7 +1136,7 @@ void ChVisualSystemVSG::Initialize() {
         auto overheadLight = vsg::DirectionalLight::create();
         overheadLight->name = "head light";
         overheadLight->color.set(1.0f, 1.0f, 1.0f);
-        overheadLight->intensity = vsg::sRGB_to_linear(0.2f);
+        overheadLight->intensity = 0.2f * m_lightIntensity;
         if (m_yup)
             overheadLight->direction.set(-ce * ca, -se, -ce * sa);
         else
@@ -2497,7 +2497,8 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
             size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            ////transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
+            ////transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)),
+            /// scale);
             transform->matrix = vsg::dmat4CH(X_SM, scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
@@ -2966,7 +2967,7 @@ void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, Ch
 
 void ChVisualSystemVSG::ExportScreenImage() {
     // code taken from vsgExamples vsgscreenshot.cpp
-    
+
     auto width = m_window->extent2D().width;
     auto height = m_window->extent2D().height;
 
