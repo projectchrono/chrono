@@ -15,8 +15,11 @@
 #include "chrono_vsg/shapes/ShaderUtils.h"
 #include "chrono_vsg/resources/chronoLineShader_vert.h"
 #include "chrono_vsg/resources/chronoLineShader_frag.h"
+
+#ifndef WIN32
 #include "chrono_vsg/resources/chronoPbrShader_vert.h"
 #include "chrono_vsg/resources/chronoPbrShader_frag.h"
+#endif
 
 namespace chrono {
 namespace vsg3d {
@@ -24,8 +27,12 @@ namespace vsg3d {
 vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options, bool skipZbuffer) {
     // vsg::info("Local LineShaderSet(", options, ")");
 
+#ifndef WIN32
     bool use_embedded_shaders = true;
-
+#else
+    bool use_embedded_shaders = false;
+#endif
+    
     vsg::ref_ptr<vsg::ShaderStage> vertexShader;
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader;
 
