@@ -13,10 +13,6 @@
 // =============================================================================
 
 #include "chrono_vsg/shapes/ShaderUtils.h"
-#include "chrono_vsg/resources/chronoLineShader_vert.h"
-#include "chrono_vsg/resources/chronoLineShader_frag.h"
-#include "chrono_vsg/resources/chronoPbrShader_vert.h"
-#include "chrono_vsg/resources/chronoPbrShader_frag.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -24,20 +20,13 @@ namespace vsg3d {
 vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options, bool skipZbuffer) {
     // vsg::info("Local LineShaderSet(", options, ")");
 
-    bool use_embedded_shaders = true;
-
     vsg::ref_ptr<vsg::ShaderStage> vertexShader;
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader;
 
-    if (use_embedded_shaders) {
-        // read shader programs from embedded source code
-        vertexShader = chronoLineShader_vert();
-        fragmentShader = chronoLineShader_frag();
-    } else {
-        // read shader programs from source files
-        vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.vert", options);
-        fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.frag", options);
-    }
+    // read shader programs from source files
+    vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.vert", options);
+    fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.frag", options);
+
     if (!vertexShader || !fragmentShader) {
         vsg::error("LineShaderSet(...) could not find shaders.");
         return {};
@@ -66,18 +55,13 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
 #define MATERIAL_DESCRIPTOR_SET 1
 
     // vsg::info("Local pbr_ShaderSet(", options, ")");
-    bool use_embedded_shaders = true;
 
     vsg::ref_ptr<vsg::ShaderStage> vertexShader;
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader;
 
-    if (use_embedded_shaders) {
-        vertexShader = chronoPbrShader_vert();
-        fragmentShader = chronoPbrShader_frag();
-    } else {
-        vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.vert", options);
-        fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.frag", options);
-    }
+    vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.vert", options);
+    fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.frag", options);
+
     if (!vertexShader || !fragmentShader) {
         vsg::error("pbr_ShaderSet(...) could not find shaders.");
         return {};
