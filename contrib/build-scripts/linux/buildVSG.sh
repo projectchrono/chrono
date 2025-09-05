@@ -41,7 +41,8 @@ then
     VSGEXAMPLES_SOURCE_DIR="$HOME/Sources/vsgExamples"
     ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
     DRACO_SOURCE_DIR="$HOME/Sources/draco"
-fi
+    GLSLANG_SOURCE_DIR="$HOME/Sources/glslang"
+fi    
 
 # ------------------------------------------------------------------------
 # Allow overriding installation directory through command line argument
@@ -83,6 +84,15 @@ then
     echo "  ... draco"
     git clone -c advice.detachedHead=false --depth 1 --branch 1.5.7 "https://github.com/google/draco.git" "download_vsg/draco"
     DRACO_SOURCE_DIR="download_vsg/draco"
+
+    echo "  ... glslang"
+    git clone -c advice.detachedHead=false --depth 1 --branch 15.4.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
+    GLSLANG_SOURCE_DIR="download_vsg/glslang"
+
+    cd download_vsg/glslang/
+    python update_glslang_sources.py
+    cd ../..
+
 else
     echo "Using provided source directories"
 fi
@@ -94,11 +104,31 @@ echo "  "  ${VSGIMGUI_SOURCE_DIR}
 echo "  "  ${VSGEXAMPLES_SOURCE_DIR}
 echo "  "  ${ASSIMP_SOURCE_DIR}
 echo "  "  ${DRACO_SOURCE_DIR}
+echo "  "  ${GLSLANG_SOURCE_DIR}
 
 # ------------------------------------------------------------------------
 
 rm -rf ${VSG_INSTALL_DIR}
 mkdir ${VSG_INSTALL_DIR}
+
+# --- glslang ------------------------------------------------------------
+
+echo -e "\n------------------------ Configure glslang\n"
+rm -rf build_glslang
+cmake -G "${BUILDSYSTEM}" -B build_glslang -S ${GLSLANG_SOURCE_DIR} \
+      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+echo -e "\n------------------------ Build and install glslang\n"
+cmake --build build_glslang --config Release
+cmake --install build_glslang --config Release --prefix ${VSG_INSTALL_DIR}
+if [ ${BUILDDEBUG} = ON ]
+then
+    cmake --build build_glslang --config Debug
+    cmake --install build_glslang --config Debug --prefix ${VSG_INSTALL_DIR}
+else
+    echo "No Debug build of glslang"
+fi
 
 # --- draco -------------------------------------------------------------
 
