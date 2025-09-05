@@ -653,7 +653,7 @@ if (CHRONO_THRUST_FOUND)
         multicore_math/utility.h
     )
     source_group(multicore_math FILES ${Chrono_MulticoreMath_SOURCES} ${Chrono_MulticoreMath_HEADERS})
-elseif()
+else()
     set(Chrono_MulticoreMath_SOURCES "")
     set(Chrono_MulticoreMath_HEADERS "")
 endif()
