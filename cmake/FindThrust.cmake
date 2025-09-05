@@ -29,6 +29,8 @@ find_path( THRUST_INCLUDE_DIR
   HINTS
     ${Thrust_ROOT}  
     ${CUDAToolkit_LIBRARY_ROOT}/include
+    ${CUDAToolkit_LIBRARY_ROOT}/include/ccl
+    ${CTK_ROOT}/include/ccl
     ${CUDA_INCLUDE_DIRS}
     /usr/include/cuda
     /usr/local/
