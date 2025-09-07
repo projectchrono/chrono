@@ -2494,12 +2494,14 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
             const auto& filename = model_file->GetFilename();
             const auto& scale = model_file->GetScale();
 
+            auto ext = filesystem::path(filename).extension();
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
+            ChQuaterniond rot = (ext == "OBJ" || ext == "STL") ? QUNIT : QuatFromAngleX(-CH_PI_2);
+
             size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            ////transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)),
-            /// scale);
-            transform->matrix = vsg::dmat4CH(X_SM, scale);
+            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * rot), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
