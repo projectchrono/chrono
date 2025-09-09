@@ -397,7 +397,6 @@ int main(int argc, char* argv[]) {
     std::cout << "ps_freq: " << params.ps_freq << std::endl;
     std::cout << "initial_spacing: " << params.initial_spacing << std::endl;
     std::cout << "d0_multiplier: " << params.d0_multiplier << std::endl;
-    std::cout << "time_step: " << params.time_step << std::endl;
     std::cout << "boundary_type: " << params.boundary_type << std::endl;
     std::cout << "viscosity_type: " << params.viscosity_type << std::endl;
     std::cout << "kernel_type: " << params.kernel_type << std::endl;
@@ -405,6 +404,11 @@ int main(int argc, char* argv[]) {
     std::cout << "integration_scheme: " << params.integration_scheme << std::endl;
     std::cout << "total_time: " << params.total_time << std::endl;
     std::cout << "use_variable_time_step: " << params.use_variable_time_step << std::endl;
+    if (params.use_variable_time_step) {
+        std::cout << "time_step used for the first time step: " << params.time_step << std::endl;
+    } else {
+        std::cout << "time_step: " << params.time_step << std::endl;
+    }
     std::cout << "wheel_vel: " << params.wheel_vel << std::endl;
     std::cout << "wheel_AngVel: " << params.wheel_AngVel << std::endl;
     std::cout << "total_mass: " << params.total_mass << std::endl;

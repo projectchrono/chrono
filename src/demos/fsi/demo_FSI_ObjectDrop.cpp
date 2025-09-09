@@ -149,6 +149,7 @@ bool GetProblemSpecs(int argc,
 
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
+    // If variable time step is enabled, this step size is only used for the first time step
     double step_size = 1e-4;
 
     // Parse command line arguments

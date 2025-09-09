@@ -651,14 +651,12 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 }
 
 void FsiForceWCSPH::DensityReinitialization(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-
     // Re-Initialize the density after several time steps if needed
     thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
     printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->densityReinit);
-    calcRho_kernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
-                                              mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-                                              U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-                                              numActive, density_initialization);
+    calcRho_kernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
+        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, density_initialization);
 }
 
 // -----------------------------------------------------------------------------
@@ -994,7 +992,6 @@ __global__ void CfdHolmesBC(const uint* numNeighborsPerPart,
 }
 
 void FsiForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-
     if (m_data_mgr.paramsH->boundary_method == BoundaryMethod::ADAMI) {
         CrmAdamiBC<<<numBlocks, numThreads>>>(
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
@@ -1068,7 +1065,6 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0);
 
-
     /*if (IsFluidParticle(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w)) {
         tauXxYyZz_B = tauXxYyZz_A;
         tauXyXzYz_B = tauXyXzYz_A;
@@ -1107,7 +1103,7 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     Real derivM1 = 0;
     Real vAB_rAB = dot(velMasA - velMasB, dist3);
     Real intermediate = vAB_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
-    if(IsFluidParticle(rhoPresMuB.w)) {
+    if (IsFluidParticle(rhoPresMuB.w)) {
         *max_vel_diff = fmax(*max_vel_diff, fabs(paramsD.h * intermediate));
     }
     switch (paramsD.viscosity_method) {
@@ -1130,7 +1126,6 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
         }
     }
 
-    
     derivVx += derivM1 * gradW.x;
     derivVy += derivM1 * gradW.y;
     derivVz += derivM1 * gradW.z;
@@ -1311,8 +1306,9 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 
         // Calculate dv/dt
         // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
-        derivVelRho += crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA,
-                               velMasB, rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
+        derivVelRho +=
+            crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB,
+                    rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
         // Modify the gradW for stress equation if we decide to use consistent discretization
         if (paramsD.USE_Consistent_G) {
             Real3 gradW_new;
@@ -1369,11 +1365,12 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
     if (IsSphParticle(rhoPresMuA.w)) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3, 0);
-    }   
+    }
 
-    if(IsFluidParticle(rhoPresMuA.w)) {
+    if (IsFluidParticle(rhoPresMuA.w)) {
         courantViscousTimeStepD[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
-        Real intermediate = sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
+        Real intermediate =
+            sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
         Real accT = sqrtf(paramsD.h / intermediate);
         accelerationTimeStepD[index] = accT;
     }
@@ -1383,7 +1380,6 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 }
 
 void FsiForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
     CrmRHS<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
@@ -1431,7 +1427,7 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
     Real3 derivV;
     Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
     Real intermediate = vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
-    if(IsFluidParticle(rhoPresMuB.w)) {
+    if (IsFluidParticle(rhoPresMuB.w)) {
         *max_vel_diff = fmax(*max_vel_diff, fabs(paramsD.h * intermediate));
     }
     switch (paramsD.viscosity_method) {
@@ -1574,8 +1570,8 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
         // }
         Real3 velMasB = sortedVelMas[j];
 
-        derivVelRho +=
-            cfdDvDt(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, &max_vel_diff);
+        derivVelRho += cfdDvDt(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB,
+                               &max_vel_diff);
 
         if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
             preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y, rhoPresMuB.y,
@@ -1630,9 +1626,10 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
         derivVelRho += mR4(totalFluidBodyForce3);
     }
 
-    if(IsFluidParticle(rhoPresMuA.w)) {
+    if (IsFluidParticle(rhoPresMuA.w)) {
         courantViscousTimeStep[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
-        Real intermediate = sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
+        Real intermediate =
+            sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
         Real accT = sqrtf(paramsD.h / intermediate);
         accelerationTimeStep[index] = accT;
     }
@@ -1647,8 +1644,8 @@ void FsiForceWCSPH::CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
     CfdRHS<<<numBlocks, numThreads>>>(
         mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, R1CAST(m_data_mgr.courantViscousTimeStepD),
-                                      R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
+        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive,
+        R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
     cudaCheckErrorFlag(m_errflagD, "RhsCFD");
 }
 

@@ -1922,6 +1922,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
 //------------------------------------------------------------------------------
 double ChFsiFluidSystemSPH::GetVariableStepSize() {
+    // Variable time step requires the state from the previous time step.
+    // Thus, it cannot directly be used in the frist time step.
     if (m_paramsH->use_variable_time_step && m_frame != 0) {
         return m_fluid_dynamics->computeTimeStep();
     } else {

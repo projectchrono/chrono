@@ -386,6 +386,7 @@ std::shared_ptr<ChMesh> CreateFlexiblePlate(ChSystem& sysMBS, const ChVector3d& 
 
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
+    // If variable time step is enabled, this step size is only used for the first time step
     double step_size_CFD = 1e-4;
     double step_size_MBD = (create_flex_cable || create_flex_plate) ? 1e-5 : 1e-4;
     double step_size = std::max(step_size_CFD, step_size_MBD);
