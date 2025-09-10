@@ -78,12 +78,14 @@ class CH_FSI_API ChFsiSystem {
 
     /// Add an FEA mesh to the FSI system.
     /// Any SegmentSet contact surfaces already defined for the FEA mesh are used to generate the interface between the
-    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA mesh.
+    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
+    /// mesh.
     std::shared_ptr<FsiMesh1D> AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
     /// Add an FEA mesh to the FSI system.
     /// Any TriMesh contact surfaces already defined for the FEA mesh are used to generate the interface between the
-    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA mesh.
+    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
+    /// mesh.
     std::shared_ptr<FsiMesh2D> AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
     /// Enable use and set method of obtaining FEA node directions.
@@ -187,6 +189,9 @@ class CH_FSI_API ChFsiSystem {
     /// The torque is expressed in the absolute frame.
     const ChVector3d& GetFsiBodyTorque(size_t i) const;
 
+    /// Print the FSI statistics
+    void PrintFSIStats() const;
+
     //// TODO: add functions to get force on FEA nodes
 
   protected:
@@ -211,12 +216,12 @@ class CH_FSI_API ChFsiSystem {
 
     std::shared_ptr<MBDCallback> m_MBD_callback;  ///< callback for MBS dynamics
 
-    ChTimer m_timer_step;   ///< timer for integration step
-    ChTimer m_timer_FSI;    ///< timer for FSI data exchange
-    double m_timer_CFD;     ///< timer for fluid dynamics integration
-    double m_timer_MBD;     ///< timer for multibody dynamics integration
-    double m_RTF;           ///< real-time factor (simulation time / simulated time)
-    double m_ratio_MBD;     ///< fraction of step simulation time for MBS integration
+    ChTimer m_timer_step;  ///< timer for integration step
+    ChTimer m_timer_FSI;   ///< timer for FSI data exchange
+    double m_timer_CFD;    ///< timer for fluid dynamics integration
+    double m_timer_MBD;    ///< timer for multibody dynamics integration
+    double m_RTF;          ///< real-time factor (simulation time / simulated time)
+    double m_ratio_MBD;    ///< fraction of step simulation time for MBS integration
 };
 
 /// @} fsi_base

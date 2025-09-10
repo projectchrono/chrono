@@ -191,6 +191,7 @@ struct ChFsiParamsSPH {
     Real settlingTime;       ///< Time for the granular to settle down
 
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists
+    bool use_variable_time_step;     ///< use variable time step (default: false)
 };
 
 /// @} fsisph

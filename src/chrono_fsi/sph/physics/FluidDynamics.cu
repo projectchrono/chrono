@@ -24,6 +24,7 @@
 #include "chrono_fsi/sph/physics/FsiForceWCSPH.cuh"
 #include "chrono_fsi/sph/physics/FsiForceISPH.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
+#include "chrono_fsi/sph/utils/UtilsLogging.cuh"
 
 using std::cout;
 using std::endl;
@@ -78,10 +79,30 @@ void FluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
     }
 }
 
+double FluidDynamics::computeTimeStep() const {
+    size_t valid_entries = m_data_mgr.countersH->numExtendedParticles;
+    double min_courant_viscous_time_step =
+        static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(),
+                                           m_data_mgr.courantViscousTimeStepD.begin() + valid_entries,
+                                           std::numeric_limits<Real>::max(), thrust::minimum<Real>()));
+    double min_acceleration_time_step =
+        static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(),
+                                           m_data_mgr.accelerationTimeStepD.begin() + valid_entries,
+                                           std::numeric_limits<Real>::max(), thrust::minimum<Real>()));
+
+    double adjusted_time_step = 0.3 * std::min(min_courant_viscous_time_step, min_acceleration_time_step);
+    // Log the time step values for analysiss
+#ifdef FSI_COUNT_LOGGING_ENABLED
+    QuantityLogger::GetInstance().AddValue("time_step", adjusted_time_step);
+    QuantityLogger::GetInstance().AddValue("min_courant_viscous_time_step", min_courant_viscous_time_step);
+    QuantityLogger::GetInstance().AddValue("min_acceleration_time_step", min_acceleration_time_step);
+#endif
+    return adjusted_time_step;
+}
+
 //// TODO - revisit application of particle shifting (explicit schemes)
 ////        currently, a new v_XSPH is calculated at every force evaluation and used in the subsequent position update
 ////        should this be done only once per step?
-
 void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Real h, IntegrationScheme scheme) {
     switch (scheme) {
         case IntegrationScheme::EULER: {
@@ -470,7 +491,7 @@ __global__ void MidpointStep_D(Real4* posRadD,
     // Advance position
     //// TODO: what about XSPH?
     PositionMidpointStep(dT, velMasD[index] + vel_XSPH_D[index], mR3(derivVelRhoD[index]), posRadD[index]);
-    
+
     // Advance velocity
     VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
 
@@ -520,7 +541,6 @@ void FluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
         mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
         U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT);
 
-
     if (m_check_errors) {
         cudaCheckError();
         if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
@@ -528,7 +548,6 @@ void FluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
             cudaThrowError("A particle density is NaN");
     }
-
 }
 
 // -----------------------------------------------------------------------------
@@ -772,10 +791,10 @@ void FluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sort
             break;
         case BCType::INLET_OUTLET:
             //// TODO - check this and modify as appropriate
-            //ApplyInletBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-            //                                                 mR3CAST(sphMarkersD->velMasD),
-            //                                                 mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-            //cudaCheckError();
+            // ApplyInletBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
+            //                                                  mR3CAST(sphMarkersD->velMasD),
+            //                                                  mR4CAST(sphMarkersD->rhoPresMuD), numActive);
+            // cudaCheckError();
             break;
     }
 

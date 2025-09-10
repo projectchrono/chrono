@@ -38,6 +38,8 @@
 #include "chrono_fsi/sph/physics/FluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 
+#include "chrono_fsi/sph/utils/UtilsLogging.cuh"
+
 #include "chrono_fsi/sph/math/CustomMath.cuh"
 
 #include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
@@ -178,6 +180,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->use_init_pressure = false;
 
     m_paramsH->num_proximity_search_steps = 4;
+    m_paramsH->use_variable_time_step = false;
 }
 
 //------------------------------------------------------------------------------
@@ -694,6 +697,10 @@ void ChFsiFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
     m_paramsH->num_proximity_search_steps = steps;
 }
 
+void ChFsiFluidSystemSPH::SetUseVariableTimeStep(bool use_variable_time_step) {
+    m_paramsH->use_variable_time_step = use_variable_time_step;
+}
+
 void ChFsiFluidSystemSPH::CheckSPHParameters() {
     // Check parameter compatibility with physics problem
     if (m_paramsH->elastic_SPH) {
@@ -854,7 +861,8 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       artificial_viscosity(0.02),
       kernel_threshold(0.8),
       num_proximity_search_steps(4),
-      eos_type(EosType::ISOTHERMAL) {}
+      eos_type(EosType::ISOTHERMAL),
+      use_variable_time_step(false) {}
 
 void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->integration_scheme = sph_params.integration_scheme;
@@ -897,6 +905,8 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 
     m_paramsH->num_proximity_search_steps = sph_params.num_proximity_search_steps;
+
+    m_paramsH->use_variable_time_step = sph_params.use_variable_time_step;
 }
 
 ChFsiFluidSystemSPH::LinSolverParameters::LinSolverParameters()
@@ -1199,6 +1209,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  densityReinit: " << params.densityReinit << endl;
 
     cout << "  Proximity search performed every " << params.num_proximity_search_steps << " steps" << endl;
+    cout << "  use_variable_time_step: " << params.use_variable_time_step << endl;
     cout << "  dT: " << params.dT << endl;
 
     cout << "  non_newtonian: " << params.non_newtonian << endl;
@@ -1910,6 +1921,24 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 }
 
 //------------------------------------------------------------------------------
+double ChFsiFluidSystemSPH::GetVariableStepSize() {
+    // Variable time step requires the state from the previous time step.
+    // Thus, it cannot directly be used in the frist time step.
+    if (m_paramsH->use_variable_time_step && m_frame != 0) {
+        return m_fluid_dynamics->computeTimeStep();
+    } else {
+        return GetStepSize();
+    }
+}
+
+void ChFsiFluidSystemSPH::PrintFluidSystemSPHStats() const {
+    QuantityLogger::GetInstance().PrintStats();
+}
+
+void ChFsiFluidSystemSPH::PrintFluidSystemSPHTimeSteps(const std::string& path) const {
+    std::vector<std::string> quantities = {"time_step", "min_courant_viscous_time_step", "min_acceleration_time_step"};
+    QuantityLogger::GetInstance().WriteQuantityValuesToFile(path, quantities);
+}
 
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     SynchronizeCopyStream();
@@ -2904,6 +2933,10 @@ ChVector3d ChFsiFluidSystemSPH::GetBodyForce() const {
 
 int ChFsiFluidSystemSPH::GetNumProximitySearchSteps() const {
     return m_paramsH->num_proximity_search_steps;
+}
+
+bool ChFsiFluidSystemSPH::GetUseVariableTimeStep() const {
+    return m_paramsH->use_variable_time_step;
 }
 
 size_t ChFsiFluidSystemSPH::GetNumFluidMarkers() const {

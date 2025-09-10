@@ -172,6 +172,10 @@ class CH_FSI_API ChFsiProblemSPH {
     /// After this call, no additional solid bodies should be added to the FSI problem.
     void Initialize();
 
+    /// Print the FSI statistics
+    void PrintFSIStats() const;
+    void PrintFluidSystemSPHTimeSteps(const std::string& path) const;
+
     /// Advance the dynamics of the underlying FSI system by the specified step.
     void DoStepDynamics(double step);
 

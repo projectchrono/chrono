@@ -94,6 +94,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double delta_sph_coefficient;              ///< delta SPH coefficient (default: 0.1)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
+        bool use_variable_time_step;               ///< use variable time step (default: false)
 
         SPHParameters();
     };
@@ -207,6 +208,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the number of steps between successive updates to neighbor lists (default: 4).
     void SetNumProximitySearchSteps(int steps);
 
+    /// Set use variable time step
+    void SetUseVariableTimeStep(bool use_variable_time_step);
+
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
 
@@ -282,6 +286,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Get the number of steps between successive updates to neighbor lists.
     int GetNumProximitySearchSteps() const;
+
+    /// Get use variable time step
+    bool GetUseVariableTimeStep() const;
 
     /// Return the current system parameters (debugging only).
     const ChFsiParamsSPH& GetParams() const { return *m_paramsH; }
@@ -472,6 +479,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::string GetPhysicsProblemString() const;
     std::string GetSphIntegrationSchemeString() const;
 
+    /// Print the FSI statistics
+    void PrintFluidSystemSPHStats() const;
+    /// Print the three time step quantities and the final time step to a file
+    /// Only valid in variable time step mode
+    void PrintFluidSystemSPHTimeSteps(const std::string& path) const;
+
   private:
     /// SPH specification of an FSI rigid solid.
     struct FsiSphBody {
@@ -594,6 +607,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Function to integrate the fluid system from `time` to `time + step`.
     virtual void OnDoStepDynamics(double time, double step) override;
+
+    /// Get the variable step size.
+    double GetVariableStepSize() override;
 
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnExchangeSolidForces() override;

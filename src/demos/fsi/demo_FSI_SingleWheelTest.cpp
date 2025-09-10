@@ -185,7 +185,8 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     wheel->SetPosDt(wheel_IniVel);                                        // set initial velocity
     wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));                     // set initial anular velocity
 
-    auto wheel_coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial, trimesh, false, false, 0.005);
+    auto wheel_coll_shape =
+        chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial, trimesh, false, false, 0.005);
     auto wheel_vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     wheel_vis_shape->SetMesh(trimesh);
     wheel_vis_shape->SetColor(ChColor(0.4f, 0.4f, 0.4f));

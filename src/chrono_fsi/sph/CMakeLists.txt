@@ -119,6 +119,7 @@ set(FSISPH_UTILS_FILES
     utils/UtilsTypeConvert.cuh
     utils/UtilsPrintSph.cuh
     utils/UtilsPrintSph.cu
+    utils/UtilsLogging.cuh
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 
