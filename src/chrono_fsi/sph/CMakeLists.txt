@@ -216,7 +216,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigSPH.h.in
                ${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h)
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h"
-        DESTINATION include/chrono_fsi)
+        DESTINATION include/chrono_fsi/sph)
 
 #-------------------------------------------------------------------------------
 # Add the Chrono_fsisph_vsg library
