@@ -111,6 +111,9 @@ class ChApiParsers ChParserYAML {
 
     // --------------
 
+    /// Set root output directory (default: "").
+    void SetOutputDir(const std::string& out_dir) { m_output_dir = out_dir; }
+
     /// Save simulation output results at the current time. 
     void Output(ChSystem& sys, int frame);
 
@@ -434,8 +437,9 @@ class ChApiParsers ChParserYAML {
     std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
 
+    std::string m_output_dir;               ///< root oputput directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
-    std::vector<OutputData> m_output_data;  ///< output data (per instance)
+    OutputData m_output_data;               ///< output data
 
     bool m_verbose;  ///< verbose terminal output (default: false)
 

@@ -35,6 +35,7 @@ using namespace chrono::irrlicht;
 using namespace chrono::vsg3d;
 #endif
 
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
@@ -162,6 +163,16 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Create output directory
+    if (output_type != ChOutput::Type::NONE) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_TEST";
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        parser.SetOutputDir(out_dir);
+    }
+
     // Simulation loop
     ChRealtimeStepTimer rt_timer;
     double time = 0;
@@ -184,12 +195,12 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-         if (output_type != ChOutput::Type::NONE) {
-             if (time >= output_frame / output_fps) {
-                 parser.Output(*sys, output_frame);
-                 output_frame++;
-             }
-         }
+        if (output_type != ChOutput::Type::NONE) {
+            if (time >= output_frame / output_fps) {
+                parser.Output(*sys, output_frame);
+                output_frame++;
+            }
+        }
 
         sys->DoStepDynamics(time_step);
         if (real_time)

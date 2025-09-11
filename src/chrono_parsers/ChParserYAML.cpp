@@ -76,7 +76,8 @@ ChParserYAML::ChParserYAML()
       m_use_degrees(true),
       m_sim_loaded(false),
       m_model_loaded(false),
-      m_instance_index(-1) {}
+      m_instance_index(-1),
+      m_output_dir("") {}
 
 ChParserYAML::ChParserYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose)
     : m_name("YAML model"),
@@ -86,7 +87,8 @@ ChParserYAML::ChParserYAML(const std::string& yaml_model_filename, const std::st
       m_use_degrees(true),
       m_sim_loaded(false),
       m_model_loaded(false),
-      m_instance_index(-1) {
+      m_instance_index(-1),
+      m_output_dir("") {
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
 }
@@ -753,8 +755,6 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
 
     m_instance_index++;
 
-    m_output_data.push_back(OutputData());
-
     // Create a load container for bushings and body forces
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
     sys.Add(load_container);
@@ -773,7 +773,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         body->SetAngVelLocal(item.second.ang_vel);
         sys.AddBody(body);
         item.second.body.push_back(body);
-        m_output_data.back().bodies.push_back(body);
+        m_output_data.bodies.push_back(body);
     }
 
     // Create joints (kinematic or bushings)
@@ -788,10 +788,10 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
                                                         item.second.bdata);
         if (joint->IsKinematic()) {
             sys.AddLink(joint->GetAsLink());
-            m_output_data.back().joints.push_back(joint->GetAsLink());
+            m_output_data.joints.push_back(joint->GetAsLink());
         } else {
             load_container->Add(joint->GetAsBushing());
-            m_output_data.back().bushings.push_back(joint->GetAsBushing());
+            m_output_data.bushings.push_back(joint->GetAsBushing());
         }
         item.second.joint.push_back(joint);
     }
@@ -806,7 +806,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         dist->Initialize(body1, body2, false, model_frame * item.second.point1, model_frame * item.second.point2);
         sys.AddLink(dist);
         item.second.dist.push_back(dist);
-        m_output_data.back().constraints.push_back(dist);
+        m_output_data.constraints.push_back(dist);
     }
 
     // Create TSDAs
@@ -820,7 +820,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         tsda->RegisterForceFunctor(item.second.force);
         sys.AddLink(tsda);
         item.second.tsda.push_back(tsda);
-        m_output_data.back().tsdas.push_back(tsda);
+        m_output_data.tsdas.push_back(tsda);
     }
 
     // Create RSDAs
@@ -839,7 +839,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         rsda->RegisterTorqueFunctor(item.second.torque);
         sys.AddLink(rsda);
         item.second.rsda.push_back(rsda);
-        m_output_data.back().rsdas.push_back(rsda);
+        m_output_data.rsdas.push_back(rsda);
     }
 
     // Create body loads
@@ -858,7 +858,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         load->SetName(model_prefix + item.first);
         load_container->Add(load);
         item.second.load.push_back(load);
-        m_output_data.back().loads.push_back(load);
+        m_output_data.loads.push_back(load);
     }
 
     // Create linear motors
@@ -888,7 +888,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
         sys.AddLink(motor);
         item.second.motor.push_back(motor);
-        m_output_data.back().lin_motors.push_back(motor);
+        m_output_data.lin_motors.push_back(motor);
     }
 
     // Create rotation motors
@@ -918,7 +918,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
         sys.AddLink(motor);
         item.second.motor.push_back(motor);
-        m_output_data.back().rot_motors.push_back(motor);
+        m_output_data.rot_motors.push_back(motor);
     }
 
     // Create body collision models
@@ -979,6 +979,12 @@ void ChParserYAML::Output(ChSystem& sys, int frame) {
     // Create the output DB if needed
     if (!m_output_db) {
         std::string filename = m_sim.output.dir + "/" + m_name;
+        if (!m_output_dir.empty())
+            filename = m_output_dir + "/" + filename;
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\nOutput file: " << filename << endl;
+        }
         switch (m_sim.output.type) {
             case ChOutput::Type::ASCII:
                 m_output_db = chrono_types::make_shared<ChOutputASCII>(filename + ".txt");
@@ -994,21 +1000,17 @@ void ChParserYAML::Output(ChSystem& sys, int frame) {
         m_output_db->Initialize();
     }
 
-    // Output simulation results at current frame for all model instances
+    // Output simulation results at current frame
     m_output_db->WriteTime(frame, sys.GetChTime());
 
-    int i = 0;
-    for (const auto& data : m_output_data) {
-        m_output_db->WriteSection("instance" + std::to_string(i++));
-        m_output_db->WriteAuxRefBodies(data.bodies);
-        m_output_db->WriteJoints(data.joints);
-        m_output_db->WriteBodyBodyLoads(data.bushings);
-        ////m_output_db->WriteConstraints(data.constraints);
-        m_output_db->WriteLinSprings(data.tsdas);
-        m_output_db->WriteRotSprings(data.rsdas);
-        m_output_db->WriteLinMotors(data.lin_motors);
-        m_output_db->WriteRotMotors(data.rot_motors);
-    }
+    m_output_db->WriteAuxRefBodies(m_output_data.bodies);
+    m_output_db->WriteJoints(m_output_data.joints);
+    m_output_db->WriteBodyBodyLoads(m_output_data.bushings);
+    ////m_output_db->WriteConstraints(m_output_data.constraints);
+    m_output_db->WriteLinSprings(m_output_data.tsdas);
+    m_output_db->WriteRotSprings(m_output_data.rsdas);
+    m_output_db->WriteLinMotors(m_output_data.lin_motors);
+    m_output_db->WriteRotMotors(m_output_data.rot_motors);
 }
 
 // -----------------------------------------------------------------------------
