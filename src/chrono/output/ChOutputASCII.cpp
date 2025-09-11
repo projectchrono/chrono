@@ -27,13 +27,17 @@
 namespace chrono {
 
 ChOutputASCII::ChOutputASCII(const std::string& filename)
-    : m_file_stream(filename), m_stream(m_file_stream) {}
+    : m_file_stream(filename), m_stream(m_file_stream), m_initialized(false) {}
 
-ChOutputASCII::ChOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream) {}
+ChOutputASCII::ChOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream), m_initialized(false) {}
 
 ChOutputASCII::~ChOutputASCII() {
     if (m_file_stream.is_open())
         m_file_stream.close();
+}
+
+void ChOutputASCII::Initialize() {
+    m_initialized = true;
 }
 
 void ChOutputASCII::WriteTime(int frame, double time) {

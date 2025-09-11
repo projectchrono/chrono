@@ -37,9 +37,9 @@ class ChApi ChOutputASCII : public ChOutput {
     ~ChOutputASCII();
 
   private:
+    virtual void Initialize() override;
     virtual void WriteTime(int frame, double time) override;
     virtual void WriteSection(const std::string& name) override;
-
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
@@ -54,6 +54,7 @@ class ChApi ChOutputASCII : public ChOutput {
 
     std::ostream& m_stream;
     std::ofstream m_file_stream;
+    bool m_initialized;
 };
 
 /// @} chrono_output

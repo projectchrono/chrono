@@ -22,11 +22,13 @@
 #include <string>
 #include <fstream>
 
+#include <H5Cpp.h>
+
 #include "chrono/output/ChOutput.h"
 
-#include "H5Cpp.h"
-
 namespace chrono {
+
+class ChOutputHDF5_impl;
 
 /// @addtogroup chrono_output
 /// @{
@@ -34,13 +36,13 @@ namespace chrono {
 /// HDF5 Chrono output database.
 class ChApi ChOutputHDF5 : public ChOutput {
   public:
-    ChOutputHDF5(const std::string& filename);
+    ChOutputHDF5(const std::string& filename, Mode mode = Mode::FRAMES);
     ~ChOutputHDF5();
 
   private:
+    virtual void Initialize() override;
     virtual void WriteTime(int frame, double time) override;
     virtual void WriteSection(const std::string& name) override;
-
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
@@ -54,32 +56,36 @@ class ChApi ChOutputHDF5 : public ChOutput {
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
     H5::H5File* m_fileHDF5;
-    H5::Group* m_frame_group;
-    H5::Group* m_section_group;
+    Mode m_mode;
+    std::unique_ptr<ChOutputHDF5_impl> m_impl;
+    bool m_initialized;
 
-    static H5::CompType* m_body_type;
-    static H5::CompType* m_bodyaux_type;
-    static H5::CompType* m_shaft_type;
-    static H5::CompType* m_marker_type;
-    static H5::CompType* m_joint_type;
-    static H5::CompType* m_couple_type;
-    static H5::CompType* m_linspring_type;
-    static H5::CompType* m_rotspring_type;
-    static H5::CompType* m_bodyload_type;
-    static H5::CompType* m_linmotor_type;
-    static H5::CompType* m_rotmotor_type;
+    ////H5::Group* m_frame_group;
+    ////H5::Group* m_section_group;
 
-    static const H5::CompType& getBodyType();
-    static const H5::CompType& getBodyAuxType();
-    static const H5::CompType& getShaftType();
-    static const H5::CompType& getMarkerType();
-    static const H5::CompType& getJointType();
-    static const H5::CompType& getCoupleType();
-    static const H5::CompType& getLinSpringType();
-    static const H5::CompType& getRotSpringType();
-    static const H5::CompType& getBodyLoadType();
-    static const H5::CompType& getLinMotorType();
-    static const H5::CompType& getRotMotorType();
+    ////static H5::CompType* m_body_type;
+    ////static H5::CompType* m_bodyaux_type;
+    ////static H5::CompType* m_shaft_type;
+    ////static H5::CompType* m_marker_type;
+    ////static H5::CompType* m_joint_type;
+    ////static H5::CompType* m_couple_type;
+    ////static H5::CompType* m_linspring_type;
+    ////static H5::CompType* m_rotspring_type;
+    ////static H5::CompType* m_bodyload_type;
+    ////static H5::CompType* m_linmotor_type;
+    ////static H5::CompType* m_rotmotor_type;
+
+    ////static const H5::CompType& getBodyType();
+    ////static const H5::CompType& getBodyAuxType();
+    ////static const H5::CompType& getShaftType();
+    ////static const H5::CompType& getMarkerType();
+    ////static const H5::CompType& getJointType();
+    ////static const H5::CompType& getCoupleType();
+    ////static const H5::CompType& getLinSpringType();
+    ////static const H5::CompType& getRotSpringType();
+    ////static const H5::CompType& getBodyLoadType();
+    ////static const H5::CompType& getLinMotorType();
+    ////static const H5::CompType& getRotMotorType();
 };
 
 /// @} chrono_output

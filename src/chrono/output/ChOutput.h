@@ -44,19 +44,30 @@ namespace chrono {
 /// Base class for a Chrono output database.
 class ChApi ChOutput {
   public:
+    /// Output type. Currently supported options are ASCII and HDF5.
     enum class Type {
         ASCII,  ///< ASCII text
         HDF5,   ///< HDF-5
         NONE    ///< no output
     };
 
+    /// Output mode options.
+    /// - FRAMES: output is organized in groups for each seperate frame;
+    ///           suitable for postprocessing (e.g., rendering).
+    /// - SERIES: output is organized by model components, each of them containing time-series for their various output quantities;
+    ///           suitable for plotting results.
+    enum class Mode {
+      FRAMES,  ///< organize output on a frame-by-frame basis
+      SERIES   ///< organize output on component-by-component basis
+    };
+
     ChOutput() {}
     virtual ~ChOutput() {}
 
+    virtual void Initialize() = 0;
+
     virtual void WriteTime(int frame, double time) = 0;
-
     virtual void WriteSection(const std::string& name) = 0;
-
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
     virtual void WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) = 0;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
@@ -79,6 +90,16 @@ class ChApi ChOutput {
                 return "HDF5";
         }
         return "NONE";
+    }
+
+    static std::string GetOutputModeAsString(Mode mode) {
+        switch (mode) {
+            case Mode::FRAMES:
+                return "FRAMES";
+            case Mode::SERIES:
+                return "SERIES";
+        }
+        return "FRAMES";
     }
 };
 

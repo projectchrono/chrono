@@ -991,6 +991,7 @@ void ChParserYAML::Output(ChSystem& sys, int frame) {
                 return;
 #endif
         }
+        m_output_db->Initialize();
     }
 
     // Output simulation results at current frame for all model instances

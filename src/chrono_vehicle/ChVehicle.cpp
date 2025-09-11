@@ -195,6 +195,7 @@ void ChVehicle::Advance(double step) {
     }
 
     if (m_output_db && m_system->GetChTime() >= m_next_output_time) {
+        m_output_db->Initialize();
         Output(m_output_frame, *m_output_db);
         m_next_output_time += m_output_step;
         m_output_frame++;
