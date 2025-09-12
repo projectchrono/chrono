@@ -30,8 +30,8 @@ namespace peridynamics {
 /// @{
 
 // Forward declaration
-class peridynamics::ChMatterPeriBase;
-class peridynamics::ChNodePeri;
+class ChMatterPeriBase;
+class ChNodePeri;
 
 /// Class for handling proximity pairs for a peridynamics
 /// deformable continuum (necessary for inter-particle material forces),

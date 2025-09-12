@@ -21,7 +21,29 @@
 #include "chrono_peridynamics/ChNodePeri.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
 #include "chrono/solver/ChVariablesNode.h"
+
+// -----------------------------------------------------------------------------
+// Custom hash for std::pair
+
+template <typename T>
+void hash_combine(std::size_t& seed, T const& key) {
+    std::hash<T> hasher;
+    seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+template <typename T1, typename T2>
+struct std::hash<std::pair<T1, T2>> {
+    std::size_t operator()(const std::pair<T1, T2>& s) const noexcept {
+        std::size_t seed(0);
+        hash_combine(seed, s.first);
+        hash_combine(seed, s.second);
+        return seed;
+    }
+};
+
+// -----------------------------------------------------------------------------
 
 namespace chrono {
 namespace peridynamics {
@@ -33,13 +55,13 @@ class ChPeridynamics;
 /// @{
 
 /// Base properties per each peridynamics node. Can be inherited if a material requires more data.
-class ChApiPeridynamics ChMatterDataPerNode {
+class ChMatterDataPerNode {
   public:
     std::shared_ptr<ChNodePeri> node;
 };
 
 /// Base properties per each peridynamics bond. Can be inherited if a material requires more data.
-class ChApiPeridynamics ChMatterDataPerBond {
+class ChMatterDataPerBond {
   public:
     ChNodePeri* nodeA = nullptr;
     ChNodePeri* nodeB = nullptr;
@@ -50,28 +72,12 @@ class ChApiPeridynamics ChMatterDataPerBond {
     };
 };
 
-// Custom hash for std::pair
-template <typename T>
-void hash_combine(std::size_t& seed, T const& key) {
-    std::hash<T> hasher;
-    seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
-template <typename T1, typename T2>
-struct std::hash<::std::pair<T1, T2>> {
-    std::size_t operator()(const std::pair<T1, T2>& s) const noexcept {
-        std::size_t seed(0);
-        hash_combine(seed, s.first);
-        hash_combine(seed, s.second);
-        return seed;
-    }
-};
-
 /// Base class for assigning material properties (elasticity, viscosity etc) to a cluster
 /// of peridynamics nodes.
 /// Do not inherit directly from this. Better inherit from ChMatterPeri, that provides
 /// some useful default functionality like activating/deactivating collision shapes.
 
-class ChApiPeridynamics ChMatterPeriBase {
+class ChMatterPeriBase {
   public:
     virtual ~ChMatterPeriBase() {}
 
@@ -84,7 +90,7 @@ class ChApiPeridynamics ChMatterPeriBase {
     /// Changes the collision model of nodes, from collision to no collision, etc.,
     /// depending on the evolution of the system. It is run right before the collision detection compute proximyty bonds
     /// & contacts. This may add/remove collision models, or may change them. The base behavior in ChMatterPeri is: turn
-    /// on collision model if  mnode->IsRequiringCollision()
+    /// on collision model if  node->IsRequiringCollision()
     virtual void ComputeCollisionStateChanges() = 0;
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally)
@@ -101,12 +107,12 @@ class ChApiPeridynamics ChMatterPeriBase {
     /// This function is called where system construction is completed, at the
     /// beginning of the simulation. Maybe your constitutive law has to initialize
     /// some state data, if so you can implement this function, otherwise leave as empty.
-    virtual void SetupInitial() {};
+    virtual void SetupInitial() {}
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally)
     /// This function is called at each time step. Maybe your constitutive law has to initialize
     /// some state data, if so you can implement this function, otherwise leave as empty.
-    virtual void Setup() {};
+    virtual void Setup() {}
 
     // STATE
 
@@ -152,10 +158,10 @@ class ChApiPeridynamics ChMatterPeriBase {
 
     /// Add a node that will be affected by this material. Note that the node
     /// must be added also to the ChPeridynamics that manages this material.
-    virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> mnode) = 0;
+    virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> node) = 0;
 
     /// Override/inherit only if really needed.
-    virtual bool RemoveNode(std::shared_ptr<ChNodePeri> mnode) = 0;
+    virtual bool RemoveNode(std::shared_ptr<ChNodePeri> node) = 0;
 
     /// Override/inherit only if really needed. There is a default implementation
     /// in ChMatterPeri that takes care of allocating a ChMatterDataPerBond in the map.
@@ -167,7 +173,7 @@ class ChApiPeridynamics ChMatterPeriBase {
     void SetContainer(ChPeridynamics* mc) { container = mc; }
 
   protected:
-    ChPeridynamics* container = 0;
+    ChPeridynamics* container = nullptr;
 };
 
 /// Sub-base templated class for assigning material properties (elasticity, viscosity etc) to a cluster
@@ -209,18 +215,18 @@ class ChMatterPeri : public ChMatterPeriBase {
     std::unordered_map<std::pair<ChNodePeri*, ChNodePeri*>, T_per_bond>& GetMapOfBonds() { return bonds; }
 
     /// Add a  node to the particle cluster
-    virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> mnode) override {
+    virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> node) override {
         T_per_node node_data;
-        node_data.node = mnode;
+        node_data.node = node;
 
-        this->nodes[mnode.get()] = node_data;  // add to container using ptr of node as unique key
+        this->nodes[node.get()] = node_data;  // add to container using ptr of node as unique key
 
-        return (mnode);
+        return (node);
     }
 
     /// Remove a node from the particle cluster
-    virtual bool RemoveNode(std::shared_ptr<ChNodePeri> mnode) override {
-        this->nodes.erase(mnode.get());
+    virtual bool RemoveNode(std::shared_ptr<ChNodePeri> node) override {
+        this->nodes.erase(node.get());
         return true;
     }
 
@@ -270,12 +276,12 @@ class ChMatterPeri : public ChMatterPeriBase {
     virtual void ComputeForcesReset() override {
         for (auto& nodedata : nodes) {
             // resets force accumulator to zero
-            auto& mnode = nodedata.second.node;
-            mnode->F_peridyn = VNULL;
+            auto& node = nodedata.second.node;
+            node->F_peridyn = VNULL;
 
             // Initialize flag to mark if the bonds are persistent, as in elastic media. Default: true.
             // Plastic w.large deformation or fluids will flag is_elastic to false, if needed.
-            mnode->is_fluid = false;
+            node->is_fluid = false;
         }
     }
 
@@ -283,37 +289,37 @@ class ChMatterPeri : public ChMatterPeriBase {
     /// Changes the collision model of nodes, from collision to no collision, etc., ex when an interface is generated,
     /// depending on the evolution of the system. It is run right before the collision detection compute proximyty bonds
     /// & contacts. This may add/remove collision models, or may change them. The base behavior is: create collision
-    /// models when mnode->IsRequiringCollision(), remove if not.
+    /// models when node->IsRequiringCollision(), remove if not.
     virtual void ComputeCollisionStateChanges() override {
         for (auto& nodedata : nodes) {
-            auto& mnode = nodedata.second.node;
+            auto& node = nodedata.second.node;
 
             // add collision model to system if not yet added
-            if (!mnode->is_colliding && mnode->IsRequiringCollision()) {
+            if (!node->is_colliding && node->IsRequiringCollision()) {
                 // create model
-                if (!mnode->GetCollisionModel()) {
-                    double aabb_rad = mnode->GetHorizonRadius() /
-                                      2;  // to avoid too many pairs: bonding boxes hemisizes will sum..  __.__--*--
-                    double coll_rad = mnode->GetCollisionRadius();
+                if (!node->GetCollisionModel()) {
+                    double aabb_rad =
+                        node->GetHorizonRadius() / 2;  // to avoid too many pairs: bonding boxes hemisizes will sum
+                    double coll_rad = node->GetCollisionRadius();
                     std::shared_ptr<ChCollisionShape> cshape;
-                    if (mnode->is_boundary)
+                    if (node->is_boundary)
                         cshape = chrono_types::make_shared<ChCollisionShapeSphere>(matsurface, coll_rad);
                     else
                         cshape = chrono_types::make_shared<ChCollisionShapePoint>(
                             matsurface, VNULL,
-                            coll_rad);  // ..Point like ..Sphere, but no point-vs-point contact generation
-                    mnode->AddCollisionShape(cshape);
-                    mnode->GetCollisionModel()->SetSafeMargin(coll_rad);
-                    mnode->GetCollisionModel()->SetEnvelope(std::max(0.0, aabb_rad - coll_rad));
+                            coll_rad);  // point like sphere, but no point-vs-point contact generation
+                    node->AddCollisionShape(cshape);
+                    node->GetCollisionModel()->SetSafeMargin(coll_rad);
+                    node->GetCollisionModel()->SetEnvelope(std::max(0.0, aabb_rad - coll_rad));
                 }
                 // add to system
-                container->GetSystem()->GetCollisionSystem()->Add(mnode->GetCollisionModel());
-                mnode->is_colliding = true;  // prevents other material adding twice
+                container->GetSystem()->GetCollisionSystem()->Add(node->GetCollisionModel());
+                node->is_colliding = true;  // prevents other material adding twice
             }
             // remove collision model from system if not yet removed
-            if (mnode->is_colliding && !mnode->IsRequiringCollision()) {
-                container->GetSystem()->GetCollisionSystem()->Remove(mnode->GetCollisionModel());
-                mnode->is_colliding = false;  // prevents other material adding twice
+            if (node->is_colliding && !node->IsRequiringCollision()) {
+                container->GetSystem()->GetCollisionSystem()->Remove(node->GetCollisionModel());
+                node->is_colliding = false;  // prevents other material adding twice
             }
         }
 
@@ -328,10 +334,6 @@ class ChMatterPeri : public ChMatterPeriBase {
     /// Set the material surface for 'boundary contact'.
     std::shared_ptr<ChContactMaterial>& GetContactMaterial() { return matsurface; }
 
-    //
-    // STREAMING
-    //
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) {
         // version number
@@ -341,7 +343,7 @@ class ChMatterPeri : public ChMatterPeriBase {
         // ChMatterPeriBase::ArchiveOut(marchive);
 
         // serialize all member data:
-        //***TODO
+        //// TODO
     }
 
     /// Method to allow de-serialization of transient data from archives.
@@ -353,7 +355,7 @@ class ChMatterPeri : public ChMatterPeriBase {
         // ChMatterPeriBase::ArchiveIn(marchive);
 
         // deserialize all member data:
-        //***TODO
+        //// TODO
     }
 };
 

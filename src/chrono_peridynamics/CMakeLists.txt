@@ -15,7 +15,6 @@ message(STATUS "\n==== Chrono Peridynamics module ====\n")
 
 set(Chrono_PERIDYNAMICS_SOURCES 
     ChNodePeri.cpp
-    ChMatterPeridynamics.cpp
     ChMatterPeriSprings.cpp
     ChMatterPeriBB.cpp
 	ChMatterPeriBBimplicit.cpp
