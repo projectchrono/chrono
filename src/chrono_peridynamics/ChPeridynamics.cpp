@@ -23,8 +23,6 @@ namespace chrono {
 using namespace fea;
 using namespace peridynamics;
 
-
-
 static double W_sph(double r, double h) {
     if (r < h) {
         return (315.0 / (64.0 * CH_PI * pow(h, 9))) * pow((h * h - r * r), 3);
@@ -39,18 +37,15 @@ static double W_sq_visco(double r, double h) {
         return 0;
 }
 
-
 // ------------------------------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChPeridynamics)
 
-ChPeridynamics::ChPeridynamics() : n_added(0), is_updated(true), n_dofs(0), n_constr(0) {
-}
+ChPeridynamics::ChPeridynamics() : n_added(0), is_updated(true), n_dofs(0), n_constr(0) {}
 
-ChPeridynamics::ChPeridynamics(const ChPeridynamics& other)
-    : ChProximityContainer(other) {
-    vnodes = other.vnodes; 
+ChPeridynamics::ChPeridynamics(const ChPeridynamics& other) : ChProximityContainer(other) {
+    vnodes = other.vnodes;
     n_added = other.n_added;
     is_updated = other.is_updated;
     materials = other.materials;
@@ -58,24 +53,20 @@ ChPeridynamics::ChPeridynamics(const ChPeridynamics& other)
     n_constr = other.n_constr;
 }
 
-ChPeridynamics::~ChPeridynamics() {
-}
+ChPeridynamics::~ChPeridynamics() {}
 
 void ChPeridynamics::RemoveAllProximities() {
-
     // nothing to do: proximities are handled by materials in this->materials
     n_added = 0;
 }
 
 void ChPeridynamics::BeginAddProximities() {
-    
     // nothing to do: proximities are handled by materials in this->materials
 
     n_added = 0;
 }
 
 void ChPeridynamics::EndAddProximities() {
-
     is_updated = false;
     // nothing to do: proximities are handled by materials in this->materials
 }
@@ -89,8 +80,8 @@ void ChPeridynamics::AddProximity(ChCollisionModel* modA, ChCollisionModel* modB
     if (!(mnA && mnB))
         return;
 
-    // Report the proximity to material(s). They will manage it, for example 
-    // turning the proximity into a peridynamics bond and storing it in material data structures, etc. 
+    // Report the proximity to material(s). They will manage it, for example
+    // turning the proximity into a peridynamics bond and storing it in material data structures, etc.
     for (auto& mymat : this->materials) {
         mymat->AddProximity(mnA, mnB);
     }
@@ -105,10 +96,8 @@ void ChPeridynamics::AddProximity(ChCollisionModel* modA, ChCollisionModel* modB
 }
 
 void ChPeridynamics::ReportAllProximities(ReportProximityCallback* mcallback) {
-    
     // TODO: proximities are handled by materials in this->materials
 }
-
 
 void ChPeridynamics::SetupInitial() {
     n_dofs = 0;
@@ -158,17 +147,16 @@ void ChPeridynamics::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChProximityContainer::Update(mytime, update_assets);
 
-    if (!is_updated) // avoids overhead of Update()
+    if (!is_updated)  // avoids overhead of Update()
     {
         // tentatively mark as updated
         is_updated = true;
     }
 }
 
-
 void ChPeridynamics::AddMatter(std::shared_ptr<ChMatterPeriBase> mmatter) {
-        materials.push_back(mmatter);
-        mmatter->SetContainer(this);
+    materials.push_back(mmatter);
+    mmatter->SetContainer(this);
 }
 
 void ChPeridynamics::AddNode(std::shared_ptr<ChNodePeri> m_node) {
@@ -184,17 +172,17 @@ void ChPeridynamics::AddNode(std::shared_ptr<ChNodePeri> m_node) {
 }
 
 void ChPeridynamics::Fill(
-        std::shared_ptr<ChMatterPeriBase> mmatter,      ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        std::vector<ChVector3d>& points,                ///< points obtained from a sampler of the volume, ex. use utils::Sampler
-        const double spacing,                           ///< average spacing used in sampling
-        const double mass,                              ///< total mass of the volume
-        const double volume,                            ///< total volume
-        const double horizon_sfactor,                   ///< the radius of horizon of the particle is 'spacing' multiplied this value
-        const double collision_sfactor,
-        const ChCoordsys<> mcoords                      ///< position and rotation of the volume
-        )  
-{
-    unsigned int nsamples = points.size();
+    std::shared_ptr<ChMatterPeriBase>
+        mmatter,  ///< matter to be used for this volume. Must be added too to this, via AddMatter().
+    std::vector<ChVector3d>& points,  ///< points obtained from a sampler of the volume, ex. use utils::Sampler
+    const double spacing,             ///< average spacing used in sampling
+    const double mass,                ///< total mass of the volume
+    const double volume,              ///< total volume
+    const double horizon_sfactor,     ///< the radius of horizon of the particle is 'spacing' multiplied this value
+    const double collision_sfactor,
+    const ChCoordsys<> mcoords  ///< position and rotation of the volume
+) {
+    auto nsamples = points.size();
     double per_node_mass = mass / nsamples;
     double per_node_volume = volume / nsamples;
     double horizon = horizon_sfactor * spacing;
@@ -217,22 +205,22 @@ void ChPeridynamics::Fill(
     }
 }
 
-
 void ChPeridynamics::FillBox(
-        std::shared_ptr<ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        const ChVector3d size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
-        const double spacing,          ///< the spacing between two near nodes
-        const double initial_density,  ///< density of the material inside the box, for initialization of node's masses
-        const ChCoordsys<> boxcoords,  ///< position and rotation of the box
-        const double horizon_sfactor,  ///< the radius of horizon of the particle is 'spacing' multiplied this value
-        const double collision_sfactor,///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
-        const double randomness       ///< randomness of the initial distribution lattice, 0...1
-        )  
-{
+    std::shared_ptr<ChMatterPeriBase>
+        mmatter,                     ///< matter to be used for this volume. Must be added too to this, via AddMatter().
+    const ChVector3d size,           ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+    const double spacing,            ///< the spacing between two near nodes
+    const double initial_density,    ///< density of the material inside the box, for initialization of node's masses
+    const ChCoordsys<> boxcoords,    ///< position and rotation of the box
+    const double horizon_sfactor,    ///< the radius of horizon of the particle is 'spacing' multiplied this value
+    const double collision_sfactor,  ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied
+                                     ///< this value
+    const double randomness          ///< randomness of the initial distribution lattice, 0...1
+) {
     int samples_x = (int)(size.x() / spacing);
     int samples_y = (int)(size.y() / spacing);
     int samples_z = (int)(size.z() / spacing);
-    int totsamples = samples_x*samples_y*samples_z;
+    int totsamples = samples_x * samples_y * samples_z;
 
     double mrandomness = randomness;
 
@@ -246,11 +234,11 @@ void ChPeridynamics::FillBox(
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector3d pos( ix * spacing + 0.5 * spacing - 0.5 * size.x(), 
-                                iy * spacing + 0.5 * spacing - 0.5 * size.y(),
-                                iz * spacing + 0.5 * spacing - 0.5 * size.z());
+                ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size.x(),
+                               iy * spacing + 0.5 * spacing - 0.5 * size.y(),
+                               iz * spacing + 0.5 * spacing - 0.5 * size.z());
                 pos += ChVector3d(mrandomness * ChRandom::Get() * spacing, mrandomness * ChRandom::Get() * spacing,
-                                    mrandomness * ChRandom::Get() * spacing);
+                                  mrandomness * ChRandom::Get() * spacing);
                 ChVector3d mpos = boxcoords.TransformPointLocalToParent(pos);
                 auto mnode = chrono_types::make_shared<ChNodePeri>();
                 mnode->SetX0(mpos);
@@ -263,21 +251,24 @@ void ChPeridynamics::FillBox(
                 mnode->vol_size = spacing;
                 this->AddNode(mnode);
                 mmatter->AddNode(mnode);
-                if ((ix == 0) || (ix == samples_x - 1) || (iy == 0) || (iy == samples_y - 1) || (iz == 0) || (iz == samples_z - 1)) {
+                if ((ix == 0) || (ix == samples_x - 1) || (iy == 0) || (iy == samples_y - 1) || (iz == 0) ||
+                    (iz == samples_z - 1)) {
                     mnode->is_boundary = true;
                 }
             }
 }
 
 void ChPeridynamics::FillBox(
-    std::vector<std::pair<std::shared_ptr<ChMatterPeriBase>, double>> v_mmatter,  ///< {matters,x_thickness} pairs to be used for layers. Must be added too to this, via AddMatter(). 
-    const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
-    const double spacing,                       ///< the spacing between two near nodes
-    const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
+    std::vector<std::pair<std::shared_ptr<ChMatterPeriBase>, double>>
+        v_mmatter,  ///< {matters,x_thickness} pairs to be used for layers. Must be added too to this, via AddMatter().
+    const ChVector3d size,           ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+    const double spacing,            ///< the spacing between two near nodes
+    const double initial_density,    ///< density of the material inside the box, for initialization of node's masses
     const ChCoordsys<> boxcoords,    ///< position and rotation of the box
-    const double horizon_sfactor,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
-    const double collision_sfactor,       ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
-    const double randomness)               ///< randomness of the initial distribution lattice, 0...1
+    const double horizon_sfactor,    ///< the radius of horizon of the particle is 'spacing' multiplied this value
+    const double collision_sfactor,  ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied
+                                     ///< this value
+    const double randomness)         ///< randomness of the initial distribution lattice, 0...1
 {
     int samples_x = (int)(size.x() / spacing);
     int samples_y = (int)(size.y() / spacing);
@@ -295,7 +286,7 @@ void ChPeridynamics::FillBox(
 
     std::shared_ptr<ChMatterPeriBase> A_matter = v_mmatter[0].first;
     std::shared_ptr<ChMatterPeriBase> B_matter = nullptr;
-    double curr_thickness = v_mmatter[0].second;
+    ////double curr_thickness = v_mmatter[0].second;
     std::vector<double> interfaces(v_mmatter.size());
     for (int imat = 0; imat < v_mmatter.size(); ++imat) {
         if (imat > 0)
@@ -304,7 +295,6 @@ void ChPeridynamics::FillBox(
     }
 
     for (int ix = 0; ix < samples_x; ix++) {
-
         double x_lay1 = 0;
         double x_lay2 = 0;
         double xmin = ix * spacing;
@@ -315,8 +305,9 @@ void ChPeridynamics::FillBox(
             if (xmin >= x_lay1 && xmin < x_lay2) {
                 A_matter = v_mmatter[iint].first;
                 if (xmax >= interfaces[iint]) {
-                    //std::cout << " INTERFACE at  int << " << iint << "  ix=" << ix << "   xmin " << xmin << "  xmax" << xmax<< "\n";
-                    B_matter = v_mmatter[iint + 1].first; // node cell overlaps interface
+                    // std::cout << " INTERFACE at  int << " << iint << "  ix=" << ix << "   xmin " << xmin << "  xmax"
+                    // << xmax<< "\n";
+                    B_matter = v_mmatter[iint + 1].first;  // node cell overlaps interface
                 }
                 break;
             }
@@ -326,10 +317,10 @@ void ChPeridynamics::FillBox(
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
                 ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size.x(),
-                    iy * spacing + 0.5 * spacing - 0.5 * size.y(),
-                    iz * spacing + 0.5 * spacing - 0.5 * size.z());
+                               iy * spacing + 0.5 * spacing - 0.5 * size.y(),
+                               iz * spacing + 0.5 * spacing - 0.5 * size.z());
                 pos += ChVector3d(mrandomness * ChRandom::Get() * spacing, mrandomness * ChRandom::Get() * spacing,
-                    mrandomness * ChRandom::Get() * spacing);
+                                  mrandomness * ChRandom::Get() * spacing);
                 ChVector3d mpos = boxcoords.TransformPointLocalToParent(pos);
                 auto mnode = chrono_types::make_shared<ChNodePeri>();
                 mnode->SetX0(mpos);
@@ -340,32 +331,34 @@ void ChPeridynamics::FillBox(
                 mnode->h_rad = horizon;
                 mnode->volume = nodevol;
                 mnode->vol_size = spacing;
-                if (B_matter) {  
+                if (B_matter) {
                     // node is at interface, shared betwen two matters. Correct volume:
                     mnode->volume = 0.5 * nodevol;
-                    mnode->vol_size = spacing * 0.5; // ?
+                    mnode->vol_size = spacing * 0.5;  // ?
                 }
                 this->AddNode(mnode);
                 if (A_matter)
                     A_matter->AddNode(mnode);
                 if (B_matter)
                     B_matter->AddNode(mnode);
-                if ((ix == 0) || (ix == samples_x - 1) || (iy == 0) || (iy == samples_y - 1) || (iz == 0) || (iz == samples_z - 1)) {
+                if ((ix == 0) || (ix == samples_x - 1) || (iy == 0) || (iy == samples_y - 1) || (iz == 0) ||
+                    (iz == samples_z - 1)) {
                     mnode->is_boundary = true;
                 }
             }
     }
 }
 
-
-void  ChPeridynamics::FillSphere(
-    std::shared_ptr<ChMatterPeriBase> mmatter,///< matter to be used for the sphere. Must be added too to this, via AddMatter(). 
-    const double sphere_radius,                 ///< radius of sphere to fill 
-    const double spacing,                       ///< the spacing between two near nodes (grid interval h)
-    const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
-    const ChCoordsys<> boxcoords,         ///< position and rotation of the box
-    const double horizon_sfactor,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
-    const double collision_sfactor        ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
+void ChPeridynamics::FillSphere(
+    std::shared_ptr<ChMatterPeriBase>
+        mmatter,                    ///< matter to be used for the sphere. Must be added too to this, via AddMatter().
+    const double sphere_radius,     ///< radius of sphere to fill
+    const double spacing,           ///< the spacing between two near nodes (grid interval h)
+    const double initial_density,   ///< density of the material inside the box, for initialization of node's masses
+    const ChCoordsys<> boxcoords,   ///< position and rotation of the box
+    const double horizon_sfactor,   ///< the radius of horizon of the particle is 'spacing' multiplied this value
+    const double collision_sfactor  ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied
+                                    ///< this value
 ) {
     double size_x = sphere_radius * 2;
     int samples_x = (int)(size_x / spacing);
@@ -376,9 +369,8 @@ void  ChPeridynamics::FillSphere(
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size_x,
-                    iy * spacing + 0.5 * spacing - 0.5 * size_x,
-                    iz * spacing + 0.5 * spacing - 0.5 * size_x);
+                ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size_x, iy * spacing + 0.5 * spacing - 0.5 * size_x,
+                               iz * spacing + 0.5 * spacing - 0.5 * size_x);
                 if (pos.Length() < sphere_radius)
                     totsamples++;
             }
@@ -393,9 +385,8 @@ void  ChPeridynamics::FillSphere(
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size_x,
-                    iy * spacing + 0.5 * spacing - 0.5 * size_x,
-                    iz * spacing + 0.5 * spacing - 0.5 * size_x);
+                ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size_x, iy * spacing + 0.5 * spacing - 0.5 * size_x,
+                               iz * spacing + 0.5 * spacing - 0.5 * size_x);
                 double pos_rad = pos.Length();
                 if (pos_rad < sphere_radius) {
                     ChVector3d mpos = boxcoords.TransformPointLocalToParent(pos);
@@ -410,15 +401,12 @@ void  ChPeridynamics::FillSphere(
                     mnode->vol_size = spacing;
                     this->AddNode(mnode);
                     mmatter->AddNode(mnode);
-                    if (fabs(pos_rad - sphere_radius) < 0.866025*spacing) {
+                    if (fabs(pos_rad - sphere_radius) < 0.866025 * spacing) {
                         mnode->is_boundary = true;
                     }
-                } 
+                }
             }
 }
-
-
-
 
 void ChPeridynamics::ArchiveOut(ChArchiveOut& marchive) {
     // version number
@@ -431,12 +419,10 @@ void ChPeridynamics::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChPeridynamics::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChPeridynamics>();
+    /*int version =*/marchive.VersionRead<ChPeridynamics>();
     // deserialize parent class
     ChProximityContainer::ArchiveIn(marchive);
     // stream in all member data:
 }
-
-
 
 }  // end namespace chrono

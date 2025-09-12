@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban 
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include <cstdlib>
@@ -26,6 +26,4 @@ using namespace peridynamics;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMatterPeriBBimplicit)
 
-
-
-} // end namespace chrono
+}  // end namespace chrono

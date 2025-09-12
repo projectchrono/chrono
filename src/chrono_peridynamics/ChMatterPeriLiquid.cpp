@@ -26,6 +26,4 @@ using namespace peridynamics;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMatterPeriLiquid)
 
-
-
-} // end namespace chrono
+}  // end namespace chrono
