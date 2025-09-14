@@ -17,13 +17,14 @@
 
 #include <list>
 
-#include "chrono_peridynamics/ChApiPeridynamics.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
-namespace chrono {
+#include "chrono_peridynamics/ChApiPeridynamics.h"
+#include "chrono_peridynamics/ChNodePeri.h"
 
+namespace chrono {
 namespace peridynamics {
 
 /// @addtogroup chrono_peridynamics
@@ -31,7 +32,6 @@ namespace peridynamics {
 
 // Forward declaration
 class ChMatterPeriBase;
-class ChNodePeri;
 
 /// Class for handling proximity pairs for a peridynamics
 /// deformable continuum (necessary for inter-particle material forces),
@@ -98,6 +98,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
             0.3,  ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
         const double randomness = 0.0  ///< randomness of the initial distribution lattice, 0...1
     );
+
     /// Create a multi-layer box filled with nodes, with N layers of different materials ordered along X.
     /// Nodes at interface are shared, as layers were perfectly glued.
     /// Face nodes are automatically marked as interface, i.e. are collidable.
@@ -115,6 +116,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
             0.3,  ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
         const double randomness = 0.0  ///< randomness of the initial distribution lattice, 0...1
     );
+
     /// Create a sphere filled with nodes, with lattice xyz sampling.
     /// Nodes at the surface of the sphere are automatically marked as interface, i.e. are collidable.
     void FillSphere(
@@ -129,6 +131,14 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
         const double collision_sfactor =
             0.3  ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
     );
+
+    // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     // INTERFACE TO PROXIMITY CONTAINER
 
@@ -157,9 +167,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     /// DO NOTHING - please iterate on the bonds of the materials.
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) override;
 
-    //
     // SETUP AND UPDATE
-    //
 
     /// Setup initial lattice of bonds, running a single shot of collision detection
     /// and then calling Compute. It may require some CPU time.
@@ -175,9 +183,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     /// This will call   ComputeForcesReset(), ComputeForces(), ComputeStates()  for each material
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    //
     // STATE
-    //
 
     /// Get the number of scalar coordinates (variables), if any, in this item, excluding those that are in fixed state.
     virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
@@ -189,102 +195,30 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T) {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (!node->IsFixed()) {
-                node->NodeIntStateGather(off_x + local_off, x, off_v + local_off, v, T);
-                local_off += 3;
-            }
-        }
-        T = GetChTime();
-    }
+                                double& T) override;
 
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (!node->IsFixed()) {
-                node->NodeIntStateScatter(off_x + local_off, x, off_v + local_off, v, T);
-                local_off += 3;
-            }
-        }
-        Update(T, full_update);
-    }
+                                 bool full_update) override;
 
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (!node->IsFixed()) {
-                node->NodeIntStateGatherAcceleration(off_a + local_off, a);
-                local_off += 3;
-            }
-        }
-    }
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (node->IsFixed()) {
-                node->NodeIntStateScatterAcceleration(off_a + local_off, a);
-                local_off += 3;
-            }
-        }
-    }
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override {
-        // RESET FORCES ACCUMULATORS CAUSED BY PERIDYNAMIC MATERIALS!
-        // Each node will be reset  as  F=0
-        for (auto& mymat : this->materials) {
-            mymat->ComputeForcesReset();
-        }
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
 
-        // COMPUTE FORCES CAUSED BY PERIDYNAMIC MATERIALS!
-        // Accumulate forces at each node, as  F+=...
-        // This can be a time consuming phase, depending on the amount of nodes in each material.
-        for (auto& mymat : this->materials) {
-            mymat->ComputeForces();
-        }
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
 
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (!node->IsFixed()) {
-                // add gravity too
-                ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
-                ChVector3d TotForce = (node->F_peridyn) + node->GetForce() + Gforce;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
-                R.segment(off + local_off, 3) += c * TotForce.eigen();
-                local_off += 3;
-            }
-        }
-    }
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c) override {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (!node->IsFixed()) {
-                node->NodeIntLoadResidual_Mv(off + local_off, R, w, c);
-                local_off += 3;
-            }
-        }
-    }
+                                    const double c) override;
 
     virtual void IntLoadLumpedMass_Md(const unsigned int off,
                                       ChVectorDynamic<>& Md,
                                       double& err,
-                                      const double c) override {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (node->IsFixed()) {
-                node->NodeIntLoadLumpedMass_Md(off + local_off, Md, err, c);
-                local_off += 3;
-            }
-        }
-    }
+                                      const double c) override;
 
     /// Takes the term Cq'*L, scale and adds to R at given offset:
     ///    R += c*Cq'*L
@@ -292,13 +226,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                      const ChVectorDynamic<>& L,  ///< the L vector
                                      const double c               ///< a scaling factor
-                                     ) override {
-        unsigned int local_off = 0;
-        for (auto& mymat : this->materials) {
-            mymat->IntLoadResidual_CqL(off_L + local_off, R, L, c);
-            local_off += mymat->GetNumConstraints();
-        }
-    }
+                                     ) override;
 
     /// Takes the term C, scale and adds to Qc at given offset:
     ///    Qc += c*C
@@ -307,162 +235,44 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                                      const double c,          ///< a scaling factor
                                      bool do_clamp,           ///< apply clamping to c*C?
                                      double recovery_clamp    ///< value for min/max clamping of c*C
-                                     ) override {
-        unsigned int local_off = 0;
-        for (auto& mymat : this->materials) {
-            mymat->IntLoadConstraint_C(off + local_off, Qc, c, do_clamp, recovery_clamp);
-            local_off += mymat->GetNumConstraints();
-        }
-    }
+                                     ) override;
 
     /// Register with the given system descriptor any ChConstraint objects associated with this item.
-    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override {
-        for (auto& mymat : this->materials) {
-            mymat->InjectConstraints(descriptor);
-        }
-    }
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+
     /// Compute and load current Jacobians in encapsulated ChConstraint objects.
-    virtual void LoadConstraintJacobians() override {
-        for (auto& mymat : this->materials) {
-            mymat->LoadConstraintJacobians();
-        }
-    }
+    virtual void LoadConstraintJacobians() override;
 
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (!node->IsFixed()) {
-                node->NodeIntToDescriptor(off_v + local_off, v, R);
-                local_off += 3;
-            }
-        }
-        unsigned int local_Loff = 0;
-        for (auto& mymat : this->materials) {
-            mymat->IntToDescriptor(off_v + local_off, v, R, off_L + local_Loff, L, Qc);
-            local_Loff += mymat->GetNumConstraints();
-        }
-    }
+                                 const ChVectorDynamic<>& Qc) override;
     virtual void IntFromDescriptor(const unsigned int off_v,
                                    ChStateDelta& v,
                                    const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override {
-        unsigned int local_off = 0;
-        for (auto& node : vnodes) {
-            if (!node->IsFixed()) {
-                node->NodeIntFromDescriptor(off_v + local_off, v);
-                local_off += 3;
-            }
-        }
-        unsigned int local_Loff = 0;
-        for (auto& mymat : this->materials) {
-            mymat->IntFromDescriptor(off_v + local_off, v, off_L + local_Loff, L);
-            local_Loff += mymat->GetNumConstraints();
-        }
-    }
+                                   ChVectorDynamic<>& L) override;
 
-    //
     // SOLVER INTERFACE
-    //
 
     // Override/implement system functions of ChPhysicsItem (to assemble/manage data for system solver))
 
-    virtual void VariablesFbReset() override {
-        // OBSOLETE
-        for (auto& node : vnodes) {
-            node->VariablesFbReset();
-        }
-    }
-    virtual void VariablesFbLoadForces(double factor = 1) override {
-        // RESET FORCES ACCUMULATORS CAUSED BY PERIDYNAMIC MATERIALS!
-        // Each node will be reset  as  F=0
-        for (auto& mymat : this->materials) {
-            mymat->ComputeForcesReset();
-        }
-
-        // COMPUTE FORCES CAUSED BY PERIDYNAMIC MATERIALS!
-        // Accumulate forces at each node, as  F+=...
-        // This can be a time consuming phase, depending on the amount of nodes in each material.
-        for (auto& mymat : this->materials) {
-            mymat->ComputeForces();
-        }
-
-        for (auto& node : vnodes) {
-            // add gravity
-            ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
-            ChVector3d TotForce = (node->F_peridyn) + node->GetForce() + Gforce;
-
-            node->Variables().Force() += factor * TotForce.eigen();
-        }
-    }
-    virtual void VariablesQbLoadSpeed() override {
-        // OBSOLETE
-        for (auto& node : vnodes) {
-            node->VariablesQbLoadSpeed();
-        }
-    }
-    virtual void VariablesFbIncrementMq() override {
-        // OBSOLETE
-        for (auto& node : vnodes) {
-            node->VariablesFbIncrementMq();
-        }
-    }
-    virtual void VariablesQbSetSpeed(double step = 0) override {
-        // OBSOLETE
-        for (auto& node : vnodes) {
-            node->VariablesQbSetSpeed(step);
-        }
-    }
-    virtual void VariablesQbIncrementPosition(double step) override {
-        // OBSOLETE
-        for (auto& node : vnodes) {
-            node->VariablesQbIncrementPosition(step);
-        }
-    }
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
-        // variables.SetDisabled(!IsActive());
-        for (auto& node : vnodes) {
-            node->InjectVariables(mdescriptor);
-        }
-    }
+    virtual void VariablesFbReset() override;
+    virtual void VariablesFbLoadForces(double factor = 1) override;
+    virtual void VariablesQbLoadSpeed() override;
+    virtual void VariablesFbIncrementMq() override;
+    virtual void VariablesQbSetSpeed(double step = 0) override;
+    virtual void VariablesQbIncrementPosition(double step) override;
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position).
-    void ForceToRest() override {
-        for (auto& node : vnodes) {
-            node->ForceToRest();
-        }
-    }
+    virtual void ForceToRest() override;
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels() override {
-        // COMPUTE COLLISION STATE CHANGES CAUSED BY PERIDYNAMIC MATERIALS!
-        // For example generate coll.models in nodes if fractured, remove if elastic-vs-elastic (to reuse persistent
-        // bonds)
-        for (auto& mymat : this->materials) {
-            mymat->ComputeCollisionStateChanges();
-        }
-
-        for (auto& node : vnodes) {
-            if (node->GetCollisionModel())
-                node->GetCollisionModel()->SyncPosition();
-        }
-    }
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void SyncCollisionModels() override;
 
   private:
     /// Initial setup (before analysis).

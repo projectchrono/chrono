@@ -41,12 +41,6 @@ class ChApiPeridynamics ChNodePeri : public fea::ChNodeFEAxyz, public ChContacta
     ChNodePeri(const ChNodePeri& other);
     ~ChNodePeri();
 
-    // ChNodePeri& operator=(const ChNodePeri& other);
-
-    //
-    // FUNCTIONS
-    //
-
     /// Get the horizon radius (max. radius while checking surrounding particles).
     double GetHorizonRadius() { return h_rad; }
 
@@ -84,39 +78,33 @@ class ChApiPeridynamics ChNodePeri : public fea::ChNodeFEAxyz, public ChContacta
     virtual int GetContactableNumCoordsVelLevel() override { return 3; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = this->pos.eigen(); }
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override;
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = this->pos_dt.eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
-    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
-        NodeIntStateIncrement(0, x_new, x, 0, dw);
-    }
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override {
-        return state_x.segment(0, 3);
-    }
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override;
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
                                             const ChState& state_x,
-                                            const ChStateDelta& state_w) override {
-        return state_w.segment(0, 3);
-    }
+                                            const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
     /// Easy in this case because there are no roations..
-    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return this->pos_dt; }
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
     /// contact model (when rigid) and sync it.
-    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(this->pos, QNULL); }
+    virtual ChFrame<> GetCollisionModelFrame() override;
 
     /// Apply the force, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
@@ -135,10 +123,7 @@ class ChApiPeridynamics ChNodePeri : public fea::ChNodeFEAxyz, public ChContacta
                                  const ChVector3d& point,
                                  const ChState& state_x,
                                  ChVectorDynamic<>& Q,
-                                 int offset) override {
-        Q.segment(offset, 3) = F.eigen();
-        Q.segment(offset + 3, 3) = VNULL.eigen();
-    }
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
@@ -149,10 +134,10 @@ class ChApiPeridynamics ChNodePeri : public fea::ChNodeFEAxyz, public ChContacta
                                                bool second) override;
 
     /// Used by some SMC code.
-    virtual double GetContactableMass() override { return this->GetMass(); }
+    virtual double GetContactableMass() override { return GetMass(); }
 
     /// This is only for backward compatibility. OBSOLETE
-    virtual ChPhysicsItem* GetPhysicsItem() override { return nullptr; };
+    virtual ChPhysicsItem* GetPhysicsItem() override { return nullptr; }
 
   public:
     bool is_requiring_bonds = true;  // requires collision detection to initialize bonds even if is_fluid is false

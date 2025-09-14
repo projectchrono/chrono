@@ -58,8 +58,7 @@ class ChApiPeridynamics ChMatterDataLiquid : public ChMatterDataPerNode {
 
 /// Simple SPH-like material, with viscosity and compressibility.
 /// This material can interact with collisioon shapes and other peridynamic materials.
-/// ***NOT READY*** TO BE IMPROVED / REWRITTEN
-
+/// TODO: NOT READY. TO BE IMPROVED / REWRITTEN
 class ChApiPeridynamics ChMatterPeriLiquid : public ChMatterPeri<ChMatterDataLiquid, ChMatterDataPerBond> {
   public:
     /// fluid viscosity
@@ -71,85 +70,16 @@ class ChApiPeridynamics ChMatterPeriLiquid : public ChMatterPeri<ChMatterDataLiq
     /// material density
     double density = 1000;
 
-    ChMatterPeriLiquid() {};
+    ChMatterPeriLiquid() {}
 
-    // Implement the function that adds the peridynamics force to each node, as a
-    // summation of all the effects of neighbouring nodes.
-    virtual void ComputeForces() {
-        // 1- Per-node initialization
-        for (auto& node : this->nodes) {
-            node.second.density = 0;
-            node.second.pressure = 0;
-            node.first->is_fluid = true;  // this forces continuous collision proximity search
-        }
-
-        // 2- Per-edge initialization and accumulation of particles's density
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBond& mbond = bond.second;
-            ChMatterDataLiquid& nodeA_data = nodes[mbond.nodeA];
-            ChMatterDataLiquid& nodeB_data = nodes[mbond.nodeB];
-
-            ChVector3d x_A = mbond.nodeA->GetPos();
-            ChVector3d x_B = mbond.nodeB->GetPos();
-
-            ChVector3d r_BA = x_B - x_A;
-            double dist_BA = r_BA.Length();
-
-            double W_k_poly6 = W_poly6(dist_BA, mbond.nodeA->GetHorizonRadius());
-
-            nodeA_data.density += mbond.nodeA->GetMass() * W_k_poly6;
-            nodeB_data.density += mbond.nodeB->GetMass() * W_k_poly6;
-        }
-
-        // 3- Per-node volume and pressure computation
-
-        for (auto& node : this->nodes) {
-            // node volume is v=mass/density
-            if (node.second.density)
-                node.first->volume = node.first->GetMass() / node.second.density;
-            else
-                node.first->volume = 0;
-
-            // node pressure = k(dens - dens_0);
-            node.second.pressure = pressure_stiffness * (node.second.density - this->density);
-        }
-
-        // 4- Per-edge forces computation and accumulation
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBond& mbond = bond.second;
-            ChMatterDataLiquid& nodeA_data = nodes[mbond.nodeA];
-            ChMatterDataLiquid& nodeB_data = nodes[mbond.nodeB];
-
-            ChVector3d x_A = mbond.nodeA->GetPos();
-            ChVector3d x_B = mbond.nodeB->GetPos();
-
-            ChVector3d r_BA = x_B - x_A;
-            double dist_BA = r_BA.Length();
-
-            // increment pressure forces
-            ChVector3d W_k_press;
-            W_gr_press(W_k_press, r_BA, dist_BA, mbond.nodeA->GetHorizonRadius());
-
-            double avg_press = 0.5 * (nodeA_data.pressure + nodeB_data.pressure);
-
-            ChVector3d pressureForceA = W_k_press * mbond.nodeA->volume * avg_press * mbond.nodeB->volume;
-            mbond.nodeA->F_peridyn += pressureForceA / mbond.nodeA->volume;
-            mbond.nodeB->F_peridyn -= pressureForceA / mbond.nodeB->volume;
-
-            // increment viscous forces..
-            double W_k_visc = W_sq_visco(dist_BA, mbond.nodeA->GetHorizonRadius());
-            ChVector3d velBA = mbond.nodeA->GetPosDt() - mbond.nodeB->GetPosDt();
-
-            ChVector3d viscforceBA = velBA * (mbond.nodeA->volume * this->viscosity * mbond.nodeA->volume * W_k_visc);
-            mbond.nodeA->F_peridyn += viscforceBA / mbond.nodeA->volume;
-            mbond.nodeB->F_peridyn -= viscforceBA / mbond.nodeB->volume;
-        }
-    }
+    /// Add the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    virtual void ComputeForces() override;
 };
+
+// -----------------------------------------------------------------------------
 
 /// Class for visualization of ChMatterPeriLiquid  nodes
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
-
 class /*ChApiPeridynamics*/ ChVisualPeriLiquid : public ChGlyphs {
   public:
     ChVisualPeriLiquid(std::shared_ptr<ChMatterPeriLiquid> amatter) : mmatter(amatter) { is_mutable = true; };

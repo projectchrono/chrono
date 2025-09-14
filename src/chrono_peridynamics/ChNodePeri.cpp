@@ -46,23 +46,65 @@ ChNodePeri::~ChNodePeri() {}
 
 void ChNodePeri::SetHorizonRadius(double mr) {
     h_rad = mr;
-    double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
+    double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum
     if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).shape))
         mshape->SetSphereRadius(coll_rad, std::max(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodePeri::SetCollisionRadius(double mr) {
     coll_rad = mr;
-    double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
+    double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum
     if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).shape))
         mshape->SetSphereRadius(coll_rad, std::max(0.0, aabb_rad - coll_rad));
+}
+
+// -----------------------------------------------------------------------------
+
+void ChNodePeri::ContactableGetStateBlockPosLevel(ChState& x) {
+    x.segment(0, 3) = this->pos.eigen();
+}
+
+void ChNodePeri::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
+    w.segment(0, 3) = this->pos_dt.eigen();
+}
+
+void ChNodePeri::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+    NodeIntStateIncrement(0, x_new, x, 0, dw);
+}
+
+ChVector3d ChNodePeri::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
+    return state_x.segment(0, 3);
+}
+
+ChVector3d ChNodePeri::GetContactPointSpeed(const ChVector3d& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) {
+    return state_w.segment(0, 3);
+}
+
+ChVector3d ChNodePeri::GetContactPointSpeed(const ChVector3d& abs_point) {
+    return this->pos_dt;
+}
+
+ChFrame<> ChNodePeri::GetCollisionModelFrame() {
+    return ChFrame<>(this->pos, QNULL);
 }
 
 void ChNodePeri::ContactForceLoadResidual_F(const ChVector3d& F,
                                             const ChVector3d& T,
                                             const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) {
-    R.segment(NodeGetOffsetVelLevel(), 3) += F.eigen();  // from
+    R.segment(NodeGetOffsetVelLevel(), 3) += F.eigen();
+}
+
+void ChNodePeri::ContactComputeQ(const ChVector3d& F,
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) {
+    Q.segment(offset, 3) = F.eigen();
+    Q.segment(offset + 3, 3) = VNULL.eigen();
 }
 
 void ChNodePeri::ComputeJacobianForContactPart(const ChVector3d& abs_point,

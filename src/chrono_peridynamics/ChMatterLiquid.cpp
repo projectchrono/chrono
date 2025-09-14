@@ -15,8 +15,8 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
 #include "chrono_peridynamics/ChPeridynamics.h"
+#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
 
 namespace chrono {
 

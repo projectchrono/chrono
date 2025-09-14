@@ -27,39 +27,24 @@ class ChPeridynamics;
 /// @{
 
 //------------------------------------------------------------------------------------
-// ChMatterPeriSprings    -  for didactical purpose
+// ChMatterPeriSprings
 
-/// The simplest peridynamic material: a bond-based material based on a
-/// network of springs, each with the same stiffness k regardless of length, etc.
+/// Simplest peridynamic material: a bond-based material based on a network of springs, each with same stiffness k.
 /// Just for didactical purposes - do not use it for serious applications.
 /// Also use a damping coefficient r.
-
 class ChApiPeridynamics ChMatterPeriSprings : public ChMatterPeri<> {
   public:
     double k = 100;
     double r = 10;
 
-    ChMatterPeriSprings() {};
+    ChMatterPeriSprings() {}
 
-    // Implement the function that adds the peridynamics force to each node, as a
-    // summation of all the effects of neighbouring nodes.
-    virtual void ComputeForces() {
-        // loop on bonds
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBond& mbond = bond.second;
-            ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
-            ChVector3d vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
-            ChVector3d vdir = vdist.GetNormalized();
-            double vel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
-            ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
-            mbond.nodeB->F_peridyn += -vdir * force_val;
-            mbond.nodeA->F_peridyn += vdir * force_val;
-        }
-    };
+    /// Add the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    virtual void ComputeForces() override;
 };
 
 //------------------------------------------------------------------------------------
-// ChMatterPeriSpringsBreakable   -  for didactical purpose
+// ChMatterPeriSpringsBreakable
 
 class ChApiPeridynamics ChMatterDataPerBondBreakable : public ChMatterDataPerBond {
   public:
@@ -73,40 +58,10 @@ class ChApiPeridynamics ChMatterPeriSpringsBreakable
     double r = 10;
     double max_stretch = 0.08;
 
-    ChMatterPeriSpringsBreakable() {};
+    ChMatterPeriSpringsBreakable() {}
 
-    // Implement the function that adds the peridynamics force to each node, as a
-    // summation of all the effects of neighbouring nodes.
-    virtual void ComputeForces() {
-        // loop on bonds
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBondBreakable& mbond = bond.second;
-            if (!mbond.broken) {
-                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
-                ChVector3d vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
-                ChVector3d vdir = vdist.GetNormalized();
-                double vel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
-                ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
-                mbond.nodeB->F_peridyn +=
-                    -vdir * force_val /
-                    mbond.nodeB->volume;  // divide by volumes because F_peridyn are force _densities_
-                mbond.nodeA->F_peridyn += vdir * force_val / mbond.nodeA->volume;
-
-                double stretch = (vdist.Length() - old_vdist.Length()) / old_vdist.Length();
-                if (stretch > max_stretch) {
-                    mbond.nodeA->F_peridyn = 0;
-                    mbond.nodeB->F_peridyn = 0;
-                    mbond.broken = true;
-                    // the following will propagate the fracture geometry so that broken parts can collide
-                    mbond.nodeA->is_boundary = true;
-                    mbond.nodeB->is_boundary = true;
-                }
-            } else {
-                if (mbond.broken)
-                    bonds.erase(bond.first);
-            }
-        }
-    }
+    /// Add the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    virtual void ComputeForces() override;
 };
 
 class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakable : public ChGlyphs {
@@ -156,6 +111,8 @@ class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakable : public ChGlyphs {
 
     std::shared_ptr<ChMatterPeriSpringsBreakable> mmatter;
 };
+
+// -----------------------------------------------------------------------------
 
 class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakableBonds : public ChGlyphs {
   public:

@@ -150,7 +150,7 @@ void example2(const std::string& out_dir) {
         virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
                                 ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
                                 const ChState& y,                  // current state y
-                                const double T,                    // current time T
+                                const double t,                    // current time T
                                 const double dt,                   // timestep (if needed)
                                 bool force_state_scatter,          // if false, y and T are not scattered to the system
                                 bool full_update,                  // if true, perform a full update during scatter
@@ -158,9 +158,9 @@ void example2(const std::string& out_dir) {
                                                                    // inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
-                StateScatter(y, T, full_update);
+                StateScatter(y, t, full_update);
 
-            double F = std::cos(T * 20) * 2;
+            double F = std::cos(t * 20) * 2;
 
             dydt(0) = v;                               // speed
             dydt(1) = (1. / M) * (F - K * x - R * v);  // acceleration

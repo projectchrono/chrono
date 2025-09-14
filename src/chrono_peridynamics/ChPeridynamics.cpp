@@ -15,8 +15,9 @@
 #include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_peridynamics/ChMatterPeridynamics.h"
+
 #include "chrono_peridynamics/ChPeridynamics.h"
+#include "chrono_peridynamics/ChMatterPeridynamics.h"
 
 namespace chrono {
 
@@ -423,6 +424,268 @@ void ChPeridynamics::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChProximityContainer::ArchiveIn(marchive);
     // stream in all member data:
+}
+
+// -----------------------------------------------------------------------
+
+void ChPeridynamics::IntStateGather(const unsigned int off_x,
+                                    ChState& x,
+                                    const unsigned int off_v,
+                                    ChStateDelta& v,
+                                    double& T) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (!node->IsFixed()) {
+            node->NodeIntStateGather(off_x + local_off, x, off_v + local_off, v, T);
+            local_off += 3;
+        }
+    }
+    T = GetChTime();
+}
+
+void ChPeridynamics::IntStateScatter(const unsigned int off_x,
+                                     const ChState& x,
+                                     const unsigned int off_v,
+                                     const ChStateDelta& v,
+                                     const double T,
+                                     bool full_update) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (!node->IsFixed()) {
+            node->NodeIntStateScatter(off_x + local_off, x, off_v + local_off, v, T);
+            local_off += 3;
+        }
+    }
+    Update(T, full_update);
+}
+
+void ChPeridynamics::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (!node->IsFixed()) {
+            node->NodeIntStateGatherAcceleration(off_a + local_off, a);
+            local_off += 3;
+        }
+    }
+}
+void ChPeridynamics::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (node->IsFixed()) {
+            node->NodeIntStateScatterAcceleration(off_a + local_off, a);
+            local_off += 3;
+        }
+    }
+}
+void ChPeridynamics::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // RESET FORCES ACCUMULATORS CAUSED BY PERIDYNAMIC MATERIALS!
+    // Each node will be reset  as  F=0
+    for (auto& mymat : this->materials) {
+        mymat->ComputeForcesReset();
+    }
+
+    // COMPUTE FORCES CAUSED BY PERIDYNAMIC MATERIALS!
+    // Accumulate forces at each node, as  F+=...
+    // This can be a time consuming phase, depending on the amount of nodes in each material.
+    for (auto& mymat : this->materials) {
+        mymat->ComputeForces();
+    }
+
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (!node->IsFixed()) {
+            // add gravity too
+            ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
+            ChVector3d TotForce = (node->F_peridyn) + node->GetForce() + Gforce;
+
+            R.segment(off + local_off, 3) += c * TotForce.eigen();
+            local_off += 3;
+        }
+    }
+}
+void ChPeridynamics::IntLoadResidual_Mv(const unsigned int off,
+                                        ChVectorDynamic<>& R,
+                                        const ChVectorDynamic<>& w,
+                                        const double c) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (!node->IsFixed()) {
+            node->NodeIntLoadResidual_Mv(off + local_off, R, w, c);
+            local_off += 3;
+        }
+    }
+}
+
+void ChPeridynamics::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (node->IsFixed()) {
+            node->NodeIntLoadLumpedMass_Md(off + local_off, Md, err, c);
+            local_off += 3;
+        }
+    }
+}
+
+void ChPeridynamics::IntLoadResidual_CqL(const unsigned int off_L,
+                                         ChVectorDynamic<>& R,
+                                         const ChVectorDynamic<>& L,
+                                         const double c) {
+    unsigned int local_off = 0;
+    for (auto& mymat : this->materials) {
+        mymat->IntLoadResidual_CqL(off_L + local_off, R, L, c);
+        local_off += mymat->GetNumConstraints();
+    }
+}
+
+void ChPeridynamics::IntLoadConstraint_C(const unsigned int off,
+                                         ChVectorDynamic<>& Qc,
+                                         const double c,
+                                         bool do_clamp,
+                                         double recovery_clamp) {
+    unsigned int local_off = 0;
+    for (auto& mymat : this->materials) {
+        mymat->IntLoadConstraint_C(off + local_off, Qc, c, do_clamp, recovery_clamp);
+        local_off += mymat->GetNumConstraints();
+    }
+}
+
+void ChPeridynamics::InjectConstraints(ChSystemDescriptor& descriptor) {
+    for (auto& mymat : this->materials) {
+        mymat->InjectConstraints(descriptor);
+    }
+}
+
+void ChPeridynamics::LoadConstraintJacobians() {
+    for (auto& mymat : this->materials) {
+        mymat->LoadConstraintJacobians();
+    }
+}
+
+void ChPeridynamics::IntToDescriptor(const unsigned int off_v,
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R,
+                                     const unsigned int off_L,
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (!node->IsFixed()) {
+            node->NodeIntToDescriptor(off_v + local_off, v, R);
+            local_off += 3;
+        }
+    }
+    unsigned int local_Loff = 0;
+    for (auto& mymat : this->materials) {
+        mymat->IntToDescriptor(off_v + local_off, v, R, off_L + local_Loff, L, Qc);
+        local_Loff += mymat->GetNumConstraints();
+    }
+}
+
+void ChPeridynamics::IntFromDescriptor(const unsigned int off_v,
+                                       ChStateDelta& v,
+                                       const unsigned int off_L,
+                                       ChVectorDynamic<>& L) {
+    unsigned int local_off = 0;
+    for (auto& node : vnodes) {
+        if (!node->IsFixed()) {
+            node->NodeIntFromDescriptor(off_v + local_off, v);
+            local_off += 3;
+        }
+    }
+    unsigned int local_Loff = 0;
+    for (auto& mymat : this->materials) {
+        mymat->IntFromDescriptor(off_v + local_off, v, off_L + local_Loff, L);
+        local_Loff += mymat->GetNumConstraints();
+    }
+}
+
+// -----------------------------------------------------------------------
+
+void ChPeridynamics::VariablesFbReset() {
+    // OBSOLETE
+    for (auto& node : vnodes) {
+        node->VariablesFbReset();
+    }
+}
+
+void ChPeridynamics::VariablesFbLoadForces(double factor) {
+    // RESET FORCES ACCUMULATORS CAUSED BY PERIDYNAMIC MATERIALS!
+    // Each node will be reset  as  F=0
+    for (auto& mymat : this->materials) {
+        mymat->ComputeForcesReset();
+    }
+
+    // COMPUTE FORCES CAUSED BY PERIDYNAMIC MATERIALS!
+    // Accumulate forces at each node, as  F+=...
+    // This can be a time consuming phase, depending on the amount of nodes in each material.
+    for (auto& mymat : this->materials) {
+        mymat->ComputeForces();
+    }
+
+    for (auto& node : vnodes) {
+        // add gravity
+        ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
+        ChVector3d TotForce = (node->F_peridyn) + node->GetForce() + Gforce;
+
+        node->Variables().Force() += factor * TotForce.eigen();
+    }
+}
+
+void ChPeridynamics::VariablesQbLoadSpeed() {
+    // OBSOLETE
+    for (auto& node : vnodes) {
+        node->VariablesQbLoadSpeed();
+    }
+}
+
+void ChPeridynamics::VariablesFbIncrementMq() {
+    // OBSOLETE
+    for (auto& node : vnodes) {
+        node->VariablesFbIncrementMq();
+    }
+}
+
+void ChPeridynamics::VariablesQbSetSpeed(double step) {
+    // OBSOLETE
+    for (auto& node : vnodes) {
+        node->VariablesQbSetSpeed(step);
+    }
+}
+
+void ChPeridynamics::VariablesQbIncrementPosition(double step) {
+    // OBSOLETE
+    for (auto& node : vnodes) {
+        node->VariablesQbIncrementPosition(step);
+    }
+}
+
+void ChPeridynamics::InjectVariables(ChSystemDescriptor& mdescriptor) {
+    // variables.SetDisabled(!IsActive());
+    for (auto& node : vnodes) {
+        node->InjectVariables(mdescriptor);
+    }
+}
+
+// -----------------------------------------------------------------------
+
+void ChPeridynamics::ForceToRest() {
+    for (auto& node : vnodes) {
+        node->ForceToRest();
+    }
+}
+
+void ChPeridynamics::SyncCollisionModels() {
+    // COMPUTE COLLISION STATE CHANGES CAUSED BY PERIDYNAMIC MATERIALS!
+    // For example generate coll.models in nodes if fractured, remove if elastic-vs-elastic (to reuse persistent
+    // bonds)
+    for (auto& mymat : this->materials) {
+        mymat->ComputeCollisionStateChanges();
+    }
+
+    for (auto& node : vnodes) {
+        if (node->GetCollisionModel())
+            node->GetCollisionModel()->SyncPosition();
+    }
 }
 
 }  // end namespace chrono

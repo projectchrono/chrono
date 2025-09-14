@@ -17,12 +17,13 @@
 
 #include <cmath>
 
-#include "chrono_peridynamics/ChApiPeridynamics.h"
-#include "chrono_peridynamics/ChNodePeri.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChContactMaterialNSC.h"
 #include "chrono/solver/ChVariablesNode.h"
+
+#include "chrono_peridynamics/ChApiPeridynamics.h"
+#include "chrono_peridynamics/ChNodePeri.h"
 
 // -----------------------------------------------------------------------------
 // Custom hash for std::pair
@@ -72,19 +73,17 @@ class ChMatterDataPerBond {
     };
 };
 
-/// Base class for assigning material properties (elasticity, viscosity etc) to a cluster
-/// of peridynamics nodes.
-/// Do not inherit directly from this. Better inherit from ChMatterPeri, that provides
-/// some useful default functionality like activating/deactivating collision shapes.
-
+/// Base class for assigning material properties (elasticity, viscosity etc) to a cluster of peridynamics nodes.
+/// Do not inherit directly from this. Better inherit from ChMatterPeri, that provides some useful default functionality
+/// like activating/deactivating collision shapes.
 class ChMatterPeriBase {
   public:
     virtual ~ChMatterPeriBase() {}
 
     // -------
     // IMPORTANT FUNCTIONS.
-    // Inherit your material from ChMatterPeri and implement at least
-    // the function ComputeForces(). In some materials you may need to implement all three.
+    // Inherit  material from ChMatterPeri and implement at least the function ComputeForces().
+    // In some materials you may need to implement all three.
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally)
     /// Changes the collision model of nodes, from collision to no collision, etc.,
@@ -152,9 +151,8 @@ class ChMatterPeriBase {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) {}
 
-    // -------
-    // Not so important functions - these are already implemented in  ChMatterPeri
-    // with default implementations that should work for all materials.
+    // Not so important functions - these are already implemented in ChMatterPeri with default implementations that
+    // should work for all materials.
 
     /// Add a node that will be affected by this material. Note that the node
     /// must be added also to the ChPeridynamics that manages this material.
@@ -176,12 +174,9 @@ class ChMatterPeriBase {
     ChPeridynamics* container = nullptr;
 };
 
-/// Sub-base templated class for assigning material properties (elasticity, viscosity etc) to a cluster
-/// of peridynamics nodes.
-/// It must be inherited by classes that define specific materials, and those may optionally
-/// use per-edge and per-node data structures by inheriting ChMatterDataPerNode and ChMatterDataPerBond
-/// and passing them as template parameters.
-
+/// Base templated class for assigning material properties (elasticity, viscosity) to a cluster of peridynamics nodes.
+/// It must be inherited by classes that define specific materials, and those may optionally use per-edge and per-node
+/// data structures by inheriting ChMatterDataPerNode and ChMatterDataPerBond and passing them as template parameters.
 template <class T_per_node = ChMatterDataPerNode, class T_per_bond = ChMatterDataPerBond>
 class ChMatterPeri : public ChMatterPeriBase {
   protected:

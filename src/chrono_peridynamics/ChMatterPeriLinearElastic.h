@@ -28,42 +28,33 @@ class ChPeridynamics;
 /// @{
 
 /// Helper class: the per-node auxiliary data for ChMatterDataPerBondLinearElastic
-
 class ChApiPeridynamics ChMatterDataPerNodeLinearElastic : public ChMatterDataPerNode {
   public:
-    double m = 0;      // weighted volume
-    double theta = 0;  // dilation
+    double m = 0;      ///< weighted volume
+    double theta = 0;  ///< dilation
 };
 
 /// Helper class: the per-bond auxiliary data for ChMatterDataPerBondLinearElastic
 
 class ChApiPeridynamics ChMatterDataPerBondLinearElastic : public ChMatterDataPerBond {
   public:
-    bool broken = false;
-    double F_per_bond = 0;  // force density in this bond
+    bool broken = false;    ///< is broken?
+    double F_per_bond = 0;  ///< force density in this bond
 };
 
-/// Simple state-based peridynamic material whose elasticity depends on two
-/// parameters, as in a 3D linear elastic Hookean material, that is:
+/// Simple state-based peridynamic material whose elasticity depends on two parameters.
+/// Example: a 3D linear elastic Hookean material, that is:
 ///  - K, the bulk modulus.
 ///  - G, the shear modulus.
-/// This comes at a cost of slower performance compared to the ChMatterPeriBB
-/// bond-based elasticity model, that has Poisson fixed to 1/4.
-/// For very high stiffness, time integration might diverge because it does not introduce any tangent
-/// stiffness matrix (even if using implicit integrators like HHT, this will behave like in explicit anyway);
+/// This comes at a cost of slower performance compared to the ChMatterPeriBB bond-based elasticity model, that has
+/// Poisson fixed to 1/4. For very high stiffness, time integration might diverge because it does not introduce any
+/// tangent stiffness matrix (even if using implicit integrators like HHT, this will behave like in explicit anyway);
 /// use ChMatterPeriBBimplicit in these cases.
-
 class ChApiPeridynamics ChMatterPeriLinearElastic
     : public ChMatterPeri<ChMatterDataPerNodeLinearElastic, ChMatterDataPerBondLinearElastic> {
   public:
-    void SetYoungModulusShearModulus(double mE, double mG) {
-        this->k_bulk = (mE * mG / (3. * (3. * mG - mE)));
-        this->G = mG;
-    }
-    void SetYoungModulusPoisson(double mE, double mu) {
-        this->k_bulk = (mE / (3. * (1. - 2. * mu)));
-        this->G = (mE / (2. * (1. + mu)));
-    }
+    void SetYoungModulusShearModulus(double mE, double mG);
+    void SetYoungModulusPoisson(double mE, double mu);
 
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100;
@@ -81,144 +72,26 @@ class ChApiPeridynamics ChMatterPeriLinearElastic
         assert(false);  // Material not ready to use. TO DO
     };
 
-    double InfluenceFunction(double zeta, double horizon) {
-        if (zeta > horizon)
-            return 0.0;
+    double InfluenceFunction(double zeta, double horizon);
 
-        // inv.linear decrease
-        return horizon / zeta;
-    }
+    /// Initialize material with weighted volume.
+    virtual void SetupInitial() override;
 
-    // Initialize material with weighted volume
-    virtual void SetupInitial() {
-        /*
-        // loop on nodes
-        for (auto& node : this->nodes) {
-            ChMatterDataPerNodeLinearElastic& mnodedata = node.second;
-            mnodedata.m = 0;
-            mnodedata.theta = 0;
-        }
-        // loop on bonds
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBondLinearElastic& mbond = bond.second;
-            ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
-            double     old_sdist = old_vdist.Length();
-            double horizon = mbond.nodeA->GetHorizonRadius();
-            double omega = this->InfluenceFunction(old_sdist, horizon);
-            ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
-            ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
-            mnodedataA.m += omega * old_sdist * old_sdist * mbond.nodeB->volume;
-            mnodedataB.m += omega * old_sdist * old_sdist * mbond.nodeA->volume;
-        }
-        */
-    }
-
-    // Implement the function that adds the peridynamics force to each node, as a
-    // summation of all the effects of neighbouring nodes.
-    // Formulas based on Silling work
-    virtual void ComputeForces() {
-        // loop on nodes for resetting dilation
-        for (auto& node : this->nodes) {
-            ChMatterDataPerNodeLinearElastic& mnodedata = node.second;
-            mnodedata.m = 0;
-            mnodedata.theta = 0;
-        }
-        // loop on bonds for weighted mass
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBondLinearElastic& mbond = bond.second;
-            if (!mbond.broken) {
-                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
-                double old_sdist = old_vdist.Length();
-
-                double horizon = mbond.nodeA->GetHorizonRadius();
-                double omega = this->InfluenceFunction(old_sdist, horizon);
-
-                ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
-                ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
-
-                mnodedataA.m += omega * (old_sdist * old_sdist) * mbond.nodeB->volume;
-                mnodedataB.m += omega * (old_sdist * old_sdist) * mbond.nodeA->volume;
-            }
-        }
-
-        // loop on bonds for dilation
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBondLinearElastic& mbond = bond.second;
-            if (!mbond.broken) {
-                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
-                ChVector3d vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
-                double old_sdist = old_vdist.Length();
-                double sdist = vdist.Length();
-
-                double horizon = mbond.nodeA->GetHorizonRadius();
-                double omega = this->InfluenceFunction(old_sdist, horizon);
-
-                ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
-                ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
-
-                mnodedataA.theta += (3. / mnodedataA.m) * omega * old_sdist * (sdist - old_sdist) * mbond.nodeB->volume;
-                mnodedataB.theta += (3. / mnodedataB.m) * omega * old_sdist * (sdist - old_sdist) * mbond.nodeA->volume;
-            } else {
-                if (mbond.broken)
-                    bonds.erase(bond.first);
-            }
-        }
-
-        // loop on bonds for force computation
-        for (auto& bond : this->bonds) {
-            ChMatterDataPerBondLinearElastic& mbond = bond.second;
-            ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
-            ChVector3d vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
-            double old_sdist = old_vdist.Length();
-            double sdist = vdist.Length();
-            ChVector3d vdir = vdist / sdist;
-            ChVector3d old_vdir = old_vdist / old_sdist;
-            // double         svel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
-
-            double e = sdist - old_sdist;
-
-            double horizon = mbond.nodeA->GetHorizonRadius();
-            double omega = this->InfluenceFunction(old_sdist, horizon);
-
-            ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
-            ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
-
-            // Silling:
-            double e_i_A = mnodedataA.theta * old_sdist / 3.0;  // isotropic
-            double e_i_B = mnodedataB.theta * old_sdist / 3.0;  // isotropic
-            double e_d_A = e - e_i_A;                           // deviatoric
-            double e_d_B = e - e_i_B;                           // deviatoric
-            double t_A = 3. * this->k_bulk * mnodedataA.theta * omega * old_sdist / mnodedataA.m +
-                         15. * this->G / mnodedataA.m * omega * e_d_A;
-            double t_B = 3. * this->k_bulk * mnodedataB.theta * omega * old_sdist / mnodedataB.m +
-                         15. * this->G / mnodedataB.m * omega * e_d_B;
-
-            //***TODO***  optimize and simplify computations - many are redundant
-
-            //***TODO***  implement damping
-            /*
-            if (this->r_bulk > 0) {
-                double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
-                double viscforce = 0.5 * (18.0 * r_bulk / pih4) * svel;
-                t_A += viscforce;
-                t_B += viscforce;
-            }
-            */
-
-            mbond.nodeB->F_peridyn += -vdir * 0.5 * (t_B + t_A) * mbond.nodeA->volume * mbond.nodeB->volume;
-            mbond.nodeA->F_peridyn += vdir * 0.5 * (t_B + t_A) * mbond.nodeB->volume * mbond.nodeA->volume;
-        }
-    }
+    /// Adds the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    /// Formulas based on Silling work
+    virtual void ComputeForces() override;
 };
 
-/// Class for visualization of ChMatterDataPerBondLinearElastic  nodes
-/// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
+// -----------------------------------------------------------------------------
 
+/// Class for visualization of ChMatterDataPerBondLinearElastic nodes
+/// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 class /*ChApiPeridynamics*/ ChVisualPeriLinearElastic : public ChGlyphs {
   public:
     ChVisualPeriLinearElastic(std::shared_ptr<ChMatterPeriLinearElastic> amatter) : mmatter(amatter) {
         is_mutable = true;
-    };
+    }
+
     virtual ~ChVisualPeriLinearElastic() {}
 
     // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
@@ -275,9 +148,8 @@ class /*ChApiPeridynamics*/ ChVisualPeriLinearElastic : public ChGlyphs {
     std::shared_ptr<ChMatterPeriLinearElastic> mmatter;
 };
 
-/// Class for visualization of ChMatterPeriLinearElastic  bonds
+/// Class for visualization of ChMatterPeriLinearElastic bonds
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
-
 class /*ChApiPeridynamics*/ ChVisualPeriLinearElasticBonds : public ChGlyphs {
   public:
     ChVisualPeriLinearElasticBonds(std::shared_ptr<ChMatterPeriLinearElastic> amatter) : mmatter(amatter) {
