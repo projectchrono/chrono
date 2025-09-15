@@ -733,10 +733,8 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_current_time(0),
       m_fps(0) {
     m_windowTitle = std::string("Window Title");
-    // skybox from ChIrrlicht
-    m_skyboxPath = std::string("vsg/textures/chrono_skybox.ktx2");
-    // skybox from vsg examples
-    // m_skyboxPath = std::string("vsg/textures/vsg_skybox.ktx");
+    ////m_skyboxPath = std::string("vsg/textures/chrono_skybox.ktx2");
+    m_skyboxPath = std::string("vsg/textures/vsg_skybox.ktx");
     m_labelFontPath = std::string("vsg/fonts/OpenSans-Bold.vsgb");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
@@ -956,6 +954,10 @@ void ChVisualSystemVSG::EnableSkyBox(bool val) {
     m_use_skybox = val;
 }
 
+void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename) {
+    m_skyboxPath = filename;
+}
+
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::AddCamera can only be called before initialization!" << std::endl;
@@ -1100,7 +1102,7 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0f, 1.0f, 1.0f);
-    ambientLight->intensity = 0.2f * m_lightIntensity;  // before sRGB
+    ambientLight->intensity = 0.1f * m_lightIntensity;  // before sRGB
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "sun light";
@@ -1269,11 +1271,11 @@ void ChVisualSystemVSG::Initialize() {
     auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
     renderGraph->addChild(renderImGui);
 
-    // Use the ImGui drak (default) style, with adjusted transparency
+    // Use the ImGui dark (default) style, with adjusted transparency
     ImGui::StyleColorsDark();
     auto& style = ImGui::GetStyle();
     ImVec4 bg_color = style.Colors[ImGuiCol_WindowBg];
-    bg_color.w = 0.5f;
+    bg_color.w = 0.75f;
     style.Colors[ImGuiCol_WindowBg] = bg_color;
     style.Colors[ImGuiCol_ChildBg] = bg_color;
     style.Colors[ImGuiCol_TitleBg] = bg_color;
