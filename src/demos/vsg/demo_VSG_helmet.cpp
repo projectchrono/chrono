@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     {
         auto shape = chrono_types::make_shared<ChVisualShapeModelFile>();
         shape->SetFilename(GetChronoDataFile("models/FlightHelmet/FlightHelmet.gltf"));
-        vis->AddVisualModel(shape, ChFrame<>(VNULL, QuatFromAngleZ(CH_PI_2)));
+        vis->AddVisualModel(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     }
 
     vis->Initialize();
