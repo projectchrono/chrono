@@ -1074,23 +1074,23 @@ file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake DESTINATION ${CMAKE_BINAR
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
 
 # On Windows, copy DLLs
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    if(CH_ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
-        add_custom_command(TARGET Chrono_vehicle_irrlicht POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${IRRKLANG_DLL}"
-            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
-    endif()
-
-    if(EXISTS "${OpenCRG_DLL}")
-        add_custom_command(TARGET Chrono_vehicle POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${OpenRG_DLL}"
-            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
-      install(FILES "${OpenCRG_DLL}" DESTINATION bin)
-    endif()
-
-  # Make variable visible from outside this directory
-  set(CH_IRRKLANG_DLL "${IRRKLANG_DLL}" PARENT_SCOPE)
-  set(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
-endif()
+#if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+#    if(CH_ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
+#        add_custom_command(TARGET Chrono_vehicle_irrlicht POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            "${IRRKLANG_DLL}"
+#            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
+#    endif()
+#
+#    if(EXISTS "${OpenCRG_DLL}")
+#        add_custom_command(TARGET Chrono_vehicle POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            "${OpenRG_DLL}"
+#            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
+#      install(FILES "${OpenCRG_DLL}" DESTINATION bin)
+#    endif()
+#
+#  # Make variable visible from outside this directory
+#  set(CH_IRRKLANG_DLL "${IRRKLANG_DLL}" PARENT_SCOPE)
+#  set(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
+#endif()
