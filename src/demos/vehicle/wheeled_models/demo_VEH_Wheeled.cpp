@@ -70,7 +70,7 @@ double t_end = 20;
 
 // Record vehicle output
 ChOutput::Type vehicle_output = ChOutput::Type::HDF5;
-ChOutput::Mode vehicle_output_mode = ChOutput::Mode::SERIES;
+ChOutput::Mode vehicle_output_mode = ChOutput::Mode::FRAMES;
 
 // Record debug test data
 bool debug_output = false;
