@@ -2019,7 +2019,6 @@ void ChSystem::Output(int frame, ChOutput& database) const {
 
     database.WriteTime(frame, GetChTime());
     database.WriteBodies(bodies);
-    database.WriteAuxRefBodies(bodies_aux);
     database.WriteShafts(GetShafts());
     database.WriteJoints(joints);
     database.WriteCouples(couples);

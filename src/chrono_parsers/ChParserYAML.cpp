@@ -269,6 +269,8 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     if (sim["output"]) {
         ChAssertAlways(sim["output"]["type"]);
         m_sim.output.type = ReadOutputType(sim["output"]["type"]);
+        if (sim["output"]["mode"])
+            m_sim.output.mode = ReadOutputMode(sim["output"]["mode"]);
         if (sim["output"]["fps"])
             m_sim.output.fps = sim["output"]["fps"].as<double>();
         if (sim["output"]["output_directory"])
@@ -991,7 +993,7 @@ void ChParserYAML::Output(ChSystem& sys, int frame) {
                 break;
             case ChOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5");
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5", m_sim.output.mode);
                 break;
 #else
                 return;
@@ -1003,7 +1005,7 @@ void ChParserYAML::Output(ChSystem& sys, int frame) {
     // Output simulation results at current frame
     m_output_db->WriteTime(frame, sys.GetChTime());
 
-    m_output_db->WriteAuxRefBodies(m_output_data.bodies);
+    m_output_db->WriteBodies(m_output_data.bodies);
     m_output_db->WriteJoints(m_output_data.joints);
     m_output_db->WriteBodyBodyLoads(m_output_data.bushings);
     ////m_output_db->WriteConstraints(m_output_data.constraints);
@@ -1043,7 +1045,8 @@ ChParserYAML::VisParams::VisParams()
       camera_target({0, 0, 0}),
       enable_shadows(true) {}
 
-ChParserYAML::OutputParameters::OutputParameters() : type(ChOutput::Type::NONE), fps(100), dir(".") {}
+ChParserYAML::OutputParameters::OutputParameters()
+    : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100), dir(".") {}
 
 ChParserYAML::SimParams::SimParams()
     : gravity({0, 0, -9.8}),
@@ -1152,6 +1155,7 @@ void ChParserYAML::OutputParameters::PrintInfo() {
 
     cout << "output" << endl;
     cout << "  type:                 " << ChOutput::GetOutputTypeAsString(type) << endl;
+    cout << "  mode:                 " << ChOutput::GetOutputModeAsString(mode) << endl;
     cout << "  output FPS:           " << fps << endl;
     cout << "  outut directory:      " << dir << endl;
 }
@@ -1479,6 +1483,15 @@ ChOutput::Type ChParserYAML::ReadOutputType(const YAML::Node& a) {
     if (type == "HDF5")
         return ChOutput::Type::HDF5;
     return ChOutput::Type::NONE;
+}
+
+ChOutput::Mode ChParserYAML::ReadOutputMode(const YAML::Node& a) {
+    auto mode = ToUpper(a.as<std::string>());
+    if (mode == "SERIES")
+        return ChOutput::Mode::SERIES;
+    if (mode == "FRAMES")
+        return ChOutput::Mode::FRAMES;
+    return ChOutput::Mode::SERIES;
 }
 
 // -----------------------------------------------------------------------------

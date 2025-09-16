@@ -73,9 +73,9 @@ void ChRigidChassis::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
-    std::vector<std::shared_ptr<ChBodyAuxRef>> bodies;
+    std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_body);
-    database.WriteAuxRefBodies(bodies);
+    database.WriteBodies(bodies);
 
     database.WriteMarkers(m_markers);
 }
@@ -118,9 +118,9 @@ void ChRigidChassisRear::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
-    std::vector<std::shared_ptr<ChBodyAuxRef>> bodies;
+    std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_body);
-    database.WriteAuxRefBodies(bodies);
+    database.WriteBodies(bodies);
 
     database.WriteMarkers(m_markers);
 }

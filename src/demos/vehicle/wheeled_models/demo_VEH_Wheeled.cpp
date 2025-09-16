@@ -69,7 +69,8 @@ double render_fps = 50;
 double t_end = 20;
 
 // Record vehicle output
-ChOutput::Type vehicle_output = ChOutput::Type::NONE;
+ChOutput::Type vehicle_output = ChOutput::Type::HDF5;
+ChOutput::Mode vehicle_output_mode = ChOutput::Mode::SERIES;
 
 // Record debug test data
 bool debug_output = false;
@@ -189,7 +190,7 @@ int main(int argc, char* argv[]) {
     vehicle.SetChassisOutput(true);
     vehicle.SetSuspensionOutput(0, true);
     vehicle.SetSteeringOutput(0, true);
-    vehicle.SetOutput(vehicle_output, out_dir, "vehicle_output", 0.1);
+    vehicle.SetOutput(vehicle_output, vehicle_output_mode, out_dir, "vehicle_output", 0.1);
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");

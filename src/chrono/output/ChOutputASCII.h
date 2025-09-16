@@ -41,7 +41,6 @@ class ChApi ChOutputASCII : public ChOutput {
     virtual void WriteTime(int frame, double time) override;
     virtual void WriteSection(const std::string& name) override;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
-    virtual void WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;

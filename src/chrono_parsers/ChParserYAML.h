@@ -167,6 +167,7 @@ class ChApiParsers ChParserYAML {
         void PrintInfo();
 
         ChOutput::Type type;
+        ChOutput::Mode mode;
         double fps;
         std::string dir;
     };
@@ -327,7 +328,7 @@ class ChApiParsers ChParserYAML {
   private:
     /// Output database.
     struct OutputData {
-        std::vector<std::shared_ptr<ChBodyAuxRef>> bodies;
+        std::vector<std::shared_ptr<ChBody>> bodies;
         std::vector<std::shared_ptr<ChShaft>> shafts;
         std::vector<std::shared_ptr<ChLink>> joints;
         std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
@@ -369,6 +370,7 @@ class ChApiParsers ChParserYAML {
     ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
     VisualizationType ReadVisualizationType(const YAML::Node& a);
     ChOutput::Type ReadOutputType(const YAML::Node& a);
+    ChOutput::Mode ReadOutputMode(const YAML::Node& a);
 
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
@@ -379,7 +381,7 @@ class ChApiParsers ChParserYAML {
     /// Load and return a joint type from the specified node.
     ChJoint::Type ReadJointType(const YAML::Node& a);
 
-    /// Load and return joint coordinate syustem from the specified node.
+    /// Load and return joint coordinate system from the specified node.
     ChFramed ReadJointFrame(const YAML::Node& a);
 
     /// Load and return a geometry structure from the specified node.

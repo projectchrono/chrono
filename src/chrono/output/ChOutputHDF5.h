@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ASCII text Chrono output database.
+// HDF5 Chrono output database.
 //
 // =============================================================================
 
@@ -44,7 +44,6 @@ class ChApi ChOutputHDF5 : public ChOutput {
     virtual void WriteTime(int frame, double time) override;
     virtual void WriteSection(const std::string& name) override;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
-    virtual void WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;
@@ -59,33 +58,6 @@ class ChApi ChOutputHDF5 : public ChOutput {
     Mode m_mode;
     std::unique_ptr<ChOutputHDF5_impl> m_impl;
     bool m_initialized;
-
-    ////H5::Group* m_frame_group;
-    ////H5::Group* m_section_group;
-
-    ////static H5::CompType* m_body_type;
-    ////static H5::CompType* m_bodyaux_type;
-    ////static H5::CompType* m_shaft_type;
-    ////static H5::CompType* m_marker_type;
-    ////static H5::CompType* m_joint_type;
-    ////static H5::CompType* m_couple_type;
-    ////static H5::CompType* m_linspring_type;
-    ////static H5::CompType* m_rotspring_type;
-    ////static H5::CompType* m_bodyload_type;
-    ////static H5::CompType* m_linmotor_type;
-    ////static H5::CompType* m_rotmotor_type;
-
-    ////static const H5::CompType& getBodyType();
-    ////static const H5::CompType& getBodyAuxType();
-    ////static const H5::CompType& getShaftType();
-    ////static const H5::CompType& getMarkerType();
-    ////static const H5::CompType& getJointType();
-    ////static const H5::CompType& getCoupleType();
-    ////static const H5::CompType& getLinSpringType();
-    ////static const H5::CompType& getRotSpringType();
-    ////static const H5::CompType& getBodyLoadType();
-    ////static const H5::CompType& getLinMotorType();
-    ////static const H5::CompType& getRotMotorType();
 };
 
 /// @} chrono_output

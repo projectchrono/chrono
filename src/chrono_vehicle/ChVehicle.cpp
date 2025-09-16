@@ -131,6 +131,7 @@ void ChVehicle::EnableRealtime(bool val) {
 // -----------------------------------------------------------------------------
 
 void ChVehicle::SetOutput(ChOutput::Type type,
+                          ChOutput::Mode mode,
                           const std::string& out_dir,
                           const std::string& out_name,
                           double output_step) {
@@ -145,13 +146,13 @@ void ChVehicle::SetOutput(ChOutput::Type type,
             break;
         case ChOutput::Type::HDF5 :
 #ifdef CHRONO_HAS_HDF5
-            m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5");
+            m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5", mode);
 #endif
             break;
     }
 }
 
-void ChVehicle::SetOutput(ChOutput::Type type, std::ostream& out_stream, double output_step) {
+void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, std::ostream& out_stream, double output_step) {
     if (type == ChOutput::Type::NONE)
         return;
 

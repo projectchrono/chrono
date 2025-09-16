@@ -69,7 +69,6 @@ class ChApi ChOutput {
     virtual void WriteTime(int frame, double time) = 0;
     virtual void WriteSection(const std::string& name) = 0;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
-    virtual void WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) = 0;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;

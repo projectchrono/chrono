@@ -217,16 +217,18 @@ class CH_VEHICLE_API ChVehicle {
     void SetCollisionSystemType(ChCollisionSystem::Type collsys_type);
 
     /// Enable output for this vehicle system.
-    void SetOutput(ChOutput::Type type,   ///< [int] type of output DB
+    void SetOutput(ChOutput::Type type,          ///< [in] type of output DB
+                   ChOutput::Mode mode,          ///< [in] outut mode
                    const std::string& out_dir,   ///< [in] output directory name
                    const std::string& out_name,  ///< [in] rootname of output file
                    double output_step            ///< [in] interval between output times
     );
 
     /// Enable output for this vehicle system using an existing output stream.
-    void SetOutput(ChOutput::Type type,  ///< [int] type of output DB
-                   std::ostream& out_stream,    ///< [in] output stream
-                   double output_step           ///< [in] interval between output times
+    void SetOutput(ChOutput::Type type,       ///< [in] type of output DB
+                   ChOutput::Mode mode,       ///< [in] outut mode
+                   std::ostream& out_stream,  ///< [in] output stream
+                   double output_step         ///< [in] interval between output times
     );
 
     /// Initialize this vehicle at the specified global location and orientation.

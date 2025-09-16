@@ -51,17 +51,6 @@ void ChOutputASCII::WriteSection(const std::string& name) {
 
 void ChOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
     for (const auto& body : bodies) {
-        m_stream << "    body: " << body->GetIdentifier() << " \"" << body->GetName() << "\" ";
-        m_stream << body->GetPos() << " " << body->GetRot() << " ";
-        m_stream << body->GetPosDt() << " " << body->GetAngVelParent() << " ";
-        m_stream << body->GetPosDt2() << " " << body->GetAngAccParent() << " ";
-        m_stream << std::endl;
-        //// TODO
-    }
-}
-
-void ChOutputASCII::WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) {
-    for (const auto& body : bodies) {
         auto& ref_pos = body->GetFrameRefToAbs().GetPos();
         auto& ref_vel = body->GetFrameRefToAbs().GetPosDt();
         auto& ref_acc = body->GetFrameRefToAbs().GetPosDt2();

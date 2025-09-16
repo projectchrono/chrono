@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    rig->SetOutput(output, out_dir, "output", out_step_size);
+    rig->SetOutput(output, ChOutput::Mode::FRAMES, out_dir, "output", out_step_size);
     if (plot) {
         rig->SetPlotOutput(out_step_size);
     }
