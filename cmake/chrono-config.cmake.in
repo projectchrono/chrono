@@ -101,6 +101,7 @@ include(CMakeFindDependencyMacro)
 set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
 
 set(CHRONO_STATIC @CH_STATIC@)
+set(CHRONO_CXX_STANDARD @CHRONO_CXX_STANDARD@)
 
 #-------------------------------------------------------------------------------
 # Local variables specifying Chrono support
