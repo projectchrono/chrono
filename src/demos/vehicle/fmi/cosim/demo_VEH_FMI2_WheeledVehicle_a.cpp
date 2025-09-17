@@ -279,7 +279,7 @@ class PowertrainSystem {
         Vehicle(ChSystem* system) : ChVehicle("vehicle", system) {}
         virtual std::string GetTemplateName() const override { return ""; }
         virtual void InitializeInertiaProperties() override {}
-        virtual void UpdateInertiaProperties() {}
+        virtual void UpdateInertiaProperties() override {}
     };
 
     class Chassis : public ChChassis {

@@ -47,7 +47,7 @@ using namespace chrono::fmi2;
 // =============================================================================
 
 // Simulation step sizes
-double step_size = 2e-3;
+double step = 2e-3;
 
 // Simulation end time
 double t_end = 15;
@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
     try {
         CreateVehicleFMU(vehicle_fmu,                                                      //
                          vehicle_instance_name, vehicle_fmu_filename, vehicle_unpack_dir,  //
-                         step_size, start_time, stop_time,                                 //
+                         step, start_time, stop_time,                                      //
                          logCategories, vehicle_out_dir, render, render_fps);              //
     } catch (std::exception& e) {
         std::cout << "ERROR loading vehicle FMU: " << e.what() << "\n";
@@ -356,7 +356,7 @@ int main(int argc, char* argv[]) {
     try {
         CreatePowertrainFMU(powertrain_fmu,                                                            //
                             powertrain_instance_name, powertrain_fmu_filename, powertrain_unpack_dir,  //
-                            step_size, start_time, stop_time,                                          //
+                            step, start_time, stop_time,                                               //
                             logCategories, driver_out_dir);                                            //
     } catch (std::exception& e) {
         std::cout << "ERROR loading powertrain FMU: " << e.what() << "\n";
@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
     try {
         CreateDriverFMU(driver_fmu,                                                    //
                         driver_instance_name, driver_fmu_filename, driver_unpack_dir,  //
-                        step_size, start_time, stop_time,                              //
+                        step, start_time, stop_time,                                   //
                         logCategories, driver_out_dir, render, render_fps);            //
     } catch (std::exception& e) {
         std::cout << "ERROR loading driver FMU: " << e.what() << "\n";
@@ -375,7 +375,7 @@ int main(int argc, char* argv[]) {
         try {
             CreateTireFMU(tire_fmu[i],                                                                       //
                           tire_instance_name + "_" + std::to_string(i), tire_fmu_filename, tire_unpack_dir,  //
-                          step_size, start_time, stop_time,                                                  //
+                          step, start_time, stop_time,                                                       //
                           logCategories, tire_out_dir + "_" + std::to_string(i));                            //
         } catch (std::exception& e) {
             std::cout << "ERROR loading tire FMU: " << e.what() << "\n";
@@ -499,18 +499,18 @@ int main(int argc, char* argv[]) {
         }
 
         // ----------- Advance FMUs
-        auto status_vehicle = vehicle_fmu.DoStep(time, step_size, fmi2True);
-        auto status_powertrain = powertrain_fmu.DoStep(time, step_size, fmi2True);
-        auto status_driver = driver_fmu.DoStep(time, step_size, fmi2True);
+        auto status_vehicle = vehicle_fmu.DoStep(time, step, fmi2True);
+        auto status_powertrain = powertrain_fmu.DoStep(time, step, fmi2True);
+        auto status_driver = driver_fmu.DoStep(time, step, fmi2True);
         if (status_vehicle == fmi2Discard || status_powertrain == fmi2Discard || status_driver == fmi2Discard)
             break;
         for (int i = 0; i < 4; i++) {
-            auto status_tire = tire_fmu[i].DoStep(time, step_size, fmi2True);
+            auto status_tire = tire_fmu[i].DoStep(time, step, fmi2True);
             if (status_tire == fmi2Discard)
                 break;
         }
 
-        time += step_size;
+        time += step;
     }
 
     timer.stop();

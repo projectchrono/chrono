@@ -31,7 +31,7 @@ CH_FACTORY_REGISTER(ChLinkNodeFace)
 struct PointNodeXYZ : public ChLinkNodeFace::PointNode {
     std::shared_ptr<ChNodeFEAxyz> node;
 
-    virtual ChLinkNodeFace::FeaNodeType GetType() const { return ChLinkNodeFace::FeaNodeType::XYZ; }
+    virtual ChLinkNodeFace::FeaNodeType GetType() const override { return ChLinkNodeFace::FeaNodeType::XYZ; }
     virtual unsigned int GetNumCoords() const override { return 3; }
     virtual const ChVector3d& GetPos() const override { return node->GetPos(); }
     virtual ChConstraintTuple* CreateConstraintTuple() override {
@@ -43,7 +43,7 @@ struct PointNodeXYZ : public ChLinkNodeFace::PointNode {
 struct PointNodeXYZrot : public ChLinkNodeFace::PointNode {
     std::shared_ptr<ChNodeFEAxyzrot> node;
 
-    virtual ChLinkNodeFace::FeaNodeType GetType() const { return ChLinkNodeFace::FeaNodeType::XYZrot; }
+    virtual ChLinkNodeFace::FeaNodeType GetType() const override { return ChLinkNodeFace::FeaNodeType::XYZrot; }
     virtual unsigned int GetNumCoords() const override { return 6; }
     virtual const ChVector3d& GetPos() const override { return node->GetPos(); }
     virtual ChConstraintTuple* CreateConstraintTuple() override {
@@ -57,7 +57,7 @@ struct TriangleNodesXYZ : public ChLinkNodeFace::TriangleNodes {
     std::shared_ptr<ChNodeFEAxyz> node2;
     std::shared_ptr<ChNodeFEAxyz> node3;
 
-    virtual ChLinkNodeFace::FeaNodeType GetType() const { return ChLinkNodeFace::FeaNodeType::XYZ; }
+    virtual ChLinkNodeFace::FeaNodeType GetType() const override { return ChLinkNodeFace::FeaNodeType::XYZ; }
     virtual const ChVector3d& GetPos1() const override { return node1->GetPos(); }
     virtual const ChVector3d& GetPos2() const override { return node2->GetPos(); }
     virtual const ChVector3d& GetPos3() const override { return node3->GetPos(); }
@@ -73,7 +73,7 @@ struct TriangleNodesXYZrot : public ChLinkNodeFace::TriangleNodes {
     std::shared_ptr<ChNodeFEAxyzrot> node2;
     std::shared_ptr<ChNodeFEAxyzrot> node3;
 
-    virtual ChLinkNodeFace::FeaNodeType GetType() const { return ChLinkNodeFace::FeaNodeType::XYZrot; }
+    virtual ChLinkNodeFace::FeaNodeType GetType() const override { return ChLinkNodeFace::FeaNodeType::XYZrot; }
     virtual const ChVector3d& GetPos1() const override { return node1->GetPos(); }
     virtual const ChVector3d& GetPos2() const override { return node2->GetPos(); }
     virtual const ChVector3d& GetPos3() const override { return node3->GetPos(); }
