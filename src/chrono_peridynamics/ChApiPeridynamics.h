@@ -18,22 +18,21 @@
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
-// When compiling this library, remember to define CH_API_COMPILE_PERIDYDAMICS
-// (so that the symbols with 'ChApiPeridynamics' in front of them will be
-// marked as exported). Otherwise, just do not define it if you
-// link the library to your code, and the symbols will be imported.
+// When compiling this library, remember to define CH_API_COMPILE_PERIDYDAMICS so that the symbols tagged with
+// 'ChApiPeridynamics' will be marked as exported). Otherwise, just do not define it if you link the library to your
+// code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_PERIDYNAMICS)
-#define ChApiPeridynamics ChApiEXPORT
+    #define ChApiPeridynamics ChApiEXPORT
 #else
-#define ChApiPeridynamics ChApiIMPORT
+    #define ChApiPeridynamics ChApiIMPORT
 #endif
 
 /**
     @defgroup peridynamics_module PERIDYNAMICS module
-    @brief This provides classes for modeling meshless materials.
+    @brief Classes for modeling meshless materials
 
-    Module provides classes and tools for simulating materials with 
+    This module provides classes and tools for simulating materials with
     large deformations and fractures, using the peridynamics framework.
 
     For additional information, see:
@@ -50,6 +49,6 @@ namespace chrono {
 namespace peridynamics {}
 
 /// @}
-}
+}  // namespace chrono
 
 #endif

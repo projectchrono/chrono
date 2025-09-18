@@ -525,7 +525,7 @@ void ChTrackedVehicle::ExportComponentList(const std::string& filename) const {
     of.close();
 }
 
-void ChTrackedVehicle::Output(int frame, ChVehicleOutput& database) const {
+void ChTrackedVehicle::Output(int frame, ChOutput& database) const {
     database.WriteTime(frame, m_system->GetChTime());
 
     if (m_chassis->OutputEnabled()) {

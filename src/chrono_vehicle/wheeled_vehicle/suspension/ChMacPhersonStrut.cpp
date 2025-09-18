@@ -651,7 +651,7 @@ void ChMacPhersonStrut::ExportComponentList(rapidjson::Document& jsonDocument) c
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChMacPhersonStrut::Output(ChVehicleOutput& database) const {
+void ChMacPhersonStrut::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -705,7 +705,7 @@ void ChMacPhersonStrut::Output(ChVehicleOutput& database) const {
         joints.push_back(m_distTierod[1]);
     }
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

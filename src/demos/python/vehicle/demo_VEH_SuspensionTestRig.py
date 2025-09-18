@@ -81,7 +81,7 @@ def main() :
            print("Error creating output directory " )
     
     if output:
-        rig.SetOutput(veh.ChVehicleOutput.ASCII, out_dir, 'output', out_step_size)
+        rig.SetOutput(chrono.ChOutput.ASCII, out_dir, 'output', out_step_size)
     if plot:
         rig.SetPlotOutput(out_step_size)
 

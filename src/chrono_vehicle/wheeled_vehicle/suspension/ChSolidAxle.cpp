@@ -797,7 +797,7 @@ void ChSolidAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChSolidAxle::Output(ChVehicleOutput& database) const {
+void ChSolidAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

@@ -10,8 +10,8 @@
 //
 // =============================================================================
 
-#ifndef CHOUTPUTASCII_H
-#define CHOUTPUTASCII_H
+#ifndef CH_ARCHIVE_ASCII_H
+#define CH_ARCHIVE_ASCII_H
 
 #include "chrono/serialization/ChArchive.h"
 #include <cstring>
@@ -20,11 +20,11 @@ namespace chrono {
 
 /// Output objects structure to a human-readable ASCII format.
 /// This class only allows to output/serialize the object, not to deserialize it.
-class ChApi ChOutputASCII : public ChArchiveOut {
+class ChApi ChArchiveOutASCII : public ChArchiveOut {
   public:
-    ChOutputASCII(std::ostream& stream_out);
+    ChArchiveOutASCII(std::ostream& stream_out);
 
-    virtual ~ChOutputASCII();
+    virtual ~ChArchiveOutASCII();
 
     /// Suppress export of variable names
     void SetSuppressNames(bool msu);

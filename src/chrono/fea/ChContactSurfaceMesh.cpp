@@ -47,8 +47,7 @@ ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
                                            std::shared_ptr<ChNodeFEAxyz> node2,
                                            std::shared_ptr<ChNodeFEAxyz> node3,
                                            ChContactSurface* container)
-    : ChContactable_3vars(&node1->Variables(), &node2->Variables(), &node3->Variables()),
-      m_nodes({node1, node2, node3}),
+    : m_nodes({node1, node2, node3}),
       m_container(container),
       m_owns_node({true, true, true}),
       m_owns_edge({true, true, true}) {
@@ -60,8 +59,7 @@ ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
 
 ChContactTriangleXYZ::ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
                                            ChContactSurface* container)
-    : ChContactable_3vars(&nodes[0]->Variables(), &nodes[1]->Variables(), &nodes[2]->Variables()),
-      m_nodes(nodes),
+    : m_nodes(nodes),
       m_container(container),
       m_owns_node({true, true, true}),
       m_owns_edge({true, true, true}) {
@@ -314,8 +312,7 @@ ChContactTriangleXYZRot::ChContactTriangleXYZRot(std::shared_ptr<ChNodeFEAxyzrot
                                                  std::shared_ptr<ChNodeFEAxyzrot> node2,
                                                  std::shared_ptr<ChNodeFEAxyzrot> node3,
                                                  ChContactSurface* container)
-    : ChContactable_3vars(&node1->Variables(), &node2->Variables(), &node3->Variables()),
-      m_nodes({node1, node2, node3}),
+    : m_nodes({node1, node2, node3}),
       m_container(container),
       m_owns_node({true, true, true}),
       m_owns_edge({true, true, true}) {
@@ -327,8 +324,7 @@ ChContactTriangleXYZRot::ChContactTriangleXYZRot(std::shared_ptr<ChNodeFEAxyzrot
 
 ChContactTriangleXYZRot::ChContactTriangleXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                                                  ChContactSurface* container)
-    : ChContactable_3vars(&nodes[0]->Variables(), &nodes[1]->Variables(), &nodes[2]->Variables()),
-      m_nodes(nodes),
+    : m_nodes(nodes),
       m_container(container),
       m_owns_node({true, true, true}),
       m_owns_edge({true, true, true}) {

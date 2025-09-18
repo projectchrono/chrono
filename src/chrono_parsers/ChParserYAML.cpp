@@ -44,6 +44,11 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChForceFunctors.h"
 
+#include "chrono/output/ChOutputASCII.h"
+#ifdef CHRONO_HAS_HDF5
+    #include "chrono/output/ChOutputHDF5.h"
+#endif
+
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
@@ -71,7 +76,8 @@ ChParserYAML::ChParserYAML()
       m_use_degrees(true),
       m_sim_loaded(false),
       m_model_loaded(false),
-      m_instance_index(-1) {}
+      m_instance_index(-1),
+      m_output_dir("") {}
 
 ChParserYAML::ChParserYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose)
     : m_name("YAML model"),
@@ -81,7 +87,8 @@ ChParserYAML::ChParserYAML(const std::string& yaml_model_filename, const std::st
       m_use_degrees(true),
       m_sim_loaded(false),
       m_model_loaded(false),
-      m_instance_index(-1) {
+      m_instance_index(-1),
+      m_output_dir("") {
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
 }
@@ -256,6 +263,18 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
         }
     } else {
         m_sim.visualization.render = false;
+    }
+
+    // Output (optional)
+    if (sim["output"]) {
+        ChAssertAlways(sim["output"]["type"]);
+        m_sim.output.type = ReadOutputType(sim["output"]["type"]);
+        if (sim["output"]["mode"])
+            m_sim.output.mode = ReadOutputMode(sim["output"]["mode"]);
+        if (sim["output"]["fps"])
+            m_sim.output.fps = sim["output"]["fps"].as<double>();
+        if (sim["output"]["output_directory"])
+            m_sim.output.dir = sim["output"]["output_directory"].as<std::string>();
     }
 
     if (m_verbose)
@@ -683,22 +702,6 @@ void ChParserYAML::SetIntegrator(ChSystem& sys, const IntegratorParams& params) 
     }
 }
 
-std::shared_ptr<ChSystem> ChParserYAML::CreateSystem() {
-    if (!m_sim_loaded) {
-        cerr << "[ChParserYAML::CreateSystem] Warning: no YAML simulation file loaded." << endl;
-        cerr << "Returning a default ChSystemNSC." << endl;
-        return chrono_types::make_shared<ChSystemNSC>();
-    }
-
-    auto sys = ChSystem::Create(m_sim.contact_method);
-    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
-
-    SetSimulationParameters(*sys);
-
-    return sys;
-}
-
 void ChParserYAML::SetSimulationParameters(ChSystem& sys) {
     if (!m_sim_loaded) {
         cerr << "[ChParserYAML::SetSimulationParameters] Warning: no YAML simulation file loaded." << endl;
@@ -715,6 +718,24 @@ void ChParserYAML::SetSimulationParameters(ChSystem& sys) {
 
     SetSolver(sys, m_sim.solver, m_sim.num_threads_pardiso);
     SetIntegrator(sys, m_sim.integrator);
+}
+
+std::shared_ptr<ChSystem> ChParserYAML::CreateSystem() {
+    if (!m_sim_loaded) {
+        cerr << "[ChParserYAML::CreateSystem] Warning: no YAML simulation file loaded." << endl;
+        cerr << "Returning a default ChSystemNSC." << endl;
+        return chrono_types::make_shared<ChSystemNSC>();
+    }
+
+    // Create a Chrono system of specified type
+    auto sys = ChSystem::Create(m_sim.contact_method);
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
+
+    // Set solver and intergrator parameters
+    SetSimulationParameters(*sys);
+
+    return sys;
 }
 
 // -----------------------------------------------------------------------------
@@ -754,6 +775,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         body->SetAngVelLocal(item.second.ang_vel);
         sys.AddBody(body);
         item.second.body.push_back(body);
+        m_output_data.bodies.push_back(body);
     }
 
     // Create joints (kinematic or bushings)
@@ -766,10 +788,13 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
                                                         body2,                            //
                                                         model_frame * item.second.frame,  //
                                                         item.second.bdata);
-        if (joint->IsKinematic())
+        if (joint->IsKinematic()) {
             sys.AddLink(joint->GetAsLink());
-        else
+            m_output_data.joints.push_back(joint->GetAsLink());
+        } else {
             load_container->Add(joint->GetAsBushing());
+            m_output_data.bushings.push_back(joint->GetAsBushing());
+        }
         item.second.joint.push_back(joint);
     }
 
@@ -783,6 +808,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         dist->Initialize(body1, body2, false, model_frame * item.second.point1, model_frame * item.second.point2);
         sys.AddLink(dist);
         item.second.dist.push_back(dist);
+        m_output_data.constraints.push_back(dist);
     }
 
     // Create TSDAs
@@ -796,6 +822,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         tsda->RegisterForceFunctor(item.second.force);
         sys.AddLink(tsda);
         item.second.tsda.push_back(tsda);
+        m_output_data.tsdas.push_back(tsda);
     }
 
     // Create RSDAs
@@ -814,6 +841,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         rsda->RegisterTorqueFunctor(item.second.torque);
         sys.AddLink(rsda);
         item.second.rsda.push_back(rsda);
+        m_output_data.rsdas.push_back(rsda);
     }
 
     // Create body loads
@@ -832,6 +860,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         load->SetName(model_prefix + item.first);
         load_container->Add(load);
         item.second.load.push_back(load);
+        m_output_data.loads.push_back(load);
     }
 
     // Create linear motors
@@ -861,6 +890,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
         sys.AddLink(motor);
         item.second.motor.push_back(motor);
+        m_output_data.lin_motors.push_back(motor);
     }
 
     // Create rotation motors
@@ -890,6 +920,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
         sys.AddLink(motor);
         item.second.motor.push_back(motor);
+        m_output_data.rot_motors.push_back(motor);
     }
 
     // Create body collision models
@@ -943,6 +974,49 @@ void ChParserYAML::Depopulate(ChSystem& sys, int instance_index) {
 
 // -----------------------------------------------------------------------------
 
+void ChParserYAML::Output(ChSystem& sys, int frame) {
+    if (m_sim.output.type == ChOutput::Type::NONE)
+        return;
+
+    // Create the output DB if needed
+    if (!m_output_db) {
+        std::string filename = m_sim.output.dir + "/" + m_name;
+        if (!m_output_dir.empty())
+            filename = m_output_dir + "/" + filename;
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\nOutput file: " << filename << endl;
+        }
+        switch (m_sim.output.type) {
+            case ChOutput::Type::ASCII:
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename + ".txt");
+                break;
+            case ChOutput::Type::HDF5:
+#ifdef CHRONO_HAS_HDF5
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5", m_sim.output.mode);
+                break;
+#else
+                return;
+#endif
+        }
+        m_output_db->Initialize();
+    }
+
+    // Output simulation results at current frame
+    m_output_db->WriteTime(frame, sys.GetChTime());
+
+    m_output_db->WriteBodies(m_output_data.bodies);
+    m_output_db->WriteJoints(m_output_data.joints);
+    m_output_db->WriteBodyBodyLoads(m_output_data.bushings);
+    ////m_output_db->WriteConstraints(m_output_data.constraints);
+    m_output_db->WriteLinSprings(m_output_data.tsdas);
+    m_output_db->WriteRotSprings(m_output_data.rsdas);
+    m_output_db->WriteLinMotors(m_output_data.lin_motors);
+    m_output_db->WriteRotMotors(m_output_data.rot_motors);
+}
+
+// -----------------------------------------------------------------------------
+
 ChParserYAML::SolverParams::SolverParams()
     : type(ChSolver::Type::BARZILAIBORWEIN),
       lock_sparsity_pattern(false),
@@ -970,6 +1044,9 @@ ChParserYAML::VisParams::VisParams()
       camera_location({0, -1, 0}),
       camera_target({0, 0, 0}),
       enable_shadows(true) {}
+
+ChParserYAML::OutputParameters::OutputParameters()
+    : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100), dir(".") {}
 
 ChParserYAML::SimParams::SimParams()
     : gravity({0, 0, -9.8}),
@@ -1051,6 +1128,8 @@ void ChParserYAML::SimParams::PrintInfo() {
     integrator.PrintInfo();
     cout << endl;
     visualization.PrintInfo();
+    cout << endl;
+    output.PrintInfo();
 }
 
 void ChParserYAML::VisParams::PrintInfo() {
@@ -1066,6 +1145,19 @@ void ChParserYAML::VisParams::PrintInfo() {
     cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
     cout << "  camera location:      " << camera_location << endl;
     cout << "  camera target:        " << camera_target << endl;
+}
+
+void ChParserYAML::OutputParameters::PrintInfo() {
+    if (type == ChOutput::Type::NONE) {
+        cout << "no output" << endl;
+        return;
+    }
+
+    cout << "output" << endl;
+    cout << "  type:                 " << ChOutput::GetOutputTypeAsString(type) << endl;
+    cout << "  mode:                 " << ChOutput::GetOutputModeAsString(mode) << endl;
+    cout << "  output FPS:           " << fps << endl;
+    cout << "  outut directory:      " << dir << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -1384,6 +1476,24 @@ VisualizationType ChParserYAML::ReadVisualizationType(const YAML::Node& a) {
     return VisualizationType::NONE;
 }
 
+ChOutput::Type ChParserYAML::ReadOutputType(const YAML::Node& a) {
+    auto type = ToUpper(a.as<std::string>());
+    if (type == "ASCII")
+        return ChOutput::Type::ASCII;
+    if (type == "HDF5")
+        return ChOutput::Type::HDF5;
+    return ChOutput::Type::NONE;
+}
+
+ChOutput::Mode ChParserYAML::ReadOutputMode(const YAML::Node& a) {
+    auto mode = ToUpper(a.as<std::string>());
+    if (mode == "SERIES")
+        return ChOutput::Mode::SERIES;
+    if (mode == "FRAMES")
+        return ChOutput::Mode::FRAMES;
+    return ChOutput::Mode::SERIES;
+}
+
 // -----------------------------------------------------------------------------
 
 ChContactMaterialData ChParserYAML::ReadMaterialData(const YAML::Node& mat) {
@@ -1419,9 +1529,9 @@ ChJoint::Type ChParserYAML::ReadJointType(const YAML::Node& a) {
     std::string type = ToUpper(a.as<std::string>());
     if (type == "LOCK") {
         return ChJoint::Type::LOCK;
-    } else if (type == "POINT LINE") {
+    } else if (type == "POINT_LINE") {
         return ChJoint::Type::POINTLINE;
-    } else if (type == "POINT PLANE") {
+    } else if (type == "POINT_PLANE") {
         return ChJoint::Type::POINTPLANE;
     } else if (type == "REVOLUTE") {
         return ChJoint::Type::REVOLUTE;
@@ -1569,18 +1679,19 @@ utils::ChBodyGeometry ChParserYAML::ReadGeometry(const YAML::Node& d) {
                     utils::ChBodyGeometry::ConvexHullsShape(GetDatafilePath(filename), matID));
             } else if (type == "MESH") {
                 ChAssertAlways(shape["filename"]);
-                ChAssertAlways(shape["contact_radius"]);
                 std::string filename = shape["filename"].as<std::string>();
-                double radius = shape["contact_radius"].as<double>();
                 ChVector3d pos = VNULL;
                 ChQuaterniond rot = QUNIT;
                 double scale = 1;
+                double radius = 0;
                 if (shape["location"])
                     pos = ChParserYAML::ReadVector(shape["location"]);
                 if (shape["orientation"])
                     rot = ChParserYAML::ReadRotation(shape["orientation"]);
                 if (shape["scale"])
                     scale = shape["scale"].as<double>();
+                if (shape["contact_radius"])
+                    radius = shape["contact_radius"].as<double>();
                 geometry.coll_meshes.push_back(
                     utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale, radius, matID));
             }

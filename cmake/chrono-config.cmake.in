@@ -46,6 +46,17 @@
 # variables (meaningful only if the corresponding Chrono module is requested)
 # can be used to check if these options are available:
 # * Chrono::Parsers module
+# * Chrono core module
+#     CHRONO_OPENMP_CXX_FOUND
+#       set to true if OpenMP C++ support is available.
+#     CHRONO_CUDA_FOUND
+#       set to true if CUDA support is available.
+#     CHRONO_THRUST_FOUND
+#       set to true if Thrust support is available.
+#     CHRONO_MPI_CXX_FOUND
+#       set to true if MPI C++ support is available.
+#     CHRONO_HDF5_FOUND
+#       set to true if HDF5 C++ support is available.
 #     CHRONO_PARSERS_URDF
 #       set to true if URDF support is available.
 #     CHRONO_PARSERS_PYTHON
@@ -90,6 +101,7 @@ include(CMakeFindDependencyMacro)
 set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
 
 set(CHRONO_STATIC @CH_STATIC@)
+set(CHRONO_CXX_STANDARD @CHRONO_CXX_STANDARD@)
 
 #-------------------------------------------------------------------------------
 # Local variables specifying Chrono support
@@ -100,6 +112,7 @@ set(CHRONO_AVX_AVAILABLE @AVX_FOUND@)
 set(CHRONO_OPENMP_CXX_AVAILABLE @OpenMP_CXX_FOUND@)
 set(CHRONO_THRUST_AVAILABLE @Thrust_FOUND@)
 set(CHRONO_MPI_CXX_AVAILABLE @MPI_CXX_FOUND@)
+set(CHRONO_HDF5_AVAILABLE @HDF5_FOUND@)
 
 set(CHRONO_CUDA_ARCHITECTURES "@CHRONO_CUDA_ARCHITECTURES@")
 
@@ -363,6 +376,30 @@ if(CHRONO_MPI_CXX_AVAILABLE AND CHRONO_CXX_FOUND)
 endif()
 
 #-------------------------------------------------------------------------------
+# Check if Chrono was built with HDF5 support
+#-------------------------------------------------------------------------------
+
+if(CHRONO_HDF5_AVAILABLE)
+  set(HDF5_DIR "@HDF5_DIR@" CACHE PATH "Path to HDF5 config file (should contain the \"hdf5-config.cmake\" file")
+
+  find_package(HDF5 COMPONENTS CXX QUIET)
+
+  if(HDF5_FOUND)
+    if(NOT Chrono_FIND_QUIETLY)
+      message(STATUS "HDF5 found")
+    endif()
+    mark_as_advanced(FORCE HDF5_DIR)
+    set(CHRONO_HDF5_FOUND TRUE)
+  else()
+    if(NOT Chrono_FIND_QUIETLY) 
+      message("WARNING: HDF5 not found")
+    endif()
+    mark_as_advanced(CLEAR HDF5_DIR)
+    set(CHRONO_HDF5_FOUND FALSE)
+  endif()
+endif()
+
+#-------------------------------------------------------------------------------
 # Set variables with paths to data directories
 #-------------------------------------------------------------------------------
 
@@ -608,6 +645,11 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
+
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_fsi")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "Chrono_fsi.dll")
+      endif()
 
       list(PREPEND CHRONO_LIB_NAMES "Chrono_fsisph")
       if (NOT CHRONO_STATIC)
@@ -864,13 +906,18 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} MATCHES "PARSERS")
 
-  
     set(CHRONO_PARSERS_PYTHON @HAVE_PYTHON@)
     set(CHRONO_PARSERS_URDF @HAVE_URDF@)
 
     list(PREPEND CHRONO_LIB_NAMES "Chrono_parsers")
+    list(PREPEND CHRONO_LIB_NAMES "yaml-cpp")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_parsers.dll")
+      list(APPEND CHRONO_DLL_NAMES "yaml-cpp.dll")
+    endif()
+
+    if (CHRONO_INSTALL_TREE)
+      include_directories(${CHRONO_PACKAGE_PREFIX_DIR}include/chrono_thirdparty/yaml-cpp/include)
     endif()
 
     if(@HAVE_URDF@)

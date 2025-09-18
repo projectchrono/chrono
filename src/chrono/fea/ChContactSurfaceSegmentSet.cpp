@@ -33,8 +33,7 @@ namespace fea {
 ChContactSegmentXYZ::ChContactSegmentXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
                                          std::shared_ptr<ChNodeFEAxyz> node2,
                                          ChContactSurface* container)
-    : ChContactable_2vars(&node1->Variables(), &node2->Variables()),
-      m_nodes({node1, node2}),
+    : m_nodes({node1, node2}),
       m_owns_node({true, true}),
       m_container(container) {
     // Load contactable variables list
@@ -44,8 +43,7 @@ ChContactSegmentXYZ::ChContactSegmentXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
 
 ChContactSegmentXYZ::ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes,
                                          ChContactSurface* container)
-    : ChContactable_2vars(&nodes[0]->Variables(), &nodes[1]->Variables()),
-      m_nodes(nodes),
+    : m_nodes(nodes),
       m_owns_node({true, true}),
       m_container(container) {
     // Load contactable variables list
@@ -175,8 +173,7 @@ double ChContactSegmentXYZ::ComputeUfromP(const ChVector3d& P) {
 ChContactSegmentXYZRot::ChContactSegmentXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
                                                std::shared_ptr<ChNodeFEAxyzrot> node2,
                                                ChContactSurface* container)
-    : ChContactable_2vars(&node1->Variables(), &node2->Variables()),
-      m_nodes({node1, node2}),
+    : m_nodes({node1, node2}),
       m_owns_node({true, true}),
       m_container(container) {
     // Load contactable variables list
@@ -186,8 +183,7 @@ ChContactSegmentXYZRot::ChContactSegmentXYZRot(std::shared_ptr<ChNodeFEAxyzrot> 
 
 ChContactSegmentXYZRot::ChContactSegmentXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>& nodes,
                                                ChContactSurface* container)
-    : ChContactable_2vars(&nodes[0]->Variables(), &nodes[1]->Variables()),
-      m_nodes(nodes),
+    : m_nodes(nodes),
       m_owns_node({true, true}),
       m_container(container) {
     // Load contactable variables list

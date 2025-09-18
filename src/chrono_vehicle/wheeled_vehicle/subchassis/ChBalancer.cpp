@@ -197,7 +197,7 @@ void ChBalancer::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportBodyLoadList(jsonDocument, bushings);
 }
 
-void ChBalancer::Output(ChVehicleOutput& database) const {
+void ChBalancer::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -213,7 +213,7 @@ void ChBalancer::Output(ChVehicleOutput& database) const {
     m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
                                        : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 }
 
 }  // end namespace vehicle

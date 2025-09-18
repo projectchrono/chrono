@@ -94,7 +94,7 @@ class ChExternalDriverFmu : public ChDriver, public ChExternalFmu {
     ChVector3d GetSentinelLocation() const { return GetVecVariable("sentinel_loc"); }
     ChVector3d GetTargetLocation() const { return GetVecVariable("target_loc"); }
 
-    void Initialize() {
+    virtual void Initialize() override {
         // Load the FMU
         try {
             Load("driver_fmu", m_fmu_filename, m_unpack_dir);

@@ -112,7 +112,7 @@ void ChTrackWheel::ExportComponentList(rapidjson::Document& jsonDocument) const 
     ExportJointList(jsonDocument, joints);
 }
 
-void ChTrackWheel::Output(ChVehicleOutput& database) const {
+void ChTrackWheel::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

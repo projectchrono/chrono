@@ -109,7 +109,7 @@ def main():
     hmmwv.GetVehicle().SetChassisOutput(True);
     hmmwv.GetVehicle().SetSuspensionOutput(0, True);
     hmmwv.GetVehicle().SetSteeringOutput(0, True);
-    hmmwv.GetVehicle().SetOutput(veh.ChVehicleOutput.ASCII , out_dir, "output", 0.1);
+    hmmwv.GetVehicle().SetOutput(chrono.ChOutput.ASCII , out_dir, "output", 0.1);
 
     # Generate JSON information with available output channels
     hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");

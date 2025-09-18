@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     // Optionally, enable output from selected vehicle subsystems
     ////vehicle.SetSuspensionOutput(0, true);
     ////vehicle.SetSuspensionOutput(1, true);
-    ////vehicle.SetOutput(ChVehicleOutput::ASCII, veh_dir, "output", 0.1);
+    ////vehicle.SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, veh_dir, "output", 0.1);
 
     // Simulation loop
     vehicle.EnableRealtime(true);

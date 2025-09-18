@@ -245,7 +245,7 @@ void ChRigidPinnedAxle::ExportComponentList(rapidjson::Document& jsonDocument) c
     ExportJointList(jsonDocument, joints);
 }
 
-void ChRigidPinnedAxle::Output(ChVehicleOutput& database) const {
+void ChRigidPinnedAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

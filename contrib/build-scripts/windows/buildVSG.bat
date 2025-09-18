@@ -10,8 +10,7 @@
 @rem
 @rem Notes:
 @rem - The script accepts 1 optional argument to override the install directory.
-@rem - This script uses the following versions of the various codes from their respective repositories, with the
-@rem   only exception being vsgImGui which pulls the latest version.
+@rem - This script uses the following versions of the various codes from their respective repositories:
 @rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.4
 @rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.2
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.5.0

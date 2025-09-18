@@ -285,7 +285,7 @@ class CH_VEHICLE_API ChToeBarPushPipeAxle : public ChSuspension {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

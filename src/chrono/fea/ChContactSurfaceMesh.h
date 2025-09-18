@@ -30,7 +30,7 @@ namespace fea {
 
 /// Contact element of triangular type.
 /// Used to 'tessellate' the surface of FEA meshes for collision purposes.
-class ChApi ChContactTriangleXYZ : public ChContactable_3vars, public ChLoadableUV {
+class ChApi ChContactTriangleXYZ : public ChContactable, public ChLoadableUV {
   public:
     ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
                          std::shared_ptr<ChNodeFEAxyz> node2,
@@ -230,7 +230,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars, public ChLoadable
 
 /// Contact element of triangular type - version for triangles where the nodes are of ChNodeFEAxyzrot type.
 /// Used to 'tessellate' a generic surface like the outer of tetrahedral meshes.
-class ChApi ChContactTriangleXYZRot : public ChContactable_3vars, public ChLoadableUV {
+class ChApi ChContactTriangleXYZRot : public ChContactable, public ChLoadableUV {
   public:
     ChContactTriangleXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
                             std::shared_ptr<ChNodeFEAxyzrot> node2,

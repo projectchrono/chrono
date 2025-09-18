@@ -174,7 +174,7 @@ void ChRigidSuspension::ExportComponentList(rapidjson::Document& jsonDocument) c
     ExportJointList(jsonDocument, joints);
 }
 
-void ChRigidSuspension::Output(ChVehicleOutput& database) const {
+void ChRigidSuspension::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

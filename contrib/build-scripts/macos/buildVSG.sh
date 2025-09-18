@@ -13,8 +13,7 @@
 #
 # Notes:
 # - The script accepts 1 optional argument to override the install directory.
-# - This script uses the following versions of the various codes from their respective repositories, with the
-#   only exception being vsgImGui which pulls the latest version.
+# - This script uses the following versions of the various codes from their respective repositories:
 #      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.4
 #      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.2
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.5.0

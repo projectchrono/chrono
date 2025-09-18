@@ -229,7 +229,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void UpdateInertiaProperties() override final;
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(int frame, ChVehicleOutput& database) const override;
+    virtual void Output(int frame, ChOutput& database) const override;
 
     std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
     std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem

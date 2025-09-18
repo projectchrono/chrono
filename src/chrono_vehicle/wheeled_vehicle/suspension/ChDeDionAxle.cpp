@@ -460,7 +460,7 @@ void ChDeDionAxle::ExportComponentList(rapidjson::Document& jsonDocument) const 
     ChPart::ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChDeDionAxle::Output(ChVehicleOutput& database) const {
+void ChDeDionAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

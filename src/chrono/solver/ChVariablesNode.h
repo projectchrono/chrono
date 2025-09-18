@@ -19,9 +19,8 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 3-DOF item for a system, that is a 3D point node, with mass matrix and
-/// associate variables (a 3 element vector, ex.speed)
-
+/// Class for representing a 3-DOF item with mass matrix and associated variables.
+/// The item variables could be a 3-element vector containing speeds.
 class ChApi ChVariablesNode : public ChVariables {
   public:
     ChVariablesNode();

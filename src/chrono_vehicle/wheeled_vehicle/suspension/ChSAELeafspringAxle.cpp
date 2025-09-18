@@ -609,7 +609,7 @@ void ChSAELeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocument)
     ExportRotSpringList(jsonDocument, rot_springs);
 }
 
-void ChSAELeafspringAxle::Output(ChVehicleOutput& database) const {
+void ChSAELeafspringAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -653,7 +653,7 @@ void ChSAELeafspringAxle::Output(ChVehicleOutput& database) const {
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

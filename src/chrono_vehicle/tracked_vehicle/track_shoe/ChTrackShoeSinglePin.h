@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
   private:
     /// Connect this track shoe to the specified neighbor.

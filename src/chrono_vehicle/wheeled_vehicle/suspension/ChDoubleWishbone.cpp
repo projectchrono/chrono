@@ -658,7 +658,7 @@ void ChDoubleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChDoubleWishbone::Output(ChVehicleOutput& database) const {
+void ChDoubleWishbone::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -716,7 +716,7 @@ void ChDoubleWishbone::Output(ChVehicleOutput& database) const {
         joints.push_back(m_distTierod[1]);
     }
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

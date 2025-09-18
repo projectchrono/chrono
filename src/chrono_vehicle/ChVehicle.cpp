@@ -29,9 +29,9 @@
 
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
-#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+#include "chrono/output/ChOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-    #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+    #include "chrono/output/ChOutputHDF5.h"
 #endif
 
 namespace chrono {
@@ -44,9 +44,8 @@ namespace vehicle {
 ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
-      m_output(false),
-      m_output_step(0),
       m_output_db(nullptr),
+      m_output_step(0),
       m_next_output_time(0),
       m_output_frame(0),
       m_mass(0),
@@ -73,9 +72,8 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
     : m_name(name),
       m_system(system),
       m_ownsSystem(false),
-      m_output(false),
-      m_output_step(0),
       m_output_db(nullptr),
+      m_output_step(0),
       m_next_output_time(0),
       m_output_frame(0),
       m_mass(0),
@@ -132,40 +130,39 @@ void ChVehicle::EnableRealtime(bool val) {
 // Enable output for this vehicle system.
 // -----------------------------------------------------------------------------
 
-void ChVehicle::SetOutput(ChVehicleOutput::Type type,
+void ChVehicle::SetOutput(ChOutput::Type type,
+                          ChOutput::Mode mode,
                           const std::string& out_dir,
                           const std::string& out_name,
                           double output_step) {
-    m_output = true;
+    if (type == ChOutput::Type::NONE)
+        return;
+
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::ASCII:
-            m_output_db = new ChVehicleOutputASCII(out_dir + "/" + out_name + ".txt");
+        case ChOutput::Type::ASCII:
+            m_output_db = new ChOutputASCII(out_dir + "/" + out_name + ".txt");
             break;
-        case ChVehicleOutput::JSON:
-            //// TODO
-            break;
-        case ChVehicleOutput::HDF5:
+        case ChOutput::Type::HDF5 :
 #ifdef CHRONO_HAS_HDF5
-            m_output_db = new ChVehicleOutputHDF5(out_dir + "/" + out_name + ".h5");
+            m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5", mode);
 #endif
             break;
     }
 }
 
-void ChVehicle::SetOutput(ChVehicleOutput::Type type, std::ostream& out_stream, double output_step) {
-    m_output = true;
+void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, std::ostream& out_stream, double output_step) {
+    if (type == ChOutput::Type::NONE)
+        return;
+
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::ASCII:
-            m_output_db = new ChVehicleOutputASCII(out_stream);
+        case ChOutput::Type::ASCII:
+            m_output_db = new ChOutputASCII(out_stream);
             break;
-        case ChVehicleOutput::JSON:
-            //// TODO
-            break;
-        case ChVehicleOutput::HDF5:
+        case ChOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
             //// TODO
 #endif
@@ -198,7 +195,8 @@ void ChVehicle::Advance(double step) {
         m_initialized = true;
     }
 
-    if (m_output && m_system->GetChTime() >= m_next_output_time) {
+    if (m_output_db && m_system->GetChTime() >= m_next_output_time) {
+        m_output_db->Initialize();
         Output(m_output_frame, *m_output_db);
         m_next_output_time += m_output_step;
         m_output_frame++;

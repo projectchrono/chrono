@@ -270,7 +270,7 @@ void ChPitmanArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportJointList(jsonDocument, joints);
 }
 
-void ChPitmanArm::Output(ChVehicleOutput& database) const {
+void ChPitmanArm::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

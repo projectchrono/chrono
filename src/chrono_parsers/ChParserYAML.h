@@ -36,6 +36,8 @@
 
 #include "chrono/utils/ChBodyGeometry.h"
 
+#include "chrono/output/ChOutput.h"
+
 #include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
 
 namespace chrono {
@@ -80,6 +82,9 @@ class ChApiParsers ChParserYAML {
     const ChVector3d& GetCameraTarget() const { return m_sim.visualization.camera_target; }
     bool EnableShadows() const { return m_sim.visualization.enable_shadows; }
 
+    ChOutput::Type GetOutputType() const { return m_sim.output.type; }
+    double GetOutputFPS() const { return m_sim.output.fps; }
+
     /// Create and return a Chrono system configured from cached simulation parameters.
     /// If no YAML simulation file was loaded, this function returns a ChSystemNSC with default settings.
     std::shared_ptr<ChSystem> CreateSystem();
@@ -104,8 +109,16 @@ class ChApiParsers ChParserYAML {
     /// Remove from the specified system the Chrono objects from the specified instance.
     void Depopulate(ChSystem& sys, int instance_index);
 
+    // --------------
+
+    /// Set root output directory (default: "").
+    void SetOutputDir(const std::string& out_dir) { m_output_dir = out_dir; }
+
+    /// Save simulation output results at the current time. 
+    void Output(ChSystem& sys, int frame);
+
   private:
-    /// Simulation and run-time visualization parameters.
+    /// Solver parameters.
     struct SolverParams {
         SolverParams();
         void PrintInfo();
@@ -120,6 +133,7 @@ class ChApiParsers ChParserYAML {
         double sharpness_factor;
     };
 
+    /// Integrator parameters.
     struct IntegratorParams {
         IntegratorParams();
         void PrintInfo();
@@ -133,6 +147,7 @@ class ChApiParsers ChParserYAML {
         bool use_modified_newton;
     };
 
+    /// Run-time visualization parameters.
     struct VisParams {
         VisParams();
         void PrintInfo();
@@ -146,6 +161,18 @@ class ChApiParsers ChParserYAML {
         bool enable_shadows;
     };
 
+    /// Output parameters.
+    struct OutputParameters {
+        OutputParameters();
+        void PrintInfo();
+
+        ChOutput::Type type;
+        ChOutput::Mode mode;
+        double fps;
+        std::string dir;
+    };
+
+    /// Simulation and run-time visualization parameters.
     struct SimParams {
         SimParams();
         void PrintInfo();
@@ -166,6 +193,7 @@ class ChApiParsers ChParserYAML {
         SolverParams solver;
         IntegratorParams integrator;
         VisParams visualization;
+        OutputParameters output;
     };
 
   private:
@@ -298,6 +326,22 @@ class ChApiParsers ChParserYAML {
     };
 
   private:
+    /// Output database.
+    struct OutputData {
+        std::vector<std::shared_ptr<ChBody>> bodies;
+        std::vector<std::shared_ptr<ChShaft>> shafts;
+        std::vector<std::shared_ptr<ChLink>> joints;
+        std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
+        std::vector<std::shared_ptr<ChShaftsCouple>> couples;
+        std::vector<std::shared_ptr<ChLink>> constraints;
+        std::vector<std::shared_ptr<ChLinkTSDA>> tsdas;
+        std::vector<std::shared_ptr<ChLinkRSDA>> rsdas;
+        std::vector<std::shared_ptr<ChLoadCustom>> loads;
+        std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
+        std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
+    };
+
+  private:
     /// Return the path to the specified data file.
     std::string GetDatafilePath(const std::string& filename);
 
@@ -325,6 +369,8 @@ class ChApiParsers ChParserYAML {
     ChSolver::Type ReadSolverType(const YAML::Node& a);
     ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
     VisualizationType ReadVisualizationType(const YAML::Node& a);
+    ChOutput::Type ReadOutputType(const YAML::Node& a);
+    ChOutput::Mode ReadOutputMode(const YAML::Node& a);
 
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
@@ -335,7 +381,7 @@ class ChApiParsers ChParserYAML {
     /// Load and return a joint type from the specified node.
     ChJoint::Type ReadJointType(const YAML::Node& a);
 
-    /// Load and return joint coordinate syustem from the specified node.
+    /// Load and return joint coordinate system from the specified node.
     ChFramed ReadJointFrame(const YAML::Node& a);
 
     /// Load and return a geometry structure from the specified node.
@@ -392,6 +438,10 @@ class ChApiParsers ChParserYAML {
     std::unordered_map<std::string, BodyLoad> m_body_loads;       ///< body load elements
     std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
+
+    std::string m_output_dir;               ///< root oputput directory
+    std::shared_ptr<ChOutput> m_output_db;  ///< output database
+    OutputData m_output_data;               ///< output data
 
     bool m_verbose;  ///< verbose terminal output (default: false)
 
