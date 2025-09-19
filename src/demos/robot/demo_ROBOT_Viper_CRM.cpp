@@ -37,7 +37,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);

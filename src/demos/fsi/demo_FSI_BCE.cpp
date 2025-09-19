@@ -22,7 +22,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
     virtual bool get(unsigned int n) const override { return pos[n].y >= 0; }
@@ -91,7 +91,7 @@ class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVis
 std::shared_ptr<vsg3d::ChVisualSystemVSG> CreateVisulization(ChFsiSystemSPH& sysFSI,
                                                              ChSystem& sysMBS,
                                                              const std::string& title) {
-    auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(true);

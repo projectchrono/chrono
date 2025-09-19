@@ -28,7 +28,7 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
-#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
 
 #include "chrono_thirdparty/stb/stb.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -606,11 +606,11 @@ const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::CreateParticleRelocator() {
-    FsiParticleRelocator::DefaultProperties props;
+    SphParticleRelocator::DefaultProperties props;
     props.rho0 = m_sysSPH.GetDensity();
     props.mu0 = m_sysSPH.GetViscosity();
 
-    m_relocator = chrono_types::make_unique<FsiParticleRelocator>(*m_sysSPH.m_data_mgr, props);
+    m_relocator = chrono_types::make_unique<SphParticleRelocator>(*m_sysSPH.m_data_mgr, props);
 }
 
 void ChFsiProblemSPH::BCEShift(const ChVector3d& shift_dist) {

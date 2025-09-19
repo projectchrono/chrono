@@ -18,13 +18,13 @@
 ////#define DEBUG_LOG
 
 #include "chrono/utils/ChUtils.h"
-#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
 
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/physics/FsiInterface.cuh"
-#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
-#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
+#include "chrono_fsi/sph/physics/SphFsiInterface.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
 
 namespace chrono {
 namespace fsi {

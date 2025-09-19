@@ -41,7 +41,7 @@
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -89,7 +89,7 @@ ColorCode color_code = ColorCode::VELOCITY;
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
     virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
@@ -559,7 +559,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_VSG
     if (render) {
-        std::shared_ptr<ChFsiVisualizationVSG::ParticleColorCallback> col_callback;
+        std::shared_ptr<ChSphVisualizationVSG::ParticleColorCallback> col_callback;
         ChColormap::Type col_map;
 
         switch (color_code) {
@@ -575,7 +575,7 @@ int main(int argc, char* argv[]) {
         }
 
         // FSI plugin
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);

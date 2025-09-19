@@ -34,17 +34,17 @@
 #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/physics/FluidDynamics.cuh"
-#include "chrono_fsi/sph/physics/BceManager.cuh"
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
+#include "chrono_fsi/sph/physics/SphFluidDynamics.cuh"
+#include "chrono_fsi/sph/physics/SphBceManager.cuh"
 
-#include "chrono_fsi/sph/utils/UtilsLogging.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsLogging.cuh"
 
-#include "chrono_fsi/sph/math/CustomMath.cuh"
+#include "chrono_fsi/sph/math/SphCustomMath.cuh"
 
-#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
-#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
-#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
@@ -1889,8 +1889,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, node_directions_mode, m_verbose, m_check_errors);
-    m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
+    m_bce_mgr = chrono_types::make_unique<SphBceManager>(*m_data_mgr, node_directions_mode, m_verbose, m_check_errors);
+    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
 
     // Initialize worker objects
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);

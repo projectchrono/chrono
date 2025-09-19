@@ -25,7 +25,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
-    auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);

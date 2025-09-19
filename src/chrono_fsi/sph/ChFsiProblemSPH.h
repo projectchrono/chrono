@@ -30,7 +30,7 @@
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiSplashsurfSPH.h"
-#include "chrono_fsi/sph/physics/FsiParticleRelocator.cuh"
+#include "chrono_fsi/sph/physics/SphParticleRelocator.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -307,7 +307,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 
-    std::unique_ptr<FsiParticleRelocator> m_relocator;
+    std::unique_ptr<SphParticleRelocator> m_relocator;
 
     bool m_verbose;      ///< if true, write information to standard output
     bool m_initialized;  ///< if true, problem was initialized

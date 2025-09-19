@@ -33,7 +33,7 @@
 #ifdef RUN_TIME_VISUALIZATION
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
     #ifdef CHRONO_VSG
-        #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+        #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
     #endif
 #endif
 
@@ -124,7 +124,7 @@ std::shared_ptr<ChFsiVisualizationSPH> CreateVisSys(ChFsiSystemSPH& sysFSI) {
         auto v_max = PoiseuilleAnalytical(bzDim / 2, bzDim, t_start + num_steps * dt, sysFSI.GetFluidSystemSPH());
 
     #ifdef CHRONO_VSG
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
     #endif
 
         visFSI->SetTitle("Chrono::FSI Poiseuille flow");

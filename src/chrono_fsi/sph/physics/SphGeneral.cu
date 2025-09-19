@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
-#include "chrono_fsi/sph/math/ExactLinearSolvers.cuh"
+#include "chrono_fsi/sph/math/SphExactLinearSolvers.cuh"
 
 namespace chrono {
 namespace fsi {

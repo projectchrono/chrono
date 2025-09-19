@@ -21,7 +21,7 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/ChFsiSplashsurfSPH.h"
-#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
 
 namespace chrono {
 namespace fsi {

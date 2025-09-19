@@ -32,10 +32,10 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
-#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 using std::cout;
@@ -473,7 +473,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         auto col_callback =
             chrono_types::make_shared<ParticleHeightColorCallback>(aabb_particles.min.z(), aabb_particles.max.z());
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(m_show_bce);

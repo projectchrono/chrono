@@ -30,8 +30,8 @@ namespace fsi {
 namespace sph {
 
 class ChFsiInterfaceSPH;
-class FluidDynamics;
-class BceManager;
+class SphFluidDynamics;
+class SphBceManager;
 struct FsiDataManager;
 
 /// @addtogroup fsisph
@@ -626,8 +626,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     bool m_force_proximity_search;
 
     std::unique_ptr<FsiDataManager> m_data_mgr;       ///< FSI data manager
-    std::unique_ptr<FluidDynamics> m_fluid_dynamics;  ///< fluid system
-    std::unique_ptr<BceManager> m_bce_mgr;            ///< BCE manager
+    std::unique_ptr<SphFluidDynamics> m_fluid_dynamics;  ///< fluid system
+    std::unique_ptr<SphBceManager> m_bce_mgr;            ///< BCE manager
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
     unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)

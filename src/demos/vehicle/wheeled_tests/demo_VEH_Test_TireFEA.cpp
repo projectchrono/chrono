@@ -42,7 +42,7 @@ using namespace chrono::irrlicht;
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
     #ifdef CHRONO_FSI
-        #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+        #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
     #endif
 using namespace chrono::vsg3d;
 #endif
@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
     #ifdef CHRONO_FSI
             if (terrain_type == TerrainType::CRM) {
                 auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetSystemFSI();
-                auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
                 visFSI->EnableFluidMarkers(true);
                 visFSI->EnableBoundaryMarkers(false);
                 visFSI->EnableRigidBodyMarkers(false);
