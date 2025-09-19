@@ -206,8 +206,8 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_xsph_eps = 0.5;
     sph_params.artificial_viscosity = 0.03;
     sph_params.eos_type = EosType::TAIT;
-    sph_params.consistent_gradient_discretization = false;
-    sph_params.consistent_laplacian_discretization = false;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;

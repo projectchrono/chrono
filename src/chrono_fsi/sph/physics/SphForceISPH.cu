@@ -499,7 +499,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
     }
 
     Real rhoi = sortedRhoPreMu[i_idx].x;
-    Real TIME_SCALE = paramsD.DensityBaseProjection ? (delta_t * delta_t) : delta_t;
+    Real TIME_SCALE = paramsD.use_density_based_projection ? (delta_t * delta_t) : delta_t;
     //    Real TIME_SCALE = 1.0;
 
     //    bool ON_FREE_SURFACE = (rhoi < paramsD.rho0 || csrEndIdx - csrStartIdx < paramsD.num_neighbors * 0.5);
@@ -533,7 +533,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
 
             Real alpha = paramsD.Alpha;  // square(rhoi / paramsD.rho0);
             //            alpha = (alpha > 1) ? 1.0 : alpha;
-            if (paramsD.DensityBaseProjection)
+            if (paramsD.use_density_based_projection)
                 Bi[i_idx] = alpha * (paramsD.rho0 - rhoi_star) / paramsD.rho0 * (TIME_SCALE / (delta_t * delta_t)) +
                             +0 * (1 - alpha) * div_vi_star * (TIME_SCALE / delta_t);
             else
@@ -657,7 +657,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
     uint csrEndIdx = numContacts[i_idx + 1];  //- uint(paramsD.Pressure_Constraint);
     //    Real m_i = cube(sortedPosRad_old[i_idx].w / paramsD.d0_multiplier) * paramsD.rho0;
     Real m_i = paramsD.markerMass;
-    Real TIME_SCALE = paramsD.DensityBaseProjection ? (delta_t * delta_t) : delta_t;
+    Real TIME_SCALE = paramsD.use_density_based_projection ? (delta_t * delta_t) : delta_t;
     //    Real TIME_SCALE = 1.0;
 
     Real3 grad_p_nPlus1 = mR3(0.0);
@@ -1086,7 +1086,7 @@ void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
     //        //               AMatrix.size(), Contact_i.size(), csrColInd.size(), Contact_i_last);
     //    }
 
-    Real TIME_SCALE = pH->DensityBaseProjection ? (step * step) : step;
+    Real TIME_SCALE = pH->use_density_based_projection ? (step * step) : step;
 
     thrust::fill(AMatrix.begin(), AMatrix.end(), 0.0);
     thrust::fill(b1Vector.begin(), b1Vector.end(), 0.0);

@@ -176,8 +176,8 @@ int main(int argc, char* argv[]) {
     sph_params.viscosity_method = ViscosityMethod::LAMINAR;
     sph_params.use_delta_sph = false;
     sph_params.eos_type = EosType::ISOTHERMAL;
-    sph_params.consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity
-    sph_params.consistent_laplacian_discretization = true;
+    sph_params.use_consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity
+    sph_params.use_consistent_laplacian_discretization = true;
     fsi.SetSPHParameters(sph_params);
 
     fsi.SetStepSizeCFD(dt);

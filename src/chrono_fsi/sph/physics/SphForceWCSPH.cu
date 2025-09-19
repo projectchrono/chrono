@@ -568,7 +568,7 @@ void SphForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, 
     m_bce_mgr.updateBCEAcc();
 
     // Perform density re-initialization
-    if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
+    if (density_initialization >= m_data_mgr.paramsH->density_reinit_steps) {
         DensityReinitialization(sortedSphMarkersD);
         density_initialization = 0;
     }
@@ -653,7 +653,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 void SphForceWCSPH::DensityReinitialization(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     // Re-Initialize the density after several time steps if needed
     thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
-    printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->densityReinit);
+    printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->density_reinit_steps);
     calcRho_kernel<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
         U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, density_initialization);
@@ -1111,7 +1111,7 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
             // Artificial Viscosity from Monaghan 1997
             // This has no viscous forces in the seperation phase - used in SPH codes simulating fluids
             if (vAB_rAB < 0) {
-                Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
+                Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
                 derivM1 = -Mass * (nu * intermediate);
             }
 
@@ -1120,7 +1120,7 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
         case ViscosityMethod::ARTIFICIAL_BILATERAL: {
             // Artificial viscosity treatment from J J Monaghan (2005) "Smoothed particle hydrodynamics"
             // Here there is viscous force added even during the seperation phase - makes the simulation more stable
-            Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
+            Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
             derivM1 = -Mass * (nu * intermediate);
             break;
         }
@@ -1220,7 +1220,7 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
     const Real d0 = paramsD.d0;
 
     // Only perform the consistent discretization if the flag is set.
-    if (paramsD.USE_Consistent_G) {
+    if (paramsD.use_consistent_gradient_discretization) {
         // Initialize accumulators for mGi[9] using scalar registers.
         Real mGi0 = 0, mGi1 = 0, mGi2 = 0;
         Real mGi3 = 0, mGi4 = 0, mGi5 = 0;
@@ -1310,7 +1310,7 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
             crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB,
                     rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
         // Modify the gradW for stress equation if we decide to use consistent discretization
-        if (paramsD.USE_Consistent_G) {
+        if (paramsD.use_consistent_gradient_discretization) {
             Real3 gradW_new;
             gradW_new.x = G_i[0] * gradW.x + G_i[1] * gradW.y + G_i[2] * gradW.z;
             gradW_new.y = G_i[3] * gradW.x + G_i[4] * gradW.y + G_i[5] * gradW.z;
@@ -1355,7 +1355,7 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 
     // Check particles who have not enough neighbor particles (only CRM for now)
     //// TODO: extract and make common to both CFD and CRM
-    if (sum_w_i < paramsD.C_Wi) {
+    if (sum_w_i < paramsD.free_surface_threshold) {
         sortedFreeSurfaceIdD[index] = 1;
     } else {
         sortedFreeSurfaceIdD[index] = 0;
@@ -1415,7 +1415,7 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
     // Continuity equation
     Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW);
 
-    if (paramsD.USE_Delta_SPH) {
+    if (paramsD.use_delta_sph) {
         // diffusion term in continuity equation, this helps smoothing out the large oscillation in pressure
         // field see S. Marrone et al., "delta-SPH model for simulating violent impact flows", Computer Methods in
         // Applied Mechanics and Engineering, 200(2011), pp 1526 --1542.
@@ -1440,7 +1440,7 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
             // artificial viscosity part, see Monaghan 1997, mainly for water
             if (vAB_dot_rAB < 0) {
                 Real mu_ab = paramsD.h * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
-                Real Pi_ab = -paramsD.Ar_vis_alpha * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) *
+                Real Pi_ab = -paramsD.artificial_viscosity * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) *
                              paramsD.markerMass * mu_ab;
                 derivV.x -= Pi_ab * gradW.x;
                 derivV.y -= Pi_ab * gradW.y;
@@ -1502,10 +1502,10 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
 
     Real G_i[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     Real L_i[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
-    if (paramsD.USE_Consistent_G)
+    if (paramsD.use_consistent_gradient_discretization)
         calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, numNeighborsPerPart, neighborList, numActive);
 
-    if (paramsD.USE_Consistent_L) {
+    if (paramsD.use_consistent_laplacian_discretization) {
         Real A_i[27] = {0};
         calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList,
                       numActive);
@@ -1573,7 +1573,7 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
         derivVelRho += cfdDvDt(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB,
                                &max_vel_diff);
 
-        if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
+        if (paramsD.use_consistent_gradient_discretization && paramsD.use_consistent_laplacian_discretization) {
             preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y, rhoPresMuB.y,
                                        rhoPresMuA, rhoPresMuB);
             velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x, velMasB.x,
@@ -1593,7 +1593,7 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
         }
     }
 
-    if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
+    if (paramsD.use_consistent_gradient_discretization && paramsD.use_consistent_laplacian_discretization) {
         Real nu = paramsD.mu0 / paramsD.rho0;
         Real dvxdt = -preGra.x / rhoPresMuA.x +
                      (velxLap.x + velxGra.x * velxLap.y + velxGra.y * velxLap.z + velxGra.z * velxLap.w) * nu;

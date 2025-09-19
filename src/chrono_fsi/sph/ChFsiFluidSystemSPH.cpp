@@ -17,7 +17,7 @@
 // =============================================================================
 
 //// TODO:
-////   - use ChFsiParamsSPH::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
+////   - use ChFsiParamsSPH::free_surface_threshold (kernel threshold) for both CFD and CRM (currently, only CRM)
 
 //// #define DEBUG_LOG
 
@@ -123,15 +123,15 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->shifting_diffusion_A = Real(1.0);
     m_paramsH->shifting_diffusion_AFSM = Real(3.0);
     m_paramsH->shifting_diffusion_AFST = Real(2);
-    m_paramsH->densityReinit = 2147483647;
+    m_paramsH->density_reinit_steps = 2147483647;
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
     m_paramsH->laplacian_type = 0;
-    m_paramsH->USE_Consistent_L = false;
-    m_paramsH->USE_Consistent_G = false;
+    m_paramsH->use_consistent_laplacian_discretization = false;
+    m_paramsH->use_consistent_gradient_discretization = false;
 
     m_paramsH->density_delta = Real(0.1);
-    m_paramsH->USE_Delta_SPH = false;
+    m_paramsH->use_delta_sph = false;
 
     m_paramsH->epsMinMarkersDis = Real(0.01);
 
@@ -142,7 +142,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->dT = Real(-1);
 
     // Pressure equation
-    m_paramsH->DensityBaseProjection = false;
+    m_paramsH->use_density_based_projection = false;
     m_paramsH->Alpha = m_paramsH->h;
     m_paramsH->PPE_relaxation = Real(1.0);
     m_paramsH->LinearSolver = SolverType::JACOBI;
@@ -155,7 +155,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->ClampPressure = false;
 
     // Elastic SPH
-    m_paramsH->C_Wi = Real(0.8);
+    m_paramsH->free_surface_threshold = Real(0.8);
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
@@ -172,7 +172,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
     m_paramsH->elastic_SPH = false;        // default: fluid dynamics
-    m_paramsH->Ar_vis_alpha = Real(0.02);  // Does this mess with one for CRM?
+    m_paramsH->artificial_viscosity = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
@@ -343,10 +343,10 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         }
 
         if (doc["SPH Parameters"].HasMember("Artificial viscosity alpha"))
-            m_paramsH->Ar_vis_alpha = doc["SPH Parameters"]["Artificial viscosity alpha"].GetDouble();
+            m_paramsH->artificial_viscosity = doc["SPH Parameters"]["Artificial viscosity alpha"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Use Delta SPH"))
-            m_paramsH->USE_Delta_SPH = doc["SPH Parameters"]["Use Delta SPH"].GetBool();
+            m_paramsH->use_delta_sph = doc["SPH Parameters"]["Use Delta SPH"].GetBool();
 
         if (doc["SPH Parameters"].HasMember("density diffusion delta"))
             m_paramsH->density_delta = doc["SPH Parameters"]["density diffusion delta"].GetDouble();
@@ -367,7 +367,7 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         }
 
         if (doc["SPH Parameters"].HasMember("Density Reinitialization"))
-            m_paramsH->densityReinit = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
+            m_paramsH->density_reinit_steps = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
 
         if (doc["SPH Parameters"].HasMember("Conservative Discretization"))
             m_paramsH->Conservative_Form = doc["SPH Parameters"]["Conservative Discretization"].GetBool();
@@ -379,10 +379,10 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Laplacian"))
-            m_paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetBool();
+            m_paramsH->use_consistent_laplacian_discretization = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetBool();
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
-            m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
+            m_paramsH->use_consistent_gradient_discretization = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
 
         if (doc["SPH Parameters"].HasMember("Time steps per proximity search"))
             m_paramsH->num_proximity_search_steps = doc["SPH Parameters"]["Time steps per proximity search"].GetInt();
@@ -411,9 +411,9 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Pressure Equation"].HasMember("Poisson source term")) {
             std::string source = doc["Pressure Equation"]["Poisson source term"].GetString();
             if (source == "Density-Based")
-                m_paramsH->DensityBaseProjection = true;
+                m_paramsH->use_density_based_projection = true;
             else
-                m_paramsH->DensityBaseProjection = false;
+                m_paramsH->use_density_based_projection = false;
         }
 
         if (doc["Pressure Equation"].HasMember("Alpha Source Term"))
@@ -455,7 +455,7 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha"))
-            m_paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
+            m_paramsH->artificial_viscosity = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("I0"))
             m_paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
@@ -473,7 +473,7 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("kernel threshold"))
-            m_paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble();
+            m_paramsH->free_surface_threshold = doc["Elastic SPH"]["kernel threshold"].GetDouble();
     }
 
     // Geometry Information
@@ -560,7 +560,7 @@ void ChFsiFluidSystemSPH::SetViscosityType(ViscosityMethod viscosity_method) {
 }
 
 void ChFsiFluidSystemSPH::SetArtificialViscosityCoefficient(double coefficient) {
-    m_paramsH->Ar_vis_alpha = coefficient;
+    m_paramsH->artificial_viscosity = coefficient;
 }
 
 void ChFsiFluidSystemSPH::SetKernelType(KernelType kernel_type) {
@@ -681,8 +681,8 @@ void ChFsiFluidSystemSPH::SetShiftingDiffusionParameters(double A, double AFSM, 
 }
 
 void ChFsiFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
-    m_paramsH->USE_Consistent_G = consistent_gradient;
-    m_paramsH->USE_Consistent_L = consistent_Laplacian;
+    m_paramsH->use_consistent_gradient_discretization = consistent_gradient;
+    m_paramsH->use_consistent_laplacian_discretization = consistent_Laplacian;
 }
 
 void ChFsiFluidSystemSPH::SetOutputLevel(OutputLevel output_level) {
@@ -851,15 +851,15 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       density_reinit_steps(2e8),
       use_density_based_projection(false),
       num_bce_layers(3),
-      consistent_gradient_discretization(false),
-      consistent_laplacian_discretization(false),
+      use_consistent_gradient_discretization(false),
+      use_consistent_laplacian_discretization(false),
       viscosity_method(ViscosityMethod::ARTIFICIAL_UNILATERAL),
       boundary_method(BoundaryMethod::ADAMI),
       kernel_type(KernelType::CUBIC_SPLINE),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
-      kernel_threshold(0.8),
+      free_surface_threshold(0.8),
       num_proximity_search_steps(4),
       eos_type(EosType::ISOTHERMAL),
       use_variable_time_step(false) {}
@@ -891,18 +891,18 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->shifting_diffusion_AFST = sph_params.shifting_diffusion_AFST;
     m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
 
-    m_paramsH->densityReinit = sph_params.density_reinit_steps;
-    m_paramsH->DensityBaseProjection = sph_params.use_density_based_projection;
+    m_paramsH->density_reinit_steps = sph_params.density_reinit_steps;
+    m_paramsH->use_density_based_projection = sph_params.use_density_based_projection;
 
     m_paramsH->num_bce_layers = sph_params.num_bce_layers;
 
-    m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
-    m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
-    m_paramsH->Ar_vis_alpha = sph_params.artificial_viscosity;
-    m_paramsH->USE_Delta_SPH = sph_params.use_delta_sph;
+    m_paramsH->use_consistent_gradient_discretization = sph_params.use_consistent_gradient_discretization;
+    m_paramsH->use_consistent_laplacian_discretization = sph_params.use_consistent_laplacian_discretization;
+    m_paramsH->artificial_viscosity = sph_params.artificial_viscosity;
+    m_paramsH->use_delta_sph = sph_params.use_delta_sph;
     m_paramsH->density_delta = sph_params.delta_sph_coefficient;
 
-    m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
+    m_paramsH->free_surface_threshold = Real(sph_params.free_surface_threshold);
 
     m_paramsH->num_proximity_search_steps = sph_params.num_proximity_search_steps;
 
@@ -1100,11 +1100,11 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             break;
         case ViscosityMethod::ARTIFICIAL_UNILATERAL:
             cout << "  Viscosity treatment: Artificial Unilateral";
-            cout << "  (coefficient: " << params.Ar_vis_alpha << ")" << endl;
+            cout << "  (coefficient: " << params.artificial_viscosity << ")" << endl;
             break;
         case ViscosityMethod::ARTIFICIAL_BILATERAL:
             cout << "  Viscosity treatment: Artificial Bilateral";
-            cout << "  (coefficient: " << params.Ar_vis_alpha << ")" << endl;
+            cout << "  (coefficient: " << params.artificial_viscosity << ")" << endl;
             break;
     }
     if (params.boundary_method == BoundaryMethod::ADAMI) {
@@ -1206,7 +1206,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
         cout << "  shifting_diffusion_AFSM: " << params.shifting_diffusion_AFSM << endl;
         cout << "  shifting_diffusion_AFST: " << params.shifting_diffusion_AFST << endl;
     }
-    cout << "  densityReinit: " << params.densityReinit << endl;
+    cout << "  density_reinit_steps: " << params.density_reinit_steps << endl;
 
     cout << "  Proximity search performed every " << params.num_proximity_search_steps << " steps" << endl;
     cout << "  use_variable_time_step: " << params.use_variable_time_step << endl;
@@ -1230,7 +1230,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  G_shear: " << params.G_shear << endl;
     cout << "  INV_G_shear: " << params.INV_G_shear << endl;
     cout << "  K_bulk: " << params.K_bulk << endl;
-    cout << "  C_Wi: " << params.C_Wi << endl;
+    cout << "  free_surface_threshold: " << params.free_surface_threshold << endl;
 
     cout << "  PPE_relaxation: " << params.PPE_relaxation << endl;
     cout << "  Conservative_Form: " << params.Conservative_Form << endl;

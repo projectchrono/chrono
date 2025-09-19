@@ -128,10 +128,10 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_xsph_eps = 0.25;
     sph_params.d0_multiplier = 1;
-    sph_params.kernel_threshold = 0.8;
+    sph_params.free_surface_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.consistent_gradient_discretization = false;
-    sph_params.consistent_laplacian_discretization = false;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     sph_params.boundary_method = BoundaryMethod::HOLMES;
 

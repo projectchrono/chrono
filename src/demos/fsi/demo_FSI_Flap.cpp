@@ -401,8 +401,8 @@ int main(int argc, char* argv[]) {
     sph_params.max_velocity = 4;
     sph_params.shifting_method = ShiftingMethod::XSPH;
     sph_params.shifting_xsph_eps = 0.5;
-    sph_params.consistent_gradient_discretization = false;
-    sph_params.consistent_laplacian_discretization = false;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
     sph_params.artificial_viscosity = 0.02;
