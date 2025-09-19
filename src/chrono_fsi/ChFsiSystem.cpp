@@ -42,7 +42,7 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
+ChFsiSystem::ChFsiSystem(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
     : m_sysMBS(sysMBS),
       m_sysCFD(sysCFD),
       m_fsi_interface(nullptr),
@@ -56,21 +56,46 @@ ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
 
 ChFsiSystem::~ChFsiSystem() {}
 
+void ChFsiSystem::AttachFluidSystem(ChFsiFluidSystem* sys) {
+    m_sysCFD = sys;
+    m_sysCFD->SetVerbose(m_verbose);
+}
+
+void ChFsiSystem::AtachMultibodySystem(ChSystem* sys) {
+    m_sysMBS = sys;
+    m_fsi_interface->AttachMultibodySystem(sys);
+}
+
 ChFsiFluidSystem& ChFsiSystem::GetFluidSystem() const {
-    return m_sysCFD;
+    assert(m_sysCFD != nullptr);
+    return *m_sysCFD;
 }
 
 ChSystem& ChFsiSystem::GetMultibodySystem() const {
-    return m_sysMBS;
+    assert(m_sysMBS != nullptr);
+    return *m_sysMBS;
 }
 
 ChFsiInterface& ChFsiSystem::GetFsiInterface() const {
     return *m_fsi_interface;
 }
 
+double ChFsiSystem::GetRtfCFD() const {
+    if (!m_sysCFD)
+        return 0;
+    return m_sysCFD->GetRtf();
+}
+
+double ChFsiSystem::GetRtfMBD() const {
+    if (!m_sysMBS)
+        return 0;
+    return m_sysMBS->GetRTF();
+}
+
 void ChFsiSystem::SetVerbose(bool verbose) {
     ChAssertAlways(m_fsi_interface);
-    m_sysCFD.SetVerbose(verbose);
+    if (m_sysCFD)
+        m_sysCFD->SetVerbose(verbose);
     m_fsi_interface->SetVerbose(verbose);
     m_verbose = verbose;
 }
@@ -84,15 +109,18 @@ void ChFsiSystem::SetStepSizeCFD(double step) {
 }
 
 void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
-    m_sysCFD.SetGravitationalAcceleration(gravity);
-    m_sysMBS.SetGravitationalAcceleration(gravity);
+    if (m_sysCFD)
+        m_sysCFD->SetGravitationalAcceleration(gravity);
+    if (m_sysMBS)
+        m_sysMBS->SetGravitationalAcceleration(gravity);
 }
 
 void ChFsiSystem::UseNodeDirections(NodeDirectionsMode mode) {
     ChAssertAlways(m_fsi_interface);
     ChDebugLog("uses direction data? " << (mode != NodeDirectionsMode::NONE));
     m_fsi_interface->UseNodeDirections(mode);
-    m_sysCFD.UseNodeDirections(mode);
+    if (m_sysCFD)
+        m_sysCFD->UseNodeDirections(mode);
 }
 
 std::shared_ptr<FsiBody> ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body,
@@ -151,13 +179,12 @@ std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChMesh
 }
 
 void ChFsiSystem::Initialize() {
-    if (!m_fsi_interface) {
-        cout << "ERROR: No FSI interface was created." << endl;
-        throw std::runtime_error("No FSI interface was created.");
-    }
+    ChAssertAlways(m_sysCFD);
+    ChAssertAlways(m_sysMBS);
+    ChAssertAlways(m_fsi_interface);
 
     if (m_step_CFD < 0)
-        m_step_CFD = m_sysCFD.GetStepSize();
+        m_step_CFD = m_sysCFD->GetStepSize();
 
     if (m_step_CFD < 0) {
         cout << "ERROR: Integration step size for fluid dynamics not set." << endl;
@@ -178,11 +205,11 @@ void ChFsiSystem::Initialize() {
     m_fsi_interface->StoreSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Initialize fluid system with initial solid states
-    m_sysCFD.SetStepSize(m_step_CFD);
-    m_sysCFD.Initialize(body_states, mesh1D_states, mesh2D_states);
+    m_sysCFD->SetStepSize(m_step_CFD);
+    m_sysCFD->Initialize(body_states, mesh1D_states, mesh2D_states);
 
     // Mark systems as initialized
-    m_sysCFD.m_is_initialized = true;
+    m_sysCFD->m_is_initialized = true;
     m_is_initialized = true;
 }
 
@@ -200,17 +227,17 @@ void ChFsiSystem::AdvanceCFD(double step, double threshold) {
     while (t < step) {
         // In case variable time step is not used - this will just return the step size
 
-        double h = std::max<>(m_sysCFD.GetVariableStepSize(), min_step);
+        double h = std::max<>(m_sysCFD->GetVariableStepSize(), min_step);
         h = std::min<>(h, step - t);
 
         // double h_new = m_sysCFD.GetVariableStepSize();
         // double h = std::min<>(m_step_CFD, step - t);
         if (h <= threshold)
             break;
-        m_sysCFD.DoStepDynamics(h);
+        m_sysCFD->DoStepDynamics(h);
         t += h;
     }
-    m_timer_CFD = m_sysCFD.GetTimerStep();
+    m_timer_CFD = m_sysCFD->GetTimerStep();
 }
 
 void ChFsiSystem::AdvanceMBS(double step, double threshold) {
@@ -222,15 +249,17 @@ void ChFsiSystem::AdvanceMBS(double step, double threshold) {
             double h = std::min<>(m_step_MBD, step - t);
             if (h <= threshold)
                 break;
-            m_sysMBS.DoStepDynamics(h);
+            m_sysMBS->DoStepDynamics(h);
             t += h;
         }
     }
-    m_timer_MBD = m_sysMBS.GetTimerStep();
+    m_timer_MBD = m_sysMBS->GetTimerStep();
 }
 
 void ChFsiSystem::PrintFSIStats() const {
-    m_sysCFD.PrintFluidSystemSPHStats();
+    if (!m_sysCFD)
+        return;
+    m_sysCFD->PrintFluidSystemSPHStats();
 }
 
 void ChFsiSystem::DoStepDynamics(double step) {
@@ -260,10 +289,10 @@ void ChFsiSystem::DoStepDynamics(double step) {
     //   1. [CFD -> MBS] Apply fluid forces and torques on FSI solids
     //   2. [MBS -> CFD] Load new solid phase states
     m_timer_FSI.start();
-    m_sysCFD.OnExchangeSolidForces();
+    m_sysCFD->OnExchangeSolidForces();
     m_fsi_interface->ExchangeSolidForces();
     m_fsi_interface->ExchangeSolidStates();
-    m_sysCFD.OnExchangeSolidStates();
+    m_sysCFD->OnExchangeSolidStates();
     m_timer_FSI.stop();
 
     // Calculate RTF and MBD/CFD timer ratio

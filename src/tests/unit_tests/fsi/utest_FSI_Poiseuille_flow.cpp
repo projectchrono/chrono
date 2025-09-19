@@ -146,7 +146,7 @@ std::shared_ptr<ChFsiVisualizationSPH> CreateVisSys(ChFsiSystemSPH& sysFSI) {
 int main(int argc, char* argv[]) {
     // Create a Chrono system and the FSI problem
     ChSystemSMC sysMBS;
-    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
     ChFsiFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();

@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     // Create a fluid system
     ChFsiFluidSystemSPH sysSPH;
     // Create an FSI system
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     // Set boundary type
     if (boundary_method == "holmes") {

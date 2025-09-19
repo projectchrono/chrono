@@ -43,8 +43,9 @@ namespace sph {
 
 // ----------------------------------------------------------------------------
 
-ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
-    : m_sysFSI(ChFsiSystemSPH(sys, m_sysSPH)),
+ChFsiProblemSPH::ChFsiProblemSPH(double spacing, ChSystem* sys)
+    : m_sysFSI(ChFsiSystemSPH(sys, &m_sysSPH)),
+      m_sysMBS(sys),
       m_splashsurf(m_sysSPH),
       m_spacing(spacing),
       m_initialized(false),
@@ -52,10 +53,8 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
       m_offset_bce(VNULL),
       m_bc_type({BCType::NONE, BCType::NONE, BCType::NONE}),
       m_verbose(false) {
-    // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetFixed(true);
-    sys.AddBody(m_ground);
 
     // Set parameters for underlying SPH system
     m_sysSPH.SetInitialSpacing(spacing);
@@ -67,6 +66,10 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     m_splashsurf.SetSurfaceThreshold(0.6);
 
     m_sysFSI.SetVerbose(m_verbose);
+}
+
+void ChFsiProblemSPH::AttachMultibodySystem(ChSystem* sys) {
+    m_sysFSI.AtachMultibodySystem(sys);
 }
 
 void ChFsiProblemSPH::SetVerbose(bool verbose) {
@@ -188,6 +191,11 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::Initialize() {
+    ChAssertAlways(m_sysMBS);
+
+    // Add ground body to MBS system
+    m_sysMBS->AddBody(m_ground);
+
     // Prune SPH particles at grid locations that overlap with obstacles
     if (!m_sysSPH.m_bodies.empty()) {
         if (m_verbose)
@@ -652,7 +660,7 @@ void ChFsiProblemSPH::WriteReconstructedSurface(const std::string& dir, const st
 
 // ============================================================================
 
-ChFsiProblemCartesian::ChFsiProblemCartesian(ChSystem& sys, double spacing) : ChFsiProblemSPH(sys, spacing) {}
+ChFsiProblemCartesian::ChFsiProblemCartesian(double spacing, ChSystem* sys) : ChFsiProblemSPH(spacing, sys) {}
 
 void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {
     if (m_verbose) {
@@ -1030,8 +1038,8 @@ ChVector3d ChFsiProblemCartesian::Grid2Point(const ChVector3i& p) {
 
 // ============================================================================
 
-ChFsiProblemWavetank::ChFsiProblemWavetank(ChSystem& sys, double spacing)
-    : ChFsiProblemCartesian(sys, spacing), m_periodic_BC(false), m_end_wall(true) {}
+ChFsiProblemWavetank::ChFsiProblemWavetank(double spacing, ChSystem* sys)
+    : ChFsiProblemCartesian(spacing, sys), m_periodic_BC(false), m_end_wall(true) {}
 
 void ChFsiProblemWavetank::SetProfile(std::shared_ptr<Profile> profile, bool end_wall) {
     m_profile = profile;
@@ -1250,7 +1258,7 @@ std::shared_ptr<ChBody> ChFsiProblemWavetank::ConstructWaveTank(
 
 // ============================================================================
 
-ChFsiProblemCylindrical::ChFsiProblemCylindrical(ChSystem& sys, double spacing) : ChFsiProblemSPH(sys, spacing) {}
+ChFsiProblemCylindrical::ChFsiProblemCylindrical(double spacing, ChSystem* sys) : ChFsiProblemSPH(spacing, sys) {}
 
 void ChFsiProblemCylindrical::Construct(double radius_inner,
                                         double radius_outer,

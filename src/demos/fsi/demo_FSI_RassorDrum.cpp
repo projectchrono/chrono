@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
 // Disable cuda error check in RELEASE mode
 #ifdef NDEBUG

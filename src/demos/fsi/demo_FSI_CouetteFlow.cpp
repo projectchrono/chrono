@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 
     // Create the FSI problem
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
     ////sysFSI.SetVerbose(verbose);
 
     // cylindrical container

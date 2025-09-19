@@ -412,7 +412,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Disable cuda error check in RELEASE mode" << std::endl;
     sysSPH.EnableCudaErrorCheck(false);
 #endif
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 

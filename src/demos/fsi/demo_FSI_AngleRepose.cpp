@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysFSI.SetVerbose(verbose);
     sysSPH.ReadParametersFromFile(inputJson);

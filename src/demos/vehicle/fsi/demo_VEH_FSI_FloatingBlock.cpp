@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 

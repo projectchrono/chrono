@@ -79,7 +79,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     m_boxes_per_layer = 100;
     m_sysMBS = std::make_unique<ChSystemSMC>();
     m_sysSPH = std::make_unique<ChFsiFluidSystemSPH>();
-    m_sysFSI = std::make_unique<ChFsiSystemSPH>(*m_sysMBS, *m_sysSPH);
+    m_sysFSI = std::make_unique<ChFsiSystemSPH>(m_sysMBS.get(), m_sysSPH.get());
 
     m_sysMBS->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_sysFSI->SetVerbose(false);

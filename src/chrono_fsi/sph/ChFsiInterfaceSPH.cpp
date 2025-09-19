@@ -30,8 +30,8 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-ChFsiInterfaceSPH::ChFsiInterfaceSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH)
-    : ChFsiInterface(sysMBS, sysSPH), m_data_mgr(sysSPH.m_data_mgr.get()) {}
+ChFsiInterfaceSPH::ChFsiInterfaceSPH(ChSystem* sysMBS, ChFsiFluidSystemSPH* sysSPH)
+    : ChFsiInterface(sysMBS, sysSPH), m_data_mgr(sysSPH->m_data_mgr.get()) {}
 
 ChFsiInterfaceSPH::~ChFsiInterfaceSPH() {}
 

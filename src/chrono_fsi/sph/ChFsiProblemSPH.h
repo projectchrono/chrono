@@ -45,6 +45,9 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Enable verbose output during construction of ChFsiProblemSPH (default: false).
     void SetVerbose(bool verbose);
 
+    /// Attach Chrono MBS system.
+    void AttachMultibodySystem(ChSystem* sys);
+
     /// Access the underlying FSI system.
     ChFsiSystemSPH& GetSystemFSI() { return m_sysFSI; }
 
@@ -246,7 +249,7 @@ class CH_FSI_API ChFsiProblemSPH {
   protected:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemSPH(ChSystem& sys, double spacing);
+    ChFsiProblemSPH(double spacing, ChSystem* sys = nullptr);
 
     /// Hash function for a 3D integer grid coordinate.
     struct CoordHash {
@@ -291,6 +294,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
+    ChSystem* m_sysMBS;
     ChFsiSplashsurfSPH m_splashsurf;   ///< surface reconstructor
     double m_spacing;                  ///< particle and marker spacing
     std::shared_ptr<ChBody> m_ground;  ///< ground body
@@ -322,7 +326,7 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
   public:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemCartesian(ChSystem& sys, double spacing);
+    ChFsiProblemCartesian(double spacing, ChSystem* sys = nullptr);
 
     /// Construct using information from the specified files.
     /// The SPH particle and BCE marker locations are assumed to be provided on an integer grid.
@@ -388,7 +392,7 @@ class CH_FSI_API ChFsiProblemWavetank : public ChFsiProblemCartesian {
 
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemWavetank(ChSystem& sys, double spacing);
+    ChFsiProblemWavetank(double spacing, ChSystem* sys = nullptr);
 
     /// Interface for callback to specify wave tank profile.
     class CH_FSI_API Profile {
@@ -429,7 +433,7 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
   public:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemCylindrical(ChSystem& sys, double spacing);
+    ChFsiProblemCylindrical(double spacing, ChSystem* sys = nullptr);
 
     /// Construct SPH particles and optionally BCE markers in a cylindrical annulus of given dimensions.
     /// Set inner radius to zero to create a cylindrical container.

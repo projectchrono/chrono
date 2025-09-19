@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblemWavetank fsi(sysMBS, initial_spacing);
+    ChFsiProblemWavetank fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 

@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     double initial_spacing = (problem_type == PhysicsProblem::CFD) ? 0.02 : 0.01;
 
-    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 

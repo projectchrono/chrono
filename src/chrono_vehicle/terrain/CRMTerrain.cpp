@@ -47,7 +47,7 @@ class VehicleAdvance : public fsi::ChFsiSystem::MBDCallback {
 // -----------------------------------------------------------------------------
 
 CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
-    : ChFsiProblemCartesian(sys, spacing),
+    : ChFsiProblemCartesian(spacing, &sys),
       m_moving_patch(false),
       m_moved(false),
       m_buffer(0),

@@ -46,6 +46,12 @@ class CH_FSI_API ChFsiSystem {
     /// Destructor for the FSI system.
     virtual ~ChFsiSystem();
 
+    /// Attach a fluid system.
+    void AttachFluidSystem(ChFsiFluidSystem* sys);
+
+    /// Attach a MBS system.
+    void AtachMultibodySystem(ChSystem* sys);
+
     /// Access the associated fluid system.
     ChFsiFluidSystem& GetFluidSystem() const;
 
@@ -152,10 +158,10 @@ class CH_FSI_API ChFsiSystem {
     void SetRtf(double rtf) { m_RTF = rtf; }
 
     /// Get current estimated RTF (real time factor) for the fluid system.
-    double GetRtfCFD() const { return m_sysCFD.GetRtf(); }
+    double GetRtfCFD() const;
 
     /// Get current estimated RTF (real time factor) for the multibody system.
-    double GetRtfMBD() const { return m_sysMBS.GetRTF(); }
+    double GetRtfMBD() const;
 
     /// Get ratio of simulation time spent in MBS integration.
     double GetRatioMBD() const { return m_ratio_MBD; }
@@ -197,10 +203,10 @@ class CH_FSI_API ChFsiSystem {
   protected:
     /// Construct an FSI system coupling the provided multibody and fluid systems.
     /// Derived classes must also construct and set the FSI interface (`m_fsi_interface`).
-    ChFsiSystem(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
+    ChFsiSystem(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD);
 
-    ChSystem& m_sysMBS;                               ///< multibody system
-    ChFsiFluidSystem& m_sysCFD;                       ///< FSI fluid solver
+    ChSystem* m_sysMBS;                               ///< multibody system
+    ChFsiFluidSystem* m_sysCFD;                       ///< FSI fluid solver
     std::shared_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system
 
     bool m_verbose;         ///< enable/disable m_verbose terminal output

@@ -122,7 +122,7 @@ void Box() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -229,7 +229,7 @@ void Sphere() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -340,7 +340,7 @@ void Cylinder1() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -457,7 +457,7 @@ void Cylinder2() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -576,7 +576,7 @@ void Cone() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -663,7 +663,7 @@ void BoxContainer() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
