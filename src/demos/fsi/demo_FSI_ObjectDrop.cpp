@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    auto& sysFSI = fsi.GetFsiSystemSPH();
+    auto sysFSI = fsi.GetFsiSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
