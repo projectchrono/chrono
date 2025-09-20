@@ -381,7 +381,6 @@ inline const char* ChUtils_GetFilename() {
 %include "ChTexture.i"
 %include "ChCamera.i"
 %include "../../../chrono/assets/ChGlyphs.h"
-%include "ChVisualSystem.i"
 
 // physics/  classes
 %include "ChControllers.i"
@@ -437,6 +436,8 @@ inline const char* ChUtils_GetFilename() {
 %include "ChLinkMotor.i"
 %include "ChLinkBushing.i"
 %include "../../../chrono/physics/ChJoint.h"
+
+%include "ChVisualSystem.i" // ChVisualSystem needs to be put after ChSystem
 
 // Utils
 // for hulls and meshing

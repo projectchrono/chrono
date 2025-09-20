@@ -177,6 +177,7 @@ fi
 echo -e "\n------------------------ Configure vsg\n"
 rm -rf build_vsg
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
@@ -197,6 +198,7 @@ fi
 echo -e "\n------------------------ Configure vsgXchange\n"
 rm -rf build_vsgXchange
 cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
@@ -219,6 +221,7 @@ fi
 echo -e "\n------------------------ Configure vsgImGui\n"
 rm -rf  build_vsgImGui
 cmake -G "${BUILDSYSTEM}" -B build_vsgImGui -S ${VSGIMGUI_SOURCE_DIR} \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
@@ -240,6 +243,7 @@ fi
 echo -e "\n------------------------ Configure vsgExamples\n"
 rm -rf  build_vsgExamples
 cmake -G "${BUILDSYSTEM}" -B build_vsgExamples -S ${VSGEXAMPLES_SOURCE_DIR} \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
       -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgXchange \
       -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgImGui
