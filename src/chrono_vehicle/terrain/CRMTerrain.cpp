@@ -54,16 +54,16 @@ CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
       m_Ishift(0) {}
 
 void CRMTerrain::SetActiveDomain(const ChVector3d& box_dim) {
-    GetFluidSystemSPH().SetActiveDomain(box_dim);
+    GetFluidSystemSPH()->SetActiveDomain(box_dim);
 }
 
 void CRMTerrain::SetActiveDomainDelay(double delay) {
-    GetFluidSystemSPH().SetActiveDomainDelay(delay);
+    GetFluidSystemSPH()->SetActiveDomainDelay(delay);
 }
 
 void CRMTerrain::RegisterVehicle(ChVehicle* vehicle) {
     auto vehicle_advance_cb = chrono_types::make_shared<VehicleAdvance>(vehicle);
-    m_sysFSI.RegisterMBDCallback(vehicle_advance_cb);
+    m_sysFSI->RegisterMBDCallback(vehicle_advance_cb);
 }
 
 void CRMTerrain::Advance(double step) {
@@ -130,7 +130,7 @@ void CRMTerrain::Synchronize(double time) {
         return;
 
     // Current computationl domain
-    ChAABB domainAABB = m_sysSPH.GetComputationalDomain();
+    ChAABB domainAABB = m_sysSPH->GetComputationalDomain();
 
     if (m_verbose) {
         cout << "Move patch (" << dist << " < " << m_buffer << ") at t = " << time << endl;
@@ -163,7 +163,7 @@ void CRMTerrain::Synchronize(double time) {
     // Update computational domain (do not change BC types)
     domainAABB.min.x() += m_spacing * (m_Ishift + 1);
     domainAABB.max.x() += m_spacing * (m_Ishift + 1);
-    m_sysSPH.SetComputationalDomain(domainAABB);
+    m_sysSPH->SetComputationalDomain(domainAABB);
 
     if (m_verbose) {
         cout << "  Updated computational domain: " << domainAABB.min << "  " << domainAABB.max << endl;

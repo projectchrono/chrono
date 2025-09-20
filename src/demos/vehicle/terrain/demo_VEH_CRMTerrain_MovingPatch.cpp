@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     double poisson_ratio = 0.3;
 
     CRMTerrain terrain(sysMBS, spacing);
-    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetSystemFSI();
     terrain.SetVerbose(true);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
-    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);

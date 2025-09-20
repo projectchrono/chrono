@@ -298,7 +298,7 @@ void ChTireTestRig::Advance(double step) {
 
     if (m_terrain_type == TerrainType::CRM) {
 #ifdef CHRONO_FSI
-        std::static_pointer_cast<CRMTerrain>(m_terrain)->GetSystemFSI().DoStepDynamics(step);
+        std::static_pointer_cast<CRMTerrain>(m_terrain)->GetSystemFSI()->DoStepDynamics(step);
 #endif
     } else {
         // Synchronize subsystems

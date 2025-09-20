@@ -379,12 +379,10 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemWavetank fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
-    const ChVector3d gravity(0, 0, -9.8);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sysMBS.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Set CFD fluid properties
     ChFsiFluidSystemSPH::FluidProperties fluid_props;
@@ -488,7 +486,7 @@ int main(int argc, char* argv[]) {
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.0);
         auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(-1000, 12000, true);
 
-        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
@@ -520,11 +518,6 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int csv_frame = 0;
     int render_frame = 0;
-
-    double timer_CFD = 0;
-    double timer_MBD = 0;
-    double timer_FSI = 0;
-    double timer_step = 0;
 
     ChTimer timer;
     timer.start();
@@ -578,19 +571,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics(step_size);
-
-        timer_CFD += sysFSI.GetTimerCFD();
-        timer_MBD += sysFSI.GetTimerMBD();
-        timer_FSI += sysFSI.GetTimerFSI();
-        timer_step += sysFSI.GetTimerStep();
-        if (verbose && sim_frame == 2000) {
-            cout << "Cummulative timers at time: " << time << endl;
-            cout << "   timer CFD:  " << timer_CFD << endl;
-            cout << "   timer MBD:  " << timer_MBD << endl;
-            cout << "   timer FSI:  " << timer_FSI << endl;
-            cout << "   timer step: " << timer_step << endl;
-        }
+        fsi.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

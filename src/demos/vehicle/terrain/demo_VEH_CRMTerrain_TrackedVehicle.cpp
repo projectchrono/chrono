@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     // Create the CRM terrain system
     CRMTerrain terrain(*sysMBS, initial_spacing);
-    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetSystemFSI();
     terrain.SetVerbose(verbose);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     if (render) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
-        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
@@ -333,15 +333,15 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
 }
 
 void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrain) {
-    auto& sysFSI = terrain.GetSystemFSI();
-    auto& sysSPH = sysFSI.GetFluidSystemSPH();
+    auto sysFSI = terrain.GetSystemFSI();
+    auto sysSPH = terrain.GetFluidSystemSPH();
 
     // GetCollision shapes for a track shoe (will use only collision boxes)
     auto track_geometry = vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
 
     // Consider only collision boxes that are large enough
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-    auto min_length = 2 * (sysSPH.GetNumBCELayers() - 1) * sysSPH.GetInitialSpacing();
+    auto min_length = 2 * (sysSPH->GetNumBCELayers() - 1) * sysSPH->GetInitialSpacing();
     for (const auto& box : track_geometry.coll_boxes) {
         if (box.dims.x() > min_length && box.dims.y() > min_length && box.dims.z() < min_length) {
             geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.pos, box.rot, box.dims));

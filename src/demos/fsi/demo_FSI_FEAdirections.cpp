@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
     ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.81);
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
         double vel_max = 2.5;
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(vel_min, vel_max);
 
-        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(false);

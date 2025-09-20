@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.81);
@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
 
-        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
@@ -331,11 +331,6 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int out_frame = 0;
     int render_frame = 0;
-
-    double timer_CFD = 0;
-    double timer_MBD = 0;
-    double timer_FSI = 0;
-    double timer_step = 0;
 
     // Initial position of top node at the (approx) middle of the plate in x and y
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(15));
@@ -385,18 +380,6 @@ int main(int argc, char* argv[]) {
         ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\t" << displacement << "\n";
 
         fsi.DoStepDynamics(step_size);
-
-        timer_CFD += sysFSI.GetTimerCFD();
-        timer_MBD += sysFSI.GetTimerMBD();
-        timer_FSI += sysFSI.GetTimerFSI();
-        timer_step += sysFSI.GetTimerStep();
-        if (verbose && sim_frame == 2000) {
-            cout << "Cummulative timers at time: " << time << endl;
-            cout << "   timer CFD:  " << timer_CFD << endl;
-            cout << "   timer MBD:  " << timer_MBD << endl;
-            cout << "   timer FSI:  " << timer_FSI << endl;
-            cout << "   timer step: " << timer_step << endl;
-        }
 
         time += step_size;
         sim_frame++;

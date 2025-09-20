@@ -108,8 +108,9 @@ int main(int argc, char* argv[]) {
     // Create the CRM terrain system
     double initial_spacing = 0.03;
     CRMTerrain terrain(sys, initial_spacing);
-    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
-    terrain.GetFluidSystemSPH().EnableCudaErrorCheck(false);
+    auto sysFSI = terrain.GetSystemFSI();
+    auto sysSPH = terrain.GetFluidSystemSPH();
+    sysSPH->EnableCudaErrorCheck(false);
     terrain.SetVerbose(verbose);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
@@ -195,7 +196,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
 
-        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);

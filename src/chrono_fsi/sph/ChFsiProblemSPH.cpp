@@ -44,9 +44,7 @@ namespace sph {
 // ----------------------------------------------------------------------------
 
 ChFsiProblemSPH::ChFsiProblemSPH(double spacing, ChSystem* sys)
-    : m_sysFSI(ChFsiSystemSPH(sys, &m_sysSPH)),
-      m_sysMBS(sys),
-      m_splashsurf(m_sysSPH),
+    : m_sysMBS(sys),
       m_spacing(spacing),
       m_initialized(false),
       m_offset_sph(VNULL),
@@ -56,43 +54,50 @@ ChFsiProblemSPH::ChFsiProblemSPH(double spacing, ChSystem* sys)
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetFixed(true);
 
+    // Create the underlying SPH system
+    m_sysSPH = chrono_types::make_shared<ChFsiFluidSystemSPH>();
+
     // Set parameters for underlying SPH system
-    m_sysSPH.SetInitialSpacing(spacing);
-    m_sysSPH.SetKernelMultiplier(1.2);
+    m_sysSPH->SetInitialSpacing(spacing);
+    m_sysSPH->SetKernelMultiplier(1.2);
 
-    // Set default slapshsurf parameters
-    m_splashsurf.SetSmoothingLength(1.5);
-    m_splashsurf.SetCubeSize(0.5);
-    m_splashsurf.SetSurfaceThreshold(0.6);
+    // Create the underlying FSI system
+    m_sysFSI = chrono_types::make_shared<ChFsiSystemSPH>(sys, m_sysSPH.get());
+    m_sysFSI->SetVerbose(m_verbose);
 
-    m_sysFSI.SetVerbose(m_verbose);
+    // Create the surface reconstructor and set default parameters
+    m_splashsurf = chrono_types::make_shared<ChFsiSplashsurfSPH>(*m_sysSPH);
+    m_splashsurf->SetSmoothingLength(1.5);
+    m_splashsurf->SetCubeSize(0.5);
+    m_splashsurf->SetSurfaceThreshold(0.6);
+
 }
 
 void ChFsiProblemSPH::AttachMultibodySystem(ChSystem* sys) {
-    m_sysFSI.AtachMultibodySystem(sys);
+    m_sysFSI->AtachMultibodySystem(sys);
 }
 
 void ChFsiProblemSPH::SetVerbose(bool verbose) {
-    m_sysFSI.SetVerbose(verbose);
+    m_sysFSI->SetVerbose(verbose);
     m_verbose = verbose;
 }
 
 void ChFsiProblemSPH::SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& fluid_props) {
-    m_sysSPH.SetCfdSPH(fluid_props);
+    m_sysSPH->SetCfdSPH(fluid_props);
 }
 
 void ChFsiProblemSPH::SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props) {
-    m_sysSPH.SetElasticSPH(mat_props);
+    m_sysSPH->SetElasticSPH(mat_props);
 }
 
 void ChFsiProblemSPH::SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params) {
-    m_sysSPH.SetSPHParameters(sph_params);
+    m_sysSPH->SetSPHParameters(sph_params);
 }
 
 void ChFsiProblemSPH::SetSplashsurfParameters(const ChFsiFluidSystemSPH::SplashsurfParameters& params) {
-    m_splashsurf.SetSmoothingLength(params.smoothing_length);
-    m_splashsurf.SetCubeSize(params.cube_size);
-    m_splashsurf.SetSurfaceThreshold(params.surface_threshold);
+    m_splashsurf->SetSmoothingLength(params.smoothing_length);
+    m_splashsurf->SetCubeSize(params.cube_size);
+    m_splashsurf->SetSurfaceThreshold(params.surface_threshold);
 }
 
 // ----------------------------------------------------------------------------
@@ -105,7 +110,7 @@ void ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
         cout << "Add rigid body '" << body->GetName() << "'" << endl;
 
     // Add the FSI rigid body to the underlying FSI system
-    auto fsi_body = m_sysFSI.AddFsiBody(body, geometry, check_embedded);
+    auto fsi_body = m_sysFSI->AddFsiBody(body, geometry, check_embedded);
     m_fsi_bodies[body] = fsi_body->index;
 }
 
@@ -148,21 +153,21 @@ void ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
 
 size_t ChFsiProblemSPH::GetNumBCE(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
-    return m_sysSPH.m_bodies[index].bce_coords.size();
+    return m_sysSPH->m_bodies[index].bce_coords.size();
 }
 
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::UseNodeDirections(NodeDirectionsMode mode) {
-    m_sysFSI.UseNodeDirections(mode);
+    m_sysFSI->UseNodeDirections(mode);
 }
 
 void ChFsiProblemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
-    m_sysSPH.SetBcePattern1D(pattern, remove_center);
+    m_sysSPH->SetBcePattern1D(pattern, remove_center);
 }
 
 void ChFsiProblemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_center) {
-    m_sysSPH.SetBcePattern2D(pattern, remove_center);
+    m_sysSPH->SetBcePattern2D(pattern, remove_center);
 }
 
 void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
@@ -170,7 +175,7 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
         cout << "Add FEA mesh '" << mesh->GetName() << "'" << endl;
 
     // Add 1D surfaces from given FEA mesh to the underlying FSI system
-    auto fsi_mesh1D = m_sysFSI.AddFsiMesh1D(mesh, check_embedded);
+    auto fsi_mesh1D = m_sysFSI->AddFsiMesh1D(mesh, check_embedded);
     if (m_verbose) {
         if (fsi_mesh1D)
             cout << "  added " << fsi_mesh1D->GetNumElements() << " segments" << endl;
@@ -179,7 +184,7 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
     }
 
     // Add 2D surfaces from given mesh to the underlying FSI system
-    auto fsi_mesh2D = m_sysFSI.AddFsiMesh2D(mesh, check_embedded);
+    auto fsi_mesh2D = m_sysFSI->AddFsiMesh2D(mesh, check_embedded);
     if (m_verbose) {
         if (fsi_mesh2D)
             cout << "  added " << fsi_mesh2D->GetNumElements() << " faces" << endl;
@@ -197,19 +202,19 @@ void ChFsiProblemSPH::Initialize() {
     m_sysMBS->AddBody(m_ground);
 
     // Prune SPH particles at grid locations that overlap with obstacles
-    if (!m_sysSPH.m_bodies.empty()) {
+    if (!m_sysSPH->m_bodies.empty()) {
         if (m_verbose)
             cout << "Remove SPH particles inside FSI solid volumes" << endl;
 
-        for (auto& b : m_sysSPH.m_bodies)
+        for (auto& b : m_sysSPH->m_bodies)
             if (b.check_embedded)
                 ProcessBody(b);
 
-        for (auto m : m_sysSPH.m_meshes1D)
+        for (auto m : m_sysSPH->m_meshes1D)
             if (m.check_embedded)
                 ProcessFeaMesh1D(m);
 
-        for (auto m : m_sysSPH.m_meshes2D)
+        for (auto m : m_sysSPH->m_meshes2D)
             if (m.check_embedded)
                 ProcessFeaMesh2D(m);
 
@@ -249,20 +254,20 @@ void ChFsiProblemSPH::Initialize() {
         m_props_cb = chrono_types::make_shared<ParticlePropertiesCallback>();
 
     // Create SPH particles
-    switch (m_sysSPH.GetPhysicsProblem()) {
+    switch (m_sysSPH->GetPhysicsProblem()) {
         case PhysicsProblem::CFD: {
             for (const auto& pos : sph_points) {
-                m_props_cb->set(m_sysSPH, pos);
-                m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
+                m_props_cb->set(*m_sysSPH, pos);
+                m_sysSPH->AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
             }
             break;
         }
         case PhysicsProblem::CRM: {
             ChVector3d tau_offdiag(0);
             for (const auto& pos : sph_points) {
-                m_props_cb->set(m_sysSPH, pos);
+                m_props_cb->set(*m_sysSPH, pos);
                 ChVector3d tau_diag(-m_props_cb->p0);
-                m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
+                m_sysSPH->AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
                                         tau_diag, tau_offdiag);
             }
             break;
@@ -271,18 +276,18 @@ void ChFsiProblemSPH::Initialize() {
 
     // Create boundary BCE markers
     // (ATTENTION: BCE markers must be created after the SPH particles!)
-    m_sysSPH.AddBCEBoundary(bce_points, m_ground->GetFrameRefToAbs());
+    m_sysSPH->AddBCEBoundary(bce_points, m_ground->GetFrameRefToAbs());
 
     // Update AABB using geometry of FSI solids
-    for (const auto& b : m_sysSPH.m_bodies) {
+    for (const auto& b : m_sysSPH->m_bodies) {
         auto body_aabb = b.fsi_body->geometry->CalculateAABB();
         aabb += body_aabb.Transform(b.fsi_body->body->GetFrameRefToAbs());
     }
-    for (const auto& m : m_sysSPH.m_meshes1D) {
+    for (const auto& m : m_sysSPH->m_meshes1D) {
         auto mesh_aabb = m.fsi_mesh->contact_surface->GetAABB();
         aabb += mesh_aabb;
     }
-    for (const auto& m : m_sysSPH.m_meshes2D) {
+    for (const auto& m : m_sysSPH->m_meshes2D) {
         auto mesh_aabb = m.fsi_mesh->contact_surface->GetAABB();
         aabb += mesh_aabb;
     }
@@ -299,29 +304,29 @@ void ChFsiProblemSPH::Initialize() {
     // Set computational domain
     if (!m_domain_aabb.IsInverted()) {
         // Use provided computational domain
-        m_sysSPH.SetComputationalDomain(m_domain_aabb, m_bc_type);
+        m_sysSPH->SetComputationalDomain(m_domain_aabb, m_bc_type);
     } else {
         // Calculate computational domain based on actual AABB of all markers
-        int bce_layers = m_sysSPH.GetNumBCELayers();
+        int bce_layers = m_sysSPH->GetNumBCELayers();
         m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
-        m_sysSPH.SetComputationalDomain(m_domain_aabb, BC_NONE);
+        m_sysSPH->SetComputationalDomain(m_domain_aabb, BC_NONE);
     }
 
     // Initialize the underlying FSI system
-    m_sysFSI.Initialize();
+    m_sysFSI->Initialize();
 
     // Set SPH particle radius for the surface reconstructor
-    m_splashsurf.SetParticleRadius(m_spacing / 2);
+    m_splashsurf->SetParticleRadius(m_spacing / 2);
 
     m_initialized = true;
 }
 
 void ChFsiProblemSPH::PrintFSIStats() const {
-    m_sysSPH.PrintFluidSystemSPHStats();
+    m_sysSPH->PrintFluidSystemSPHStats();
 }
 
 void ChFsiProblemSPH::PrintFluidSystemSPHTimeSteps(const std::string& path) const {
-    m_sysSPH.PrintFluidSystemSPHTimeSteps(path);
+    m_sysSPH->PrintFluidSystemSPHTimeSteps(path);
 }
 
 // Check if specified point is inside a primitive shape of the given geometry.
@@ -430,7 +435,7 @@ int ChFsiProblemSPH::ProcessBodyMesh(ChFsiFluidSystemSPH::FsiSphBody& b,
     }
 
     // BCE marker locations (in FSIProblem frame)
-    auto bce = m_sysSPH.CreatePointsMesh(trimesh);
+    auto bce = m_sysSPH->CreatePointsMesh(trimesh);
 
     // BCE marker locations in integer grid coordinates
     GridPoints gbce;
@@ -496,10 +501,10 @@ int ChFsiProblemSPH::ProcessBodyMesh(ChFsiFluidSystemSPH::FsiSphBody& b,
 void ChFsiProblemSPH::ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m) {
     // If the mesh BCEs do not include the central marker, regenerate them. Otherwise, use existing BCEs
     std::vector<ChVector3d> bce;
-    if (m_sysSPH.m_remove_center1D) {
+    if (m_sysSPH->m_remove_center1D) {
         std::vector<ChVector3i> bce_ids;
         std::vector<ChVector3d> bce_coords;
-        m_sysSPH.CreateBCEFsiMesh1D(m.fsi_mesh, m_sysSPH.m_pattern1D, false, bce_ids, bce_coords, bce);
+        m_sysSPH->CreateBCEFsiMesh1D(m.fsi_mesh, m_sysSPH->m_pattern1D, false, bce_ids, bce_coords, bce);
     } else {
         bce = m.bce;
     }
@@ -532,12 +537,12 @@ void ChFsiProblemSPH::ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m) {
 
 void ChFsiProblemSPH::ProcessFeaMesh2D(ChFsiFluidSystemSPH::FsiSphMesh2D& m) {
     // If the mesh BCEs do not include the central marker, regenerate them. Otherwise, use existing BCEs
-    bool regenerate_bce = m_sysSPH.m_pattern2D == BcePatternMesh2D::CENTERED && m_sysSPH.m_remove_center2D;
+    bool regenerate_bce = m_sysSPH->m_pattern2D == BcePatternMesh2D::CENTERED && m_sysSPH->m_remove_center2D;
     std::vector<ChVector3d> bce;
     if (regenerate_bce) {
         std::vector<ChVector3i> bce_ids;
         std::vector<ChVector3d> bce_coords;
-        m_sysSPH.CreateBCEFsiMesh2D(m.fsi_mesh, BcePatternMesh2D::CENTERED, false, bce_ids, bce_coords, bce);
+        m_sysSPH->CreateBCEFsiMesh2D(m.fsi_mesh, BcePatternMesh2D::CENTERED, false, bce_ids, bce_coords, bce);
     } else {
         bce = m.bce;
     }
@@ -566,12 +571,12 @@ void ChFsiProblemSPH::ProcessFeaMesh2D(ChFsiFluidSystemSPH::FsiSphMesh2D& m) {
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::SetOutputLevel(OutputLevel output_level) {
-    m_sysSPH.SetOutputLevel(output_level);
+    m_sysSPH->SetOutputLevel(output_level);
 }
 
 void ChFsiProblemSPH::SaveOutputData(double time, const std::string& sph_dir, const std::string& fsi_dir) {
-    m_sysSPH.SaveParticleData(sph_dir);
-    m_sysSPH.SaveSolidData(fsi_dir, time);
+    m_sysSPH->SaveParticleData(sph_dir);
+    m_sysSPH->SaveSolidData(fsi_dir, time);
 }
 
 void ChFsiProblemSPH::SaveInitialMarkers(const std::string& out_dir) const {
@@ -587,7 +592,7 @@ void ChFsiProblemSPH::SaveInitialMarkers(const std::string& out_dir) const {
 
     // Body BCE marker locations
     std::ofstream obs_bce(out_dir + "/body_bce.txt", std::ios_base::out);
-    for (const auto& b : m_sysSPH.m_bodies) {
+    for (const auto& b : m_sysSPH->m_bodies) {
         for (const auto& p : b.bce_coords)
             obs_bce << p << std::endl;
     }
@@ -596,29 +601,29 @@ void ChFsiProblemSPH::SaveInitialMarkers(const std::string& out_dir) const {
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::DoStepDynamics(double step) {
-    m_sysFSI.DoStepDynamics(step);
+    m_sysFSI->DoStepDynamics(step);
 }
 
 // ----------------------------------------------------------------------------
 
 const ChVector3d& ChFsiProblemSPH::GetFsiBodyForce(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
-    return m_sysFSI.GetFsiBodyForce(index);
+    return m_sysFSI->GetFsiBodyForce(index);
 }
 
 const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
-    return m_sysFSI.GetFsiBodyTorque(index);
+    return m_sysFSI->GetFsiBodyTorque(index);
 }
 
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::CreateParticleRelocator() {
     SphParticleRelocator::DefaultProperties props;
-    props.rho0 = m_sysSPH.GetDensity();
-    props.mu0 = m_sysSPH.GetViscosity();
+    props.rho0 = m_sysSPH->GetDensity();
+    props.mu0 = m_sysSPH->GetViscosity();
 
-    m_relocator = chrono_types::make_unique<SphParticleRelocator>(*m_sysSPH.m_data_mgr, props);
+    m_relocator = chrono_types::make_unique<SphParticleRelocator>(*m_sysSPH->m_data_mgr, props);
 }
 
 void ChFsiProblemSPH::BCEShift(const ChVector3d& shift_dist) {
@@ -640,7 +645,7 @@ void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& 
 }
 
 void ChFsiProblemSPH::ForceProximitySearch() {
-    m_sysSPH.m_force_proximity_search = true;
+    m_sysSPH->m_force_proximity_search = true;
 }
 
 // ----------------------------------------------------------------------------
@@ -654,8 +659,8 @@ void ChFsiProblemSPH::WriteReconstructedSurface(const std::string& dir, const st
     std::string in_filename = dir + "/" + name + ".json";
     std::string out_filename = dir + "/" + name + ".obj";
 
-    m_splashsurf.WriteParticleFileJSON(in_filename);
-    m_splashsurf.WriteReconstructedSurface(in_filename, out_filename, quiet);
+    m_splashsurf->WriteParticleFileJSON(in_filename);
+    m_splashsurf->WriteReconstructedSurface(in_filename, out_filename, quiet);
 }
 
 // ============================================================================
@@ -795,7 +800,7 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     int Nz = (int)std::round(depth / m_spacing) + 1;
 
     // Number of BCE layers
-    int bce_layers = m_sysSPH.GetNumBCELayers();
+    int bce_layers = m_sysSPH->GetNumBCELayers();
 
     // Reserve space for containers
     std::vector<ChVector3i> sph;
@@ -921,7 +926,7 @@ size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // bo
         cout << "Construct box container" << endl;
     }
 
-    int bce_layers = m_sysSPH.GetNumBCELayers();
+    int bce_layers = m_sysSPH->GetNumBCELayers();
 
     int Nx = std::round(box_size.x() / m_spacing) + 1;
     int Ny = std::round(box_size.y() / m_spacing) + 1;
@@ -1054,7 +1059,7 @@ std::shared_ptr<ChBody> ChFsiProblemWavetank::ConstructWaveTank(
     std::shared_ptr<ChFunction> actuation  // actuation function
 ) {
     // Number of BCE layers
-    int bce_layers = m_sysSPH.GetNumBCELayers();
+    int bce_layers = m_sysSPH->GetNumBCELayers();
 
     int Nx = std::round(box_size.x() / m_spacing) + 1;
     int Ny = std::round(box_size.y() / m_spacing) + 1;
@@ -1198,7 +1203,7 @@ std::shared_ptr<ChBody> ChFsiProblemWavetank::ConstructWaveTank(
     ChVector3d body_size(thickness, box_size.y(), box_size.z());
     ChVector3d body_pos(-box_size.x() / 2 - thickness / 2 - m_spacing, 0, box_size.z() / 2);
 
-    ChSystem& sysMBS = m_sysFSI.GetMultibodySystem();
+    ChSystem& sysMBS = m_sysFSI->GetMultibodySystem();
 
     switch (type) {
         case WavemakerType::PISTON: {
@@ -1315,7 +1320,7 @@ size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
     bool side_ext = (side_flags & static_cast<int>(CylSide::SIDE_EXT)) != 0;
 
     // Number of BCE layers
-    int bce_layers = m_sysSPH.GetNumBCELayers();
+    int bce_layers = m_sysSPH->GetNumBCELayers();
 
     // Number of points in each direction
     int Ir_start = std::round(radius_inner / m_spacing);

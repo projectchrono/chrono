@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    auto& sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
@@ -288,8 +288,9 @@ int main(int argc, char* argv[]) {
     }
 
     auto body = chrono_types::make_shared<ChBody>();
+    double height = initial_height * fsize.z() + bottom_offset;
     body->SetName("object");
-    body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + bottom_offset));
+    body->SetPos(ChVector3d(0, 0, height));
     body->SetRot(QUNIT);
     body->SetMass(mass);
     body->SetInertia(inertia);
@@ -304,6 +305,7 @@ int main(int argc, char* argv[]) {
     fsi.AddRigidBody(body, geometry, true, true);
 
     cout << "FSI body: " << endl;
+    cout << "   initial height = " << height << endl;
     cout << "   mass = " << mass << endl;
     cout << "   inertia\n" << inertia << endl;
 
@@ -374,7 +376,7 @@ int main(int argc, char* argv[]) {
         ////auto col_callback = chrono_types::make_shared<ParticleDensityColorCallback>(995, 1005);
         auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(-1000, 12000, true);
 
-        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);

@@ -49,13 +49,13 @@ class CH_FSI_API ChFsiProblemSPH {
     void AttachMultibodySystem(ChSystem* sys);
 
     /// Access the underlying FSI system.
-    ChFsiSystemSPH& GetSystemFSI() { return m_sysFSI; }
+    std::shared_ptr<ChFsiSystemSPH> GetSystemFSI() { return m_sysFSI; }
 
     /// Access the underlying SPH system.
-    ChFsiFluidSystemSPH& GetFluidSystemSPH() { return m_sysSPH; }
+    std::shared_ptr<ChFsiFluidSystemSPH> GetFluidSystemSPH() { return m_sysSPH; }
 
     /// Access the underlying MBS system.
-    ChSystem& GetMultibodySystem() { return m_sysFSI.GetMultibodySystem(); }
+    ChSystem& GetMultibodySystem() { return m_sysFSI->GetMultibodySystem(); }
 
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& fluid_props);
@@ -154,14 +154,14 @@ class CH_FSI_API ChFsiProblemSPH {
     }
 
     /// Set gravitational acceleration for both multibody and fluid systems.
-    void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI.SetGravitationalAcceleration(gravity); }
+    void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI->SetGravitationalAcceleration(gravity); }
 
     /// Set integration step size for fluid dynamics.
-    void SetStepSizeCFD(double step) { m_sysFSI.SetStepSizeCFD(step); }
+    void SetStepSizeCFD(double step) { m_sysFSI->SetStepSizeCFD(step); }
 
     /// Set integration step size for multibody dynamics.
     /// If a value is not provided, the MBS system is integrated with the same step used for fluid dynamics.
-    void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
+    void SetStepsizeMBD(double step) { m_sysFSI->SetStepsizeMBD(step); }
 
     /// Explicitly set the computational domain limits.
     /// By default, this encompasses all SPH and BCE markers with no boundary conditions imposed in any direction.
@@ -211,10 +211,10 @@ class CH_FSI_API ChFsiProblemSPH {
     const ChVector3d& GetFsiBodyTorque(std::shared_ptr<ChBody> body) const;
 
     /// Get current estimated RTF (real time factor) for the fluid system.
-    double GetRtfCFD() const { return m_sysSPH.GetRtf(); }
+    double GetRtfCFD() const { return m_sysSPH->GetRtf(); }
 
     /// Get current estimated RTF (real time factor) for the multibody system.
-    double GetRtfMBD() const { return m_sysFSI.GetMultibodySystem().GetRTF(); }
+    double GetRtfMBD() const { return m_sysFSI->GetMultibodySystem().GetRTF(); }
 
     /// Set SPH simulation data output level (default: STATE_PRESSURE).
     /// Options:
@@ -242,9 +242,9 @@ class CH_FSI_API ChFsiProblemSPH {
     /// See ChFsiSplashsurfSPH.
     void WriteReconstructedSurface(const std::string& dir, const std::string& name, bool quiet = false);
 
-    PhysicsProblem GetPhysicsProblem() const { return m_sysSPH.GetPhysicsProblem(); }
-    std::string GetPhysicsProblemString() const { return m_sysSPH.GetPhysicsProblemString(); }
-    std::string GetSphIntegrationSchemeString() const { return m_sysSPH.GetSphIntegrationSchemeString(); }
+    PhysicsProblem GetPhysicsProblem() const { return m_sysSPH->GetPhysicsProblem(); }
+    std::string GetPhysicsProblemString() const { return m_sysSPH->GetPhysicsProblemString(); }
+    std::string GetSphIntegrationSchemeString() const { return m_sysSPH->GetSphIntegrationSchemeString(); }
 
   protected:
     /// Create a ChFsiProblemSPH object.
@@ -292,19 +292,19 @@ class CH_FSI_API ChFsiProblemSPH {
     void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest);
     void ForceProximitySearch();
 
-    ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
-    ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
-    ChSystem* m_sysMBS;
-    ChFsiSplashsurfSPH m_splashsurf;   ///< surface reconstructor
-    double m_spacing;                  ///< particle and marker spacing
-    std::shared_ptr<ChBody> m_ground;  ///< ground body
-    GridPoints m_sph;                  ///< SPH particle grid locations
-    GridPoints m_bce;                  ///< boundary BCE marker grid locations
-    ChVector3d m_offset_sph;           ///< SPH particles offset
-    ChVector3d m_offset_bce;           ///< boundary BCE particles offset
-    ChAABB m_domain_aabb;              ///< computational domain bounding box
-    BoundaryConditions m_bc_type;      ///< boundary conditions in each direction
-    ChAABB m_sph_aabb;                 ///< SPH volume bounding box
+    std::shared_ptr<ChFsiFluidSystemSPH> m_sysSPH;     ///< underlying Chrono SPH system
+    std::shared_ptr<ChFsiSystemSPH> m_sysFSI;          ///< underlying Chrono FSI system
+    ChSystem* m_sysMBS;                                ///< associated MBS system
+    std::shared_ptr<ChFsiSplashsurfSPH> m_splashsurf;  ///< surface reconstructor
+    double m_spacing;                                  ///< particle and marker spacing
+    std::shared_ptr<ChBody> m_ground;                  ///< ground body
+    GridPoints m_sph;                                  ///< SPH particle grid locations
+    GridPoints m_bce;                                  ///< boundary BCE marker grid locations
+    ChVector3d m_offset_sph;                           ///< SPH particles offset
+    ChVector3d m_offset_bce;                           ///< boundary BCE particles offset
+    ChAABB m_domain_aabb;                              ///< computational domain bounding box
+    BoundaryConditions m_bc_type;                      ///< boundary conditions in each direction
+    ChAABB m_sph_aabb;                                 ///< SPH volume bounding box
 
     std::unordered_map<std::shared_ptr<ChBody>, size_t>
         m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
