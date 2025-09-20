@@ -49,7 +49,7 @@ class CH_FSI_API ChFsiProblemSPH {
     void AttachMultibodySystem(ChSystem* sys);
 
     /// Access the underlying FSI system.
-    std::shared_ptr<ChFsiSystemSPH> GetSystemFSI() { return m_sysFSI; }
+    std::shared_ptr<ChFsiSystemSPH> GetFsiSystemSPH() { return m_sysFSI; }
 
     /// Access the underlying SPH system.
     std::shared_ptr<ChFsiFluidSystemSPH> GetFluidSystemSPH() { return m_sysSPH; }

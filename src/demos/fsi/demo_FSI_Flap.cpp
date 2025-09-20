@@ -379,7 +379,7 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemWavetank fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    auto sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetFsiSystemSPH();
 
     // Set gravitational acceleration
     fsi.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));

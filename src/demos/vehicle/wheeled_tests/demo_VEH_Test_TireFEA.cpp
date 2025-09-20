@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
 
     #ifdef CHRONO_FSI
             if (terrain_type == TerrainType::CRM) {
-                auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetSystemFSI();
+                auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetFsiSystemSPH();
                 auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
                 visFSI->EnableFluidMarkers(true);
                 visFSI->EnableBoundaryMarkers(false);

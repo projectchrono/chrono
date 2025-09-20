@@ -216,7 +216,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     double initSpace0 = 2 * m_radius;
     m_terrain = new CRMTerrain(*m_system, initSpace0);
     //////m_terrain->SetVerbose(true);
-    auto sysFSI = m_terrain->GetSystemFSI();
+    auto sysFSI = m_terrain->GetFsiSystemSPH();
     auto sysSPH = m_terrain->GetFluidSystemSPH();
 
     // Let the FSI system read its parameters
@@ -466,7 +466,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 
     // Initialize run-time visualization
     if (m_renderRT) {
-        auto sysFSI = m_terrain->GetSystemFSI();
+        auto sysFSI = m_terrain->GetFsiSystemSPH();
 #ifdef CHRONO_VSG
         // FSI plugin
         const auto& aabb_particles = m_terrain->GetSPHBoundingBox();
@@ -502,7 +502,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        m_terrain->GetSystemFSI()->DoStepDynamics(h);
+        m_terrain->GetFsiSystemSPH()->DoStepDynamics(h);
         t += h;
     }
 }

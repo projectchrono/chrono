@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     // Create the CRM terrain system
     double initial_spacing = 0.03;
     CRMTerrain terrain(sys, initial_spacing);
-    auto sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetFsiSystemSPH();
     auto sysSPH = terrain.GetFluidSystemSPH();
     sysSPH->EnableCudaErrorCheck(false);
     terrain.SetVerbose(verbose);

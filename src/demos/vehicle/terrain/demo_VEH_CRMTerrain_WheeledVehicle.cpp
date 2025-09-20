@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     // ----------------------
 
     CRMTerrain terrain(*sysMBS, spacing);
-    auto sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetFsiSystemSPH();
     terrain.SetVerbose(verbose);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);

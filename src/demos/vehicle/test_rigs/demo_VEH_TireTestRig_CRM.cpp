@@ -218,12 +218,12 @@ int main() {
     // Create the run-time visualization
     // ---------------------------------
 
-    auto sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetSystemFSI();
     std::shared_ptr<ChVisualSystem> vis;
 
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
+        auto sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetFsiSystemSPH();
         auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);

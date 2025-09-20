@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    auto sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetFsiSystemSPH();
     auto sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration

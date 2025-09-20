@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     // Create the CRM terrain system
     CRMTerrain terrain(*sysMBS, initial_spacing);
-    auto sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetFsiSystemSPH();
     terrain.SetVerbose(verbose);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
@@ -333,7 +333,7 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
 }
 
 void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrain) {
-    auto sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetFsiSystemSPH();
     auto sysSPH = terrain.GetFluidSystemSPH();
 
     // GetCollision shapes for a track shoe (will use only collision boxes)
