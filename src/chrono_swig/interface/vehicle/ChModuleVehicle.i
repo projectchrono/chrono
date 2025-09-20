@@ -404,14 +404,16 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "vehicleUtils.i"
 
-#ifdef SWIGCSHARP
 #ifdef CHRONO_IRRLICHT
-// Place Irrlicht after everything else so SWIG is aware of how to translate
-// This interface file invokes Irrlicht library and therefore Visual Studio Linker dependencies need specifying
-  %include "ChVehicleVisualSystemIrrlicht.i"
-#endif
+  #define ChApiIrr 
+  #define IRRLICHT_API
+  #define _IRR_DEPRECATED_
+  %include "chrono_swig/interface/vehicle/ChVehicleVisualSystemIrrlicht.i"
 #endif
 
+#ifdef CHRONO_VSG
+  %include "ChVehicleVisualSystemVSG.i"
+#endif
 //
 // C- CASTING OF SHARED POINTERS
 //

@@ -106,7 +106,6 @@ linux:doxygen:deploy:
     - git submodule update
     - mkdir -p build
     # VSG
-    - chmod +x $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
 
 linux:ubuntu22.04-gcc:build:
