@@ -390,6 +390,83 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 
 endif()
 
+if(CH_ENABLE_MODULE_VSG)
+  #-----------------------------------------------------------------------------
+  # MODULE for the vsg python wrapper.
+  #-----------------------------------------------------------------------------
+
+  message(STATUS "Add python VSG module")
+
+  # Python module name
+  set(CHPY_VSG vsg)
+
+  set(CHPY_VSG_MODULE_FILE ChModuleVsg_python.i)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${CHPY_VSG_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${CHPY_VSG_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_VSG_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
+
+  swig_add_library(vsg3d LANGUAGE python SOURCES ${CHPY_VSG_MODULE_FILE})
+  target_link_libraries(vsg3d PRIVATE Python3::Python Chrono_core Chrono_vsg)
+
+    # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(vsg3d PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(vsg3d PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(vsg3d PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(vsg3d PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(vsg3d PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(vsg3d PRIVATE "-Wno-unused-variable")
+  endif()
+
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(vsg3d PROPERTIES
+                        PROJECT_LABEL "Chrono_python_vsg"
+                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+                        )
+
+  target_compile_definitions(vsg3d PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(vsg3d Chrono_core)
+  add_dependencies(vsg3d Chrono_vsg)
+  add_dependencies(vsg3d core)
+
+  # Copy PY file in a package dir
+  set(CHPY_VSG_PY_FILE "${CMAKE_SWIG_OUTDIR}/vsg.py")
+
+  set(CHPY_VSG_PYD_PATH $<TARGET_FILE_DIR:vsg3d>)
+
+  add_custom_command(TARGET vsg3d
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VSG_PYD_PATH}/pychrono)
+  add_custom_command(TARGET vsg3d
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VSG_PY_FILE} ${CHPY_VSG_PYD_PATH}/pychrono)
+
+  # Install .pyd binary module (.so on linux)
+  install(TARGETS vsg3d
+          EXPORT ChronoTargets
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+  # Install .py module wrapper
+  install(FILES "${CHPY_VSG_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+
+  if (DBG_SCRIPT)
+    message("Module name:     vsg3d")
+    message("PY file:         ${CHPY_VSG_PY_FILE}")
+    message("PYD path:        ${CHPY_VSG_PYD_PATH}")
+  endif()
+
+endif()
+
+
 #-----------------------------------------------------------------------------
 # MODULE for the irrlicht python wrapper.
 #-----------------------------------------------------------------------------
@@ -646,11 +723,25 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
   endif()
 
+  # Make sure CHRONO_VSG is defined for the SWIG processor
+  if (CH_ENABLE_MODULE_VSG)
+      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
+  endif()
+
+
   swig_add_library(vehicle LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
   target_link_libraries(vehicle PRIVATE Python3::Python Chrono_core Chrono_vehicle ChronoModels_vehicle)
   if(CH_ENABLE_MODULE_IRRLICHT)
     find_package(Irrlicht QUIET REQUIRED)
     target_link_libraries(vehicle PRIVATE Chrono_vehicle_irrlicht Chrono_irrlicht Irrlicht::Irrlicht)
+  endif()
+
+  if (CH_ENABLE_MODULE_VSG)
+      target_link_libraries(vehicle PRIVATE Chrono_vehicle_vsg Chrono_vsg)
+  endif()
+
+  if(CH_ENABLE_MODULE_FSI)
+    target_link_libraries(vehicle PRIVATE Chrono_fsi Chrono_fsisph)
   endif()
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
