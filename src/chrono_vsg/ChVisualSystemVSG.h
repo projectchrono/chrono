@@ -71,6 +71,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChVisualSystemVSG(int num_divs = 24);
     ~ChVisualSystemVSG();
 
+    virtual void AttachSystem(ChSystem* sys) override;
+
     /// Attach a custom plugin.
     /// Plugins offer a mechanism for extending a base VSG visual system with custom functionality; e.g., for rendering,
     /// controlling, and displaying information for specific types of Chrono systems. An arbitrary number of plugins can

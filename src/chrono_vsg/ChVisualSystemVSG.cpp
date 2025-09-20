@@ -876,6 +876,10 @@ void ChVisualSystemVSG::AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) {
     m_evhandler.push_back(eh);
 }
 
+void ChVisualSystemVSG::AttachSystem(ChSystem* sys) {
+    ChVisualSystem::AttachSystem(sys);
+}
+
 void ChVisualSystemVSG::AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::AttachPlugin can only be called before initialization!" << std::endl;
