@@ -7,6 +7,8 @@
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/core/ChFrame.h"    
 
+%shared_ptr(chrono::ChFrame<double>)
+
 %template(ChFramed) chrono::ChFrame<double>; 
 // %template(ChFramef) chrono::ChFrame<float>; 
 
