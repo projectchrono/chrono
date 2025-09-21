@@ -90,7 +90,7 @@ then
     GLSLANG_SOURCE_DIR="download_vsg/glslang"
 
     cd download_vsg/glslang/
-    python update_glslang_sources.py
+    ./update_glslang_sources.py
     cd ../..
 
 else
