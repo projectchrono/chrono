@@ -105,16 +105,25 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         int wall_code;
     };
 
+    /// Computational domain.
+    struct ComputationalDomain {
+        ChAABB aabb;
+        fsi::sph::BoundaryConditions bc_type;
+    };
+
     /// Fluid parameters.
     struct FluidParams {
         FluidParams();
         void PrintInfo();
 
         fsi::sph::ChFsiFluidSystemSPH::FluidProperties fluid_props;
+
         std::unique_ptr<BoxDomain> fluid_domain_cartesian;
         std::unique_ptr<AnnulusDomain> fluid_domain_cylindrical;
         std::unique_ptr<BoxDomain> container_cartesian;
         std::unique_ptr<AnnulusDomain> container_cylindrical;
+
+        std::unique_ptr<ComputationalDomain> computational_domain;
     };
 
     /// Run-time visualization parameters.
@@ -185,6 +194,8 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     static int ReadWallFlagsCartesian(const YAML::Node& a);
     static int ReadWallFlagsCylindrical(const YAML::Node& a);
+
+    static fsi::sph::BCType ReadBoundaryConditionType(const YAML::Node& a);
 
   private:  // ---- Member variables
     ProblemGeometryType m_problem_geometry_type;

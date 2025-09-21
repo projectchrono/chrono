@@ -14,7 +14,7 @@
 
 //// TODO
 //// - associate FSI solids
-//// - optional periodic BCs (requires modifications to ChFsiProblemSPH)
+//// - visualization
 //// - output
 
 #include <algorithm>
@@ -303,7 +303,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             m_fluid.fluid_props.char_length = a["char_length"].as<double>();
     }
 
-    // Read fluid domain
+    // Read fluid domain settings
     bool has_walls = false;
     ChAssertAlways(model["fluid_domain"]);
     {
@@ -348,6 +348,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
+    // Read optional container settings
     if (model["container"]) {
         // Note: A container definition is not allowed if wall boundaries have already been defined!
         ChAssertAlways(!has_walls);
@@ -355,8 +356,8 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         auto a = model["container"];
         switch (m_problem_geometry_type) {
             case ProblemGeometryType::CARTESIAN:
-                ChAssertAlways(a["dimensions"]);
                 m_fluid.fluid_domain_cartesian = chrono_types::make_unique<BoxDomain>();
+                ChAssertAlways(a["dimensions"]);
                 m_fluid.fluid_domain_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
                 if (a["origin"]) {
                     m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["origin"]);
@@ -371,10 +372,10 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
                 }
                 break;
             case ProblemGeometryType::CYLINDRICAL:
+                m_fluid.fluid_domain_cylindrical = chrono_types::make_unique<AnnulusDomain>();
                 ChAssertAlways(a["inner_radius"]);
                 ChAssertAlways(a["outer_radius"]);
                 ChAssertAlways(a["height"]);
-                m_fluid.fluid_domain_cylindrical = chrono_types::make_unique<AnnulusDomain>();
                 m_fluid.fluid_domain_cylindrical->inner_radius = a["inner_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->outer_radius = a["outer_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->height = a["height"].as<double>();
@@ -391,6 +392,43 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
                 }
                 break;
         }
+    }
+
+    // Read optional computational domain settings
+    if (model["computational_domain"]) {
+        auto a = model["computational_domain"];
+        m_fluid.computational_domain = chrono_types::make_unique<ComputationalDomain>();
+        ChAssertAlways(a["aabb"]);
+        m_fluid.computational_domain->aabb.min = ChParserMbsYAML::ReadVector(a["aabb_min"]);
+        m_fluid.computational_domain->aabb.max = ChParserMbsYAML::ReadVector(a["aabb_max"]);
+        if (a["x_bce_type"]) {
+            auto x_bc_type = ReadBoundaryConditionType(a["x_bc_type"]);
+            if (x_bc_type != fsi::sph::BCType::NONE && m_problem_geometry_type == ProblemGeometryType::CARTESIAN) {
+                ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code & static_cast<int>(fsi::sph::BoxSide::X_NEG) == 0);
+                ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code & static_cast<int>(fsi::sph::BoxSide::X_POS) == 0);
+            }
+            m_fluid.computational_domain->bc_type.x = x_bc_type;
+        }
+        if (a["y_bce_type"]) {
+            auto y_bc_type = ReadBoundaryConditionType(a["y_bc_type"]);
+            if (y_bc_type != fsi::sph::BCType::NONE && m_problem_geometry_type == ProblemGeometryType::CARTESIAN) {
+                ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
+                               static_cast<int>(fsi::sph::BoxSide::Y_NEG) == 0);
+                ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
+                               static_cast<int>(fsi::sph::BoxSide::Y_POS) == 0);
+            }
+            m_fluid.computational_domain->bc_type.y = y_bc_type;
+        }
+        if (a["z_bce_type"]) {
+            auto z_bc_type = ReadBoundaryConditionType(a["z_bc_type"]);
+            if (z_bc_type != fsi::sph::BCType::NONE && m_problem_geometry_type == ProblemGeometryType::CARTESIAN) {
+                ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
+                               static_cast<int>(fsi::sph::BoxSide::Z_NEG) == 0);
+                ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
+                               static_cast<int>(fsi::sph::BoxSide::Z_POS) == 0);
+            }
+            m_fluid.computational_domain->bc_type.z = z_bc_type;
+        }        
     }
 
     if (m_verbose)
@@ -464,6 +502,12 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 
             break;
         }
+    }
+
+    // Explicitly set computational domain (if provided)
+    if (m_fluid.computational_domain) {
+        m_fsi_problem->SetComputationalDomain(m_fluid.computational_domain->aabb,
+                                              m_fluid.computational_domain->bc_type);
     }
 
     // Initialize FSI problem
@@ -817,7 +861,16 @@ int ChParserSphYAML::ReadWallFlagsCylindrical(const YAML::Node& a) {
     return code;
 }
 
-// -----------------------------------------------------------------------------
+fsi::sph::BCType ChParserSphYAML::ReadBoundaryConditionType(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "NONE")
+        return fsi::sph::BCType::NONE;
+    if (val == "PERIODIC")
+        return fsi::sph::BCType::PERIODIC;
+    if (val == "INLET_OUTLET")
+        return fsi::sph::BCType::INLET_OUTLET;
+    return fsi::sph::BCType::NONE;
+}
 
 }  // namespace parsers
 }  // namespace chrono

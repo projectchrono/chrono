@@ -49,3 +49,11 @@ model:
     #walls:
     #  side: [false, false]  # interior, exterior
     #  z:    [false, false]
+
+  #computational_domain:
+  #  aabb_min: [-1, -1, -1]
+  #  aabb_max: [1, 1, 1]
+  #  x_bce_type: NONE
+  #  y_bce_type: NONE
+  #  z_bce_type: NONE
+    
