@@ -348,6 +348,11 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   add_dependencies(Chrono_csharp_vehicle Chrono_core Chrono_vehicle ChronoModels_vehicle)
 
   add_dependencies(Chrono_csharp_vehicle Chrono_csharp_core)
+  
+  if (CH_ENABLE_MODULE_VSG)
+      target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_vehicle_vsg Chrono_vsg)
+  endif()
+  
   if (CH_ENABLE_MODULE_IRRLICHT)
     add_dependencies(Chrono_csharp_vehicle Chrono_csharp_irrlicht)
   endif()
