@@ -150,6 +150,7 @@ rem --- vsg ----------------------------------------------------------------
 
 rmdir /S/Q build_vsg 2>nul
 cmake -B build_vsg -S %VSG_SOURCE_DIR%  ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd  
@@ -167,6 +168,7 @@ rem --- vsgXchange ---------------------------------------------------------
 
 rmdir /S/Q build_vsgXchange 2>nul
 cmake -B build_vsgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
@@ -192,6 +194,7 @@ rem --- vsgImGui -----------------------------------------------------------
 
 rmdir /S/Q build_vsgImGui 2>nul
 cmake -B build_vsgImGui -S %VSGIMGUI_SOURCE_DIR% ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
@@ -209,6 +212,7 @@ rem --- vsgExamples --------------------------------------------------------
 
 rmdir /S/Q build_vsgExamples 2>nul
 cmake -B build_vsgExamples -S %VSGEXAMPLES_SOURCE_DIR% ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -DvsgXchange_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgXchange ^
       -DvsgImGui_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgImGui
