@@ -39,17 +39,13 @@ using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
 
-// Truths from Wei Paper -
+// Data from Wei Paper -
 // https://www.sciencedirect.com/science/article/pii/S0045782521003534?ref=pdf_download&fr=RR-2&rr=8c4472d7d99222ff
 
 double bulk_density = 1500;
 double mu_s = 0.3819;
-double granular_particle_diameter = 0.002;  // Set in JSON - Not overwritten
-double youngs_modulus = 2e6;                // Set in JSON - Not overwritten
-
-// Global arguments
-
-std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Angle_Repose_Granular.json");
+double granular_particle_diameter = 0.002;
+double youngs_modulus = 2e6;
 
 // Function to handle CLI arguments
 bool GetProblemSpecs(int argc,
@@ -106,6 +102,7 @@ int main(int argc, char* argv[]) {
     double init_spacing = 0.01;
     bool render = true;
     double render_fps = 100;
+    double step_size = 1e-4;
     // Parse command-line arguments
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, cylinder_radius,
                          cylinder_height, init_spacing, render)) {
@@ -115,24 +112,38 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
-
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
     sysFSI.SetVerbose(verbose);
-    sysSPH.ReadParametersFromFile(inputJson);
-    sysSPH.SetNumProximitySearchSteps(ps_freq);
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    // Set soil propertiees
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    mat_props.density = bulk_density;
+    mat_props.Young_modulus = youngs_modulus;
+    mat_props.Poisson_ratio = 0.3;
+    mat_props.mu_I0 = 0.03;
+    mat_props.mu_fric_s = mu_s;
+    mat_props.mu_fric_2 = mu_s;
+    mat_props.average_diam = granular_particle_diameter;
+    sysSPH.SetElasticSPH(mat_props);
 
-    // Modify based on command line
-    sysSPH.SetInitialSpacing(init_spacing);
-
-    // Set SPH kernel length.
-    sysSPH.SetKernelMultiplier(1.2);
-
-    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
-
-    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
-    sysSPH.SetShiftingXSPHParameters(0.25);
-
-    // Set density
-    sysSPH.SetDensity(bulk_density);
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.initial_spacing = init_spacing;
+    sph_params.d0_multiplier = 1.2;
+    sph_params.artificial_viscosity = 0.5;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.free_surface_threshold = 0.8;
+    sph_params.num_proximity_search_steps = ps_freq;
+    sph_params.use_variable_time_step = false;
+    sph_params.kernel_type = KernelType::CUBIC_SPLINE;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sysSPH.SetSPHParameters(sph_params);
 
     // Dimension of the space domain
     double bxDim = 10 * cylinder_radius;
