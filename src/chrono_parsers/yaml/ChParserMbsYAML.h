@@ -49,15 +49,15 @@ namespace parsers {
 /// Utility class to parse YAML specification files for Chrono models and simulations.
 /// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
 /// populating a Chrono system and setting solver and simulation parameters.
-class ChApiParsers ChParserYAML {
+class ChApiParsers ChParserMbsYAML {
   public:
-    ChParserYAML();
+    ChParserMbsYAML();
 
     /// Create a YAML parser and load the model from the specified input YAML file.
-    ChParserYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);
-    ~ChParserYAML();
+    ChParserMbsYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);
+    ~ChParserMbsYAML();
 
-    /// Set verbose temrinal output (default: false).
+    /// Set verbose termsinal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Return true if a YAML simulation file has been loaded.
@@ -111,11 +111,35 @@ class ChApiParsers ChParserYAML {
 
     // --------------
 
+    /// Return true if generating output.
+    bool Output() const { return m_sim.output.type != ChOutput::Type::NONE; }
+
     /// Set root output directory (default: "").
     void SetOutputDir(const std::string& out_dir) { m_output_dir = out_dir; }
 
-    /// Save simulation output results at the current time. 
-    void Output(ChSystem& sys, int frame);
+    /// Save simulation output results at the current time.
+    void SaveOutput(ChSystem& sys, int frame);
+
+  public:
+    /// Load and return a ChVector3d from the specified node.
+    static ChVector3d ReadVector(const YAML::Node& a);
+
+    /// Load and return a ChQuaternion from the specified node.
+    static ChQuaterniond ReadQuaternion(const YAML::Node& a);
+
+    /// Load a Cardan angle sequence from the specified node and return as a quaternion.
+    /// The sequence is assumed to be extrinsic rotations X-Y-Z.
+    static ChQuaterniond ReadCardanAngles(const YAML::Node& a, bool use_degrees);
+
+    /// Return a quaternion loaded from the specified node.
+    /// Data is assumed to provide a quaternion or a Cardan extrinsic X-Y-Z angle set.
+    static ChQuaterniond ReadRotation(const YAML::Node& a, bool use_degrees);
+
+    /// Load and return a coordinate system from the specified node.
+    static ChCoordsysd ReadCoordinateSystem(const YAML::Node& a, bool use_degrees);
+
+    /// Load and return a ChColor from the specified node.
+    static ChColor ReadColor(const YAML::Node& a);
 
   private:
     /// Solver parameters.
@@ -198,7 +222,7 @@ class ChApiParsers ChParserYAML {
 
   private:
     enum class DataPathType { ABS, REL };
-    enum class BodyLoadType {FORCE, TORQUE};
+    enum class BodyLoadType { FORCE, TORQUE };
 
     /// Internal specification of a body.
     struct Body {
@@ -345,32 +369,12 @@ class ChApiParsers ChParserYAML {
     /// Return the path to the specified data file.
     std::string GetDatafilePath(const std::string& filename);
 
-    /// Load and return a ChVector3d from the specified node.
-    ChVector3d ReadVector(const YAML::Node& a);
-
-    ///  Load and return a ChQuaternion from the specified node.
-    ChQuaterniond ReadQuaternion(const YAML::Node& a);
-
-    /// Load a Cardan angle sequence from the specified node and return as a quaternion.
-    /// The sequence is assumed to be extrinsic rotations X-Y-Z.
-    ChQuaterniond ReadCardanAngles(const YAML::Node& a);
-
-    /// Return a quaternion loaded from the specified node.
-    /// Data is assumed to provide a quaternion or a Cardan extrinsic X-Y-Z angle set.
-    ChQuaterniond ReadRotation(const YAML::Node& a);
-
-    /// Load and return a coordinate system from the specified node.
-    ChCoordsysd ReadCoordinateSystem(const YAML::Node& a);
-
-    ///  Load and return a ChColor from the specified node.
-    ChColor ReadColor(const YAML::Node& a);
-
-    DataPathType ReadDataPathType(const YAML::Node& a);
-    ChSolver::Type ReadSolverType(const YAML::Node& a);
-    ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
-    VisualizationType ReadVisualizationType(const YAML::Node& a);
-    ChOutput::Type ReadOutputType(const YAML::Node& a);
-    ChOutput::Mode ReadOutputMode(const YAML::Node& a);
+    static DataPathType ReadDataPathType(const YAML::Node& a);
+    static ChSolver::Type ReadSolverType(const YAML::Node& a);
+    static ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
+    static VisualizationType ReadVisualizationType(const YAML::Node& a);
+    static ChOutput::Type ReadOutputType(const YAML::Node& a);
+    static ChOutput::Mode ReadOutputMode(const YAML::Node& a);
 
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);

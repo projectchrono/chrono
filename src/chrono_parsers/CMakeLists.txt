@@ -20,11 +20,8 @@ mark_as_advanced(CLEAR urdfdom_headers_DIR)
 mark_as_advanced(CLEAR console_bridge_DIR)
 mark_as_advanced(CLEAR tinyxml2_DIR)
 
-
 set(Chrono_PARSERS_FILES 
     ChApiParsers.h
-    ChParserYAML.h
-    ChParserYAML.cpp
     ChParserAdams.h 
     ChParserAdams.cpp
     ChParserAdamsTokenizer.yy.cpp
@@ -33,8 +30,23 @@ set(Chrono_PARSERS_FILES
     ChRobotActuation.h
     ChRobotActuation.cpp
 )
-
 source_group("" FILES ${Chrono_PARSERS_FILES})
+
+set(Chrono_PARSERS_YAML_FILES
+    yaml/ChParserMbsYAML.h
+    yaml/ChParserMbsYAML.cpp
+)
+if(CH_ENABLE_MODULE_FSI)
+    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+        yaml/ChParserFsiYAML.h
+        yaml/ChParserFsiYAML.cpp
+        yaml/ChParserCfdYAML.h
+        yaml/ChParserCfdYAML.cpp
+        yaml/ChParserSphYAML.h
+        yaml/ChParserSphYAML.cpp
+)
+endif()
+source_group("yaml" FILES ${Chrono_PARSERS_YAML_FILES})
 
 # ------------------------------------------------------------------------------
 # Fetch yaml-cpp from third party directory
@@ -73,6 +85,9 @@ endif()
 if(CH_ENABLE_MODULE_ROS)
   list (APPEND DEPENDENCIES_PARSERS "ROS")
 endif()
+if(CH_ENABLE_MODULE_FSI)
+  list (APPEND DEPENDENCIES_PARSERS "FSISPH")
+endif()
 
 set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
 
@@ -80,7 +95,7 @@ set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
 # Create the Chrono_parsers library
 #-----------------------------------------------------------------------------
 
-add_library(Chrono_parsers ${Chrono_PARSERS_FILES})
+add_library(Chrono_parsers ${Chrono_PARSERS_FILES} ${Chrono_PARSERS_YAML_FILES})
 add_library(Chrono::parsers ALIAS Chrono_parsers)
 
 set_target_properties(Chrono_parsers PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
@@ -107,6 +122,10 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
 endif()
 if(CH_ENABLE_MODULE_MUMPS)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_mumps)
+endif()
+
+if(CH_ENABLE_MODULE_FSI)
+  target_link_libraries(Chrono_parsers PRIVATE Chrono_fsisph)
 endif()
 
 # Include URDF parser if found --------------------------------------------

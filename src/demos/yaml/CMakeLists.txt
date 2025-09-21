@@ -1,9 +1,11 @@
 #--------------------------------------------------------------
 # List of all MBS demos
 
-set(DEMOS
-  demo_YAML_test
-)
+set(DEMOS demo_YAML_mbs)
+
+if (CH_ENABLE_MODULE_FSI)
+  set(DEMOS ${DEMOS} demo_YAML_fsi)
+endif()
 
 #--------------------------------------------------------------
 
@@ -26,6 +28,13 @@ if(CH_ENABLE_MODULE_MUMPS)
   list(APPEND LIBS Chrono_mumps)
 endif()
 
+if(CH_ENABLE_MODULE_FSI)
+  list(APPEND LIBS Chrono_fsisph)
+  if(CH_ENABLE_MODULE_VSG)
+    list(APPEND LIBS "Chrono_fsisph_vsg")
+  endif()
+endif()
+
 #--------------------------------------------------------------
 
 # Add executables
@@ -36,7 +45,6 @@ foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")
 
-  set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
   if(APPLE)
     set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
   endif()

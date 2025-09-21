@@ -20,7 +20,7 @@
 ////#include <float.h>
 ////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
 
-#include "chrono_parsers/ChParserYAML.h"
+#include "chrono_parsers/yaml/ChParserMbsYAML.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Simulation YAML file:   " << sim_yaml_filename << std::endl;
 
     // Create YAML parser object
-    parsers::ChParserYAML parser;
+    parsers::ChParserMbsYAML parser;
     parser.SetVerbose(true);
 
     // Load the YAML simulation file and create a Chrono system based on its content
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     const ChVector3d& camera_location = parser.GetCameraLocation();
     const ChVector3d& camera_target = parser.GetCameraTarget();
     bool enable_shadows = parser.EnableShadows();
-    ChOutput::Type output_type = parser.GetOutputType();
+    bool output = parser.Output();
     double output_fps = parser.GetOutputFPS();
 
     // Print system hierarchy
@@ -164,8 +164,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Create output directory
-    if (output_type != ChOutput::Type::NONE) {
-        std::string out_dir = GetChronoOutputPath() + "YAML_TEST";
+    if (output) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_MBS";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
@@ -195,9 +195,9 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        if (output_type != ChOutput::Type::NONE) {
+        if (output) {
             if (time >= output_frame / output_fps) {
-                parser.Output(*sys, output_frame);
+                parser.SaveOutput(*sys, output_frame);
                 output_frame++;
             }
         }

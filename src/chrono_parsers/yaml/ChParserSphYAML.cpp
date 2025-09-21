@@ -1,0 +1,823 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2025 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+
+//// TODO
+//// - associate FSI solids
+//// - optional periodic BCs (requires modifications to ChFsiProblemSPH)
+//// - output
+
+#include <algorithm>
+
+#include "chrono/ChConfig.h"
+#include "chrono/ChVersion.h"
+#include "chrono/utils/ChUtils.h"
+#include "chrono/output/ChOutputASCII.h"
+#ifdef CHRONO_HAS_HDF5
+    #include "chrono/output/ChOutputHDF5.h"
+#endif
+
+#include "chrono_parsers/yaml/ChParserSphYAML.h"
+#include "chrono_parsers/yaml/ChParserMbsYAML.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
+
+using std::cout;
+using std::cerr;
+using std::endl;
+
+namespace chrono {
+namespace parsers {
+
+ChParserSphYAML::ChParserSphYAML(const std::string& yaml_model_filename,
+                                 const std::string& yaml_sim_filename,
+                                 bool verbose)
+    : ChParserCfdYAML(verbose),
+      m_name("YAML SPH model"),
+      m_data_path(DataPathType::ABS),
+      m_rel_path("."),
+      m_sim_loaded(false),
+      m_model_loaded(false),
+      m_output_dir("") {
+    LoadModelFile(yaml_model_filename);
+    LoadSimulationFile(yaml_sim_filename);
+}
+
+ChParserSphYAML::~ChParserSphYAML() {}
+
+// -----------------------------------------------------------------------------
+
+void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
+    auto path = filesystem::path(yaml_filename);
+    if (!path.exists() || !path.is_file()) {
+        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+        throw std::runtime_error("File not found");
+    }
+
+    YAML::Node yaml = YAML::LoadFile(yaml_filename);
+
+    // Check that the file is an SPH specification
+    ChAssertAlways(yaml["fluid_dynamics_solver"]);
+    if (ToUpper(yaml["fluid_dynamics_solver"].as<std::string>()) != "SPH") {
+        cerr << "Error: file '" << yaml_filename << "' is not an SPH specification file." << endl;
+        throw std::runtime_error("Not an SPH specification file");
+    }
+
+    // Check version compatibility
+    ChAssertAlways(yaml["chrono-version"]);
+    CheckVersion(yaml["chrono-version"]);
+
+    // Check a simulation object exists
+    ChAssertAlways(yaml["simulation"]);
+    auto sim = yaml["simulation"];
+
+    if (m_verbose) {
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\nLoading Chrono::SPH simulation specification from: " << yaml_filename << "\n" << endl;
+    }
+
+    ChAssertAlways(sim["time_step"]);
+    m_sim.time_step = sim["time_step"].as<double>();
+    if (sim["end_time"])
+        m_sim.end_time = sim["end_time"].as<double>();
+    if (sim["gravity"])
+        m_sim.gravity = ChParserMbsYAML::ReadVector(sim["gravity"]);
+
+    // Base SPH parameters
+    if (yaml["sph"]) {
+        auto a = yaml["sph"];
+        if (a["eos_type"])
+            m_sim.sph.eos_type = ReadEosType(a["eos_type"]);
+        if (a["use_delta_sph"])
+            m_sim.sph.use_delta_sph = a["use_delta_sph"].as<bool>();
+        if (a["delta_sph_coefficient"])
+            m_sim.sph.delta_sph_coefficient = a["delta_sph_coefficient"].as<double>();
+        if (a["max_velocity"])
+            m_sim.sph.max_velocity = a["max_velocity"].as<double>();
+        if (a["min_distance_coefficient"])
+            m_sim.sph.min_distance_coefficient = a["min_distance_coefficient"].as<double>();
+        if (a["density_reinit_steps"])
+            m_sim.sph.density_reinit_steps = a["density_reinit_steps"].as<int>();
+        if (a["use_density_based_projection"])
+            m_sim.sph.use_density_based_projection = a["use_density_based_projection"].as<bool>();
+    }
+
+    // SPH kernel parameters
+    if (yaml["kernel"]) {
+        auto a = yaml["kernel"];
+        if (a["kernel_type"])
+            m_sim.sph.kernel_type = ReadKernelType(a["kernel_type"]);
+        if (a["initial_spacing"])
+            m_sim.sph.initial_spacing = a["initial_spacing"].as<double>();
+        if (a["d0_multiplier"])
+            m_sim.sph.d0_multiplier = a["d0_multiplier"].as<double>();
+    }
+
+    // SPH discretization parameters
+    if (yaml["discretization"]) {
+        auto a = yaml["discretization"];
+        if (a["use_consistent_gradient_discretization"])
+            m_sim.sph.use_consistent_gradient_discretization = a["use_consistent_gradient_discretization"].as<bool>();
+        if (a["use_consistent_laplacian_discretization"])
+            m_sim.sph.use_consistent_laplacian_discretization = a["use_consistent_laplacian_discretization"].as<bool>();
+    }
+
+    // Boundary condition parameters
+    if (yaml["boundary_conditions"]) {
+        auto a = yaml["boundary_conditions"];
+        if (a["boundary_method"])
+            m_sim.sph.boundary_method = ReadBoundaryMethod(a["boundary_method"]);
+        if (a["num_bce_layers"])
+            m_sim.sph.num_bce_layers = a["num_bce_layers"].as<int>();
+    }
+
+    // Integration parameters
+    if (yaml["integration"]) {
+        auto a = yaml["integration"];
+        if (a["integration_scheme"])
+            m_sim.sph.integration_scheme = ReadIntegrationScheme(a["integration_scheme"]);
+        if (a["use_variable_time_step"])
+            m_sim.sph.use_variable_time_step = a["use_variable_time_step"].as<bool>();
+    }
+
+    // Proximity search
+    if (yaml["proximity_search"]) {
+        auto a = yaml["proximity_search"];
+        if (a["num_proximity_search_steps"])
+            m_sim.sph.num_proximity_search_steps = a["num_proximity_search_steps"].as<int>();
+    }
+
+    // Particle shifting
+    if (yaml["particle_shifting"]) {
+        auto a = yaml["particle_shifting"];
+        if (a["shifting_method"])
+            m_sim.sph.shifting_method = ReadShiftingMethod(a["shifting_method"]);
+        if (a["shifting_xsph_eps"])
+            m_sim.sph.shifting_xsph_eps = a["shifting_xsph_eps"].as<double>();
+        if (a["shifting_ppst_push"])
+            m_sim.sph.shifting_ppst_push = a["shifting_ppst_push"].as<double>();
+        if (a["shifting_ppst_pull"])
+            m_sim.sph.shifting_ppst_pull = a["shifting_ppst_pull"].as<double>();
+        if (a["shifting_beta_implicit"])
+            m_sim.sph.shifting_beta_implicit = a["shifting_beta_implicit"].as<double>();
+        if (a["shifting_diffusion_A"])
+            m_sim.sph.shifting_diffusion_A = a["shifting_diffusion_A"].as<double>();
+        if (a["shifting_diffusion_AFSM"])
+            m_sim.sph.shifting_diffusion_AFSM = a["shifting_diffusion_AFSM"].as<double>();
+        if (a["artificial_viscosity"])
+            m_sim.sph.shifting_diffusion_AFST = a["shifting_diffusion_AFST"].as<double>();
+    }
+
+    // Viscosity parameters
+    if (yaml["viscosity"]) {
+        auto a = yaml["viscosity"];
+        if (a["viscosity_method"])
+            m_sim.sph.viscosity_method = ReadViscosityMethod(a["viscosity_method"]);
+        if (a["artificial_viscosity"])
+            m_sim.sph.artificial_viscosity = a["artificial_viscosity"].as<double>();
+    }
+
+    // Run-time visualization (optional)
+    if (sim["visualization"]) {
+        m_sim.visualization.render = true;
+        auto a = sim["visualization"];
+
+        if (a["sph_markers"])
+            m_sim.visualization.sph_markers = a["sph_markers"].as<bool>();
+        if (a["rigid_bce_markers"])
+            m_sim.visualization.rigid_bce_markers = a["rigid_bce_markers"].as<bool>();
+        if (a["flex_bce_markers"])
+            m_sim.visualization.flex_bce_markers = a["flex_bce_markers"].as<bool>();
+        if (a["bndry_bce_markers"])
+            m_sim.visualization.bndry_bce_markers = a["bndry_bce_markers"].as<bool>();
+        if (a["active_boxes"])
+            m_sim.visualization.active_boxes = a["active_boxes"].as<bool>();
+
+        if (a["splashsurf"]) {
+            m_sim.visualization.use_splashsurf = true;
+            auto b = a["splashsurf"];
+            if (b["smoothing_length"])
+                m_sim.visualization.splashsurf_params.smoothing_length = b["smoothing_length"].as<double>();
+            if (b["cube_size"])
+                m_sim.visualization.splashsurf_params.cube_size = b["cube_size"].as<double>();
+            if (b["surface_threshold"])
+                m_sim.visualization.splashsurf_params.surface_threshold = b["surface_threshold"].as<double>();
+        } else {
+            m_sim.visualization.use_splashsurf = false;
+        }
+
+        if (a["output"]) {
+            auto b = a["output"];
+            if (b["save_images"])
+                m_sim.visualization.write_images = b["save_images"].as<bool>();
+            if (b["output_directory"])
+                m_sim.visualization.image_dir = b["output_directory"].as<std::string>();
+        }
+    } else {
+        m_sim.visualization.render = false;
+    }
+
+    // Output (optional)
+    if (sim["output"]) {
+        ChAssertAlways(sim["output"]["type"]);
+        m_sim.output.type = ReadOutputType(sim["output"]["type"]);
+        if (sim["output"]["mode"])
+            m_sim.output.mode = ReadOutputMode(sim["output"]["mode"]);
+        if (sim["output"]["fps"])
+            m_sim.output.fps = sim["output"]["fps"].as<double>();
+        if (sim["output"]["output_directory"])
+            m_sim.output.dir = sim["output"]["output_directory"].as<std::string>();
+    }
+
+    if (m_verbose)
+        m_sim.PrintInfo();
+
+    m_sim_loaded = true;
+}
+
+void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
+    auto path = filesystem::path(yaml_filename);
+    if (!path.exists() || !path.is_file()) {
+        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+        throw std::runtime_error("File not found");
+    }
+
+    m_script_directory = path.parent_path().str();
+
+    YAML::Node yaml = YAML::LoadFile(yaml_filename);
+
+    // Check version compatibility
+    ChAssertAlways(yaml["chrono-version"]);
+    CheckVersion(yaml["chrono-version"]);
+
+    // Check a model object exists
+    ChAssertAlways(yaml["model"]);
+    auto model = yaml["model"];
+
+    // Problem geometry is required
+    ChAssertAlways(yaml["problem_geometry"]);
+    m_problem_geometry_type = ReadProblemGeometryType(model["problem_geometry"]);
+
+    if (model["name"])
+        m_name = model["name"].as<std::string>();
+
+    if (model["data_path"]) {
+        ChAssertAlways(model["data_path"]["type"]);
+        m_data_path = ReadDataPathType(model["data_path"]["type"]);
+        if (model["data_path"]["root"])
+            m_rel_path = model["data_path"]["root"].as<std::string>();
+    }
+
+    if (m_verbose) {
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\nLoading Chrono model specification from: '" << yaml_filename << "'\n" << endl;
+        cout << "model name:        '" << m_name << "'" << endl;
+        switch (m_data_path) {
+            case DataPathType::ABS:
+                cout << "using absolute file paths" << endl;
+                break;
+            case DataPathType::REL:
+                cout << "using file paths relative to: '" << m_rel_path << "'" << endl;
+                break;
+        }
+    }
+
+    // Read fluid properties
+    if (model["fluid properties"]) {
+        auto a = model["fluid properties"];
+        if (a["density"])
+            m_fluid.fluid_props.density = a["density"].as<double>();
+        if (a["viscosity"])
+            m_fluid.fluid_props.viscosity = a["viscosity"].as<double>();
+        if (a["char_length"])
+            m_fluid.fluid_props.char_length = a["char_length"].as<double>();
+    }
+
+    // Read fluid domain
+    bool has_walls = false;
+    ChAssertAlways(model["fluid_domain"]);
+    {
+        auto a = model["fluid_domain"];
+        switch (m_problem_geometry_type) {
+            case ProblemGeometryType::CARTESIAN:
+                ChAssertAlways(a["dimensions"]);
+                m_fluid.fluid_domain_cartesian = chrono_types::make_unique<BoxDomain>();
+                m_fluid.fluid_domain_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
+                if (a["origin"]) {
+                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                } else {
+                    m_fluid.fluid_domain_cartesian->origin = VNULL;
+                }
+                if (a["walls"]) {
+                    m_fluid.fluid_domain_cartesian->wall_code = ReadWallFlagsCartesian(a["walls"]);
+                    has_walls = (m_fluid.fluid_domain_cartesian->wall_code != fsi::sph::BoxSide::NONE);
+                } else {
+                    m_fluid.fluid_domain_cartesian->wall_code = fsi::sph::BoxSide::NONE;
+                }
+                break;
+            case ProblemGeometryType::CYLINDRICAL:
+                ChAssertAlways(a["inner_radius"]);
+                ChAssertAlways(a["outer_radius"]);
+                ChAssertAlways(a["height"]);
+                m_fluid.fluid_domain_cylindrical = chrono_types::make_unique<AnnulusDomain>();
+                m_fluid.fluid_domain_cylindrical->inner_radius = a["inner_radius"].as<double>();
+                m_fluid.fluid_domain_cylindrical->outer_radius = a["outer_radius"].as<double>();
+                m_fluid.fluid_domain_cylindrical->height = a["height"].as<double>();
+                if (a["origin"]) {
+                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                } else {
+                    m_fluid.fluid_domain_cylindrical->origin = VNULL;
+                }
+                if (a["walls"]) {
+                    m_fluid.fluid_domain_cylindrical->wall_code = ReadWallFlagsCylindrical(a["walls"]);
+                    has_walls = (m_fluid.fluid_domain_cylindrical->wall_code != fsi::sph::CylSide::NONE);
+                } else {
+                    m_fluid.fluid_domain_cylindrical->wall_code = fsi::sph::CylSide::NONE;
+                }
+                break;
+        }
+    }
+
+    if (model["container"]) {
+        // Note: A container definition is not allowed if wall boundaries have already been defined!
+        ChAssertAlways(!has_walls);
+
+        auto a = model["container"];
+        switch (m_problem_geometry_type) {
+            case ProblemGeometryType::CARTESIAN:
+                ChAssertAlways(a["dimensions"]);
+                m_fluid.fluid_domain_cartesian = chrono_types::make_unique<BoxDomain>();
+                m_fluid.fluid_domain_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
+                if (a["origin"]) {
+                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                } else {
+                    m_fluid.fluid_domain_cartesian->origin = VNULL;
+                }
+                if (a["walls"]) {
+                    m_fluid.fluid_domain_cartesian->wall_code = ReadWallFlagsCartesian(a["walls"]);
+                    has_walls = (m_fluid.fluid_domain_cartesian->wall_code != fsi::sph::BoxSide::NONE);
+                } else {
+                    m_fluid.fluid_domain_cartesian->wall_code = fsi::sph::BoxSide::NONE;
+                }
+                break;
+            case ProblemGeometryType::CYLINDRICAL:
+                ChAssertAlways(a["inner_radius"]);
+                ChAssertAlways(a["outer_radius"]);
+                ChAssertAlways(a["height"]);
+                m_fluid.fluid_domain_cylindrical = chrono_types::make_unique<AnnulusDomain>();
+                m_fluid.fluid_domain_cylindrical->inner_radius = a["inner_radius"].as<double>();
+                m_fluid.fluid_domain_cylindrical->outer_radius = a["outer_radius"].as<double>();
+                m_fluid.fluid_domain_cylindrical->height = a["height"].as<double>();
+                if (a["origin"]) {
+                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                } else {
+                    m_fluid.fluid_domain_cylindrical->origin = VNULL;
+                }
+                if (a["walls"]) {
+                    m_fluid.fluid_domain_cylindrical->wall_code = ReadWallFlagsCylindrical(a["walls"]);
+                    has_walls = (m_fluid.fluid_domain_cylindrical->wall_code != fsi::sph::CylSide::NONE);
+                } else {
+                    m_fluid.fluid_domain_cylindrical->wall_code = fsi::sph::CylSide::NONE;
+                }
+                break;
+        }
+    }
+
+    if (m_verbose)
+        m_fluid.PrintInfo();
+
+    m_model_loaded = true;
+}
+
+// -----------------------------------------------------------------------------
+
+std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH() {
+    if (!m_model_loaded) {
+        cerr << "[ChParserSphYAML::CreateSystem] Warning: no YAML model file loaded." << endl;
+        cerr << "Returning a default ChSystemNSC." << endl;
+        throw std::runtime_error("No YAML model file loaded");
+    }
+
+    if (!m_sim_loaded) {
+        cerr << "[ChParserSphYAML::CreateSystem] Warning: no YAML simulation file loaded." << endl;
+        cerr << "Returning a default ChSystemNSC." << endl;
+        throw std::runtime_error("No YAML simulation file loaded");
+    }
+
+    // Create a Chrono FSI SPH problem of specified type with no MBS attached
+    switch (m_problem_geometry_type) {
+        case ProblemGeometryType::CARTESIAN:
+            m_fsi_problem = chrono_types::make_shared<fsi::sph::ChFsiProblemCartesian>(m_sim.sph.initial_spacing);
+            break;
+        case ProblemGeometryType::CYLINDRICAL:
+            m_fsi_problem = chrono_types::make_shared<fsi::sph::ChFsiProblemCylindrical>(m_sim.sph.initial_spacing);
+            break;
+    }
+
+    // Set simulation parameters
+    m_fsi_problem->SetGravitationalAcceleration(m_sim.gravity);
+    m_fsi_problem->SetStepSizeCFD(m_sim.time_step);
+    m_fsi_problem->SetSPHParameters(m_sim.sph);
+
+    // Set fluid properties
+    m_fsi_problem->SetCfdSPH(m_fluid.fluid_props);
+
+    // Create fluid domain and optional container
+    switch (m_problem_geometry_type) {
+        case ProblemGeometryType::CARTESIAN: {
+            auto fsi_problem = std::static_pointer_cast<fsi::sph::ChFsiProblemCartesian>(m_fsi_problem);
+            fsi_problem->Construct(m_fluid.fluid_domain_cartesian->dimensions,  //
+                                   m_fluid.fluid_domain_cartesian->origin,      //
+                                   m_fluid.fluid_domain_cartesian->wall_code);
+            if (m_fluid.container_cartesian) {
+                fsi_problem->AddBoxContainer(m_fluid.container_cartesian->dimensions,  //
+                                             m_fluid.container_cartesian->origin,      //
+                                             m_fluid.container_cartesian->wall_code);
+            }
+
+            break;
+        }
+        case ProblemGeometryType::CYLINDRICAL: {
+            auto fsi_problem = std::static_pointer_cast<fsi::sph::ChFsiProblemCylindrical>(m_fsi_problem);
+            fsi_problem->Construct(m_fluid.fluid_domain_cylindrical->inner_radius,  //
+                                   m_fluid.fluid_domain_cylindrical->outer_radius,  //
+                                   m_fluid.fluid_domain_cylindrical->height,        //
+                                   m_fluid.fluid_domain_cylindrical->origin,        //
+                                   m_fluid.fluid_domain_cylindrical->wall_code);
+            if (m_fluid.container_cylindrical) {
+                fsi_problem->AddCylindricalContainer(m_fluid.container_cylindrical->inner_radius,  //
+                                                     m_fluid.container_cylindrical->outer_radius,  //
+                                                     m_fluid.container_cylindrical->height,        //
+                                                     m_fluid.container_cylindrical->origin,        //
+                                                     m_fluid.container_cylindrical->wall_code);
+            }
+
+            break;
+        }
+    }
+
+    // Initialize FSI problem
+    m_fsi_problem->Initialize();
+
+    return m_fsi_problem;
+}
+
+void ChParserSphYAML::AttachMultibodySystem(ChSystem* sys) {
+    m_fsi_problem->AttachMultibodySystem(sys);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChParserSphYAML::SaveOutput(int frame) {
+    if (m_sim.output.type == ChOutput::Type::NONE)
+        return;
+
+    // Create the output DB if needed
+    if (!m_output_db) {
+        std::string filename = m_sim.output.dir + "/" + m_name;
+        if (!m_output_dir.empty())
+            filename = m_output_dir + "/" + filename;
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\nOutput file: " << filename << endl;
+        }
+        switch (m_sim.output.type) {
+            case ChOutput::Type::ASCII:
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename + ".txt");
+                break;
+            case ChOutput::Type::HDF5:
+#ifdef CHRONO_HAS_HDF5
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5", m_sim.output.mode);
+                break;
+#else
+                return;
+#endif
+        }
+        m_output_db->Initialize();
+    }
+
+    //// TODO
+}
+
+// -----------------------------------------------------------------------------
+
+ChParserSphYAML::FluidParams::FluidParams() {}
+
+void ChParserSphYAML::FluidParams::PrintInfo() {
+    cout << "Fluid parameters" << endl;
+    cout << "  Properties" << endl;
+    cout << "     density:               " << fluid_props.density;
+    cout << "     viscosity:             " << fluid_props.viscosity;
+    cout << "     characteristic length: " << fluid_props.char_length;
+    if (fluid_domain_cartesian) {
+        cout << "  Domain (CARTESIAN)" << endl;
+        cout << "      dimensions: " << fluid_domain_cartesian->dimensions << endl;
+        cout << "      origin:     " << fluid_domain_cartesian->origin << endl;
+        cout << "      wall code:  " << fluid_domain_cartesian->wall_code << endl;
+    } else if (fluid_domain_cylindrical) {
+        cout << "  Domain (CYLINDRICAL)" << endl;
+        cout << "      inner radius: " << fluid_domain_cylindrical->inner_radius << endl;
+        cout << "      outer radius: " << fluid_domain_cylindrical->outer_radius << endl;
+        cout << "      height:       " << fluid_domain_cylindrical->height << endl;
+        cout << "      origin:       " << fluid_domain_cylindrical->origin << endl;
+        cout << "      wall code:    " << fluid_domain_cylindrical->wall_code << endl;
+    }
+    if (container_cartesian) {
+        cout << "  Container (CARTESIAN)" << endl;
+        cout << "      dimensions: " << container_cartesian->dimensions << endl;
+        cout << "      origin:     " << container_cartesian->origin << endl;
+        cout << "      wall code:  " << container_cartesian->wall_code << endl;
+    } else if (container_cylindrical) {
+        cout << "  Container (CYLINDRICAL)" << endl;
+        cout << "      inner radius: " << container_cylindrical->inner_radius << endl;
+        cout << "      outer radius: " << container_cylindrical->outer_radius << endl;
+        cout << "      height:       " << container_cylindrical->height << endl;
+        cout << "      origin:       " << container_cylindrical->origin << endl;
+        cout << "      wall code:    " << container_cylindrical->wall_code << endl;
+    }
+}
+
+ChParserSphYAML::VisParams::VisParams()
+    : render(false),
+      use_splashsurf(false),
+      sph_markers(true),
+      rigid_bce_markers(true),
+      flex_bce_markers(true),
+      bndry_bce_markers(false),
+      active_boxes(false),
+      write_images(false),
+      image_dir(".") {}
+
+ChParserSphYAML::OutputParameters::OutputParameters()
+    : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100), dir(".") {}
+
+ChParserSphYAML::SimParams::SimParams() : gravity({0, 0, -9.8}), time_step(1e-4), end_time(-1) {}
+
+void ChParserSphYAML::SimParams::PrintInfo() {
+    cout << "simulation end time:        " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
+    cout << "integration time step:      " << time_step << endl;
+    cout << "gravitational acceleration: " << gravity << endl;
+    cout << endl;
+
+    cout << "SPH settings" << endl;
+
+    //// TODO
+
+    cout << endl;
+    visualization.PrintInfo();
+    cout << endl;
+    output.PrintInfo();
+}
+
+void ChParserSphYAML::VisParams::PrintInfo() {
+    if (!render) {
+        cout << "no run-time visualization" << endl;
+        return;
+    }
+
+    cout << "run-time visualization" << endl;
+    cout << "  render SPH particles:       " << sph_markers << endl;
+    cout << "  render BCE boundary:        " << bndry_bce_markers << endl;
+    cout << "  render BCE rigid solids:    " << rigid_bce_markers << endl;
+    cout << "  render BCE flexible colids: " << flex_bce_markers << endl;
+    cout << "  render active boxes:        " << active_boxes << endl;
+    if (use_splashsurf) {
+        cout << "  splashsurf parameters" << endl;
+        cout << "    smoothing length used for the SPH kernel: " << splashsurf_params.smoothing_length << endl;
+        cout << "    cube edge length used for marching cubes: " << splashsurf_params.cube_size << endl;
+        cout << "    iso-surface threshold for the density:    " << splashsurf_params.surface_threshold << endl;
+    }
+}
+
+void ChParserSphYAML::OutputParameters::PrintInfo() {
+    if (type == ChOutput::Type::NONE) {
+        cout << "no output" << endl;
+        return;
+    }
+
+    cout << "output" << endl;
+    cout << "  type:                 " << ChOutput::GetOutputTypeAsString(type) << endl;
+    cout << "  mode:                 " << ChOutput::GetOutputModeAsString(mode) << endl;
+    cout << "  output FPS:           " << fps << endl;
+    cout << "  outut directory:      " << dir << endl;
+}
+
+// =============================================================================
+
+static void PrintNodeType(const YAML::Node& node) {
+    switch (node.Type()) {
+        case YAML::NodeType::Null:
+            cout << " Null" << endl;
+            break;
+        case YAML::NodeType::Scalar:
+            cout << " Scalar" << endl;
+            break;
+        case YAML::NodeType::Sequence:
+            cout << " Sequence" << endl;
+            break;
+        case YAML::NodeType::Map:
+            cout << " Map" << endl;
+            break;
+        case YAML::NodeType::Undefined:
+            cout << " Undefined" << endl;
+            break;
+    }
+}
+
+std::string ChParserSphYAML::GetDatafilePath(const std::string& filename) {
+    std::string full_filename = "";
+    switch (m_data_path) {
+        case DataPathType::ABS:
+            full_filename = filename;
+            break;
+        case DataPathType::REL:
+            full_filename = m_script_directory + "/" + m_rel_path + "/" + filename;
+            break;
+    }
+
+    cout << "File: " << full_filename << endl;
+    auto filepath = filesystem::path(full_filename);
+
+    ChAssertAlways(filepath.exists());
+    ChAssertAlways(filepath.is_file());
+
+    return full_filename;
+}
+
+// -----------------------------------------------------------------------------
+
+ChParserSphYAML::ProblemGeometryType ChParserSphYAML::ReadProblemGeometryType(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "CARTESIAN")
+        return ProblemGeometryType::CARTESIAN;
+    if (val == "CYLINDRICAL")
+        return ProblemGeometryType::CYLINDRICAL;
+    return ProblemGeometryType::CARTESIAN;
+}
+
+ChParserSphYAML::DataPathType ChParserSphYAML::ReadDataPathType(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "RELATIVE")
+        return DataPathType::REL;
+    else
+        return DataPathType::ABS;
+}
+
+fsi::sph::EosType ChParserSphYAML::ReadEosType(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "ISOTHERMAL")
+        return fsi::sph::EosType::ISOTHERMAL;
+    if (val == "TAIT")
+        return fsi::sph::EosType::TAIT;
+    return fsi::sph::EosType::ISOTHERMAL;
+}
+
+fsi::sph::KernelType ChParserSphYAML::ReadKernelType(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "QUADRATIC")
+        return fsi::sph::KernelType::QUADRATIC;
+    if (val == "CUBIC_SPLINE")
+        return fsi::sph::KernelType::CUBIC_SPLINE;
+    if (val == "QUINTIC_SPLINE")
+        return fsi::sph::KernelType::QUINTIC_SPLINE;
+    if (val == "WENDLAND")
+        return fsi::sph::KernelType::WENDLAND;
+    return fsi::sph::KernelType::CUBIC_SPLINE;
+}
+
+fsi::sph::IntegrationScheme ChParserSphYAML::ReadIntegrationScheme(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "EULER")
+        return fsi::sph::IntegrationScheme::EULER;
+    if (val == "RK2")
+        return fsi::sph::IntegrationScheme::RK2;
+    if (val == "VERLET")
+        return fsi::sph::IntegrationScheme::VERLET;
+    if (val == "SYMPLECTIC")
+        return fsi::sph::IntegrationScheme::SYMPLECTIC;
+    if (val == "IMPLICIT_SPH")
+        return fsi::sph::IntegrationScheme::IMPLICIT_SPH;
+    return fsi::sph::IntegrationScheme::RK2;
+}
+
+fsi::sph::BoundaryMethod ChParserSphYAML::ReadBoundaryMethod(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "ADAMI")
+        return fsi::sph::BoundaryMethod::ADAMI;
+    if (val == "HOLMES")
+        return fsi::sph::BoundaryMethod::HOLMES;
+    return fsi::sph::BoundaryMethod::ADAMI;
+}
+
+fsi::sph::ShiftingMethod ChParserSphYAML::ReadShiftingMethod(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "NONE")
+        return fsi::sph::ShiftingMethod::NONE;
+    if (val == "PPST")
+        return fsi::sph::ShiftingMethod::PPST;
+    if (val == "XSPH")
+        return fsi::sph::ShiftingMethod::XSPH;
+    if (val == "PPST_XSPH")
+        return fsi::sph::ShiftingMethod::PPST_XSPH;
+    if (val == "DIFFUSION")
+        return fsi::sph::ShiftingMethod::DIFFUSION;
+    if (val == "NONE")
+        return fsi::sph::ShiftingMethod::DIFFUSION_XSPH;
+    return fsi::sph::ShiftingMethod::XSPH;
+}
+
+fsi::sph::ViscosityMethod ChParserSphYAML::ReadViscosityMethod(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "LAMINAR")
+        return fsi::sph::ViscosityMethod::LAMINAR;
+    if (val == "ARTIFICIAL_UNILATERAL")
+        return fsi::sph::ViscosityMethod::ARTIFICIAL_UNILATERAL;
+    if (val == "ARTIFICIAL_BILATERAL")
+        return fsi::sph::ViscosityMethod::ARTIFICIAL_BILATERAL;
+    return fsi::sph::ViscosityMethod::ARTIFICIAL_UNILATERAL;
+}
+
+ChOutput::Type ChParserSphYAML::ReadOutputType(const YAML::Node& a) {
+    auto type = ToUpper(a.as<std::string>());
+    if (type == "ASCII")
+        return ChOutput::Type::ASCII;
+    if (type == "HDF5")
+        return ChOutput::Type::HDF5;
+    return ChOutput::Type::NONE;
+}
+
+ChOutput::Mode ChParserSphYAML::ReadOutputMode(const YAML::Node& a) {
+    auto mode = ToUpper(a.as<std::string>());
+    if (mode == "SERIES")
+        return ChOutput::Mode::SERIES;
+    if (mode == "FRAMES")
+        return ChOutput::Mode::FRAMES;
+    return ChOutput::Mode::FRAMES;
+}
+
+int ChParserSphYAML::ReadWallFlagsCartesian(const YAML::Node& a) {
+    int code = fsi::sph::BoxSide::NONE;
+
+    ChAssertAlways(a["x"]);
+    ChAssertAlways(a["x"].IsSequence());
+    ChAssertAlways(a["x"].size() == 2);
+    if (a["x"][0].as<bool>())
+        code &= fsi::sph::BoxSide::X_NEG;
+    if (a["x"][1].as<bool>())
+        code &= fsi::sph::BoxSide::X_POS;
+
+    ChAssertAlways(a["y"]);
+    ChAssertAlways(a["y"].IsSequence());
+    ChAssertAlways(a["y"].size() == 2);
+    if (a["y"][0].as<bool>())
+        code &= fsi::sph::BoxSide::Y_NEG;
+    if (a["y"][1].as<bool>())
+        code &= fsi::sph::BoxSide::Y_POS;
+
+    ChAssertAlways(a["z"]);
+    ChAssertAlways(a["z"].IsSequence());
+    ChAssertAlways(a["z"].size() == 2);
+    if (a["z"][0].as<bool>())
+        code &= fsi::sph::BoxSide::Z_NEG;
+    if (a["z"][1].as<bool>())
+        code &= fsi::sph::BoxSide::Z_POS;
+
+    return code;
+}
+
+int ChParserSphYAML::ReadWallFlagsCylindrical(const YAML::Node& a) {
+    int code = fsi::sph::CylSide::NONE;
+
+    ChAssertAlways(a["side"]);
+    ChAssertAlways(a["side"].IsSequence());
+    ChAssertAlways(a["side"].size() == 2);
+    if (a["side"][0].as<bool>())
+        code &= fsi::sph::CylSide::SIDE_INT;
+    if (a["side"][1].as<bool>())
+        code &= fsi::sph::CylSide::SIDE_EXT;
+
+    ChAssertAlways(a["z"]);
+    ChAssertAlways(a["z"].IsSequence());
+    ChAssertAlways(a["z"].size() == 2);
+    if (a["z"][0].as<bool>())
+        code &= fsi::sph::BoxSide::Z_NEG;
+    if (a["z"][1].as<bool>())
+        code &= fsi::sph::BoxSide::Z_POS;
+
+    return code;
+}
+
+// -----------------------------------------------------------------------------
+
+}  // namespace parsers
+}  // namespace chrono

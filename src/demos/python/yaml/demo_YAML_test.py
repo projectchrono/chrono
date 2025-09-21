@@ -31,7 +31,7 @@ sim_yaml_filename = 'yaml/simulations/basic_mbs.yaml'
 # -----------------------------------------------------------------------------
 
 # Create YAML parser object
-parser = parsers.ChParserYAML()
+parser = parsers.ChParserMbsYAML()
 parser.SetVerbose(True)
 
 # Load the YAML simulation file and create a Chrono system based on its content
