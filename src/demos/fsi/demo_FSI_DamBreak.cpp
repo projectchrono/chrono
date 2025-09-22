@@ -40,7 +40,6 @@ using namespace chrono::fsi::sph;
 
 bool GetProblemSpecs(int argc,
                      char** argv,
-                     std::string& inputJSON,
                      double& t_end,
                      bool& verbose,
                      bool& output,
@@ -51,7 +50,6 @@ bool GetProblemSpecs(int argc,
                      int& ps_freq) {
     ChCLI cli(argv[0], "Dam Break FSI demo");
 
-    cli.AddOption<std::string>("Input", "inputJSON", "Problem specification file [JSON format]", inputJSON);
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
@@ -70,7 +68,6 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
-    inputJSON = cli.Get("inputJSON").as<std::string>();
     t_end = cli.GetAsType<double>("t_end");
 
     verbose = !cli.GetAsType<bool>("quiet");
@@ -88,7 +85,6 @@ bool GetProblemSpecs(int argc,
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
     double t_end = 10.0;
     double initial_spacing = 0.1;
     double step_size = 1e-4;
@@ -99,10 +95,8 @@ int main(int argc, char* argv[]) {
     double render_fps = 100;
     bool snapshots = false;
     int ps_freq = 1;
-    //if (!GetProblemSpecs(argc, argv, inputJson, t_end, verbose, output, output_fps, render, render_fps, snapshots,
-    //                     ps_freq)) {
-    //    return 1;
-    //}
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq))
+        return 1;
 
     // Dimension of the space domain
     double bxDim = 12.0;
