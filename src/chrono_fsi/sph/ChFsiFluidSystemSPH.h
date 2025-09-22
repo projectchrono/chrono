@@ -121,9 +121,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     ChFsiFluidSystemSPH();
     ~ChFsiFluidSystemSPH();
 
-    /// Read Chrono::FSI parameters from the specified JSON file.
-    void ReadParametersFromFile(const std::string& json_file);
-
     /// Enable/disable CUDA error checks (default: enabled).
     void EnableCudaErrorCheck(bool val) { m_check_errors = val; }
 

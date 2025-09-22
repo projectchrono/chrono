@@ -220,8 +220,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     auto sysSPH = m_terrain->GetFluidSystemSPH();
 
     // Let the FSI system read its parameters
-    if (!m_specfile.empty())
-        sysSPH->ReadParametersFromFile(m_specfile);
+    //// TODO - use YAML specification files
 
     // Reload simulation parameters to FSI system
     sysFSI->SetStepSizeCFD(m_step_size);

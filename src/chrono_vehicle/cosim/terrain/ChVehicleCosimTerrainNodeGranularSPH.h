@@ -84,7 +84,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
 
     ChSystemSMC* m_system;   ///< containing system
     CRMTerrain* m_terrain;   ///< CRM terrain
-    std::string m_specfile;  ///< CRM terrain specification file
+    std::string m_specfile;  ///< CRM terrain specification file name
 #ifdef CHRONO_VSG
     std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsys;  ///< run-time visualization system
 #endif
