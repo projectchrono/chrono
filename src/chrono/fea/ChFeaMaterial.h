@@ -597,6 +597,8 @@ private:
 template <class T_data_per_node>
 class ChFeaField : public ChPhysicsItem {
 public:
+    using T_nodefield = T_data_per_node;
+
     ChFeaField() {}
     virtual ~ChFeaField() {}
     
@@ -877,30 +879,21 @@ class ChFeaPerElementDataNONE {
 
 //------------------------------------------------------------------------------
 
-
-/// Base class for all materials. 
-/// The T_... types are used to carry type info about 
-/// the per-node or per-element or per-integration point data to instance.
-class ChFeaMaterial {
+/// Base class for all material properties. 
+class ChFeaMaterialProperty {
 public:
-    /*
-    using T_per_node = std::tuple<ChFeaFieldScalar>;
-    using T_per_matpoint = ChFeaPerMaterialpointDataNONE;
-    using T_per_element = ChFeaPerElementDataNONE;
-    */
 };
 
 
-/// Base class for properties of materials in a continuum.
-
-class ChFea3DContinuum : ChFeaMaterial{
+/// Base class for density in a continuum.
+class ChFea3DDensity : ChFeaMaterialProperty {
 protected:
     double m_density;
 
 public:
-    ChFea3DContinuum(double density = 1000) : m_density(density) {}
-    ChFea3DContinuum(const ChFea3DContinuum& other);
-    virtual ~ChFea3DContinuum() {}
+    ChFea3DDensity(double density = 1000) : m_density(density) {}
+    ChFea3DDensity(const ChFea3DDensity& other) { m_density = other.m_density; }
+    virtual ~ChFea3DDensity() {}
 
     /// Set the density of the material, in kg/m^2.
     void SetDensity(double density) { m_density = density; }
@@ -916,7 +909,7 @@ public:
 /// Class for the basic properties of scalar fields P in 3D FEM problems
 /// that can be described by Laplace PDEs of type
 ///    rho dP/dt + div [C] grad P = 0
-class ChApi ChFea3DContinuumPoisson : public ChFea3DContinuum {
+class ChApi ChFea3DContinuumPoisson : public ChFea3DDensity {
 public:
     using T_per_node = std::tuple<ChFeaFieldScalar>;
     using T_per_matpoint = ChFeaPerMaterialpointDataNONE;
@@ -927,7 +920,7 @@ protected:
 
 public:
     ChFea3DContinuumPoisson() { ConstitutiveMatrix.setIdentity(3, 3); }
-    ChFea3DContinuumPoisson(const ChFea3DContinuumPoisson& other) : ChFea3DContinuum(other) {
+    ChFea3DContinuumPoisson(const ChFea3DContinuumPoisson& other) : ChFea3DDensity(other) {
         ConstitutiveMatrix = other.ConstitutiveMatrix;
     }
     virtual ~ChFea3DContinuumPoisson() {}
@@ -996,9 +989,145 @@ public:
 // -----------------------------------------------------------------------------
 
 
-class ChFeaDomain {
+// Type automation.
+// Turning a std::tuple<ClassA,ClassB,..> into std::tuple<std::shared_ptr<ClassA>,std::shared_ptr<ClassB>,..>
+template <typename Tuple>
+struct tuple_as_sharedptr;
+template <typename... Ts>
+struct tuple_as_sharedptr<std::tuple<Ts...>> {
+    using type = std::tuple<typename std::shared_ptr<Ts>...>;
 };
 
+// Type automation.
+// Turning a std::tuple<ClassA,ClassB,..> into std::tuple<ClassA::T_nodefield*>,ClassA::T_nodefield*,..>
+template <typename Tuple>
+struct tuple_as_field_ptrs;
+template <typename... Ts>
+struct tuple_as_field_ptrs<std::tuple<Ts...>> {
+    using type = std::tuple<typename Ts::T_nodefield*...>;
+};
+
+// Data automation.
+// From a std::tuple<std::shared_ptr<ClassA>,std::shared_ptr<ClassB>,..> and the pointer
+// to a node std::shared_ptr<ChNodeFEAbase>, makes the tuple 
+// std::tuple<ClassA::T_nodefield*>,ClassA::T_nodefield*,..>
+template <typename Tuple, std::size_t... Is>
+auto make_nodefields_pointer_tuple_IMPL(std::shared_ptr<ChNodeFEAbase> mnode, const Tuple& t, std::index_sequence<Is...>) {
+    return std::make_tuple(&(std::get<Is>(t)->GetNodeData(mnode)) ...);
+}
+template <typename... Ts>
+auto make_nodefields_pointer_tuple(std::shared_ptr<ChNodeFEAbase> mnode, const std::tuple<Ts...>& t) {
+    return make_nodefields_pointer_tuple_IMPL(mnode, t, std::index_sequence_for<Ts...>{});
+}
+
+/// Base class for all material implementations for FEA
+class ChFeaMaterialDomain {
+public:
+    virtual void AddElement(std::shared_ptr<ChFeaElement> melement) = 0;
+    virtual void RemoveElement(std::shared_ptr<ChFeaElement> melement) = 0;
+    virtual bool IsElementAdded(std::shared_ptr<ChFeaElement> melement) = 0;
+
+    // This rewires all pointers and correctly set up the element_datamap
+    virtual bool InitialSetup() = 0;
+};
+
+/// Class for all material implementations for FEA, and for 
+/// defining (sub) regions of the mesh where the material has effect.
+/// Usually it contains one or more ChFeaMaterialProperty objects.
+/// The T_... types are used to carry type info about 
+/// the per-node or per-element or per-integration point data to instance.
+
+template <
+    typename T_per_node = std::tuple<ChFeaFieldScalar>, 
+    typename T_per_matpoint = ChFeaPerMaterialpointDataNONE, 
+    typename T_per_element = ChFeaPerElementDataNONE
+>
+class ChFeaMaterialDomainImpl : public ChFeaMaterialDomain {
+public:
+
+    class DataPerElement {
+    public:
+        DataPerElement(int n_matpoints = 0, int n_nodes = 0) :
+            matpoints_data(n_matpoints), nodes_data(n_nodes)
+        {}
+        T_per_element element_data;
+        std::vector<T_per_matpoint> matpoints_data;
+        std::vector<typename tuple_as_field_ptrs<T_per_node>::type> nodes_data;
+    };
+    std::unordered_map<std::shared_ptr<ChFeaElement>, DataPerElement> element_datamap;
+
+    typename tuple_as_sharedptr<T_per_node>::type fields;
+
+    ChFeaMaterialDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = mfields; }
+
+    DataPerElement& GetElementData(std::shared_ptr<ChFeaElement> melement) {
+        return element_datamap[melement];
+    }
+
+    // INTERFACES
+    
+    virtual void AddElement(std::shared_ptr<ChFeaElement> melement) override {
+        return AddElement_impl(melement);
+    }
+    virtual void RemoveElement(std::shared_ptr<ChFeaElement> melement) override {
+        return RemoveElement_impl(melement);
+    }
+    virtual bool IsElementAdded(std::shared_ptr<ChFeaElement> melement) override {
+        return IsElementAdded_impl(melement);
+    };
+
+    // This rewires all pointers and correctly set up the element_datamap
+    virtual bool InitialSetup() override {
+        return InitialSetup_impl();
+    }
+
+private:
+    void AddElement_impl(std::shared_ptr<ChFeaElement> melement) {
+        element_datamap.insert(std::make_pair(melement, DataPerElement(melement->GetMinQuadratureOrder(), melement->GetNumNodes())));
+    }
+
+    void RemoveElement_impl(std::shared_ptr<ChFeaElement> melement) {
+        element_datamap.erase(melement);
+    }
+
+    bool IsElementAdded_impl(std::shared_ptr<ChFeaElement> melement) {
+        return (element_datamap.find(melement) != element_datamap.end());
+    }
+
+    // This rewires all pointers and correctly set up the element_datamap
+    bool InitialSetup_impl() {
+        for (auto& mel : this->element_datamap) {
+            // setup array of quadrature data
+            mel.second.matpoints_data.resize(mel.first->GetMinQuadratureOrder()); // safety - should be already sized
+            // setup array of pointers to node field data (this is for efficiency, otherwise each element should lookup the Chfield maps every time)
+            mel.second.nodes_data.resize(mel.first->GetNumNodes());  // safety - should be already sized
+            for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
+                mel.second.nodes_data[i] = make_nodefields_pointer_tuple(mel.first->GetNode(i), this->fields);
+            }
+        }
+        return true;
+    };
+};
+
+
+/// Domain for FEA thermal analysis. It is based on a scalar temperature field.
+/// In case you need thermoelasticity, use ChFeaMaterialDomainThermoelastic.
+
+class ChFeaMaterialDomainThermal : public ChFeaMaterialDomainImpl<
+    std::tuple<ChFeaFieldTemperature>,
+    ChFeaPerMaterialpointDataNONE,
+    ChFeaPerElementDataNONE> {
+public:
+    ChFeaMaterialDomainThermal(std::shared_ptr<ChFeaFieldTemperature> mfield) 
+        : ChFeaMaterialDomainImpl(mfield)
+    {}
+
+    /// Thermal properties of this domain (conductivity, 
+    /// heat capacity constants etc.) 
+    std::shared_ptr<ChFea3DMaterialThermal> material;
+    
+    //***TODO***
+};
 
 
 // -----------------------------------------------------------------------------
@@ -1011,7 +1140,7 @@ class ChFeaDomain {
 
 }  // end namespace fea
 
-CH_CLASS_VERSION(fea::ChFeaMaterial, 0)
+//CH_CLASS_VERSION(fea::ChFeaMaterialProperty, 0)
 
 
 }  // end namespace chrono

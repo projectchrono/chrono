@@ -27,6 +27,7 @@ namespace fea {
 */
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
+    /*
 CH_FACTORY_REGISTER(ChFea3DContinuum)
 
 void ChFea3DContinuum::ArchiveOut(ChArchiveOut& archive_out) {
@@ -39,11 +40,12 @@ void ChFea3DContinuum::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFea3DContinuum::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChFeaMaterial>();
+    int version = archive_in.VersionRead<ChFeaMaterial>();
     // deserialize parent class
     // stream in all member data:
     ///archive_in >> CHNVP(m_density);
 }
+*/
 
 // -----------------------------------------------------------------------------
 
@@ -82,7 +84,26 @@ void _test_function() {
     temperature_field->node_data[mnode1].SetFixed(true);
     temperature_field->node_data[mnode4].State()[0] = 100;
 
+    auto tetrahedron1 = chrono_types::make_shared <ChFeaElementTetrahedron_4>();
+    tetrahedron1->SetNodes(mnode1,mnode2,mnode3,mnode4);
 
+    auto thermal_domain = chrono_types::make_shared <ChFeaMaterialDomainThermal>(temperature_field);
+    thermal_domain->AddElement(tetrahedron1);
+    //...
+    
+    // Needed to setup all data and pointers
+    thermal_domain->InitialSetup();
+
+    // Later one can access instanced per-element data as in these examples:
+    thermal_domain->GetElementData(tetrahedron1).element_data; // ...
+    thermal_domain->GetElementData(tetrahedron1).matpoints_data.size(); // ...
+    thermal_domain->GetElementData(tetrahedron1).nodes_data.size(); // ..  this would fail if no InitialSetup()
+
+
+    mysystem->Add(temperature_field);  // TODO - better if domains and fields both in ChSystem / or both in ChMesh?
+    mysystem->Add(displacement_field);
+    mymesh->Add(thermal_domain);
+    mymesh->Add(elastic_domain);
 }
 
 }  // end namespace fea
