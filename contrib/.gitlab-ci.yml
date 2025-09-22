@@ -137,6 +137,7 @@ linux:ubuntu22.04-gcc:test:
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$LD_LIBRARY_PATH"
     - cmake --install .
     - ninja test
   dependencies: ["linux:ubuntu22.04-gcc:build"]
@@ -170,6 +171,7 @@ linux:ubuntu22.04-clang:test:
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$LD_LIBRARY_PATH"
     - cmake --install .
     - ninja test
   dependencies: ["linux:ubuntu22.04-clang:build"]
