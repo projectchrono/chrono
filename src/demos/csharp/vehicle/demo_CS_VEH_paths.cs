@@ -20,6 +20,7 @@ using System;
 using static ChronoGlobals;
 using System.IO;
 using static chrono_vehicle;
+using static chrono_postprocess;
 
 namespace ChronoDemo
 {
