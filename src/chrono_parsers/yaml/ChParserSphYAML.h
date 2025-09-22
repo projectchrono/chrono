@@ -16,10 +16,15 @@
 #define CH_SPH_PARSER_YAML_H
 
 #include "chrono_parsers/yaml/ChParserCfdYAML.h"
-#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/output/ChOutput.h"
+#include "chrono/assets/ChColormap.h"
+
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
+#endif
 
 #include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
 
@@ -58,14 +63,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     double GetTimestep() const { return m_sim.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
 
-    bool Render() const { return m_sim.visualization.render; }
-    bool UseSplashurf() const { return m_sim.visualization.use_splashsurf; }
-    const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters() {
-        return m_sim.visualization.splashsurf_params;
-    }
-
-    ChOutput::Type GetOutputType() const { return m_sim.output.type; }
-    double GetOutputFPS() const { return m_sim.output.fps; }
+    // --------------
 
     /// Create and return a Chrono FSI problem configured from cached model and simulation parameters.
     /// Note that the ChFsiProblemSPH has no associated MBS. Use AttachMultibodySystem.
@@ -75,6 +73,20 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     void AttachMultibodySystem(ChSystem* sys);
 
     // --------------
+
+    bool Render() const { return m_sim.visualization.render; }
+    bool UseSplashurf() const { return m_sim.visualization.use_splashsurf; }
+#ifdef CHRONO_VSG
+    const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters() {
+        return *m_sim.visualization.splashsurf_params;
+    }
+    virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
+#endif
+
+    // --------------
+
+    ChOutput::Type GetOutputType() const { return m_sim.output.type; }
+    double GetOutputFPS() const { return m_sim.output.fps; }
 
     /// Return true if generating output.
     virtual bool Output() const override { return m_sim.output.type != ChOutput::Type::NONE; }
@@ -88,6 +100,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
   private:  // ---- Data structures
     enum class ProblemGeometryType { CARTESIAN, CYLINDRICAL };
     enum class DataPathType { ABS, REL };
+    enum class ParticleColoringType { NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE };
 
     /// Box domain (fluid or container, CARTESIAN).
     struct BoxDomain {
@@ -140,7 +153,12 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         bool flex_bce_markers;   ///< render flex-body markers?
         bool active_boxes;       ///< render active boxes?
 
-        fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters splashsurf_params;
+        ChColormap::Type colormap;
+
+#ifdef CHRONO_VSG
+        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::ParticleColorCallback> color_callback;
+        std::unique_ptr<fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters> splashsurf_params;
+#endif
 
         bool write_images;      ///< if true, save snapshots
         std::string image_dir;  ///< directory for image files
@@ -196,6 +214,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     static int ReadWallFlagsCylindrical(const YAML::Node& a);
 
     static fsi::sph::BCType ReadBoundaryConditionType(const YAML::Node& a);
+
+    static ParticleColoringType ReadParticleColoringType(const YAML::Node& a);
+    static ChColormap::Type ReadColorMapType(const YAML::Node& a);
 
   private:  // ---- Member variables
     ProblemGeometryType m_problem_geometry_type;

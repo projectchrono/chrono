@@ -126,6 +126,9 @@ endif()
 
 if(CH_ENABLE_MODULE_FSI)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_fsisph)
+  if(CH_ENABLE_MODULE_VSG)
+    target_link_libraries(Chrono_parsers PRIVATE Chrono_fsisph_vsg)
+  endif()
 endif()
 
 # Include URDF parser if found --------------------------------------------

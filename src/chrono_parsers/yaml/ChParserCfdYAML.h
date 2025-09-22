@@ -19,6 +19,10 @@
 
 #include "chrono_parsers/ChApiParsers.h"
 
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+
 #include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
 
 namespace chrono {
@@ -43,6 +47,11 @@ class ChApiParsers ChParserCfdYAML {
 
     /// Return the fluid system type.
     FluidSystemType GetType() const { return m_type; }
+
+#ifdef CHRONO_VSG
+    /// Return a VSG run-visualization plugin.
+    virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const { return nullptr; }
+#endif
 
     /// Return true if generating output.
     virtual bool Output() const = 0;

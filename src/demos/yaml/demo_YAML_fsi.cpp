@@ -106,18 +106,9 @@ int main(int argc, char* argv[]) {
         visVSG->ToggleAbsFrameVisibility();
         visVSG->SetAbsFrameScale(2.0);
 
-        if (sysCFD_type == parsers::ChParserCfdYAML::FluidSystemType::SPH) {
-            auto sysFSISPH = std::static_pointer_cast<fsi::sph::ChFsiSystemSPH>(sysFSI);
-            auto visFSI = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(sysFSISPH.get());
-            ////visFSI->EnableFluidMarkers(show_particles_sph);
-            ////visFSI->EnableBoundaryMarkers(show_boundary_bce);
-            ////visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-            ////visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::RED_BLUE);
-            ////visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-            ////visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-
-            visVSG->AttachPlugin(visFSI);
-        }
+        auto plugin = parserCFD.GetVisualizationPlugin();
+        if (plugin)
+            visVSG->AttachPlugin(plugin);
 
         visVSG->Initialize();
         vis = visVSG;
