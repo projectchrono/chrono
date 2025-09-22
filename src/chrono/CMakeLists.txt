@@ -454,6 +454,7 @@ set(Chrono_fea_materials_SOURCES
     fea/ChMaterialHexaANCF.cpp
     fea/ChMaterialShellReissner.cpp
     fea/ChMaterialShellKirchhoff.cpp
+    fea/ChFeaMaterial.cpp
     )
 set(Chrono_fea_materials_HEADERS
     fea/ChContinuumMaterial.h
@@ -465,6 +466,7 @@ set(Chrono_fea_materials_HEADERS
     fea/ChMaterialHexaANCF.h
     fea/ChMaterialShellReissner.h
     fea/ChMaterialShellKirchhoff.h
+    fea/ChFeaMaterial.h
     )
 source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_materials_HEADERS})
 
