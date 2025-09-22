@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     double dT = 2.5e-4;
     double initSpacing = 0.01;
     double density = 1700;
-    
+
     sysSPH.SetVerbose(verbose_fsi);
     sysFSI.SetStepSizeCFD(dT);
     sysFSI.SetStepsizeMBD(dT);
@@ -157,16 +157,12 @@ int main(int argc, char* argv[]) {
     sph_params.use_consistent_laplacian_discretization = false;
     sysSPH.SetSPHParameters(sph_params);
 
-
-    sysSPH.SetActiveDomain(ChVector3d(1.0, 1.0, 1.0));
-
-
     sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin(-5 * bxDim, -byDim / 2 - initSpace0 / 2, -5 * bzDim);
-    ChVector3d cMax(+5 * bxDim, +byDim / 2 + initSpace0 / 2, 10 * bzDim);
-    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_NONE);
+    ChVector3d cMin(-bxDim - 3 * initSpace0, -byDim / 2 - initSpace0 / 2, -bzDim - 3 * initSpace0);
+    ChVector3d cMax(+bxDim + 3 * initSpace0, +byDim / 2 + initSpace0 / 2, 5 * bzDim);
+    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_Y_PERIODIC);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -180,6 +176,7 @@ int main(int argc, char* argv[]) {
 
     // Create solids
     auto mesh = CreateSolidPhase(sysFSI);
+    sysSPH.SetActiveDomain(ChVector3d(1.0, 1.0, 1.0));
 
     // Initialize FSI system
     sysFSI.Initialize();
@@ -343,7 +340,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
 
     // Fluid representation of walls
     auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {2, 0, -1});
-    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
+    sysFSI.AddFsiBoundary(ground_bce, ChFrame<>(ChVector3d(0., 0., bzDim / 2), QUNIT));
 
     // Create a wheel rigid body
     auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
