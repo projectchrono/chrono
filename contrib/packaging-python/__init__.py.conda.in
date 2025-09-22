@@ -15,7 +15,7 @@ try:
 except:
     pass
 try:
-    from . import vsg
+    from . import vsg3d
 except:
     pass
 try:

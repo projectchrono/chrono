@@ -17,7 +17,7 @@
 # =============================================================================
 
 import pychrono.core as chrono
-import pychrono.vsg as vsg
+import pychrono.vsg3d as vsg
 import os
 
 def CreateMeshShape(filename):

@@ -8,17 +8,7 @@
 //
 ///////////////////////////////////////////////////
 
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono.vsg'
-
-
-%module(directors="1") vsg
-
-
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
