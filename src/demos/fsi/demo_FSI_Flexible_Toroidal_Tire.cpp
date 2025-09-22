@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Pei Li, Wei Hu
+// Author: Pei Li, Wei Hu, Luning Bakke
 // =============================================================================
 
 #include <assert.h>
@@ -115,21 +115,51 @@ int main(int argc, char* argv[]) {
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Toroidal_Tire_Granular.json");
-    if (argc == 1) {
-        if (verbose)
-            cout << "Use the default JSON file" << endl;
-    } else if (argc == 2) {
-        if (verbose)
-            cout << "Use the specified JSON file" << endl;
-        std::string my_inputJson = std::string(argv[1]);
-        inputJson = my_inputJson;
-    } else {
-        cerr << "usage: ./demo_FSI_Flexible_Toroidal_Tire_Granular <json_file>" << endl;
-        return 1;
-    }
-    sysSPH.ReadParametersFromFile(inputJson);
+    ChVector3d gravity = ChVector3d(0, 0, -9.81);
+    sysMBS.SetGravitationalAcceleration(gravity);
+    sysSPH.SetGravitationalAcceleration(gravity);
+
+    bool verbose_fsi = true;
+    double dT = 2.5e-4;
+    double initSpacing = 0.01;
+    double density = 1700;
+    
+    sysSPH.SetVerbose(verbose_fsi);
+    sysFSI.SetStepSizeCFD(dT);
+    sysFSI.SetStepsizeMBD(dT);
+
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    mat_props.density = density;
+    mat_props.Young_modulus = 1e6;
+    mat_props.Poisson_ratio = 0.3;
+    mat_props.mu_I0 = 0.03;
+    mat_props.mu_fric_s = 0.5;
+    mat_props.mu_fric_2 = 0.5;
+    mat_props.average_diam = 0.005;
+    mat_props.cohesion_coeff = 2e3;
+    sysSPH.SetElasticSPH(mat_props);
+
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.initial_spacing = initSpacing;
+    sph_params.d0_multiplier = 1.0;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_ppst_pull = 0.0;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
+    sph_params.kernel_type = KernelType::CUBIC_SPLINE;
+    sph_params.num_proximity_search_steps = 1;
+    sph_params.artificial_viscosity = 0.5;
+    sph_params.use_variable_time_step = false;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
+    sysSPH.SetSPHParameters(sph_params);
+
+
+    sysSPH.SetActiveDomain(ChVector3d(1.0, 1.0, 1.0));
+
 
     sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
@@ -137,16 +167,6 @@ int main(int argc, char* argv[]) {
     ChVector3d cMin(-5 * bxDim, -byDim / 2 - initSpace0 / 2, -5 * bzDim);
     ChVector3d cMax(+5 * bxDim, +byDim / 2 + initSpace0 / 2, 10 * bzDim);
     sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_NONE);
-
-    // Set SPH discretization type, consistent or inconsistent
-    sysSPH.SetConsistentDerivativeDiscretization(false, false);
-
-    // Set cohsion of the granular material
-    sysSPH.SetCohesionForce(2000.0);
-
-    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
-    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
-    sysSPH.SetShiftingXSPHParameters(0.25);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -231,7 +251,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Simulation loop
-    double dT = sysFSI.GetStepSizeCFD();
     double time = 0.0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -265,6 +284,9 @@ int main(int argc, char* argv[]) {
             if (!vis->Run())
                 break;
             vis->Render();
+            std::ostringstream filename;
+            filename << out_dir << "/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
+            vis->WriteImageToFile(filename.str());
             render_frame++;
         }
 #endif
