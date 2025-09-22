@@ -532,8 +532,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Set the simulation stepsize
     sysFSI.SetStepSizeCFD(params.time_step);
     sysFSI.SetStepsizeMBD(params.time_step);
+
+     // Meta-step (communication interval)
+    double meta_time_step = 5 * params.time_step;
 
     // We simulate slope by just tilting the gravity vector
     double gravity_G = -params.gravity_G;
@@ -594,7 +598,6 @@ int main(int argc, char* argv[]) {
     sysSPH.SetSPHParameters(sph_params);
 
     double iniSpacing = params.initial_spacing;
-    double dT = params.time_step;
     double kernelLength = params.initial_spacing * params.d0_multiplier;
 
     // Initial Position of wheel
@@ -707,16 +710,9 @@ int main(int argc, char* argv[]) {
     // Some things that even DEM domes
     double x1 = wheel->GetPos().x();
     double z1 = x1 * std::sin(params.slope_angle);
-    double x2, z2, z_adv = 0.;
+    double x2 = x1;
+    double z_adv = 0;
     int counter = 0;
-
-    double exchange_info;
-
-    if (params.use_variable_time_step) {
-        exchange_info = 5 * params.time_step;
-    } else {
-        exchange_info = params.time_step;
-    }
 
     ChTimer timer;
     timer.start();
@@ -794,9 +790,10 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        // Call the FSI solver
-        sysFSI.DoStepDynamics(exchange_info);
-        time += exchange_info;
+        // Advance dynamics of the FSI system to next communication time
+        sysFSI.DoStepDynamics(meta_time_step);
+
+        time += meta_time_step;
     }
     timer.stop();
     if (params.output) {

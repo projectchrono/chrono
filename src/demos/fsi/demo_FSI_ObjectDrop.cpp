@@ -186,6 +186,9 @@ int main(int argc, char* argv[]) {
     fsi.SetStepSizeCFD(step_size);
     fsi.SetStepsizeMBD(step_size);
 
+     // Meta-step (communication interval)
+    double meta_time_step = 5 * step_size;
+
     // Set CFD fluid properties
     ChFsiFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
@@ -416,12 +419,7 @@ int main(int argc, char* argv[]) {
         out_file = out_dir + "/results_fixed_time_step.txt";
     }
     std::ofstream ofile(out_file, std::ios::trunc);
-    double exchange_info;
-    if (use_variable_time_step) {
-        exchange_info = 5 * step_size;
-    } else {
-        exchange_info = step_size;
-    }
+
     ChTimer timer;
     timer.start();
     while (time < t_end) {
@@ -462,10 +460,10 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        // Call the FSI solver
-        fsi.DoStepDynamics(exchange_info);
+        // Advance dynamics of the FSI system to next communication time
+        fsi.DoStepDynamics(meta_time_step);
 
-        time += exchange_info;
+        time += meta_time_step;
         sim_frame++;
     }
     timer.stop();

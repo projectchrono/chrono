@@ -391,7 +391,9 @@ int main(int argc, char* argv[]) {
     // If variable time step is enabled, this step size is only used for the first time step
     double step_size_CFD = 1e-4;
     double step_size_MBD = (create_flex_cable || create_flex_plate) ? 1e-5 : 1e-4;
-    double step_size = std::max(step_size_CFD, step_size_MBD);
+
+     // Meta-step (communication interval)
+    double meta_time_step = 5 * std::max(step_size_CFD, step_size_MBD);
 
     // Parse command line arguments
     double t_end = 12.0;
@@ -647,12 +649,6 @@ int main(int argc, char* argv[]) {
 
     ChTimer timer;
     timer.start();
-    double exchange_info;
-    if (use_variable_time_step) {
-        exchange_info = 5 * step_size;
-    } else {
-        exchange_info = step_size;
-    }
     while (time < t_end) {
         // Extract FSI force on piston body
         auto force_body = fsi.GetFsiBodyForce(body).x();
@@ -685,10 +681,10 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        // Call the FSI solver
-        fsi.DoStepDynamics(exchange_info);
+        // Advance dynamics of the FSI system to next communication time
+        fsi.DoStepDynamics(meta_time_step);
 
-        time += exchange_info;
+        time += meta_time_step;
         sim_frame++;
     }
     timer.stop();

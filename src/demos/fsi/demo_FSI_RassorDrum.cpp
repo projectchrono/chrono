@@ -469,6 +469,9 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSizeCFD(params.time_step);
     sysFSI.SetStepsizeMBD(params.time_step);
 
+    // Meta-step (communication interval)
+    double meta_time_step = 5 * params.time_step;
+
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = 1e6;
@@ -616,12 +619,6 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
-    double exchange_info;
-    if (params.use_variable_time_step) {
-        exchange_info = 5 * params.time_step;
-    } else {
-        exchange_info = params.time_step;
-    }
     ChTimer timer;
     timer.start();
     while (time < params.total_time) {
@@ -659,9 +656,10 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
 
-        // Call the FSI solver
-        sysFSI.DoStepDynamics(exchange_info);
-        time += exchange_info;
+        // Advance dynamics of the FSI system to next communication time
+        sysFSI.DoStepDynamics(meta_time_step);
+
+        time += meta_time_step;
 
         if (w_pos.x() + wheel_radius > bxDim / 2.0f) {
             std::cout << "Wheel has reached the end of the container" << std::endl;
