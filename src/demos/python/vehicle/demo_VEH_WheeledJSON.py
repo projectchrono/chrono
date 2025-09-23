@@ -24,11 +24,11 @@ def main() :
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
     vehicle.Initialize(chrono.ChCoordsysd(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
-    vehicle.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetChassisRearVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetWheelVisualizationType(veh.VisualizationType_NONE)
+    vehicle.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetChassisRearVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetWheelVisualizationType(chrono.VisualizationType_NONE)
 
     # Create and initialize the powertrain system
     engine = veh.ReadEngineJSON(engine_file)
@@ -40,7 +40,7 @@ def main() :
     for axle in vehicle.GetAxles() :
         for wheel in axle.GetWheels() :
             tire = veh.ReadTireJSON(tire_file)
-            vehicle.InitializeTire(tire, wheel, veh.VisualizationType_MESH)
+            vehicle.InitializeTire(tire, wheel, chrono.VisualizationType_MESH)
 
     vehicle.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
