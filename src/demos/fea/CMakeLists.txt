@@ -36,6 +36,7 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
         demo_FEA_shellsANCF_3833
         demo_FEA_hexaANCF_3813
         demo_FEA_loads_dynamics
+        demo_FEA_multiphysics
     )
     
     if(CH_ENABLE_MODULE_MUMPS)
