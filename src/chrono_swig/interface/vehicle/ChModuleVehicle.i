@@ -241,10 +241,12 @@ using namespace chrono::vehicle::m113;
 
 %import(module = "pychrono.core") "../../../chrono/output/ChOutput.h"
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_VSG
 #define CH_VSG_API
 %import(module = "pychrono.vsg3d") "chrono_swig/interface/vsg/ChVisualSystemVSG.i"
 #endif
+#endif             // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
 #define ChApiIrr 
@@ -407,9 +409,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
   %include "ChVehicleVisualSystemIrrlicht.i"
 #endif
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_VSG
   %include "ChVehicleVisualSystemVSG.i"
 #endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
 //
 // C- CASTING OF SHARED POINTERS
 //
