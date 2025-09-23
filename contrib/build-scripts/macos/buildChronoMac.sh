@@ -28,7 +28,7 @@
 #     - cuda
 #     - optix
 #     - csharp
-#     - GPU
+#     - DEM
 #     - FSI
 #     - CSHARP
 #     - COSIMULATION

@@ -8,7 +8,7 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
-#   Cascade, CSharp, FMI, FSI, GPU, Irrlicht, Matlab, Modal, Multicore,
+#   Cascade, CSharp, FMI, FSI, DEM, Irrlicht, Matlab, Modal, Multicore,
 #   PardisoMKL, Parsers, Postprocess, Sensor, Synchrono,
 #   Vehicle, VehicleCosim, VSG.
 # A component can be requested either as required or optional
@@ -130,7 +130,7 @@ set(Chrono_POSTPROCESS_AVAILABLE    @CH_ENABLE_MODULE_POSTPROCESS@)
 set(Chrono_PARSERS_AVAILABLE        @CH_ENABLE_MODULE_PARSERS@)
 set(Chrono_VEHICLE_AVAILABLE        @CH_ENABLE_MODULE_VEHICLE@)
 set(Chrono_FSI_AVAILABLE            @CH_ENABLE_MODULE_FSI@)
-set(Chrono_GPU_AVAILABLE            @CH_ENABLE_MODULE_GPU@)
+set(Chrono_DEM_AVAILABLE            @CH_ENABLE_MODULE_DEM@)
 set(Chrono_SENSOR_AVAILABLE         @CH_ENABLE_MODULE_SENSOR@)
 set(Chrono_SYNCHRONO_AVAILABLE      @CH_ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_MODAL_AVAILABLE          @CH_ENABLE_MODULE_MODAL@)
@@ -159,7 +159,7 @@ set(Chrono_POSTPROCESS_DEPENDENCIES    "@DEPENDENCIES_POSTPROCESS@")
 set(Chrono_PARSERS_DEPENDENCIES        "@DEPENDENCIES_PARSERS@")
 set(Chrono_VEHICLE_DEPENDENCIES        "@DEPENDENCIES_VEHICLE@")
 set(Chrono_FSI_DEPENDENCIES            "@DEPENDENCIES_FSI@")
-set(Chrono_GPU_DEPENDENCIES            "@DEPENDENCIES_GPU@")
+set(Chrono_DEM_DEPENDENCIES            "@DEPENDENCIES_DEM@")
 set(Chrono_SENSOR_DEPENDENCIES         "@DEPENDENCIES_SENSOR@")
 set(Chrono_SYNCHRONO_DEPENDENCIES      "@DEPENDENCIES_SYNCHRONO@")
 set(Chrono_MODAL_DEPENDENCIES          "@DEPENDENCIES_MODAL@")
@@ -294,7 +294,7 @@ endif()
 # Enable CUDA if necessary
 #-------------------------------------------------------------------------------
 
-if(Chrono_GPU_REQUESTED OR Chrono_FSI_REQUESTED OR Chrono_SENSOR_REQUESTED)
+if(Chrono_DEM_REQUESTED OR Chrono_FSI_REQUESTED OR Chrono_SENSOR_REQUESTED)
   set(CMAKE_CUDA_COMPILER "@CMAKE_CUDA_COMPILER@" CACHE PATH "CUDA compiler")
   set(CUDAToolkit_DIR "@CUDAToolkit_LIBRARY_ROOT@" CACHE PATH "CUDAToolkit library location (should contain 'version.json')")
 
@@ -799,26 +799,36 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       endif()
     endif()
 
-  elseif(${COMPONENT_UPPER} MATCHES "GPU")
+  elseif(${COMPONENT_UPPER} MATCHES "DEM")
 
     if(NOT CHRONO_CUDA_FOUND)
-      message("WARNING: Chrono::GPU requires Cuda, but Cuda was not found")
+      message("WARNING: Chrono::DEM requires Cuda, but Cuda was not found")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
 
-      list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_dem")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "Chrono_gpu.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_dem.dll")
       endif()
 
-#      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
-#        list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu_vsg")
-#        if (NOT CHRONO_STATIC)
-#          list(APPEND CHRONO_DLL_NAMES "Chrono_gpu_vsg.dll")
-#        endif()
-#      endif()
+      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_dem_vsg")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_dem_vsg.dll")
+        endif()
+      endif()
+
+      # ATTENTION: This is a temporary hack!
+      # We only add to the list of DLLs, when we should fully configure the VSG modules.
+      # This is done only to allow building vehicle C# demos, in case the DEM module was also enabled in Chrono.
+      if (NOT CHRONO_STATIC)
+        if (Chrono_VSG_AVAILABLE)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_vsg.dll")
+        endif()
+      endif()
 
     endif()
 

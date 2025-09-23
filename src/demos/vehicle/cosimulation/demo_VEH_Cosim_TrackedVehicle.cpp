@@ -44,8 +44,8 @@
 #ifdef CHRONO_FSI
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
-#ifdef CHRONO_GPU
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
+#ifdef CHRONO_DEM
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularDEM.h"
 #endif
 
 using std::cout;
