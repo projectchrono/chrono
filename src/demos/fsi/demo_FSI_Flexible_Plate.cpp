@@ -90,8 +90,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type);
+                     std::string& boundary_method,
+                     std::string& viscosity_method);
 
 // -----------------------------------------------------------------------------
 
@@ -105,11 +105,11 @@ int main(int argc, char* argv[]) {
     double render_fps = 400;
     bool snapshots = false;
     int ps_freq = 1;
-    std::string boundary_type = "adami";
-    std::string viscosity_type =
+    std::string boundary_method = "adami";
+    std::string viscosity_method =
         (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_type, viscosity_type)) {
+                         boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
 
     switch (problem_type) {
         case PhysicsProblem::CFD:
-            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.integration_scheme = IntegrationScheme::RK2;
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.2;
             sph_params.max_velocity = 10;
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
             break;
 
         case PhysicsProblem::CRM:
-            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.integration_scheme = IntegrationScheme::RK2;
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.2;
             sph_params.shifting_xsph_eps = 0.5;
@@ -195,17 +195,17 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    if (boundary_type == "holmes")
-        sph_params.boundary_type = BoundaryType::HOLMES;
+    if (boundary_method == "holmes")
+        sph_params.boundary_method = BoundaryMethod::HOLMES;
     else
-        sph_params.boundary_type = BoundaryType::ADAMI;
+        sph_params.boundary_method = BoundaryMethod::ADAMI;
 
-    if (viscosity_type == "laminar")
-        sph_params.viscosity_type = ViscosityType::LAMINAR;
-    else if (viscosity_type == "artificial_bilateral")
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    if (viscosity_method == "laminar")
+        sph_params.viscosity_method = ViscosityMethod::LAMINAR;
+    else if (viscosity_method == "artificial_bilateral")
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     else
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
 
     fsi.SetSPHParameters(sph_params);
 
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     ChVector3d cMin =
         ChVector3d(-cxDim - 3 * initial_spacing, -cyDim / 2 - initial_spacing / 2, -czDim - 3 * initial_spacing);
     ChVector3d cMax = ChVector3d(cxDim + 3 * initial_spacing, +cyDim / 2 + initial_spacing / 2, czDim);
-    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::Y);
+    fsi.SetComputationalDomain(ChAABB(cMin, cMax), BC_Y_PERIODIC);
 
     // Initialize FSI problem
     fsi.Initialize();
@@ -247,13 +247,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString() + "/";
+    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphIntegrationSchemeString() + "/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
-    out_dir = out_dir + viscosity_type + "_" + boundary_type + "_ps" + std::to_string(ps_freq);
+    out_dir = out_dir + viscosity_method + "_" + boundary_method + "_ps" + std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -361,6 +361,7 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -377,6 +378,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         ChVector3d pos = node->GetPos();
         double displacement = (pos - init_pos).Length();
@@ -522,7 +524,7 @@ std::shared_ptr<fea::ChMesh> CreateFlexiblePlate(ChSystem& sysMBS,
     if (show_mesh) {
         auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-        vis_mesh->SetColorscaleMinMax(0.0, 3.0);
+        vis_mesh->SetColormapRange(0.0, 3.0);
         vis_mesh->SetShrinkElements(true, 0.85);
         vis_mesh->SetSmoothFaces(true);
         mesh->AddVisualShapeFEA(vis_mesh);
@@ -562,9 +564,9 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose
         double height = 0.75;
         double radius = 0.02;
 
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, height));
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->materials.push_back(contact_material_info);
+        geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, height));
 
         auto cylinder = chrono_types::make_shared<ChBody>();
         cylinder->SetPos(ChVector3d(post_x, 0, height / 2));
@@ -573,18 +575,18 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose
         sysMBS.AddBody(cylinder);
 
         if (show_rigid)
-            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+            geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
 
     fsi.SetBcePattern2D(BcePatternMesh2D::INWARD);
 
-    // Create the first flexible cable and add to FSI system
+    // Create the first flexible plate and add to FSI system
     auto mesh1 = CreateFlexiblePlate(sysMBS, plate1_x, 5e6, ground, verbose);
     fsi.AddFeaMesh(mesh1, false);
 
-    // Create second flexible cable
+    // Create second flexible plate
     if (create_flex_plate2) {
         auto mesh2 = CreateFlexiblePlate(sysMBS, plate2_x, 2e7, ground, verbose);
         fsi.AddFeaMesh(mesh2, false);
@@ -605,8 +607,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type) {
+                     std::string& boundary_method,
+                     std::string& viscosity_method) {
     ChCLI cli(argv[0], "Flexible flat plate FSI demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -621,9 +623,9 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
-    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", boundary_type);
-    cli.AddOption<std::string>("Physics", "viscosity_type",
-                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_type);
+    cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", boundary_method);
+    cli.AddOption<std::string>("Physics", "viscosity_method",
+                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_method);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -641,8 +643,8 @@ bool GetProblemSpecs(int argc,
     render_fps = cli.GetAsType<double>("render_fps");
     ps_freq = cli.GetAsType<int>("ps_freq");
 
-    boundary_type = cli.GetAsType<std::string>("boundary_type");
-    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+    boundary_method = cli.GetAsType<std::string>("boundary_method");
+    viscosity_method = cli.GetAsType<std::string>("viscosity_method");
 
     return true;
 }

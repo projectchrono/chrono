@@ -39,12 +39,15 @@ veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 initLoc = chrono.ChVector3d(0, 0, 0.4)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
+# Run-time visualization type (VSG or Irrlicht)
+vis_type = chrono.ChVisualSystem.Type_VSG;
+
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_MESH
-suspension_vis_type = veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH
+chassis_vis_type = chrono.VisualizationType_MESH
+suspension_vis_type = chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_MESH
+tire_vis_type = chrono.VisualizationType_MESH
 
 # Type of tire model (RIGID, TMEASY, PAC02)
 tire_model = veh.TireModelType_PAC02
@@ -141,16 +144,30 @@ driver.SetThrottleDelta(render_step_size / throttle_time)
 driver.SetBrakingDelta(render_step_size / braking_time)
 driver.Initialize()
 
-vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-vis.SetWindowTitle('UAZ bus')
-vis.SetWindowSize(1280, 1024)
-vis.SetChaseCamera(trackPoint, 6.0, 0.5)
-vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-vis.AddLightDirectional()
-vis.AddSkyBox()
-vis.AttachVehicle(uaz.GetVehicle())
-vis.AttachDriver(driver)
+# Create run-time visualization
+if vis_type == chrono.ChVisualSystem.Type_IRRLICHT:
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    vis.SetWindowTitle('UAZ bus')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
+    vis.AddLightDirectional()
+    vis.AddSkyBox()
+    vis.AttachVehicle(uaz.GetVehicle())
+    vis.AttachDriver(driver)
+elif vis_type == chrono.ChVisualSystem.Type_VSG:
+    vis = veh.ChWheeledVehicleVisualSystemVSG()
+    vis.SetWindowTitle('UAZ bus')
+    vis.SetWindowSize(1280, 1024)
+    vis.EnableSkyBox()
+    vis.SetLightIntensity(1.0)
+    vis.SetLightDirection(2.0, 0.75)
+    vis.EnableShadows()
+    vis.SetChaseCamera(trackPoint, 9.0, 0.5)
+    vis.AttachVehicle(uaz.GetVehicle())
+    vis.AttachDriver(driver)
+    vis.Initialize()
 
 # -----------------
 # Initialize output

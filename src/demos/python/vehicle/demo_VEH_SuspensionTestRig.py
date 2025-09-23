@@ -47,14 +47,14 @@ def main() :
         axle = rig.GetVehicle().GetAxle(ia)
         for wheel in axle.GetWheels():
             tire = veh.ReadTireJSON(tire_file)
-            rig.GetVehicle().InitializeTire(tire, wheel, veh.VisualizationType_NONE)
+            rig.GetVehicle().InitializeTire(tire, wheel, chrono.VisualizationType_NONE)
 
     # Optional rig settings
-    rig.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    rig.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    rig.SetSubchassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    rig.SetWheelVisualizationType(veh.VisualizationType_NONE);
-    rig.SetTireVisualizationType(veh.VisualizationType_MESH)
+    rig.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    rig.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    rig.SetSubchassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    rig.SetWheelVisualizationType(chrono.VisualizationType_NONE);
+    rig.SetTireVisualizationType(chrono.VisualizationType_MESH)
     
     # Create and attach an STR driver
     driver = veh.ChSuspensionTestRigDataDriver(driver_file)
@@ -81,7 +81,7 @@ def main() :
            print("Error creating output directory " )
     
     if output:
-        rig.SetOutput(veh.ChVehicleOutput.ASCII, out_dir, 'output', out_step_size)
+        rig.SetOutput(chrono.ChOutput.Type_ASCII, out_dir, 'output', out_step_size)
     if plot:
         rig.SetPlotOutput(out_step_size)
 

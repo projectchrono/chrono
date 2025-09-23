@@ -913,7 +913,8 @@ EXCLUDE_PATTERNS       = */src/demos/* \
                          */src/chrono_thirdparty/fmu-forge/rapidxml \
                          */src/chrono_thirdparty/fmu-forge/miniz-cpp \
                          */src/chrono_thirdparty/fmu-forge/variant \
-                         */src/chrono_thirdparty/fmu-forge/fmusim
+                         */src/chrono_thirdparty/fmu-forge/fmusim \
+                         */src/chrono_thirdparty/yaml-cpp
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -930,8 +931,7 @@ EXCLUDE_SYMBOLS        = a_registration_*
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = ../src/demos/ \
-                            ../contrib/docker/
+EXAMPLE_PATH           = ../
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and

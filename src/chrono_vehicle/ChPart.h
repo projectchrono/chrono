@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
@@ -35,10 +36,10 @@
 #include "chrono/utils/ChBodyGeometry.h"
 #include "chrono/utils/ChCompositeInertia.h"
 
+#include "chrono/output/ChOutput.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleJoint.h"
-#include "chrono_vehicle/ChVehicleOutput.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -118,7 +119,7 @@ class CH_VEHICLE_API ChPart {
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const;
 
     /// Output data for this subsystem's component list to the specified database.
-    virtual void Output(ChVehicleOutput& database) const {}
+    virtual void Output(ChOutput& database) const {}
 
     /// Utility function for transforming inertia tensors between centroidal frames.
     /// It converts an inertia matrix specified in a centroidal frame aligned with the

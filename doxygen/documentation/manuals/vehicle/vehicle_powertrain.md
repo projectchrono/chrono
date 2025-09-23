@@ -7,9 +7,9 @@ The powertrain system is connected to the driver system (receiving throttle inpu
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/powertrain_data_flow.png" width="600" />
 
-Chrono::Vehicle is designed to permit linking to a third-party powertrain model. Interfacing to such an external powertrain model requires two thin interface classs, derived from [ChEngine](@ref chrono::vehicle::ChEngine) and [ChTransmission](@ref chrono::vehicle::ChTransmission).
+Chrono::Vehicle is designed to permit linking to a third-party powertrain model. Interfacing to such an external powertrain model requires two thin interface classes, derived from [ChEngine](@ref chrono::vehicle::ChEngine) and [ChTransmission](@ref chrono::vehicle::ChTransmission).
 
-Chrono::Vehicle provides several templates for the powertrain system, descibed below.
+Chrono::Vehicle provides several templates for the powertrain system, described below.
 
 
 ## Shafts-based powertrain model {#vehicle_powertrain_shafts}

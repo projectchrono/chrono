@@ -16,7 +16,6 @@ message(STATUS "\n==== Chrono Python module ====\n")
 
 mark_as_advanced(CLEAR SWIG_EXECUTABLE)
 
-
 if(DEFINED CH_CONDA_INSTALL)
 
   message(STATUS "Configure Pychrono for Conda packaging")
@@ -25,7 +24,7 @@ if(DEFINED CH_CONDA_INSTALL)
     message(FATAL_ERROR "Installation directory not specified. Set CH_INSTALL_PYTHON_PACKAGE")
   else()
     message(STATUS "Override the CH_INSTALL_PYTHON with CH_INSTALL_PYTHON_PACKAGE")
-    set (CH_INSTALL_PYTHON "${CH_INSTALL_PYTHON_PACKAGE}")
+    file(TO_CMAKE_PATH "${CH_INSTALL_PYTHON_PACKAGE}" CH_INSTALL_PYTHON)
   endif()
 
   if (NOT DEFINED CH_PYCHRONO_DATA_PATH)
@@ -49,7 +48,6 @@ set(DBG_SCRIPT FALSE)
 #-----------------------------------------------------------------------------
 
 message(STATUS "Find Python")
-set(Python_ADDITIONAL_VERSIONS 3.4)
 find_package(Python3 REQUIRED 
              COMPONENTS Interpreter Development
              OPTIONAL_COMPONENTS NumPy)
@@ -138,12 +136,26 @@ else()
   set(PYC_DATA_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 
   # Default path to Chrono::Sensor shaders/ directory (in INSTALL tree)
-  set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
+  if(CH_USE_CUDA_NVRTC)
+    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
+  else()
+    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/")
+  endif()
 
   # Generate the __init__.py file using substitution variables and place it in a temporary place
   configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
                  ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
 endif()
+
+# Location of Chrono Python modules
+
+if(MULTI_CONFIG)
+  set(CHPY_LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/$<CONFIG>/pychrono")
+else()
+  set(CHPY_LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/pychrono")
+endif()
+
+
 #-----------------------------------------------------------------------------
 # Install demos
 #-----------------------------------------------------------------------------
@@ -158,78 +170,128 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INST
 
 message(STATUS "Add python CORE module")
 
+# Python module name
+set(CHPY_CORE core)
+
 # Interface files
 set(CHPY_CORE_MODULE_FILE ChModuleCore_python.i)
-
-set(CHPY_CORE_WRAPPER_FILES
-    ../interface/core/ChCoordsys.i
-    ../interface/core/ChVector3.i
-    ../interface/core/ChQuaternion.i
-    )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
 endif()
 set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
-set_source_files_properties(${CHPY_CORE_WRAPPER_FILES} PROPERTIES HEADER_FILE_ONLY ON)
-source_group("wrappers" FILES  ${CHPY_CORE_WRAPPER_FILES})
 if(MSVC)
   set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
 endif()
 
-
-
-swig_add_library(core LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
-target_link_libraries(core PRIVATE Python3::Python Chrono_core)
+swig_add_library(${CHPY_CORE} LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
+target_link_libraries(${CHPY_CORE} PRIVATE Python3::Python Chrono_core)
 
 # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif(MSVC)
-   target_compile_options(core PRIVATE "/wd4189")  # local variable is initialized but not referenced
-   target_compile_options(core PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-   target_compile_options(core PRIVATE "/wd4456")  # declaration hides previous local declaration
-   target_compile_options(core PRIVATE "/wd4702")  # unreachable code
-   target_compile_options(core PRIVATE "/wd4706")  # assignment within conditional expression
+   target_compile_options(${CHPY_CORE} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+   target_compile_options(${CHPY_CORE} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+   target_compile_options(${CHPY_CORE} PRIVATE "/wd4456")  # declaration hides previous local declaration
+   target_compile_options(${CHPY_CORE} PRIVATE "/wd4702")  # unreachable code
+   target_compile_options(${CHPY_CORE} PRIVATE "/wd4706")  # assignment within conditional expression
 else()
-   target_compile_options(core PRIVATE "-Wno-unused-variable")
+   target_compile_options(${CHPY_CORE} PRIVATE "-Wno-unused-variable")
 endif()
 
 # Ensure that the PYD library file is generated in the bin/ directory.
-set_target_properties(core PROPERTIES
+set_target_properties(${CHPY_CORE} PROPERTIES
                       PROJECT_LABEL "Chrono_python_core"
-                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                      LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                       SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                       )
 
-
-
-add_dependencies(core Chrono_core)
+add_dependencies(${CHPY_CORE} Chrono_core)
 
 # Copy PY file in a package dir
-set(CHPY_CORE_PY_FILE "${CMAKE_SWIG_OUTDIR}/core.py")
-set(CHPY_CORE_PYD_PATH $<TARGET_FILE_DIR:core>)
-
-add_custom_command(TARGET core
+set(CHPY_CORE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_CORE}.py")
+add_custom_command(TARGET ${CHPY_CORE}
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_CORE_PYD_PATH}/pychrono)
-add_custom_command(TARGET core
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH}/pychrono)
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
 # Install .pyd binary module (.so on linux)
-install(TARGETS core
+install(TARGETS ${CHPY_CORE}
         EXPORT ChronoTargets
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
 # Install .py module wrapper
 install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
 if (DBG_SCRIPT)
-  message("Module name:     core")
+  message("Module name:     ${CHPY_CORE}")
   message("PY file:         ${CHPY_CORE_PY_FILE}")
-  message("PYD path:        ${CHPY_CORE_PYD_PATH}")
+endif()
+
+#-----------------------------------------------------------------------------
+# MODULE for the fea python wrapper.
+#-----------------------------------------------------------------------------
+
+message(STATUS "Add python FEA module")
+
+# Python module name
+set(CHPY_FEA fea)
+
+# Interface files
+set(CHPY_FEA_MODULE_FILE ChModuleFea_python.i)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+endif()
+set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+if(MSVC)
+  set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+endif()
+
+swig_add_library(${CHPY_FEA} LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
+target_link_libraries(${CHPY_FEA} PRIVATE Python3::Python Chrono_core)
+
+# Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif(MSVC)
+  target_compile_options(${CHPY_FEA} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+  target_compile_options(${CHPY_FEA} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+  target_compile_options(${CHPY_FEA} PRIVATE "/wd4456")  # declaration hides previous local declaration
+  target_compile_options(${CHPY_FEA} PRIVATE "/wd4702")  # unreachable code
+  target_compile_options(${CHPY_FEA} PRIVATE "/wd4706")  # assignment within conditional expression
+else()
+  target_compile_options(${CHPY_FEA} PRIVATE "-Wno-unused-variable")
+endif()
+
+# Ensure that the PYD library file is generated in the bin/ directory.
+set_target_properties(${CHPY_FEA} PROPERTIES
+                      PROJECT_LABEL "Chrono_python_fea"
+                      LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
+                      SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+                      )
+
+add_dependencies(${CHPY_FEA} Chrono_core)
+add_dependencies(${CHPY_FEA} core)
+
+# Copy PY file in a package dir
+set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FEA}.py")
+add_custom_command(TARGET ${CHPY_FEA}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
+
+# Install .pyd binary module (.so on linux)
+install(TARGETS ${CHPY_FEA}
+        EXPORT ChronoTargets
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+# Install .py module wrapper
+install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+
+if (DBG_SCRIPT)
+  message("Module name:     ${CHPY_FEA}")
+  message("PY file:         ${CHPY_FEA_PY_FILE}")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -241,7 +303,7 @@ endif()
 # Copy the __init__.py (BUILD) file in the package
 add_custom_command(TARGET core
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/pychrono)
+                   COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_LIBRARY_OUTPUT_DIRECTORY}/__init__.py)
 
 # ---------- Pychrono in INSTALL tree
 
@@ -272,152 +334,136 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
     set_source_files_properties(${CHPY_POSTPROCESS_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
-
-  swig_add_library(postprocess LANGUAGE python SOURCES ${CHPY_POSTPROCESS_MODULE_FILE})
-  target_link_libraries(postprocess PRIVATE Python3::Python Chrono_core Chrono_postprocess)
+  swig_add_library(${CHPY_POSTPROCESS} LANGUAGE python SOURCES ${CHPY_POSTPROCESS_MODULE_FILE})
+  target_link_libraries(${CHPY_POSTPROCESS} PRIVATE Python3::Python Chrono_core Chrono_postprocess)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   elseif(MSVC)
-    target_compile_options(postprocess PRIVATE "/wd4189")  # local variable is initialized but not referenced
-    target_compile_options(postprocess PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-    target_compile_options(postprocess PRIVATE "/wd4456")  # declaration hides previous local declaration
-    target_compile_options(postprocess PRIVATE "/wd4702")  # unreachable code
-    target_compile_options(postprocess PRIVATE "/wd4706")  # assignment within conditional expression
+    target_compile_options(${CHPY_POSTPROCESS} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_POSTPROCESS} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_POSTPROCESS} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_POSTPROCESS} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_POSTPROCESS} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
-    target_compile_options(postprocess PRIVATE "-Wno-unused-variable")
+    target_compile_options(${CHPY_POSTPROCESS} PRIVATE "-Wno-unused-variable")
   endif()
 
-
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(postprocess PROPERTIES
+  set_target_properties(${CHPY_POSTPROCESS} PROPERTIES
                         PROJECT_LABEL "Chrono_python_postprocess"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
-  
-
-  add_dependencies(postprocess Chrono_core)
-  add_dependencies(postprocess Chrono_postprocess)
-  add_dependencies(postprocess core)
+  add_dependencies(${CHPY_POSTPROCESS} Chrono_core)
+  add_dependencies(${CHPY_POSTPROCESS} Chrono_postprocess)
+  add_dependencies(${CHPY_POSTPROCESS} core)
 
   # Copy PY file in a package dir
-  set(CHPY_POSTPROCESS_PY_FILE "${CMAKE_SWIG_OUTDIR}/postprocess.py")
-
-  set(CHPY_POSTPROCESS_PYD_PATH $<TARGET_FILE_DIR:postprocess>)
-
-  add_custom_command(TARGET postprocess
+  set(CHPY_POSTPROCESS_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_POSTPROCESS}.py")
+  add_custom_command(TARGET ${CHPY_POSTPROCESS}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_POSTPROCESS_PYD_PATH}/pychrono)
-  add_custom_command(TARGET postprocess
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_POSTPROCESS_PY_FILE} ${CHPY_POSTPROCESS_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_POSTPROCESS_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
-  install(TARGETS postprocess
+  install(TARGETS ${CHPY_POSTPROCESS}
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_POSTPROCESS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
   if (DBG_SCRIPT)
-    message("Module name:     postprocess")
+    message("Module name:     ${CHPY_POSTPROCESS}")
     message("PY file:         ${CHPY_POSTPROCESS_PY_FILE}")
-    message("PYD path:        ${CHPY_POSTPROCESS_PYD_PATH}")
   endif()
 
 endif()
 
 #-----------------------------------------------------------------------------
-# MODULE for the fea python wrapper.
+# MODULE for the vsg python wrapper.
 #-----------------------------------------------------------------------------
 
-  message(STATUS "Add python FEA module")
+if(CH_ENABLE_MODULE_VSG)
+
+  message(STATUS "Add python VSG module")
 
   # Python module name
-  set(CHPY_FEA fea)
+  set(CHPY_VSG vsg3d)
 
   # Interface files
-  set(CHPY_FEA_MODULE_FILE
-      ../interface/fea/ChModuleFea.i
-      )
-  set(CHPY_FEA_MODULE_FILE ChModuleFea_python.i)
+  set(CHPY_VSG_MODULE_FILE ChModuleVsg_python.i)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+    set_source_files_properties(${CHPY_VSG_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
-  set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  set_source_files_properties(${CHPY_VSG_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
   if(MSVC)
-    set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+    set_source_files_properties(${CHPY_VSG_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
-  swig_add_library(fea LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
-  target_link_libraries(fea PRIVATE Python3::Python Chrono_core)
+  swig_add_library(${CHPY_VSG} LANGUAGE python SOURCES ${CHPY_VSG_MODULE_FILE})
+  target_link_libraries(${CHPY_VSG} PRIVATE Python3::Python Chrono_core Chrono_vsg)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   elseif(MSVC)
-    target_compile_options(fea PRIVATE "/wd4189")  # local variable is initialized but not referenced
-    target_compile_options(fea PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-    target_compile_options(fea PRIVATE "/wd4456")  # declaration hides previous local declaration
-    target_compile_options(fea PRIVATE "/wd4702")  # unreachable code
-    target_compile_options(fea PRIVATE "/wd4706")  # assignment within conditional expression
+    target_compile_options(${CHPY_VSG} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_VSG} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_VSG} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_VSG} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_VSG} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
-    target_compile_options(fea PRIVATE "-Wno-unused-variable")
+    target_compile_options(${CHPY_VSG} PRIVATE "-Wno-unused-variable")
   endif()
 
-
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(fea PROPERTIES
-                        PROJECT_LABEL "Chrono_python_fea"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+  set_target_properties(${CHPY_VSG} PROPERTIES
+                        PROJECT_LABEL "Chrono_python_vsg"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
-  
+  target_compile_definitions(${CHPY_VSG} PRIVATE "IGNORE_DEPRECATED_WARNING")
 
-  add_dependencies(fea Chrono_core)
-  add_dependencies(fea core)
+  add_dependencies(${CHPY_VSG} Chrono_core)
+  add_dependencies(${CHPY_VSG} Chrono_vsg)
+  add_dependencies(${CHPY_VSG} core)
 
   # Copy PY file in a package dir
-  set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/fea.py")
-
-  set(CHPY_FEA_PYD_PATH $<TARGET_FILE_DIR:fea>)
-
-  add_custom_command(TARGET fea
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_FEA_PYD_PATH}/pychrono)
-  add_custom_command(TARGET fea
+  set(CHPY_VSG_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_VSG}.py")
+  add_custom_command(TARGET ${CHPY_VSG}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VSG_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
-  install(TARGETS fea
+  install(TARGETS ${CHPY_VSG}
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
-  install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+  install(FILES "${CHPY_VSG_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
   if (DBG_SCRIPT)
-    message("Module name:     fea")
-    message("PY file:         ${CHPY_FEA_PY_FILE}")
-    message("PYD path:        ${CHPY_FEA_PYD_PATH}")
+    message("Module name:     ${CHPY_VSG}")
+    message("PY file:         ${CHPY_VSG_PY_FILE}")
   endif()
+
+endif()
 
 #-----------------------------------------------------------------------------
 # MODULE for the irrlicht python wrapper.
 #-----------------------------------------------------------------------------
 
-
-
 if(CH_ENABLE_MODULE_IRRLICHT)
 
   message(STATUS "Add python IRRLICHT module")
+  
+  # Python module name
+  set(CHPY_IRRLICHT irrlicht)
 
   # Interface files
   set(CHPY_IRRLICHT_MODULE_FILE ChModuleIrrlicht_python.i)
@@ -432,63 +478,55 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
   find_package(Irrlicht QUIET REQUIRED)
 
-  swig_add_library(irrlicht LANGUAGE python SOURCES ${CHPY_IRRLICHT_MODULE_FILE})
-  target_link_libraries(irrlicht PRIVATE Python3::Python Chrono_core Chrono_irrlicht Irrlicht::Irrlicht)
+  swig_add_library(${CHPY_IRRLICHT} LANGUAGE python SOURCES ${CHPY_IRRLICHT_MODULE_FILE})
+  target_link_libraries(${CHPY_IRRLICHT} PRIVATE Python3::Python Chrono_core Chrono_irrlicht Irrlicht::Irrlicht)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   elseif(MSVC)
-    target_compile_options(irrlicht PRIVATE "/wd4189")  # local variable is initialized but not referenced
-    target_compile_options(irrlicht PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-    target_compile_options(irrlicht PRIVATE "/wd4456")  # declaration hides previous local declaration
-    target_compile_options(irrlicht PRIVATE "/wd4702")  # unreachable code
-    target_compile_options(irrlicht PRIVATE "/wd4706")  # assignment within conditional expression
+    target_compile_options(${CHPY_IRRLICHT} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_IRRLICHT} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_IRRLICHT} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_IRRLICHT} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_IRRLICHT} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
-    target_compile_options(irrlicht PRIVATE "-Wno-unused-variable")
+    target_compile_options(${CHPY_IRRLICHT} PRIVATE "-Wno-unused-variable")
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(irrlicht PROPERTIES
+  set_target_properties(${CHPY_IRRLICHT} PROPERTIES
                         PROJECT_LABEL "Chrono_python_irrlicht"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
-  
-  target_compile_definitions(irrlicht PRIVATE "IGNORE_DEPRECATED_WARNING")
 
-  add_dependencies(irrlicht Chrono_core)
-  add_dependencies(irrlicht Chrono_irrlicht)
-  add_dependencies(irrlicht core)
+  target_compile_definitions(${CHPY_IRRLICHT} PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(${CHPY_IRRLICHT} Chrono_core)
+  add_dependencies(${CHPY_IRRLICHT} Chrono_irrlicht)
+  add_dependencies(${CHPY_IRRLICHT} core)
 
   # Copy PY file in a package dir
-  set(CHPY_IRRLICHT_PY_FILE "${CMAKE_SWIG_OUTDIR}/irrlicht.py")
-
-  set(CHPY_IRRLICHT_PYD_PATH $<TARGET_FILE_DIR:irrlicht>)
-
-  add_custom_command(TARGET irrlicht
+  set(CHPY_IRRLICHT_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_IRRLICHT}.py")
+  add_custom_command(TARGET ${CHPY_IRRLICHT}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_IRRLICHT_PYD_PATH}/pychrono)
-  add_custom_command(TARGET irrlicht
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_IRRLICHT_PY_FILE} ${CHPY_IRRLICHT_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_IRRLICHT_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
-  install(TARGETS irrlicht
+  install(TARGETS ${CHPY_IRRLICHT}
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_IRRLICHT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
   if (DBG_SCRIPT)
-    message("Module name:     irrlicht")
+    message("Module name:     ${CHPY_IRRLICHT}")
     message("PY file:         ${CHPY_IRRLICHT_PY_FILE}")
-    message("PYD path:        ${CHPY_IRRLICHT_PYD_PATH}")
   endif()
 
 endif()
-
 
 #-----------------------------------------------------------------------------
 # MODULE for the Pardiso mkl python wrapper.
@@ -512,64 +550,53 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
     set_source_files_properties(${CHPY_MKL_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
-  swig_add_library(pardisomkl LANGUAGE python SOURCES ${CHPY_MKL_MODULE_FILE})
-  target_link_libraries(pardisomkl PRIVATE Python3::Python Chrono_core Chrono_pardisomkl)
+  swig_add_library(${CHPY_MKL} LANGUAGE python SOURCES ${CHPY_MKL_MODULE_FILE})
+  target_link_libraries(${CHPY_MKL} PRIVATE Python3::Python Chrono_core Chrono_pardisomkl)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   elseif(MSVC)
-    target_compile_options(pardisomkl PRIVATE "/wd4189")  # local variable is initialized but not referenced
-    target_compile_options(pardisomkl PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-    target_compile_options(pardisomkl PRIVATE "/wd4456")  # declaration hides previous local declaration
-    target_compile_options(pardisomkl PRIVATE "/wd4702")  # unreachable code
-    target_compile_options(pardisomkl PRIVATE "/wd4706")  # assignment within conditional expression
+    target_compile_options(${CHPY_MKL} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_MKL} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_MKL} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_MKL} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_MKL} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
-    target_compile_options(pardisomkl PRIVATE "-Wno-unused-variable")
+    target_compile_options(${CHPY_MKL} PRIVATE "-Wno-unused-variable")
   endif()
 
-
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(pardisomkl PROPERTIES
+  set_target_properties(${CHPY_MKL} PROPERTIES
                         PROJECT_LABEL "Chrono_python_pardisomkl"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
-  
-
-  add_dependencies(pardisomkl Chrono_core)
-  add_dependencies(pardisomkl Chrono_pardisomkl)
-  add_dependencies(pardisomkl core)
+  add_dependencies(${CHPY_MKL} Chrono_core)
+  add_dependencies(${CHPY_MKL} Chrono_pardisomkl)
+  add_dependencies(${CHPY_MKL} core)
 
   # Copy PY file in a package dir
-  set(CHPY_MKL_PY_FILE "${CMAKE_SWIG_OUTDIR}/pardisomkl.py")
-
-  set(CHPY_MKL_PYD_PATH $<TARGET_FILE_DIR:pardisomkl>)
-
-  add_custom_command(TARGET pardisomkl
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_MKL_PYD_PATH}/pychrono)
-  add_custom_command(TARGET pardisomkl
+  set(CHPY_MKL_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_MKL}.py")
+  add_custom_command(TARGET ${CHPY_MKL}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_MKL_PY_FILE} ${CHPY_MKL_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_MKL_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
-  install(TARGETS pardisomkl
+  install(TARGETS ${CHPY_MKL}
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_MKL_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
   if (DBG_SCRIPT)
-    message("Module name:     pardisomkl")
+    message("Module name:     ${CHPY_MKL}")
     message("PY file:         ${CHPY_MKL_PY_FILE}")
-    message("PYD path:        ${CHPY_MKL_PYD_PATH}")
   endif()
 
 endif()
-
 
 #-----------------------------------------------------------------------------
 # MODULE for the cascade python wrapper.
@@ -619,11 +646,9 @@ if(CH_ENABLE_MODULE_CASCADE)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(cascade PROPERTIES
                         PROJECT_LABEL "Chrono_python_cascade"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
-
-  
 
   add_dependencies(cascade Chrono_core)
   add_dependencies(cascade Chrono_cascade)
@@ -631,22 +656,16 @@ if(CH_ENABLE_MODULE_CASCADE)
 
   # Copy PY file in a package dir
   set(CHPY_CASCADE_PY_FILE "${CMAKE_SWIG_OUTDIR}/cascade.py")
-
-  set(CHPY_CASCADE_PYD_PATH $<TARGET_FILE_DIR:cascade>)
-
-  add_custom_command(TARGET cascade
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_CASCADE_PYD_PATH}/pychrono)
   add_custom_command(TARGET cascade
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CASCADE_PY_FILE} ${CHPY_CASCADE_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CASCADE_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS cascade
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_CASCADE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -654,11 +673,9 @@ if(CH_ENABLE_MODULE_CASCADE)
     message("Cascade includes:  ${OpenCASCADE_INCLUDE_DIR}")
     message("Module name:     cascade")
     message("PY file:         ${CHPY_CASCADE_PY_FILE}")
-    message("PYD path:        ${CHPY_CASCADE_PYD_PATH}")
   endif()
 
 endif()
-
 
 #-----------------------------------------------------------------------------
 # MODULE for the vehicle python wrapper.
@@ -679,85 +696,88 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     set_source_files_properties(${CHPY_VEHICLE_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
-
   # Make sure CHRONO_IRRLICHT is defined for the SWIG processor
   if (CH_ENABLE_MODULE_IRRLICHT)
     set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
   endif()
 
-  swig_add_library(vehicle LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
-  target_link_libraries(vehicle PRIVATE Python3::Python Chrono_core Chrono_vehicle ChronoModels_vehicle)
+  # Make sure CHRONO_VSG is defined for the SWIG processor
+  if (CH_ENABLE_MODULE_VSG)
+      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
+  endif()
+
+
+  swig_add_library(${CHPY_VEHICLE} LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
+  target_link_libraries(${CHPY_VEHICLE} PRIVATE Python3::Python Chrono_core Chrono_vehicle ChronoModels_vehicle)
   if(CH_ENABLE_MODULE_IRRLICHT)
     find_package(Irrlicht QUIET REQUIRED)
-    target_link_libraries(vehicle PRIVATE Chrono_vehicle_irrlicht Chrono_irrlicht Irrlicht::Irrlicht)
+    target_link_libraries(${CHPY_VEHICLE} PRIVATE Chrono_vehicle_irrlicht Chrono_irrlicht Irrlicht::Irrlicht)
+  endif()
+
+  if (CH_ENABLE_MODULE_VSG)
+      target_link_libraries(${CHPY_VEHICLE} PRIVATE Chrono_vehicle_vsg Chrono_vsg)
+  endif()
+
+  if(CH_ENABLE_MODULE_FSI)
+    target_link_libraries(${CHPY_VEHICLE} PRIVATE Chrono_fsi Chrono_fsisph)
   endif()
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_definitions(vehicle PRIVATE "/DWNT")
+    target_compile_definitions(${CHPY_VEHICLE} PRIVATE "/DWNT")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_compile_definitions(vehicle PRIVATE "-DHAVE_IOSTREAM")
-    target_compile_definitions(vehicle PRIVATE "-DHAVE_LIMITS_H")
+    target_compile_definitions(${CHPY_VEHICLE} PRIVATE "-DHAVE_IOSTREAM")
+    target_compile_definitions(${CHPY_VEHICLE} PRIVATE "-DHAVE_LIMITS_H")
   ENDIF()
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   elseif(MSVC)
-    target_compile_options(vehicle PRIVATE "/wd4189")  # local variable is initialized but not referenced
-    target_compile_options(vehicle PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-    target_compile_options(vehicle PRIVATE "/wd4456")  # declaration hides previous local declaration
-    target_compile_options(vehicle PRIVATE "/wd4702")  # unreachable code
-    target_compile_options(vehicle PRIVATE "/wd4706")  # assignment within conditional expression
+    target_compile_options(${CHPY_VEHICLE} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_VEHICLE} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_VEHICLE} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_VEHICLE} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_VEHICLE} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
-    target_compile_options(vehicle PRIVATE "-Wno-unused-variable")
+    target_compile_options(${CHPY_VEHICLE} PRIVATE "-Wno-unused-variable")
   endif()
-  
 
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  #  set_target_properties(vehicle PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
+  #  set_target_properties(${CHPY_VEHICLE} PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
   #endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(vehicle PROPERTIES
+  set_target_properties(${CHPY_VEHICLE} PROPERTIES
                         PROJECT_LABEL "Chrono_python_vehicle"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
-  
-
-  add_dependencies(vehicle Chrono_core)
-  add_dependencies(vehicle Chrono_vehicle)
+  add_dependencies(${CHPY_VEHICLE} Chrono_core)
+  add_dependencies(${CHPY_VEHICLE} Chrono_vehicle)
   if(CH_ENABLE_MODULE_IRRLICHT)
-    add_dependencies(vehicle Chrono_irrlicht)
+    add_dependencies(${CHPY_VEHICLE} Chrono_irrlicht)
   endif()
-  add_dependencies(vehicle ChronoModels_vehicle)
-  add_dependencies(vehicle core)
+  add_dependencies(${CHPY_VEHICLE} ChronoModels_vehicle)
+  add_dependencies(${CHPY_VEHICLE} core)
 
   # Copy PY file in a package dir
-  set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/vehicle.py")
-
-  set(CHPY_VEHICLE_PYD_PATH $<TARGET_FILE_DIR:vehicle>)
-
-  add_custom_command(TARGET vehicle
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VEHICLE_PYD_PATH}/pychrono)
-  add_custom_command(TARGET vehicle
+  set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_VEHICLE}.py")
+  add_custom_command(TARGET ${CHPY_VEHICLE}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VEHICLE_PY_FILE} ${CHPY_VEHICLE_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VEHICLE_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
-  install(TARGETS vehicle
+  install(TARGETS ${CHPY_VEHICLE}
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
   if (DBG_SCRIPT)
-    message("Module name:     vehicle")
+    message("Module name:     ${CHPY_VEHICLE}")
     message("PY file:         ${CHPY_VEHICLE_PY_FILE}")
-    message("PYD path:        ${CHPY_VEHICLE_PYD_PATH}")
   endif()
 
 endif()
@@ -766,78 +786,71 @@ endif()
 # MODULE for the sensor python wrapper.
 #-----------------------------------------------------------------------------
 
-if(CH_ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
+if(CH_ENABLE_MODULE_SENSOR)
+  if(Python3_NumPy_FOUND)
+    message(STATUS "Add python SENSOR module")
 
-  message(STATUS "Add python SENSOR module")
+    # Interface files
+    set(CHPY_SENSOR_MODULE_FILE ChModuleSensor_python.i)
 
-  # Interface files
-  set(CHPY_SENSOR_MODULE_FILE ChModuleSensor_python.i)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+    endif()
+    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+    if(MSVC)
+      set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+    endif()
 
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
-  endif()
-  set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
-  if(MSVC)
-    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
-  endif()
+    swig_add_library(sensor LANGUAGE python SOURCES ${CHPY_SENSOR_MODULE_FILE})
+    target_link_libraries(sensor PRIVATE Python3::Python Python3::NumPy Chrono_core Chrono_sensor)
 
-  swig_add_library(sensor LANGUAGE python SOURCES ${CHPY_SENSOR_MODULE_FILE})
-  target_link_libraries(sensor PRIVATE Python3::Python Python3::NumPy Chrono_core Chrono_sensor)
+    # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    elseif(MSVC)
+      target_compile_options(sensor PRIVATE "/wd4189")  # local variable is initialized but not referenced
+      target_compile_options(sensor PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+      target_compile_options(sensor PRIVATE "/wd4456")  # declaration hides previous local declaration
+      target_compile_options(sensor PRIVATE "/wd4702")  # unreachable code
+      target_compile_options(sensor PRIVATE "/wd4706")  # assignment within conditional expression
+    else()
+      target_compile_options(sensor PRIVATE "-Wno-unused-variable")
+    endif()
 
-  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  elseif(MSVC)
-    target_compile_options(sensor PRIVATE "/wd4189")  # local variable is initialized but not referenced
-    target_compile_options(sensor PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-    target_compile_options(sensor PRIVATE "/wd4456")  # declaration hides previous local declaration
-    target_compile_options(sensor PRIVATE "/wd4702")  # unreachable code
-    target_compile_options(sensor PRIVATE "/wd4706")  # assignment within conditional expression
+    # Ensure that the PYD library file is generated in the bin/ directory.
+    set_target_properties(sensor PROPERTIES
+            PROJECT_LABEL "Chrono_python_sensor"
+            LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
+            SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+            )
+  
+    add_dependencies(sensor Chrono_core)
+    add_dependencies(sensor Chrono_sensor)
+    add_dependencies(sensor core)
+  
+    # Copy PY file in a package dir
+    set(CHPY_SENSOR_PY_FILE "${CMAKE_SWIG_OUTDIR}/sensor.py")
+    add_custom_command(TARGET sensor
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_SENSOR_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
+
+    # Install .pyd binary module (.so on linux)
+    install(TARGETS sensor
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+            LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+            ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+    # Install .py module wrapper
+    install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+
+    if (DBG_SCRIPT)
+      message("Module name:     sensor")
+      message("PY file:         ${CHPY_SENSOR_PY_FILE}")
+    endif()
+
   else()
-    target_compile_options(sensor PRIVATE "-Wno-unused-variable")
+    message(WARNING "NumPy cannot be found. PyChrono::Sensor module will not be built.")
   endif()
-
-  # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(sensor PROPERTIES
-          PROJECT_LABEL "Chrono_python_sensor"
-          _DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
-          SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
-          )
-
-  add_dependencies(sensor Chrono_core)
-  add_dependencies(sensor Chrono_sensor)
-  add_dependencies(sensor core)
-
-  # Copy PY file in a package dir
-  set(CHPY_SENSOR_PY_FILE "${CMAKE_SWIG_OUTDIR}/sensor.py")
-
-  set(CHPY_SENSOR_PYD_PATH $<TARGET_FILE_DIR:sensor>)
-
-  add_custom_command(TARGET sensor
-          POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_SENSOR_PYD_PATH}/pychrono)
-  add_custom_command(TARGET sensor
-          POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_SENSOR_PY_FILE} ${CHPY_SENSOR_PYD_PATH}/pychrono)
-
-  # Install .pyd binary module (.so on linux)
-  install(TARGETS sensor
-          EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
-  # Install .py module wrapper
-  install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
-
-  if (DBG_SCRIPT)
-    message("Module name:     sensor")
-    message("PY file:         ${CHPY_SENSOR_PY_FILE}")
-    message("PYD path:        ${CHPY_SENSOR_PYD_PATH}")
-  endif()
-
-else()
-  message(WARNING "NumPy cannot be found. PyChrono::Sensor module will not be built.")
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Module for the robot models
@@ -856,65 +869,57 @@ endif()
     set_source_files_properties(${CHPY_ROBOT_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
-  swig_add_library(robot LANGUAGE python SOURCES ${CHPY_ROBOT_MODULE_FILE})
-  target_link_libraries(robot PRIVATE Python3::Python Chrono_core ChronoModels_robot)
+  swig_add_library(${CHPY_RS} LANGUAGE python SOURCES ${CHPY_ROBOT_MODULE_FILE})
+  target_link_libraries(${CHPY_RS} PRIVATE Python3::Python Chrono_core ChronoModels_robot)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_definitions(robot PRIVATE "/DWNT")
+    target_compile_definitions(${CHPY_RS} PRIVATE "/DWNT")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_compile_definitions(robot PRIVATE "-DHAVE_IOSTREAM")
-    target_compile_definitions(robot PRIVATE "-DHAVE_LIMITS_H")
+    target_compile_definitions(${CHPY_RS} PRIVATE "-DHAVE_IOSTREAM")
+    target_compile_definitions(${CHPY_RS} PRIVATE "-DHAVE_LIMITS_H")
   ENDIF()
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   elseif(MSVC)
-    target_compile_options(robot PRIVATE "/wd4189")  # local variable is initialized but not referenced
-    target_compile_options(robot PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-    target_compile_options(robot PRIVATE "/wd4456")  # declaration hides previous local declaration
-    target_compile_options(robot PRIVATE "/wd4702")  # unreachable code
-    target_compile_options(robot PRIVATE "/wd4706")  # assignment within conditional expression
+    target_compile_options(${CHPY_RS} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_RS} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_RS} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_RS} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_RS} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
-    target_compile_options(robot PRIVATE "-Wno-unused-variable")
+    target_compile_options(${CHPY_RS} PRIVATE "-Wno-unused-variable")
   endif()
 
-
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  #  set_target_properties(robot PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
+  #  set_target_properties(${CHPY_RS} PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
   #endif()
   
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(robot PROPERTIES 
+  set_target_properties(${CHPY_RS} PROPERTIES 
                         PROJECT_LABEL "Chrono_python_robot"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
-  add_dependencies(robot Chrono_core)
-  add_dependencies(robot ChronoModels_robot)
-  add_dependencies(robot core)
+  add_dependencies(${CHPY_RS} Chrono_core)
+  add_dependencies(${CHPY_RS} ChronoModels_robot)
+  add_dependencies(${CHPY_RS} core)
 
   # Copy PY file in a package dir 
-  set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/robot.py")
-
-  set(CHPY_VEHICLE_PYD_PATH $<TARGET_FILE_DIR:robot>)
-
-
-  add_custom_command(TARGET robot
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VEHICLE_PYD_PATH}/pychrono)
-  add_custom_command(TARGET robot
+  set(CHPY_ROBOT_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_RS}.py")
+  add_custom_command(TARGET ${CHPY_RS}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VEHICLE_PY_FILE} ${CHPY_VEHICLE_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_ROBOT_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
-  install(TARGETS robot
+  install(TARGETS ${CHPY_RS}
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
-  install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+  install(FILES "${CHPY_ROBOT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
 #-----------------------------------------------------------------------------
 # MODULE for the parser python wrapper.
@@ -957,11 +962,9 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(parsers PROPERTIES
                         PROJECT_LABEL "Chrono_python_parsers"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
-
-  
 
   add_dependencies(parsers Chrono_core)
   add_dependencies(parsers Chrono_parsers)
@@ -969,37 +972,28 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
 
   # Copy PY file in a package dir
   set(CHPY_PARSERS_PY_FILE "${CMAKE_SWIG_OUTDIR}/parsers.py")
-
-  set(CHPY_PARSERS_PYD_PATH $<TARGET_FILE_DIR:parsers>)
-
-  add_custom_command(TARGET parsers
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_PARSERS_PYD_PATH}/pychrono)
   add_custom_command(TARGET parsers
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_PARSERS_PY_FILE} ${CHPY_PARSERS_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_PARSERS_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS parsers
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_PARSERS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
   if (DBG_SCRIPT)
     message("Module name:     parsers")
     message("PY file:         ${CHPY_PARSERS_PY_FILE}")
-    message("PYD file:        ${CHPY_PARSERS_PYD_FILE}")
-    message("PYD path:        ${CHPY_PARSERS_PYD_PATH}")
   endif()
 
 endif()
 
-
 #-----------------------------------------------------------------------------
-# MODULE for the ros python wrapper.
+# MODULE for the ros python wrapper
 #-----------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_ROS)
@@ -1015,7 +1009,6 @@ if(CH_ENABLE_MODULE_ROS)
   set(CHPY_ROS_MODULE_FILE ChModuleROS_python.i)
 
   set_source_files_properties(${CHPY_ROS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
-
 
   # Make sure CHRONO_PARSERS_URDF and/or CHRONO_SENSOR is defined for the SWIG processor
   if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
@@ -1058,11 +1051,9 @@ if(CH_ENABLE_MODULE_ROS)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(ros PROPERTIES
                         PROJECT_LABEL "Chrono_python_ros"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
-
-  
 
   add_dependencies(ros Chrono_core)
   add_dependencies(ros Chrono_ros)
@@ -1070,22 +1061,16 @@ if(CH_ENABLE_MODULE_ROS)
 
   # Copy PY file in a package dir
   set(CHPY_ROS_PY_FILE "${CMAKE_SWIG_OUTDIR}/ros.py")
-
-  set(CHPY_ROS_PYD_PATH $<TARGET_FILE_DIR:ros>)
-
-  add_custom_command(TARGET ros
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_ROS_PYD_PATH}/pychrono)
   add_custom_command(TARGET ros
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_ROS_PY_FILE} ${CHPY_ROS_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_ROS_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ros
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_ROS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -1093,7 +1078,6 @@ if(CH_ENABLE_MODULE_ROS)
     message("Module name:     ros")
     message("PY file:         ${CHPY_ROS_PY_FILE}")
     message("PYD file:        ${CHPY_ROS_PYD_FILE}")
-    message("PYD path:        ${CHPY_ROS_PYD_PATH}")
   endif()
 
 endif()
@@ -1102,12 +1086,14 @@ endif()
 # Display information about setting the PYTHONPATH environment variable
 #-----------------------------------------------------------------------------
 
+cmake_path(GET CHPY_LIBRARY_OUTPUT_DIRECTORY PARENT_PATH PYTHONPATH_BUILD)
+
 message(STATUS "")
 message(STATUS "To have access to the Chrono::Python wrapper modules, after building and (optionally) installing,")
 message(STATUS "append one of the following to the PYTHONPATH environment variable:")
-message(STATUS "  For the modules in the BUILD tree:    ${CHPY_CORE_PYD_PATH}")
+message(STATUS "  For the modules in the BUILD tree:    ${PYTHONPATH_BUILD}")
 message(STATUS "  For the modules in the INSTALL tree:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  message(STATUS "Above, \$(Configuration) represents the current build configuration (Release, Debug, RelWithDebInfo, etc)")
+if(MULTI_CONFIG)
+  message(STATUS "Above, \$<CONFIG> represents the current build configuration (Release, Debug, RelWithDebInfo, MinSizeRel)")
 endif()
 message(STATUS "")

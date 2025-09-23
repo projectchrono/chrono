@@ -187,11 +187,11 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
 
     /// Return stiffness and damping data for the arm bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getCABushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_arm[2];  ///< trailing arm bodies (left/right)
 
-    std::shared_ptr<ChVehicleJoint> m_revoluteArm[2];  ///< chassis-arm revolute joints (left/right)
+    std::shared_ptr<ChJoint> m_revoluteArm[2];  ///< chassis-arm revolute joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (left/right)
@@ -215,7 +215,7 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

@@ -19,6 +19,7 @@
 ////#define DEBUG_LOG
 
 #include <iostream>
+#include <algorithm>
 
 #include "chrono/utils/ChUtils.h"
 
@@ -38,16 +39,37 @@ ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH, bo
         std::cout << "Create an FSI system using a custom SPH FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
     }
-
-    // By default, use node directions for flexible meshes
-    m_fsi_interface->EnableNodeDirections(true);
-    ChDebugLog("default: use direction data");
 }
 
 ChFsiSystemSPH::~ChFsiSystemSPH() {}
 
 ChFsiFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return m_sysSPH;
+}
+
+std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body,
+                                                    const std::vector<ChVector3d>& bce,
+                                                    const ChFrame<>& rel_frame,
+                                                    bool check_embedded) {
+    // Add the FSI body with no geometry
+    auto fsi_body = ChFsiSystem::AddFsiBody(body, nullptr, check_embedded);
+
+    // Explicitly set the BCE marker locations
+    auto& fsisph_body = m_sysSPH.m_bodies.back();
+
+    fsisph_body.bce_ids.resize(bce.size(), (int)fsisph_body.fsi_body->index);
+
+    ChFramed abs_frame = body->GetFrameRefToAbs() * rel_frame;
+    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce_coords),
+                   [&rel_frame](const ChVector3d& v) { return rel_frame.TransformPointLocalToParent(v); });
+    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce),
+                   [&abs_frame](const ChVector3d& v) { return abs_frame.TransformPointLocalToParent(v); });
+
+    return fsi_body;
+}
+
+void ChFsiSystemSPH::AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& frame) {
+    m_sysSPH.AddBCEBoundary(bce, frame);
 }
 
 }  // end namespace sph

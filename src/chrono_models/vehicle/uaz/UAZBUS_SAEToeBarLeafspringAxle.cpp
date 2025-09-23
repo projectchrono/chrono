@@ -213,13 +213,15 @@ UAZBUS_SAEToeBarLeafspringAxle::UAZBUS_SAEToeBarLeafspringAxle(const std::string
 
     double damping_factor = 0.05;
 
-    m_latRotSpringCBA = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
-    m_latRotSpringCBB = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatB, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBA =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBB =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatB, KrotLatA * damping_factor, 0);
 
     m_vertRotSpringCBA =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
     m_vertRotSpringCBB =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
 
     m_auxSpringForceCB = chrono_types::make_shared<UAZBUS_AuxSpringForceFront>(
         m_auxSpringCoefficient, m_auxSpringMinLength, m_auxSpringMaxLength);

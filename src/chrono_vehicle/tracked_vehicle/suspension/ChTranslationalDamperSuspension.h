@@ -116,14 +116,14 @@ class CH_VEHICLE_API ChTranslationalDamperSuspension : public ChTrackSuspension 
 
     /// Return stiffness and damping data for the arm bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getArmBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getArmBushingData() const { return nullptr; }
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     std::shared_ptr<ChBody> m_arm;            ///< trailing arm body
-    std::shared_ptr<ChVehicleJoint> m_joint;  ///< joint arm-chassis
+    std::shared_ptr<ChJoint> m_joint;  ///< joint arm-chassis
     std::shared_ptr<ChLinkRSDA> m_spring;     ///< rotational spring
     std::shared_ptr<ChLinkRSDA> m_damper;     ///< optional rotational damper
     std::shared_ptr<ChLinkTSDA> m_shock;      ///< translational shock element

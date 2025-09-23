@@ -227,7 +227,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     sysFSI.SetStepSizeCFD(m_step_size);
     sysFSI.SetStepsizeMBD(m_step_size);
 
-    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
+    sysSPH.SetIntegrationScheme(IntegrationScheme::RK2);
     sysSPH.SetConsistentDerivativeDiscretization(false, false);
     sysSPH.SetOutputLevel(OutputLevel::STATE);
     sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
@@ -267,14 +267,14 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
         // Set obstacle geometry
         double thickness = 0.01;
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(b.m_contact_mat);
-        geometry.coll_meshes.push_back(
-            utils::ChBodyGeometry::TrimeshShape(VNULL, GetChronoDataFile(b.m_mesh_filename), VNULL, 1.0, thickness, 0));
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->materials.push_back(b.m_contact_mat);
+        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(
+            VNULL, QUNIT, GetChronoDataFile(b.m_mesh_filename), VNULL, 1.0, thickness, 0));
 
         // Create visualization and collision shapes
-        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
-        geometry.CreateCollisionShapes(body, 2, m_method);
+        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry->CreateCollisionShapes(body, 2, m_method);
 
         // Add the obstacle body to the underlying Chrono and FSI systems (obstacles may be embedded)
         m_system->AddBody(body);
@@ -309,15 +309,15 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
 
     // Create visualization asset (use collision shapes)
     if (m_show_geometry) {
-        m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        m_geometry[i_shape]->CreateVisualizationAssets(body, VisualizationType::COLLISION);
     }
 
     // Create collision shapes (only if obstacles are present)
     auto num_obstacles = m_obstacles.size();
     if (num_obstacles > 0) {
-        for (auto& mesh : m_geometry[i_shape].coll_meshes)
+        for (auto& mesh : m_geometry[i_shape]->coll_meshes)
             mesh.radius = m_radius;
-        m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
+        m_geometry[i_shape]->CreateCollisionShapes(body, 1, m_method);
         body->EnableCollision(true);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
@@ -373,9 +373,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyMesh>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    const auto& trimesh_shape = m_geometry[i_shape].coll_meshes[0];
+    const auto& trimesh_shape = m_geometry[i_shape]->coll_meshes[0];
     const auto& trimesh = trimesh_shape.trimesh;
-    auto material = m_geometry[i_shape].materials[trimesh_shape.matID].CreateMaterial(m_method);
+    auto material = m_geometry[i_shape]->materials[trimesh_shape.matID].CreateMaterial(m_method);
 
     // Create a contact surface mesh constructed from the provided trimesh
     auto surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(material);
@@ -470,15 +470,15 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 #ifdef CHRONO_VSG
         // FSI plugin
         const auto& aabb_particles = m_terrain->GetSPHBoundingBox();
-        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(
-            ChColor(0.10f, 0.40f, 0.65f), aabb_particles.min.z(), aabb_particles.max.z());
+        auto col_callback =
+            chrono_types::make_shared<ParticleHeightColorCallback>(aabb_particles.min.z(), aabb_particles.max.z());
 
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(m_show_bce);
         visFSI->EnableFlexBodyMarkers(m_show_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::BROWN);
 
         // VSG visual system (attach visFSI as plugin)
         m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();

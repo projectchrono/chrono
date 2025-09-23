@@ -22,7 +22,7 @@
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveBinary.h"
-#include "chrono/serialization/ChOutputASCII.h"
+#include "chrono/serialization/ChArchiveASCII.h"
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChObjectExplorer.h"
@@ -32,7 +32,6 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/solver/ChConstraintTuple.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -78,7 +77,7 @@ class myEmployee {
     std::string name;
 
     myEmployee(int m_age = 18, double m_wages = 1020.3, myEnum m_body = myEnum::ATHLETIC, std::string m_name = "John")
-        : age(m_age), wages(m_wages), body(m_body), name(m_name){};
+        : age(m_age), wages(m_wages), body(m_body), name(m_name) {}
 
     virtual ~myEmployee() {}
 
@@ -129,7 +128,7 @@ class myEmployeeBoss : public myEmployee {
     myEmployeeBoss(const myEmployeeBoss& other) { std::cout << "------------------copy a boss" << std::endl; }
 
     myEmployeeBoss(int m_age = 38, double m_wages = 9000.4, bool m_is_dumb = true)
-        : myEmployee(m_age, m_wages), is_dumb(m_is_dumb), slave(21, 300){};
+        : myEmployee(m_age, m_wages), is_dumb(m_is_dumb), slave(21, 300) {}
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
@@ -177,7 +176,7 @@ class myEmployeeCustomConstructor : public myEmployee {
     int legs;
 
     myEmployeeCustomConstructor(int m_kids, double m_latitude)
-        : myEmployee(80, 4000), latitude(m_latitude), kids(m_kids), legs(2){};
+        : myEmployee(80, 4000), latitude(m_latitude), kids(m_kids), legs(2) {}
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
@@ -434,7 +433,7 @@ void my_deserialization_example(ChArchiveIn& archive_in) {
 
     // Just for safety, log some of the restored data:
     auto& streamConsole = std::cout;
-    ChOutputASCII archiveConsole(streamConsole);
+    ChArchiveOutASCII archiveConsole(streamConsole);
 
     archiveConsole.SetCutAllPointers(true);
     archiveConsole.SetSuppressNames(true);
@@ -550,7 +549,7 @@ void my_reflection_example() {
     if (mexplorer.FetchValue(my_slave, m_boss, "slave")) {
         std::cout << "Property explorer : retrieved 'slave':\n" << std::endl;
         // the class needs to be deserialized explicitely since it is not of a built-in type
-        ChOutputASCII tempArchiveo(std::cout);
+        ChArchiveOutASCII tempArchiveo(std::cout);
         my_slave.ArchiveOut(tempArchiveo);
         std::cout << std::endl;
     } else
@@ -580,7 +579,7 @@ void my_reflection_example() {
     //   ex: "stuff/arrayofpositions/6/x" as in:
     if (mexplorer.FetchValue(a_employee, mcontainer, "1")) {
         std::cout << "Property explorer : retrieved from element number in container '1':" << std::endl;
-        ChOutputASCII archiveo(std::cout);
+        ChArchiveOutASCII archiveo(std::cout);
         a_employee.ArchiveOut(archiveo);
     }
 
@@ -592,7 +591,7 @@ void my_reflection_example() {
     //   ex: "stuff/arrayofbodies/'Crank'/mass" as in:
     if (mexplorer.FetchValue(a_employee, mcontainer, "'Marie'")) {
         std::cout << "Property explorer : retrieved from element container name 'Marie':" << std::endl;
-        ChOutputASCII tempArchiveo(std::cout);
+        ChArchiveOutASCII tempArchiveo(std::cout);
         a_employee.ArchiveOut(tempArchiveo);
         std::cout << std::endl;
     } else
@@ -642,7 +641,7 @@ int main(int argc, char* argv[]) {
         std::ofstream mfileo(out_dir + "/foo_archive.txt");
 
         // Create an ASCII archive object, for dumping C++ objects into a readable file
-        ChOutputASCII archive_out(mfileo);
+        ChArchiveOutASCII archive_out(mfileo);
 
         my_serialization_example(archive_out);
     }

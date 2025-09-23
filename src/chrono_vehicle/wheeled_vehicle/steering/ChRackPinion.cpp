@@ -169,7 +169,7 @@ void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const 
     ExportJointList(jsonDocument, joints);
 }
 
-void ChRackPinion::Output(ChVehicleOutput& database) const {
+void ChRackPinion::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

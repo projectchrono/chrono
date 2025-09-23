@@ -86,9 +86,9 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
 
     /// Return stiffness and damping data for the balancer bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> GetBushingData() const { return nullptr; }
 
-    std::shared_ptr<ChVehicleJoint> m_balancer_joint[2];  ///< balancer pivot joints
+    std::shared_ptr<ChJoint> m_balancer_joint[2];  ///< balancer pivot joints
 
   private:
     void InitializeSide(VehicleSide sid,
@@ -98,7 +98,7 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     // Hardpoint absolute locations
     std::vector<ChVector3d> m_pointsL;

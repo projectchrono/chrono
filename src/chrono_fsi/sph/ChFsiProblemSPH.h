@@ -29,6 +29,8 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiSplashsurfSPH.h"
+#include "chrono_fsi/sph/physics/FsiParticleRelocator.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -40,9 +42,6 @@ namespace sph {
 /// Base class to set up a Chrono::FSI problem.
 class CH_FSI_API ChFsiProblemSPH {
   public:
-    /// Wave generator types.
-    enum class WavemakerType { PISTON, FLAP };
-
     /// Enable verbose output during construction of ChFsiProblemSPH (default: false).
     void SetVerbose(bool verbose);
 
@@ -65,6 +64,9 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Set SPH method parameters.
     void SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params);
 
+    /// Set surface reconstruction parameters (`with splashsurf`).
+    void SetSplashsurfParameters(const ChFsiFluidSystemSPH::SplashsurfParameters& params);
+
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
     /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape
@@ -72,32 +74,35 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are
     /// pruned). To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
-    size_t AddRigidBody(std::shared_ptr<ChBody> body,
-                        const chrono::utils::ChBodyGeometry& geometry,
-                        bool check_embedded,
-                        bool use_grid_bce = false);
+    void AddRigidBody(std::shared_ptr<ChBody> body,
+                      std::shared_ptr<utils::ChBodyGeometry> geometry,
+                      bool check_embedded,
+                      bool use_grid_bce = false);
 
-    size_t AddRigidBodySphere(std::shared_ptr<ChBody> body,
-                              const ChVector3d& pos,
-                              double radius,
-                              bool use_grid_bce = false);
-    size_t AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& pos, const ChVector3d& size);
-    size_t AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
-                                 const ChFramed& pos,
-                                 double radius,
-                                 double length,
-                                 bool use_grid_bce = false);
-    size_t AddRigidBodyMesh(std::shared_ptr<ChBody> body,
+    void AddRigidBodySphere(std::shared_ptr<ChBody> body,
                             const ChVector3d& pos,
-                            const std::string& obj_file,
-                            const ChVector3d& interior_point,
-                            double scale);
+                            double radius,
+                            bool use_grid_bce = false);
+    void AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& pos, const ChVector3d& size);
+    void AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
+                               const ChFramed& pos,
+                               double radius,
+                               double length,
+                               bool use_grid_bce = false);
+    void AddRigidBodyMesh(std::shared_ptr<ChBody> body,
+                          const ChFramed& pos,
+                          const std::string& obj_file,
+                          const ChVector3d& interior_point,
+                          double scale);
 
-    /// Enable/disable use of node direction vectors for FSI flexible meshes.
-    /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
-    /// calculated from the FSI mesh position states and communicated to the SPH fluid solver which uses these to 
-    /// generate BCE markers. By default, this option is enabled in the SPH fluid solver.
-    void EnableNodeDirections(bool val);
+    /// Return the number of BCE markers associated with the specified rigid body.
+    size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
+
+    /// Enable/disable use of node directions when assigning BCE locations on FEA elements.
+    /// By default, node directions are not used, resulting in linear interpolation between nodes.
+    /// If enabled, node direction vectors (average of adjacent segment directions or average of face normals) are used,
+    /// resulting in a piecewise cubic Bezier interpolation.
+    void UseNodeDirections(bool val);
 
     /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh.
     /// By default, a full set of BCE markers is used across each section, including a central marker.
@@ -112,10 +117,10 @@ class CH_FSI_API ChFsiProblemSPH {
     );
 
     /// Add an FEA mesh to the FSI problem.
-    /// BCE markers are created based on the type of elements and a corresponding FEA collision surface.
+    /// BCE markers are created based on the type of elements and the corresponding FEA collision surface.
     /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
-    size_t AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+    void AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
@@ -156,10 +161,11 @@ class CH_FSI_API ChFsiProblemSPH {
     void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
 
     /// Explicitly set the computational domain limits.
-    /// By default, this is set so that it encompasses all SPH particles and BCE markers.
-    void SetComputationalDomain(ChAABB aabb, int periodic_sides) {
+    /// By default, this encompasses all SPH and BCE markers with no boundary conditions imposed in any direction.
+    void SetComputationalDomain(const ChAABB& aabb,
+                                BoundaryConditions bc_type = {BCType::NONE, BCType::NONE, BCType::NONE}) {
         m_domain_aabb = aabb;
-        m_periodic_sides = periodic_sides;
+        m_bc_type = bc_type;
     }
 
     /// Complete construction of the FSI problem and initialize the FSI system.
@@ -181,8 +187,8 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Get limits of computational domain.
     const ChAABB& GetComputationalDomain() const { return m_domain_aabb; }
 
-    /// Get periodic sides of computational domain.
-    int GetPeriodicSides() const { return m_periodic_sides; }
+    /// Get the boundary condition type for the three sides of the computational domain.
+    const BoundaryConditions& GetBoundaryConditionTypes() const { return m_bc_type; }
 
     /// Get limits of SPH volume.
     const ChAABB& GetSPHBoundingBox() const { return m_sph_aabb; }
@@ -220,9 +226,18 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Save the set of initial SPH and BCE grid locations to files in the specified output directory.
     void SaveInitialMarkers(const std::string& out_dir) const;
 
+    /// Reconstruct surface from the current SPH particle data cloud.
+    /// This function invokes the external `splashsurf` tool to generate a Wavefront OBJ mesh reconstructed from the
+    /// current positions of the SPH pareticles. If splashsurf was not found during configuration, this function is a
+    /// no-op. The intermediate data file with SPH particle positions and the resulting mesh file are created in the
+    /// specified directory and are named [name].json and [name].obj, respectively. If quiet=true, splashsurf console
+    /// output is supressed. This is a blocking operation which can be computationally expensive for large problems.
+    /// See ChFsiSplashsurfSPH.
+    void WriteReconstructedSurface(const std::string& dir, const std::string& name, bool quiet = false);
+
     PhysicsProblem GetPhysicsProblem() const { return m_sysSPH.GetPhysicsProblem(); }
     std::string GetPhysicsProblemString() const { return m_sysSPH.GetPhysicsProblemString(); }
-    std::string GetSphMethodTypeString() const { return m_sysSPH.GetSphMethodTypeString(); }
+    std::string GetSphIntegrationSchemeString() const { return m_sysSPH.GetSphIntegrationSchemeString(); }
 
   protected:
     /// Create a ChFsiProblemSPH object.
@@ -239,39 +254,40 @@ class CH_FSI_API ChFsiProblemSPH {
         }
     };
 
+    /// Grid points with integer coordinates.
+    typedef std::unordered_set<ChVector3i, CoordHash> GridPoints;
+
     virtual ChVector3i Snap2Grid(const ChVector3d& point) = 0;
     virtual ChVector3d Grid2Point(const ChVector3i& p) = 0;
 
-    typedef std::unordered_set<ChVector3i, CoordHash> GridPoints;
-    typedef std::vector<ChVector3d> RealPoints;
-
-    /// Specification of an FSI rigid body.
-    struct RigidBody {
-        std::shared_ptr<ChBody> body;            ///< associated body
-        chrono::utils::ChBodyGeometry geometry;  ///< geometry for body BCE
-        bool check_embedded;                     ///< if true, check for overlapping SPH particles
-        RealPoints bce;                          ///< body BCE marker locations
-        ChVector3d oobb_center;                  ///< center of bounding box
-        ChVector3d oobb_dims;                    ///< dimensions of bounding box
-    };
-
-    /// Specification of an FSI FEA mesh.
-    struct FeaMesh {
-        std::shared_ptr<fea::ChMesh> mesh;  ///< associated FEA mesh
-        bool check_embedded;                ///< if true, check for overlapping SPH particles
-    };
-
     /// Prune SPH markers that are inside the solid body volume.
     /// Treat separately primitive shapes (use explicit test for interior points) and mesh shapes (use ProcessBodyMesh).
-    void ProcessBody(RigidBody& b);
+    void ProcessBody(ChFsiFluidSystemSPH::FsiSphBody& b);
 
     /// Prune SPH markers that are inside a body mesh volume.
     /// Voxelize the body mesh (at the scaling resolution) and identify grid nodes inside the boundary
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
-    int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
+    int ProcessBodyMesh(ChFsiFluidSystemSPH::FsiSphBody& b,
+                        ChTriangleMeshConnected trimesh,
+                        const ChVector3d& interior_point);
+
+    /// Prune SPH markers that overlap with the FEA mesh BCE markers.
+    void ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m);
+
+    /// Prune SPH markers that overlap with the FEA mesh BCE markers.
+    void ProcessFeaMesh2D(ChFsiFluidSystemSPH::FsiSphMesh2D& m);
+
+    // Only derived classes can use the following particle and marker relocation functions
+
+    void CreateParticleRelocator();
+    void BCEShift(const ChVector3d& shift_dist);
+    void SPHShift(const ChVector3d& shift_dist);
+    void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest);
+    void ForceProximitySearch();
 
     ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
+    ChFsiSplashsurfSPH m_splashsurf;   ///< surface reconstructor
     double m_spacing;                  ///< particle and marker spacing
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     GridPoints m_sph;                  ///< SPH particle grid locations
@@ -279,17 +295,20 @@ class CH_FSI_API ChFsiProblemSPH {
     ChVector3d m_offset_sph;           ///< SPH particles offset
     ChVector3d m_offset_bce;           ///< boundary BCE particles offset
     ChAABB m_domain_aabb;              ///< computational domain bounding box
-    int m_periodic_sides;              ///< periodic sides
+    BoundaryConditions m_bc_type;      ///< boundary conditions in each direction
     ChAABB m_sph_aabb;                 ///< SPH volume bounding box
-    std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
-    std::vector<FeaMesh> m_meshes;     ///< list of FSI FEA meshes
 
-    std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;
+    std::unordered_map<std::shared_ptr<ChBody>, size_t>
+        m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 
+    std::unique_ptr<FsiParticleRelocator> m_relocator;
+
     bool m_verbose;      ///< if true, write information to standard output
-    bool m_initialized;  ///< set to 'true' once terrain is initialized
+    bool m_initialized;  ///< if true, problem was initialized
+
+    friend class SelectorFunctionWrapper;
 };
 
 // ----------------------------------------------------------------------------
@@ -351,32 +370,52 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
                            int side_flags               ///< sides for which BCE markers are created
     );
 
+  private:
+    virtual ChVector3i Snap2Grid(const ChVector3d& point) override;
+    virtual ChVector3d Grid2Point(const ChVector3i& p) override;
+};
+
+/// Class to construct a wavetank with a rigid piston or flap wavemaker mechanism.
+/// The wavetank can include a beach for wave dissipation, by specifying a profile for the bottom.
+class CH_FSI_API ChFsiProblemWavetank : public ChFsiProblemCartesian {
+  public:
+    /// Wavemaker mechanism types.
+    enum class WavemakerType { PISTON, FLAP };
+
+    /// Create a ChFsiProblemSPH object.
+    /// No SPH parameters are set.
+    ChFsiProblemWavetank(ChSystem& sys, double spacing);
+
     /// Interface for callback to specify wave tank profile.
-    class CH_FSI_API WaveTankProfile {
+    class CH_FSI_API Profile {
       public:
-        virtual ~WaveTankProfile() {}
+        virtual ~Profile() {}
 
         /// Set bottom height at specified downstream location (must be non-negative).
         /// Default implementation corresponds to a tank with horizontal bottom.
         virtual double operator()(double x) = 0;
     };
 
+    /// Set the callback for the bottom tank profile and indicate if an end-wall is constructed.
+    /// By default, a tank with flat bottom and with end-wall is constructed
+    void SetProfile(std::shared_ptr<Profile> profile, bool end_wall);
+
+    /// Use periodic boundary conditions in lateral direction (default: false).
+    /// If not set, side boundary conditions are enforced by constructing lateral walls.
+    void SetLateralPeriodicBC(bool periodic_BC) { m_periodic_BC = periodic_BC; }
+
     /// Add a wave tank with a rigid-body wavemaker (piston-type or flap-type).
-    /// The wave tank can include a beach for wave dissipation, by specifying a profile for the bottom.
-    /// By default (no profile functor provided), the tank is created with a flat horizontal bottom.
-    std::shared_ptr<ChBody> ConstructWaveTank(
-        WavemakerType type,                                  ///< wave generator type
-        const ChVector3d& pos,                               ///< reference position
-        const ChVector3d& box_size,                          ///< box dimensions
-        double depth,                                        ///< fluid depth
-        std::shared_ptr<ChFunction> piston_fun,              ///< piston actuation function
-        std::shared_ptr<WaveTankProfile> profile = nullptr,  ///< profile for tank bottom
-        bool end_wall = true                                 ///< include end_wall
+    std::shared_ptr<ChBody> ConstructWaveTank(WavemakerType type,                    ///< wave generator type
+                                              const ChVector3d& pos,                 ///< reference position
+                                              const ChVector3d& box_size,            ///< box dimensions
+                                              double depth,                          ///< fluid depth
+                                              std::shared_ptr<ChFunction> actuation  ///< actuation function
     );
 
   private:
-    virtual ChVector3i Snap2Grid(const ChVector3d& point) override;
-    virtual ChVector3d Grid2Point(const ChVector3i& p) override;
+    bool m_periodic_BC;
+    bool m_end_wall;
+    std::shared_ptr<Profile> m_profile;
 };
 
 // ----------------------------------------------------------------------------
@@ -446,7 +485,7 @@ class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::Parti
 /// h = 0,                   if x < x_start
 /// h = alpha * (x-x_start), if x > x_start
 /// </pre>
-class CH_FSI_API WaveTankRampBeach : public ChFsiProblemCartesian::WaveTankProfile {
+class CH_FSI_API WaveTankRampBeach : public ChFsiProblemWavetank::Profile {
   public:
     WaveTankRampBeach(double x_start, double alpha) : x_start(x_start), alpha(alpha) {}
 
@@ -467,7 +506,7 @@ class CH_FSI_API WaveTankRampBeach : public ChFsiProblemCartesian::WaveTankProfi
 /// h = 0,                       if x < x_start
 /// h = alpha * sqrt(x-x_start), if x > x_start
 /// </pre>
-class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemCartesian::WaveTankProfile {
+class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemWavetank::Profile {
   public:
     WaveTankParabolicBeach(double x_start, double alpha) : x_start(x_start), alpha(alpha) {}
 

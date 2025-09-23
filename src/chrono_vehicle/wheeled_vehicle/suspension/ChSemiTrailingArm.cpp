@@ -152,8 +152,8 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.SetFromDirectionAxes(u, v, w);
 
-    m_revoluteArm[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
+    m_revoluteArm[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
         ChFrame<>((points[TA_O] + points[TA_I]) / 2, rot.GetQuaternion()), getCABushingData());
     m_revoluteArm[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_revoluteArm[side]);
@@ -362,7 +362,7 @@ void ChSemiTrailingArm::ExportComponentList(rapidjson::Document& jsonDocument) c
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChSemiTrailingArm::Output(ChVehicleOutput& database) const {
+void ChSemiTrailingArm::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -387,7 +387,7 @@ void ChSemiTrailingArm::Output(ChVehicleOutput& database) const {
     m_revoluteArm[1]->IsKinematic() ? joints.push_back(m_revoluteArm[1]->GetAsLink())
                                     : bushings.push_back(m_revoluteArm[1]->GetAsBushing());
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

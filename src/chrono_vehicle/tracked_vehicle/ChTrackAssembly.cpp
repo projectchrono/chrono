@@ -316,7 +316,7 @@ void ChTrackAssembly::ExportComponentList(rapidjson::Document& jsonDocument) con
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Output(ChVehicleOutput& database) const {
+void ChTrackAssembly::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

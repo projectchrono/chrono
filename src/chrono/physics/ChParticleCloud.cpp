@@ -27,13 +27,19 @@ namespace chrono {
 // CLASS FOR A PARTICLE
 // -----------------------------------------------------------------------------
 
-ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
+ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(&variables);
+}
 
 ChParticle::ChParticle(const ChParticle& other) : ChParticleBase(other) {
     container = other.container;
     UserForce = other.UserForce;
     UserTorque = other.UserTorque;
     variables = other.variables;
+
+    m_contactable_variables.clear();
+    m_contactable_variables.push_back(&variables);
 }
 
 ChParticle::~ChParticle() {}
@@ -109,8 +115,8 @@ void ChParticle::ContactForceLoadResidual_F(const ChVector3d& F,
     ChVector3d torque1_loc = Vcross(m_p1_loc, force1_loc);
     if (!T.IsNull())
         torque1_loc += this->TransformDirectionParentToLocal(T);
-    R.segment(Variables().GetOffset() + 0, 3) += F.eigen();
-    R.segment(Variables().GetOffset() + 3, 3) += torque1_loc.eigen();
+    R.segment(variables.GetOffset() + 0, 3) += F.eigen();
+    R.segment(variables.GetOffset() + 3, 3) += torque1_loc.eigen();
 }
 
 void ChParticle::ContactComputeQ(const ChVector3d& F,
@@ -131,9 +137,9 @@ void ChParticle::ContactComputeQ(const ChVector3d& F,
 
 void ChParticle::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) {
     ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
 
@@ -146,32 +152,40 @@ void ChParticle::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     if (second)
         Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
 
-    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+    tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = Jx1.row(2);
+
+    tuple_N->Cq1().segment(3, 3) = Jr1.row(0);
+    tuple_U->Cq1().segment(3, 3) = Jr1.row(1);
+    tuple_V->Cq1().segment(3, 3) = Jr1.row(2);
 }
 
-void ChParticle::ComputeJacobianForRollingContactPart(
-    const ChVector3d& abs_point,
-    ChMatrix33<>& contact_plane,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-    bool second) {
+void ChParticle::ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      ChConstraintTuple* jacobian_tuple_N,
+                                                      ChConstraintTuple* jacobian_tuple_U,
+                                                      ChConstraintTuple* jacobian_tuple_V,
+                                                      bool second) {
     ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetRotMat();
     if (!second)
         Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_U.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_V.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
+
+    tuple_N->Cq1().segment(0, 3).setZero();
+    tuple_U->Cq1().segment(0, 3).setZero();
+    tuple_V->Cq1().segment(0, 3).setZero();
+
+    tuple_N->Cq1().segment(3, 3) = Jr1.row(0);
+    tuple_U->Cq1().segment(3, 3) = Jr1.row(1);
+    tuple_V->Cq1().segment(3, 3) = Jr1.row(2);
 }
 
 ChPhysicsItem* ChParticle::GetPhysicsItem() {

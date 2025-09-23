@@ -30,11 +30,11 @@
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
+
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
-
-#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
@@ -59,7 +59,7 @@ using std::endl;
 // -----------------------------------------------------------------------------
 
 // Physics problem type
-PhysicsProblem problem_type = PhysicsProblem::CFD;
+PhysicsProblem problem_type = PhysicsProblem::CRM;
 
 // Dimension of the domain
 double cxDim = 3.0;
@@ -68,15 +68,16 @@ double czDim = 2.0;
 
 // Create additional solids
 bool create_flex_cable2 = false;
-bool create_cylinder_post = false;
-bool create_cylinder_free = false;
+bool create_cylinder_post = true;
+bool create_cylinder_free = true;
+
+// Use nodal directions
+bool use_FEA_node_directions = false;
 
 // Visibility flags
-bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_mesh = true;
-bool show_mesh_bce = true;
-bool show_boundary_bce = true;
+bool show_mesh_bce = false;
+bool show_boundary_bce = false;
 bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
@@ -92,8 +93,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type);
+                     std::string& boundary_method,
+                     std::string& viscosity_method);
 
 // -----------------------------------------------------------------------------
 
@@ -117,11 +118,11 @@ int main(int argc, char* argv[]) {
     double render_fps = 400;
     bool snapshots = false;
     int ps_freq = 1;
-    std::string boundary_type = "adami";
-    std::string viscosity_type =
+    std::string boundary_method = "adami";
+    std::string viscosity_method =
         (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_type, viscosity_type)) {
+                         boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -176,9 +177,12 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
+    // Enable/disable use of node directions for FSI flexible meshes
+    fsi.UseNodeDirections(use_FEA_node_directions);
+
     switch (problem_type) {
         case PhysicsProblem::CFD:
-            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.integration_scheme = IntegrationScheme::RK2;
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.0;
             sph_params.max_velocity = 10;
@@ -193,7 +197,7 @@ int main(int argc, char* argv[]) {
             break;
 
         case PhysicsProblem::CRM:
-            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.integration_scheme = IntegrationScheme::RK2;
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.0;
             sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
@@ -207,17 +211,17 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    if (boundary_type == "holmes")
-        sph_params.boundary_type = BoundaryType::HOLMES;
+    if (boundary_method == "holmes")
+        sph_params.boundary_method = BoundaryMethod::HOLMES;
     else
-        sph_params.boundary_type = BoundaryType::ADAMI;
+        sph_params.boundary_method = BoundaryMethod::ADAMI;
 
-    if (viscosity_type == "laminar")
-        sph_params.viscosity_type = ViscosityType::LAMINAR;
-    else if (viscosity_type == "artificial_bilateral")
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    if (viscosity_method == "laminar")
+        sph_params.viscosity_method = ViscosityMethod::LAMINAR;
+    else if (viscosity_method == "artificial_bilateral")
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     else
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
 
     fsi.SetSPHParameters(sph_params);
 
@@ -227,7 +231,7 @@ int main(int argc, char* argv[]) {
     // Dimension of the fluid domain
     double fxDim = 1.0;
     double fyDim = 0.2;
-    double fzDim = 1.0;
+    double fzDim = 1.4;
 
     // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(fzDim));
@@ -247,7 +251,7 @@ int main(int argc, char* argv[]) {
     // Explicitly set computational domain (necessary if no side walls)
     ChVector3d cMin = ChVector3d(-5 * cxDim, -cyDim / 2 - initial_spacing / 2, -5 * czDim);
     ChVector3d cMax = ChVector3d(+5 * cxDim, +cyDim / 2 + initial_spacing / 2, +5 * czDim);
-    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::Y);
+    fsi.SetComputationalDomain(ChAABB(cMin, cMax), BC_Y_PERIODIC);
 
     // Initialize FSI problem
     fsi.Initialize();
@@ -259,13 +263,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString() + "/";
+    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphIntegrationSchemeString() + "/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
-    out_dir = out_dir + viscosity_type + "_" + boundary_type + "_ps" + std::to_string(ps_freq);
+    out_dir = out_dir + viscosity_method + "_" + boundary_method + "_ps" + std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -305,7 +309,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->EnableFlexBodyMarkers(show_mesh_bce);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::FAST);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
         // VSG visual system (attach visFSI as plugin)
@@ -315,9 +320,13 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Flexible Cable");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
+        visVSG->SetCOMFrameScale(0.3);
+        visVSG->AddCamera(ChVector3d(2.2, -1.6, 1.0), ChVector3d(0.1, 0.2, 0.2));
+        ////visVSG->AddCamera(ChVector3d(-0.3, -1.5, 0.0), ChVector3d(-0.3, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+        ////visVSG->AddGuiColorbar("Mz (Nm)", {-0.01, 0.01}, ChColormap::Type::JET);
 
         visVSG->Initialize();
         vis = visVSG;
@@ -371,6 +380,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -387,6 +397,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         ChVector3d pos = node->GetPos();
         double displacement = (pos - init_pos).Length();
@@ -418,29 +429,32 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, double E, std::shared_ptr<ChBody> ground) {
+std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS,
+                                            double loc_x,
+                                            double E,
+                                            int num_elements,
+                                            std::shared_ptr<ChBody> ground) {
     double length_cable = 0.8;
-    int num_cable_element = 15;
 
     // Material Properties
     double density = 8000;
-    double BeamRayleighDamping = 0.02;
+    double rayleigh_damping = 0.02;
 
-    auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
-    msection_cable->SetDiameter(0.02);
-    msection_cable->SetYoungModulus(E);
-    msection_cable->SetDensity(density);
-    msection_cable->SetRayleighDamping(BeamRayleighDamping);
+    auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    section_cable->SetDiameter(0.02);
+    section_cable->SetYoungModulus(E);
+    section_cable->SetDensity(density);
+    section_cable->SetRayleighDamping(rayleigh_damping);
 
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
     std::vector<std::vector<int>> node_indices;
     std::vector<std::vector<int>> node_nbrs;
     ChBuilderCableANCF builder;
     builder.BuildBeam(mesh,                                  // FEA mesh with nodes and elements
-                      msection_cable,                        // section material for cable elements
-                      num_cable_element,                     // number of elements in the segment
+                      section_cable,                         // section material for cable elements
+                      num_elements,                          // number of elements in the segment
                       ChVector3d(loc_x, 0.0, length_cable),  // beam start point
-                      ChVector3d(loc_x, 0.0, 0.02),          // beam end point
+                      ChVector3d(loc_x, 0.0, 0.005),         // beam end point
                       node_indices,                          // node indices
                       node_nbrs                              // neighbor node indices
     );
@@ -458,14 +472,12 @@ std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, doub
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
-    if (show_mesh) {
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
-        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-        vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
-        vis_mesh->SetSmoothFaces(true);
-        vis_mesh->SetWireframe(false);
-        mesh->AddVisualShapeFEA(vis_mesh);
-    }
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_mesh->SetColormapRange(-0.4, 0.4);
+    vis_mesh->SetSmoothFaces(true);
+    vis_mesh->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_mesh);
 
     return mesh;
 }
@@ -477,7 +489,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
     double cable1_x = -0.3;
     double post_x = +0.6;
     double cable2_x = +0.8;
-    double cyl_x = 1.2;
+    double cyl_x = 1.0;
 
     // Contact material (default properties)
     auto contact_material_info = ChContactMaterialData();
@@ -504,18 +516,18 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         double length = 0.8;
         double radius = 0.02;
 
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->materials.push_back(contact_material_info);
+        geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
 
         auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetName("CylinderPost");
         cylinder->SetPos(ChVector3d(post_x, 0, length / 2));
         cylinder->SetFixed(true);
         cylinder->EnableCollision(false);
         sysMBS.AddBody(cylinder);
 
-        if (show_rigid)
-            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
@@ -529,11 +541,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         double mass = density * volume;
         auto gyration = ChCylinder::GetGyration(radius, length).diagonal();
 
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length));
-
         auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetName("CylinderFree");
         cylinder->SetMass(mass);
         cylinder->SetInertiaXX(mass * gyration);
         cylinder->SetPos(ChVector3d(cyl_x, 0, 0.1 + radius));
@@ -541,8 +550,12 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(true);
         sysMBS.AddBody(cylinder);
 
-        if (show_rigid)
-            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->materials.push_back(contact_material_info);
+        geometry->coll_cylinders.push_back(
+            utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length, 0));
+        geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry->CreateCollisionShapes(cylinder, 1, sysMBS.GetContactMethod());
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
@@ -550,12 +563,14 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
     fsi.SetBcePattern1D(BcePatternMesh1D::STAR, false);
 
     // Create the first flexible cable and add to FSI system
-    auto mesh1 = CreateFlexibleCable(sysMBS, cable1_x, 5e9, ground);
+    auto mesh1 = CreateFlexibleCable(sysMBS, cable1_x, 6e8, 8, ground);
+    mesh1->SetName("Cable1");
     fsi.AddFeaMesh(mesh1, false);
 
     // Create second flexible cable
     if (create_flex_cable2) {
-        auto mesh2 = CreateFlexibleCable(sysMBS, cable2_x, 5e8, ground);
+        auto mesh2 = CreateFlexibleCable(sysMBS, cable2_x, 5e8, 15, ground);
+        mesh2->SetName("Cable2");
         fsi.AddFeaMesh(mesh2, false);
     }
 
@@ -574,8 +589,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type) {
+                     std::string& boundary_method,
+                     std::string& viscosity_method) {
     ChCLI cli(argv[0], "Flexible cable FSI demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -590,9 +605,9 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
-    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", boundary_type);
-    cli.AddOption<std::string>("Physics", "viscosity_type",
-                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_type);
+    cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", boundary_method);
+    cli.AddOption<std::string>("Physics", "viscosity_method",
+                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_method);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -610,8 +625,8 @@ bool GetProblemSpecs(int argc,
     render_fps = cli.GetAsType<double>("render_fps");
     ps_freq = cli.GetAsType<int>("ps_freq");
 
-    boundary_type = cli.GetAsType<std::string>("boundary_type");
-    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+    boundary_method = cli.GetAsType<std::string>("boundary_method");
+    viscosity_method = cli.GetAsType<std::string>("viscosity_method");
 
     return true;
 }

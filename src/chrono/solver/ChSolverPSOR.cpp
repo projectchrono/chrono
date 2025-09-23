@@ -36,7 +36,7 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
     // 1)  Update auxiliary data in all constraints before starting,
     //     that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        mconstraints[ic]->Update_auxiliary();
+        mconstraints[ic]->UpdateAuxiliary();
 
     // Average all g_i for the triplet of contact constraints n,u,v.
     //

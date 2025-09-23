@@ -29,7 +29,7 @@ Since the flat terrain model does not carry any collision and contact informatio
 [RigidTerrain](@ref chrono::vehicle::RigidTerrain) is a model of a rigid terrain with arbitrary geometry. A rigid terrain is specified as a collection of patches, each of which can be one of the following:
 - a rectangular box, possibly rotated; the "driving" surface is the top face of the box (in the world's vertical direction)
 - a triangular mesh read from a user-specified Wavefront OBJ file
-- a triangular mesh generated programatically from a user-specified gray-scale BMP image
+- a triangular mesh generated programmatically from a user-specified gray-scale BMP image
 
 The rigid terrain model can be used with any of the Chrono::Vehicle tire models, as well as with tracked vehicles.
 
@@ -39,7 +39,7 @@ An example of a mesh rigid terrain patch is shown in the image below.  It is ass
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Rigid_mesh.png" width="600" />
 
-A height-map patch is specified through a gray-scale BMP image (like the one shown below), a horizontal extent of the patch (length and width), and a height range (minimum and maximum heights). A triangular mesh is programatically generated, by creating a mesh vertex for each pixel in the input BMP image, stretching the mesh in the horizontal plane to match the given extents and in the vertical direction such that the minimum height corresponds to a perfectly black pixel color and the maximum height corresponds to a perfectly white pixel.
+A height-map patch is specified through a gray-scale BMP image (like the one shown below), a horizontal extent of the patch (length and width), and a height range (minimum and maximum heights). A triangular mesh is programmatically generated, by creating a mesh vertex for each pixel in the input BMP image, stretching the mesh in the horizontal plane to match the given extents and in the vertical direction such that the minimum height corresponds to a perfectly black pixel color and the maximum height corresponds to a perfectly white pixel.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Rigid_heightmap_mag.png" width="400" />
 
@@ -47,7 +47,7 @@ A height-map patch is specified through a gray-scale BMP image (like the one sho
 
 **Location-dependent coefficient of friction**. The rigid terrain model supports the definition of a `FrictionFunctor` object. If no such functor is provided, [RigidTerrain::GetCoefficientFriction](@ref chrono::vehicle::RigidTerrain::GetCoefficientFriction) uses the ray-casting approach to identify the correct patch and the (constant) coefficient of friction for that patch is returned. If a functor is provided, RigidTerrain::GetCoefficientFriction simply returns its value.  However, processing of contacts with the terrain (e.g., when using rigid tires or a tracked vehicle) is relatively expensive: at each invocation of the collision detection algorithm (i.e., once per simulation step) the list of all contacts in the Chrono system is traversed to intercept all contacts that involve a rigid terrain patch collision model; for these contacts, the composite material properties are modified to account for the terrain coefficient of friction at the point of contact.
 
-A rigid terrain can be constructed programatically, defining one patch at a time, or else specified in a JSON file like the following one:
+A rigid terrain can be constructed programmatically, defining one patch at a time, or else specified in a JSON file like the following one:
 \include "../../data/vehicle/terrain/RigidPatches.json"
 
 
@@ -98,7 +98,7 @@ Some other features of the Chrono SCM implementation are:
 - the initial undeformed mesh can be created as
   - a regular tiled mesh (filling a flat rectangle)
   - from a height-map (provided as a gray-scale BMP image)
-  - programatically
+  - programmatically
 - support for arbitrary orientation of the terrain reference plane; by default, the terrain is defined as the \f$(x,y)\f$ plane of a \f$z\f$-up [ISO frame](@ref vehicle_ISO_frame)
 - support for a moving-patch approach wherein ray-casting (the most costly operation) is confined to a specified domain -- either a rectangular patch moving relative to the vehicle or the projection of a bounding box
 - support for specifying location-dependent soil parameters; this can be achieved by providing a custom callback class which implements a method that returns all soil parameters at a given \f$(x,y)\f$ point specified in the terrain's reference plane. See [SCMTerrain::SoilParametersCallback](@ref chrono::vehicle::SCMTerrain::SoilParametersCallback)

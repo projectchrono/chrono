@@ -282,12 +282,13 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override;
+                                 ChContactable* modB,
+                                 int constraint_offset) override;
 
     int m_num_contacts;
 };
@@ -305,12 +306,13 @@ void ContactManager::Process(RoboSimian* robot) {
 bool ContactManager::OnReportContact(const ChVector3d& pA,
                                      const ChVector3d& pB,
                                      const ChMatrix33<>& plane_coord,
-                                     const double& distance,
-                                     const double& eff_radius,
+                                     double distance,
+                                     double eff_radius,
                                      const ChVector3d& react_forces,
                                      const ChVector3d& react_torques,
                                      ChContactable* modA,
-                                     ChContactable* modB) {
+                                     ChContactable* modB,
+                                     int constraint_offset) {
     // Only report contacts with negative penetration (i.e. actual contacts).
     if (distance >= 0)
         return true;

@@ -84,7 +84,7 @@ Since optional Chrono modules may bring in additional dependencies we recommend 
 
 #### Install Eigen {#install_eigen}
 
-Eigen is a headers-only library and as such it can be used immmediately as downloaded. However, it can also be configured and installed with `cmake` (see below).
+Eigen is a headers-only library and as such it can be used immediately as downloaded. However, it can also be configured and installed with `cmake` (see below).
 
 On Linux, Eigen is also available through the system package manager (e.g. <tt>sudo apt install eigen3-dev</tt>).
 
@@ -225,7 +225,7 @@ Build files are now available in the build directory (in this example, `Makefile
    This will build all Chrono projects (one per Chrono module), as well as demos and tests (if enabled during configuration).
    By default, shared libraries (DLLs) are generated for the Chrono modules, unless `BUILD_SHARED` was set to `off` during configuration. All DLLs and executables will be placed in a directory `bin\Release` of the build tree.
 
-4. Optionally, repeat step 2 and 3, chosing **Debug** as configuration type, to build debug binaries which include debugging symbols. All DLLs and executables will be placed in a directory `bin\Debug` of the build tree.
+4. Optionally, repeat step 2 and 3, choosing **Debug** as configuration type, to build debug binaries which include debugging symbols. All DLLs and executables will be placed in a directory `bin\Debug` of the build tree.
 
 #### Linux/make {#build_chrono_linux}
 
@@ -247,7 +247,7 @@ Depending on the generator used during CMake configuration, invoke the appropria
 
 - Optionally, type <tt>make install</tt> to install the Chrono libraries, data files, and demo executables in the directory specified during CMake configuration.
 
-- CMake can be configured to generate Xcode (<tt>cmake -G Xcode ....</tt>) configurations. You would normally use it with the Xcode IDE. The advantage is the possibilty to debug the code. Like in MS Visual Studio, you choose the build type from the IDE.
+- CMake can be configured to generate Xcode (<tt>cmake -G Xcode ....</tt>) configurations. You would normally use it with the Xcode IDE. The advantage is the possibility to debug the code. Like in MS Visual Studio, you choose the build type from the IDE.
 
 <div class="ce-warning"> 
 **MacOS issues:** clang++ does not come with OpenMP support out of the box.
@@ -261,7 +261,7 @@ and the C++ compiler, otherwise the OpenMP configuration will fail.
 ------------------------------------------------------------
 ## Testing Chrono build {#test_chrono}
 
-The Chrono distribution includes a large number of demos, unit tests, and benchmark test. These are included in the build if the corresponding CMake variables are set to `on` during CMake configuration: `BUILD_DEMOS`, `BUILD_TESTING`, and `BUILD_BENCHAMRKING`, respectively. By default, only generation of demo executabnles is enabled.
+The Chrono distribution includes a large number of demos, unit tests, and benchmark test. These are included in the build if the corresponding CMake variables are set to `on` during CMake configuration: `BUILD_DEMOS`, `BUILD_TESTING`, and `BUILD_BENCHAMRKING`, respectively. By default, only generation of demo executables is enabled.
 
 Each Chrono module adds its own set of demos and tests and these are built only if the corresponding Chrono module is enabled. Note that some demo programs depend on more than one Chrono module being available. For example, most MBD and FEA demos require a run-time visualization module (VSG or Irrlicht). Similarly, Chrono::Vehicle demos require a run-time visualization module with some other vehicle demos also requiring additional modules (e.g., Chrono::FSI, Chrono::Multicore, etc.).
 

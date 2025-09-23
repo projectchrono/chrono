@@ -18,6 +18,31 @@
 #include "chrono_parsers/ChSwigutils.h"
 #include "chrono_parsers/ChParserPython.h"
 
+/// Utility function to get python module internal dictionary.
+PyObject* GetPyModuleDict() {
+    PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
+    assert(module);                                     // __main__ should always exist
+
+    PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
+    assert(dictionary);                               // __main__ should have a dictionary
+
+    return dictionary;
+}
+
+/// Utility function to load numeric data of given python list into C++ double array.
+void LoadInArray(PyObject* list, double* arr, int size) {
+    for (int i = 0; i < size; ++i) {
+        PyObject* item = PyList_GetItem(list, i);
+
+        // Interpret list value as double, whether it is a PyFloat or a PyLong
+        if (PyFloat_Check(item)) {
+            arr[i] = PyFloat_AsDouble(item);
+        } else if (PyLong_Check(item)) {
+            arr[i] = PyLong_AsDouble(item);
+        }
+    }
+}
+
 namespace chrono {
 namespace parsers {
 
@@ -29,35 +54,34 @@ ChPythonEngine::~ChPythonEngine() {
     Py_Finalize();
 }
 
-void ChPythonEngine::Run(const char* program) {
+void ChPythonEngine::Run(const std::string& program) {
     // Redirect stderr to one std::string buffer.
-
     std::streambuf *msgErrBuffer, *msgErrBufferBackup;
     std::stringstream smessageError;
     msgErrBufferBackup = std::cerr.rdbuf();
     msgErrBuffer = smessageError.rdbuf();
     std::cerr.rdbuf(msgErrBuffer);
 
-    if (PyRun_SimpleString(program) != 0) {
+    if (PyRun_SimpleString(program.c_str()) != 0) {
         PyErr_Print();
         throw std::runtime_error(smessageError.str());
     }
 
     // Set to previous channels!
-
     // std::cout.rdbuf(msgOutBufferBackup);
-
     std::cerr.rdbuf(msgErrBufferBackup);
 }
 
-bool ChPythonEngine::GetFloat(const char* variable, double& return_val) {
-    PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
-    assert(module);                                     // __main__ should always exist
+void ChPythonEngine::SetFloat(const std::string& variable, const double val) {
+    std::ostringstream sstream;
+    sstream << variable << "=" << val << "\n";
+    Run(sstream.str().c_str());
+}
 
-    PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
-    assert(dictionary);                               // __main__ should have a dictionary
+bool ChPythonEngine::GetFloat(const std::string& variable, double& return_val) {
+    PyObject* dictionary = GetPyModuleDict();
 
-    PyObject* result = PyDict_GetItemString(dictionary, variable);  // borrowed reference
+    PyObject* result = PyDict_GetItemString(dictionary, variable.c_str());  // borrowed reference
     if (!result)
         return false;
 
@@ -66,28 +90,23 @@ bool ChPythonEngine::GetFloat(const char* variable, double& return_val) {
         return true;
     }
     if (PyLong_Check(result)) {
-        return_val = (double)PyLong_AsLong(result);  // cast py int to c++ double - it's ok anyway
+        return_val = static_cast<double>(PyLong_AsLong(result));  // cast py int to c++ double - it's ok anyway
         return true;
     }
 
     return false;
 }
 
-void ChPythonEngine::SetFloat(const char* variable, const double val) {
+void ChPythonEngine::SetInteger(const std::string& variable, const int val) {
     std::ostringstream sstream;
     sstream << variable << "=" << val << "\n";
-
-    this->Run(sstream.str().c_str());
+    Run(sstream.str().c_str());
 }
 
-bool ChPythonEngine::GetInteger(const char* variable, int& return_val) {
-    PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
-    assert(module);                                     // __main__ should always exist
+bool ChPythonEngine::GetInteger(const std::string& variable, int& return_val) {
+    PyObject* dictionary = GetPyModuleDict();
 
-    PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
-    assert(dictionary);                               // __main__ should have a dictionary
-
-    PyObject* result = PyDict_GetItemString(dictionary, variable);  // borrowed reference
+    PyObject* result = PyDict_GetItemString(dictionary, variable.c_str());  // borrowed reference
     if (!result)
         return false;
 
@@ -99,21 +118,17 @@ bool ChPythonEngine::GetInteger(const char* variable, int& return_val) {
     return false;
 }
 
-void ChPythonEngine::SetInteger(const char* variable, const int val) {
+void ChPythonEngine::SetBool(const std::string& variable, const bool val) {
     std::ostringstream sstream;
     sstream << variable << "=" << val << "\n";
 
-    this->Run(sstream.str().c_str());
+    Run(sstream.str().c_str());
 }
 
-bool ChPythonEngine::GetBool(const char* variable, bool& return_val) {
-    PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
-    assert(module);                                     // __main__ should always exist
+bool ChPythonEngine::GetBool(const std::string& variable, bool& return_val) {
+    PyObject* dictionary = GetPyModuleDict();
 
-    PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
-    assert(dictionary);                               // __main__ should have a dictionary
-
-    PyObject* result = PyDict_GetItemString(dictionary, variable);  // borrowed reference
+    PyObject* result = PyDict_GetItemString(dictionary, variable.c_str());  // borrowed reference
     if (!result)
         return false;
 
@@ -125,21 +140,17 @@ bool ChPythonEngine::GetBool(const char* variable, bool& return_val) {
     return false;
 }
 
-void ChPythonEngine::SetBool(const char* variable, const bool val) {
+void ChPythonEngine::SetString(const std::string& variable, std::string& val) {
     std::ostringstream sstream;
-    sstream << variable << "=" << val << "\n";
+    sstream << variable << "='" << val << "'\n";
 
-    this->Run(sstream.str().c_str());
+    Run(sstream.str().c_str());
 }
 
-bool ChPythonEngine::GetString(const char* variable, std::string& return_val) {
-    PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
-    assert(module);                                     // __main__ should always exist
+bool ChPythonEngine::GetString(const std::string& variable, std::string& return_val) {
+    PyObject* dictionary = GetPyModuleDict();
 
-    PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
-    assert(dictionary);                               // __main__ should have a dictionary
-
-    PyObject* result = PyDict_GetItemString(dictionary, variable);  // borrowed reference
+    PyObject* result = PyDict_GetItemString(dictionary, variable.c_str());  // borrowed reference
     if (!result)
         return false;
 
@@ -161,53 +172,81 @@ bool ChPythonEngine::GetString(const char* variable, std::string& return_val) {
     return false;
 }
 
-void ChPythonEngine::SetString(const char* variable, std::string& val) {
+void ChPythonEngine::SetList(const std::string& variable, const std::vector<double>& val) {
     std::ostringstream sstream;
-    sstream << variable << "='" << val << "'\n";
-
-    this->Run(sstream.str().c_str());
-}
-
-void ChPythonEngine::SetList(const char* variable, const std::vector<double>& val) {
-    std::ostringstream sstream;
-    sstream << variable << "="
-            << "[";
+    sstream << variable << "=[";
     for (int i = 0; i < val.size(); ++i)
-        sstream << (double)val[i] << ",";
-    sstream << "]"
-            << "\n";
-    this->Run(sstream.str().c_str());
+        sstream << static_cast<double>(val[i]) << ",";
+    sstream << "]\n";
+    Run(sstream.str().c_str());
 }
 
-bool ChPythonEngine::GetList(const char* variable, std::vector<double>& return_val) {
-    PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
-    assert(module);                                     // __main__ should always exist
+bool ChPythonEngine::GetList(const std::string& variable, std::vector<double>& return_val) {
+    PyObject* dictionary = GetPyModuleDict();
 
-    PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
-    assert(dictionary);                               // __main__ should have a dictionary
-
-    PyObject* result = PyDict_GetItemString(dictionary, variable);  // borrowed reference
-    if (!result)
+    PyObject* list = PyDict_GetItemString(dictionary, variable.c_str());  // borrowed reference
+    if (!list || !PyList_Check(list))
         return false;
 
-    if (PyList_Check(result)) {
-        int length = (int)PyObject_Length(result);
-        return_val.clear();  // initially clear for safety
-        for (int i = 0; i < length; ++i) {
-            auto item = PyList_GetItem(result, i);
-            if (PyLong_Check(item)) {
-                double tmp = PyLong_AsDouble(
-                    item);  // whether list item is a py integer or a number like 3.0, interpret it as a double
-                return_val.push_back(tmp);
-            } else if (PyFloat_Check(item)) {
-                double tmp = PyFloat_AS_DOUBLE(item);
-                return_val.push_back(tmp);
-            }
+    int length = static_cast<int>(PyList_Size(list));
+    return_val.resize(length);
+    LoadInArray(list, return_val.data(), length);
+
+    return true;
+}
+
+void ChPythonEngine::SetList(const std::string& variable, const ChVectorDynamic<>& val) {
+    std::ostringstream sstream;
+    sstream << variable << "=[";
+    for (int i = 0; i < val.size(); ++i)
+        sstream << static_cast<double>(val[i]) << ",";
+    sstream << "]\n";
+    Run(sstream.str().c_str());
+}
+
+bool ChPythonEngine::GetList(const std::string& variable, ChVectorDynamic<double>& return_val) {
+    PyObject* dictionary = GetPyModuleDict();
+
+    PyObject* list = PyDict_GetItemString(dictionary, variable.c_str());  // borrowed reference
+    if (!list || !PyList_Check(list))
+        return false;
+
+    int length = static_cast<int>(PyList_Size(list));
+    return_val.resize(length);
+    LoadInArray(list, return_val.data(), length);
+
+    return true;
+}
+
+void ChPythonEngine::SetMatrix(const std::string& variable, const ChMatrixDynamic<double>& val) {
+    std::ostringstream sstream;
+    sstream << variable << "=[";
+    for (int r = 0; r < val.rows(); ++r) {
+        sstream << "[";
+        for (int c = 0; c < val.cols(); ++c) {
+            sstream << val(r, c) << ",";
         }
-        return true;
+        sstream << "],";
+    }
+    sstream << "]";
+    Run(sstream.str().c_str());
+}
+
+bool ChPythonEngine::GetMatrix(const std::string& variable, ChMatrixDynamic<double>& return_val) {
+    PyObject* dictionary = GetPyModuleDict();
+
+    PyObject* matr = PyDict_GetItemString(dictionary, variable.c_str());  // borrowed reference
+    if (!matr || !PyList_Check(matr))
+        return false;
+
+    int num_rows = static_cast<int>(PyList_Size(matr));
+    int num_cols = static_cast<int>(PyList_Size(PyList_GetItem(matr, 0)));  // assuming all rows as equal
+    return_val.resize(num_rows, num_cols);
+    for (int r = 0; r < num_rows; ++r) {
+        LoadInArray(PyList_GetItem(matr, r), return_val.row(r).data(), num_cols);
     }
 
-    return false;
+    return true;
 }
 
 void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_file, ChSystem& msystem) {
@@ -235,7 +274,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_fil
     sstream << "except Exception as e:\n";
     sstream << "    print(f\"Error loading module: {e}\")\n";
     sstream << "exported_items = imported_mod.exported_items\n";
-    this->Run(sstream.str().c_str());
+    Run(sstream.str().c_str());
 
     PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
     if (!module)

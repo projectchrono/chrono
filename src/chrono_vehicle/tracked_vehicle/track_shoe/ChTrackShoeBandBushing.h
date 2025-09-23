@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     std::shared_ptr<ChBody> GetWebSegment(size_t index) { return m_web_segments[index]; }
 
     /// Return bushing stiffness and damping data.
-    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const = 0;
+    virtual std::shared_ptr<ChJoint::BushingData> GetBushingData() const = 0;
 
     /// Add contact geometry for a web segment body.
     virtual void AddWebContact(std::shared_ptr<ChBody> segment, std::shared_ptr<ChContactMaterial> web_mat);
@@ -103,7 +103,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     std::vector<std::shared_ptr<ChBody>> m_web_segments;          ///< web segment bodies
     std::vector<std::shared_ptr<ChLoadBodyBody>> m_web_bushings;  ///< bushings

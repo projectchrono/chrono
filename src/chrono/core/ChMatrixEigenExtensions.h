@@ -64,8 +64,8 @@ void ArchiveOut(chrono::ChArchiveOut& archive_out) {
 
     // stream out all member data
 
-    if (chrono::ChOutputASCII* mascii = dynamic_cast<chrono::ChOutputASCII*>(&archive_out)) {
-        // CUSTOM row x col 'intuitive' table-like log when using ChOutputASCII:
+    if (chrono::ChArchiveOutASCII* mascii = dynamic_cast<chrono::ChArchiveOutASCII*>(&archive_out)) {
+        // CUSTOM row x col 'intuitive' table-like log when using ChArchiveOutASCII:
         mascii->indent();
         mascii->GetStream().operator<<((int)derived().rows());
         mascii->GetStream().operator<<(" rows,  ");

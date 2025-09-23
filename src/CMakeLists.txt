@@ -23,6 +23,11 @@ if(POLICY CMP0104)
 endif()
 
 #-----------------------------------------------------------------------------
+# Set configuration-specific postfixes
+#-----------------------------------------------------------------------------
+set(CH_DEBUG_POSTFIX "_d")
+
+#-----------------------------------------------------------------------------
 # Choose to build either shared or static libraries as default
 #-----------------------------------------------------------------------------
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
@@ -377,45 +382,14 @@ endif()
 option(CH_ENABLE_HDF5 "Enable HDF5 support" OFF)
 
 if(CH_ENABLE_HDF5)
-
     message(STATUS "Searching for HDF5...")
-
-    # First look for a FindHDF5.cmake module
-    # If found, this will define the following relevant variables:
-    #    HDF5_INCLUDE_DIRS
-    #    HDF5_C_LIBRARIES
-    #    HDF5_CXX_LIBRARIES
     find_package(HDF5 COMPONENTS CXX)
-
-    if(NOT HDF5_FOUND)
-        # Look for a package configuration file
-        # LIB_TYPE can be one of STATIC or SHARED.
-        set(LIB_TYPE SHARED) # STATIC or SHARED
-        string(TOLOWER ${LIB_TYPE} SEARCH_TYPE)
-        find_package(HDF5 NAMES hdf5 COMPONENTS CXX ${SEARCH_TYPE})
-
-        if (HDF5_FOUND)
-            set(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
-            set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE}_LIBRARY})
-            set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY})
-        endif()
-    endif()
 
     if (HDF5_FOUND)
         message(STATUS "  HDF5 found         (HDF5_FOUND)         ${HDF5_FOUND}")
         message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
-        message(STATUS "  HDF5 C libraries   (HDF5_C_LIBRARIES)   ${HDF5_C_LIBRARIES}")
         message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
-
-        # If using shared libraries on Windows, MUST define H5_BUILT_AS_DYNAMIC_LIB to have
-        # the symbols imported from the DLL.  Note also that the path to the HDF5 DLLs must
-        # be in the search path (or else copied in the working directory).
-        if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-            set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
-            message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
-        else()
-            set(HDF5_COMPILE_DEFS "")
-        endif()
+        message(STATUS "  HDF5 libraries     (HDF5_LIBRARIES)     ${HDF5_LIBRARIES}")
 
         set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
     else()
@@ -514,6 +488,7 @@ add_subdirectory(chrono_fmi)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
+add_subdirectory(chrono_peridynamics)
 add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_gpu)
@@ -681,6 +656,12 @@ if(CH_ENABLE_MODULE_ROS)
   set(CHRONO_ROS "#define CHRONO_ROS")
 else()
   set(CHRONO_ROS "#undef CHRONO_ROS")
+endif()
+
+if(CH_ENABLE_MODULE_PERIDYNAMICS)
+  set(CHRONO_PERIDYNAMICS "#define CHRONO_PERIDYNAMICS")
+else()
+  set(CHRONO_PERIDYNAMICS "#undef CHRONO_PERIDYNAMICS")
 endif()
 
 if(CH_USE_SIMD)

@@ -3,3 +3,9 @@ c_compiler:
 
 cxx_compiler:
   - clangxx   # [osx]
+
+cuda_compiler:
+  - cuda-nvcc
+
+cuda_compiler_version: # [not osx]
+  - 12.8      # [not osx]

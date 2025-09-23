@@ -30,11 +30,26 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZ::ChContactSegmentXYZ() : m_owns_node({true, true}), m_container(nullptr) {}
+ChContactSegmentXYZ::ChContactSegmentXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
+                                         std::shared_ptr<ChNodeFEAxyz> node2,
+                                         ChContactSurface* container)
+    : m_nodes({node1, node2}),
+      m_owns_node({true, true}),
+      m_container(container) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
+}
 
 ChContactSegmentXYZ::ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes,
                                          ChContactSurface* container)
-    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {}
+    : m_nodes(nodes),
+      m_owns_node({true, true}),
+      m_container(container) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
+}
 
 void ChContactSegmentXYZ::ContactableGetStateBlockPosLevel(ChState& x) {
     x.segment(0, 3) = m_nodes[0]->pos.eigen();
@@ -115,9 +130,9 @@ void ChContactSegmentXYZ::ContactComputeQ(const ChVector3d& F,
 
 void ChContactSegmentXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                         ChMatrix33<>& contact_plane,
-                                                        type_constraint_tuple& jacobian_tuple_N,
-                                                        type_constraint_tuple& jacobian_tuple_U,
-                                                        type_constraint_tuple& jacobian_tuple_V,
+                                                        ChConstraintTuple* jacobian_tuple_N,
+                                                        ChConstraintTuple* jacobian_tuple_U,
+                                                        ChConstraintTuple* jacobian_tuple_V,
                                                         bool second) {
     double s2 = ComputeUfromP(abs_point);
     double s1 = 1 - s2;
@@ -126,13 +141,17 @@ void ChContactSegmentXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_po
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_2vars<3, 3>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_2vars<3, 3>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_2vars<3, 3>*>(jacobian_tuple_V);
 
-    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(2);
+    tuple_N->Cq1().segment(0, 3) = s1 * Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = s1 * Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = s1 * Jx1.row(2);
+
+    tuple_N->Cq2().segment(0, 3) = s2 * Jx1.row(0);
+    tuple_U->Cq2().segment(0, 3) = s2 * Jx1.row(1);
+    tuple_V->Cq2().segment(0, 3) = s2 * Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactSegmentXYZ::GetPhysicsItem() {
@@ -151,11 +170,26 @@ double ChContactSegmentXYZ::ComputeUfromP(const ChVector3d& P) {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZRot::ChContactSegmentXYZRot() : m_owns_node({true, true}), m_container(nullptr) {}
+ChContactSegmentXYZRot::ChContactSegmentXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
+                                               std::shared_ptr<ChNodeFEAxyzrot> node2,
+                                               ChContactSurface* container)
+    : m_nodes({node1, node2}),
+      m_owns_node({true, true}),
+      m_container(container) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
+}
 
 ChContactSegmentXYZRot::ChContactSegmentXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>& nodes,
                                                ChContactSurface* container)
-    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {}
+    : m_nodes(nodes),
+      m_owns_node({true, true}),
+      m_container(container) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+}
 
 void ChContactSegmentXYZRot::ContactableGetStateBlockPosLevel(ChState& x) {
     x.segment(0, 3) = m_nodes[0]->GetPos().eigen();
@@ -256,9 +290,9 @@ void ChContactSegmentXYZRot::ContactComputeQ(const ChVector3d& F,
 
 void ChContactSegmentXYZRot::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                            ChMatrix33<>& contact_plane,
-                                                           type_constraint_tuple& jacobian_tuple_N,
-                                                           type_constraint_tuple& jacobian_tuple_U,
-                                                           type_constraint_tuple& jacobian_tuple_V,
+                                                           ChConstraintTuple* jacobian_tuple_N,
+                                                           ChConstraintTuple* jacobian_tuple_U,
+                                                           ChConstraintTuple* jacobian_tuple_V,
                                                            bool second) {
     double s2 = ComputeUfromP(abs_point);
     double s1 = 1 - s2;
@@ -267,13 +301,17 @@ void ChContactSegmentXYZRot::ComputeJacobianForContactPart(const ChVector3d& abs
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_2vars<6, 6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_2vars<6, 6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_2vars<6, 6>*>(jacobian_tuple_V);
 
-    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(2);
+    tuple_N->Cq1().segment(0, 3) = s1 * Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = s1 * Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = s1 * Jx1.row(2);
+
+    tuple_N->Cq2().segment(0, 3) = s2 * Jx1.row(0);
+    tuple_U->Cq2().segment(0, 3) = s2 * Jx1.row(1);
+    tuple_V->Cq2().segment(0, 3) = s2 * Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactSegmentXYZRot::GetPhysicsItem() {
@@ -304,10 +342,10 @@ void ChContactSurfaceSegmentSet::AddSegment(std::shared_ptr<ChNodeFEAxyz> node1,
     assert(node1);
     assert(node2);
 
-    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZ>();
-    segment->SetNodes({{node1, node2}});
+    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZ>(node1, node2, this);
+    ////segment->SetNodes({{node1, node2}});
     segment->SetNodeOwnership({owns_node1, owns_node2});
-    segment->SetContactSurface(this);
+    ////segment->SetContactSurface(this);
 
     auto segment_shape = chrono_types::make_shared<ChCollisionShapeSegment>(
         m_material, &node1->GetPos(), &node2->GetPos(), owns_node1, owns_node2, sphere_swept);
@@ -325,10 +363,10 @@ void ChContactSurfaceSegmentSet::AddSegment(std::shared_ptr<ChNodeFEAxyzrot> nod
     assert(node1);
     assert(node2);
 
-    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZRot>();
-    segment->SetNodes({{node1, node2}});
+    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZRot>(node1, node2, this);
+    ////segment->SetNodes({{node1, node2}});
     segment->SetNodeOwnership({owns_node1, owns_node2});
-    segment->SetContactSurface(this);
+    ////segment->SetContactSurface(this);
 
     auto segment_shape = chrono_types::make_shared<ChCollisionShapeSegment>(
         m_material, &node1->GetPos(), &node2->GetPos(), owns_node1, owns_node2, sphere_swept);

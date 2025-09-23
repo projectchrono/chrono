@@ -248,7 +248,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return stiffness and damping data for the tierod bushings.
     /// Used only if tierod bodies are defined (see UseTierodBody).
     /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
-    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getTierodBushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_knuckle[2];      ///< the knuckle bodies (left/right)
     std::shared_ptr<ChBody> m_torquerod[2];    ///< torquerod bodies (left/right)
@@ -265,8 +265,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     std::shared_ptr<ChLinkLockSpherical> m_sphericalTB[2];         ///< transversebeam-lower beam joints (left/right)
 
     std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
+    std::shared_ptr<ChJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
+    std::shared_ptr<ChJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shockLB[2];  ///< spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_shockAH[2];  ///< spring links (left/right)
@@ -313,7 +313,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

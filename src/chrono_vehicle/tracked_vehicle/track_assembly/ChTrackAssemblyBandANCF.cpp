@@ -39,7 +39,7 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(ChCollisionModel* 
     auto contactableA = modelA->GetContactable();
     auto contactableB = modelB->GetContactable();
 
-    if (dynamic_cast<fea::ChContactNodeXYZsphere*>(contactableA) ||
+    if (dynamic_cast<fea::ChContactNodeXYZ*>(contactableA) ||
         dynamic_cast<fea::ChContactTriangleXYZ*>(contactableA)) {
         // Reject this candidate pair if contactableB is a track shoe tread body
         for (auto shoe : m_assembly->m_shoes) {
@@ -48,7 +48,7 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(ChCollisionModel* 
         }
     }
 
-    if (dynamic_cast<fea::ChContactNodeXYZsphere*>(contactableB) ||
+    if (dynamic_cast<fea::ChContactNodeXYZ*>(contactableB) ||
         dynamic_cast<fea::ChContactTriangleXYZ*>(contactableB)) {
         // Reject this candidate pair if contactableA is a track shoe tread body
         for (auto shoe : m_assembly->m_shoes) {
@@ -246,7 +246,7 @@ void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     m_track_mesh->AddVisualShapeFEA(mvisualizemesh);

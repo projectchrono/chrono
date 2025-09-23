@@ -10,47 +10,51 @@ import pathlib
 idir = pathlib.Path(__file__).parent.resolve()
 
 try:
-    import _core
-    import _fea
+    from . import core
+    from . import fea
 except:
     pass
 try:
-    import _cascade
+    from . import vsg3d
 except:
     pass
 try:
-    import _irrlicht
+    from . import cascade
 except:
     pass
 try:
-    import _vehicle
+    from . import irrlicht
 except:
     pass
 try:
-    import _postprocess
+    from . import vehicle
 except:
     pass
 try:
-    import _pardisomkl
+    from . import postprocess
 except:
     pass
 try:
-    import _sensor
+    from . import pardisomkl
+except:
+    pass
+try:
+    from . import sensor
     sdir = os.path.join(idir, '@PYC_SHADER_PATH@')
     sdir = os.path.join(os.path.realpath(sdir), '')
-    _sensor.SetSensorShaderDir(sdir)
+    sensor.SetSensorShaderDir(sdir)
 except:
     pass
 try:
-    import _robot
+    from . import robot
 except:
     pass
 try:
-    import _parsers
+    from . import parsers
 except:
     pass
 try:
-    import _ros
+    from . import ros
 except:
     pass
 

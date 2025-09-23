@@ -147,7 +147,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Particle emitter demo')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 14, -20))
 vis.AddTypicalLights()
@@ -172,7 +172,7 @@ sys.GetSolver().AsIterative().SetMaxIterations(40)
 sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Add one force accumulator to each body in the system
-for body in sys.GetBodies()
+for body in sys.GetBodies():
     body.AddAccumulator()
 
 # Simulation loop

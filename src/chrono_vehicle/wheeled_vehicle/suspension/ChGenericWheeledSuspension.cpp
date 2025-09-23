@@ -159,12 +159,12 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
 
 void ChGenericWheeledSuspension::DefineJoint(const std::string& name,
                                              bool mirrored,
-                                             ChVehicleJoint::Type type,
+                                             ChJoint::Type type,
                                              BodyIdentifier body1,
                                              BodyIdentifier body2,
                                              const ChVector3d& pos,
                                              const ChQuaternion<>& rot,
-                                             std::shared_ptr<ChVehicleBushingData> bdata) {
+                                             std::shared_ptr<ChJoint::BushingData> bdata) {
     Joint j;
     j.joint = nullptr;
     j.type = type;
@@ -377,7 +377,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         // Create joint
         ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
         ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
-        item.second.joint = chrono_types::make_shared<ChVehicleJoint>(item.second.type,     //
+        item.second.joint = chrono_types::make_shared<ChJoint>(item.second.type,     //
                                                                       Name(item.first),     //
                                                                       body1,                //
                                                                       body2,                //
@@ -629,7 +629,7 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
         auto link = joint->GetAsLink();
         const auto& C = link->GetConstraintViolation();
         assert(C.size() == link->GetNumConstraintsBilateral());
-        std::cout << "Joint " << item.first.name << " type: " << ChVehicleJoint::GetTypeString(item.second.type)
+        std::cout << "Joint " << item.first.name << " type: " << ChJoint::GetTypeString(item.second.type)
                   << "\n";
         std::cout << "   " << C.transpose() << "\n";
     }
@@ -712,7 +712,7 @@ void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDo
     ExportRotSpringList(jsonDocument, rot_springs);
 }
 
-void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
+void ChGenericWheeledSuspension::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -738,7 +738,7 @@ void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
     for (const auto& item : m_dists)
         joints.push_back(item.second.dist);
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     for (const auto& item : m_tsdas)

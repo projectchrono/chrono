@@ -43,7 +43,7 @@ These slides refer to the API of Chrono release 3.0.0.
 - Solution methods: time steppers and linear solvers 
   [pdf](http://www.projectchrono.org/assets/slides_3_0_0/3_Contact/3_Chrono_Solvers.pdf)
 
-## Finite Element Analysys (Chrono::FEA)
+## Finite Element Analysis (Chrono::FEA)
 
 - ANCF support for flexible body dynamics in Chrono
   [pdf](http://www.projectchrono.org/assets/slides_3_0_0/4_FEA/1_ChronoFEA_ANCF.pdf)

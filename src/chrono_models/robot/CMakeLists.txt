@@ -90,6 +90,9 @@ add_library(ChronoModels_robot
             )
 add_library(Chrono::models_robot ALIAS ChronoModels_robot)
 
+set_target_properties(ChronoModels_robot PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_robot PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(ChronoModels_robot PROPERTIES LINK_FLAGS "/LTCG")

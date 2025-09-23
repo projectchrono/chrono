@@ -41,14 +41,14 @@ ChMatrix33<> ChCapsule::GetGyration(double radius, double height) {
     double cmDist = (1 / 2.0) * height + (3 / 8.0) * radius;
     double Ixx = massRatio / (1 + massRatio) * (1.0 / 12.0) * (3 * radius * radius + height * height) +
                  1 / (1 + massRatio) * (0.259 * radius * radius + cmDist * cmDist);
-    double Iyy = massRatio / (1 + massRatio) * (1.0 / 2.0) * (radius * radius) +
+    double Izz = massRatio / (1 + massRatio) * (1.0 / 2.0) * (radius * radius) +
                  1 / (1 + massRatio) * (2.0 / 5.0) * (radius * radius);
 
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = Ixx;
-    J(1, 1) = Iyy;
-    J(2, 2) = Ixx;
+    J(1, 1) = Ixx;
+    J(2, 2) = Izz;
 
     return J;
 }

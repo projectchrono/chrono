@@ -292,7 +292,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable2) {
 
     // Solve linear system
     integrable2->StateSolveCorrection(Da, Dl, R, Qc,
-                                      1 / (1 + alpha),    // factor for  M (was 1 in Negrut paper ?!)
+                                      1 / (1 + alpha),    // factor for  M (note: it is 1 in Negrut paper but it was a typo)
                                       -h * gamma,         // factor for  dF/dv
                                       -h * h * beta,      // factor for  dF/dx
                                       Xnew, Vnew, T + h,  // not used here (force_scatter = false)

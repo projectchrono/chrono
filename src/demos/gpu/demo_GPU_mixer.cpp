@@ -27,9 +27,8 @@
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
-#include "chrono_gpu/visualization/ChGpuVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_gpu/visualization/ChGpuVisualizationGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_gpu/visualization/ChGpuVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -40,7 +39,7 @@ using namespace chrono::gpu;
 // Output frequency
 float out_fps = 200;
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Enable/disable run-time visualization
 bool render = true;
 float render_fps = 2000;
 
@@ -152,28 +151,35 @@ int main(int argc, char* argv[]) {
     gpu_sys.EnableMeshCollision(true);
     gpu_sys.Initialize();
 
-#if !defined(CHRONO_OPENGL)
+    // Create a run-time visualizer
+    std::shared_ptr<ChBody> mixer;
+    std::shared_ptr<ChVisualSystem> vis;
+
+#ifdef CHRONO_VSG
+    mixer = chrono_types::make_shared<ChBody>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+    trimesh_shape->SetMesh(mixer_mesh);
+    mixer->AddVisualShape(trimesh_shape, ChFrame<>());
+
+    // GPU plugin
+    auto visGPU = chrono_types::make_shared<ChGpuVisualizationVSG>(&gpu_sys);
+    visGPU->AddProxyBody(mixer);
+
+    // VSG visual system (attach visGPU as plugin)
+    auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+    visVSG->AttachPlugin(visGPU);
+    visVSG->SetWindowTitle("Chrono::Gpu mixer demo");
+    visVSG->SetWindowSize(1280, 800);
+    visVSG->SetWindowPosition(100, 100);
+    visVSG->AddCamera(ChVector3d(0, -100, 75), ChVector3d(0, 0, 0));
+    visVSG->SetLightIntensity(0.9f);
+    visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
+
+    visVSG->Initialize();
+    vis = visVSG;
+#else
     render = false;
 #endif
-
-    std::shared_ptr<ChGpuVisualization> visGPU;
-    std::shared_ptr<ChBody> mixer;
-    if (render) {
-#ifdef CHRONO_OPENGL
-        visGPU = chrono_types::make_shared<ChGpuVisualizationGL>(&gpu_sys);
-
-        mixer = chrono_types::make_shared<ChBody>();
-        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        trimesh_shape->SetMesh(mixer_mesh);
-        mixer->AddVisualShape(trimesh_shape, ChFrame<>());
-        visGPU->AddProxyBody(mixer);
-
-        visGPU->SetTitle("Chrono::Gpu mixer demo");
-        visGPU->AddCamera(ChVector3d(0, -100, 75), ChVector3d(0, 0, 0));
-        visGPU->SetCameraMoveScale(1.0f);
-        visGPU->Initialize();
-#endif
-    }
 
     int sim_frame = 0;
     int render_frame = 0;
@@ -204,8 +210,9 @@ int main(int argc, char* argv[]) {
         if (render && t >= render_frame / render_fps) {
             mixer->SetPos(mesh_pos);
             mixer->SetRot(mesh_rot);
-            if (!visGPU->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
 

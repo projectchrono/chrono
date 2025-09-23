@@ -18,11 +18,11 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/solver/ChSolverBB.h"
+#include "chrono/output/ChOutputASCII.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
-#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #include "chrono_models/vehicle/marder/Marder.h"
 
@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
     // Set up vehicle output
     ////vehicle.SetChassisOutput(true);
     ////vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    ////vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    ////vehicle.SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
     ////vehicle.ExportComponentList(out_dir + "/component_list.json");

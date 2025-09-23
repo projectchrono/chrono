@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Wei Hu
+// Author: Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 
 #ifndef CH_FSI_FORCE_EXPLICITSPH_H_
@@ -25,14 +25,14 @@ namespace sph {
 /// @addtogroup fsisph_physics
 /// @{
 
-/// Inter-particle force calculation for explicit schemes.
+/// Inter-particle force calculation for explicit SPH schemes.
 class FsiForceWCSPH : public FsiForce {
   public:
-    /// Force class implemented using WCSPH with explicit integrator.
+    /// Force class implemented using WCSPH with an explicit integrator.
     /// Supports for both fluid and granular material dynamics.
     FsiForceWCSPH(FsiDataManager& data_mgr,  ///< FSI data manager
-                          BceManager& bce_mgr,       ///< BCE manager
-                          bool verbose               ///< verbose terminal output
+                  BceManager& bce_mgr,       ///< BCE manager
+                  bool verbose               ///< verbose output
     );
 
     ~FsiForceWCSPH();
@@ -40,21 +40,30 @@ class FsiForceWCSPH : public FsiForce {
     void Initialize() override;
 
   private:
+    /// Function to calculate forces on SPH particles.
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) override;
+
+    /// Perform density re-initialization (as needed).
+    void DensityReinitialization(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+
+    // CRM
+    void CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+    void CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+
+    // CFD
+    void CfdApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+    void CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+
+    /// Function to calculate the shifting of the particles.
+    /// Can use PPST, XSPH, or both.
+    void CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+
     int density_initialization;
 
-    /// Function to find neighbor particles and calculate the interactions between SPH particles
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) override;
-
-    void neighborSearch();
-
-    /// Function to calculate the shifting of the particles
-    /// Can either do PPST, XSPH, or both
-    void CalculateShifting();
-
-    /// A wrapper around collide function.
-    /// Calculates the force on particles, and copies the sorted XSPH velocities to the original.
-    /// The latter is needed later for position update.
-    void CollideWrapper(Real time, bool firstHalfStep);
+    // CUDA execution configuration grid
+    uint numActive;   ///< total number of threads
+    uint numBlocks;   ///< number of blocks
+    uint numThreads;  ///< number of threads per block
 };
 
 /// @} fsisph_physics

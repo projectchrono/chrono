@@ -194,22 +194,22 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
 
     /// Return stiffness and damping data for the chassis-CA bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getCABushingData() const { return nullptr; }
     /// Return stiffness and damping data for the tierod bushings.
     /// Used only if tierod bodies are defined (see UseTierodBody).
     /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
-    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getTierodBushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_upright[2];      ///< upright bodies (left/right)
     std::shared_ptr<ChBody> m_control_arm[2];  ///< control arm bodies (left/right)
     std::shared_ptr<ChBody> m_tierod[2];       ///< tierod bodies, if used (left/right)
 
-    std::shared_ptr<ChVehicleJoint> m_revoluteCA[2];  ///< chassis-CA revolute joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_revoluteUA[2];  ///< upright-CA revolute joints (left/right)
+    std::shared_ptr<ChJoint> m_revoluteCA[2];  ///< chassis-CA revolute joints (left/right)
+    std::shared_ptr<ChJoint> m_revoluteUA[2];  ///< upright-CA revolute joints (left/right)
 
     std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
+    std::shared_ptr<ChJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
+    std::shared_ptr<ChJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];  ///< spring-damper (left/right)
 
@@ -241,7 +241,7 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

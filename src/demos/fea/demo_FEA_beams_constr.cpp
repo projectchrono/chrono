@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MX);
-    mvisualizebeamA->SetColorscaleMinMax(-500, 500);
+    mvisualizebeamA->SetColormapRange(-500, 500);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamA);

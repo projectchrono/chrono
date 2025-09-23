@@ -27,7 +27,7 @@ namespace chrono {
 
 class ChApi ChLinkMotorRotation : public ChLinkMotor {
   public:
-    /// Type of guide constraint
+    /// Type of spindle constraint.
     enum class SpindleConstraint { FREE, REVOLUTE, CYLINDRICAL, OLDHAM };
 
     ChLinkMotorRotation();
@@ -36,19 +36,17 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the actuated one, and is never affected by
-    /// this option.
+    /// Note that the Z direction is the actuated one, and is never affected by this option.
     void SetSpindleConstraint(const SpindleConstraint mconstraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the actuated one, and is never affected by
-    /// this option.
+    /// Note that the Z direction is the actuated one, and is never affected by this option.
     void SetSpindleConstraint(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry);
 
     /// Get the motor rotation angle [rad].
     /// The value takes into account also multiple turns, so it is not limited to any angle range.
-    /// Refer to GetMotorAngleWrapped() to get the angle in the range [-PI..+PI].
+    /// Refer to GetMotorAngleWrapped() to get the angle in the range [-PI ... +PI].
     virtual double GetMotorAngle() const { return mrot; }
 
     /// Get the number of complete turns of the motor.
@@ -64,7 +62,7 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     /// Get the current actuator acceleration [rad/s^2].
     virtual double GetMotorAngleDt2() const { return mrot_dtdt; }
 
-    /// Get the current actuator reaction torque [Nm]
+    /// Get the current actuator reaction torque.
     virtual double GetMotorTorque() const = 0;
 
     /// Method to allow serialization of transient data to archives.
@@ -72,6 +70,9 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+    /// Return a string describing the specified motor spindle constraint type.
+    static std::string GetSpindleTypeString(SpindleConstraint type);
 
   protected:
     // aux data for optimization

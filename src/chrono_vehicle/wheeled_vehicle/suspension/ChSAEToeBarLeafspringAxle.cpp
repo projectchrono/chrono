@@ -394,8 +394,8 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_shackle[side]);
 
     // chassis-shackle rev joint
-    m_shackleRev[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::REVOLUTE, m_name + "_shackleRev" + suffix, m_shackle[side], chassis->GetBody(),
+    m_shackleRev[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::REVOLUTE, m_name + "_shackleRev" + suffix, m_shackle[side], chassis->GetBody(),
         ChFrame<>(points[REAR_HANGER], chassisRot * QuatFromAngleX(CH_PI_2)), getShackleBushingData());
     m_shackleRev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_shackleRev[side]);
@@ -448,7 +448,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     // clampA-axleTube rev joint (Z)
     ChFrame<> rev_frame_clampA(points[CLAMP_A], chassisRot);
     m_clampARev[side] =
-        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_clampARev" + suffix,
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_clampARev" + suffix,
                                                   m_clampA[side], m_axleTube, rev_frame_clampA, getClampBushingData());
     m_clampARev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_clampARev[side]);
@@ -473,7 +473,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     // clampB-axleTube rev joint (Z)
     ChFrame<> rev_frame_clampB(points[CLAMP_B], chassisRot);
     m_clampBRev[side] =
-        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_clampBRev" + suffix,
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_clampBRev" + suffix,
                                                   m_clampB[side], m_axleTube, rev_frame_clampB, getClampBushingData());
     m_clampBRev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_clampBRev[side]);
@@ -485,8 +485,8 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 
     // clampB-rearleaf rev joint (Y)
     ChFrame<> rev_frame_rearleaf(points[CLAMP_B], chassisRot * QuatFromAngleX(CH_PI_2));
-    m_rearleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::REVOLUTE, m_name + "_rearleafRev" + suffix, m_clampB[side], m_rearleaf[side],
+    m_rearleafRev[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::REVOLUTE, m_name + "_rearleafRev" + suffix, m_clampB[side], m_rearleaf[side],
         rev_frame_rearleaf, getLeafspringBushingData());
     m_rearleafRev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_rearleafRev[side]);
@@ -499,8 +499,8 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 
     // clampA-frontleaf rev joint (Y)
     ChFrame<> rev_frame_frontleaf(points[CLAMP_A], chassisRot * QuatFromAngleX(CH_PI_2));
-    m_frontleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::REVOLUTE, m_name + "_frontleafRev" + suffix, m_clampA[side], m_frontleaf[side],
+    m_frontleafRev[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::REVOLUTE, m_name + "_frontleafRev" + suffix, m_clampA[side], m_frontleaf[side],
         rev_frame_frontleaf, getLeafspringBushingData());
     m_frontleafRev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_frontleafRev[side]);
@@ -843,7 +843,7 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     ExportRotSpringList(jsonDocument, rot_springs);
 }
 
-void ChSAEToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
+void ChSAEToeBarLeafspringAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -897,7 +897,7 @@ void ChSAEToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
     joints.push_back(m_revoluteKingpin[0]);
     joints.push_back(m_revoluteKingpin[1]);
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

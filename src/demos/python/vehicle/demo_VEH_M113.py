@@ -45,13 +45,13 @@ def main():
     m113.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     m113.Initialize()
 
-    m113.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    m113.SetSprocketVisualizationType(veh.VisualizationType_MESH);
-    m113.SetIdlerVisualizationType(veh.VisualizationType_MESH);
-    m113.SetIdlerWheelVisualizationType(veh.VisualizationType_MESH);
-    m113.SetSuspensionVisualizationType(veh.VisualizationType_MESH);
-    m113.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
-    m113.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
+    m113.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    m113.SetSprocketVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetIdlerVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetIdlerWheelVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetSuspensionVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetRoadWheelVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetTrackShoeVisualizationType(chrono.VisualizationType_MESH);
 
     m113.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -95,7 +95,7 @@ def main():
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(m113.GetVehicle())

@@ -265,8 +265,11 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChNodeFEAxyzDDD)
 %shared_ptr(chrono::fea::ChNodeFEAxyzrot)
 %shared_ptr(chrono::fea::ChMesh)
-%shared_ptr(chrono::ChContactable_3vars<3,3,3>)
-%shared_ptr(chrono::ChContactable_3vars<6,6,6>)
+%shared_ptr(chrono::ChContactable_1vars)
+%shared_ptr(chrono::ChContactable_2vars)
+%shared_ptr(chrono::ChContactable_3vars)
+%shared_ptr(chrono::fea::ChContactNodeXYZ)
+%shared_ptr(chrono::fea::ChContactNodeXYZRot)
 %shared_ptr(chrono::fea::ChContactTriangleXYZ)
 %shared_ptr(chrono::fea::ChContactTriangleXYZRot)
 %shared_ptr(chrono::fea::ChContactSurface)
@@ -345,6 +348,7 @@ using namespace chrono::fea;
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
@@ -359,6 +363,7 @@ using namespace chrono::fea;
 %feature("director") chrono::ChFunction;
 %import(module = "pychrono.core")  "../../../chrono/functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChColormap.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChIndexedNodes.h"
@@ -376,8 +381,6 @@ using namespace chrono::fea;
 %include "../../../chrono/collision/ChCollisionSystem.h"
 
 %include "../../../chrono/physics/ChContactable.h"  
-%template(ChContactable3vars333) chrono::ChContactable_3vars<3,3,3>;
-%template(ChContactable3vars666) chrono::ChContactable_3vars<6,6,6>;
 
 %include "../../../chrono/fea/ChContinuumMaterial.h"
 // TODO: if eigen::ref can be wrapped, unignore these,

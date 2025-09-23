@@ -287,7 +287,7 @@ __device__ inline Real3 Distance(Real3 a, Real3 b) {
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
 
-__device__ inline void RotationMatirixFromQuaternion(Real3& AD1, Real3& AD2, Real3& AD3, const Real4& q) {
+__device__ inline void RotationMatrixFromQuaternion(Real3& AD1, Real3& AD2, Real3& AD3, const Real4& q) {
     AD1 = 2 * mR3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
     AD2 = 2 * mR3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
     AD3 = 2 * mR3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
@@ -303,8 +303,6 @@ __device__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3& 
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline int3 calcGridPos(Real3 p) {
     int3 gridPos;
-    if (paramsD.cellSize.x * paramsD.cellSize.y * paramsD.cellSize.z == 0)
-        printf("calcGridPos=%f,%f,%f\n", paramsD.cellSize.x, paramsD.cellSize.y, paramsD.cellSize.z);
 
     gridPos.x = (int)floor((p.x - paramsD.worldOrigin.x) / (paramsD.cellSize.x));
     gridPos.y = (int)floor((p.y - paramsD.worldOrigin.y) / (paramsD.cellSize.y));
@@ -313,13 +311,19 @@ __device__ inline int3 calcGridPos(Real3 p) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline uint calcGridHash(int3 gridPos) {
-    gridPos.x -= ((gridPos.x >= paramsD.gridSize.x && paramsD.x_periodic) ? paramsD.gridSize.x : 0);
-    gridPos.y -= ((gridPos.y >= paramsD.gridSize.y && paramsD.y_periodic) ? paramsD.gridSize.y : 0);
-    gridPos.z -= ((gridPos.z >= paramsD.gridSize.z && paramsD.z_periodic) ? paramsD.gridSize.z : 0);
+    gridPos.x = (gridPos.x >= paramsD.gridSize.x && paramsD.x_periodic) ? gridPos.x - paramsD.gridSize.x : 
+                 (gridPos.x >= paramsD.gridSize.x && !paramsD.x_periodic) ? paramsD.gridSize.x - 1 : gridPos.x;
+    gridPos.y = (gridPos.y >= paramsD.gridSize.y && paramsD.y_periodic) ? gridPos.y - paramsD.gridSize.y : 
+                 (gridPos.y >= paramsD.gridSize.y && !paramsD.y_periodic) ? paramsD.gridSize.y - 1 : gridPos.y;
+    gridPos.z = (gridPos.z >= paramsD.gridSize.z && paramsD.z_periodic) ? gridPos.z - paramsD.gridSize.z : 
+                 (gridPos.z >= paramsD.gridSize.z && !paramsD.z_periodic) ? paramsD.gridSize.z - 1 : gridPos.z;
 
-    gridPos.x += ((gridPos.x < 0 && paramsD.x_periodic) ? paramsD.gridSize.x : 0);
-    gridPos.y += ((gridPos.y < 0 && paramsD.y_periodic) ? paramsD.gridSize.y : 0);
-    gridPos.z += ((gridPos.z < 0 && paramsD.z_periodic) ? paramsD.gridSize.z : 0);
+    gridPos.x = (gridPos.x < 0 && paramsD.x_periodic) ? gridPos.x + paramsD.gridSize.x : 
+                 (gridPos.x < 0 && !paramsD.x_periodic) ? 0 : gridPos.x;
+    gridPos.y = (gridPos.y < 0 && paramsD.y_periodic) ? gridPos.y + paramsD.gridSize.y : 
+                 (gridPos.y < 0 && !paramsD.y_periodic) ? 0 : gridPos.y;
+    gridPos.z = (gridPos.z < 0 && paramsD.z_periodic) ? gridPos.z + paramsD.gridSize.z : 
+                 (gridPos.z < 0 && !paramsD.z_periodic) ? 0 : gridPos.z;
 
     return gridPos.z * paramsD.gridSize.y * paramsD.gridSize.x + gridPos.y * paramsD.gridSize.x + gridPos.x;
 }
@@ -524,23 +528,6 @@ __global__ void UpdateDensity(Real3* vis_vel,
                               uint* cellStart,
                               uint* cellEnd,
                               volatile bool* error_flag);
-
-__global__ void neighborSearchNum(const Real4* sortedPosRad,
-                                  const Real4* sortedRhoPreMu,
-                                  const uint* cellStart,
-                                  const uint* cellEnd,
-                                  const uint numActive,
-                                  uint* numNeighborsPerPart,
-                                  volatile bool* error_flag);
-
-__global__ void neighborSearchID(const Real4* sortedPosRad,
-                                 const Real4* sortedRhoPreMu,
-                                 const uint* cellStart,
-                                 const uint* cellEnd,
-                                 const uint numActive,
-                                 const uint* numNeighborsPerPart,
-                                 uint* neighborList,
-                                 volatile bool* error_flag);
 
 /// @} fsisph_physics
 

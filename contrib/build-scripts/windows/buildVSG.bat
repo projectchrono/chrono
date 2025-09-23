@@ -10,13 +10,13 @@
 @rem
 @rem Notes:
 @rem - The script accepts 1 optional argument to override the install directory.
-@rem - This script uses the following versions of the various codes from their respective repositories, with the
-@rem   only exception being vsgImGui which pulls the latest version.
-@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.4
-@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.2
-@rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.5.0
-@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.4
-@rem      assimp (github.com/assimp/assimp):                          Tag v5.3.1
+@rem - This script uses the following versions:
+@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.11
+@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.7
+@rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
+@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
+@rem      assimp (github.com/assimp/assimp):                          Tag v5.4.3
+@rem      draco (github.com/google/draco)                             Tag 1.5.7
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -24,7 +24,7 @@ set DOWNLOAD=ON
 set VSG_INSTALL_DIR="C:/Packages/vsg"
 
 set BUILDSHARED=ON
-set BUILDDEBUG=OFF
+set BUILDDEBUG=ON
 
 @if %DOWNLOAD% EQU OFF (
     set VSG_SOURCE_DIR="C:/Sources/VulkanSceneGraph"
@@ -32,6 +32,8 @@ set BUILDDEBUG=OFF
     set VSGIMGUI_SOURCE_DIR="C:/Sources/vsgImGui"
     set VSGEXAMPLES_SOURCE_DIR="C:/Sources/vsgExamples"
     set ASSIMP_SOURCE_DIR="C:/Sources/assimp"  
+    set DRACO_SOURCE_DIR="C:/Sources/draco"
+    set GLSLANG_SOURCE_DIR="C:/Sources/glslang"
 )
 
 @rem ------------------------------------------------------------------------
@@ -51,31 +53,77 @@ if "%~1" NEQ "" (
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.11 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     set VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.7 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     set VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
-    git clone -c advice.detachedHead=false --depth 1 --branch v0.5.0 "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
+    git clone -c advice.detachedHead=false --depth 1 --branch v0.7.0 "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
     set VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
 
     echo "  ... vsgExamples"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.9 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v5.3.1 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
     set ASSIMP_SOURCE_DIR="download_vsg/assimp"
+
+    echo "  ... draco"
+    git clone -c advice.detachedHead=false --depth 1 --branch 1.5.7 "https://github.com/google/draco.git" "download_vsg/draco"
+    set DRACO_SOURCE_DIR="download_vsg/draco"
+
+    echo " ... glslang"
+    git clone -c advice.detachedHead=false --depth 1 --branch 15.4.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
+    set GLSLANG_SOURCE_DIR="download_vsg/glslang"
+
+    cd download_vsg/glslang/
+    python update_glslang_sources.py
+    cd ../..
+
 ) else (
     echo "Using provided source directories"
 )
 
-@rem ------------------------------------------------------------------------
+@rem -----------------------------------------------------------------------
 
 rmdir /S/Q %VSG_INSTALL_DIR% 2>nul
+
+@rem --- glslang ------------------------------------------------------------
+
+rmdir /S/Q build_glslang 2>nul
+cmake -B build_glslang -S %GLSLANG_SOURCE_DIR% ^
+      -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
+      -DCMAKE_DEBUG_POSTFIX="_d" 
+
+cmake --build build_glslang --config Release
+cmake --install build_glslang --config Release --prefix %VSG_INSTALL_DIR%
+if %BUILDDEBUG% EQU ON (
+    cmake --build build_glslang --config Debug
+    cmake --install build_glslang --config Debug --prefix %VSG_INSTALL_DIR%
+) else (
+    echo "No Debug build of glslang"
+)
+
+
+rem --- draco --------------------------------------------------------------
+
+rmdir /S/Q build_draco 2>nul
+cmake -B build_draco -S %DRACO_SOURCE_DIR% ^
+      -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+cmake --build build_draco --config Release
+cmake --install build_draco --config Release --prefix %VSG_INSTALL_DIR%
+if %BUILDDEBUG% EQU ON (
+    cmake --build build_draco --config Debug
+    cmake --install build_draco --config Debug --prefix %VSG_INSTALL_DIR%
+) else (
+    echo "No Debug build of draco"
+)
 
 rem --- assimp -------------------------------------------------------------
 
@@ -86,8 +134,7 @@ cmake -B build_assimp -S %ASSIMP_SOURCE_DIR%  ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -DASSIMP_BUILD_TESTS:BOOL=OFF  ^
       -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF ^
-      -DASSIMP_BUILD_ZLIB:BOOL=ON ^
-      -DASSIMP_BUILD_DRACO:BOOL=ON
+      -DASSIMP_BUILD_ZLIB:BOOL=ON
 
 cmake --build build_assimp --config Release
 cmake --install build_assimp --config Release --prefix %VSG_INSTALL_DIR%
@@ -102,6 +149,7 @@ rem --- vsg ----------------------------------------------------------------
 
 rmdir /S/Q build_vsg 2>nul
 cmake -B build_vsg -S %VSG_SOURCE_DIR%  ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd  
@@ -119,6 +167,7 @@ rem --- vsgXchange ---------------------------------------------------------
 
 rmdir /S/Q build_vsgXchange 2>nul
 cmake -B build_vsgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
@@ -144,6 +193,7 @@ rem --- vsgImGui -----------------------------------------------------------
 
 rmdir /S/Q build_vsgImGui 2>nul
 cmake -B build_vsgImGui -S %VSGIMGUI_SOURCE_DIR% ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
@@ -161,6 +211,7 @@ rem --- vsgExamples --------------------------------------------------------
 
 rmdir /S/Q build_vsgExamples 2>nul
 cmake -B build_vsgExamples -S %VSGEXAMPLES_SOURCE_DIR% ^
+      -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -DvsgXchange_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgXchange ^
       -DvsgImGui_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgImGui

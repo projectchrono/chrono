@@ -90,12 +90,12 @@ void ChRotationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chassis,
     if (m_lock_arm) {
         // Create a weld kinematic joint.
         m_joint =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
+            chrono_types::make_shared<ChJoint>(ChJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
                                                       m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     } else {
         // Create a revolute joint or bushing.
         // The axis of rotation is the y axis of the suspension reference frame.
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_joint",
+        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_joint",
                                                             chassis->GetBody(), m_arm,
                                                             ChFrame<>(points[ARM_CHASSIS], z2y), getArmBushingData());
     }
@@ -243,7 +243,7 @@ void ChRotationalDamperSuspension::ExportComponentList(rapidjson::Document& json
     ExportRotSpringList(jsonDocument, rot_springs);
 }
 
-void ChRotationalDamperSuspension::Output(ChVehicleOutput& database) const {
+void ChRotationalDamperSuspension::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -255,7 +255,7 @@ void ChRotationalDamperSuspension::Output(ChVehicleOutput& database) const {
     std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     m_joint->IsKinematic() ? joints.push_back(m_joint->GetAsLink()) : bushings.push_back(m_joint->GetAsBushing());
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);

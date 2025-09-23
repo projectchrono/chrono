@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv.SetBrakeType(BrakeType::SHAFTS);
-    hmmwv.SetTireType(TireModelType::RIGID);
+    hmmwv.SetTireType(TireModelType::TMEASY);
     hmmwv.SetTireStepSize(tire_step_size);
     hmmwv.Initialize();
 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
         auto patch1_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch1_mat->SetFriction(0.9f);
         patch1_mat->SetRestitution(0.01f);
-        auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(-16, 0, 0), QUNIT), 32, 20);
+        auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(-16, 0, 0.08), QUNIT), 32, 20);
         patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
         patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
@@ -115,10 +115,10 @@ int main(int argc, char* argv[]) {
         patch4_mat->SetFriction(0.9f);
         patch4_mat->SetRestitution(0.01f);
         auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector3d(0, 42, 0), QuatFromAngleZ(CH_PI_2)),
-                                       vehicle::GetDataFile("terrain/height_maps/concave.bmp"), 64.0, 64.0, 0.0, 3.0);
+                                       vehicle::GetDataFile("terrain/height_maps/convex64.bmp"), 64.0, 64.0, 0.0, 3.0);
         patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
     }
-
+    
     if (false) {
         auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch_mat->SetFriction(0.9f);

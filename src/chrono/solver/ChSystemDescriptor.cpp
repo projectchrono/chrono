@@ -15,9 +15,6 @@
 #include <iomanip>
 
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
-#include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
-#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 

@@ -17,9 +17,9 @@
 
 #include <cmath>
 
-#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChIndexedParticles.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/solver/ChVariablesBodySharedMass.h"
 
 namespace chrono {
@@ -30,7 +30,7 @@ class ChParticleCloud;
 
 /// Class for a single particle clone in the ChParticleCloud cluster.
 /// It does not define mass, inertia and shape because those are _shared_ among them.
-class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars<6> {
+class ChApi ChParticle : public ChParticleBase, public ChContactable {
   public:
     ChParticle();
     ChParticle(const ChParticle& other);
@@ -48,10 +48,9 @@ class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars<6> {
 
     // INTERFACE TO ChContactable
 
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
 
-    /// Access variables.
-    virtual ChVariables* GetVariables1() override { return &Variables(); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_1vars<6>(&Variables()); }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -117,20 +116,19 @@ class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
     /// (used only for rolling friction NSC contacts)
-    virtual void ComputeJacobianForRollingContactPart(
-        const ChVector3d& abs_point,
-        ChMatrix33<>& contact_plane,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second) override;
+    virtual void ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      ChConstraintTuple* jacobian_tuple_N,
+                                                      ChConstraintTuple* jacobian_tuple_U,
+                                                      ChConstraintTuple* jacobian_tuple_V,
+                                                      bool second) override;
 
     /// used by some SMC code
     virtual double GetContactableMass() override { return variables.GetBodyMass(); }
@@ -405,72 +403,6 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     float sleep_minspeed;
     float sleep_minwvel;
     float sleep_starttime;
-};
-
-/// Predefined particle cloud dynamic coloring based on particle height.
-class ChApi HeightColorCallback : public ChParticleCloud::ColorCallback {
-  public:
-    HeightColorCallback(double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1))
-        : m_monochrome(false), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
-    HeightColorCallback(const ChColor& base_color, double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1))
-        : m_monochrome(true), m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
-
-    virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
-        double height = Vdot(cloud.GetParticlePos(n), m_up);  // particle height
-        if (m_monochrome) {
-            float factor = (float)((height - m_hmin) / (m_hmax - m_hmin));  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-        } else
-            return ChColor::ComputeFalseColor(height, m_hmin, m_hmax);
-    }
-
-  private:
-    bool m_monochrome;
-    ChColor m_base_color;
-    double m_hmin;
-    double m_hmax;
-    ChVector3d m_up;
-};
-
-class ChApi VelocityColorCallback : public ChParticleCloud::ColorCallback {
-  public:
-    enum class Component { X, Y, Z, NORM };
-
-    VelocityColorCallback(double vmin, double vmax, Component component = Component::NORM)
-        : m_monochrome(false), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
-    VelocityColorCallback(const ChColor& base_color, double vmin, double vmax, Component component = Component::NORM)
-        : m_monochrome(true), m_base_color(base_color), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
-
-    virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
-        double vel = 0;
-        switch (m_component) {
-            case Component::NORM:
-                vel = cloud.GetParticleVel(n).Length();
-                break;
-            case Component::X:
-                vel = std::abs(cloud.GetParticleVel(n).x());
-                break;
-            case Component::Y:
-                vel = std::abs(cloud.GetParticleVel(n).y());
-                break;
-            case Component::Z:
-                vel = std::abs(cloud.GetParticleVel(n).z());
-                break;
-        }
-
-        if (m_monochrome) {
-            float factor = (float)((vel - m_vmin) / (m_vmax - m_vmin));  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-        } else
-            return ChColor::ComputeFalseColor(vel, m_vmin, m_vmax);
-    }
-
-  private:
-    Component m_component;
-    bool m_monochrome;
-    ChColor m_base_color;
-    double m_vmin;
-    double m_vmax;
 };
 
 CH_CLASS_VERSION(ChParticleCloud, 0)

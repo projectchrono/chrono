@@ -47,11 +47,11 @@ hmmwv.SetTireType(veh.TireModelType_TMEASY)
 hmmwv.SetTireStepSize(step_size)
 hmmwv.Initialize()
 
-hmmwv.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
-hmmwv.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
+hmmwv.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+hmmwv.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+hmmwv.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+hmmwv.SetWheelVisualizationType(chrono.VisualizationType_NONE)
+hmmwv.SetTireVisualizationType(chrono.VisualizationType_PRIMITIVES)
 
 hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 

@@ -48,7 +48,12 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     virtual void OnAttach() override;
     virtual void OnInitialize() override;
+    virtual void OnBindAssets() override;
     virtual void OnRender() override;
+
+    /// Set the visibility of active boxes with specified tag to the provided value.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all boxes.
+    void SetActiveBoxVisibility(bool vis, int tag);
 
     /// Set default color for fluid SPH particles (default: [0.10, 0.40, 0.65]).
     void SetColorFluidMarkers(const ChColor& col) { m_sph_color = col; }
@@ -62,22 +67,32 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     /// Set default color for flex body BCE markers (default: [0.40, 0.10, 0.65]).
     void SetColorFlexBodyMarkers(const ChColor& col) { m_flex_bce_color = col; }
 
+    /// Get the type of the colormap currently in use.
+    ChColormap::Type GetColormapType() const;
+
+    /// Get the colormap object in current use.
+    const ChColormap& GetColormap() const;
+
     /// Class to be used as a callback interface for dynamic coloring of SPH particles.
     class CH_FSI_API ParticleColorCallback : public ChParticleCloud::ColorCallback {
       public:
-        virtual ChColor get(unsigned int n) const = 0;
+        virtual std::string GetTile() const = 0;
+        virtual ChVector2d GetDataRange() const = 0;
+        virtual ChColor GetColor(unsigned int n) const = 0;
+        virtual bool IsBimodal() const { return false; }
 
+        ChFsiVisualizationVSG* m_vsys;
         Real3* pos;
         Real3* vel;
         Real3* prop;
-
       private:
-        virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override final { return get(n); }
+        virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override final { return GetColor(n); }
     };
 
     /// Set a callback for dynamic coloring of SPH particles.
     /// If none provided, SPH particles are rendered with a default color.
-    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor) { m_color_fun = functor; }
+    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor,
+                             ChColormap::Type type = ChColormap::Type::JET);
 
     /// Class to be used as a callback interface for dynamic visibility of SPH particles or BCE markers.
     class CH_FSI_API MarkerVisibilityCallback : public ChParticleCloud::VisibilityCallback {
@@ -131,6 +146,9 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
   private:
     enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
 
+    void BindComputationalDomain();
+    void BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag);
+
     ChFsiSystemSPH* m_sysFSI;       ///< associated FSI system
     ChFsiFluidSystemSPH* m_sysSPH;  ///< associated SPH system
     ChSystem* m_sysMBS;             ///< internal Chrono system (holds proxies)
@@ -139,16 +157,21 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     bool m_bndry_bce_markers;  ///< render boundary BCE markers?
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
     bool m_flex_bce_markers;   ///< render flex-body markers?
+    bool m_active_boxes;       ///< render active boxes?
 
     std::shared_ptr<ChParticleCloud> m_sph_cloud;        ///< particle cloud proxy for SPH particles
     std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers
     std::shared_ptr<ChParticleCloud> m_rigid_bce_cloud;  ///< particle cloud proxy for BCE markers on rigid bodies
     std::shared_ptr<ChParticleCloud> m_flex_bce_cloud;   ///< particle cloud proxy for BCE markers on flex bodies
 
-    ChColor m_sph_color;        ///< color for SPH particles
-    ChColor m_bndry_bce_color;  ///< color for boundary BCE markers
-    ChColor m_rigid_bce_color;  ///< color for BCE markers on rigid bodies
-    ChColor m_flex_bce_color;   ///< color for BCE markers on flex bodies
+    ChColor m_sph_color;         ///< color for SPH particles
+    ChColor m_bndry_bce_color;   ///< color for boundary BCE markers
+    ChColor m_rigid_bce_color;   ///< color for BCE markers on rigid bodies
+    ChColor m_flex_bce_color;    ///< color for BCE markers on flex bodies
+    ChColor m_active_box_color;  ///< color for active boxes
+
+    std::unique_ptr<ChColormap> m_colormap;  ///< colormap for SPH particle false coloring
+    ChColormap::Type m_colormap_type;        ///< colormap type
 
     std::shared_ptr<ParticleColorCallback> m_color_fun;         ///< color functor for SPH particles
     std::shared_ptr<MarkerVisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
@@ -160,6 +183,10 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     std::vector<Real3> m_acc;   ///< SPH and BCE positions
     std::vector<Real3> m_frc;   ///< SPH and BCE positions
     std::vector<Real3> m_prop;  ///< SPH properties (density, pressure, viscosity)
+
+    bool m_use_active_boxes;                     ///< active domains enabled?
+    ChVector3d m_active_box_hsize;               ///< half-dimensions of active boxes
+    vsg::ref_ptr<vsg::Switch> m_activeBoxScene;  ///< VSG scene containing FSI body active boxes
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files
@@ -173,15 +200,12 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 class CH_FSI_API ParticleHeightColorCallback : public ChFsiVisualizationVSG::ParticleColorCallback {
   public:
     ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1));
-    ParticleHeightColorCallback(const ChColor& base_color,
-                                double hmin,
-                                double hmax,
-                                const ChVector3d& up = ChVector3d(0, 0, 1));
 
-    virtual ChColor get(unsigned int n) const override;
+    virtual std::string GetTile() const override;
+    virtual ChVector2d GetDataRange() const override;
+    virtual ChColor GetColor(unsigned int n) const override;
 
   private:
-    bool m_monochrome;
     ChColor m_base_color;
     double m_hmin;
     double m_hmax;
@@ -194,16 +218,13 @@ class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualizationVSG::P
     enum class Component { X, Y, Z, NORM };
 
     ParticleVelocityColorCallback(double vmin, double vmax, Component component = Component::NORM);
-    ParticleVelocityColorCallback(const ChColor& base_color,
-                                  double vmin,
-                                  double vmax,
-                                  Component component = Component::NORM);
 
-    virtual ChColor get(unsigned int n) const override;
+    virtual std::string GetTile() const override;
+    virtual ChVector2d GetDataRange() const override;
+    virtual ChColor GetColor(unsigned int n) const override;
 
   private:
     Component m_component;
-    bool m_monochrome;
     ChColor m_base_color;
     double m_vmin;
     double m_vmax;
@@ -213,12 +234,12 @@ class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualizationVSG::P
 class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualizationVSG::ParticleColorCallback {
   public:
     ParticleDensityColorCallback(double dmin, double dmax);
-    ParticleDensityColorCallback(const ChColor& base_color, double dmin, double dmax);
 
-    virtual ChColor get(unsigned int n) const override;
+    virtual std::string GetTile() const override;
+    virtual ChVector2d GetDataRange() const override;
+    virtual ChColor GetColor(unsigned int n) const override;
 
   private:
-    bool m_monochrome;
     ChColor m_base_color;
     double m_dmin;
     double m_dmax;
@@ -227,18 +248,15 @@ class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualizationVSG::Pa
 /// Predefined SPH coloring based on particle pressure.
 class CH_FSI_API ParticlePressureColorCallback : public ChFsiVisualizationVSG::ParticleColorCallback {
   public:
-    ParticlePressureColorCallback(double pmin, double pmax);
-    ParticlePressureColorCallback(const ChColor& base_color, double pmin, double pmax);
-    ParticlePressureColorCallback(const ChColor& base_color_neg,
-                                  const ChColor& base_color_pos,
-                                  double pmin,
-                                  double pmax);
+    ParticlePressureColorCallback(double pmin, double pmax, bool bimodal);
 
-    virtual ChColor get(unsigned int n) const override;
+    virtual std::string GetTile() const override;
+    virtual ChVector2d GetDataRange() const override;
+    virtual ChColor GetColor(unsigned int n) const override;
+    virtual bool IsBimodal() const override { return m_bimodal; }
 
   private:
-    bool m_monochrome;
-    bool m_bichrome;
+    bool m_bimodal;
     ChColor m_base_color;
     ChColor m_base_color_pos;
     ChColor m_base_color_neg;

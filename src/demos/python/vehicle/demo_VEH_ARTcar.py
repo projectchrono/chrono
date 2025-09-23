@@ -26,10 +26,10 @@ initLoc = chrono.ChVector3d(0, 0, 0.5)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_PRIMITIVES
-suspension_vis_type = veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_PRIMITIVES
+chassis_vis_type = chrono.VisualizationType_PRIMITIVES
+suspension_vis_type = chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_PRIMITIVES
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.CollisionType_NONE
@@ -79,7 +79,7 @@ car.SetTireRollingResistance(0.06)
 
 car.Initialize()
 
-tire_vis_type = veh.VisualizationType_PRIMITIVES  # : VisualizationType::PRIMITIVES
+tire_vis_type = chrono.VisualizationType_PRIMITIVES  # : VisualizationType::PRIMITIVES
 
 car.SetChassisVisualizationType(chassis_vis_type)
 car.SetSuspensionVisualizationType(suspension_vis_type)
@@ -113,7 +113,7 @@ vis.SetWindowTitle('dart')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 6.0, 0.5)
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddLightDirectional()
 vis.AddSkyBox()
 vis.AttachVehicle(car.GetVehicle())

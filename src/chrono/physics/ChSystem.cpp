@@ -23,6 +23,10 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverPJacobi.h"
@@ -33,7 +37,6 @@
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/physics/ChLinkMate.h"
 
 namespace chrono {
 
@@ -118,6 +121,17 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
 
 ChSystem::~ChSystem() {
     Clear();
+}
+
+std::shared_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC:
+            return chrono_types::make_shared<ChSystemNSC>();
+        case ChContactMethod::SMC:
+            return chrono_types::make_shared<ChSystemSMC>();
+            break;
+    }
+    return nullptr;
 }
 
 void ChSystem::Clear() {
@@ -488,15 +502,16 @@ bool ChSystem::ManageSleepingBodies() {
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector3d& pA,             // get contact pA
-            const ChVector3d& pB,             // get contact pB
-            const ChMatrix33<>& plane_coord,  // get contact plane coordsystem (A column 'X' is contact normal)
-            const double& distance,           // get contact distance
-            const double& eff_radius,         // effective radius of curvature at contact
-            const ChVector3d& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector3d& react_torques,  // get react.torques, if rolling friction (if already computed).
-            ChContactable* contactobjA,  // get model A (note: some containers may not support it and could be zero!)
-            ChContactable* contactobjB   // get model B (note: some containers may not support it and could be zero!)
+            const ChVector3d& pA,             // contact pA
+            const ChVector3d& pB,             // contact pB
+            const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+            double distance,                  // contact distance
+            double eff_radius,                // effective radius of curvature at contact
+            const ChVector3d& react_forces,   // react. forces (if already computed), expressed in 'plane_coord'
+            const ChVector3d& react_torques,  // react.torques, if rolling friction (if already computed)
+            ChContactable* contactobjA,       // first contactable object (may be nullptr)
+            ChContactable* contactobjB,       // second contactable object (may be nullptr)
+            int constraint_offset             // NSC only; ignored here
             ) override {
             if (!(contactobjA && contactobjB))
                 return true;
@@ -1957,6 +1972,61 @@ bool ChSystem::DoStaticRelaxing(double step_size, int num_iterations) {
         visual_system->OnUpdate(this);
 
     return success;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystem::Output(int frame, ChOutput& database) const {
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    std::vector<std::shared_ptr<ChBodyAuxRef>> bodies_aux;
+    for (auto& b : GetBodies()) {
+        if (auto b_aux = std::dynamic_pointer_cast<ChBodyAuxRef>(b))
+            bodies_aux.push_back(b_aux);
+        else
+            bodies.push_back(b);
+    }
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLinkTSDA>> tsdas;
+    std::vector<std::shared_ptr<ChLinkRSDA>> rsdas;
+    std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
+    std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
+    for (auto& l : GetLinks()) {
+        if (auto t = std::dynamic_pointer_cast<ChLinkTSDA>(l))
+            tsdas.push_back(t);
+        else if (auto r = std::dynamic_pointer_cast<ChLinkRSDA>(l))
+            rsdas.push_back(r);
+        else if (auto lm = std::dynamic_pointer_cast<ChLinkMotorLinear>(l))
+            lin_motors.push_back(lm);
+        else if (auto rm = std::dynamic_pointer_cast<ChLinkMotorRotation>(l))
+            rot_motors.push_back(rm);
+        else if (auto j = std::dynamic_pointer_cast<ChLink>(l))
+            joints.push_back(j);
+    }
+
+    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> body_loads;
+    for (auto& i : GetOtherPhysicsItems()) {
+        if (auto c = std::dynamic_pointer_cast<ChShaftsCouple>(i))
+            couples.push_back(c);
+        if (auto lc = std::dynamic_pointer_cast<ChLoadContainer>(i)) {
+            for (auto& l : lc->GetLoadList()) {
+                if (auto bl = std::dynamic_pointer_cast<ChLoadBodyBody>(l))
+                    body_loads.push_back(bl);
+            }
+        }
+    }
+
+    database.WriteTime(frame, GetChTime());
+    database.WriteBodies(bodies);
+    database.WriteShafts(GetShafts());
+    database.WriteJoints(joints);
+    database.WriteCouples(couples);
+    database.WriteLinSprings(tsdas);
+    database.WriteRotSprings(rsdas);
+    database.WriteBodyBodyLoads(body_loads);
+    database.WriteLinMotors(lin_motors);
+    database.WriteRotMotors(rot_motors);
 }
 
 // -----------------------------------------------------------------------------

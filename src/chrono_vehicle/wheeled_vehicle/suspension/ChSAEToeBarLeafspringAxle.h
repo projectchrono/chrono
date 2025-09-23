@@ -303,13 +303,13 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
 
     /// Return stiffness and damping data for the shackle bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getShackleBushingData() const { return nullptr; }
     /// Return stiffness and damping data for the clamp bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getClampBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getClampBushingData() const { return nullptr; }
     /// Return stiffness and damping data for the leafspring bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getLeafspringBushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_axleTube;    ///< axle tube body
     std::shared_ptr<ChBody> m_tierod;      ///< tierod body
@@ -327,21 +327,21 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
 
     // Leafspring related elements
     std::shared_ptr<ChBody> m_shackle[2];             ///< shackle bodies
-    std::shared_ptr<ChVehicleJoint> m_shackleRev[2];  ///< chassis-shackle rotational joint
+    std::shared_ptr<ChJoint> m_shackleRev[2];  ///< chassis-shackle rotational joint
 
     std::shared_ptr<ChBody> m_frontleaf[2];                  ///< frontleaf bodies
     std::shared_ptr<ChLinkLockSpherical> m_frontleafSph[2];  ///< frontleaf-chassis spherical joint
-    std::shared_ptr<ChVehicleJoint> m_frontleafRev[2];       ///< frontleaf-clampA rotational joint
+    std::shared_ptr<ChJoint> m_frontleafRev[2];       ///< frontleaf-clampA rotational joint
 
     std::shared_ptr<ChBody> m_rearleaf[2];                  ///< rearleaf bodies
     std::shared_ptr<ChLinkLockSpherical> m_rearleafSph[2];  ///< rearleaf-chassis spherical joint
-    std::shared_ptr<ChVehicleJoint> m_rearleafRev[2];       ///< rearleaf-clampB rotational joint
+    std::shared_ptr<ChJoint> m_rearleafRev[2];       ///< rearleaf-clampB rotational joint
 
     std::shared_ptr<ChBody> m_clampA[2];             ///< clampA bodies
-    std::shared_ptr<ChVehicleJoint> m_clampARev[2];  ///< clampA-axleTube rotational joint Z
+    std::shared_ptr<ChJoint> m_clampARev[2];  ///< clampA-axleTube rotational joint Z
 
     std::shared_ptr<ChBody> m_clampB[2];             ///< clampB bodies
-    std::shared_ptr<ChVehicleJoint> m_clampBRev[2];  ///< clampB-axleTube rotational joint Z
+    std::shared_ptr<ChJoint> m_clampBRev[2];  ///< clampB-axleTube rotational joint Z
 
     std::shared_ptr<ChLinkRSDA> m_latRotSpringA[2];  ///< mimics lateral stiffness of frontleaf
     std::shared_ptr<ChLinkRSDA> m_latRotSpringB[2];  ///< mimics lateral stiffness of rearleaf
@@ -384,7 +384,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

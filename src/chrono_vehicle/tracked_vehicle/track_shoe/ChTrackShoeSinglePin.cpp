@@ -103,18 +103,18 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     if (track->GetBushingData() || (m_index != 0 && m_index != 1)) {
         // Create and initialize the revolute joint (rotation axis along Z)
         auto rot = m_shoe->GetRot() * QuatFromAngleX(CH_PI_2);
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin",
+        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_pin",
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot),
                                                             track->GetBushingData());
         m_joint->SetTag(m_obj_tag);
         chassis->AddJoint(m_joint);
     } else if (m_index == 0) {
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph",
+        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sph",
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, QUNIT));
         chassis->AddJoint(m_joint);
     } else if (m_index == 1) {
         auto rot = m_shoe->GetRot() * QuatFromAngleY(-CH_PI_2);
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_univ",
+        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::UNIVERSAL, m_name + "_univ",
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot));
         m_joint->SetTag(m_obj_tag);
         chassis->AddJoint(m_joint);
@@ -147,7 +147,7 @@ void ChTrackShoeSinglePin::ExportComponentList(rapidjson::Document& jsonDocument
     ExportBodyList(jsonDocument, bodies);
 }
 
-void ChTrackShoeSinglePin::Output(ChVehicleOutput& database) const {
+void ChTrackShoeSinglePin::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

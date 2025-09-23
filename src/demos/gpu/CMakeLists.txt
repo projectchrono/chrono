@@ -15,9 +15,9 @@ set(DEMOS
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS "Chrono_gpu")
 
-#if(CH_ENABLE_MODULE_VSG)
-#    list(APPEND LIBS "Chrono_gpu_vsg")
-#endif()
+if(CH_ENABLE_MODULE_VSG)
+    list(APPEND LIBS "Chrono_gpu_vsg")
+endif()
 
 # ------------------------------------------------------------------------------
 # Add all executables
@@ -36,5 +36,5 @@ foreach(PROGRAM ${DEMOS})
     set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
   endif()
 
-    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+    install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 endforeach(PROGRAM)

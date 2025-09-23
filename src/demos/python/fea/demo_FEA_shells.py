@@ -19,7 +19,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 # Output directory
 out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS"
 
@@ -363,7 +362,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Shells FEA')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 6.0, -10))
 vis.AddTypicalLights()
@@ -382,8 +381,6 @@ ts.SetMaxIters(5)
 ts.SetAbsTolerances(1e-12, 1e-12)
 
 timestep = 0.1
-sys.Setup()
-sys.Update()
 
 rec_X = []
 rec_Y = []

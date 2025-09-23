@@ -226,33 +226,33 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
 
     /// Return stiffness and damping data for the arm-chassis bushing.
     /// Returning nullptr (default) results in using a kinematic spherical joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getArmChassisBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getArmChassisBushingData() const { return nullptr; }
 
     /// Return stiffness and damping data for the arm-upper link bushing.
     /// Returning nullptr (default) results in using a kinematic spherical joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getArmUpperBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getArmUpperBushingData() const { return nullptr; }
 
     /// Return stiffness and damping data for the arm-lower link bushing.
     /// Returning nullptr (default) results in using a kinematic spherical joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getArmLowerBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getArmLowerBushingData() const { return nullptr; }
 
     /// Return stiffness and damping data for the chassis-upper link bushing.
     /// Returning nullptr (default) results in using a kinematic universal joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getChassisUpperBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getChassisUpperBushingData() const { return nullptr; }
 
     /// Return stiffness and damping data for the arm-lower link bushing.
     /// Returning nullptr (default) results in using a kinematic universal joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getChassisLowerBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getChassisLowerBushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_arm[2];    ///< handles to the trailing arm bodies (left/right)
     std::shared_ptr<ChBody> m_upper[2];  ///< handles to the upper links (left/right)
     std::shared_ptr<ChBody> m_lower[2];  ///< handles to the lower links (left/right)
 
-    std::shared_ptr<ChVehicleJoint> m_sphericalArm[2];    ///< chassis-arm spherical joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_sphericalUpper[2];  ///< upper-arm spherical joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_sphericalLower[2];  ///< lower-arm spherical joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_universalUpper[2];  ///< upper-chassis universal joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_universalLower[2];  ///< lower-chassis universal joints (left/right)
+    std::shared_ptr<ChJoint> m_sphericalArm[2];    ///< chassis-arm spherical joints (left/right)
+    std::shared_ptr<ChJoint> m_sphericalUpper[2];  ///< upper-arm spherical joints (left/right)
+    std::shared_ptr<ChJoint> m_sphericalLower[2];  ///< lower-arm spherical joints (left/right)
+    std::shared_ptr<ChJoint> m_universalUpper[2];  ///< upper-chassis universal joints (left/right)
+    std::shared_ptr<ChJoint> m_universalLower[2];  ///< lower-chassis universal joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
@@ -286,7 +286,7 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

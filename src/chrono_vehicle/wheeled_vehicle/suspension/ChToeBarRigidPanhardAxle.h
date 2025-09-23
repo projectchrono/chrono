@@ -251,12 +251,12 @@ class CH_VEHICLE_API ChToeBarRigidPanhardAxle : public ChSuspension {
     std::shared_ptr<ChLinkUniversal> m_universalDraglink;      ///< draglink-bellCrank universal joint (left)
     std::shared_ptr<ChLinkUniversal> m_universalTierod;        ///< knuckle-tierod universal joint (right)
     std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];  ///< knuckle-axle tube revolute joints (L/R)
-    std::shared_ptr<ChVehicleJoint> m_sphPanhardAxle;
-    std::shared_ptr<ChVehicleJoint> m_sphPanhardChassis;
+    std::shared_ptr<ChJoint> m_sphPanhardAxle;
+    std::shared_ptr<ChJoint> m_sphPanhardChassis;
 
-    std::shared_ptr<ChVehicleJoint> m_revARBChassis;
+    std::shared_ptr<ChJoint> m_revARBChassis;
     std::shared_ptr<ChLinkLockRevolute> m_revARBLeftRight;
-    std::shared_ptr<ChVehicleJoint> m_slideARB[2];
+    std::shared_ptr<ChJoint> m_slideARB[2];
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
@@ -305,7 +305,7 @@ class CH_VEHICLE_API ChToeBarRigidPanhardAxle : public ChSuspension {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

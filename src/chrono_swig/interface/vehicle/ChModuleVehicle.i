@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChFrame.h"
@@ -59,15 +60,14 @@
 
 #include "chrono/fea/ChMesh.h"
 
+#include "chrono/output/ChOutput.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
@@ -90,6 +90,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
+#include "chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
@@ -191,7 +192,9 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChContactable)
-%shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::ChContactable_1vars)
+%shared_ptr(chrono::ChContactable_2vars)
+%shared_ptr(chrono::ChContactable_3vars)
 %shared_ptr(chrono::fea::ChMesh)
 
 
@@ -202,6 +205,7 @@ using namespace chrono::vehicle::m113;
 
 
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChCoordsys.i"
@@ -236,7 +240,22 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "../../../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChTexture.i"
 %import(module = "pychrono.core") "../../../chrono/fea/ChMesh.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 
+%import(module = "pychrono.core") "../../../chrono/output/ChOutput.h"
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_VSG
+#define CH_VSG_API
+%import(module = "pychrono.vsg3d") "chrono_swig/interface/vsg/ChVisualSystemVSG.i"
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
+#ifdef CHRONO_IRRLICHT
+#define ChApiIrr 
+%import(module = "pychrono.irrlicht") "dimension2d.h"
+%import(module = "pychrono.irrlicht") "../irrlicht/ChVisualSystemIrrlicht.i"
+#endif
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
@@ -255,9 +274,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChBrakeShafts)
 %shared_ptr(chrono::vehicle::BrakeSimple)
 %shared_ptr(chrono::vehicle::BrakeShafts)
-%shared_ptr(chrono::vehicle::ChVehicleJoint)
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
+%shared_ptr(chrono::vehicle::ChSpindle)
 %shared_ptr(chrono::vehicle::ChWheeledVehicle)
 %shared_ptr(chrono::vehicle::ChWheeledTrailer)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
@@ -270,13 +289,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %shared_ptr(chrono::vehicle::ChTransmission)
 
-// Expose for csharp only
-
-#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
 %shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
-#endif             // --------------------------------------------------------------------- CSHARP
-
-// Expose for both python and csharp
 
 %shared_ptr(chrono::vehicle::ChTireTestRig)
 %shared_ptr(chrono::vehicle::ChTireStaticTestRig)
@@ -285,6 +298,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
 
+%shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChIdler)
 %shared_ptr(chrono::vehicle::ChTrackWheel)
@@ -329,17 +343,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
 
-#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-
-  #ifdef CHRONO_IRRLICHT
-    #define ChApiIrr 
-    #define IRRLICHT_API
-    #define _IRR_DEPRECATED_
-    %include "chrono_swig/interface/vehicle/ChVehicleVisualSystemIrrlicht.i"
-  #endif
-
-#endif             // ----------------------------------------------------------------- end PYTHON
-
 // TODO: 
 //%include "rapidjson.i"
 //%include "../../../chrono_vehicle/ChApiVehicle.h"
@@ -349,8 +352,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %ignore chrono::vehicle::VehiclePartTag;
 %include "../../../chrono_vehicle/ChSubsysDefs.h"
 %include "chrono_models/vehicle/ChVehicleModelDefs.h"
-//TODO: conversion from std::vectors of ChVehicleOutput
-%include "../../../chrono_vehicle/ChVehicleOutput.h"
 %include "../../../chrono_vehicle/ChVehicleModelData.h"
 %include "../../../chrono_vehicle/ChPart.h"
 %include "../../../chrono_vehicle/ChWorldFrame.h"
@@ -359,8 +360,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChPowertrain.i"
 %include "ChEngine.i"
 %include "ChTransmission.i"
-
-%include "../core/ChBodyGeometry.i"
 
 %include "../../../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
@@ -377,9 +376,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChDriveline.i"
 
 
-
-%include "../../../chrono_vehicle/ChVehicleJoint.h"
-
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
@@ -392,6 +388,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChTire.i"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
@@ -413,13 +410,20 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "vehicleUtils.i"
 
-#ifdef SWIGCSHARP
+%include "../../../chrono_vehicle/ChVehicleVisualSystem.h" 
+
 #ifdef CHRONO_IRRLICHT
-// Place Irrlicht after everything else so SWIG is aware of how to translate
-// This interface file invokes Irrlicht library and therefore Visual Studio Linker dependencies need specifying
+  #define ChApiIrr 
+  #define IRRLICHT_API
+  #define _IRR_DEPRECATED_
   %include "ChVehicleVisualSystemIrrlicht.i"
 #endif
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_VSG
+  %include "ChVehicleVisualSystemVSG.i"
 #endif
+#endif             // --------------------------------------------------------------------- PYTHON
 
 //
 // C- CASTING OF SHARED POINTERS

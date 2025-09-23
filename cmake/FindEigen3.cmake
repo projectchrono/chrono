@@ -65,7 +65,7 @@ endmacro()
 
 
 
-if (EIGEN3_INCLUDE_DIR)
+if (EIGEN3_INCLUDE_DIR AND EXISTS "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h")
   if(NOT ${Eigen3_FIND_QUIETLY})
     message(STATUS "EIGEN3_INCLUDE_DIR found in cache: ${EIGEN3_INCLUDE_DIR}")
   endif()

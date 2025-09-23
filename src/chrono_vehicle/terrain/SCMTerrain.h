@@ -24,14 +24,15 @@
 #include <ostream>
 #include <unordered_map>
 
+#include "chrono/core/ChTimer.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChColormap.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsNodeXYZ.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/core/ChTimer.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -61,7 +62,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
         PLOT_SINKAGE_PLASTIC,
         PLOT_STEP_PLASTIC_FLOW,
         PLOT_PRESSURE,
-        PLOT_PRESSURE_YELD,
+        PLOT_PRESSURE_YIELD,
         PLOT_SHEAR,
         PLOT_K_JANOSI,
         PLOT_IS_TOUCHED,
@@ -135,9 +136,19 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     ///  Return the current test height level.
     double GetTestHeight() const;
 
-    /// Set the color plot type for the soil mesh.
-    /// When a scalar plot is used, also define the range in the pseudo-color colormap.
+    /// Set the color plot type for the SCM mesh.
+    /// Specify the minimum and maximum values for false coloring.
     void SetPlotType(DataPlotType plot_type, double min_val, double max_val);
+
+    /// Set the colormap type for false coloring of the SCM mesh.
+    /// The default colormap is JET (a divergent blue-red map).
+    void SetColormap(ChColormap::Type type);
+
+    /// Get the type of the colormap currently in use.
+    ChColormap::Type GetColormapType() const;
+
+    /// Get the colormap object in current use.
+    const ChColormap& GetColormap() const;
 
     /// Set visualization color.
     void SetColor(const ChColor& color);
@@ -158,13 +169,14 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     void SetBoundary(const ChAABB& aabb);
 
     /// Add a new moving active domain associated with the specified body.
+    /// Note: the OOBB is placed relative to the body *reference frame*.
     /// Multiple calls to this function can be made, each of them adding a new active active domain.
     /// The union of all currently defined active domains is used to reduce the number of ray casting operations, by
     /// ensuring that rays are generated only from SCM grid nodes inside the projection of the an actiove domains's OOBB
     /// onto the SCM reference plane. If there are no user-provided active domains, a single default one is defined to
     /// encompass all collision shapes in the system at any given time.
     void AddActiveDomain(std::shared_ptr<ChBody> body,   ///< [in] monitored body
-                         const ChVector3d& OOBB_center,  ///< [in] OOBB center, relative to body
+                         const ChVector3d& OOBB_center,  ///< [in] OOBB center, relative to body reference frame
                          const ChVector3d& OOBB_dims     ///< [in] OOBB dimensions
     );
 
@@ -331,6 +343,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
   private:
     std::shared_ptr<SCMLoader> m_loader;  ///< underlying load container for contact force generation
+
+    friend class ChScmVisualizationVSG;
 };
 
 /// Parameters for soil-contactable interaction.
@@ -568,6 +582,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     double m_test_offset_up;    ///< offset for ray end
 
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< mesh visualization asset
+    std::unique_ptr<ChColormap> m_colormap;                      ///< colormap for mesh false coloring
+    ChColormap::Type m_colormap_type;                            ///< colormap type
 
     bool m_cosim_mode;  ///< co-simulation mode
 
@@ -620,6 +636,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int m_num_erosion_nodes;
 
     friend class SCMTerrain;
+    friend class ChScmVisualizationVSG;
 };
 
 /// @} vehicle_terrain

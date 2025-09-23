@@ -8,8 +8,8 @@
 #    Irrlicht_DLL: full path to the Irrlicht DLL (windows only)
 # Use first Irrlicht_INCLUDE_DIR, Irrlicht_LIBRARY, and Irrlicht_DLL if defined.
 # Otherwise, if Irrlicht_ROOT is provided, look for the Irrlicht header and library
-# in IRRLICHT_ROOT and standard installatio ndirectories.
-# If Irrlicht still not found, ask the caller to provide IRRLICHT_ROOT and, if
+# in Irrlicht_ROOT and standard installation directories.
+# If Irrlicht still not found, ask the caller to provide Irrlicht_ROOT and, if
 # still needed, Irrlicht_INCLUDE_DIR, Irrlicht_LIBRARY, and Irrlicht_DLL.
 #
 # Output variables
@@ -23,20 +23,24 @@
 
 mark_as_advanced(IRRLICHT_LIBRARY_PATHS IRRLICHT_INCLUDE_PATHS)
 
-set(Irrlicht_FOUND TRUE)
+set(Irrlicht_FOUND FALSE)
+
+# These are output variables thus should not be set by the user
+unset(IRRLICHT_INCLUDE_DIR)
+unset(IRRLICHT_LIBRARY)
+unset(IRRLICHT_DLL)
 
 # ----------------------------------------------------------------------------------------------------
 # 1. Look for Irrlicht using Irrlicht_INCLUDE_DIR and Irrlicht_LIBRARY if both provided
 # ----------------------------------------------------------------------------------------------------
-
+message(STATUS "Looking for Irrlicht...")
 if(NOT "${Irrlicht_INCLUDE_DIR}" STREQUAL "" AND NOT "${Irrlicht_LIBRARY}" STREQUAL "")
-  find_path(IRRLICHT_INCLUDE_DIR NAMES irrlicht.h PATHS ${Irrlicht_INCLUDE_DIR} NO_CACHE)
-  if(IRRLICHT_INCLUDE_DIR MATCHES IRRLICHT_INCLUDE_DIR-NOTFOUND)
-    set(Irrlicht_FOUND FALSE)
+  find_path(IRRLICHT_INCLUDE_DIR NAMES irrlicht.h PATHS ${Irrlicht_INCLUDE_DIR} NO_CACHE NO_PACKAGE_ROOT_PATH)
+
+  if(IRRLICHT_INCLUDE_DIR AND EXISTS ${Irrlicht_LIBRARY})
+    set(IRRLICHT_LIBRARY ${Irrlicht_LIBRARY})
+    set(Irrlicht_FOUND TRUE)
   endif()
-  set(IRRLICHT_LIBRARY ${Irrlicht_LIBRARY})
-else()
-  set(Irrlicht_FOUND FALSE)
 endif()
 
 if(NOT "${Irrlicht_DLL}" STREQUAL "")
@@ -47,16 +51,15 @@ if(Irrlicht_FOUND)
   if(NOT Irrlicht_FIND_QUIETLY)
     message(STATUS "Found Irrlicht using Irrlicht_INCLUDE_DIR and Irrlicht_LIBRARY")
   endif()
-endif()
+else()
 
-# ----------------------------------------------------------------------------------------------------
-# 2. Look for Irrlicht using Irrlicht_ROOT and/or in known locations
-# ----------------------------------------------------------------------------------------------------
-
-if(NOT Irrlicht_FOUND)
+  # ----------------------------------------------------------------------------------------------------
+  # 2. Look for Irrlicht using Irrlicht_ROOT and/or in known locations
+  # ----------------------------------------------------------------------------------------------------
 
   set(Irrlicht_FOUND TRUE)
   set(IRRLICHT_DLL "")
+  unset(IRRLICHT_LIBRARY)
 
   # Windows
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

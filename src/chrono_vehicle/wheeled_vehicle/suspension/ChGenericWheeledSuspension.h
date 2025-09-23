@@ -109,12 +109,12 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     /// If bushing data is provided, creates a bushing. Otherwise, creates a kinematic joint.
     void DefineJoint(const std::string& name,    ///< joint name
                      bool mirrored,              ///< true if mirrored on right side
-                     ChVehicleJoint::Type type,  ///< joint type
+                     ChJoint::Type type,  ///< joint type
                      BodyIdentifier body1,       ///< first connected body
                      BodyIdentifier body2,       ///< second connected body
                      const ChVector3d& pos,      ///< joint position (in subsystem reference frame)
                      const ChQuaternion<>& rot,  ///< joint frame orientation (in subsystem reference frame)
-                     std::shared_ptr<ChVehicleBushingData> bdata = nullptr  ///< optional bushing data
+                     std::shared_ptr<ChJoint::BushingData> bdata = nullptr  ///< optional bushing data
     );
 
     /// Add a distance constraint definition to the suspension subsystem.
@@ -226,13 +226,13 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
 
     /// Internal specification of a suspension joint.
     struct Joint {
-        std::shared_ptr<ChVehicleJoint> joint;        ///< underlying Chrono vehicle joint
-        ChVehicleJoint::Type type;                    ///< joint type
+        std::shared_ptr<ChJoint> joint;        ///< underlying Chrono vehicle joint
+        ChJoint::Type type;                    ///< joint type
         BodyIdentifier body1;                         ///< identifier of 1st body
         BodyIdentifier body2;                         ///< identifier of 2nd body
         ChVector3d pos;                               ///< joint position in subsystem frame
         ChQuaternion<> rot;                           ///< joint orientation in subsystem frame
-        std::shared_ptr<ChVehicleBushingData> bdata;  ///< bushing data
+        std::shared_ptr<ChJoint::BushingData> bdata;  ///< bushing data
     };
 
     /// Internal specification of a distance constraint.
@@ -303,7 +303,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 };
 
 /// @} vehicle_wheeled_suspension

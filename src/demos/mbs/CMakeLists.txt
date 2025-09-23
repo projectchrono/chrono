@@ -8,7 +8,7 @@ endif()
 # Add demos that can work with either Irrlicht or VSG
 set(DEMOS
   demo_MBS_aux_ref
-  demo_MBS_ballSMC
+  demo_MBS_object_drop
   demo_MBS_bricks
   demo_MBS_callbackNSC
   demo_MBS_callbackSMC
@@ -24,6 +24,7 @@ set(DEMOS
   demo_MBS_hydraulic_actuator
   demo_MBS_hydraulic_crane
   demo_MBS_hydraulic_crane_cosim
+  demo_MBS_custom_contact
 )
 
 # Add demos that can only work with Irrlicht
@@ -58,7 +59,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
       demo_MBS_prismatic_force
       demo_MBS_report_collisions
       demo_MBS_imposed_motion
-      demo_MBS_custom_contact
     )
 
     if(CHRONO_THRUST_FOUND)
@@ -121,5 +121,5 @@ foreach(PROGRAM ${DEMOS})
   target_link_libraries(${PROGRAM} ${LIBS})  
 
 
-  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+  install(TARGETS ${PROGRAM} CONFIGURATIONS Release CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

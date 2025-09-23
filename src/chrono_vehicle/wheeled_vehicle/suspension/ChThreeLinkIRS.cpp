@@ -192,21 +192,21 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spherical joint between chassis and arm.
-    m_sphericalArm[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalArm" + suffix, chassis->GetBody(), m_arm[side],
+    m_sphericalArm[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::SPHERICAL, m_name + "_sphericalArm" + suffix, chassis->GetBody(), m_arm[side],
         ChFrame<>(points[TA_C], QUNIT), getArmChassisBushingData());
     m_sphericalArm[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalArm[side]);
 
     // Create and initialize the spherical joints between links and arm.
-    m_sphericalUpper[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUpper" + suffix, m_upper[side], m_arm[side],
+    m_sphericalUpper[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::SPHERICAL, m_name + "_sphericalUpper" + suffix, m_upper[side], m_arm[side],
         ChFrame<>(points[UL_A], QUNIT), getArmUpperBushingData());
     m_sphericalUpper[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalUpper[side]);
 
-    m_sphericalLower[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLower" + suffix, m_lower[side], m_arm[side],
+    m_sphericalLower[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::SPHERICAL, m_name + "_sphericalLower" + suffix, m_lower[side], m_arm[side],
         ChFrame<>(points[LL_A], QUNIT), getArmLowerBushingData());
     m_sphericalLower[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalLower[side]);
@@ -218,8 +218,8 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.SetFromDirectionAxes(u, v, w);
 
-    m_universalUpper[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalUpper" + suffix, m_upper[side], chassis->GetBody(),
+    m_universalUpper[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::UNIVERSAL, m_name + "_universalUpper" + suffix, m_upper[side], chassis->GetBody(),
         ChFrame<>(points[UL_C], rot.GetQuaternion()), getChassisUpperBushingData());
     m_universalUpper[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_universalUpper[side]);
@@ -230,8 +230,8 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.SetFromDirectionAxes(u, v, w);
 
-    m_universalLower[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalLower" + suffix, m_lower[side], chassis->GetBody(),
+    m_universalLower[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::UNIVERSAL, m_name + "_universalLower" + suffix, m_lower[side], chassis->GetBody(),
         ChFrame<>(points[LL_C], rot.GetQuaternion()), getChassisLowerBushingData());
     m_universalLower[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_universalLower[side]);
@@ -531,7 +531,7 @@ void ChThreeLinkIRS::ExportComponentList(rapidjson::Document& jsonDocument) cons
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChThreeLinkIRS::Output(ChVehicleOutput& database) const {
+void ChThreeLinkIRS::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -576,7 +576,7 @@ void ChThreeLinkIRS::Output(ChVehicleOutput& database) const {
     m_universalLower[1]->IsKinematic() ? joints.push_back(m_universalLower[1]->GetAsLink())
                                        : bushings.push_back(m_universalLower[1]->GetAsBushing());
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

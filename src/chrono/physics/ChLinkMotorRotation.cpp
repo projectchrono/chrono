@@ -103,6 +103,21 @@ void ChLinkMotorRotation::Update(double time, bool update_assets) {
     this->mrot_dtdt = aframe12.GetAngAccLocal().z();
 }
 
+std::string ChLinkMotorRotation::GetSpindleTypeString(SpindleConstraint type) {
+    switch (type) {
+        case SpindleConstraint::FREE:
+            return "free";
+        case SpindleConstraint::REVOLUTE:
+            return "revolute";
+        case SpindleConstraint::CYLINDRICAL:
+            return "cylindrical";
+        case SpindleConstraint::OLDHAM:
+            return "oldham";
+        default:
+            return "unknown";
+    }
+}
+
 void ChLinkMotorRotation::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChLinkMotorRotation>();

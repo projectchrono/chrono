@@ -92,17 +92,6 @@ namespace sph {
 
 // ----------------------------------------------------------------------------
 
-#define cudaCheckError()                                                                     \
-    {                                                                                        \
-        cudaError_t e = cudaGetLastError();                                                  \
-        if (e != cudaSuccess) {                                                              \
-            printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e)); \
-            exit(0);                                                                         \
-        }                                                                                    \
-    }
-
-// ----------------------------------------------------------------------------
-
 #define cudaMallocErrorFlag(error_flag_D)                \
     {                                                    \
         cudaMalloc((void**)&error_flag_D, sizeof(bool)); \
@@ -119,24 +108,44 @@ namespace sph {
         cudaMemcpy(error_flag_D, &error_flag_H, sizeof(bool), cudaMemcpyHostToDevice); \
     }
 
-#define cudaCheckErrorFlag(error_flag_D, kernel_name)                                                    \
-    {                                                                                                    \
-        bool error_flag_H;                                                                               \
-        cudaDeviceSynchronize();                                                                         \
-        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), cudaMemcpyDeviceToHost);                   \
-        if (error_flag_H) {                                                                              \
-            char buffer[256];                                                                            \
-            sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name); \
-            printf("%s\n", buffer);                                                                      \
-            throw std::runtime_error(buffer);                                                            \
-        }                                                                                                \
-        cudaError_t e = cudaGetLastError();                                                              \
-        if (e != cudaSuccess) {                                                                          \
-            char buffer[256];                                                                            \
-            sprintf(buffer, "CUDA failure in %s:%d from %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
-            printf("%s\n", buffer);                                                                      \
-            throw std::runtime_error(buffer);                                                            \
-        }                                                                                                \
+#define cudaCheckErrorFlag(error_flag_D, kernel_name)                                                        \
+    {                                                                                                        \
+        bool error_flag_H;                                                                                   \
+        cudaDeviceSynchronize();                                                                             \
+        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), cudaMemcpyDeviceToHost);                       \
+        if (error_flag_H) {                                                                                  \
+            char buffer[256];                                                                                \
+            sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);     \
+            printf("%s\n", buffer);                                                                          \
+            throw std::runtime_error(buffer);                                                                \
+        }                                                                                                    \
+        cudaError_t e = cudaGetLastError();                                                                  \
+        if (e != cudaSuccess) {                                                                              \
+            char buffer[256];                                                                                \
+            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
+            printf("%s\n", buffer);                                                                          \
+            throw std::runtime_error(buffer);                                                                \
+        }                                                                                                    \
+    }
+
+#define cudaCheckError()                                                                                     \
+    {                                                                                                        \
+        cudaDeviceSynchronize();                                                                             \
+        cudaError_t e = cudaGetLastError();                                                                  \
+        if (e != cudaSuccess) {                                                                              \
+            char buffer[256];                                                                                \
+            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
+            printf("%s\n", buffer);                                                                          \
+            throw std::runtime_error(buffer);                                                                \
+        }                                                                                                    \
+    }
+
+#define cudaThrowError(message)                                                            \
+    {                                                                                      \
+        char buffer[256];                                                                  \
+        sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, message); \
+        printf("%s\n", buffer);                                                            \
+        throw std::runtime_error(buffer);                                                  \
     }
 
 // ----------------------------------------------------------------------------

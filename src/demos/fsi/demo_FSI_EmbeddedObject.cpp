@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
     sph_params.shifting_ppst_push = 3.0;
@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
     sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
-    sph_params.boundary_type = BoundaryType::HOLMES;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::HOLMES;
 
     fsi.SetSPHParameters(sph_params);
 
@@ -141,15 +141,15 @@ int main(int argc, char* argv[]) {
     double density = 5000;
     double mass = 0;
     ChMatrix33d inertia;
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
     switch (object_shape) {
         case ObjectShape::SPHERE_PRIMITIVE: {
             double radius = 0.2;
             ChSphere sphere(radius);
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
-            geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, sphere, 0));
+            geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, sphere, 0));
             break;
         }
         case ObjectShape::SPHERE_MESH: {
@@ -158,7 +158,8 @@ int main(int argc, char* argv[]) {
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
             std::string mesh_filename = GetChronoDataFile("models/sphere.obj");
-            geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius, 0.01, 0));
+            geometry->coll_meshes.push_back(
+                utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL, radius, 0.01, 0));
             break;
         }
         case ObjectShape::BOX_PRIMITIVE: {
@@ -166,7 +167,7 @@ int main(int argc, char* argv[]) {
             ChBox box(size);
             mass = density * box.GetVolume();
             inertia = density * box.GetGyration();
-            geometry.coll_boxes.push_back(
+            geometry->coll_boxes.push_back(
                 utils::ChBodyGeometry::BoxShape(ChVector3d(0.1, 0.1, 0), Q_ROTATE_Y_TO_Z, box, 0));
             break;
         }
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
             ChCylinder cylinder(radius, length);
             mass = density * cylinder.GetVolume();
             inertia = density * cylinder.GetGyration();
-            geometry.coll_cylinders.push_back(
+            geometry->coll_cylinders.push_back(
                 utils::ChBodyGeometry::CylinderShape(VNULL, QuatFromAngleX(CH_PI / 4), cylinder, 0));
             break;
         }
@@ -185,10 +186,10 @@ int main(int argc, char* argv[]) {
             ChBox box2(ChVector3d(0.1, 0.1, 0.4));
             mass = density * box1.GetVolume();       // not exact
             inertia = density * box1.GetGyration();  // not exact
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, -0.15), QUNIT, box1, 0));
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, +0.15), QUNIT, box1, 0));
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(-0.2, 0, 0), QUNIT, box2, 0));
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(+0.2, 0, 0), QUNIT, box2, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, -0.15), QUNIT, box1, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, +0.15), QUNIT, box1, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(-0.2, 0, 0), QUNIT, box2, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(+0.2, 0, 0), QUNIT, box2, 0));
             break;
         }
     }
@@ -205,7 +206,7 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(body);
 
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true);
@@ -227,7 +228,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -263,15 +264,13 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
-        auto col_callback =
-            chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.3f, 0.6f, 0.0f), -0.3, 0.3);
-        ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(-0.3, 0.3);
 
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::COPPER);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
@@ -284,7 +283,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
         visVSG->SetLightIntensity(0.9f);
-        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
 
         visVSG->Initialize();
         vis = visVSG;
@@ -309,6 +308,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -325,6 +325,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Call the FSI solver
         fsi.DoStepDynamics(step_size);

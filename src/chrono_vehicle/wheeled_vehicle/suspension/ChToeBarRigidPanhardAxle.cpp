@@ -154,15 +154,15 @@ void ChToeBarRigidPanhardAxle::Construct(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_panhardRodBody);
 
     // connect the Panhard rod to the chassis
-    m_sphPanhardChassis = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalPanhardChassis", chassis->GetBody(), m_panhardRodBody,
+    m_sphPanhardChassis = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::SPHERICAL, m_name + "_sphericalPanhardChassis", chassis->GetBody(), m_panhardRodBody,
         ChFrame<>(m_panrodOuterC, QUNIT));
     m_sphPanhardChassis->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphPanhardChassis);
 
     // connect the panhard rod to the axle tube
     m_sphPanhardAxle =
-        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalPanhardAxle",
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalPanhardAxle",
                                                   m_axleTubeBody, m_panhardRodBody, ChFrame<>(m_panrodOuterA, QUNIT));
     m_sphPanhardAxle->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphPanhardAxle);
@@ -393,8 +393,8 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_arbBody[side]);
 
     if (side == LEFT) {
-        m_revARBChassis = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_revARBchassis", chassisBody, m_arbBody[side],
+        m_revARBChassis = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::REVOLUTE, m_name + "_revARBchassis", chassisBody, m_arbBody[side],
             ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_PI_2)));
         m_revARBChassis->SetTag(m_obj_tag);
         chassis->AddJoint(m_revARBChassis);
@@ -411,8 +411,8 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
         m_revARBLeftRight->ForceRz().SetDampingCoefficient(getARBDamping());
     }
 
-    m_slideARB[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::POINTPLANE, m_name + "_revARBslide" + suffix, m_arbBody[side], m_axleTubeBody,
+    m_slideARB[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::POINTPLANE, m_name + "_revARBslide" + suffix, m_arbBody[side], m_axleTubeBody,
         ChFrame<>(m_ptARBAxle[side], chassisRot * QUNIT));
     m_slideARB[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_slideARB[side]);
@@ -667,7 +667,7 @@ void ChToeBarRigidPanhardAxle::ExportComponentList(rapidjson::Document& jsonDocu
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChToeBarRigidPanhardAxle::Output(ChVehicleOutput& database) const {
+void ChToeBarRigidPanhardAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

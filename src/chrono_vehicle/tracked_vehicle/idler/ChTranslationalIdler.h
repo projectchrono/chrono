@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     std::shared_ptr<ChBody> m_carrier;                 ///< carrier body
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< carrier-chassis translational joint
