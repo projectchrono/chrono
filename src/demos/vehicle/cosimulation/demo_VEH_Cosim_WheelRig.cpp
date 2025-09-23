@@ -39,8 +39,8 @@
 #ifdef CHRONO_FSI
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
-#ifdef CHRONO_GPU
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
+#ifdef CHRONO_DEM
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularDEM.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -183,10 +183,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 #endif
-#ifndef CHRONO_GPU
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_GPU) {
+#ifndef CHRONO_DEM
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_DEM) {
         if (rank == 0)
-            cout << "Chrono::Gpu is required for GRANULAR_GPU terrain type!" << endl;
+            cout << "Chrono::Dem is required for GRANULAR_DEM terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -388,9 +388,9 @@ int main(int argc, char** argv) {
                 break;
             }
 
-            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_GPU: {
-#ifdef CHRONO_GPU
-                auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(terrain_specfile);
+            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_DEM: {
+#ifdef CHRONO_DEM
+                auto terrain = new ChVehicleCosimTerrainNodeGranularDEM(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);

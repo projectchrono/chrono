@@ -61,8 +61,8 @@
 // If module FSI was enabled, define CHRONO_FSI
 @CHRONO_FSI@
 
-// If module GPU was enabled, define CHRONO_GPU
-@CHRONO_GPU@
+// If module DEM was enabled, define CHRONO_DEM
+@CHRONO_DEM@
 
 // If module SYNCHRONO was enabled, define CHRONO_SYNCHRONO
 @CHRONO_SYNCHRONO@

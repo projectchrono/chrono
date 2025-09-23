@@ -44,8 +44,8 @@ std::string ChVehicleCosimTerrainNodeChrono::GetTypeAsString(ChVehicleCosimTerra
             return "SCM";
         case Type::GRANULAR_OMP:
             return "GRANULAR_OMP";
-        case Type::GRANULAR_GPU:
-            return "GRANULAR_GPU";
+        case Type::GRANULAR_DEM:
+            return "GRANULAR_DEM";
         case Type::GRANULAR_SPH:
             return "GRANULAR_SPH";
         default:
@@ -60,8 +60,8 @@ ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFr
         return Type::SCM;
     if (type == "GRANULAR_OMP")
         return Type::GRANULAR_OMP;
-    if (type == "GRANULAR_GPU")
-        return Type::GRANULAR_GPU;
+    if (type == "GRANULAR_DEM")
+        return Type::GRANULAR_DEM;
     if (type == "GRANULAR_SPH")
         return Type::GRANULAR_SPH;
 
