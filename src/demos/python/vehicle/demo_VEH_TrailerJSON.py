@@ -30,17 +30,17 @@ def main() :
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
     vehicle.Initialize(chrono.ChCoordsysd(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
-    vehicle.SetChassisVisualizationType(veh.VisualizationType_MESH)
-    vehicle.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetWheelVisualizationType(veh.VisualizationType_MESH)
+    vehicle.SetChassisVisualizationType(chrono.VisualizationType_MESH)
+    vehicle.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetWheelVisualizationType(chrono.VisualizationType_MESH)
 
     # Create and initialize the vehicle tires
     for axle in vehicle.GetAxles() :
         tireL = veh.TMeasyTire(vehicle_tire_file)
-        vehicle.InitializeTire(tireL, axle.m_wheels[0], veh.VisualizationType_MESH)
+        vehicle.InitializeTire(tireL, axle.m_wheels[0], chrono.VisualizationType_MESH)
         tireR = veh.TMeasyTire(vehicle_tire_file)
-        vehicle.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_MESH)
+        vehicle.InitializeTire(tireR, axle.m_wheels[1], chrono.VisualizationType_MESH)
 
     # Create and initialize the powertrain systems
     engine = veh.ReadEngineJSON(vehicle_engine_file)
@@ -51,16 +51,16 @@ def main() :
     # Create and initialize the trailer
     trailer = veh.WheeledTrailer(vehicle.GetSystem(), trailer_file)
     trailer.Initialize(vehicle.GetChassis())
-    trailer.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    trailer.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    trailer.SetWheelVisualizationType(veh.VisualizationType_NONE)
+    trailer.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    trailer.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    trailer.SetWheelVisualizationType(chrono.VisualizationType_NONE)
 
     # Create and initialize the trailer tires
     for axle in trailer.GetAxles() :
         tireL = veh.TMeasyTire(trailer_tire_file)
-        trailer.InitializeTire(tireL, axle.m_wheels[0], veh.VisualizationType_PRIMITIVES)
+        trailer.InitializeTire(tireL, axle.m_wheels[0], chrono.VisualizationType_PRIMITIVES)
         tireR = veh.TMeasyTire(trailer_tire_file)
-        trailer.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_PRIMITIVES)
+        trailer.InitializeTire(tireR, axle.m_wheels[1], chrono.VisualizationType_PRIMITIVES)
 
     vehicle.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 

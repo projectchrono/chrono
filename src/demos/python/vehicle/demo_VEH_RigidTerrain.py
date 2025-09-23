@@ -40,11 +40,11 @@ def main():
     hmmwv.SetTireStepSize(tire_step_size)
     hmmwv.Initialize()
 
-    hmmwv.SetChassisVisualizationType(veh.VisualizationType_NONE)
-    hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetWheelVisualizationType(veh.VisualizationType_MESH)
-    hmmwv.SetTireVisualizationType(veh.VisualizationType_MESH)
+    hmmwv.SetChassisVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetWheelVisualizationType(chrono.VisualizationType_MESH)
+    hmmwv.SetTireVisualizationType(chrono.VisualizationType_MESH)
 
     hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 

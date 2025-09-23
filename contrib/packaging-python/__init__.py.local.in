@@ -30,6 +30,10 @@ try:
 except:
     pass
 try:
+    from . import vsg3d
+except:
+    pass
+try:
     @ADD_OCC_DLL@
     from . import cascade
 except:

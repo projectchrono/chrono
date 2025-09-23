@@ -55,11 +55,11 @@ def main():
     hmmwv_1.SetDriveType(veh.DrivelineTypeWV_RWD)
     hmmwv_1.SetTireType(veh.TireModelType_RIGID)
     hmmwv_1.Initialize()
-    hmmwv_1.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv_1.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv_1.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv_1.SetWheelVisualizationType(veh.VisualizationType_NONE)
-    hmmwv_1.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
+    hmmwv_1.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv_1.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv_1.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv_1.SetWheelVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv_1.SetTireVisualizationType(chrono.VisualizationType_PRIMITIVES)
 
     # Create the driver system for vehicle 1
     driver_1 = veh.ChDriver(hmmwv_1.GetVehicle())
@@ -88,11 +88,11 @@ def main():
     hmmwv_2.SetDriveType(veh.DrivelineTypeWV_RWD)
     hmmwv_2.SetTireType(veh.TireModelType_RIGID)
     hmmwv_2.Initialize()
-    hmmwv_2.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv_2.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv_2.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv_2.SetWheelVisualizationType(veh.VisualizationType_NONE)
-    hmmwv_2.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
+    hmmwv_2.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv_2.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv_2.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv_2.SetWheelVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv_2.SetTireVisualizationType(chrono.VisualizationType_PRIMITIVES)
 
     # Create the driver system for vehicle 2
     driver_2 = veh.ChDriver(hmmwv_2.GetVehicle())
