@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Chrono VSG Assets");
     vis->AddCamera(ChVector3d(8.0, 12.3, 3.0), ChVector3d(-0.1, 1.0, 0.4));
     vis->SetCameraAngleDeg(40);
-    vis->SetLightIntensity(2.0f);
+    vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(CH_PI_2, CH_PI_4);
 
     ChVector3d bus_pos(3, -4.5, 0);

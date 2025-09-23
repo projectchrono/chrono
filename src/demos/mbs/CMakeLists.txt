@@ -24,6 +24,7 @@ set(DEMOS
   demo_MBS_hydraulic_actuator
   demo_MBS_hydraulic_crane
   demo_MBS_hydraulic_crane_cosim
+  demo_MBS_custom_contact
 )
 
 # Add demos that can only work with Irrlicht
@@ -58,7 +59,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
       demo_MBS_prismatic_force
       demo_MBS_report_collisions
       demo_MBS_imposed_motion
-      demo_MBS_custom_contact
     )
 
     if(CHRONO_THRUST_FOUND)

@@ -76,10 +76,6 @@ set(CE_VSG_SHAPES_FILES
 )
 
 set(CE_VSG_RESOURCES_FILES
-    resources/chronoLineShader_frag.h
-    resources/chronoLineShader_vert.h
-    resources/chronoPbrShader_frag.h
-    resources/chronoPbrShader_vert.h
     resources/pcShader_frag.h
     resources/pcShader_vert.h
     resources/cubemapShaders.h

@@ -13,10 +13,6 @@
 // =============================================================================
 
 #include "chrono_vsg/shapes/ShaderUtils.h"
-#include "chrono_vsg/resources/chronoLineShader_vert.h"
-#include "chrono_vsg/resources/chronoLineShader_frag.h"
-#include "chrono_vsg/resources/chronoPbrShader_vert.h"
-#include "chrono_vsg/resources/chronoPbrShader_frag.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -24,20 +20,13 @@ namespace vsg3d {
 vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options, bool skipZbuffer) {
     // vsg::info("Local LineShaderSet(", options, ")");
 
-    bool use_embedded_shaders = true;
-
     vsg::ref_ptr<vsg::ShaderStage> vertexShader;
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader;
 
-    if (use_embedded_shaders) {
-        // read shader programs from embedded source code
-        vertexShader = chronoLineShader_vert();
-        fragmentShader = chronoLineShader_frag();
-    } else {
-        // read shader programs from source files
-        vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.vert", options);
-        fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.frag", options);
-    }
+    // read shader programs from source files
+    vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.vert", options);
+    fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoLineShader.frag", options);
+
     if (!vertexShader || !fragmentShader) {
         vsg::error("LineShaderSet(...) could not find shaders.");
         return {};
@@ -66,18 +55,13 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
 #define MATERIAL_DESCRIPTOR_SET 1
 
     // vsg::info("Local pbr_ShaderSet(", options, ")");
-    bool use_embedded_shaders = true;
 
     vsg::ref_ptr<vsg::ShaderStage> vertexShader;
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader;
 
-    if (use_embedded_shaders) {
-        vertexShader = chronoPbrShader_vert();
-        fragmentShader = chronoPbrShader_frag();
-    } else {
-        vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.vert", options);
-        fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.frag", options);
-    }
+    vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.vert", options);
+    fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chronoPbrShader.frag", options);
+
     if (!vertexShader || !fragmentShader) {
         vsg::error("pbr_ShaderSet(...) could not find shaders.");
         return {};
@@ -87,26 +71,42 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
 
     shaderSet->addAttributeBinding("vsg_Vertex", "", 0, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
     shaderSet->addAttributeBinding("vsg_Normal", "", 1, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
-    shaderSet->addAttributeBinding("vsg_TexCoord0", "", 2, VK_FORMAT_R32G32_SFLOAT, vsg::vec2Array::create(1));
-    shaderSet->addAttributeBinding("vsg_Color", "", 3, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord0", "VSG_TEXTURECOORD_0", 2, VK_FORMAT_R32G32_SFLOAT,
+                                   vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord1", "VSG_TEXTURECOORD_1", 3, VK_FORMAT_R32G32_SFLOAT,
+                                   vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord2", "VSG_TEXTURECOORD_2", 4, VK_FORMAT_R32G32_SFLOAT,
+                                   vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord3", "VSG_TEXTURECOORD_3", 5, VK_FORMAT_R32G32_SFLOAT,
+                                   vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Color", "", 6, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1),
+                                   vsg::CoordinateSpace::LINEAR);
 
-    shaderSet->addAttributeBinding("vsg_position", "VSG_INSTANCE_POSITIONS", 4, VK_FORMAT_R32G32B32_SFLOAT,
-                                   vsg::vec3Array::create(1));
-    shaderSet->addAttributeBinding("vsg_position_scaleDistance", "VSG_BILLBOARD", 4, VK_FORMAT_R32G32B32A32_SFLOAT,
+    shaderSet->addAttributeBinding("vsg_Translation_scaleDistance", "VSG_BILLBOARD", 7, VK_FORMAT_R32G32B32A32_SFLOAT,
                                    vsg::vec4Array::create(1));
 
-    shaderSet->addDescriptorBinding("displacementMap", "VSG_DISPLACEMENT_MAP", MATERIAL_DESCRIPTOR_SET, 6,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
-                                    vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
+    shaderSet->addAttributeBinding("vsg_Translation", "VSG_INSTANCE_TRANSLATION", 7, VK_FORMAT_R32G32B32_SFLOAT,
+                                   vsg::vec3Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Rotation", "VSG_INSTANCE_ROTATION", 8, VK_FORMAT_R32G32B32A32_SFLOAT,
+                                   vsg::quatArray::create(1));
+    shaderSet->addAttributeBinding("vsg_Scale", "VSG_INSTANCE_SCALE", 9, VK_FORMAT_R32G32B32_SFLOAT,
+                                   vsg::vec3Array::create(1));
+
+    shaderSet->addAttributeBinding("vsg_JointIndices", "VSG_SKINNING", 10, VK_FORMAT_R32G32B32A32_SINT,
+                                   vsg::ivec4Array::create(1));
+    shaderSet->addAttributeBinding("vsg_JointWeights", "VSG_SKINNING", 11, VK_FORMAT_R32G32B32A32_SFLOAT,
+                                   vsg::vec4Array::create(1));
+
     shaderSet->addDescriptorBinding("diffuseMap", "VSG_DIFFUSE_MAP", MATERIAL_DESCRIPTOR_SET, 0,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-    shaderSet->addDescriptorBinding("mrMap", "VSG_METALLROUGHNESS_MAP", MATERIAL_DESCRIPTOR_SET, 1,
+    shaderSet->addDescriptorBinding("detailMap", "VSG_DETAIL_MAP", MATERIAL_DESCRIPTOR_SET, 1,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}));
+                                    vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
     shaderSet->addDescriptorBinding("normalMap", "VSG_NORMAL_MAP", MATERIAL_DESCRIPTOR_SET, 2,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}));
+                                    vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}),
+                                    vsg::CoordinateSpace::LINEAR);
     shaderSet->addDescriptorBinding("aoMap", "VSG_LIGHTMAP_MAP", MATERIAL_DESCRIPTOR_SET, 3,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
@@ -116,13 +116,27 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
     shaderSet->addDescriptorBinding("specularMap", "VSG_SPECULAR_MAP", MATERIAL_DESCRIPTOR_SET, 5,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-    shaderSet->addDescriptorBinding("opacityMap", "VSG_OPACITY_MAP", MATERIAL_DESCRIPTOR_SET, 7,
+    shaderSet->addDescriptorBinding("mrMap", "VSG_METALLROUGHNESS_MAP", MATERIAL_DESCRIPTOR_SET, 6,
                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-    shaderSet->addDescriptorBinding("PbrData", "", MATERIAL_DESCRIPTOR_SET, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                    VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create());
+                                    vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}),
+                                    vsg::CoordinateSpace::LINEAR);
 
-    shaderSet->addDescriptorBinding("jointMatrices", "VSG_SKINNING", MATERIAL_DESCRIPTOR_SET, 11,
+    shaderSet->addDescriptorBinding("displacementMap", "VSG_DISPLACEMENT_MAP", MATERIAL_DESCRIPTOR_SET, 7,
+                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
+                                    vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}),
+                                    vsg::CoordinateSpace::LINEAR);
+    shaderSet->addDescriptorBinding("displacementMapScale", "VSG_DISPLACEMENT_MAP", MATERIAL_DESCRIPTOR_SET, 8,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT,
+                                    vsg::vec3Value::create(1.0f, 1.0f, 1.0f));
+
+    shaderSet->addDescriptorBinding("PbrMaterial", "", MATERIAL_DESCRIPTOR_SET, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                    1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create(),
+                                    vsg::CoordinateSpace::LINEAR);
+    shaderSet->addDescriptorBinding("texCoordIndices", "", MATERIAL_DESCRIPTOR_SET, 11,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                    vsg::TexCoordIndicesValue::create(), vsg::CoordinateSpace::LINEAR);
+
+    shaderSet->addDescriptorBinding("jointMatrices", "VSG_SKINNING", MATERIAL_DESCRIPTOR_SET, 12,
                                     VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT,
                                     vsg::mat4Value::create());
 
@@ -132,28 +146,28 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
     shaderSet->addDescriptorBinding("viewportData", "", VIEW_DESCRIPTOR_SET, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
                                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::vec4Value::create(0, 0, 1280, 1024));
-    shaderSet->addDescriptorBinding("shadowMaps", "", VIEW_DESCRIPTOR_SET, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                    1, VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("shadowMaps", "", VIEW_DESCRIPTOR_SET, 2, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1,
+                                    VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::floatArray3D::create(1, 1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
     shaderSet->addDescriptorBinding("shadowMapDirectSampler", "VSG_SHADOWS_PCSS", VIEW_DESCRIPTOR_SET, 3,
                                     VK_DESCRIPTOR_TYPE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
     shaderSet->addDescriptorBinding("shadowMapShadowSampler", "", VIEW_DESCRIPTOR_SET, 4, VK_DESCRIPTOR_TYPE_SAMPLER, 1,
                                     VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
-    /* Fog maybe implemeted in future
-     shaderSet->addDescriptorBinding("Fog", "", CUSTOM_DESCRIPTOR_SET, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-     VK_SHADER_STAGE_FRAGMENT_BIT, custom::FogValue::create());
-     */
+
     // additional defines
-    shaderSet->optionalDefines = {"VSG_GREYSCALE_DIFFUSE_MAP", "VSG_TWO_SIDED_LIGHTING", "VSG_WORKFLOW_SPECGLOSS",
-                                  "VSG_SHADOWS_PCSS",          "VSG_SHADOWS_SOFT",       "VSG_SHADOWS_HARD",
-                                  "SHADOWMAP_DEBUG",           "VSG_ALPHA_TEST",         "VSG_OPACITY_MAP"};
+    shaderSet->optionalDefines = {"VSG_GREYSCALE_DIFFUSE_MAP", "VSG_TWO_SIDED_LIGHTING", "VSG_POINT_SPRITE",
+                                  "VSG_WORKFLOW_SPECGLOSS",    "VSG_SHADOWS_PCSS",       "VSG_SHADOWS_SOFT",
+                                  "VSG_SHADOWS_HARD",          "SHADOWMAP_DEBUG",        "VSG_ALPHA_TEST"};
 
-    shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_VERTEX_BIT, 0, 128);
+    shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_ALL, 0, 128);
 
-    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{
-        {"VSG_INSTANCE_POSITIONS", "VSG_DISPLACEMENT_MAP"}, vsg::PositionAndDisplacementMapArrayState::create()});
     shaderSet->definesArrayStates.push_back(
-        vsg::DefinesArrayState{{"VSG_INSTANCE_POSITIONS"}, vsg::PositionArrayState::create()});
+        vsg::DefinesArrayState{{"VSG_INSTANCE_TRANSLATION"}, vsg::TranslationArrayState::create()});
+    shaderSet->definesArrayStates.push_back(
+        vsg::DefinesArrayState{{"VSG_INSTANCE_TRANSLATION", "VSG_INSTANCE_ROTATION", "VSG_INSTANCE_SCALE"},
+                               vsg::TranslationRotationScaleArrayState::create()});
+    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{
+        {"VSG_INSTANCE_TRANSLATION", "VSG_DISPLACEMENT_MAP"}, vsg::TranslationAndDisplacementMapArrayState::create()});
     shaderSet->definesArrayStates.push_back(
         vsg::DefinesArrayState{{"VSG_DISPLACEMENT_MAP"}, vsg::DisplacementMapArrayState::create()});
     shaderSet->definesArrayStates.push_back(
@@ -240,7 +254,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     auto theScale = material->GetTextureScale();
     auto pbrMat = createPbrMaterialFromChronoMaterial(material);
-    graphicsPipelineConfig->assignDescriptor("PbrData", pbrMat);
+    graphicsPipelineConfig->assignDescriptor("PbrMaterial", pbrMat);
 
     graphicsPipelineConfig->enableArray("vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, 12);
     graphicsPipelineConfig->enableArray("vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, 12);
@@ -260,6 +274,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKdTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKdTexture(), options);
+        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -281,6 +296,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKeTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKeTexture(), options);
+        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -300,6 +316,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKsTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKsTexture(), options);
+        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -319,6 +336,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetOpacityTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetOpacityTexture(), options);
+        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -338,6 +356,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetNormalMapTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetNormalMapTexture(), options);
+        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
@@ -357,6 +376,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetAmbientOcclusionTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetAmbientOcclusionTexture(), options);
+        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =

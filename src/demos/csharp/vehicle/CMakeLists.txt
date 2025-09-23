@@ -5,21 +5,24 @@ endif()
 set(DEMOS
     demo_CS_VEH_WheeledJSON
     demo_CS_VEH_Kraz_OpenLoop
-    demo_CS_VEH_Kraz_ClosedLoop
     demo_CS_VEH_UAZBUS
     demo_CS_VEH_HMMWV_Rollover
     demo_CS_VEH_Gator_Accel
-    demo_CS_VEH_paths
     demo_CS_VEH_RigidTerrain_WheeledVehicle
     demo_CS_VEH_HMMWV_MeshTerrain
 )
 
-set(DEMOS_OPENCRG
-    demo_CS_VEH_CRGTerrain_IRR
-)
+if(CH_ENABLE_MODULE_POSTPROCESS)
+  set(DEMOS ${DEMOS}
+      demo_CS_VEH_Kraz_ClosedLoop
+      demo_CS_VEH_paths
+  )
+endif()
 
 if(HAVE_OPENCRG)
-  list(APPEND DEMOS ${DEMOS_OPENCRG})
+  set(DEMOS ${DEMOS}
+      demo_CS_VEH_CRGTerrain_IRR
+  )
 endif()
 
 # ----------------------------------------------------------------------
