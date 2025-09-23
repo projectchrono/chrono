@@ -24,7 +24,7 @@ def main() :
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
     vehicle.Initialize(chrono.ChCoordsysd(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
-    vehicle.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetChassisVisualizationType(chrono.VisualizationType_MESH)
     vehicle.SetChassisRearVisualizationType(chrono.VisualizationType_PRIMITIVES)
     vehicle.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
     vehicle.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
@@ -56,16 +56,29 @@ def main() :
     driver.Initialize()
 
     # Create Irrlicht visualization
-    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    vis.SetWindowTitle('HMMWV JSON specification')
-    vis.SetWindowSize(1280, 1024)
-    vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5)
-    vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
-    vis.AddLightDirectional()
-    vis.AddSkyBox()
-    vis.AttachVehicle(vehicle)
-    vis.AttachDriver(driver)
+    if vis_type == chrono.ChVisualSystem.Type_IRRLICHT:
+        vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+        vis.SetWindowTitle('HMMWV JSON specification')
+        vis.SetWindowSize(1280, 1024)
+        vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5)
+        vis.Initialize()
+        vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
+        vis.AddLightDirectional()
+        vis.AddSkyBox()
+        vis.AttachVehicle(vehicle)
+        vis.AttachDriver(driver)
+    elif vis_type == chrono.ChVisualSystem.Type_VSG:
+        vis = veh.ChWheeledVehicleVisualSystemVSG()
+        vis.SetWindowTitle('HMMWV JSON specification')
+        vis.SetWindowSize(1280, 1024)
+        vis.EnableSkyBox()
+        vis.SetLightIntensity(1.0)
+        vis.SetLightDirection(2.0, 0.75)
+        vis.EnableShadows()
+        vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 1.75), 9.0, 0.5)
+        vis.AttachVehicle(vehicle)
+        vis.AttachDriver(driver)
+        vis.Initialize()
 
     # Initialize output
     try:
@@ -141,5 +154,8 @@ render_step_size = 1.0 / 50  # FPS = 50
 
 # Output directories
 out_dir =  './WHEELED_JSON';
+
+# Run-time visualization type (VSG or Irrlicht)
+vis_type = chrono.ChVisualSystem.Type_VSG;
 
 main()
