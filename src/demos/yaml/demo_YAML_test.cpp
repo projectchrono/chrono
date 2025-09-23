@@ -35,6 +35,7 @@ using namespace chrono::irrlicht;
 using namespace chrono::vsg3d;
 #endif
 
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
@@ -99,6 +100,8 @@ int main(int argc, char* argv[]) {
     const ChVector3d& camera_location = parser.GetCameraLocation();
     const ChVector3d& camera_target = parser.GetCameraTarget();
     bool enable_shadows = parser.EnableShadows();
+    ChOutput::Type output_type = parser.GetOutputType();
+    double output_fps = parser.GetOutputFPS();
 
     // Print system hierarchy
     ////sys->ShowHierarchy(std::cout);
@@ -160,10 +163,21 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Create output directory
+    if (output_type != ChOutput::Type::NONE) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_TEST";
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        parser.SetOutputDir(out_dir);
+    }
+
     // Simulation loop
     ChRealtimeStepTimer rt_timer;
     double time = 0;
     int render_frame = 0;
+    int output_frame = 0;
 
     while (true) {
         if (render) {
@@ -175,8 +189,17 @@ int main(int argc, char* argv[]) {
                 vis->EndScene();
                 render_frame++;
             }
-        } else if (time_end > 0 || time >= time_end) {
-            break;
+        } else {
+            std::cout << "\rt = " << time;
+            if (time_end > 0 && time >= time_end)
+                break;
+        }
+
+        if (output_type != ChOutput::Type::NONE) {
+            if (time >= output_frame / output_fps) {
+                parser.Output(*sys, output_frame);
+                output_frame++;
+            }
         }
 
         sys->DoStepDynamics(time_step);

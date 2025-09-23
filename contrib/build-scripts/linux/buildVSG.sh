@@ -13,13 +13,13 @@
 #
 # Notes:
 # - The script accepts 1 optional argument to override the install directory.
-# - This script uses the following versions of the various codes from their respective repositories, with the
-#   only exception being vsgImGui which pulls the latest version.
-#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.4
-#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.2
-#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.5.0
-#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.4
-#      assimp (github.com/assimp/assimp):                          Tag v5.3.1
+# - This script uses the following versions:
+#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.11
+#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.7
+#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
+#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
+#      assimp (github.com/assimp/assimp):                          Tag v5.4.3
+#      draco (github.com/google/draco)                             Tag 1.5.7
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ DOWNLOAD=ON
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 
 BUILDSHARED=ON
-BUILDDEBUG=OFF
+BUILDDEBUG=ON
 BUILDSYSTEM="Ninja Multi-Config"
 
 if [ ${DOWNLOAD} = OFF ]
@@ -39,7 +39,9 @@ then
     VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
     VSGEXAMPLES_SOURCE_DIR="$HOME/Sources/vsgExamples"
     ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
-fi
+    DRACO_SOURCE_DIR="$HOME/Sources/draco"
+    GLSLANG_SOURCE_DIR="$HOME/Sources/glslang"
+fi    
 
 # ------------------------------------------------------------------------
 # Allow overriding installation directory through command line argument
@@ -59,24 +61,37 @@ then
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.11 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.7 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
-    git clone -c advice.detachedHead=false --depth 1 --branch v0.5.0 "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
+    git clone -c advice.detachedHead=false --depth 1 --branch v0.7.0 "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
     
     echo "  ... vsgExamples"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.9 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v5.3.1 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
     ASSIMP_SOURCE_DIR="download_vsg/assimp"
+
+    echo "  ... draco"
+    git clone -c advice.detachedHead=false --depth 1 --branch 1.5.7 "https://github.com/google/draco.git" "download_vsg/draco"
+    DRACO_SOURCE_DIR="download_vsg/draco"
+
+    echo "  ... glslang"
+    git clone -c advice.detachedHead=false --depth 1 --branch 15.4.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
+    GLSLANG_SOURCE_DIR="download_vsg/glslang"
+
+    cd download_vsg/glslang/
+    ./update_glslang_sources.py
+    cd ../..
+
 else
     echo "Using provided source directories"
 fi
@@ -87,11 +102,51 @@ echo "  "  ${VSGXCHANGE_SOURCE_DIR}
 echo "  "  ${VSGIMGUI_SOURCE_DIR}
 echo "  "  ${VSGEXAMPLES_SOURCE_DIR}
 echo "  "  ${ASSIMP_SOURCE_DIR}
+echo "  "  ${DRACO_SOURCE_DIR}
+echo "  "  ${GLSLANG_SOURCE_DIR}
 
 # ------------------------------------------------------------------------
 
 rm -rf ${VSG_INSTALL_DIR}
 mkdir ${VSG_INSTALL_DIR}
+
+# --- glslang ------------------------------------------------------------
+
+echo -e "\n------------------------ Configure glslang\n"
+rm -rf build_glslang
+cmake -G "${BUILDSYSTEM}" -B build_glslang -S ${GLSLANG_SOURCE_DIR} \
+      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+echo -e "\n------------------------ Build and install glslang\n"
+cmake --build build_glslang --config Release
+cmake --install build_glslang --config Release --prefix ${VSG_INSTALL_DIR}
+if [ ${BUILDDEBUG} = ON ]
+then
+    cmake --build build_glslang --config Debug
+    cmake --install build_glslang --config Debug --prefix ${VSG_INSTALL_DIR}
+else
+    echo "No Debug build of glslang"
+fi
+
+# --- draco -------------------------------------------------------------
+
+echo -e "\n------------------------ Configure draco\n"
+rm -rf build_draco
+cmake -G "${BUILDSYSTEM}" -B build_draco -S ${DRACO_SOURCE_DIR} \
+      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+echo -e "\n------------------------ Build and install draco\n"
+cmake --build build_draco --config Release
+cmake --install build_draco --config Release --prefix ${VSG_INSTALL_DIR}
+if [ ${BUILDDEBUG} = ON ]
+then
+    cmake --build build_draco --config Debug
+    cmake --install build_draco --config Debug --prefix ${VSG_INSTALL_DIR}
+else
+    echo "No Debug build of draco"
+fi
 
 # --- assimp -------------------------------------------------------------
 
@@ -103,8 +158,7 @@ cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -DASSIMP_BUILD_TESTS:BOOL=OFF  \
       -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF \
-      -DASSIMP_BUILD_ZLIB:BOOL=ON \
-      -DASSIMP_BUILD_DRACO:BOOL=ON
+      -DASSIMP_BUILD_ZLIB:BOOL=ON
 
 echo -e "\n------------------------ Build and install assimp\n"
 cmake --build build_assimp --config Release
@@ -122,6 +176,7 @@ fi
 echo -e "\n------------------------ Configure vsg\n"
 rm -rf build_vsg
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
@@ -142,6 +197,7 @@ fi
 echo -e "\n------------------------ Configure vsgXchange\n"
 rm -rf build_vsgXchange
 cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
@@ -164,6 +220,7 @@ fi
 echo -e "\n------------------------ Configure vsgImGui\n"
 rm -rf  build_vsgImGui
 cmake -G "${BUILDSYSTEM}" -B build_vsgImGui -S ${VSGIMGUI_SOURCE_DIR} \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
@@ -185,6 +242,7 @@ fi
 echo -e "\n------------------------ Configure vsgExamples\n"
 rm -rf  build_vsgExamples
 cmake -G "${BUILDSYSTEM}" -B build_vsgExamples -S ${VSGEXAMPLES_SOURCE_DIR} \
+      -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
       -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgXchange \
       -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgImGui

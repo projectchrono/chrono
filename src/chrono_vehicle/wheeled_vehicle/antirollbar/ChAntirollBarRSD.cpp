@@ -216,7 +216,7 @@ void ChAntirollBarRSD::ExportComponentList(rapidjson::Document& jsonDocument) co
     ExportJointList(jsonDocument, joints);
 }
 
-void ChAntirollBarRSD::Output(ChVehicleOutput& database) const {
+void ChAntirollBarRSD::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

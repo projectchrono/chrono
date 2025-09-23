@@ -295,6 +295,11 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
   endif()
 
+  if (CH_ENABLE_MODULE_VSG)
+    #Append the CHRONO_VSG flag, for vehicle visual VSG
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
+  endif()
+
   if (HAVE_OPENCRG)
      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DHAVE_OPENCRG")
   endif()
@@ -343,6 +348,11 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   add_dependencies(Chrono_csharp_vehicle Chrono_core Chrono_vehicle ChronoModels_vehicle)
 
   add_dependencies(Chrono_csharp_vehicle Chrono_csharp_core)
+  
+  if (CH_ENABLE_MODULE_VSG)
+      target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_vehicle_vsg Chrono_vsg)
+  endif()
+  
   if (CH_ENABLE_MODULE_IRRLICHT)
     add_dependencies(Chrono_csharp_vehicle Chrono_csharp_irrlicht)
   endif()

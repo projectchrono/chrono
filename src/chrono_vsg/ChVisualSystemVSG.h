@@ -217,6 +217,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// This function must be called before Initialize().
     void EnableSkyBox(bool val = true);
 
+    /// Set the sky box texture.
+    void SetSkyBoxTexture(const std::string& filename);
+
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
 

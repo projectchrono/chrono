@@ -17,7 +17,7 @@ CH_SENSOR_API void ChFilterTachometerUpdate::Apply() {
         m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetAngVelLocal().z() * 60 / 2 / CH_PI;
         //        printf("tachomter z axis\n");
     } else {
-        std::runtime_error("Axis has to be X Y Z");
+        throw std::runtime_error("Axis has to be X Y Z");
     }
 }
 

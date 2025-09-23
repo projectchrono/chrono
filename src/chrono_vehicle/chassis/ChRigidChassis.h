@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 };
 
 // -----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 };
 
 /// @} vehicle

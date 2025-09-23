@@ -28,12 +28,10 @@
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 #include "chrono_vsg/utils/ChUtilsVSG.h"
 
-#include "chrono_thirdparty/stb/stb_image_write.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vsg3d {
-
-using namespace std;
 
 // -----------------------------------------------------------------------------
 
@@ -734,9 +732,10 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_old_time(0),
       m_current_time(0),
       m_fps(0) {
-    m_windowTitle = string("Window Title");
-    m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
-    m_labelFontPath = string("vsg/fonts/OpenSans-Bold.vsgb");
+    m_windowTitle = std::string("Window Title");
+    ////m_skyboxPath = std::string("vsg/textures/chrono_skybox.ktx2");
+    m_skyboxPath = std::string("vsg/textures/vsg_skybox.ktx");
+    m_labelFontPath = std::string("vsg/fonts/OpenSans-Bold.vsgb");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
     m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
@@ -762,6 +761,10 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_options = vsg::Options::create();
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
     m_options->paths.push_back(GetChronoDataPath());
+
+    m_options->setValue("image_format", vsg::CoordinateSpace::LINEAR);
+    m_options->setValue("vertex_color_space", vsg::CoordinateSpace::sRGB);
+    m_options->setValue("material_color_space", vsg::CoordinateSpace::LINEAR);
 
     // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
@@ -951,6 +954,10 @@ void ChVisualSystemVSG::EnableSkyBox(bool val) {
     m_use_skybox = val;
 }
 
+void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename) {
+    m_skyboxPath = filename;
+}
+
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::AddCamera can only be called before initialization!" << std::endl;
@@ -1095,17 +1102,17 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0f, 1.0f, 1.0f);
-    ambientLight->intensity = 0.2f;
+    ambientLight->intensity = 0.1f * m_lightIntensity;  // before sRGB
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
-    directionalLight->intensity = m_lightIntensity;
+    directionalLight->intensity = vsg::linear_to_sRGB(m_lightIntensity);
     if (m_use_shadows) {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity *= 0.8f;  // try to avoid saturation due to additional lights
+        directionalLight->intensity = 0.8f * m_lightIntensity;  // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -1131,7 +1138,7 @@ void ChVisualSystemVSG::Initialize() {
         auto overheadLight = vsg::DirectionalLight::create();
         overheadLight->name = "head light";
         overheadLight->color.set(1.0f, 1.0f, 1.0f);
-        overheadLight->intensity = 0.2f;
+        overheadLight->intensity = 0.2f * m_lightIntensity;
         if (m_yup)
             overheadLight->direction.set(-ce * ca, -se, -ce * sa);
         else
@@ -1264,11 +1271,11 @@ void ChVisualSystemVSG::Initialize() {
     auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
     renderGraph->addChild(renderImGui);
 
-    // Use the ImGui drak (default) style, with adjusted transparency
+    // Use the ImGui dark (default) style, with adjusted transparency
     ImGui::StyleColorsDark();
     auto& style = ImGui::GetStyle();
     ImVec4 bg_color = style.Colors[ImGuiCol_WindowBg];
-    bg_color.w = 0.5f;
+    bg_color.w = 0.75f;
     style.Colors[ImGuiCol_WindowBg] = bg_color;
     style.Colors[ImGuiCol_ChildBg] = bg_color;
     style.Colors[ImGuiCol_TitleBg] = bg_color;
@@ -1774,7 +1781,7 @@ void ChVisualSystemVSG::SetLinkLabelsScale(double length) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
+void ChVisualSystemVSG::WriteImageToFile(const std::string& filename) {
     m_imageFilename = filename;
     m_capture_image = true;
 }
@@ -2501,7 +2508,7 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
             // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
             // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
             auto grp =
-                !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != string::npos
+                !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != std::string::npos
                     ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE, material, transform, wireframe)
                     : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, wireframe);
             group->addChild(grp);
@@ -2560,15 +2567,20 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             const auto& filename = model_file->GetFilename();
             const auto& scale = model_file->GetScale();
+
+            auto ext = filesystem::path(filename).extension();
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
+            ChQuaterniond rot = (ext == "OBJ" || ext == "STL") ? QUNIT : QuatFromAngleX(-CH_PI_2);
+
             size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
+            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * rot), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
             // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, filename, m_options));
-            map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
+            std::map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
             objIt = m_objCache.find(objHashValue);
             if (objIt == m_objCache.end()) {
                 auto node = vsg::read_cast<vsg::Node>(filename, m_options);
@@ -3033,6 +3045,8 @@ void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, Ch
 }
 
 void ChVisualSystemVSG::ExportScreenImage() {
+    // code taken from vsgExamples vsgscreenshot.cpp
+
     auto width = m_window->extent2D().width;
     auto height = m_window->extent2D().height;
 
@@ -3054,17 +3068,15 @@ void ChVisualSystemVSG::ExportScreenImage() {
     vkGetPhysicalDeviceFormatProperties(*(physicalDevice), sourceImageFormat, &srcFormatProperties);
 
     VkFormatProperties destFormatProperties;
-    vkGetPhysicalDeviceFormatProperties(*(physicalDevice), VK_FORMAT_R8G8B8A8_UNORM, &destFormatProperties);
+    vkGetPhysicalDeviceFormatProperties(*(physicalDevice), VK_FORMAT_R8G8B8A8_SRGB, &destFormatProperties);
 
     bool supportsBlit = ((srcFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) != 0) &&
                         ((destFormatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0);
 
     if (supportsBlit) {
         // we can automatically convert the image format when blit, so take advantage of it to ensure RGBA
-        targetImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
+        targetImageFormat = VK_FORMAT_R8G8B8A8_SRGB;
     }
-
-    // vsg::info("supportsBlit = ", supportsBlit);
 
     //
     // 2) create image to write to
@@ -3224,12 +3236,10 @@ void ChVisualSystemVSG::ExportScreenImage() {
 
     size_t destRowWidth = width * sizeof(vsg::ubvec4);
     vsg::ref_ptr<vsg::Data> imageData;
-    unsigned char* outPtr = (unsigned char*)malloc(width * height * 4);
     if (destRowWidth == subResourceLayout.rowPitch) {
-        auto mappedData = vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0,
-                                                                   vsg::Data::Properties{targetImageFormat},
-                                                                   subResourceLayout.rowPitch * height);
-        std::memcpy(outPtr, mappedData->data(), width * height * 4);
+        imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
+                                                                vsg::Data::Properties{targetImageFormat}, width,
+                                                                height);  // deviceMemory, offset, flags and dimensions
     } else {
         // Map the buffer memory and assign as a ubyteArray that will automatically unmap itself on destruction.
         // A ubyteArray is used as the graphics buffer memory is not contiguous like vsg::Array2D, so map to a flat
@@ -3237,25 +3247,16 @@ void ChVisualSystemVSG::ExportScreenImage() {
         auto mappedData = vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0,
                                                                    vsg::Data::Properties{targetImageFormat},
                                                                    subResourceLayout.rowPitch * height);
+        imageData = vsg::ubvec4Array2D::create(width, height, vsg::Data::Properties{targetImageFormat});
         for (uint32_t row = 0; row < height; ++row) {
-            std::memcpy(outPtr + row * destRowWidth, mappedData->dataPointer(row * subResourceLayout.rowPitch),
+            std::memcpy(imageData->dataPointer(row * width), mappedData->dataPointer(row * subResourceLayout.rowPitch),
                         destRowWidth);
         }
     }
-    int ok = -1;
-    if (m_imageFilename.rfind(".png") != std::string::npos) {
-        ok = stbi_write_png(m_imageFilename.c_str(), width, height, 4, outPtr, 0);
-    } else if (m_imageFilename.rfind(".tga") != std::string::npos) {
-        ok = stbi_write_tga(m_imageFilename.c_str(), width, height, 4, outPtr);
-    } else if (m_imageFilename.rfind(".bmp") != std::string::npos) {
-        ok = stbi_write_bmp(m_imageFilename.c_str(), width, height, 4, outPtr);
-    } else if (m_imageFilename.rfind(".jpg") != std::string::npos ||
-               m_imageFilename.rfind(".jpeg") != std::string::npos) {
-        ok = stbi_write_jpg(m_imageFilename.c_str(), width, height, 4, outPtr, 90);
-    } else {
-        vsg::info("Couldn't figure out desired graphics format! Use one of (*.png | *.tga | *.bmp | *.jpg | *.jpeg)");
+
+    if (!vsg::write(imageData, m_imageFilename, m_options)) {
+        std::cout << "Failed to write color buffer to " << m_imageFilename << std::endl;
     }
-    free(outPtr);
 }
 
 }  // namespace vsg3d

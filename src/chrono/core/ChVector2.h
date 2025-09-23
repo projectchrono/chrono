@@ -579,7 +579,7 @@ inline bool ChVector2<Real>::Equals(const ChVector2<Real>& other) const {
 
 template <class Real>
 inline bool ChVector2<Real>::Equals(const ChVector2<Real>& other, Real tol) const {
-    return (fabs(other.m_data[0] - m_data[0]) < tol) && (fabs(other.m_data[1] - m_data[1]) < tol);
+    return (std::abs(other.m_data[0] - m_data[0]) < tol) && (std::abs(other.m_data[1] - m_data[1]) < tol);
 }
 
 template <class Real>
@@ -623,7 +623,7 @@ inline Real ChVector2<Real>::Length2() const {
 
 template <class Real>
 inline Real ChVector2<Real>::LengthInf() const {
-    return std::max(fabs(m_data[0]), fabs(m_data[1]));
+    return std::max(std::abs(m_data[0]), std::abs(m_data[1]));
 }
 
 template <class Real>
@@ -662,7 +662,7 @@ inline void ChVector2<Real>::Rotate(Real angle) {
 
 template <class Real>
 inline int ChVector2<Real>::GetMaxComponent() const {
-    return (fabs(m_data[0]) > fabs(m_data[1])) ? 0 : 1;
+    return (std::abs(m_data[0]) > std::abs(m_data[1])) ? 0 : 1;
 }
 
 template <class Real>

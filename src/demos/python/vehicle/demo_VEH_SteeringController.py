@@ -147,11 +147,11 @@ initLoc = chrono.ChVector3d(-50, 0, 0.7)
 target_speed = 12
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_NONE
-suspension_vis_type =  veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH 
+chassis_vis_type = chrono.VisualizationType_NONE
+suspension_vis_type =  chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_MESH
+tire_vis_type = chrono.VisualizationType_MESH 
 
 # Type of powertrain models (SHAFTS, SIMPLE)
 engine_model = veh.EngineModelType_SHAFTS

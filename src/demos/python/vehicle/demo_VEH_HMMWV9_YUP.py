@@ -124,11 +124,11 @@ initLoc = chrono.ChVector3d(0, 1, 10)
 initYaw = 0
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_PRIMITIVES
-suspension_vis_type =  veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH 
+chassis_vis_type = chrono.VisualizationType_PRIMITIVES
+suspension_vis_type =  chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_MESH
+tire_vis_type = chrono.VisualizationType_MESH 
 
 # Type of tire model (RIGID, RIGID_MESH, FIALA, PAC89)
 tire_model = veh.TireModelType_TMEASY

@@ -1,5 +1,7 @@
 #--------------------------------------------------------------
-# Add PERIDYNAMICS demos that do have no other dependencies
+# List of all Peridynamics demos
+
+# Add demos that do have no other dependencies
 set(PERI_DEMOS
 )
 
@@ -14,18 +16,15 @@ endif()
 
 
 # Add demos that require Irrlicht and  postprocess and MKL
-if(CH_ENABLE_MODULE_IRRLICHT  AND CH_ENABLE_MODULE_POSTPROCESS AND CH_ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_POSTPROCESS AND CH_ENABLE_MODULE_PARDISO_MKL)
 set(PERI_DEMOS ${PERI_DEMOS}
     # demo_PERI_benchmark
 )
 endif()
 
-
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS Chrono_peridynamics)
 
@@ -41,13 +40,12 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
   list(APPEND LIBS "Chrono_postprocess")
 endif()
 
-
 #--------------------------------------------------------------
 
-message(STATUS "Add demo programs for PERIDYNAMICS module...")
+message(STATUS "Add demo programs for PERIDYNAMICS module")
 
 foreach(PROGRAM ${PERI_DEMOS})
-    message(STATUS "   ...add ${PROGRAM}")
+    #message(STATUS "   ...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

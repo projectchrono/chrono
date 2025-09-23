@@ -110,21 +110,21 @@ void example2(const std::string& out_dir) {
     // by implementing the StateSolve() function, and few other interfaces:
     class MyIntegrable : public ChIntegrable {
       private:
-        double M;
-        double K;
-        double R;
-        double T;
-        double x;
-        double v;
+        double m_M;
+        double m_K;
+        double m_R;
+        double m_T;
+        double m_x;
+        double m_v;
 
       public:
         MyIntegrable() {
-            T = 0;
-            M = 10;
-            K = 30;
-            R = 1;
-            x = 0;
-            v = 0;
+            m_T = 0;
+            m_M = 10;
+            m_K = 30;
+            m_R = 1;
+            m_x = 0;
+            m_v = 0;
         }
 
         // the number of coordinates in the state:
@@ -133,24 +133,24 @@ void example2(const std::string& out_dir) {
         virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
         // system -> state
-        virtual void StateGather(ChState& y, double& mT) override {
-            y(0) = x;
-            y(1) = v;
-            mT = T;
-        };
+        virtual void StateGather(ChState& y, double& T) override {
+            y(0) = m_x;
+            y(1) = m_v;
+            T = m_T;
+        }
 
         // state -> system
-        virtual void StateScatter(const ChState& y, const double mT, bool full_update) override {
-            x = y(0);
-            v = y(1);
-            T = mT;
-        };
+        virtual void StateScatter(const ChState& y, const double T, bool full_update) override {
+            m_x = y(0);
+            m_v = y(1);
+            m_T = T;
+        }
 
         // compute  dy/dt=f(y,t)
         virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
                                 ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
                                 const ChState& y,                  // current state y
-                                const double T,                    // current time T
+                                const double t,                    // current time T
                                 const double dt,                   // timestep (if needed)
                                 bool force_state_scatter,          // if false, y and T are not scattered to the system
                                 bool full_update,                  // if true, perform a full update during scatter
@@ -158,12 +158,12 @@ void example2(const std::string& out_dir) {
                                                                    // inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
-                StateScatter(y, T, full_update);
+                StateScatter(y, t, full_update);
 
-            double F = std::cos(T * 20) * 2;
+            double F = std::cos(t * 20) * 2;
 
-            dydt(0) = v;                               // speed
-            dydt(1) = (1. / M) * (F - K * x - R * v);  // acceleration
+            dydt(0) = m_v;                                       // speed
+            dydt(1) = (1. / m_M) * (F - m_K * m_x - m_R * m_v);  // acceleration
 
             return true;
         }
@@ -227,21 +227,21 @@ void example3(const std::string& out_dir) {
     // integrators can still be used.
     class MyIntegrable : public ChIntegrableIIorder {
       private:
-        double M;
-        double K;
-        double R;
-        double T;
-        double mx;
-        double mv;
+        double m_M;
+        double m_K;
+        double m_R;
+        double m_T;
+        double m_x;
+        double m_v;
 
       public:
         MyIntegrable() {
-            T = 0;
-            M = 10;
-            K = 30;
-            R = 1;
-            mx = 0;
-            mv = 0;
+            m_T = 0;
+            m_M = 10;
+            m_K = 30;
+            m_R = 1;
+            m_x = 0;
+            m_v = 0;
         }
 
         // the number of coordinates in the state, x position part:
@@ -250,17 +250,17 @@ void example3(const std::string& out_dir) {
         virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
         // system -> state
-        virtual void StateGather(ChState& x, ChStateDelta& v, double& mT) override {
-            x(0) = mx;
-            v(0) = mv;
-            mT = T;
+        virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
+            x(0) = m_x;
+            v(0) = m_v;
+            T = m_T;
         };
 
         // state -> system
-        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double mT, bool full_update) override {
-            mx = x(0);
-            mv = v(0);
-            T = mT;
+        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
+            m_x = x(0);
+            m_v = v(0);
+            m_T = T;
         };
 
         // compute  dy/dt=f(y,t)
@@ -279,7 +279,7 @@ void example3(const std::string& out_dir) {
                 StateScatter(x, v, T, full_update);
 
             double F = std::cos(T * 5) * 2;
-            dvdt(0) = (1. / M) * (F - K * mx - R * mv);
+            dvdt(0) = (1. / m_M) * (F - m_K * m_x - m_R * m_v);
 
             return true;
         }
@@ -339,23 +339,23 @@ void example4(const std::string& out_dir) {
 
     class MyIntegrable : public ChIntegrableIIorder {
       private:
-        double M;
-        double K;
-        double R;
-        double mT;
-        double mx;
-        double mv;
-        double ma;
+        double m_M;
+        double m_K;
+        double m_R;
+        double m_T;
+        double m_x;
+        double m_v;
+        double m_a;
 
       public:
         MyIntegrable() {
-            mT = 0;
-            M = 1;
-            K = 30;
-            R = 0;
-            mx = 0;
-            mv = 0.6;
-            ma = 0;
+            m_T = 0;
+            m_M = 1;
+            m_K = 30;
+            m_R = 0;
+            m_x = 0;
+            m_v = 0.6;
+            m_a = 0;
         }
 
         // the number of coordinates in the state, x position part:
@@ -365,22 +365,22 @@ void example4(const std::string& out_dir) {
 
         // system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
-            x(0) = mx;
-            v(0) = mv;
-            T = mT;
+            x(0) = m_x;
+            v(0) = m_v;
+            T = m_T;
         };
 
         // state -> system
         virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
-            mx = x(0);
-            mv = v(0);
-            mT = T;
+            m_x = x(0);
+            m_v = v(0);
+            m_T = T;
         };
 
         // gather/scatter of accelerations not needed for some solvers (exEuler linearized) but needed for others, ex.
         // HHT
-        virtual void StateGatherAcceleration(ChStateDelta& a) override { a(0) = ma; }
-        virtual void StateScatterAcceleration(const ChStateDelta& a) override { ma = a(0); }
+        virtual void StateGatherAcceleration(ChStateDelta& a) override { a(0) = m_a; }
+        virtual void StateScatterAcceleration(const ChStateDelta& a) override { m_a = a(0); }
 
         // compute  dy/dt=f(y,t)
         // (this function is optional: if not implemented the integrator can solve
@@ -399,8 +399,8 @@ void example4(const std::string& out_dir) {
             ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
-            double F = std::sin(mT * 20) * 0.02;
-            dvdt(0) = (1. / M) * (F - K * mx - R * mv);
+            double F = std::sin(m_T * 20) * 0.02;
+            dvdt(0) = (1. / m_M) * (F - m_K * m_x - m_R * m_v);
 
             return true;
         }
@@ -425,7 +425,7 @@ void example4(const std::string& out_dir) {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 
-            Dv(0) = R(0) * 1.0 / (c_a * this->M + c_v * (-this->R) + c_x * (-this->K));
+            Dv(0) = R(0) * 1.0 / (c_a * m_M + c_v * (-m_R) + c_x * (-m_K));
 
             return true;
         }
@@ -434,7 +434,7 @@ void example4(const std::string& out_dir) {
         void LoadResidual_F(ChVectorDynamic<>& R,  // result: the R residual, R += c*F
                             const double c         // a scaling factor
                             ) override {
-            R(0) += c * (std::sin(mT * 20) * 0.02 - this->K * mx - this->R * mv);
+            R(0) += c * (std::sin(m_T * 20) * 0.02 - m_K * m_x - m_R * m_v);
         };
 
         //    R += c*M*w
@@ -442,7 +442,7 @@ void example4(const std::string& out_dir) {
                              const ChVectorDynamic<>& w,  // the w vector
                              const double c               // a scaling factor
                              ) override {
-            R(0) += c * this->M * w(0);
+            R(0) += c * m_M * w(0);
         };
 
         // nothing to do here- no constraints
@@ -547,33 +547,33 @@ void example5(const std::string& out_dir) {
 
     class MyIntegrable : public ChIntegrableIIorder {
       private:
-        double M;
-        double K;
-        double R;
-        double mT;
-        double mpx;
-        double mpy;
-        double mvx;
-        double mvy;
-        double max;
-        double may;
-        double mlength;
-        double mreaction;
+        double m_M;
+        double m_K;
+        double m_R;
+        double m_T;
+        double m_px;
+        double m_py;
+        double m_vx;
+        double m_vy;
+        double m_ax;
+        double m_ay;
+        double m_length;
+        double m_reaction;
 
       public:
         MyIntegrable() {
-            mlength = 5;
-            M = 2;
-            K = 0;
-            R = 0;
-            mT = 0;
-            mpx = 0;
-            mpy = -mlength;
-            mvx = 0.8;
-            mvy = 0;
-            max = 0;
-            may = 0;
-            mreaction = 0;
+            m_length = 5;
+            m_M = 2;
+            m_K = 0;
+            m_R = 0;
+            m_T = 0;
+            m_px = 0;
+            m_py = -m_length;
+            m_vx = 0.8;
+            m_vy = 0;
+            m_ax = 0;
+            m_ay = 0;
+            m_reaction = 0;
         }
 
         // the number of coordinates in the state, x position part:
@@ -586,34 +586,34 @@ void example5(const std::string& out_dir) {
 
         // system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
-            x(0) = mpx;
-            x(1) = mpy;
-            v(0) = mvx;
-            v(1) = mvy;
-            T = mT;
+            x(0) = m_px;
+            x(1) = m_py;
+            v(0) = m_vx;
+            v(1) = m_vy;
+            T = m_T;
         };
 
         // state -> system
         virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
-            mpx = x(0);
-            mpy = x(1);
-            mvx = v(0);
-            mvy = v(1);
-            mT = T;
+            m_px = x(0);
+            m_py = x(1);
+            m_vx = v(0);
+            m_vy = v(1);
+            m_T = T;
         };
 
         virtual void StateGatherAcceleration(ChStateDelta& a) override {
-            a(0) = max;
-            a(1) = may;
+            a(0) = m_ax;
+            a(1) = m_ay;
         }
         virtual void StateScatterAcceleration(const ChStateDelta& a) override {
-            max = a(0);
-            may = a(1);
+            m_ax = a(0);
+            m_ay = a(1);
         }
 
         // Some timesteppers exploit persistence of reaction information
-        virtual void StateGatherReactions(ChVectorDynamic<>& L) override { L(0) = mreaction; };
-        virtual void StateScatterReactions(const ChVectorDynamic<>& L) override { mreaction = L(0); };
+        virtual void StateGatherReactions(ChVectorDynamic<>& L) override { L(0) = m_reaction; };
+        virtual void StateScatterReactions(const ChVectorDynamic<>& L) override { m_reaction = L(0); };
 
         // Compute the correction with linear system
         //  | Dv| = [ c_a*M + c_v*dF/dv + c_x*dF/dx    Cq']^-1 * | R |
@@ -636,7 +636,7 @@ void example5(const std::string& out_dir) {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 
-            ChVector3d dirpend(-mpx, -mpy, 0);
+            ChVector3d dirpend(-m_px, -m_py, 0);
             dirpend.Normalize();
             ChVectorDynamic<> b(3);
             b(0) = R(0);
@@ -644,8 +644,8 @@ void example5(const std::string& out_dir) {
             b(2) = -Qc(0);  // note assume input Qc has no minus sign, so flip sign here
             ChMatrixDynamic<> A(3, 3);
             A.setZero();
-            A(0, 0) = c_a * this->M + c_v * (-this->R) + c_x * (-this->K);
-            A(1, 1) = c_a * this->M;
+            A(0, 0) = c_a * m_M + c_v * (-m_R) + c_x * (-m_K);
+            A(1, 1) = c_a * m_M;
             A(0, 2) = dirpend.x();
             A(1, 2) = dirpend.y();
             A(2, 0) = dirpend.x();
@@ -664,16 +664,16 @@ void example5(const std::string& out_dir) {
                                        double& err,            // not touched if lumping does not introduce errors
                                        const double c          // a scaling factor
                                        ) override {
-            Md(0) = this->M;
-            Md(1) = this->M;
+            Md(0) = m_M;
+            Md(1) = m_M;
         }
 
         //    R += c*F
         void LoadResidual_F(ChVectorDynamic<>& R,  // result: the R residual, R += c*F
                             const double c         // a scaling factor
                             ) override {
-            R(0) += c * (-this->K * mpx - this->R * mvx);
-            R(1) += c * -9.8 * this->M;  // vertical force
+            R(0) += c * (-m_K * m_px - m_R * m_vx);
+            R(1) += c * -9.8 * m_M;  // vertical force
         };
 
         //    R += c*M*w
@@ -681,8 +681,8 @@ void example5(const std::string& out_dir) {
                              const ChVectorDynamic<>& w,  // the w vector
                              const double c               // a scaling factor
                              ) override {
-            R(0) += c * this->M * w(0);
-            R(1) += c * this->M * w(1);
+            R(0) += c * m_M * w(0);
+            R(1) += c * m_M * w(1);
         };
 
         //   R += Cq'*l
@@ -690,7 +690,7 @@ void example5(const std::string& out_dir) {
                                       const ChVectorDynamic<>& L,  // the L vector
                                       const double c               // a scaling factor
                                       ) override {
-            ChVector3d dirpend(-mpx, -mpy, 0);
+            ChVector3d dirpend(-m_px, -m_py, 0);
             dirpend.Normalize();
             R(0) += c * dirpend.x() * L(0);
             R(1) += c * dirpend.y() * L(0);
@@ -702,8 +702,8 @@ void example5(const std::string& out_dir) {
                                       const bool do_clamp = false,  // enable optional clamping of Qc
                                       const double mclam = 1e30     // clamping value
                                       ) override {
-            ChVector3d distpend(-mpx, -mpy, 0);
-            Qc(0) += c * (-distpend.Length() + mlength);
+            ChVector3d distpend(-m_px, -m_py, 0);
+            Qc(0) += c * (-distpend.Length() + m_length);
         };
 
         // nothing to do here- no rheonomic part

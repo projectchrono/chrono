@@ -266,7 +266,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void UpdateInertiaProperties() override final;
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(int frame, ChVehicleOutput& database) const override;
+    virtual void Output(int frame, ChOutput& database) const override;
 
     ChSubchassisList m_subchassis;               ///< list of subchassis subsystems (typically empty)
     ChAxleList m_axles;                          ///< list of axle subsystems

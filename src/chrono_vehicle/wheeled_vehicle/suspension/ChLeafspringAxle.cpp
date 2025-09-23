@@ -341,7 +341,7 @@ void ChLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocument) co
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChLeafspringAxle::Output(ChVehicleOutput& database) const {
+void ChLeafspringAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

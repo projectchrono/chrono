@@ -499,7 +499,7 @@ void ChTrackShoeBandANCF::ExportComponentList(rapidjson::Document& jsonDocument)
     ExportBodyList(jsonDocument, bodies);
 }
 
-void ChTrackShoeBandANCF::Output(ChVehicleOutput& database) const {
+void ChTrackShoeBandANCF::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

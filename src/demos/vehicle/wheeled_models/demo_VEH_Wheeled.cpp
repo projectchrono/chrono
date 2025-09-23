@@ -22,10 +22,10 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/output/ChOutputASCII.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -69,7 +69,8 @@ double render_fps = 50;
 double t_end = 20;
 
 // Record vehicle output
-bool vehicle_output = false;
+ChOutput::Type vehicle_output = ChOutput::Type::HDF5;
+ChOutput::Mode vehicle_output_mode = ChOutput::Mode::FRAMES;
 
 // Record debug test data
 bool debug_output = false;
@@ -185,13 +186,11 @@ int main(int argc, char* argv[]) {
     // Initialize output file for debug output
     utils::ChWriterCSV vehicle_csv(" ");
 
-    // Enable vehicle output (ASCII file)
-    if (vehicle_output) {
-        vehicle.SetChassisOutput(true);
-        vehicle.SetSuspensionOutput(0, true);
-        vehicle.SetSteeringOutput(0, true);
-        vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "vehicle_output", 0.1);
-    }
+    // Enable vehicle output
+    vehicle.SetChassisOutput(true);
+    vehicle.SetSuspensionOutput(0, true);
+    vehicle.SetSteeringOutput(0, true);
+    vehicle.SetOutput(vehicle_output, vehicle_output_mode, out_dir, "vehicle_output", 0.1);
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");

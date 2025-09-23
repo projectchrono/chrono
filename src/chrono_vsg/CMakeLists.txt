@@ -76,10 +76,6 @@ set(CE_VSG_SHAPES_FILES
 )
 
 set(CE_VSG_RESOURCES_FILES
-    resources/chronoLineShader_frag.h
-    resources/chronoLineShader_vert.h
-    resources/chronoPbrShader_frag.h
-    resources/chronoPbrShader_vert.h
     resources/pcShader_frag.h
     resources/pcShader_vert.h
     resources/cubemapShaders.h
@@ -169,20 +165,20 @@ if(NOT VSGXCHANGE_STATIC)
 endif()
 
 # On Windows, extract DLLs from targets and install (always look for Release DLLs)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    get_target_property(VSG_DLL vsg::vsg IMPORTED_LOCATION_RELEASE)
-    get_target_property(VSGIMGUI_DLL vsgImGui::vsgImGui IMPORTED_LOCATION_RELEASE)
-    if(EXISTS "${VSG_DLL}")
-      install(FILES "${VSG_DLL}" DESTINATION bin)
-    endif()
-    if(EXISTS "${VSGIMGUI_DLL}")
-      install(FILES "${VSGIMGUI_DLL}" DESTINATION bin)
-    endif()
-
-    if(NOT VSGXCHANGE_STATIC)
-      get_target_property(VSGXCHANGE_DLL vsgXchange::vsgXchange IMPORTED_LOCATION_RELEASE)
-      if(EXISTS "${VSGXCHANGE_DLL}")
-        install(FILES "${VSGXCHANGE_DLL}" DESTINATION bin)
-      endif()
-    endif()
-endif()
+#if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+#    get_target_property(VSG_DLL vsg::vsg IMPORTED_LOCATION_RELEASE)
+#    get_target_property(VSGIMGUI_DLL vsgImGui::vsgImGui IMPORTED_LOCATION_RELEASE)
+#    if(EXISTS "${VSG_DLL}")
+#      install(FILES "${VSG_DLL}" DESTINATION bin)
+#    endif()
+#    if(EXISTS "${VSGIMGUI_DLL}")
+#      install(FILES "${VSGIMGUI_DLL}" DESTINATION bin)
+#    endif()
+#
+#    if(NOT VSGXCHANGE_STATIC)
+#      get_target_property(VSGXCHANGE_DLL vsgXchange::vsgXchange IMPORTED_LOCATION_RELEASE)
+#      if(EXISTS "${VSGXCHANGE_DLL}")
+#        install(FILES "${VSGXCHANGE_DLL}" DESTINATION bin)
+#      endif()
+#    endif()
+#endif()

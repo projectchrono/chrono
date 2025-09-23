@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.GetVehicle().SetChassisOutput(true);
     my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
     my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
-    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    my_hmmwv.GetVehicle().SetOutput(ChOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
     my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");

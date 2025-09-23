@@ -12,7 +12,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/serialization/ChOutputASCII.h"
+#include "chrono/serialization/ChArchiveASCII.h"
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChObjectExplorer.h"
 
@@ -68,7 +68,7 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
                 std::cout << "Saving system in ASCII format to dump.txt file \n";
                 std::ofstream mfileo2("dump.txt");
-                ChOutputASCII archive_out2(mfileo2);
+                ChArchiveOutASCII archive_out2(mfileo2);
                 archive_out2.SetUseVersions(false);
                 archive_out2 << CHNVP(m_gui->m_system, "System");
 

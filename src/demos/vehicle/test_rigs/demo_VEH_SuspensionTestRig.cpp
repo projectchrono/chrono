@@ -152,7 +152,7 @@ DriverMode driver_mode = DriverMode::INTERACTIVE;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output collection
-bool output = true;
+ChOutput::Type output = ChOutput::Type::ASCII;
 bool plot = true;
 double out_step_size = 1e-2;
 
@@ -300,9 +300,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (output) {
-        rig->SetOutput(ChVehicleOutput::ASCII, out_dir, "output", out_step_size);
-    }
+    rig->SetOutput(output, ChOutput::Mode::FRAMES, out_dir, "output", out_step_size);
     if (plot) {
         rig->SetPlotOutput(out_step_size);
     }

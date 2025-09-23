@@ -39,7 +39,7 @@ vector3d: &VECTOR3D
 
 # Specification of a 3D rotation
 # A rotation can be provided as:
-# - an Euler angle sequence [roll, pitch, yaw], with angles assumed in radians or degrees, or
+# - an Euler angle sequence [yaw, pitch, roll], with angles assumed in radians or degrees, or
 # - a unit quaternion [e0, e1, e2, e3]
 orientation3d: &ORIENTATION3D
     type: array
@@ -166,6 +166,109 @@ data_array_N: &DATA_ARRAY_N
         type: number
       minItems: 1
 
+# Specification of geometric shapes for visualization and collision
+shape : &SHAPE
+    type: object
+    properties:
+        type:
+            type: string
+            description: Geometric shape type
+            enum: [SPHERE, BOX, CYLINDER, HULL, MESH]
+        location:
+            <<: *VECTOR3D
+            description: Shape location relative to body reference frame
+        orientation:
+            <<: *ORIENTATION3D
+            description: Shape orientation relative to body reference frame
+        dimensions:
+            <<: *VECTOR3D
+            description: Length, width, and height (required for BOX type)
+        radius:
+            type: number
+            description: Radius of the sphere (required for SPHERE or CYLINDER type)
+            minimum: 0.0
+        length:
+            type: number
+            description: Length (required for CYLINDER type)
+            minimum: 0.0
+        axis:
+            <<: *VECTOR3D
+            description: Axis direction expressed in body reference frame (required for CYLINDER type)
+        filename:
+            type: string
+            description: 3D data file name (required for MESH or HULL type)
+        scale:
+            type: number
+            description: Scale factor (for MESH type)
+            default: 1.0
+
+visualization_shape: &VISUALIZATION_SHAPE
+    type: object
+    description: Visualization shape
+    required: [type]
+    <<: *SHAPE
+    color:
+        <<: *COLOR
+        description: Diffuse color for this shape
+        default: [0.75, 0.75, 0.75]
+
+colision_shape: &COLLISION_SHAPE
+    type: object
+    description: Collision shape
+    required: [type, material]
+    <<: *SHAPE
+    material:
+        type: string
+        description: Name of the material used for this collision shape
+    contact_radius:
+        type: number
+        description: Contact radius for MESH shape
+        default: 0.0
+        minimum: 0.0
+
+# Specification of contact material properties
+contact_material: &CONTACT_MATERIAL
+  required: [name]
+  name:
+    type: string
+    description: Unique identifier for the material
+  coefficient_of_friction:
+    type: number
+    description: Friction coefficient
+    default: 0.8
+  coefficient_of_restitution:
+    type: number
+    description: Coefficient of restitution
+    default: 0.01
+  properties: 
+    type: object
+    description: material based properties for SMC contact
+    required: [Youngs_modulus, Poisson_ratio]
+    properties:
+      Youngs_modulus:
+        type: number
+        description: Young's modulus of the material
+      Poisson_ratio:
+        type: number
+        description: Poisson's ratio of the material
+  Coefficients:
+    type: object
+    description: normal and tangential stiffness and damping coefficients for SMC contact
+    required: [normal_stiffness, normal_damping, tangential_stiffness, tangential_damping]
+    properties:
+      normal_stiffness:
+        type: number
+        description: Normal stiffness coefficient
+      normal_damping:
+        type: number
+        description: Normal damping coefficient
+      tangential_stiffness:
+        type: number
+        description: Tangential stiffness coefficient
+      tangential_damping:
+        type: number
+        description: Tangential damping coefficient
+
 # -----------------------------------------------------------------------------
 # Definition of a Chrono multibody model
 # -----------------------------------------------------------------------------
@@ -174,7 +277,7 @@ model:
   type: object
   description: Definition of a Chrono multibody model
   required: [bodies]
-  
+
   properties:
 
     name:
@@ -242,7 +345,34 @@ model:
           inertia:
             <<: *INERTIA33
             description: Body inertia properties
-  
+          contact:
+            type: object
+            description: Contact material and collision geometry
+            required: [materials, shapes]
+            properties:
+              materials:
+                type: array
+                description: List of contact material properties
+                items: 
+                  <<: *CONTACT_MATERIAL
+              shapes:
+                type: array
+                description: List of collision shapes
+                items:
+                  <<: *COLLISION_SHAPE
+          visualization:
+            type: object
+            description: Visualization geometry
+            properties:
+              model_file:
+                type: string
+                description: Path to a model file for visualization
+              shapes:
+                type: array
+                description: List of visualization shapes
+                items:
+                   <<: *VISUALIZATION_SHAPE
+
     joints:
       type: array
       description: List of joints connecting bodies
@@ -256,7 +386,7 @@ model:
           type:
             type: string
             description: Type of joint
-            enum: [lock, pointline, pointplane, revolute, spherical, prismatic, universal]
+            enum: [LOCK, REVOLUTE, SPHERICAL, PRISMATIC, UNIVERSAL, POINT_LINE, POINT_PLANE ]
           body1:
             type: string
             description: Name of the first body to connect
@@ -311,7 +441,7 @@ model:
                   damping_rotational:
                     type: number
                     description: Rotational damping coefficient for "unconstrained" rotational DOF
-  
+
     constraints:
       type: array
       description: List of constraints in the system
@@ -407,7 +537,7 @@ model:
                 description: Radius of the visualization element
               color:
                 <<: *COLOR
-  
+
     rsdas:
       type: array
       description: List of rotational spring-damper (RSDA) elements
@@ -490,3 +620,33 @@ model:
             type: string
             enum: [FREE, REVOLUTE, CYLINDRICAL]
             description: Spindle constraint for rotation motor
+
+    body_loads:
+      type: array
+      description: List of external loads applied to bodies
+      items:
+        type: object
+        required: [name, type, body, load, local_load]
+        properties:
+          name:
+            type: string
+            description: Unique identifier for the body load
+          type:
+            type: string
+            enum: [FORCE, TORQUE]
+            description: Type of body load
+          body:
+            type: string
+            description: Name of the body to which the load is applied
+          load:
+            <<: *VECTOR3D
+            description: Load vector for force or torque
+          local_load:
+            type: boolean
+            description: Whether load is applied in local body frame (true) or global frame (false)
+          point:
+            <<: *VECTOR3D
+            description: (FORCE only) Location of the applied load
+          local_point:
+            type: boolean
+            description: (FORCE only) Whether point is specified in local body frame (true) or global frame (false)

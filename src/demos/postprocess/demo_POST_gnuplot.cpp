@@ -161,6 +161,49 @@ int main(int argc, char* argv[]) {
         mplot.Plot(matr, 2, 6, "from ChMatrix", " with lines lt 5");
     }
 
+    {
+        //
+        // EXAMPLE 5
+        //
+
+        // Example of subplot capability.
+
+        // Step 1.
+        // Create some data for plotting.
+        ChVectorDynamic<> time = ChVectorDynamic<>::LinSpaced(20, 0, 6.28);
+        ChVectorDynamic<> x = time.unaryExpr([](double ti) { return 3 * std::sin(2 * ti); });
+        ChVectorDynamic<> xshift = time.unaryExpr([](double ti) { return 3 * std::sin(2 * ti + 1.2); });
+        ChVectorDynamic<> x_t = time.unaryExpr([](double ti) { return 6 * std::cos(2 * ti); });
+        ChVectorDynamic<> x_tt = time.unaryExpr([](double ti) { return -12 * std::sin(2 * ti); });
+
+        // Step 2.
+        // Create the plot.
+        ChGnuPlot mplot(out_dir + "/tmp_gnuplot_5.gpl");
+        mplot.OutputWindow(0);
+        mplot.SetColorSequence(1); // change default color sequence
+        //
+        mplot.StartSubplot(3, 1, 0);
+        mplot.SetGrid();
+        mplot.SetLabelY("x");
+        mplot.SetTitle("Position subplot");
+        mplot.Plot(time, x, "x", "with lines lw 2");
+        mplot.Plot(time, xshift, "xshift", "with lines lw 2");
+        //
+        mplot.StartSubplot(3, 1, 1);
+        mplot.Plot(time, x_t, "", "with lines lw 2");
+        mplot.SetGrid();
+        mplot.SetLabelY("x_t");
+        mplot.SetTitle("Velocity subplot");
+        //
+        mplot.StartSubplot(3, 1, 2);
+        mplot.Plot(time, x_tt, "", "with lines lw 2");
+        mplot.SetLabelX("Time");
+        mplot.SetLabelY("x_{tt}");
+        mplot.SetTitle("Acceleration subplot");
+        //
+        mplot.EndSubplot();
+    }
+
     std::cout << "\nCHRONO execution terminated.";
 
     return 0;

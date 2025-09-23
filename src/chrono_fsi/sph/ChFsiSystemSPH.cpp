@@ -57,7 +57,7 @@ std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body
     // Explicitly set the BCE marker locations
     auto& fsisph_body = m_sysSPH.m_bodies.back();
 
-    fsisph_body.bce_ids.resize(bce.size(), fsisph_body.fsi_body->index);
+    fsisph_body.bce_ids.resize(bce.size(), (int)fsisph_body.fsi_body->index);
 
     ChFramed abs_frame = body->GetFrameRefToAbs() * rel_frame;
     std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce_coords),

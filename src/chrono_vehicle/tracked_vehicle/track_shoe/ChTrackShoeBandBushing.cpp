@@ -215,7 +215,7 @@ void ChTrackShoeBandBushing::ExportComponentList(rapidjson::Document& jsonDocume
     ExportBodyLoadList(jsonDocument, m_web_bushings);
 }
 
-void ChTrackShoeBandBushing::Output(ChVehicleOutput& database) const {
+void ChTrackShoeBandBushing::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -224,7 +224,7 @@ void ChTrackShoeBandBushing::Output(ChVehicleOutput& database) const {
     bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
     database.WriteBodies(bodies);
 
-    database.WriteBodyLoads(m_web_bushings);
+    database.WriteBodyBodyLoads(m_web_bushings);
 }
 
 }  // end namespace vehicle

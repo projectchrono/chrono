@@ -443,7 +443,7 @@ class CH_MODELS_API ViperDirectControl : public ViperDriver {
     );
   private:
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
-    virtual void Update(double time){}
+    virtual void Update(double time) override {}
 };
 
 /// @} robot_models_viper

@@ -82,6 +82,8 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
+#include "chrono/output/ChOutput.h"
+
 using namespace chrono;
 using namespace chrono::fea;
 %}
@@ -347,7 +349,7 @@ inline const char* ChUtils_GetFilename() {
 // geometry/   classes
 %include "ChGeometry.i"
 
-
+%include "ChBodyGeometry.i"
 
 
 //collision classes
@@ -379,7 +381,6 @@ inline const char* ChUtils_GetFilename() {
 %include "ChTexture.i"
 %include "ChCamera.i"
 %include "../../../chrono/assets/ChGlyphs.h"
-%include "ChVisualSystem.i"
 
 // physics/  classes
 %include "ChControllers.i"
@@ -436,6 +437,8 @@ inline const char* ChUtils_GetFilename() {
 %include "ChLinkBushing.i"
 %include "../../../chrono/physics/ChJoint.h"
 
+%include "ChVisualSystem.i" // ChVisualSystem needs to be put after ChSystem
+
 // Utils
 // for hulls and meshing
 %include "../../../chrono/collision/ChConvexDecomposition.h"
@@ -446,6 +449,8 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
+
+%include "../../../chrono/output/ChOutput.h"
 
 %include "ChParticleFactory.i"
 //

@@ -38,6 +38,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
+#include "chrono/output/ChOutput.h"
 
 namespace chrono {
 
@@ -586,6 +587,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Compute the system-level constraint Jacobian matrix and load in the provided sparse matrix.
     /// This is the Jacobian Cq=-dC/dq, where C are constraints (the lower left part of the KKT matrix).
     void GetConstraintJacobianMatrix(ChSparseMatrix& Cq);
+
+    // ---- OUTPUT
+
+    void Output(int frame, ChOutput& database) const;
 
     // ---- SERIALIZATION
 

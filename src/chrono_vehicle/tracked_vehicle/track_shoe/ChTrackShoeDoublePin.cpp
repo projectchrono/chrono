@@ -596,7 +596,7 @@ void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument
     ExportBodyLoadList(jsonDocument, bushings);
 }
 
-void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {
+void ChTrackShoeDoublePin::Output(ChOutput& database) const {
     if (!m_output)
         return;
 
@@ -634,7 +634,7 @@ void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {
 
     database.WriteBodies(bodies);
     database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    database.WriteBodyBodyLoads(bushings);
 }
 
 }  // end namespace vehicle
