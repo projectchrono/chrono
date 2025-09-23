@@ -42,11 +42,14 @@ namespace fea {
 /// Note: this type of multiphysics node do not carry any ChVariable with it.
 class ChApi ChFeaNodeXYZ : public ChNodeFEAbase, public ChVector3d {
 public:
-    ChFeaNodeXYZ(ChVector3d initial_pos = VNULL);
-    ChFeaNodeXYZ(const ChFeaNodeXYZ& other);
+    ChFeaNodeXYZ(ChVector3d reference_pos = VNULL) : ChNodeFEAbase(), ChVector3d(reference_pos) {};
+    ChFeaNodeXYZ(const ChFeaNodeXYZ& other) {};
     virtual ~ChFeaNodeXYZ() {}
 
-    ChFeaNodeXYZ& operator=(const ChFeaNodeXYZ& other);
+    //ChFeaNodeXYZ& operator=(const ChFeaNodeXYZ& other);
+
+    void SetReferencePos(const ChVector3d ref_pos) { this->Set(ref_pos); }
+    ChVector3d GetReferencePos() { return *this; }
 
     // INTERFACE to ChNodeFEAbase  
     // ***NOTE*** none of these are useful, neither supported, maybe in future
@@ -61,10 +64,10 @@ public:
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive) override;
+    //virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive) override;
+    //virtual void ArchiveIn(ChArchiveIn& archive) override;
 
 protected:
 };
@@ -321,9 +324,9 @@ private:
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-/// Base class for the per-node properties of some material,
-/// for example it can contain some ChVariable. Used in ChFeaField.
-class ChFeaPerNodeFieldData {
+/// Base class for the per-node and per-materialpoint properties of some material,
+/// for example it can contain some type of ChVariable. Used in ChFeaField.
+class ChFeaFieldData {
 public:
     // Access state at node
     virtual ChVectorRef State() = 0;
@@ -334,16 +337,19 @@ public:
     /// Access the applied load term (ex. the atomic load/source in a Poisson equation).
     virtual ChVectorRef Load() = 0;
 
+    /// Access the contained ChVariable. 
+    virtual ChVariables& GetVariable() = 0;
+
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
     virtual void SetFixed(bool fixed) = 0;
     virtual bool IsFixed() const = 0;
 
-    /// Get the number of degrees of freedom.
-    virtual unsigned int GetNumCoordsPosLevel() const = 0;
-    virtual unsigned int GetNumCoordsVelLevel() const { return GetNumCoordsPosLevel(); }
-    virtual unsigned int GetNumCoordsPosLevelActive() const { return GetNumCoordsPosLevel(); }
-    virtual unsigned int GetNumCoordsVelLevelActive() const { return GetNumCoordsVelLevel(); }
+    /// Get the number of degrees of freedom of the field.
+    static unsigned int GetNumCoordsPosLevel() { return 0; }
+    static unsigned int GetNumCoordsVelLevel() { return 0; }
+    //virtual unsigned int GetNumCoordsPosLevelActive() const { return GetNumCoordsPosLevel(); }
+    //virtual unsigned int GetNumCoordsVelLevel() const { return GetNumCoordsVelLevel(); }
     virtual bool IsAllCoordsActive() const { return true; }
 
     unsigned int NodeGetOffsetPosLevel() { return offset_x; }
@@ -400,32 +406,36 @@ private:
 };
 
 template <int T_nstates>
-class ChFeaPerNodeFieldDataGeneric : public ChFeaPerNodeFieldData {
+class ChFeaFieldDataGeneric : public ChFeaFieldData {
 public:
-    ChFeaPerNodeFieldDataGeneric() :
+    ChFeaFieldDataGeneric() :
         mvariables(T_nstates) {
     }
 
-    virtual ChVectorRef State()  { return state; }
+    virtual ChVectorRef State() override { return state; }
 
-    virtual ChVectorRef StateDt()  { return state_dt; }
+    virtual ChVectorRef StateDt() override { return state_dt; }
 
-    virtual ChVectorRef Load() { return F; }
+    virtual ChVectorRef Load() override { return F; }
+ 
+    virtual ChVariables& GetVariable() override { return mvariables; }
 
-    virtual void SetFixed(bool fixed) {
+    virtual void SetFixed(bool fixed) override {
         mvariables.SetDisabled(fixed);
     }
-    virtual bool IsFixed() const {
+    virtual bool IsFixed() const override {
         return mvariables.IsDisabled();
     }
 
-    virtual unsigned int GetNumCoordsPosLevel() const { return T_nstates; }
+    /// Get the number of degrees of freedom of the field.
+    static unsigned int GetNumCoordsPosLevel() { return T_nstates; }
+    static unsigned int GetNumCoordsVelLevel() { return T_nstates; }
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
                                     const unsigned int off_v,
                                     ChStateDelta& v,
-                                    double& T) {
+                                    double& T) override {
         x.segment(off_x, T_nstates) = state;
         v.segment(off_v, T_nstates) = state_dt;
     }
@@ -434,45 +444,45 @@ public:
                                     const ChState& x,
                                     const unsigned int off_v,
                                     const ChStateDelta& v,
-                                    const double T) {
+                                    const double T) override {
         state = x.segment(off_x, T_nstates);
         state_dt = v.segment(off_v, T_nstates);
     }
 
-    virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {}
-    virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {}
+    virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override {}
+    virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override {}
 
-    virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override {
         R.segment(off, T_nstates) += c * F;
     }
 
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c) {
+                                    const double c) override {
         //R(off) += c * mvariables.GetMass() * w(off);
     }
 
     virtual void NodeIntLoadLumpedMass_Md(const unsigned int off,
                                     ChVectorDynamic<>& Md,
                                     double& error,
-                                    const double c) {
+                                    const double c) override {
         //for (int i = 0; i < T_nstates; ++i) {
         //    Md(off + i) += c * mvariables.GetMass().(i, i);
         //}
         //error += std::abs(mvariables.GetMass().sum() - mvariables.GetMass().diagonal().sum());
     }
 
-    virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
+    virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
         mvariables.State() = v.segment(off_v, T_nstates);
         mvariables.Force() = R.segment(off_v, T_nstates);
     }
 
-    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
         v.segment(off_v, T_nstates) = mvariables.State();
     }
 
-    virtual void InjectVariables(ChSystemDescriptor& descriptor) {
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override {
         descriptor.InsertVariables(&mvariables);
     }
 
@@ -486,9 +496,9 @@ private:
 
 
 
-class ChFeaPerNodeFieldDataPos3D : public ChFeaPerNodeFieldData {
+class ChFeaFieldDataPos3D : public ChFeaFieldData {
 public:
-    ChFeaPerNodeFieldDataPos3D()  {
+    ChFeaFieldDataPos3D()  {
     }
     
     // Custom properties, helpers etc.
@@ -513,6 +523,8 @@ public:
 
     virtual ChVectorRef Load() { return F; }
 
+    virtual ChVariables& GetVariable() { return mvariables; }
+
     virtual void SetFixed(bool fixed) {
         mvariables.SetDisabled(fixed);
     }
@@ -520,7 +532,9 @@ public:
         return mvariables.IsDisabled();
     }
 
-    virtual unsigned int GetNumCoordsPosLevel() const { return 3; }
+    /// Get the number of degrees of freedom of the field.
+    static unsigned int GetNumCoordsPosLevel() { return 3; }
+    static unsigned int GetNumCoordsVelLevel() { return 3; }
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
@@ -593,30 +607,64 @@ private:
 
 // -----------------------------------------------------------------------------
 
+class ChFeaFieldBase : public ChPhysicsItem {
+public:
+
+    ChFeaFieldBase() {}
+    virtual ~ChFeaFieldBase() {}
+
+    virtual void AddNode(std::shared_ptr<ChNodeFEAbase> mnode) = 0;
+
+    virtual void RemoveNode(std::shared_ptr<ChNodeFEAbase> mnode) = 0;
+
+    virtual bool IsNodeAdded(std::shared_ptr<ChNodeFEAbase> node) = 0;
+
+    virtual ChFeaFieldData* GetNodeDataPointer(std::shared_ptr<ChNodeFEAbase> node) = 0;
+
+    /// Get the number of degrees of freedom of the field per each node.
+    virtual unsigned int GetNumFieldCoordsPosLevel() const = 0;
+    virtual unsigned int GetNumFieldCoordsVelLevel() const = 0;
+
+    unsigned int n_dofs;    ///< total degrees of freedom
+    unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
+};
+
+// -----------------------------------------------------------------------------
+
 
 template <class T_data_per_node>
-class ChFeaField : public ChPhysicsItem {
+class ChFeaField : public ChFeaFieldBase {
 public:
     using T_nodefield = T_data_per_node;
 
     ChFeaField() {}
     virtual ~ChFeaField() {}
     
-    virtual void AddNode(std::shared_ptr<ChNodeFEAbase> mnode) {
+    virtual void AddNode(std::shared_ptr<ChNodeFEAbase> mnode) override {
         node_data[mnode]; // just key, no need to provide value as it is default constructor of T_per_node
     }
 
-    virtual void RemoveNode(std::shared_ptr<ChNodeFEAbase> mnode) {
+    virtual void RemoveNode(std::shared_ptr<ChNodeFEAbase> mnode) override {
         node_data.erase(mnode);
     }
 
-    bool IsNodeAdded(std::shared_ptr<ChNodeFEAbase> node) {
+    virtual bool IsNodeAdded(std::shared_ptr<ChNodeFEAbase> node) override {
         return (node_data.find(node) != node_data.end());
     }
+
+    virtual ChFeaFieldData* GetNodeDataPointer(std::shared_ptr<ChNodeFEAbase> node) override {
+        return &node_data[node];
+    }
+
+    virtual unsigned int GetNumFieldCoordsPosLevel() const { return T_data_per_node::GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNumFieldCoordsVelLevel() const { return T_data_per_node::GetNumCoordsVelLevel(); }
+
 
     T_data_per_node& GetNodeData(std::shared_ptr<ChNodeFEAbase> node) {
         return node_data[node];
     }
+
+    
 
     std::unordered_map<std::shared_ptr<ChNodeFEAbase>, T_data_per_node> node_data;
 
@@ -640,8 +688,8 @@ public:
 
             // Count the actual degrees of freedom (consider only nodes that are not fixed)
             if (!node.second.IsFixed()) {
-                n_dofs += node.second.GetNumCoordsPosLevelActive();
-                n_dofs_w += node.second.GetNumCoordsVelLevelActive();
+                n_dofs += GetNumFieldCoordsPosLevel();
+                n_dofs_w += GetNumFieldCoordsVelLevel();
             }
         }
     };
@@ -668,8 +716,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                local_off_x += node.second.GetNumCoordsPosLevelActive();
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_x += GetNumFieldCoordsPosLevel();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
         T = GetChTime();
@@ -688,8 +736,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                local_off_x += node.second.GetNumCoordsPosLevelActive();
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_x += GetNumFieldCoordsPosLevel();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
         Update(T, full_update);
@@ -703,7 +751,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateGatherAcceleration(off_a + local_off_a, a);
-                local_off_a += node.second.GetNumCoordsVelLevelActive();
+                local_off_a += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -716,7 +764,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateScatterAcceleration(off_a + local_off_a, a);
-                local_off_a += node.second.GetNumCoordsVelLevelActive();
+                local_off_a += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -735,8 +783,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                local_off_x += node.second.GetNumCoordsPosLevelActive();
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_x += GetNumFieldCoordsPosLevel();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -755,8 +803,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                local_off_x += node.second.GetNumCoordsPosLevelActive();
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_x += GetNumFieldCoordsPosLevel();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -772,7 +820,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntLoadResidual_F(off + local_off_v, R, c);
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -789,7 +837,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -807,7 +855,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -825,7 +873,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntToDescriptor(off_v + local_off_v, v, R);
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -841,7 +889,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntFromDescriptor(off_v + local_off_v, v);
-                local_off_v += node.second.GetNumCoordsVelLevelActive();
+                local_off_v += GetNumFieldCoordsVelLevel();
             }
         }
     }
@@ -855,12 +903,12 @@ public:
 
 // Some ready-to-use fields.
 
-class ChFeaFieldScalar : public ChFeaField<ChFeaPerNodeFieldDataGeneric<1>> {};
-class ChFeaFieldVector : public ChFeaField<ChFeaPerNodeFieldDataGeneric<3>> {};
+class ChFeaFieldScalar : public ChFeaField<ChFeaFieldDataGeneric<1>> {};
+class ChFeaFieldVector : public ChFeaField<ChFeaFieldDataGeneric<3>> {};
 
 class ChFeaFieldTemperature : public ChFeaFieldScalar {};
 class ChFeaFieldElectricPotential : public ChFeaFieldScalar {};
-class ChFeaFieldDisplacement3D : public ChFeaField<ChFeaPerNodeFieldDataPos3D> {};
+class ChFeaFieldDisplacement3D : public ChFeaField<ChFeaFieldDataPos3D> {};
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -874,8 +922,18 @@ class ChFeaPerMaterialpointDataNONE {
 /// Base class for the per-element properties of some material,
 /// for example it can contain the ChKRMBlock object with tangent stiffness etc.
 class ChFeaPerElementDataNONE {
+public:
+    ChKRMBlock* GetKRM() { return nullptr; }
 };
 
+/// Class for the per - element properties of some material,
+/// containing the ChKRMBlock object with tangent stiffness.
+class ChFeaPerElementDataKRM : public ChFeaPerElementDataNONE {
+public:
+    ChKRMBlock* GetKRM() { return &Kmatr; }
+private:
+    ChKRMBlock Kmatr;
+};
 
 //------------------------------------------------------------------------------
 
@@ -901,8 +959,8 @@ public:
     /// Get the density of the material, in kg/m^2.
     double GetDensity() const { return m_density; }
 
-    virtual void ArchiveOut(ChArchiveOut& archive_out);
-    virtual void ArchiveIn(ChArchiveIn& archive_in);
+    //virtual void ArchiveOut(ChArchiveOut& archive_out);
+    //virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 
@@ -913,7 +971,7 @@ class ChApi ChFea3DContinuumPoisson : public ChFea3DDensity {
 public:
     using T_per_node = std::tuple<ChFeaFieldScalar>;
     using T_per_matpoint = ChFeaPerMaterialpointDataNONE;
-    using T_per_element = ChFeaPerElementDataNONE;
+    using T_per_element = ChFeaPerElementDataKRM;
 
 protected:
     ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
@@ -940,7 +998,7 @@ class ChApi ChFea3DMaterialThermal : public ChFea3DContinuumPoisson {
 public:
     using T_per_node = std::tuple<ChFeaFieldTemperature>;
     using T_per_matpoint = ChFeaPerMaterialpointDataNONE;
-    using T_per_element = ChFeaPerElementDataNONE;
+    using T_per_element = ChFeaPerElementDataKRM;
 
 private:
     double k_thermal_conductivity;
@@ -1000,13 +1058,41 @@ struct tuple_as_sharedptr<std::tuple<Ts...>> {
 
 // Type automation.
 // Turning a std::tuple<ClassA,ClassB,..> into std::tuple<ClassA::T_nodefield*>,ClassA::T_nodefield*,..>
+/*
 template <typename Tuple>
 struct tuple_as_field_ptrs;
 template <typename... Ts>
 struct tuple_as_field_ptrs<std::tuple<Ts...>> {
     using type = std::tuple<typename Ts::T_nodefield*...>;
 };
+*/
 
+// Type automation.
+// Turning a std::tuple<ClassA,ClassB,..> into a std::array<ChFeaFieldData*, N>  type, with N as size of tuple.
+/*
+template <typename Tuple>
+struct tuple_to_base_ptr_array;
+template <typename... Ts>
+struct tuple_to_base_ptr_array<std::tuple<Ts...>> {
+    static_assert((std::is_base_of_v<ChFeaFieldData, Ts::T_nodefield> && ...), "All Ts::T_nodefield in tuple must inherit from ChFeaFieldData");
+    using type = std::array<ChFeaFieldData*, sizeof...(Ts)>;
+};
+*/
+
+template<typename Base, typename Tuple, std::size_t... Is>
+constexpr auto tuple_to_base_array_impl(Tuple&& t, std::index_sequence<Is...>) {
+    using BasePtr = std::shared_ptr<Base>;
+    return std::array<BasePtr, sizeof...(Is)>{
+        std::static_pointer_cast<Base>(std::get<Is>(std::forward<Tuple>(t)))...
+    };
+}
+template<typename Base, typename Tuple>
+constexpr auto tuple_to_base_array(Tuple&& t) {
+    constexpr auto N = std::tuple_size_v<std::decay_t<Tuple>>;
+    return tuple_to_base_array_impl<Base>(std::forward<Tuple>(t), std::make_index_sequence<N>{});
+}
+
+/*
 // Data automation.
 // From a std::tuple<std::shared_ptr<ClassA>,std::shared_ptr<ClassB>,..> and the pointer
 // to a node std::shared_ptr<ChNodeFEAbase>, makes the tuple 
@@ -1019,6 +1105,19 @@ template <typename... Ts>
 auto make_nodefields_pointer_tuple(std::shared_ptr<ChNodeFEAbase> mnode, const std::tuple<Ts...>& t) {
     return make_nodefields_pointer_tuple_IMPL(mnode, t, std::index_sequence_for<Ts...>{});
 }
+*/
+
+// From a std::tuple<std::shared_ptr<Base>,std::shared_ptr<ClassDerivedFromBase>,..> 
+// to std::array<std::shared_ptr<Base>,N> // 
+template <typename Base, typename Tuple, std::size_t... Is>
+auto make_basearray_from_tuple_IMPL( const Tuple& t, std::index_sequence<Is...>) {
+    return std::array<std::shared_ptr<Base>, std::tuple_size_v<Tuple>> { std::get<Is>(t)... };
+}
+template <typename Base, typename... Ts>
+auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
+    return make_basearray_from_tuple_IMPL<Base>(t, std::index_sequence_for<Ts...>{});
+}
+
 
 /// Base class for all material implementations for FEA
 class ChFeaMaterialDomain {
@@ -1029,6 +1128,33 @@ public:
 
     // This rewires all pointers and correctly set up the element_datamap
     virtual bool InitialSetup() = 0;
+
+    // Get the total coordinates per each node (summing the dofs per each field) 
+    virtual int GetNumPerNodeCoordsPosLevel() = 0;
+    // Get the total coordinates per each node (summing the dofs per each field) 
+    virtual int GetNumPerNodeCoordsVelLevel() { return GetNumPerNodeCoordsPosLevel(); }
+    // Get the total number of nodes affected by this domain (some could be shared with other domains)
+    virtual int GetNumNodes() = 0;
+
+    // MATERIAL CONSTITUTIVE LAWS MUST IMPLEMENT THE FOLLOWING
+
+    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
+    /// If the D vector size is not the proper size, it will be resized.
+    virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& mD) = 0;
+
+    /// Computes the internal loads Fi and set values in the Fi vector.
+    virtual void ComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& Fi) = 0;
+
+    /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
+    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
+    /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
+    virtual void ComputeKRMmatricesGlobal(std::shared_ptr<ChFeaElement> melement, ChMatrixRef H,
+        double Kfactor,
+        double Rfactor = 0,
+        double Mfactor = 0)  = 0;
+
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass(std::shared_ptr<ChFeaElement> melement) = 0;
 };
 
 /// Class for all material implementations for FEA, and for 
@@ -1048,17 +1174,19 @@ public:
     class DataPerElement {
     public:
         DataPerElement(int n_matpoints = 0, int n_nodes = 0) :
-            matpoints_data(n_matpoints), nodes_data(n_nodes)
+            matpoints_data(n_matpoints), 
+            nodes_data(n_nodes)
         {}
         T_per_element element_data;
         std::vector<T_per_matpoint> matpoints_data;
-        std::vector<typename tuple_as_field_ptrs<T_per_node>::type> nodes_data;
+        std::vector<std::array<ChFeaFieldData*, std::tuple_size_v<T_per_node> > > nodes_data;
     };
+
     std::unordered_map<std::shared_ptr<ChFeaElement>, DataPerElement> element_datamap;
 
-    typename tuple_as_sharedptr<T_per_node>::type fields;
+    std::array < std::shared_ptr<ChFeaFieldBase>, std::tuple_size_v<T_per_node> > fields;
 
-    ChFeaMaterialDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = mfields; }
+    ChFeaMaterialDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFeaFieldBase>(mfields); }
 
     DataPerElement& GetElementData(std::shared_ptr<ChFeaElement> melement) {
         return element_datamap[melement];
@@ -1081,6 +1209,23 @@ public:
         return InitialSetup_impl();
     }
 
+    virtual int GetNumPerNodeCoordsPosLevel() override { return per_node_coords_pos; }
+    virtual int GetNumPerNodeCoordsVelLevel() override { return per_node_coords_vel; }
+    virtual int GetNumNodes() override { return num_nodes; }
+
+    virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& mD) override {
+        auto& elementdata = this->GetElementData(melement);
+        mD.resize(this->GetNumPerNodeCoordsPosLevel()*melement->GetNumNodes());
+        int off = 0;
+        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
+            for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int ifieldsize = elementdata.nodes_data[i][i_field]->State().size();
+                mD.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->State();
+                off += ifieldsize;
+            }
+        }
+    }
+
 private:
     void AddElement_impl(std::shared_ptr<ChFeaElement> melement) {
         element_datamap.insert(std::make_pair(melement, DataPerElement(melement->GetMinQuadratureOrder(), melement->GetNumNodes())));
@@ -1096,17 +1241,46 @@ private:
 
     // This rewires all pointers and correctly set up the element_datamap
     bool InitialSetup_impl() {
+        num_nodes = 0;
+        per_node_coords_pos = 0;
+        per_node_coords_vel = 0;
+
+        for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            this->fields[i_field]->Setup();
+            per_node_coords_pos += this->fields[i_field]->GetNumFieldCoordsPosLevel();  
+            per_node_coords_vel += this->fields[i_field]->GetNumFieldCoordsVelLevel();
+        }
+
         for (auto& mel : this->element_datamap) {
+
+            auto KRMblock = mel.second.element_data.GetKRM();
+            std::vector<ChVariables*> mvars;
+
             // setup array of quadrature data
             mel.second.matpoints_data.resize(mel.first->GetMinQuadratureOrder()); // safety - should be already sized
+
             // setup array of pointers to node field data (this is for efficiency, otherwise each element should lookup the Chfield maps every time)
             mel.second.nodes_data.resize(mel.first->GetNumNodes());  // safety - should be already sized
             for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
-                mel.second.nodes_data[i] = make_nodefields_pointer_tuple(mel.first->GetNode(i), this->fields);
+                for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                    mel.second.nodes_data[i][i_field] = fields[i_field]->GetNodeDataPointer(mel.first->GetNode(i));
+                    mvars.push_back(&(mel.second.nodes_data[i][i_field]->GetVariable()));
+                }
             }
+            if (KRMblock)
+                KRMblock->SetVariables(mvars);
+
+            num_nodes += mel.first->GetNumNodes();
         }
+
+
+
         return true;
     };
+private:
+    int per_node_coords_pos = 0;
+    int per_node_coords_vel = 0;
+    int num_nodes = 0;
 };
 
 
@@ -1116,7 +1290,7 @@ private:
 class ChFeaMaterialDomainThermal : public ChFeaMaterialDomainImpl<
     std::tuple<ChFeaFieldTemperature>,
     ChFeaPerMaterialpointDataNONE,
-    ChFeaPerElementDataNONE> {
+    ChFeaPerElementDataKRM> {
 public:
     ChFeaMaterialDomainThermal(std::shared_ptr<ChFeaFieldTemperature> mfield) 
         : ChFeaMaterialDomainImpl(mfield)
@@ -1126,8 +1300,59 @@ public:
     /// heat capacity constants etc.) 
     std::shared_ptr<ChFea3DMaterialThermal> material;
     
-    //***TODO***
+    // INTERFACES
+
+    /// Computes the internal loads Fi and set values in the Fi vector.
+    virtual void ComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& Fi) override {
+    }
+
+    /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
+    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
+    /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
+    virtual void ComputeKRMmatricesGlobal(std::shared_ptr<ChFeaElement> melement, ChMatrixRef H,
+        double Kfactor,
+        double Rfactor = 0,
+        double Mfactor = 0) override {
+    }
+
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass(std::shared_ptr<ChFeaElement> melement) override {
+    }
 };
+
+
+class ChFeaMaterialDomainThermalElastic : public ChFeaMaterialDomainImpl<
+    std::tuple<ChFeaFieldTemperature, ChFeaFieldDisplacement3D>, 
+    ChFeaPerMaterialpointDataNONE,
+    ChFeaPerElementDataKRM> {
+public:
+    ChFeaMaterialDomainThermalElastic(std::shared_ptr<ChFeaFieldTemperature> mthermalfield, std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
+        : ChFeaMaterialDomainImpl({ mthermalfield, melasticfield })
+    {}
+
+    /// Thermal properties of this domain (conductivity, 
+    /// heat capacity constants etc.) 
+    std::shared_ptr<ChFea3DMaterialThermal> material;
+
+    // INTERFACES
+    /// Computes the internal loads Fi and set values in the Fi vector.
+    virtual void ComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& Fi) override {
+    }
+
+    /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
+    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
+    /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
+    virtual void ComputeKRMmatricesGlobal(std::shared_ptr<ChFeaElement> melement, ChMatrixRef H,
+        double Kfactor,
+        double Rfactor = 0,
+        double Mfactor = 0) override {
+    }
+
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass(std::shared_ptr<ChFeaElement> melement) override {
+    }
+};
+
 
 
 // -----------------------------------------------------------------------------

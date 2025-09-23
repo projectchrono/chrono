@@ -81,29 +81,53 @@ void _test_function() {
     temperature_field->AddNode(mnode2);
     temperature_field->AddNode(mnode3);
     temperature_field->AddNode(mnode4);
+    
     temperature_field->node_data[mnode1].SetFixed(true);
     temperature_field->node_data[mnode4].State()[0] = 100;
+
+
 
     auto tetrahedron1 = chrono_types::make_shared <ChFeaElementTetrahedron_4>();
     tetrahedron1->SetNodes(mnode1,mnode2,mnode3,mnode4);
 
+
+
     auto thermal_domain = chrono_types::make_shared <ChFeaMaterialDomainThermal>(temperature_field);
     thermal_domain->AddElement(tetrahedron1);
-    //...
-    
+   
     // Needed to setup all data and pointers
     thermal_domain->InitialSetup();
 
+    std::cout << "thermal_domain->GetNumPerNodeCoordsPosLevel() " << thermal_domain->GetNumPerNodeCoordsPosLevel() << "\n";
+    ChVectorDynamic<> mstate_block;
+    thermal_domain->GetStateBlock(tetrahedron1,mstate_block);
+    std::cout << "thermal_domain->GetStateBlock(tetrahedron1,mstate_block) " << mstate_block << "\n";
+
+
+
+
+    auto thermoelastic_domain = chrono_types::make_shared <ChFeaMaterialDomainThermalElastic>(temperature_field, displacement_field);
+    thermoelastic_domain->AddElement(tetrahedron1);
+    thermoelastic_domain->InitialSetup();
+
+    std::cout << "thermoelastic_domain->GetNumPerNodeCoordsPosLevel() " << thermoelastic_domain->GetNumPerNodeCoordsPosLevel() << "\n";
+    thermoelastic_domain->GetStateBlock(tetrahedron1, mstate_block);
+    std::cout << "thermoelastic_domain->GetStateBlock(tetrahedron1,mstate_block) " << mstate_block << "\n";
+
+
+    
+
     // Later one can access instanced per-element data as in these examples:
-    thermal_domain->GetElementData(tetrahedron1).element_data; // ...
-    thermal_domain->GetElementData(tetrahedron1).matpoints_data.size(); // ...
-    thermal_domain->GetElementData(tetrahedron1).nodes_data.size(); // ..  this would fail if no InitialSetup()
+    //  thermal_domain->GetElementData(tetrahedron1).element_data; // ...
+    //  thermal_domain->GetElementData(tetrahedron1).matpoints_data.size(); // ...
+    //  thermal_domain->GetElementData(tetrahedron1).nodes_data.size(); // ..  this would fail if no InitialSetup()
 
-
+    /*
     mysystem->Add(temperature_field);  // TODO - better if domains and fields both in ChSystem / or both in ChMesh?
     mysystem->Add(displacement_field);
     mymesh->Add(thermal_domain);
     mymesh->Add(elastic_domain);
+    */
 }
 
 }  // end namespace fea
