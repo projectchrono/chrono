@@ -15,7 +15,7 @@ Additional Chrono functionality is provided through optional modules, enabled du
 
 -   [FSI module](@ref module_fsi_installation)
 
--   [GPU module](@ref module_gpu_installation)
+-   [DEM module](@ref module_dem_installation)
 
 -   [IRRLICHT module](@ref module_irrlicht_installation)
 

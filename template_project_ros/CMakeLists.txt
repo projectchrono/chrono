@@ -23,7 +23,7 @@ project(my_project)
 #                 OPTIONAL_COMPONENTS opt_module1 opt_module2 ...
 #                 CONFIG)
 # The following Chrono modules can be requested (case insensitive):
-#   Cascade, CSharp, FMI, FSI, GPU, Irrlicht, OpenGL, VSG, Matlab,
+#   Cascade, CSharp, FMI, FSI, DEM, Irrlicht, OpenGL, VSG, Matlab,
 #   Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor,
 #   Synchrono, Vehicle, VehicleCosim.
 # A component can be requested either as required or optional
