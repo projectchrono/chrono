@@ -813,12 +813,22 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
         list(APPEND CHRONO_DLL_NAMES "Chrono_gpu.dll")
       endif()
 
-#      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
-#        list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu_vsg")
-#        if (NOT CHRONO_STATIC)
-#          list(APPEND CHRONO_DLL_NAMES "Chrono_gpu_vsg.dll")
-#        endif()
-#      endif()
+      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu_vsg")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_gpu_vsg.dll")
+        endif()
+      endif()
+
+      # ATTENTION: This is a temporary hack!
+      # We only add to the list of DLLs, when we should fully configure the VSG modules.
+      # This is done only to allow building vehicle C# demos, in case the GPU module was also enabled in Chrono.
+      if (NOT CHRONO_STATIC)
+        if (Chrono_VSG_AVAILABLE)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_vsg.dll")
+        endif()
+      endif()
 
     endif()
 
