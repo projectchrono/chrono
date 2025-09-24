@@ -196,10 +196,9 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::Initialize() {
-    ChAssertAlways(m_sysMBS);
-
     // Add ground body to MBS system
-    m_sysMBS->AddBody(m_ground);
+    if (m_sysMBS)
+        m_sysMBS->AddBody(m_ground);
 
     // Prune SPH particles at grid locations that overlap with obstacles
     if (!m_sysSPH->m_bodies.empty()) {
@@ -268,7 +267,7 @@ void ChFsiProblemSPH::Initialize() {
                 m_props_cb->set(*m_sysSPH, pos);
                 ChVector3d tau_diag(-m_props_cb->p0);
                 m_sysSPH->AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
-                                        tau_diag, tau_offdiag);
+                                         tau_diag, tau_offdiag);
             }
             break;
         }
