@@ -19,6 +19,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_AngleRepose
    demo_FSI_Cratering
    demo_FSI_RassorDrum
+   demo_FSI_NormalBevameter
 )
 
 if(CH_ENABLE_MODULE_VSG)

@@ -69,7 +69,8 @@ void SphFluidDynamics::ProximitySearch() {
 
 // -----------------------------------------------------------------------------
 
-void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in, std::shared_ptr<SphMarkerDataD>& out) {
+void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
+                                         std::shared_ptr<SphMarkerDataD>& out) {
     thrust::copy(in->posRadD.begin(), in->posRadD.end(), out->posRadD.begin());
     thrust::copy(in->velMasD.begin(), in->velMasD.end(), out->velMasD.begin());
     thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.end(), out->rhoPresMuD.begin());
@@ -329,6 +330,7 @@ __device__ void DensityEulerStep(Real dT, const Real& deriv, EosType eos, Real4&
 __device__ void TauEulerStep(Real dT,
                              const Real3& deriv_tau_diag,
                              const Real3& deriv_tau_offdiag,
+                             const Real& deriv_rho,
                              bool close_to_surface,
                              Real3& tau_diag,
                              Real3& tau_offdiag,
@@ -408,7 +410,7 @@ __device__ void TauEulerStep(Real dT,
     tau_offdiag = new_tau_offdiag;
 
     rho_p.y = p_tr;
-    rho_p.x = paramsD.rho0;
+    rho_p.x = rho_p.x + deriv_rho * dT;
 }
 
 // Kernel to update the fluid properities of a particle, using an explicit Euler step.
@@ -449,8 +451,8 @@ __global__ void EulerStep_D(Real4* posRadD,
 
     if (paramsD.elastic_SPH) {
         // Euler step for tau and pressure update
-        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], freeSurfaceIdD[index], tauXxYyZzD[index],
-                     tauXyXzYzD[index], rhoPresMuD[index]);
+        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index],
+                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index]);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -497,8 +499,8 @@ __global__ void MidpointStep_D(Real4* posRadD,
 
     if (paramsD.elastic_SPH) {
         // Euler step for tau and pressure update
-        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], freeSurfaceIdD[index], tauXxYyZzD[index],
-                     tauXyXzYzD[index], rhoPresMuD[index]);
+        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index],
+                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index]);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -622,8 +624,8 @@ __global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
 }
 
 void SphFluidDynamics::CopySortedToOriginal(MarkerGroup group,
-                                         std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
-                                         std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+                                            std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
+                                            std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
