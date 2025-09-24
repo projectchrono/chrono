@@ -332,8 +332,8 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
-        cout << "\nLoading Chrono model specification from: '" << yaml_filename << "'\n" << endl;
-        cout << "model name:        '" << m_name << "'" << endl;
+        cout << "\n[ChParserSphYAML] Loading Chrono::SPH model specification from: '" << yaml_filename << "'\n" << endl;
+        cout << "model name: '" << m_name << "'" << endl;
         switch (m_data_path) {
             case DataPathType::ABS:
                 cout << "using absolute file paths" << endl;
@@ -485,24 +485,29 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
-    if (m_verbose)
+    if (m_verbose) {
+        cout << endl;
         m_fluid.PrintInfo();
+    }
 
     m_model_loaded = true;
 }
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH() {
+std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(bool initialize) {
+    if (m_verbose) {
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\n[ChParserSphYAML] Create ChFSIProblemSPH\n" << endl;
+    }
+
     if (!m_model_loaded) {
-        cerr << "[ChParserSphYAML::CreateSystem] Warning: no YAML model file loaded." << endl;
-        cerr << "Returning a default ChSystemNSC." << endl;
+        cerr << "[ChParserSphYAML::CreateFsiProblemSPH] Error: no YAML model file loaded." << endl;
         throw std::runtime_error("No YAML model file loaded");
     }
 
     if (!m_sim_loaded) {
-        cerr << "[ChParserSphYAML::CreateSystem] Warning: no YAML simulation file loaded." << endl;
-        cerr << "Returning a default ChSystemNSC." << endl;
+        cerr << "[ChParserSphYAML::CreateFsiProblemSPH] Error: no YAML simulation file loaded." << endl;
         throw std::runtime_error("No YAML simulation file loaded");
     }
 
@@ -565,13 +570,10 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
     }
 
     // Initialize FSI problem
-    m_fsi_problem->Initialize();
+    if (initialize)
+        m_fsi_problem->Initialize();
 
     return m_fsi_problem;
-}
-
-void ChParserSphYAML::AttachMultibodySystem(ChSystem* sys) {
-    m_fsi_problem->AttachMultibodySystem(sys);
 }
 
 // -----------------------------------------------------------------------------
@@ -627,18 +629,18 @@ void ChParserSphYAML::SaveOutput(int frame) {
 ChParserSphYAML::FluidParams::FluidParams() {}
 
 void ChParserSphYAML::FluidParams::PrintInfo() {
-    cout << "Fluid parameters" << endl;
-    cout << "  Properties" << endl;
-    cout << "     density:               " << fluid_props.density;
-    cout << "     viscosity:             " << fluid_props.viscosity;
-    cout << "     characteristic length: " << fluid_props.char_length;
+    cout << "fluid parameters" << endl;
+    cout << "  properties" << endl;
+    cout << "     density:               " << fluid_props.density << endl;
+    cout << "     viscosity:             " << fluid_props.viscosity << endl;
+    cout << "     characteristic length: " << fluid_props.char_length << endl;
     if (fluid_domain_cartesian) {
-        cout << "  Domain (CARTESIAN)" << endl;
+        cout << "  domain (CARTESIAN)" << endl;
         cout << "      dimensions: " << fluid_domain_cartesian->dimensions << endl;
         cout << "      origin:     " << fluid_domain_cartesian->origin << endl;
         cout << "      wall code:  " << fluid_domain_cartesian->wall_code << endl;
     } else if (fluid_domain_cylindrical) {
-        cout << "  Domain (CYLINDRICAL)" << endl;
+        cout << "  domain (CYLINDRICAL)" << endl;
         cout << "      inner radius: " << fluid_domain_cylindrical->inner_radius << endl;
         cout << "      outer radius: " << fluid_domain_cylindrical->outer_radius << endl;
         cout << "      height:       " << fluid_domain_cylindrical->height << endl;
@@ -646,12 +648,12 @@ void ChParserSphYAML::FluidParams::PrintInfo() {
         cout << "      wall code:    " << fluid_domain_cylindrical->wall_code << endl;
     }
     if (container_cartesian) {
-        cout << "  Container (CARTESIAN)" << endl;
+        cout << "  container (CARTESIAN)" << endl;
         cout << "      dimensions: " << container_cartesian->dimensions << endl;
         cout << "      origin:     " << container_cartesian->origin << endl;
         cout << "      wall code:  " << container_cartesian->wall_code << endl;
     } else if (container_cylindrical) {
-        cout << "  Container (CYLINDRICAL)" << endl;
+        cout << "  container (CYLINDRICAL)" << endl;
         cout << "      inner radius: " << container_cylindrical->inner_radius << endl;
         cout << "      outer radius: " << container_cylindrical->outer_radius << endl;
         cout << "      height:       " << container_cylindrical->height << endl;
