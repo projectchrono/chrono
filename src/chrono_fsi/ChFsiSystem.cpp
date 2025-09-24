@@ -61,7 +61,7 @@ void ChFsiSystem::AttachFluidSystem(ChFsiFluidSystem* sys) {
     m_sysCFD->SetVerbose(m_verbose);
 }
 
-void ChFsiSystem::AtachMultibodySystem(ChSystem* sys) {
+void ChFsiSystem::AttachMultibodySystem(ChSystem* sys) {
     m_sysMBS = sys;
     m_fsi_interface->AttachMultibodySystem(sys);
 }

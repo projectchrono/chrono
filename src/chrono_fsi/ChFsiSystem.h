@@ -50,7 +50,7 @@ class CH_FSI_API ChFsiSystem {
     void AttachFluidSystem(ChFsiFluidSystem* sys);
 
     /// Attach a MBS system.
-    void AtachMultibodySystem(ChSystem* sys);
+    void AttachMultibodySystem(ChSystem* sys);
 
     /// Access the associated fluid system.
     ChFsiFluidSystem& GetFluidSystem() const;

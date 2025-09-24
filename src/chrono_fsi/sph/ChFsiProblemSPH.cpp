@@ -70,11 +70,11 @@ ChFsiProblemSPH::ChFsiProblemSPH(double spacing, ChSystem* sys)
     m_splashsurf->SetSmoothingLength(1.5);
     m_splashsurf->SetCubeSize(0.5);
     m_splashsurf->SetSurfaceThreshold(0.6);
-
 }
 
 void ChFsiProblemSPH::AttachMultibodySystem(ChSystem* sys) {
-    m_sysFSI->AtachMultibodySystem(sys);
+    m_sysMBS = sys;
+    m_sysFSI->AttachMultibodySystem(sys);
 }
 
 void ChFsiProblemSPH::SetVerbose(bool verbose) {
