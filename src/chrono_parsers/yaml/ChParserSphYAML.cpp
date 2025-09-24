@@ -82,7 +82,7 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
-        cout << "\nLoading Chrono::SPH simulation specification from: " << yaml_filename << "\n" << endl;
+        cout << "\n[ChParserSphYAML] Loading Chrono::SPH simulation specification from: " << yaml_filename << "\n" << endl;
     }
 
     ChAssertAlways(sim["time_step"]);
@@ -93,8 +93,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
         m_sim.gravity = ChParserMbsYAML::ReadVector(sim["gravity"]);
 
     // Base SPH parameters
-    if (yaml["sph"]) {
-        auto a = yaml["sph"];
+    if (sim["sph"]) {
+        auto a = sim["sph"];
         if (a["eos_type"])
             m_sim.sph.eos_type = ReadEosType(a["eos_type"]);
         if (a["use_delta_sph"])
@@ -112,8 +112,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // SPH kernel parameters
-    if (yaml["kernel"]) {
-        auto a = yaml["kernel"];
+    if (sim["kernel"]) {
+        auto a = sim["kernel"];
         if (a["kernel_type"])
             m_sim.sph.kernel_type = ReadKernelType(a["kernel_type"]);
         if (a["initial_spacing"])
@@ -123,8 +123,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // SPH discretization parameters
-    if (yaml["discretization"]) {
-        auto a = yaml["discretization"];
+    if (sim["discretization"]) {
+        auto a = sim["discretization"];
         if (a["use_consistent_gradient_discretization"])
             m_sim.sph.use_consistent_gradient_discretization = a["use_consistent_gradient_discretization"].as<bool>();
         if (a["use_consistent_laplacian_discretization"])
@@ -132,8 +132,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Boundary condition parameters
-    if (yaml["boundary_conditions"]) {
-        auto a = yaml["boundary_conditions"];
+    if (sim["boundary_conditions"]) {
+        auto a = sim["boundary_conditions"];
         if (a["boundary_method"])
             m_sim.sph.boundary_method = ReadBoundaryMethod(a["boundary_method"]);
         if (a["num_bce_layers"])
@@ -141,8 +141,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Integration parameters
-    if (yaml["integration"]) {
-        auto a = yaml["integration"];
+    if (sim["integration"]) {
+        auto a = sim["integration"];
         if (a["integration_scheme"])
             m_sim.sph.integration_scheme = ReadIntegrationScheme(a["integration_scheme"]);
         if (a["use_variable_time_step"])
@@ -150,15 +150,15 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Proximity search
-    if (yaml["proximity_search"]) {
-        auto a = yaml["proximity_search"];
+    if (sim["proximity_search"]) {
+        auto a = sim["proximity_search"];
         if (a["num_proximity_search_steps"])
             m_sim.sph.num_proximity_search_steps = a["num_proximity_search_steps"].as<int>();
     }
 
     // Particle shifting
-    if (yaml["particle_shifting"]) {
-        auto a = yaml["particle_shifting"];
+    if (sim["particle_shifting"]) {
+        auto a = sim["particle_shifting"];
         if (a["shifting_method"])
             m_sim.sph.shifting_method = ReadShiftingMethod(a["shifting_method"]);
         if (a["shifting_xsph_eps"])
@@ -178,8 +178,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Viscosity parameters
-    if (yaml["viscosity"]) {
-        auto a = yaml["viscosity"];
+    if (sim["viscosity"]) {
+        auto a = sim["viscosity"];
         if (a["viscosity_method"])
             m_sim.sph.viscosity_method = ReadViscosityMethod(a["viscosity_method"]);
         if (a["artificial_viscosity"])
@@ -317,8 +317,8 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     auto model = yaml["model"];
 
     // Problem geometry is required
-    ChAssertAlways(yaml["problem_geometry"]);
-    m_problem_geometry_type = ReadProblemGeometryType(model["problem_geometry"]);
+    ChAssertAlways(model["problem_geometry_type"]);
+    m_problem_geometry_type = ReadProblemGeometryType(model["problem_geometry_type"]);
 
     if (model["name"])
         m_name = model["name"].as<std::string>();
@@ -888,25 +888,25 @@ int ChParserSphYAML::ReadWallFlagsCartesian(const YAML::Node& a) {
     ChAssertAlways(a["x"].IsSequence());
     ChAssertAlways(a["x"].size() == 2);
     if (a["x"][0].as<bool>())
-        code &= fsi::sph::BoxSide::X_NEG;
+        code |= fsi::sph::BoxSide::X_NEG;
     if (a["x"][1].as<bool>())
-        code &= fsi::sph::BoxSide::X_POS;
+        code |= fsi::sph::BoxSide::X_POS;
 
     ChAssertAlways(a["y"]);
     ChAssertAlways(a["y"].IsSequence());
     ChAssertAlways(a["y"].size() == 2);
     if (a["y"][0].as<bool>())
-        code &= fsi::sph::BoxSide::Y_NEG;
+        code |= fsi::sph::BoxSide::Y_NEG;
     if (a["y"][1].as<bool>())
-        code &= fsi::sph::BoxSide::Y_POS;
+        code |= fsi::sph::BoxSide::Y_POS;
 
     ChAssertAlways(a["z"]);
     ChAssertAlways(a["z"].IsSequence());
     ChAssertAlways(a["z"].size() == 2);
     if (a["z"][0].as<bool>())
-        code &= fsi::sph::BoxSide::Z_NEG;
+        code |= fsi::sph::BoxSide::Z_NEG;
     if (a["z"][1].as<bool>())
-        code &= fsi::sph::BoxSide::Z_POS;
+        code |= fsi::sph::BoxSide::Z_POS;
 
     return code;
 }
@@ -918,17 +918,17 @@ int ChParserSphYAML::ReadWallFlagsCylindrical(const YAML::Node& a) {
     ChAssertAlways(a["side"].IsSequence());
     ChAssertAlways(a["side"].size() == 2);
     if (a["side"][0].as<bool>())
-        code &= fsi::sph::CylSide::SIDE_INT;
+        code |= fsi::sph::CylSide::SIDE_INT;
     if (a["side"][1].as<bool>())
-        code &= fsi::sph::CylSide::SIDE_EXT;
+        code |= fsi::sph::CylSide::SIDE_EXT;
 
     ChAssertAlways(a["z"]);
     ChAssertAlways(a["z"].IsSequence());
     ChAssertAlways(a["z"].size() == 2);
     if (a["z"][0].as<bool>())
-        code &= fsi::sph::BoxSide::Z_NEG;
+        code |= fsi::sph::BoxSide::Z_NEG;
     if (a["z"][1].as<bool>())
-        code &= fsi::sph::BoxSide::Z_POS;
+        code |= fsi::sph::BoxSide::Z_POS;
 
     return code;
 }
