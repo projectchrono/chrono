@@ -394,6 +394,7 @@ ChAABB ChBodyGeometry::CalculateAABB() {
         auto p1 = cyl.pos - (cyl.length / 2) * axis;
         auto p2 = cyl.pos + (cyl.length / 2) * axis;
         auto e2 = ChVector3d(1.0) - axis * axis;
+        e2.Abs();
         ChVector3d e(std::sqrt(e2.x()), std::sqrt(e2.y()), std::sqrt(e2.z()));
 
         amin = Vmin(amin, Vmin(p1, p2) - cyl.radius * e);
@@ -406,6 +407,7 @@ ChAABB ChBodyGeometry::CalculateAABB() {
         auto p1 = cone.pos - (cone.length / 2) * axis;
         auto p2 = cone.pos + (cone.length / 2) * axis;
         auto e2 = ChVector3d(1.0) - axis * axis;
+        e2.Abs();
         ChVector3d e(std::sqrt(e2.x()), std::sqrt(e2.y()), std::sqrt(e2.z()));
 
         amin = Vmin(amin, Vmin(p1, p2) - cone.radius * e);
