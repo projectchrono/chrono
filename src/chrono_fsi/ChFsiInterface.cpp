@@ -112,6 +112,7 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
                                                     bool check_embedded) {
     ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
+    ChAssertAlways(geometry->HasCollision());
 
     auto fsi_body = chrono_types::make_shared<FsiBody>();
     fsi_body->body = body;

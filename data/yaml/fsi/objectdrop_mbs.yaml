@@ -21,12 +21,24 @@ model:
       inertia:
         moments: [0.031, 0.031, 0.032]
         products: [0, 0, 0]
+      contact:
+        materials:
+          - name: contact_material
+            coefficient_of_friction: 0.4
+        shapes:
+          - type: CYLINDER
+            material: contact_material
+            dimensions: [0.9, 0.9, 0.15]
+            location: [0, 0, 0]
+            axis: [1, 0, 0]
+            radius: 0.12
+            length: 0.20
       visualization:
         shapes:
           - type: CYLINDER
             dimensions: [0.9, 0.9, 0.15]
             location: [0, 0, 0]
-            axis: [0, 1, 0]
+            axis: [1, 0, 0]
             radius: 0.12
             length: 0.20
             color: [0.6, 0.2, 0.2]
