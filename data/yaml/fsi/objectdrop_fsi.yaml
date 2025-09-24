@@ -4,10 +4,12 @@ model:
   name: FSI object drop
 
   multibody_model:      "objectdrop_mbs.yaml"
-  multibody_simulation: "../../simulations/basic_mbs.yaml"
+  multibody_simulation: "../simulations/basic_mbs.yaml"
 
   fluid_model:          "objectdrop_sph.yaml"
-  fluid_simulation:     "../../simulations/basic_sph.yaml"
+  fluid_simulation:     "../simulations/basic_sph.yaml"
+
+fsi_bodies: [object, foo]
 
 simulation:
   time_step: 1e-4
