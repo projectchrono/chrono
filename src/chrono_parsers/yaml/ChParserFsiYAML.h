@@ -16,6 +16,7 @@
 #define CH_FSI_PARSER_YAML_H
 
 #include <string>
+#include <vector>
 
 #include "chrono_parsers/ChApiParsers.h"
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
@@ -98,12 +99,14 @@ class ChApiParsers ChParserFsiYAML {
 
     std::shared_ptr<ChParserMbsYAML> m_parserMBS;
     std::shared_ptr<ChParserCfdYAML> m_parserCFD;
-    
+
     ChParserCfdYAML::FluidSystemType m_sysCFD_type;
 
     std::shared_ptr<fsi::ChFsiSystem> m_sysFSI;
     std::shared_ptr<fsi::ChFsiFluidSystem> m_sysCFD;
     std::shared_ptr<ChSystem> m_sysMBS;
+
+    std::vector<std::string> m_fsi_bodies;
 
     double m_step;
     double m_end_time;

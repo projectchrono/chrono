@@ -91,6 +91,15 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
     m_file_modelCFD = script_dir + "/" + modelCFD;
     m_file_simCFD = script_dir + "/" + simCFD;
 
+    // Read FSI bodies
+    if (yaml["fsi_bodies"]) {
+        auto fsi_bodies = yaml["fsi_bodies"];
+        ChAssertAlways(fsi_bodies.IsSequence());
+        for (int i = 0; i < fsi_bodies.size(); i++) {
+            m_fsi_bodies.push_back(fsi_bodies[i].as<std::string>());
+        }
+    }
+
     // Read meta-step and simulation end time
     ChAssertAlways(yaml["simulation"]);
     auto sim = yaml["simulation"];
@@ -136,14 +145,47 @@ void ChParserFsiYAML::CreateFsiSystem() {
     // Peek in fluid simulation YAML file and extract fluid solver type
     m_sysCFD_type = ChParserCfdYAML::ReadFluidSystemType(m_file_simCFD);
 
-    // Parse the fluid YAML files and create FSI system
+    // Parse the fluid YAML files, create FSI system, and associate FSI solids
     switch (m_sysCFD_type) {
         case ChParserCfdYAML::FluidSystemType::SPH: {
+            // Create an SPH YAML parser
             auto parserSPH = chrono_types::make_shared<ChParserSphYAML>(m_file_modelCFD, m_file_simCFD, m_verbose);
-            auto problemSPH = parserSPH->CreateFsiProblemSPH();
+
+            // Access the underlying FSI problem and attach the MBS system
+            auto problemSPH = parserSPH->CreateFsiProblemSPH(false);
+            if (m_verbose)
+                cout << "Attach MBS system" << endl;
+            problemSPH->AttachMultibodySystem(m_sysMBS.get());
+
+            // Cache the underlying FSI and CFD systems
             m_sysFSI = problemSPH->GetFsiSystemSPH();
             m_sysCFD = problemSPH->GetFluidSystemSPH();
-            m_sysFSI->AtachMultibodySystem(m_sysMBS.get());
+
+            // Create FSI solids
+            if (m_verbose && !m_fsi_bodies.empty())
+                cout << "Associate FSI rigid bodies" << endl;
+            for (const auto& fsi_body : m_fsi_bodies) {
+                if (m_parserMBS->HasBodyParams(fsi_body)) {
+                    const auto& body_params = m_parserMBS->FindBodyParams(fsi_body);
+                    for (const auto& body : body_params.body)
+                        problemSPH->AddRigidBody(body, body_params.geometry, true);
+                } else {
+                    cerr << "  Warning: No body with name '" << fsi_body << "' was found. Ignoring." << endl;
+                }
+            }
+
+            // Initialize the FSI problem (now that an MBS system and FSI solids are specified)
+            if (m_verbose)
+                cout << "Initialize FSI problem" << endl;
+            problemSPH->Initialize();
+
+            if (m_verbose) {
+                auto domain_aabb = problemSPH->GetComputationalDomain();
+                cout << "Computational domain: " << endl;
+                cout << "   min: " << domain_aabb.min << endl;
+                cout << "   max: " << domain_aabb.max << endl;
+            }
+
             m_parserCFD = parserSPH;
             break;
         }

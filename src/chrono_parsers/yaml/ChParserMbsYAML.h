@@ -142,6 +142,9 @@ class ChApiParsers ChParserMbsYAML {
     static ChColor ReadColor(const YAML::Node& a);
 
   private:
+    enum class DataPathType { ABS, REL };
+    enum class BodyLoadType { FORCE, TORQUE };
+
     /// Solver parameters.
     struct SolverParams {
         SolverParams();
@@ -220,13 +223,9 @@ class ChApiParsers ChParserMbsYAML {
         OutputParameters output;
     };
 
-  private:
-    enum class DataPathType { ABS, REL };
-    enum class BodyLoadType { FORCE, TORQUE };
-
     /// Internal specification of a body.
-    struct Body {
-        Body();
+    struct BodyParams {
+        BodyParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
@@ -239,12 +238,12 @@ class ChApiParsers ChParserMbsYAML {
         ChFramed com;                                     ///< centroidal frame (relative to body frame)
         ChVector3d inertia_moments;                       ///< moments of inertia (relative to centroidal frame)
         ChVector3d inertia_products;                      ///< products of inertia (relative to centroidal frame)
-        utils::ChBodyGeometry geometry;                   ///< visualization and collision geometry
+        std::shared_ptr<utils::ChBodyGeometry> geometry;  ///< visualization and collision geometry
     };
 
     /// Internal specification of a joint.
-    struct Joint {
-        Joint();
+    struct JointParams {
+        JointParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChJoint>> joint;  ///< underlying Chrono joints (one per instance)
@@ -257,8 +256,8 @@ class ChApiParsers ChParserMbsYAML {
     };
 
     /// Internal specification of a distance constraint.
-    struct DistanceConstraint {
-        DistanceConstraint();
+    struct DistanceConstraintParams {
+        DistanceConstraintParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChLinkDistance>> dist;  ///< underlying Chrono constraints (one per instance)
@@ -268,9 +267,9 @@ class ChApiParsers ChParserMbsYAML {
         ChVector3d point2;                                  ///< point on body2 (relative to instance frame)
     };
 
-    /// Internal specification of a TSDA.
-    struct TSDA {
-        TSDA();
+    /// Internal specification of a TsdaParams.
+    struct TsdaParams {
+        TsdaParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChLinkTSDA>> tsda;    ///< underlying Chrono TSDAs (one per instance)
@@ -280,12 +279,12 @@ class ChApiParsers ChParserMbsYAML {
         ChVector3d point2;                                ///< point on body2 (relative to instance frame)
         double free_length;                               ///< TSDA free (rest) length
         std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
-        utils::ChTSDAGeometry geometry;                   ///< (optional) visualization geometry
+        std::shared_ptr<utils::ChTSDAGeometry> geometry;  ///< (optional) visualization geometry
     };
 
     /// Internal specification of an RSDA.
-    struct RSDA {
-        RSDA();
+    struct RsdaParams {
+        RsdaParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChLinkRSDA>> rsda;      ///< underlying Chrono RSDAs (one per instance)
@@ -298,8 +297,8 @@ class ChApiParsers ChParserMbsYAML {
     };
 
     /// Internal specification of a body load (applied force or torque).
-    struct BodyLoad {
-        BodyLoad();
+    struct BodyLoadParams {
+        BodyLoadParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
@@ -320,8 +319,8 @@ class ChApiParsers ChParserMbsYAML {
     };
 
     /// Internal specification of a linear motor.
-    struct MotorLinear {
-        MotorLinear();
+    struct MotorLinearParams {
+        MotorLinearParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChLinkMotorLinear>> motor;  ///< underlying Chrono motors (one per instance)
@@ -335,8 +334,8 @@ class ChApiParsers ChParserMbsYAML {
     };
 
     /// Internal specification of a rotational motor.
-    struct MotorRotation {
-        MotorRotation();
+    struct MotorRotationParams {
+        MotorRotationParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChLinkMotorRotation>> motor;  ///< underlying Chrono motors (one per instance)
@@ -349,7 +348,6 @@ class ChApiParsers ChParserMbsYAML {
         std::shared_ptr<ChFunction> actuation_function;           ///< actuation function
     };
 
-  private:
     /// Output database.
     struct OutputData {
         std::vector<std::shared_ptr<ChBody>> bodies;
@@ -391,10 +389,10 @@ class ChApiParsers ChParserMbsYAML {
     /// Load and return a geometry structure from the specified node.
     /// Collision geometry and contact material information is set in the return ChBodyGeometry object if the given
     /// object has a member "Contact". Visualization geometry is loaded if the object has a member "Visualization".
-    utils::ChBodyGeometry ReadGeometry(const YAML::Node& d);
+    std::shared_ptr<utils::ChBodyGeometry> ReadGeometry(const YAML::Node& d);
 
     /// Load and return a TSDA geometry structure from the specified node.
-    utils::ChTSDAGeometry ReadTSDAGeometry(const YAML::Node& d);
+    std::shared_ptr<utils::ChTSDAGeometry> ReadTSDAGeometry(const YAML::Node& d);
 
     /// Load and return a TSDA functor object from the specified node.
     /// The TSDA free length is also set if the particular functor type defines it.
@@ -419,9 +417,6 @@ class ChApiParsers ChParserMbsYAML {
     /// Load and return a motor actuation ChFunction object from the specified node.
     std::shared_ptr<ChFunction> ReadFunction(const YAML::Node& a);
 
-    /// Utility function to find the ChBodyAuxRef with specified name.
-    std::shared_ptr<ChBodyAuxRef> FindBody(const std::string& name) const;
-
     /// Set Chrono solver parameters.
     void SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso);
 
@@ -432,16 +427,25 @@ class ChApiParsers ChParserMbsYAML {
     static std::string GetMotorActuationTypeString(MotorActuation type);
 
   private:
+    /// Utility function to check if parameters for a body with specified name exist.
+    bool HasBodyParams(const std::string& name) const;
+
+    /// Utility function to find the parameters for the body with specified name.
+    const BodyParams& FindBodyParams(const std::string& name) const;
+
+    /// Utility function to find the ChBodyAuxRef with specified name.
+    std::shared_ptr<ChBodyAuxRef> FindBody(const std::string& name) const;
+
     SimParams m_sim;  ///< simulation parameters
 
-    std::unordered_map<std::string, Body> m_bodies;               ///< bodies
-    std::unordered_map<std::string, Joint> m_joints;              ///< joints
-    std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
-    std::unordered_map<std::string, TSDA> m_tsdas;                ///< TSDA force elements
-    std::unordered_map<std::string, RSDA> m_rsdas;                ///< RSDA force elements
-    std::unordered_map<std::string, BodyLoad> m_body_loads;       ///< body load elements
-    std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
-    std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
+    std::unordered_map<std::string, BodyParams> m_bodies;               ///< bodies
+    std::unordered_map<std::string, JointParams> m_joints;              ///< joints
+    std::unordered_map<std::string, DistanceConstraintParams> m_dists;  ///< distance constraints
+    std::unordered_map<std::string, TsdaParams> m_tsdas;                ///< TSDA force elements
+    std::unordered_map<std::string, RsdaParams> m_rsdas;                ///< RSDA force elements
+    std::unordered_map<std::string, BodyLoadParams> m_body_loads;       ///< body load elements
+    std::unordered_map<std::string, MotorLinearParams> m_linmotors;     ///< linear motors
+    std::unordered_map<std::string, MotorRotationParams> m_rotmotors;   ///< rotational motors
 
     std::string m_output_dir;               ///< root oputput directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
@@ -458,6 +462,8 @@ class ChApiParsers ChParserMbsYAML {
     DataPathType m_data_path;
     std::string m_rel_path;
     std::string m_script_directory;
+
+    friend class ChParserFsiYAML;
 };
 
 /// @} parsers_module

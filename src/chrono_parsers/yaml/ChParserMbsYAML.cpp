@@ -79,7 +79,9 @@ ChParserMbsYAML::ChParserMbsYAML()
       m_instance_index(-1),
       m_output_dir("") {}
 
-ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose)
+ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename,
+                                 const std::string& yaml_sim_filename,
+                                 bool verbose)
     : m_name("YAML model"),
       m_data_path(DataPathType::ABS),
       m_rel_path("."),
@@ -140,7 +142,7 @@ void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
-        cout << "\nLoading Chrono simulation specification from: " << yaml_filename << "\n" << endl;
+        cout << "\n[ChParserMbsYAML] Loading Chrono simulation specification from: " << yaml_filename << "\n" << endl;
     }
 
     // Mandatory
@@ -317,8 +319,8 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
-        cout << "\nLoading Chrono model specification from: '" << yaml_filename << "'\n" << endl;
-        cout << "model name:        '" << m_name << "'" << endl;
+        cout << "\n[ChParserMbsYAML] Loading Chrono model specification from: '" << yaml_filename << "'\n" << endl;
+        cout << "model name: '" << m_name << "'" << endl;
         cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
         switch (m_data_path) {
             case DataPathType::ABS:
@@ -342,7 +344,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
         ChAssertAlways(bodies[i]["name"]);
         auto name = bodies[i]["name"].as<std::string>();
 
-        Body body;
+        BodyParams body;
 
         if (bodies[i]["fixed"])
             body.is_fixed = bodies[i]["fixed"].as<bool>();
@@ -399,7 +401,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
 
             auto name = joints[i]["name"].as<std::string>();
 
-            Joint joint;
+            JointParams joint;
             joint.type = ReadJointType(joints[i]["type"]);
             joint.body1 = joints[i]["body1"].as<std::string>();
             joint.body2 = joints[i]["body2"].as<std::string>();
@@ -435,7 +437,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             auto type = ToUpper(constraints[i]["type"].as<std::string>());
 
             if (type == "DISTANCE") {
-                DistanceConstraint dist;
+                DistanceConstraintParams dist;
                 ChAssertAlways(constraints[i]["point1"]);
                 ChAssertAlways(constraints[i]["point2"]);
                 dist.body1 = constraints[i]["body1"].as<std::string>();
@@ -473,7 +475,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
 
             auto name = tsdas[i]["name"].as<std::string>();
 
-            TSDA tsda;
+            TsdaParams tsda;
             tsda.body1 = tsdas[i]["body1"].as<std::string>();
             tsda.body2 = tsdas[i]["body2"].as<std::string>();
             tsda.point1 = ReadVector(tsdas[i]["point1"]);
@@ -504,7 +506,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
 
             auto name = rsdas[i]["name"].as<std::string>();
 
-            RSDA rsda;
+            RsdaParams rsda;
             rsda.body1 = rsdas[i]["body1"].as<std::string>();
             rsda.body2 = rsdas[i]["body2"].as<std::string>();
             rsda.axis = ReadVector(rsdas[i]["axis"]);
@@ -536,7 +538,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
 
             auto name = loads[i]["name"].as<std::string>();
 
-            BodyLoad load;
+            BodyLoadParams load;
             load.type = ReadBodyLoadType(loads[i]["type"]);
             load.body = loads[i]["body"].as<std::string>();
             load.local_load = loads[i]["local_load"].as<bool>();
@@ -578,7 +580,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             ChAssertAlways(motors[i]["location"]);
             ChAssertAlways(motors[i]["axis"]);
             if (type == "LINEAR") {
-                MotorLinear motor;
+                MotorLinearParams motor;
                 motor.body1 = body1;
                 motor.body2 = body2;
                 motor.actuation_type = actuation_type;
@@ -595,7 +597,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
                 m_linmotors.insert({name, motor});
 
             } else if (type == "ROTATION") {
-                MotorRotation motor;
+                MotorRotationParams motor;
                 motor.body1 = body1;
                 motor.body2 = body2;
                 motor.actuation_type = actuation_type;
@@ -740,6 +742,22 @@ std::shared_ptr<ChSystem> ChParserMbsYAML::CreateSystem() {
 
 // -----------------------------------------------------------------------------
 
+bool ChParserMbsYAML::HasBodyParams(const std::string& name) const {
+    auto b = m_bodies.find(name);
+    if (b == m_bodies.end())
+        return false;
+    return true;
+}
+
+const ChParserMbsYAML::BodyParams& ChParserMbsYAML::FindBodyParams(const std::string& name) const {
+    auto b = m_bodies.find(name);
+    if (b == m_bodies.end()) {
+        cerr << "Cannot find body with name: " << name << endl;
+        throw std::runtime_error("Invalid body name");
+    }
+    return b->second;
+}
+
 std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBody(const std::string& name) const {
     auto b = m_bodies.find(name);
     if (b == m_bodies.end()) {
@@ -750,6 +768,11 @@ std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBody(const std::string& name)
 }
 
 int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std::string& model_prefix) {
+    if (m_verbose) {
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\n[ChParserMbsYAML] Populate ChSystem\n" << endl;
+    }
+
     if (!m_model_loaded) {
         cerr << "[ChParserMbsYAML::Populate] Error: no YAML model loaded." << endl;
         throw std::runtime_error("No YAML model loaded");
@@ -762,6 +785,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     sys.Add(load_container);
 
     // Create bodies
+    if (m_verbose && !m_bodies.empty())
+        cout << "Create bodies" << endl;
     for (auto& item : m_bodies) {
         auto body = chrono_types::make_shared<ChBodyAuxRef>();
         body->SetName(model_prefix + item.first);
@@ -779,6 +804,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create joints (kinematic or bushings)
+    if (m_verbose && !m_joints.empty())
+        cout << "Create joints" << endl;
     for (auto& item : m_joints) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
@@ -799,6 +826,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create distance constraints
+    if (m_verbose && !m_dists.empty())
+        cout << "Create distance constraints" << endl;
     for (auto& item : m_dists) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
@@ -812,6 +841,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create TSDAs
+    if (m_verbose && !m_tsdas.empty())
+        cout << "Create TSDAs" << endl;
     for (auto& item : m_tsdas) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
@@ -826,6 +857,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create RSDAs
+    if (m_verbose && !m_rsdas.empty())
+        cout << "Create RSDAs" << endl;
     for (auto& item : m_rsdas) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
@@ -845,6 +878,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create body loads
+    if (m_verbose && !m_body_loads.empty())
+        cout << "Create body loads" << endl;
     for (auto& item : m_body_loads) {
         auto body = FindBody(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
@@ -864,6 +899,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create linear motors
+    if (m_verbose && !m_linmotors.empty())
+        cout << "Create linear motors" << endl;
     for (auto& item : m_linmotors) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
@@ -894,6 +931,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create rotation motors
+    if (m_verbose && !m_rotmotors.empty())
+        cout << "Create rotational motors" << endl;
     for (auto& item : m_rotmotors) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
@@ -925,15 +964,15 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
 
     // Create body collision models
     for (auto& item : m_bodies) {
-        if (item.second.geometry.HasCollision())
-            item.second.geometry.CreateCollisionShapes(item.second.body[m_instance_index], 0, sys.GetContactMethod());
+        if (item.second.geometry->HasCollision())
+            item.second.geometry->CreateCollisionShapes(item.second.body[m_instance_index], 0, sys.GetContactMethod());
     }
 
     // Create visualization assets
     for (auto& item : m_bodies)
-        item.second.geometry.CreateVisualizationAssets(item.second.body[m_instance_index], m_sim.visualization.type);
+        item.second.geometry->CreateVisualizationAssets(item.second.body[m_instance_index], m_sim.visualization.type);
     for (auto& item : m_tsdas)
-        item.second.geometry.CreateVisualizationAssets(item.second.tsda[m_instance_index]);
+        item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_instance_index]);
     for (auto& item : m_dists)
         item.second.dist[m_instance_index]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
@@ -1162,7 +1201,7 @@ void ChParserMbsYAML::OutputParameters::PrintInfo() {
 
 // -----------------------------------------------------------------------------
 
-ChParserMbsYAML::Body::Body()
+ChParserMbsYAML::BodyParams::BodyParams()
     : pos(VNULL),
       rot(QUNIT),
       lin_vel(VNULL),
@@ -1173,7 +1212,7 @@ ChParserMbsYAML::Body::Body()
       inertia_moments(ChVector3d(1)),
       inertia_products(ChVector3d(0)) {}
 
-ChParserMbsYAML::Joint::Joint()
+ChParserMbsYAML::JointParams::JointParams()
     : type(ChJoint::Type::LOCK),
       body1(""),
       body2(""),
@@ -1181,17 +1220,19 @@ ChParserMbsYAML::Joint::Joint()
       bdata(nullptr),
       is_kinematic(true) {}
 
-ChParserMbsYAML::DistanceConstraint::DistanceConstraint() : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
+ChParserMbsYAML::DistanceConstraintParams::DistanceConstraintParams()
+    : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
 
-ChParserMbsYAML::TSDA::TSDA() : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
+ChParserMbsYAML::TsdaParams::TsdaParams()
+    : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
 
-ChParserMbsYAML::RSDA::RSDA()
+ChParserMbsYAML::RsdaParams::RsdaParams()
     : body1(""), body2(""), pos(VNULL), axis(ChVector3d(0, 0, 1)), free_angle(0), torque(nullptr) {}
 
-ChParserMbsYAML::BodyLoad::BodyLoad()
+ChParserMbsYAML::BodyLoadParams::BodyLoadParams()
     : type(BodyLoadType::FORCE), body(""), local_load(true), local_point(true), value(VNULL), point(VNULL) {}
 
-ChParserMbsYAML::MotorLinear::MotorLinear()
+ChParserMbsYAML::MotorLinearParams::MotorLinearParams()
     : actuation_type(MotorActuation::NONE),
       actuation_function(chrono_types::make_shared<ChFunctionConst>(0.0)),
       body1(""),
@@ -1200,7 +1241,7 @@ ChParserMbsYAML::MotorLinear::MotorLinear()
       axis(ChVector3d(0, 0, 1)),
       guide(ChLinkMotorLinear::GuideConstraint::PRISMATIC) {}
 
-ChParserMbsYAML::MotorRotation::MotorRotation()
+ChParserMbsYAML::MotorRotationParams::MotorRotationParams()
     : actuation_type(MotorActuation::NONE),
       actuation_function(chrono_types::make_shared<ChFunctionConst>(0.0)),
       body1(""),
@@ -1236,7 +1277,7 @@ static void PrintGeometry(const utils::ChBodyGeometry& geometry) {
     //// TODO
 }
 
-void ChParserMbsYAML::Body::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::BodyParams::PrintInfo(const std::string& name) {
     cout << "  name:        " << name << endl;
     cout << "    pos:       " << pos << endl;
     cout << "    rot:       " << rot << endl;
@@ -1246,10 +1287,10 @@ void ChParserMbsYAML::Body::PrintInfo(const std::string& name) {
     cout << "    I_xx:      " << inertia_moments << endl;
     cout << "    I_xy:      " << inertia_products << endl;
     cout << "    geometry:  " << endl;
-    PrintGeometry(geometry);
+    PrintGeometry(*geometry);
 }
 
-void ChParserMbsYAML::Joint::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::JointParams::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
     cout << "     type:        " << ChJoint::GetTypeString(type);
     cout << " (" << (is_kinematic ? "kinematic joint" : "bushing") << ")" << endl;
@@ -1258,7 +1299,7 @@ void ChParserMbsYAML::Joint::PrintInfo(const std::string& name) {
     cout << "     joint frame: " << frame.GetPos() << " | " << frame.GetRot() << endl;
 }
 
-void ChParserMbsYAML::DistanceConstraint::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::DistanceConstraintParams::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
@@ -1266,7 +1307,7 @@ void ChParserMbsYAML::DistanceConstraint::PrintInfo(const std::string& name) {
     cout << "     point2:      " << point2 << endl;
 }
 
-void ChParserMbsYAML::TSDA::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::TsdaParams::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
@@ -1275,7 +1316,7 @@ void ChParserMbsYAML::TSDA::PrintInfo(const std::string& name) {
     cout << "     free_length: " << free_length << endl;
 }
 
-void ChParserMbsYAML::RSDA::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::RsdaParams::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
@@ -1284,7 +1325,7 @@ void ChParserMbsYAML::RSDA::PrintInfo(const std::string& name) {
     cout << "     free_angle:  " << free_angle << endl;
 }
 
-void ChParserMbsYAML::BodyLoad::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::BodyLoadParams::PrintInfo(const std::string& name) {
     std::string type_str = "force";
     if (type == BodyLoadType::TORQUE)
         type_str = "torque";
@@ -1302,7 +1343,7 @@ void ChParserMbsYAML::BodyLoad::PrintInfo(const std::string& name) {
     }
 }
 
-void ChParserMbsYAML::MotorLinear::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::MotorLinearParams::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
     cout << "     actuation:   " << GetMotorActuationTypeString(actuation_type) << endl;
     cout << "     guide:       " << ChLinkMotorLinear::GetGuideTypeString(guide) << endl;
@@ -1312,7 +1353,7 @@ void ChParserMbsYAML::MotorLinear::PrintInfo(const std::string& name) {
     cout << "     axis:        " << axis << endl;
 }
 
-void ChParserMbsYAML::MotorRotation::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::MotorRotationParams::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
     cout << "     actuation:   " << GetMotorActuationTypeString(actuation_type) << endl;
     cout << "     spindle:     " << ChLinkMotorRotation::GetSpindleTypeString(spindle) << endl;
@@ -1617,8 +1658,8 @@ int FindMaterial(const std::string& name, const std::unordered_map<std::string, 
     return (int)m->second;
 }
 
-utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
-    utils::ChBodyGeometry geometry;
+std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
 
     // Read contact information
     if (d["contact"]) {
@@ -1633,7 +1674,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
         for (size_t i = 0; i < num_mats; i++) {
             ChAssertAlways(d["contact"]["materials"][i]["name"]);
             ChContactMaterialData mat_data = ChParserMbsYAML::ReadMaterialData(d["contact"]["materials"][i]);
-            geometry.materials.push_back(mat_data);
+            geometry->materials.push_back(mat_data);
             materials.insert({d["contact"]["materials"][i]["name"].as<std::string>(), i});
         }
 
@@ -1653,7 +1694,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                 ChAssertAlways(shape["radius"]);
                 ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
                 double radius = shape["radius"].as<double>();
-                geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, matID));
+                geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, matID));
             } else if (type == "BOX") {
                 ChAssertAlways(shape["location"]);
                 ChAssertAlways(shape["orientation"]);
@@ -1661,7 +1702,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                 ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
                 ChQuaterniond rot = ChParserMbsYAML::ReadRotation(shape["orientation"], m_use_degrees);
                 ChVector3d dims = ChParserMbsYAML::ReadVector(shape["dimensions"]);
-                geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims, matID));
+                geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims, matID));
             } else if (type == "CYLINDER") {
                 ChAssertAlways(shape["location"]);
                 ChAssertAlways(shape["axis"]);
@@ -1671,12 +1712,12 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                 ChVector3d axis = ChParserMbsYAML::ReadVector(shape["axis"]);
                 double radius = shape["radius"].as<double>();
                 double length = shape["length"].as<double>();
-                geometry.coll_cylinders.push_back(
+                geometry->coll_cylinders.push_back(
                     utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length, matID));
             } else if (type == "HULL") {
                 ChAssertAlways(shape["filename"]);
                 std::string filename = shape["filename"].as<std::string>();
-                geometry.coll_hulls.push_back(
+                geometry->coll_hulls.push_back(
                     utils::ChBodyGeometry::ConvexHullsShape(GetDatafilePath(filename), matID));
             } else if (type == "MESH") {
                 ChAssertAlways(shape["filename"]);
@@ -1693,7 +1734,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                     scale = shape["scale"].as<double>();
                 if (shape["contact_radius"])
                     radius = shape["contact_radius"].as<double>();
-                geometry.coll_meshes.push_back(
+                geometry->coll_meshes.push_back(
                     utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale, radius, matID));
             }
         }
@@ -1703,7 +1744,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
     if (d["visualization"]) {
         if (d["visualization"]["model_file"]) {
             std::string filename = d["visualization"]["model_file"].as<std::string>();
-            geometry.vis_model_file = GetDatafilePath(filename);
+            geometry->vis_model_file = GetDatafilePath(filename);
         }
         if (d["visualization"]["shapes"]) {
             ChAssertAlways(d["visualization"]["shapes"].IsSequence());
@@ -1723,7 +1764,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                     double radius = shape["radius"].as<double>();
                     auto sphere = utils::ChBodyGeometry::SphereShape(pos, radius);
                     sphere.color = color;
-                    geometry.vis_spheres.push_back(sphere);
+                    geometry->vis_spheres.push_back(sphere);
                 } else if (type == "BOX") {
                     ChAssertAlways(shape["location"]);
                     ChAssertAlways(shape["orientation"]);
@@ -1733,7 +1774,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                     ChVector3d dims = ChParserMbsYAML::ReadVector(shape["dimensions"]);
                     auto box = utils::ChBodyGeometry::BoxShape(pos, rot, dims);
                     box.color = color;
-                    geometry.vis_boxes.push_back(box);
+                    geometry->vis_boxes.push_back(box);
                 } else if (type == "CYLINDER") {
                     ChAssertAlways(shape["location"]);
                     ChAssertAlways(shape["axis"]);
@@ -1745,7 +1786,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                     double length = shape["length"].as<double>();
                     auto cylinder = utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length);
                     cylinder.color = color;
-                    geometry.vis_cylinders.push_back(cylinder);
+                    geometry->vis_cylinders.push_back(cylinder);
                 } else if (type == "MESH") {
                     ChAssertAlways(shape["filename"]);
                     std::string filename = shape["filename"].as<std::string>();
@@ -1760,7 +1801,7 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
                         scale = shape["scale"].as<double>();
                     auto mesh = utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale);
                     mesh.color = color;
-                    geometry.vis_meshes.push_back(mesh);
+                    geometry->vis_meshes.push_back(mesh);
                 }
             }
         }
@@ -1769,14 +1810,14 @@ utils::ChBodyGeometry ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
     return geometry;
 }
 
-utils::ChTSDAGeometry ChParserMbsYAML::ReadTSDAGeometry(const YAML::Node& d) {
-    utils::ChTSDAGeometry geometry;
+std::shared_ptr<utils::ChTSDAGeometry> ChParserMbsYAML::ReadTSDAGeometry(const YAML::Node& d) {
+    auto geometry = chrono_types::make_shared<utils::ChTSDAGeometry>();
 
     if (d["visualization"]) {
         ChAssertAlways(d["visualization"]["type"]);
         std::string type = ToUpper(d["visualization"]["type"].as<std::string>());
         if (type == "SEGMENT") {
-            geometry.vis_segment = chrono_types::make_shared<utils::ChTSDAGeometry::SegmentShape>();
+            geometry->vis_segment = chrono_types::make_shared<utils::ChTSDAGeometry::SegmentShape>();
         } else if (type == "SPRING") {
             // the default below are copied from the actual class, and since there
             // are no setters I can't just take the default constructor and override
@@ -1791,7 +1832,7 @@ utils::ChTSDAGeometry ChParserMbsYAML::ReadTSDAGeometry(const YAML::Node& d) {
                 resolution = d["visualization"]["resolution"].as<int>();
             if (d["visualization"]["turns"])
                 turns = d["visualization"]["turns"].as<double>();
-            geometry.vis_spring =
+            geometry->vis_spring =
                 chrono_types::make_shared<utils::ChTSDAGeometry::SpringShape>(radius, resolution, turns);
         } else {
             cerr << "Incorrect TSDA visualization shape type: " << d["visualization"]["type"].as<std::string>() << endl;
@@ -1804,7 +1845,8 @@ utils::ChTSDAGeometry ChParserMbsYAML::ReadTSDAGeometry(const YAML::Node& d) {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChLinkTSDA::ForceFunctor> ChParserMbsYAML::ReadTSDAFunctor(const YAML::Node& tsda, double& free_length) {
+std::shared_ptr<ChLinkTSDA::ForceFunctor> ChParserMbsYAML::ReadTSDAFunctor(const YAML::Node& tsda,
+                                                                           double& free_length) {
     enum class FunctorType {
         LinearSpring,
         NonlinearSpring,
@@ -1992,7 +2034,8 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ChParserMbsYAML::ReadTSDAFunctor(const
     }
 }
 
-std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChParserMbsYAML::ReadRSDAFunctor(const YAML::Node& rsda, double& free_angle) {
+std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChParserMbsYAML::ReadRSDAFunctor(const YAML::Node& rsda,
+                                                                            double& free_angle) {
     enum class FunctorType {
         LinearSpring,
         NonlinearSpring,
