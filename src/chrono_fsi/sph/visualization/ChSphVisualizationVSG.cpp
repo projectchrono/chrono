@@ -492,6 +492,31 @@ void ChSphVisualizationVSG::OnRender() {
 
 // ---------------------------------------------------------------------------
 
+MarkerPlanesVisibilityCallback::MarkerPlanesVisibilityCallback(const std::vector<Plane>& planes, Mode mode) : m_planes(planes), m_mode(mode) {}
+
+bool MarkerPlanesVisibilityCallback::get(unsigned int n) const {
+    switch (m_mode) {
+        case Mode::ANY:
+            // Marker in front of any plane is not visible
+            for (const auto& plane : m_planes) {
+                if (Vdot(ToChVector(pos[n]) - plane.point, plane.normal) > 0)
+                    return false;
+            }
+            return true;
+        case Mode::ALL:
+            // Marker behind any plane is visible
+            for (const auto& plane : m_planes) {
+                if (Vdot(ToChVector(pos[n]) - plane.point, plane.normal) <= 0)
+                    return true;
+            }
+            return false;
+    }
+
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+
 ParticleHeightColorCallback::ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up)
     : m_hmin(hmin), m_hmax(hmax), m_up(ToReal3(up)) {}
 
@@ -510,7 +535,6 @@ ChColor ParticleHeightColorCallback::GetColor(unsigned int n) const {
 
 ParticleVelocityColorCallback::ParticleVelocityColorCallback(double vmin, double vmax, Component component)
     : m_vmin(vmin), m_vmax(vmax), m_component(component) {}
-
 
 std::string ParticleVelocityColorCallback::GetTile() const {
     return "Velocity (m/s)";

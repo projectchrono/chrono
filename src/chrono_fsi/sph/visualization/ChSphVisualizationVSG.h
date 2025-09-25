@@ -85,6 +85,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         Real3* pos;
         Real3* vel;
         Real3* prop;
+
       private:
         virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override final { return GetColor(n); }
     };
@@ -192,6 +193,32 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     std::string m_image_dir;  ///< directory for image files
 
     friend class FSIStatsVSG;
+};
+
+// -----------------------------------------------------------------------------
+
+/// Predefined SPH visibility callback based on visibility planes.
+class CH_FSI_API MarkerPlanesVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
+  public:
+    /// Boolean visibility operation.
+    enum class Mode {
+        ANY,  ///< marker in front of ANY plane is not visible
+        ALL   ///< marker in front of ALL planes is not visible
+    };
+
+    /// Visibility plane
+    struct Plane {
+        ChVector3d point;
+        ChVector3d normal;
+    };
+
+    MarkerPlanesVisibilityCallback(const std::vector<Plane>& planes, Mode mode);
+
+    virtual bool get(unsigned int n) const override;
+
+  private:
+    std::vector<Plane> m_planes;
+    Mode m_mode;
 };
 
 // -----------------------------------------------------------------------------
