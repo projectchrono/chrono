@@ -1892,6 +1892,132 @@ public:
             H += (Rpfactor * this->material->GetSpecificHeatCapacity() * this->material->GetDensity()) * (N.transpose() * N);
         }
     }
+};
+
+
+class ChFeaMaterialDomainElastic : public ChFeaMaterialDomainImpl<
+    std::tuple<ChFeaFieldDisplacement3D>,
+    ChFeaFieldDataNONE,
+    ChFeaPerElementDataKRM> {
+public:
+    ChFeaMaterialDomainElastic(std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
+        : ChFeaMaterialDomainImpl( melasticfield )
+    {
+        // attach  default materials to simplify user side
+        material = chrono_types::make_shared<ChFea3DMaterialStressStVenant>();
+    }
+
+    /// Elastic properties of this domain 
+    std::shared_ptr<ChFea3DMaterialStress>  material;
+
+    // INTERFACES
+
+    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting, 
+    /// and *ADD* the s-scaled result to Fi vector.
+    virtual void PointComputeInternalLoads(std::shared_ptr<ChFeaElement> melement,
+                                        DataPerElement& data,
+                                        const int i_point,
+                                        ChVector3d& eta,
+                                        const double s,
+                                        ChVectorDynamic<>& Fi
+    ) override {
+        ChVectorDynamic<> T;
+        this->GetStateBlock(melement, T);
+        ChMatrixDynamic<> dNdX;
+        ChRowVectorDynamic<> N;
+        melement->ComputedNdX(eta, dNdX);
+        melement->ComputeN(eta, N);
+
+        // F deformation tensor = J_x * J_X^{-1}
+        //   J_X: already available via element->ComputeJ()
+        //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
+        ChMatrixDynamic<> Xhat(3,melement->GetNumNodes());
+        for (int i = 0; i < melement->GetNumNodes(); ++i) {
+            Xhat.block(0, i, 3, 1) = ((ChFeaFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
+        }
+        ChMatrixDynamic<> dNde;
+        melement->ComputedNde(eta, dNde);
+        ChMatrix33d J_X_inv;
+        melement->ComputeJinv(eta, J_X_inv);
+
+        ChMatrix33d F = Xhat * dNde.transpose() * J_X_inv;
+
+        // E  Green Lagrange tensor
+        // E = 1/2( F*F' - I)
+        ChMatrix33d E_strain33 = 0.5 * (F * F.transpose() - ChMatrix33d(1));
+
+        ChStrainTensor<> E_strain; // Green Lagrange in Voigt notation
+        E_strain.ConvertFromMatrix(E_strain33);
+        E_strain.XY() *= 2;
+        E_strain.XZ() *= 2;
+        E_strain.YZ() *= 2;
+
+        ChStressTensor<> S_stress; // Piola Kirchhoff
+        material->ComputeElasticStress(S_stress, E_strain);
+
+        ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
+        B.setZero(); 
+        for (int i = 0; i < melement->GetNumNodes(); ++i) {
+            // g = ∇₀ N_i = J_X⁻¹ ∇_ξ N_i = dNdX(:, i)
+            //                          g₁* [F₁₁, F₂₁, F₃₁]
+            B.block<1, 3>(0, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 0).transpose();
+            //                          g₂* [F₁₂, F₂₂, F₃₂]
+            B.block<1, 3>(1, i * 3) = dNdX(1, i) * F.block<3, 1>(0, 1).transpose();
+            //                          g₃* [F₁₃, F₂₃, F₃₃]
+            B.block<1, 3>(2, i * 3) = dNdX(2, i) * F.block<3, 1>(0, 2).transpose();
+            //                          g₂* [F₁₃, F₂₃, F₃₃]                             + g₃ * [F₁₂, F₂₂, F₃₂]
+            B.block<1, 3>(2, i * 3) = dNdX(1, i) * F.block<3, 1>(0, 2).transpose() + dNdX(2, i) * F.block<3, 1>(0, 1).transpose();
+            //                          g₁* [F₁₃, F₂₃, F₃₃]                             + g₃ * [F₁₁, F₂₁, F₃₁]
+            B.block<1, 3>(2, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 2).transpose() + dNdX(2, i) * F.block<3, 1>(0, 0).transpose();
+            //                          g₁* [F₁₂, F₂₂, F₃₂]                             + g₂ * [F₁₁, F₂₁, F₃₁]
+            B.block<1, 3>(2, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 1).transpose() + dNdX(1, i) * F.block<3, 1>(0, 0).transpose();
+        }
+
+        // We have:  Fi = - K * T;
+        // where     Fi = sum (B' * S * w * |J|)
+        // so we compute  Fi += B' * S * s
+        Fi += (B.transpose() * S_stress) * s;
+    }
+
+    /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
+    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
+    /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFeaElement> melement,
+                                        DataPerElement& data,
+                                        const int i_point,
+                                        ChVector3d& eta,
+                                        ChMatrixRef H,
+                                        double Kpfactor,
+                                        double Rpfactor = 0,
+                                        double Mpfactor = 0
+    ) override {
+        ChMatrixDynamic<> dNdX;
+        ChRowVectorDynamic<> N;
+        melement->ComputedNdX(eta, dNdX);
+        melement->ComputeN(eta, N);
+        ChMatrixDynamic<> B;
+        B.setZero(); // ***TODO*** compute B matrix
+        ChMatrix66<double> C;
+        ChStrainTensor<> E_strain; // Green Lagrange
+        // ***TODO*** compute stress here, might be needed in ComputeTangentModulus
+
+        this->material->ComputeTangentModulus(C, E_strain);
+
+        // K  matrix 
+        // K = sum (B' * k * B  * w * |J|)  
+        if (Kpfactor) {
+            H += Kpfactor * (B.transpose() * C * B);
+            // ***TODO*** add the geometric tangent stiffness
+            // ***TODO*** rayleigh damping
+        }
+
+        // M  matrix : consistent mass matrix:   
+        // M = sum (N' * rho * N * w * |J|)
+        if (Mpfactor) {
+            H += (Mpfactor * this->material->GetDensity()) * (N.transpose() * N);
+            // ***TODO*** rayleigh damping
+        }
+    }
 
 };
 
