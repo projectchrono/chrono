@@ -80,6 +80,8 @@ int main(int argc, char* argv[]) {
     tetrahedron1->SetNodes(mnode1, mnode2, mnode3, mnode4);
 
 
+    //--------------------------------------
+
 
     auto thermal_domain = chrono_types::make_shared <ChFeaMaterialDomainThermal>(temperature_field);
     thermal_domain->AddElement(tetrahedron1);
@@ -87,13 +89,45 @@ int main(int argc, char* argv[]) {
     // Needed to setup all data and pointers
     thermal_domain->InitialSetup();
 
-    std::cout << "thermal_domain->GetNumPerNodeCoordsPosLevel() " << thermal_domain->GetNumPerNodeCoordsPosLevel() << "\n";
+    std::cout << "thermal_domain->GetNumPerNodeCoordsPosLevel() \n" << thermal_domain->GetNumPerNodeCoordsPosLevel() << "\n";
     ChVectorDynamic<> mstate_block;
     thermal_domain->GetStateBlock(tetrahedron1, mstate_block);
-    std::cout << "thermal_domain->GetStateBlock(tetrahedron1,mstate_block) " << mstate_block << "\n";
+    std::cout << "thermal_domain->GetStateBlock(tetrahedron1,mstate_block) \n" << mstate_block << "\n";
+    
+    thermal_domain->material = chrono_types::make_shared<ChFea3DMaterialThermal>(); // not needed - already attached by default
+    thermal_domain->material->SetDensity(1000);
+    thermal_domain->material->SetSpecificHeatCapacity(20);
+    thermal_domain->material->SetThermalConductivity(5);
+
+    ChVectorDynamic<> Fi;
+    thermal_domain->ElementComputeInternalLoads(tetrahedron1, thermal_domain->GetElementData(tetrahedron1), Fi);
+    std::cout << "thermal_domain->ElementComputeInternalLoads()  Fi = \n" << Fi << "\n";
+
+    //--------------------------------------
+
+
+    auto elastic_domain = chrono_types::make_shared <ChFeaMaterialDomainElastic>(displacement_field);
+    elastic_domain->AddElement(tetrahedron1);
+
+    // Needed to setup all data and pointers
+    elastic_domain->InitialSetup();
+
+    std::cout << "elastic_domain->GetNumPerNodeCoordsPosLevel() \n" << elastic_domain->GetNumPerNodeCoordsPosLevel() << "\n";
+    elastic_domain->GetStateBlock(tetrahedron1, mstate_block);
+    std::cout << "elastic_domain->GetStateBlock(tetrahedron1,mstate_block) \n" << mstate_block << "\n";
+
+    auto elastic_material = chrono_types::make_shared<ChFea3DMaterialStressStVenant>();
+    elastic_domain->material = elastic_material;
+    elastic_material->SetDensity(1000);
+    elastic_material->SetYoungModulus(2e9);
+    elastic_material->SetPoissonRatio(0.3);
+
+    elastic_domain->ElementComputeInternalLoads(tetrahedron1, elastic_domain->GetElementData(tetrahedron1), Fi);
+    std::cout << "elastic_domain->ElementComputeInternalLoads()  Fi = \n" << Fi << "\n";
 
 
 
+    // ---------------
 
     auto thermoelastic_domain = chrono_types::make_shared <ChFeaMaterialDomainThermalElastic>(temperature_field, displacement_field);
     thermoelastic_domain->AddElement(tetrahedron1);
@@ -102,6 +136,10 @@ int main(int argc, char* argv[]) {
     std::cout << "thermoelastic_domain->GetNumPerNodeCoordsPosLevel() " << thermoelastic_domain->GetNumPerNodeCoordsPosLevel() << "\n";
     thermoelastic_domain->GetStateBlock(tetrahedron1, mstate_block);
     std::cout << "thermoelastic_domain->GetStateBlock(tetrahedron1,mstate_block) " << mstate_block << "\n";
+
+
+
+    //-----------------
 
 
 

@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
@@ -149,12 +149,12 @@ public:
     /// this should be implemented in this function.
     virtual void Update() {}
 
-
-private:
     /// Initial setup (called once before start of simulation).
     /// This is used mostly to precompute matrices that do not change during the simulation, i.e. the local stiffness of
     /// each element, if any, the mass, etc.
     virtual void SetupInitial(ChSystem* system) {}
+
+private:
 
     //friend class ChMesh;
 };
@@ -1279,13 +1279,16 @@ public:
     // Get the total number of nodes affected by this domain (some could be shared with other domains)
     virtual int GetNumNodes() = 0;
 
-    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector size is not the proper size, it will be resized.
-    virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& mD) = 0;
+    /// Fills the S vector with the current field states S_i at the nodes of the element, with proper ordering.
+    /// If the S vector size is not the proper size, it will be resized.
+    virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& S) = 0;
+
+    /// Fills the dSdt vector with the current field states dS_i/dt at the nodes of the element, with proper ordering.
+    /// If the dSdt vector size is not the proper size, it will be resized.
+    virtual void GetStateBlockDt(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& dSdt) = 0;
 
 
-
-private:
+protected:
     unsigned int n_dofs;    ///< total degrees of freedom of element materialpoint states (ex plasticity)
     unsigned int n_dofs_w;  ///< total degrees of freedom of element materialpoint states (ex plasticity), derivative (Lie algebra)
 };
@@ -1298,7 +1301,7 @@ private:
 
 template <
     typename T_per_node = std::tuple<ChFeaFieldScalar>, 
-    typename T_per_matpoint = ChFeaFieldNONE, 
+    typename T_per_matpoint = ChFeaFieldDataNONE,
     typename T_per_element = ChFeaPerElementDataNONE
 >
 class ChFeaMaterialDomainImpl : public ChFeaMaterialDomain {
@@ -1347,26 +1350,26 @@ public:
     virtual int GetNumPerNodeCoordsVelLevel() override { return per_node_coords_vel; }
     virtual int GetNumNodes() override { return num_nodes; }
 
-    virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& mD) override {
+    virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& S) override {
         auto& elementdata = this->GetElementData(melement);
-        mD.resize(this->GetNumPerNodeCoordsPosLevel()*melement->GetNumNodes());
+        S.resize(this->GetNumPerNodeCoordsPosLevel()*melement->GetNumNodes());
         int off = 0;
         for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
             for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
                 int ifieldsize = elementdata.nodes_data[i][i_field]->State().size();
-                mD.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->State();
+                S.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->State();
                 off += ifieldsize;
             }
         }
     }
-    virtual void GetStateBlockDt(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& mD) override {
+    virtual void GetStateBlockDt(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& dSdt) override {
         auto& elementdata = this->GetElementData(melement);
-        mD.resize(this->GetNumPerNodeCoordsPosLevel() * melement->GetNumNodes());
+        dSdt.resize(this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes());
         int off = 0;
         for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
             for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
                 int ifieldsize = elementdata.nodes_data[i][i_field]->State().size();
-                mD.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->StateDt();
+                dSdt.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->StateDt();
                 off += ifieldsize;
             }
         }
@@ -1487,7 +1490,7 @@ public:
 
     virtual void SetupInitial() override {
         for (auto& mel : this->element_datamap) {
-            mel.first->SetupInitial();
+            mel.first->SetupInitial(this->GetSystem());
         }
     }
 
@@ -1572,7 +1575,7 @@ public:
             for (auto& matpoint : mel.second.matpoints_data) {
                 if (!matpoint.IsFixed()) {
                     matpoint.NodeIntStateScatterAcceleration(off_a + local_off_a, a);
-                    local_off_a += matpoint.GetNumFieldCoordsVelLevel();
+                    local_off_a += matpoint.GetNumCoordsVelLevel();
                 }
             }
         }
@@ -1638,10 +1641,28 @@ public:
                 }
             }
         }
+
         // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
         for (auto& mel : this->element_datamap) {
-            //***TODO***
-            //****************************COMPUTE F******************
+            ChVectorDynamic<> Fi; // will be resized and zeroed by ElementComputeInternalLoads
+
+            //****COMPUTATIONAL OVERHEAD - compute all the F loads here
+            ElementComputeInternalLoads(mel.first, mel.second, Fi);
+
+            Fi *= c;
+
+            // Fi is contiguous, so must store sparsely in R
+            unsigned int stride = 0;
+            for (unsigned int in = 0; in < mel.first->GetNumNodes(); in++) {
+                auto mnode = mel.first->GetNode(in);
+                unsigned int node_dofs = mnode->GetNumCoordsVelLevel();
+                if (!mnode->IsFixed()) {
+                    for (unsigned int j = 0; j < node_dofs; j++)
+                        R(mnode->NodeGetOffsetVelLevel() + j) += Fi(stride + j);  // todo - use .block()
+                }
+                stride += node_dofs;
+            }
+
         }
 
     }
@@ -1683,7 +1704,7 @@ public:
             for (auto& matpoint : mel.second.matpoints_data) {
                 if (!matpoint.IsFixed()) {
                     matpoint.NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
-                    local_off_v += matpoint.GetNumFieldCoordsVelLevel();
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
                 }
             }
         }
@@ -1725,7 +1746,7 @@ public:
             for (auto& matpoint : mel.second.matpoints_data) {
                 if (!matpoint.IsFixed()) {
                     matpoint.NodeIntFromDescriptor(off_v + local_off_v, v);
-                    local_off_v += GetNumFieldCoordsVelLevel();
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
                 }
             }
         }
@@ -1742,12 +1763,16 @@ public:
 
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override {
         for (auto& mel : this->element_datamap) {
-            // mel.second.
-            //***TODO***
-            //****************************COMPUTE F******************
+            if (mel.second.element_data.GetKRM()) {
+
+                //****COMPUTATIONAL OVERHEAD - compute all the tangent matrices here
+                ElementComputeKRMmatrices(mel.first,
+                                        mel.second,
+                                        mel.second.element_data.GetKRM()->GetMatrix(),
+                                        Kfactor, Rfactor, Mfactor);
+            }
+
         }
-        for (int ie = 0; ie < velements.size(); ie++)
-            velements[ie]->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
 
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override {
@@ -1793,7 +1818,7 @@ private:
             std::vector<ChVariables*> mvars;
 
             // setup array of quadrature data
-            if constexpr (std::is_same_v<T, ChFeaFieldNONE>) {
+            if constexpr (std::is_same_v<T_per_matpoint, ChFeaFieldDataNONE>) {
                 mel.second.matpoints_data.resize(0); // optimization to avoid wasting memory if domain falls back to ChFeaFieldNONE
             }
             else {
@@ -1833,12 +1858,15 @@ private:
 
 class ChFeaMaterialDomainThermal : public ChFeaMaterialDomainImpl<
     std::tuple<ChFeaFieldTemperature>,
-    ChFeaFieldNONE,
+    ChFeaFieldDataNONE,
     ChFeaPerElementDataKRM> {
 public:
     ChFeaMaterialDomainThermal(std::shared_ptr<ChFeaFieldTemperature> mfield) 
         : ChFeaMaterialDomainImpl(mfield)
-    {}
+    {
+        // attach a default material to simplify user side
+        material = chrono_types::make_shared<ChFea3DMaterialThermal>();
+    }
 
     /// Thermal properties of this domain (conductivity, 
     /// heat capacity constants etc.) 
@@ -1879,7 +1907,8 @@ public:
                                             ChMatrixRef H,
                                             double Kpfactor,
                                             double Rpfactor = 0,
-                                            double Mpfactor = 0) override {
+                                            double Mpfactor = 0
+    ) override {
         ChMatrixDynamic<> dNdX;
         ChRowVectorDynamic<> N;
         melement->ComputedNdX(eta, dNdX);
@@ -2026,18 +2055,24 @@ public:
 };
 
 
+
 class ChFeaMaterialDomainThermalElastic : public ChFeaMaterialDomainImpl<
     std::tuple<ChFeaFieldTemperature, ChFeaFieldDisplacement3D>, 
-    ChFeaFieldNONE,
+    ChFeaFieldDataNONE,
     ChFeaPerElementDataKRM> {
 public:
     ChFeaMaterialDomainThermalElastic(std::shared_ptr<ChFeaFieldTemperature> mthermalfield, std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
         : ChFeaMaterialDomainImpl({ mthermalfield, melasticfield })
-    {}
+    {
+        // attach  default materials to simplify user side
+        material_thermal = chrono_types::make_shared<ChFea3DMaterialThermal>();
+        material_elasticity = chrono_types::make_shared<ChFea3DMaterialStressStVenant>();
+    }
 
     /// Thermal properties of this domain (conductivity, 
     /// heat capacity constants etc.) 
-    std::shared_ptr<ChFea3DMaterialThermal> material;
+    std::shared_ptr<ChFea3DMaterialThermal> material_thermal;
+    std::shared_ptr<ChFea3DMaterialStress>  material_elasticity;
 
     // INTERFACES
 
