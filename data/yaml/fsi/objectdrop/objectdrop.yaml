@@ -8,8 +8,8 @@ model:
   #multibody_simulation: "../../simulations/basic_mbs.yaml"
 
   fluid_model:          "model_sph.yaml"
-  #fluid_simulation:     "../../simulations/basic_sph.yaml"
   fluid_simulation:     "simulation_sph.yaml"
+  #fluid_simulation:     "../../simulations/basic_sph.yaml"
 
 fsi_bodies: [object]
 

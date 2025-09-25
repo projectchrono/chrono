@@ -97,7 +97,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     virtual void SaveOutput(int frame) override;
 
   private:  // ---- Data structures
-    enum class ProblemGeometryType { CARTESIAN, CYLINDRICAL };
+    enum class GeometryType { CARTESIAN, CYLINDRICAL };
     enum class DataPathType { ABS, REL };
     enum class ParticleColoringType { NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE };
 
@@ -200,7 +200,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Return the path to the specified data file.
     std::string GetDatafilePath(const std::string& filename);
 
-    static ProblemGeometryType ReadProblemGeometryType(const YAML::Node& a);
+    static GeometryType ReadGeometryType(const YAML::Node& a);
     static DataPathType ReadDataPathType(const YAML::Node& a);
     static fsi::sph::EosType ReadEosType(const YAML::Node& a);
     static fsi::sph::KernelType ReadKernelType(const YAML::Node& a);
@@ -221,7 +221,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     static fsi::sph::MarkerPlanesVisibilityCallback::Mode ReadVisibilityMode(const YAML::Node& a);
 
   private:  // ---- Member variables
-    ProblemGeometryType m_problem_geometry_type;
+    GeometryType m_geometry_type;
 
     FluidParams m_fluid;  ///< fluid parameters
     SimParams m_sim;      ///< simulation parameters

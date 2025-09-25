@@ -355,8 +355,8 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     auto model = yaml["model"];
 
     // Problem geometry is required
-    ChAssertAlways(model["problem_geometry_type"]);
-    m_problem_geometry_type = ReadProblemGeometryType(model["problem_geometry_type"]);
+    ChAssertAlways(model["geometry_type"]);
+    m_geometry_type = ReadGeometryType(model["geometry_type"]);
 
     if (model["name"])
         m_name = model["name"].as<std::string>();
@@ -398,24 +398,24 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     ChAssertAlways(model["fluid_domain"]);
     {
         auto a = model["fluid_domain"];
-        switch (m_problem_geometry_type) {
-            case ProblemGeometryType::CARTESIAN:
+        switch (m_geometry_type) {
+            case GeometryType::CARTESIAN:
                 ChAssertAlways(a["dimensions"]);
                 m_fluid.fluid_domain_cartesian = chrono_types::make_unique<BoxDomain>();
                 m_fluid.fluid_domain_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
-                if (a["origin"]) {
-                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                if (a["box_origin"]) {
+                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["box_origin"]);
                 } else {
                     m_fluid.fluid_domain_cartesian->origin = VNULL;
                 }
-                if (a["walls"]) {
-                    m_fluid.fluid_domain_cartesian->wall_code = ReadWallFlagsCartesian(a["walls"]);
+                if (a["box_walls"]) {
+                    m_fluid.fluid_domain_cartesian->wall_code = ReadWallFlagsCartesian(a["box_walls"]);
                     has_walls = (m_fluid.fluid_domain_cartesian->wall_code != fsi::sph::BoxSide::NONE);
                 } else {
                     m_fluid.fluid_domain_cartesian->wall_code = fsi::sph::BoxSide::NONE;
                 }
                 break;
-            case ProblemGeometryType::CYLINDRICAL:
+            case GeometryType::CYLINDRICAL:
                 ChAssertAlways(a["inner_radius"]);
                 ChAssertAlways(a["outer_radius"]);
                 ChAssertAlways(a["height"]);
@@ -423,13 +423,13 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
                 m_fluid.fluid_domain_cylindrical->inner_radius = a["inner_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->outer_radius = a["outer_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->height = a["height"].as<double>();
-                if (a["origin"]) {
-                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                if (a["cyl_origin"]) {
+                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["cyl_origin"]);
                 } else {
                     m_fluid.fluid_domain_cylindrical->origin = VNULL;
                 }
-                if (a["walls"]) {
-                    m_fluid.fluid_domain_cylindrical->wall_code = ReadWallFlagsCylindrical(a["walls"]);
+                if (a["cyl_walls"]) {
+                    m_fluid.fluid_domain_cylindrical->wall_code = ReadWallFlagsCylindrical(a["cyl_walls"]);
                     has_walls = (m_fluid.fluid_domain_cylindrical->wall_code != fsi::sph::CylSide::NONE);
                 } else {
                     m_fluid.fluid_domain_cylindrical->wall_code = fsi::sph::CylSide::NONE;
@@ -444,24 +444,24 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         ChAssertAlways(!has_walls);
 
         auto a = model["container"];
-        switch (m_problem_geometry_type) {
-            case ProblemGeometryType::CARTESIAN:
+        switch (m_geometry_type) {
+            case GeometryType::CARTESIAN:
                 m_fluid.fluid_domain_cartesian = chrono_types::make_unique<BoxDomain>();
                 ChAssertAlways(a["dimensions"]);
                 m_fluid.fluid_domain_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
-                if (a["origin"]) {
-                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                if (a["box_origin"]) {
+                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["box_origin"]);
                 } else {
                     m_fluid.fluid_domain_cartesian->origin = VNULL;
                 }
-                if (a["walls"]) {
-                    m_fluid.fluid_domain_cartesian->wall_code = ReadWallFlagsCartesian(a["walls"]);
+                if (a["box_walls"]) {
+                    m_fluid.fluid_domain_cartesian->wall_code = ReadWallFlagsCartesian(a["box_walls"]);
                     has_walls = (m_fluid.fluid_domain_cartesian->wall_code != fsi::sph::BoxSide::NONE);
                 } else {
                     m_fluid.fluid_domain_cartesian->wall_code = fsi::sph::BoxSide::NONE;
                 }
                 break;
-            case ProblemGeometryType::CYLINDRICAL:
+            case GeometryType::CYLINDRICAL:
                 m_fluid.fluid_domain_cylindrical = chrono_types::make_unique<AnnulusDomain>();
                 ChAssertAlways(a["inner_radius"]);
                 ChAssertAlways(a["outer_radius"]);
@@ -469,13 +469,13 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
                 m_fluid.fluid_domain_cylindrical->inner_radius = a["inner_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->outer_radius = a["outer_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->height = a["height"].as<double>();
-                if (a["origin"]) {
-                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["origin"]);
+                if (a["cyl_origin"]) {
+                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["cyl_origin"]);
                 } else {
                     m_fluid.fluid_domain_cylindrical->origin = VNULL;
                 }
-                if (a["walls"]) {
-                    m_fluid.fluid_domain_cylindrical->wall_code = ReadWallFlagsCylindrical(a["walls"]);
+                if (a["cyl_walls"]) {
+                    m_fluid.fluid_domain_cylindrical->wall_code = ReadWallFlagsCylindrical(a["cyl_walls"]);
                     has_walls = (m_fluid.fluid_domain_cylindrical->wall_code != fsi::sph::CylSide::NONE);
                 } else {
                     m_fluid.fluid_domain_cylindrical->wall_code = fsi::sph::CylSide::NONE;
@@ -493,7 +493,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         m_fluid.computational_domain->aabb.max = ChParserMbsYAML::ReadVector(a["aabb_max"]);
         if (a["x_bce_type"]) {
             auto x_bc_type = ReadBoundaryConditionType(a["x_bc_type"]);
-            if (x_bc_type != fsi::sph::BCType::NONE && m_problem_geometry_type == ProblemGeometryType::CARTESIAN) {
+            if (x_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
                                static_cast<int>(fsi::sph::BoxSide::X_NEG) == 0);
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
@@ -503,7 +503,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         }
         if (a["y_bce_type"]) {
             auto y_bc_type = ReadBoundaryConditionType(a["y_bc_type"]);
-            if (y_bc_type != fsi::sph::BCType::NONE && m_problem_geometry_type == ProblemGeometryType::CARTESIAN) {
+            if (y_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
                                static_cast<int>(fsi::sph::BoxSide::Y_NEG) == 0);
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
@@ -513,7 +513,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         }
         if (a["z_bce_type"]) {
             auto z_bc_type = ReadBoundaryConditionType(a["z_bc_type"]);
-            if (z_bc_type != fsi::sph::BCType::NONE && m_problem_geometry_type == ProblemGeometryType::CARTESIAN) {
+            if (z_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
                                static_cast<int>(fsi::sph::BoxSide::Z_NEG) == 0);
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
@@ -550,11 +550,11 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
     }
 
     // Create a Chrono FSI SPH problem of specified type with no MBS attached
-    switch (m_problem_geometry_type) {
-        case ProblemGeometryType::CARTESIAN:
+    switch (m_geometry_type) {
+        case GeometryType::CARTESIAN:
             m_fsi_problem = chrono_types::make_shared<fsi::sph::ChFsiProblemCartesian>(m_sim.sph.initial_spacing);
             break;
-        case ProblemGeometryType::CYLINDRICAL:
+        case GeometryType::CYLINDRICAL:
             m_fsi_problem = chrono_types::make_shared<fsi::sph::ChFsiProblemCylindrical>(m_sim.sph.initial_spacing);
             break;
     }
@@ -568,8 +568,8 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
     m_fsi_problem->SetCfdSPH(m_fluid.fluid_props);
 
     // Create fluid domain and optional container
-    switch (m_problem_geometry_type) {
-        case ProblemGeometryType::CARTESIAN: {
+    switch (m_geometry_type) {
+        case GeometryType::CARTESIAN: {
             auto fsi_problem = std::static_pointer_cast<fsi::sph::ChFsiProblemCartesian>(m_fsi_problem);
             fsi_problem->Construct(m_fluid.fluid_domain_cartesian->dimensions,  //
                                    m_fluid.fluid_domain_cartesian->origin,      //
@@ -582,7 +582,7 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 
             break;
         }
-        case ProblemGeometryType::CYLINDRICAL: {
+        case GeometryType::CYLINDRICAL: {
             auto fsi_problem = std::static_pointer_cast<fsi::sph::ChFsiProblemCylindrical>(m_fsi_problem);
             fsi_problem->Construct(m_fluid.fluid_domain_cylindrical->inner_radius,  //
                                    m_fluid.fluid_domain_cylindrical->outer_radius,  //
@@ -817,13 +817,13 @@ std::string ChParserSphYAML::GetDatafilePath(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-ChParserSphYAML::ProblemGeometryType ChParserSphYAML::ReadProblemGeometryType(const YAML::Node& a) {
+ChParserSphYAML::GeometryType ChParserSphYAML::ReadGeometryType(const YAML::Node& a) {
     auto val = ToUpper(a.as<std::string>());
     if (val == "CARTESIAN")
-        return ProblemGeometryType::CARTESIAN;
+        return GeometryType::CARTESIAN;
     if (val == "CYLINDRICAL")
-        return ProblemGeometryType::CYLINDRICAL;
-    return ProblemGeometryType::CARTESIAN;
+        return GeometryType::CYLINDRICAL;
+    return GeometryType::CARTESIAN;
 }
 
 ChParserSphYAML::DataPathType ChParserSphYAML::ReadDataPathType(const YAML::Node& a) {
