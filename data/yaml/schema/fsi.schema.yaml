@@ -1,0 +1,87 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono YAML FSI problem specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+#
+# =============================================================================
+
+required: [chrono-version, model, simulation]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML problem specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definition of the FSI problem
+
+model:
+  description: |
+    Schema for FSDI problem parameters.
+    This schema defines the multibody and fluid models, the simulation parameters for the two solvers, and the co-simulation metastep.
+  type: object
+  required: [multibody_model, multibody_simulation, fluid_model, fluid_simulation]
+  properties:
+    multibody_model:
+      description: YAML file for MBS model specification.
+      type: string
+    multibody_simulation:
+      description: YAML file for MBS simulation specification.
+      type: string
+    fluid_model:
+      description: YAML file for fluid model specification.
+      type: string
+    fluid_simulation:
+      description: YAML file for fluid simulation specification.
+      type: string
+    
+fsi_bodies:
+  description: names of FSI rigid bodies (bodies interacting with fluid).
+  type: array
+  items:
+    type: string
+
+simulation:
+  description: Definition of co-simulation metastep and simulation duration
+  type: object
+  required: [time_step]
+  properties:
+    time_step:
+      description: Co-simulation metastep (duration between inter-phase data communication).
+      type: number
+      minimum: 0
+    end_time:
+      description: Simulation duration.
+      type: number
+      minimum: 0
+
+visualization:
+  description: Visualization settings.
+  type: object
+  required: [render_fps]
+  properties:
+    render_fps:
+      description: Rendering frequency (in frames per second)
+      type: number
+      minimum: 0
+
+output:
+  description: Output settings.
+  type: object
+  required: [output_fps]
+  properties:
+    output_fps:
+      description: Output frequency (in frames per second)
+      type: number
+      minimum: 0
+
+
+  

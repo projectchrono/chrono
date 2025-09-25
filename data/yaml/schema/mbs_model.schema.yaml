@@ -9,7 +9,7 @@
 # http://projectchrono.org/license-chrono.txt.
 # =============================================================================
 #
-# Schema for a Chrono YAML model specification file.
+# Schema for a Chrono YAML MBS model specification file.
 # The `chrono-version` must match the Chrono major and minor version numbers.
 # The `model` object contains the schema for the model YAML specification.
 #
@@ -20,6 +20,8 @@
 #   of angles in radians or degrees.
 #
 # =============================================================================
+
+required: [chrono-version, model]
 
 chrono-version:
   type: string

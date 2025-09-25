@@ -1,0 +1,199 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono::SPH YAML fluid model specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+# The `model` object contains the schema for the model YAML specification.
+#
+# =============================================================================
+
+required: [chrono-version, model]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML model specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+# -----------------------------------------------------------------------------
+
+# Specification of a ChVector3d
+vector3d: &VECTOR3D
+    type: array
+    items:
+        type: number
+    minItems: 3
+    maxItems: 3
+
+# Specification of a 3D rotation
+# A rotation can be provided as:
+# - an Euler angle sequence [yaw, pitch, roll], with angles assumed in radians or degrees, or
+# - a unit quaternion [e0, e1, e2, e3]
+orientation3d: &ORIENTATION3D
+    type: array
+    description: Frame orientation as Euler angles or as quaternion
+    items:
+      type: number
+    minItems: 3
+    maxItems: 4
+
+# Specification of a color
+color: &COLOR
+  type: array
+  description: RGB color [r, g, b]
+  items:
+    type: number
+    minimum: 0
+    maximum: 1
+  minItems: 3
+  maxItems: 3
+
+# -----------------------------------------------------------------------------
+# Definition of a Chrono::SPH fluid model
+# -----------------------------------------------------------------------------
+
+model:
+  description: Definition of a Chrono::SPH fluid model
+  type: object
+  required: [geometry_type, fluid_domain]
+
+  properties:
+
+    name:
+      type: string
+      description: Name of the model
+      default: ''
+    
+    geometry_type:
+      description: Cartesian or cylindrical coordinate geometry.
+      type: string
+      enum: [CARTESIAN, CYLINDRICAL]
+
+    data_path:
+      type: object
+      description: Location of data files in the model specification.
+      required: [type]
+      properties:
+        type: 
+            type: string
+            description: Mode for data file location
+            enum: [ABSOLUTE, RELATIVE]
+            default: ABSOLUTE
+        root:
+            type: string
+            description: Root of data files, relatiuve to location of this script
+            default: "."
+
+    fluid_properties:
+      description: Physical parameters of the fluid.
+      type: object
+      properties:
+        density:
+          description: Fluid density.
+          type: number
+          minimum: 0
+        viscosisty:
+          description: Laminar viscosity
+          type: number
+          minimum: 0
+        characteristic_length:
+          description: Characteristic length for Reynolds number calculation.
+          type: number
+          minimum: 0
+
+    fluid_domain:
+      description: Specification of the SPH fluid domain.
+      type: object
+      properties:
+        dimensions:
+          <<: *VECTOR3D
+          description: Dimensions of the fluid domain box (CARTESIAN geometry).
+        box_origin:
+          <<: *VECTOR3D
+          description: Origin of the fluid domain box (CARTESIAN geometry).
+        box_walls:
+          description: Boundary walls around the fluid domain (CARTESIAN geometry)
+          type: object
+          properties:
+          # TODO
+        inner_radius:
+          description: Inner radius of the fluid domain cylindrical annulus (CYLINDRICAL geometry)
+          type: number
+        outer_radius:
+          description: Outer radius of the fluid domain cylindrical annulus (CYLINDRICAL geometry)
+          type: number
+        height:
+          description: Height of the fluid domain cylindrical annulus (CYLINDRICAL geometry)
+          type: number
+        cyl_origin:
+          <<: *VECTOR3D
+          description: Origin of the fluid domain cylindrical annulus (CYLINDRICAL geometry).
+        cyl_walls:
+          description: Boundary walls around the fluid domain (CYLINDRICAL geometry)
+          type: object
+          properties:
+          #TODO
+
+    container:
+      description: Specification of the container boundary.
+      type: object
+      properties:
+        dimensions:
+          <<: *VECTOR3D
+          description: Dimensions of the box container (CARTESIAN geometry).
+        box_origin:
+          <<: *VECTOR3D
+          description: Origin of the box container (CARTESIAN geometry).
+        box_walls:
+          description: Container boundary walls (CARTESIAN geometry)
+          type: object
+          properties:
+          # TODO
+        inner_radius:
+          description: Inner radius of the cylindrical annulus container (CYLINDRICAL geometry)
+          type: number
+        outer_radius:
+          description: Outer radius of the cylindrical annulus container (CYLINDRICAL geometry)
+          type: number
+        height:
+          description: Height of the cylindrical annulus container (CYLINDRICAL geometry)
+          type: number
+        cyl_origin:
+          <<: *VECTOR3D
+          description: Origin of the cylindrical annulus container (CYLINDRICAL geometry).
+        cyl_walls:
+          description: Container boundary walls (CYLINDRICAL geometry)
+          type: object
+          properties:
+          #TODO
+
+    computational_domain:
+      description: Specification of the FSI computational domain (AABB) and boundary condition types.
+      type: object
+      properties:
+        aabb_min:
+          <<: *VECTOR3D
+          description: Min corner of the computational domain AABB.
+        aabb_max:
+          <<: *VECTOR3D
+          description: Max corner of the computational domain AABB.
+        x_bce_type:
+          description: BC type in X direction (negative and positive X)
+          type: string
+          enum: [NONE, PERIODIC, INLET_OUTLET]
+        y_bce_type:
+          description: BC type in Y direction (negative and positive Y)
+          type: string
+          enum: [NONE, PERIODIC, INLET_OUTLET]
+        z_bce_type:
+          description: BC type in Z direction (negative and positive Z)
+          type: string
+          enum: [NONE, PERIODIC, INLET_OUTLET]

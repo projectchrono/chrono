@@ -9,11 +9,13 @@
 # http://projectchrono.org/license-chrono.txt.
 # =============================================================================
 #
-# Schema for a Chrono YAML simulation specification file.
+# Schema for a Chrono YAML MBS simulation specification file.
 # The `chrono-version` must match the Chrono major and minor version numbers.
 # The `simulation` object contains the schema for the simulation YAML specification.
 #
 # =============================================================================
+
+required: [chrono-version, simulation]
 
 chrono-version:
   type: string
