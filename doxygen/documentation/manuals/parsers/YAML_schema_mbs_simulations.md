@@ -1,7 +1,7 @@
-YAML schema for Chrono simulation specification {#YAML_schema_simulations}
+YAML schema for Chrono MBS simulation specification {#YAML_schema_mbs_simulations}
 =======================================
 
-A Chrono YAML simulation file defines the parameters needed to run a Chrono simulation. It consists of two main objects:
+A Chrono YAML MBS simulation file defines the parameters needed to run a Chrono simulation. It consists of two main objects:
 - The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
   This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
 - The `simulation` object that contains simulation methods, solver and integrator settings, and visualization options.
@@ -139,6 +139,6 @@ visualization:
 
 ## YAML schema
 
-The YAML model specification file must follow the ``data/yaml/schema/simulation.schema.yaml`` provided in the Chrono data directory: 
+The YAML model specification file must follow the ``data/yaml/schema/mbs_simulation.schema.yaml`` provided in the Chrono data directory: 
 
-\include data/yaml/schema/simulation.schema.yaml
+\include data/yaml/schema/mbs_simulation.schema.yaml

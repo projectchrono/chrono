@@ -1,7 +1,7 @@
-YAML schema for Chrono model specification {#YAML_schema_models}
+YAML schema for Chrono MBS model specification {#YAML_schema_mbs_models}
 =======================================
 
-A Chrono YAML model file defines a mechanical system and contains two main objects:
+A Chrono YAML MBS model file defines a mechanical system and contains two main objects:
 - The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
   This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
 - The `model` object that lists all physics items in the Chrono model.
@@ -359,6 +359,6 @@ repeat:
 ```
 ## YAML schema
 
-The YAML model specification file must follow the ``data/yaml/schema/model.schema.yaml`` provided in the Chrono data directory: 
+The YAML model specification file must follow the ``data/yaml/schema/mbs_model.schema.yaml`` provided in the Chrono data directory: 
 
-\include data/yaml/schema/model.schema.yaml
+\include data/yaml/schema/mbs_model.schema.yaml

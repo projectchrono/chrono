@@ -15,11 +15,19 @@ Note that import of fnite element models (meshes) can be done using the @ref chr
 
 ## YAML parser
 
-The @ref chrono::parsers::ChParserYAML class allows parsing YAML specification files for Chrono models and simulations. The parser caches model information and simulation settings from the corresponding YAML input files and then allows populating a Chrono system and setting solver and simulation parameters.
+The various YAML parser classes allows parsing YAML specification files for Chrono models and simulations. The parsers cache model information and simulation settings from the corresponding YAML input files and then allows populating a Chrono or Chrono::FSI system and setting solver and simulation parameters.
+
+**YAML specification of multiobdy models and simulations**
 
 * @subpage YAML_parser_overview
-* @subpage YAML_schema_models
-* @subpage YAML_schema_simulations
+* @subpage YAML_schema_mbs_models
+* @subpage YAML_schema_mbs_simulations
+
+**YAML specification of FSI problems**
+
+* @subpage YAML_schema_fsi_problems
+* @subpage YAML_schema_sph_models
+* @subpage YAML_schema_sph_simulations
 
 
 ## Python Engine (is not PyChrono)
