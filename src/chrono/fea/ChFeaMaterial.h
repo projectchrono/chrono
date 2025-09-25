@@ -106,31 +106,31 @@ public:
     // Compute shape functions N at eta parametric coordinates. 
     // Write shape functions N_i(eta) in N, a row vector with size as GetNumNodes(). 
     // N will be resized if not of proper size.
-    virtual void GetN(const ChVector3d eta, ChRowVectorDynamic<>& N) = 0;
+    virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) = 0;
 
     // Compute shape function parametric derivatives dN/d\eta at eta parametric coordinates.
     // Write shape functions dN_j(\eta)/d\eta_i in dNde, a matrix with GetNumNodes() columns, and n_rows = GetManifoldDimensions(). 
     // dNde will be resized if not of proper size.
-    virtual void GetdNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) = 0;
+    virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) = 0;
 
     // Compute shape function spatial derivatives dN/dX at eta parametric coordinates.
     // Write shape functions dN_j(eta)/dX_i in dNdX, a matrix with GetNumNodes() columns, and n_rows = GetSpatialDimensions().
     // dNde will be resized if not of proper size.
     // FALLBACK default implementation is dNdX = J^{-T} * dNde;  but if possible implement a more efficient ad hoc computation.
-    virtual void GetdNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) {
+    virtual void ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) {
         ChMatrix33d temp_Jinv;
         ChMatrixDynamic<> temp_dNde;
-        GetdNde(eta, temp_dNde);
-        GetJinv(eta, temp_Jinv);
+        ComputedNde(eta, temp_dNde);
+        ComputeJinv(eta, temp_Jinv);
         dNdX.resize(GetSpatialDimensions(), GetNumNodes());
         dNdX = temp_Jinv.transpose() * temp_dNde;
     }
 
     // Compute Jacobian J, and returns its determinant. J is square with size = GetManifoldDimensions()
-    virtual double GetJ(const ChVector3d eta, ChMatrix33d& J) = 0;
+    virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) = 0;
 
     // Compute Jacobian Jinv, and returns its determinant. Jinv is square with size = GetManifoldDimensions()
-    virtual double GetJinv(const ChVector3d eta, ChMatrix33d& Jinv) = 0;
+    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) = 0;
 
     // Tell the minimum required quadrature order when integrating over the element
     virtual int GetMinQuadratureOrder() const = 0;
@@ -156,7 +156,7 @@ private:
     /// each element, if any, the mass, etc.
     virtual void SetupInitial(ChSystem* system) {}
 
-    friend class ChMesh;
+    //friend class ChMesh;
 };
 
 
@@ -209,7 +209,7 @@ public:
     virtual int GetManifoldDimensions() const override { return 3; };
 
     // Compute the 4 shape functions N at eta parametric coordinates. 
-    virtual void GetN(const ChVector3d eta, ChRowVectorDynamic<>& N) override {
+    virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) override {
         N.resize(GetNumNodes());
         N[0] = eta[0];
         N[1] = eta[1];
@@ -219,7 +219,7 @@ public:
 
     // Compute shape function material derivatives dN/d\eta at eta parametric coordinates.
     // Write shape functions dN_j(\eta)/d\eta_i in dNde, a matrix with 4 columns, and 3 rows. 
-    virtual void GetdNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override {
+    virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override {
         dNde.setZero(GetManifoldDimensions(),GetNumNodes());
         dNde(0, 0) = 1.0;
         dNde(1, 1) = 1.0;
@@ -232,7 +232,7 @@ public:
     // Compute shape function spatial derivatives dN/dX at eta parametric coordinates.
     // Write shape functions dN_j(eta)/dX_i in dNdX, a matrix with 4 columns, and 3 rows.
     // Instead of falling back to default dNdX = J^{-T} * dNde; for lin tetrahedron we know the ad-hoc expression:
-    virtual void GetdNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) override {
+    virtual void ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) override {
         dNdX.resize(3, 4);
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
@@ -246,12 +246,12 @@ public:
         dNdX(3, 0) = vai.z();   dNdX(3, 1) = vbi.z();   dNdX(3, 2) = vci.z();   dNdX(3, 3) = -vai.z() - vbi.z() - vci.z();
         //***TEST***
         ChMatrixDynamic<> test_dNdX(3, 4);
-        ChFeaElement::GetdNdX(eta, test_dNdX);
+        ChFeaElement::ComputedNdX(eta, test_dNdX);
         //**** 
     }
 
     // Compute Jacobian J, and returns its determinant. J is square 3x3
-    virtual double GetJ(const ChVector3d eta, ChMatrix33d& J) override {
+    virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) override {
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
         ChVector3d x34 = *this->nodes[2] - *this->nodes[3];
@@ -262,7 +262,7 @@ public:
     }
 
     // Compute Jacobian Jinv, and returns its determinant. Jinv is square 3x3
-    virtual double GetJinv(const ChVector3d eta, ChMatrix33d& Jinv) override {
+    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) override {
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
         ChVector3d x34 = *this->nodes[2] - *this->nodes[3];
@@ -410,6 +410,9 @@ class ChFeaFieldDataGeneric : public ChFeaFieldData {
 public:
     ChFeaFieldDataGeneric() :
         mvariables(T_nstates) {
+        state.setZero();
+        state_dt.setZero();
+        F.setZero();
     }
 
     virtual ChVectorRef State() override { return state; }
@@ -499,6 +502,10 @@ private:
 class ChFeaFieldDataPos3D : public ChFeaFieldData {
 public:
     ChFeaFieldDataPos3D()  {
+        pos.setZero();
+        pos_dt.setZero();
+        pos_dtdt.setZero();
+        F.setZero();
     }
     
     // Custom properties, helpers etc.
@@ -903,6 +910,7 @@ public:
 
 // Some ready-to-use fields.
 
+class ChFeaFieldNONE : public ChFeaField<ChFeaFieldDataGeneric<0>> {};
 class ChFeaFieldScalar : public ChFeaField<ChFeaFieldDataGeneric<1>> {};
 class ChFeaFieldVector : public ChFeaField<ChFeaFieldDataGeneric<3>> {};
 
@@ -914,10 +922,6 @@ class ChFeaFieldDisplacement3D : public ChFeaField<ChFeaFieldDataPos3D> {};
 //------------------------------------------------------------------------------
 
 
-/// Base class for the per-material-point (Gauss quadrature point) properties of some material,
-/// for example it can contain some ChVariable for plastic flow etc.
-class ChFeaPerMaterialpointDataNONE {
-};
 
 /// Base class for the per-element properties of some material,
 /// for example it can contain the ChKRMBlock object with tangent stiffness etc.
@@ -945,9 +949,6 @@ public:
 
 /// Base class for density in a continuum.
 class ChFea3DDensity : ChFeaMaterialProperty {
-protected:
-    double m_density;
-
 public:
     ChFea3DDensity(double density = 1000) : m_density(density) {}
     ChFea3DDensity(const ChFea3DDensity& other) { m_density = other.m_density; }
@@ -961,6 +962,9 @@ public:
 
     //virtual void ArchiveOut(ChArchiveOut& archive_out);
     //virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+protected:
+    double m_density;
 };
 
 
@@ -968,14 +972,6 @@ public:
 /// that can be described by Laplace PDEs of type
 ///    rho dP/dt + div [C] grad P = 0
 class ChApi ChFea3DContinuumPoisson : public ChFea3DDensity {
-public:
-    using T_per_node = std::tuple<ChFeaFieldScalar>;
-    using T_per_matpoint = ChFeaPerMaterialpointDataNONE;
-    using T_per_element = ChFeaPerElementDataKRM;
-
-protected:
-    ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
-
 public:
     ChFea3DContinuumPoisson() { ConstitutiveMatrix.setIdentity(3, 3); }
     ChFea3DContinuumPoisson(const ChFea3DContinuumPoisson& other) : ChFea3DDensity(other) {
@@ -988,6 +984,9 @@ public:
 
     /// Get the rho multiplier for the 'rho dP/dt term', if any (default, none)
     virtual double Get_DtMultiplier() { return 0; }
+
+protected:
+    ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
 };
 
 
@@ -995,15 +994,6 @@ public:
 /// It contains properties for thermal problems PDEs of the type 
 ///    c*density dT/dt + div [k] grad T = q_source
 class ChApi ChFea3DMaterialThermal : public ChFea3DContinuumPoisson {
-public:
-    using T_per_node = std::tuple<ChFeaFieldTemperature>;
-    using T_per_matpoint = ChFeaPerMaterialpointDataNONE;
-    using T_per_element = ChFeaPerElementDataKRM;
-
-private:
-    double k_thermal_conductivity;
-    double c_mass_specific_heat_capacity;
-
 public:
     ChFea3DMaterialThermal() : k_thermal_conductivity(1), c_mass_specific_heat_capacity(1000) {}
     ChFea3DMaterialThermal(const ChFea3DMaterialThermal& other) : ChFea3DContinuumPoisson(other) {
@@ -1039,6 +1029,10 @@ public:
 
     /// override base: (the dT/dt term has multiplier rho*c with rho=density, c=heat capacity)
     virtual double Get_DtMultiplier() override { return m_density * c_mass_specific_heat_capacity; }
+
+private:
+    double k_thermal_conductivity;
+    double c_mass_specific_heat_capacity;
 };
 
 
@@ -1120,7 +1114,7 @@ auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
 
 
 /// Base class for all material implementations for FEA
-class ChFeaMaterialDomain {
+class ChFeaMaterialDomain : public ChPhysicsItem {
 public:
     virtual void AddElement(std::shared_ptr<ChFeaElement> melement) = 0;
     virtual void RemoveElement(std::shared_ptr<ChFeaElement> melement) = 0;
@@ -1136,25 +1130,15 @@ public:
     // Get the total number of nodes affected by this domain (some could be shared with other domains)
     virtual int GetNumNodes() = 0;
 
-    // MATERIAL CONSTITUTIVE LAWS MUST IMPLEMENT THE FOLLOWING
-
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
     /// If the D vector size is not the proper size, it will be resized.
     virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& mD) = 0;
 
-    /// Computes the internal loads Fi and set values in the Fi vector.
-    virtual void ComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& Fi) = 0;
 
-    /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
-    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
-    /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
-    virtual void ComputeKRMmatricesGlobal(std::shared_ptr<ChFeaElement> melement, ChMatrixRef H,
-        double Kfactor,
-        double Rfactor = 0,
-        double Mfactor = 0)  = 0;
 
-    /// Add contribution of element inertia to total nodal masses
-    virtual void ComputeNodalMass(std::shared_ptr<ChFeaElement> melement) = 0;
+private:
+    unsigned int n_dofs;    ///< total degrees of freedom of element materialpoint states (ex plasticity)
+    unsigned int n_dofs_w;  ///< total degrees of freedom of element materialpoint states (ex plasticity), derivative (Lie algebra)
 };
 
 /// Class for all material implementations for FEA, and for 
@@ -1165,7 +1149,7 @@ public:
 
 template <
     typename T_per_node = std::tuple<ChFeaFieldScalar>, 
-    typename T_per_matpoint = ChFeaPerMaterialpointDataNONE, 
+    typename T_per_matpoint = ChFeaFieldNONE, 
     typename T_per_element = ChFeaPerElementDataNONE
 >
 class ChFeaMaterialDomainImpl : public ChFeaMaterialDomain {
@@ -1192,7 +1176,8 @@ public:
         return element_datamap[melement];
     }
 
-    // INTERFACES
+    // INTERFACE to ChFeaMaterialDomain
+    //
     
     virtual void AddElement(std::shared_ptr<ChFeaElement> melement) override {
         return AddElement_impl(melement);
@@ -1225,6 +1210,408 @@ public:
             }
         }
     }
+    virtual void GetStateBlockDt(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& mD) override {
+        auto& elementdata = this->GetElementData(melement);
+        mD.resize(this->GetNumPerNodeCoordsPosLevel() * melement->GetNumNodes());
+        int off = 0;
+        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
+            for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int ifieldsize = elementdata.nodes_data[i][i_field]->State().size();
+                mD.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->StateDt();
+                off += ifieldsize;
+            }
+        }
+    }
+
+    // FINITE ELEMENT MANAGERS
+
+    /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
+    /// It operates quadrature on the element, calling PointComputeInternalLoads(...) at each quadrature point.
+    virtual void ElementComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, 
+                                            DataPerElement& data, 
+                                            ChVectorDynamic<>& Fi
+    ) {
+        int quadorder = melement->GetMinQuadratureOrder();
+        int numpoints = melement->GetNumQuadraturePoints(quadorder);
+        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
+        Fi.setZero(numelcoords);
+        ChMatrix33<> J;
+        ChVector3d eta;
+        double weight;
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            melement->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
+            double det_J = melement->ComputeJ(eta, J);
+            double s = weight * det_J;
+            PointComputeInternalLoads(melement, data, i_point, eta, s, Fi);
+        }
+    }
+
+    /// For a given finite element, computes matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
+    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
+    /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
+    /// It operates quadrature on the element, calling PointComputeKRMmatrices(...) at each quadrature point.
+    virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFeaElement> melement, DataPerElement& data, ChMatrixRef H,
+                                            double Kfactor,
+                                            double Rfactor = 0,
+                                            double Mfactor = 0
+    ) {
+        int quadorder = melement->GetMinQuadratureOrder();
+        int numpoints = melement->GetNumQuadraturePoints(quadorder);
+        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
+        H.resize(numelcoords, numelcoords);
+        H.setZero();
+        ChMatrix33<> J;
+        ChVector3d eta;
+        double weight;
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            melement->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
+            double det_J = melement->ComputeJ(eta, J);
+            double s = weight * det_J;
+            PointComputeKRMmatrices(melement, 
+                data, i_point, 
+                eta, H, 
+                Kfactor * s, 
+                Rfactor * s, 
+                Mfactor * s);
+        }
+    }
+
+
+    // MATERIAL CONSTITUTIVE LAWS MUST IMPLEMENT THE FOLLOWING
+
+    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting, 
+    /// and *ADD* the s-scaled result to Fi vector.
+    /// For example, if internal load in discretized coords is 
+    ///    F   = \sum (Foo*B')*w*det(J);  
+    /// here you must compute  
+    ///    Fi += (Foo*B')*s
+    /// If the default quadrature is not good for you, then override ElementComputeInternalLoads() directly.
+    virtual void PointComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, 
+                                            DataPerElement& data, 
+                                            const int i_point, 
+                                            ChVector3d& eta, 
+                                            const double s, 
+                                            ChVectorDynamic<>& Fi) = 0;
+
+    /// Computes tangent matrix H for one quadrature point, except quadrature weighting, 
+    /// and *ADD* the scaled result to H matrix.
+    /// For example, if in discretized coords you have 
+    ///    K   = \sum (B*E*B')*w*det(J); M=\sum(rho*N*N')*w*det(J); R = ...
+    /// and since we assume H = Mfactor*K + Kfactor*K + Rfactor*R, then here you must compute  
+    ///    H  += Mpfactor*(rho*N*N') + Kpfactor*(B*E*B') + Rpfactor*...
+    /// If the default quadrature is not good for you, then override ElementComputeKRMmatrices() directly.
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFeaElement> melement, 
+                                            DataPerElement& data,
+                                            const int i_point, 
+                                            ChVector3d& eta, 
+                                            ChMatrixRef H,
+                                            double Kpfactor,
+                                            double Rpfactor = 0,
+                                            double Mpfactor = 0) = 0;
+
+
+
+    // INTERFACE to ChPhysicsItem
+    //
+
+    //virtual ChAABB GetTotalAABB() const override { ***TODO** };
+    //virtual ChVector3d GetCenter() const override { ***TODO** };;
+
+    virtual void Setup() override {
+        n_dofs = 0;
+        n_dofs_w = 0;
+
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                // Set node offsets in state vectors (based on the offsets of the containing mesh)
+                matpoint.NodeSetOffsetPosLevel(GetOffset_x() + n_dofs);
+                matpoint.NodeSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
+
+                // Count the actual degrees of freedom (consider only nodes that are not fixed)
+                if (!matpoint.IsFixed()) {
+                    n_dofs += matpoint.GetNumCoordsPosLevel();
+                    n_dofs_w += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+    };
+
+    virtual void SetupInitial() override {
+        for (auto& mel : this->element_datamap) {
+            mel.first->SetupInitial();
+        }
+    }
+
+    virtual void Update(double time, bool update_assets) override {
+        // Parent class update
+        ChPhysicsItem::Update(time, update_assets);
+
+        for (auto& mel : this->element_datamap) {
+            mel.first->Update();
+        }
+    }
+
+    /// Set zero speed (and zero accelerations) in state without changing the position.
+    virtual void ForceToRest() override {}
+    virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }
+
+    /// From item's state to global state vectors y={x,v} pasting the states at the specified offsets.
+    virtual void IntStateGather(const unsigned int off_x,  ///< offset in x state vector
+        ChState& x,                ///< state vector, position part
+        const unsigned int off_v,  ///< offset in v state vector
+        ChStateDelta& v,           ///< state vector, speed part
+        double& T                  ///< time
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                    local_off_x += matpoint.GetNumCoordsPosLevel();
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+        T = GetChTime();
+    }
+
+    /// From global state vectors y={x,v} to element states (if any)  (and update) fetching the states at the specified offsets.
+    virtual void IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
+        const ChState& x,          ///< state vector, position part
+        const unsigned int off_v,  ///< offset in v state vector
+        const ChStateDelta& v,     ///< state vector, speed part
+        const double T,            ///< time
+        bool full_update           ///< perform complete update
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                    local_off_x += matpoint.GetNumCoordsPosLevel();
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+        Update(T, full_update);
+    }
+
+    /// From element states (if any) acceleration to global acceleration vector
+    virtual void IntStateGatherAcceleration(const unsigned int off_a,  ///< offset in a accel. vector
+        ChStateDelta& a            ///< acceleration part of state vector derivative
+    ) override {
+        unsigned int local_off_a = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntStateGatherAcceleration(off_a + local_off_a, a);
+                    local_off_a += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+    }
+
+    /// From global acceleration vector to element states (if any) acceleration
+    virtual void IntStateScatterAcceleration(const unsigned int off_a,  ///< offset in a accel. vector
+        const ChStateDelta& a  ///< acceleration part of state vector derivative
+    ) override {
+        unsigned int local_off_a = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntStateScatterAcceleration(off_a + local_off_a, a);
+                    local_off_a += matpoint.GetNumFieldCoordsVelLevel();
+                }
+            }
+        }
+    }
+
+    /// Computes x_new = x + Dt , using vectors at specified offsets.
+    /// By default, when DOF = DOF_w, it does just the sum, but in some cases (ex when using quaternions
+    /// for rotations) it could do more complex stuff, and children classes might overload it.
+    virtual void IntStateIncrement(const unsigned int off_x,  ///< offset in x state vector
+        ChState& x_new,            ///< state vector, position part, incremented result
+        const ChState& x,          ///< state vector, initial position part
+        const unsigned int off_v,  ///< offset in v state vector
+        const ChStateDelta& Dv     ///< state vector, increment
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                    local_off_x += matpoint.GetNumCoordsPosLevel();
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+    }
+
+    /// Computes Dt = x_new - x, using vectors at specified offsets.
+    /// By default, when DOF = DOF_w, it does just the difference of two state vectors, but in some cases (ex when using
+    /// quaternions for rotations) it could do more complex stuff, and children classes might overload it.
+    virtual void IntStateGetIncrement(const unsigned int off_x,  ///< offset in x state vector
+        const ChState& x_new,      ///< state vector, final position part
+        const ChState& x,          ///< state vector, initial position part
+        const unsigned int off_v,  ///< offset in v state vector
+        ChStateDelta& Dv           ///< state vector, increment. Here gets the result
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                    local_off_x += matpoint.GetNumCoordsPosLevel();
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+    }
+
+    /// Takes the F force term, scale and adds to R at given offset:
+    ///    R += c*F
+    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+        ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+        const double c           ///< a scaling factor
+    ) override {
+        // loads on element states (if any)
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntLoadResidual_F(off + local_off_v, R, c);
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+        // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
+        for (auto& mel : this->element_datamap) {
+            //***TODO***
+            //****************************COMPUTE F******************
+        }
+
+    }
+
+    /// Takes the M*w  term,  multiplying mass by a vector, scale and adds to R at given offset:
+    ///    R += c*M*w
+    virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
+        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+        const ChVectorDynamic<>& w,  ///< the w vector
+        const double c               ///< a scaling factor
+    ) override {
+        // M*w   caused by element states (if any) if they have some 'mass'
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+        // M*w   caused by elements, where M is the mass matrix of the element
+        for (auto& mel : this->element_datamap) {
+            //***TODO***
+        }
+    }
+
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
+        ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+        double& err,    ///< result: not touched if lumping does not introduce errors
+        const double c  ///< a scaling factor
+    ) override {
+        // Md   caused by element states (if any) if they have some 'mass'
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
+                    local_off_v += matpoint.GetNumFieldCoordsVelLevel();
+                }
+            }
+        }
+        // Md   caused by elements, based on mass matrix of the element
+        for (auto& mel : this->element_datamap) {
+            //***TODO***
+        }
+    }
+
+    /// Prepare variables and constraints to accommodate a solution:
+    virtual void IntToDescriptor(
+        const unsigned int off_v,    ///< offset for \e v and \e R
+        const ChStateDelta& v,       ///< vector copied into the \e q 'unknowns' term of the variables
+        const ChVectorDynamic<>& R,  ///< vector copied into the \e F 'force' term of the variables
+        const unsigned int off_L,    ///< offset for \e L and \e Qc
+        const ChVectorDynamic<>& L,  ///< vector copied into the \e L 'lagrangian ' term of the constraints
+        const ChVectorDynamic<>& Qc  ///< vector copied into the \e Qb 'constraint' term of the constraints
+    ) override {
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntToDescriptor(off_v + local_off_v, v, R);
+                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                }
+            }
+        }
+    }
+
+    /// After a solver solution, fetch values from variables and constraints into vectors:
+    virtual void IntFromDescriptor(
+        const unsigned int off_v,  ///< offset for \e v
+        ChStateDelta& v,           ///< vector to where the \e q 'unknowns' term of the variables will be copied
+        const unsigned int off_L,  ///< offset for \e L
+        ChVectorDynamic<>& L       ///< vector to where \e L 'lagrangian ' term of the constraints will be copied
+    ) override {
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                if (!matpoint.IsFixed()) {
+                    matpoint.NodeIntFromDescriptor(off_v + local_off_v, v);
+                    local_off_v += GetNumFieldCoordsVelLevel();
+                }
+            }
+        }
+    }
+
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override {
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.InjectVariables(descriptor);
+            }
+        }
+    }
+
+
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override {
+        for (auto& mel : this->element_datamap) {
+            // mel.second.
+            //***TODO***
+            //****************************COMPUTE F******************
+        }
+        for (int ie = 0; ie < velements.size(); ie++)
+            velements[ie]->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
+    }
+
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override {
+        for (auto& mel : this->element_datamap) {
+            if (mel.second.element_data.GetKRM())
+                descriptor.InsertKRMBlock(mel.second.element_data.GetKRM());
+        }
+    }
+
+    // UTILITY FUNCTIONS
+
+
+
 
 private:
     void AddElement_impl(std::shared_ptr<ChFeaElement> melement) {
@@ -1257,10 +1644,18 @@ private:
             std::vector<ChVariables*> mvars;
 
             // setup array of quadrature data
-            mel.second.matpoints_data.resize(mel.first->GetMinQuadratureOrder()); // safety - should be already sized
+            if constexpr (std::is_same_v<T, ChFeaFieldNONE>) {
+                mel.second.matpoints_data.resize(0); // optimization to avoid wasting memory if domain falls back to ChFeaFieldNONE
+            }
+            else {
+                mel.second.matpoints_data.resize(mel.first->GetMinQuadratureOrder());
+            }
+             
 
-            // setup array of pointers to node field data (this is for efficiency, otherwise each element should lookup the Chfield maps every time)
-            mel.second.nodes_data.resize(mel.first->GetNumNodes());  // safety - should be already sized
+            // setup array of pointers to node field data 
+            // (this array is here only for efficiency, otherwise each element should lookup the ChField maps every time
+            // calling GetNodeDataPointer(mel.first->GetNode(i))
+            mel.second.nodes_data.resize(mel.first->GetNumNodes());  
             for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
                 for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
                     mel.second.nodes_data[i][i_field] = fields[i_field]->GetNodeDataPointer(mel.first->GetNode(i));
@@ -1289,7 +1684,7 @@ private:
 
 class ChFeaMaterialDomainThermal : public ChFeaMaterialDomainImpl<
     std::tuple<ChFeaFieldTemperature>,
-    ChFeaPerMaterialpointDataNONE,
+    ChFeaFieldNONE,
     ChFeaPerElementDataKRM> {
 public:
     ChFeaMaterialDomainThermal(std::shared_ptr<ChFeaFieldTemperature> mfield) 
@@ -1302,28 +1697,63 @@ public:
     
     // INTERFACES
 
-    /// Computes the internal loads Fi and set values in the Fi vector.
-    virtual void ComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& Fi) override {
+    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting, 
+    /// and *ADD* the s-scaled result to Fi vector.
+    virtual void PointComputeInternalLoads( std::shared_ptr<ChFeaElement> melement, 
+                                            DataPerElement& data, 
+                                            const int i_point, 
+                                            ChVector3d& eta, 
+                                            const double s, 
+                                            ChVectorDynamic<>& Fi
+    ) override {
+        ChVectorDynamic<> T;
+        this->GetStateBlock(melement, T);
+        ChMatrixDynamic<> dNdX;
+        ChRowVectorDynamic<> N;
+        melement->ComputedNdX(eta, dNdX);
+        melement->ComputeN(eta, N);
+        // B = dNdX // in the lucky case of thermal problem, no need to build B because B is simply dNdX
+
+        // We have:  Fi = - K * T;
+        // where      K = sum (dNdX' * k * dNdX * w * |J|)
+        // so we compute  Fi += dNdX' * k * dNdX * T * s
+        Fi += (dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX) * T * s;
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
     /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
     /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
-    virtual void ComputeKRMmatricesGlobal(std::shared_ptr<ChFeaElement> melement, ChMatrixRef H,
-        double Kfactor,
-        double Rfactor = 0,
-        double Mfactor = 0) override {
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFeaElement> melement, 
+                                            DataPerElement& data, 
+                                            const int i_point, 
+                                            ChVector3d& eta, 
+                                            ChMatrixRef H,
+                                            double Kpfactor,
+                                            double Rpfactor = 0,
+                                            double Mpfactor = 0) override {
+        ChMatrixDynamic<> dNdX;
+        ChRowVectorDynamic<> N;
+        melement->ComputedNdX(eta, dNdX);
+        melement->ComputeN(eta, N);
+        // B = dNdX // in the lucky case of thermal problem, no need to build B because B is simply dNdX
+
+        // K  matrix (jacobian d/dT of:    c dT/dt + div [C] grad T = f )  
+        // K = sum (dNdX' * k * dNdX * w * |J|)
+        H += Kpfactor * (dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX) ;
+
+        // R  matrix : (jacobian d / d\dot(T) of:    c dT / dt + div[C] grad T = f)
+        // R = sum (N' * c*rho * N * w * |J|)
+        if (Rpfactor && this->material->GetSpecificHeatCapacity()) {
+            H += (Rpfactor * this->material->GetSpecificHeatCapacity() * this->material->GetDensity()) * (N.transpose() * N);
+        }
     }
 
-    /// Add contribution of element inertia to total nodal masses
-    virtual void ComputeNodalMass(std::shared_ptr<ChFeaElement> melement) override {
-    }
 };
 
 
 class ChFeaMaterialDomainThermalElastic : public ChFeaMaterialDomainImpl<
     std::tuple<ChFeaFieldTemperature, ChFeaFieldDisplacement3D>, 
-    ChFeaPerMaterialpointDataNONE,
+    ChFeaFieldNONE,
     ChFeaPerElementDataKRM> {
 public:
     ChFeaMaterialDomainThermalElastic(std::shared_ptr<ChFeaFieldTemperature> mthermalfield, std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
@@ -1335,22 +1765,30 @@ public:
     std::shared_ptr<ChFea3DMaterialThermal> material;
 
     // INTERFACES
-    /// Computes the internal loads Fi and set values in the Fi vector.
-    virtual void ComputeInternalLoads(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& Fi) override {
-    }
+
+    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting, 
+    /// and *ADD* the s-scaled result to Fi vector.
+    virtual void PointComputeInternalLoads(std::shared_ptr<ChFeaElement> melement,
+                                            DataPerElement& data,
+                                            const int i_point,
+                                            ChVector3d& eta,
+                                            const double s,
+                                            ChVectorDynamic<>& Fi
+    ) override {}
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
     /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
     /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
-    virtual void ComputeKRMmatricesGlobal(std::shared_ptr<ChFeaElement> melement, ChMatrixRef H,
-        double Kfactor,
-        double Rfactor = 0,
-        double Mfactor = 0) override {
-    }
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFeaElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        ChMatrixRef H,
+        double Kpfactor,
+        double Rpfactor = 0,
+        double Mpfactor = 0
+    ) override {}
 
-    /// Add contribution of element inertia to total nodal masses
-    virtual void ComputeNodalMass(std::shared_ptr<ChFeaElement> melement) override {
-    }
 };
 
 
