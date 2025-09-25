@@ -69,6 +69,15 @@ simulation:
          map: FAST
          min: 0.0
          max: 1.0
+      visibility:
+         SPH: true
+         BCE: true
+         mode: ALL
+         planes:
+             - point: [0, 0, 0]
+               normal: [1, 0, 0]
+             - point: [0, 0, 0]
+               normal: [0, 1, 0]
       splashsurf:
          smoothing_length: 2.0
          cube_size: 0.3

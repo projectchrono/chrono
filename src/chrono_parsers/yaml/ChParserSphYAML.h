@@ -152,10 +152,12 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         bool flex_bce_markers;   ///< render flex-body markers?
         bool active_boxes;       ///< render active boxes?
 
-        ChColormap::Type colormap;
+        ChColormap::Type colormap;  ///< colormap for coloring callback
 
 #ifdef CHRONO_VSG
         std::shared_ptr<fsi::sph::ChSphVisualizationVSG::ParticleColorCallback> color_callback;
+        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_sph;
+        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_bce;
         std::unique_ptr<fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters> splashsurf_params;
 #endif
 
@@ -216,6 +218,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     static ParticleColoringType ReadParticleColoringType(const YAML::Node& a);
     static ChColormap::Type ReadColorMapType(const YAML::Node& a);
+    static fsi::sph::MarkerPlanesVisibilityCallback::Mode ReadVisibilityMode(const YAML::Node& a);
 
   private:  // ---- Member variables
     ProblemGeometryType m_problem_geometry_type;

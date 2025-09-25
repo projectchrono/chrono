@@ -13,7 +13,7 @@
 // =============================================================================
 
 //// TODO
-//// - associate FSI solids
+//// - associuate FSI flexible solids
 //// - output
 
 #include <algorithm>
@@ -82,7 +82,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserSphYAML] Loading Chrono::SPH simulation specification from: " << yaml_filename << "\n" << endl;
+        cout << "\n[ChParserSphYAML] Loading Chrono::SPH simulation specification from: " << yaml_filename << "\n"
+             << endl;
     }
 
     ChAssertAlways(sim["time_step"]);
@@ -254,6 +255,43 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     break;
                 }
             }
+        }
+
+        if (a["visibility"]) {
+            auto b = a["visibility"];
+
+            ChAssertAlways(b["planes"]);
+            auto c = b["planes"];
+            ChAssertAlways(c.IsSequence());
+            std::vector<fsi::sph::MarkerPlanesVisibilityCallback::Plane> planes;
+            for (int i = 0; i < c.size(); i++) {
+                ChAssertAlways(c[i]["point"]);
+                ChAssertAlways(c[i]["normal"]);
+                auto point = ChParserMbsYAML::ReadVector(c[i]["point"]);
+                auto normal = ChParserMbsYAML::ReadVector(c[i]["normal"]);
+                planes.push_back({point, normal});
+            }
+
+            bool sph_visibility = true;
+            if (b["SPH"])
+                sph_visibility = b["SPH"].as<bool>();
+
+            bool bce_visibility = true;
+            if (b["BCE"])
+                bce_visibility = b["BCE"].as<bool>();
+
+            fsi::sph::MarkerPlanesVisibilityCallback::Mode mode;
+            if (b["mode"])
+                mode = ReadVisibilityMode(b["mode"]);
+            else
+                mode = fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
+
+            if (sph_visibility)
+                m_sim.visualization.visibility_callback_sph =
+                    chrono_types::make_shared<fsi::sph::MarkerPlanesVisibilityCallback>(planes, mode);
+            if (bce_visibility)
+                m_sim.visualization.visibility_callback_bce =
+                    chrono_types::make_shared<fsi::sph::MarkerPlanesVisibilityCallback>(planes, mode);
         }
 
         if (a["splashsurf"]) {
@@ -581,12 +619,17 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 #ifdef CHRONO_VSG
 std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserSphYAML::GetVisualizationPlugin() const {
     auto vis = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(m_fsi_problem->GetFsiSystemSPH().get());
+
     vis->EnableFluidMarkers(m_sim.visualization.sph_markers);
     vis->EnableBoundaryMarkers(m_sim.visualization.bndry_bce_markers);
     vis->EnableRigidBodyMarkers(m_sim.visualization.rigid_bce_markers);
+
     if (m_sim.visualization.color_callback)
         vis->SetSPHColorCallback(m_sim.visualization.color_callback, m_sim.visualization.colormap);
-
+    if (m_sim.visualization.visibility_callback_sph)
+        vis->SetSPHVisibilityCallback(m_sim.visualization.visibility_callback_sph);
+    if (m_sim.visualization.visibility_callback_bce)
+        vis->SetBCEVisibilityCallback(m_sim.visualization.visibility_callback_bce);
     return vis;
 }
 #endif
@@ -984,6 +1027,15 @@ ChColormap::Type ChParserSphYAML::ReadColorMapType(const YAML::Node& a) {
     if (val == "RED_BLUE")
         return ChColormap::Type::RED_BLUE;
     return ChColormap::Type::JET;
+}
+
+fsi::sph::MarkerPlanesVisibilityCallback::Mode ChParserSphYAML::ReadVisibilityMode(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "ANY")
+        return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ANY;
+    if (val == "ALL")
+        return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
+    return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
 }
 
 }  // namespace parsers

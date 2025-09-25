@@ -28,8 +28,8 @@ simulation:
   visualization:
       type: Model_file
       render_fps: 120
-      enable_shadows: true
+      enable_shadows: false
       camera:
           vertical: Z
-          location: [2, 2, 1.2]
+          location: [2, 2, 1.8]
           target: [0, 0, 0.6]
