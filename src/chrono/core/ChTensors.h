@@ -58,14 +58,14 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     inline Real& ZZ() { return (*this)(2); }
     inline const Real& ZZ() const { return (*this)(2); }
 
-    inline Real& XY() { return (*this)(3); }
-    inline const Real& XY() const { return (*this)(3); }
+    inline Real& XY() { return (*this)(5); }
+    inline const Real& XY() const { return (*this)(5); }
 
     inline Real& XZ() { return (*this)(4); }
     inline const Real& XZ() const { return (*this)(4); }
 
-    inline Real& YZ() { return (*this)(5); }
-    inline const Real& YZ() const { return (*this)(5); }
+    inline Real& YZ() { return (*this)(3); }
+    inline const Real& YZ() const { return (*this)(3); }
 
     /// Convert from a typical 3D rank-two stress or strain tensor (a 3x3 matrix).
     template <class RealB>
