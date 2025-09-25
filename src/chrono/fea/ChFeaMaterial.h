@@ -245,8 +245,8 @@ public:
         dNdX(1, 0) = vai.y();   dNdX(1, 1) = vbi.y();   dNdX(1, 2) = vci.y();   dNdX(1, 3) = -vai.y() - vbi.y() - vci.y();
         dNdX(2, 0) = vai.z();   dNdX(2, 1) = vbi.z();   dNdX(2, 2) = vci.z();   dNdX(2, 3) = -vai.z() - vbi.z() - vci.z();
         //***TEST***
-        ChMatrixDynamic<> test_dNdX(3, 4);
-        ChFeaElement::ComputedNdX(eta, test_dNdX);
+        //ChMatrixDynamic<> test_dNdX(3, 4);
+        //ChFeaElement::ComputedNdX(eta, test_dNdX);
         //**** 
     }
 
@@ -1071,7 +1071,6 @@ class ChFeaFieldDataVector : public ChFeaFieldDataGeneric<3> {};
 class ChFeaFieldNONE : public ChFeaField<ChFeaFieldDataNONE> {};
 class ChFeaFieldScalar : public ChFeaField<ChFeaFieldDataScalar> {};
 class ChFeaFieldVector : public ChFeaField<ChFeaFieldDataVector> {};
-
 class ChFeaFieldTemperature : public ChFeaFieldScalar {};
 class ChFeaFieldElectricPotential : public ChFeaFieldScalar {};
 class ChFeaFieldDisplacement3D : public ChFeaField<ChFeaFieldDataPos3D> {};
@@ -1417,7 +1416,7 @@ auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
 
 
 /// Base class for all material implementations for FEA
-class ChFeaMaterialDomain : public ChPhysicsItem {
+class ChFeaDomain : public ChPhysicsItem {
 public:
     virtual void AddElement(std::shared_ptr<ChFeaElement> melement) = 0;
     virtual void RemoveElement(std::shared_ptr<ChFeaElement> melement) = 0;
@@ -1458,7 +1457,7 @@ template <
     typename T_per_matpoint = ChFeaFieldDataNONE,
     typename T_per_element = ChFeaPerElementDataNONE
 >
-class ChFeaMaterialDomainImpl : public ChFeaMaterialDomain {
+class ChFeaDomainImpl : public ChFeaDomain {
 public:
 
     class DataPerElement {
@@ -1476,13 +1475,13 @@ public:
 
     std::array < std::shared_ptr<ChFeaFieldBase>, std::tuple_size_v<T_per_node> > fields;
 
-    ChFeaMaterialDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFeaFieldBase>(mfields); }
+    ChFeaDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFeaFieldBase>(mfields); }
 
     DataPerElement& GetElementData(std::shared_ptr<ChFeaElement> melement) {
         return element_datamap[melement];
     }
 
-    // INTERFACE to ChFeaMaterialDomain
+    // INTERFACE to ChFeaDomain
     //
     
     virtual void AddElement(std::shared_ptr<ChFeaElement> melement) override {
@@ -2008,15 +2007,15 @@ private:
 
 
 /// Domain for FEA thermal analysis. It is based on a scalar temperature field.
-/// In case you need thermoelasticity, use ChFeaMaterialDomainThermoelastic.
+/// In case you need thermoelasticity, use ChFeaDomainThermoelastic.
 
-class ChFeaMaterialDomainThermal : public ChFeaMaterialDomainImpl<
+class ChFeaDomainThermal : public ChFeaDomainImpl<
     std::tuple<ChFeaFieldTemperature>,
     ChFeaFieldDataNONE,
     ChFeaPerElementDataKRM> {
 public:
-    ChFeaMaterialDomainThermal(std::shared_ptr<ChFeaFieldTemperature> mfield) 
-        : ChFeaMaterialDomainImpl(mfield)
+    ChFeaDomainThermal(std::shared_ptr<ChFeaFieldTemperature> mfield) 
+        : ChFeaDomainImpl(mfield)
     {
         // attach a default material to simplify user side
         material = chrono_types::make_shared<ChFea3DMaterialThermal>();
@@ -2082,13 +2081,13 @@ public:
 };
 
 
-class ChFeaMaterialDomainElastic : public ChFeaMaterialDomainImpl<
-    std::tuple<ChFeaFieldDisplacement3D>,
-    ChFeaFieldDataNONE,
-    ChFeaPerElementDataKRM> {
+class ChFeaDomainElastic : public ChFeaDomainImpl<
+    std::tuple<ChFeaFieldDisplacement3D>, // per each node
+    ChFeaFieldDataNONE,   // per each GP
+    ChFeaPerElementDataKRM> { // per each element
 public:
-    ChFeaMaterialDomainElastic(std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
-        : ChFeaMaterialDomainImpl( melasticfield )
+    ChFeaDomainElastic(std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
+        : ChFeaDomainImpl( melasticfield )
     {
         // attach  default materials to simplify user side
         material = chrono_types::make_shared<ChFea3DMaterialStressStVenant>();
@@ -2118,7 +2117,7 @@ public:
         // F deformation tensor = J_x * J_X^{-1}
         //   J_X: already available via element->ComputeJ()
         //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
-        ChMatrixDynamic<> Xhat(3,melement->GetNumNodes());
+        ChMatrixDynamic<> Xhat(3, melement->GetNumNodes());
         for (int i = 0; i < melement->GetNumNodes(); ++i) {
             Xhat.block(0, i, 3, 1) = ((ChFeaFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
         }
@@ -2135,31 +2134,14 @@ public:
 
         ChStrainTensor<> E_strain; // Green Lagrange in Voigt notation
         E_strain.ConvertFromMatrix(E_strain33);
-        E_strain.XY() *= 2;
-        E_strain.XZ() *= 2;
-        E_strain.YZ() *= 2;
+        E_strain.XY() *= 2; E_strain.XZ() *= 2; E_strain.YZ() *= 2; // engineering strains \gamma_xy = 2*\eps_xy
 
         ChStressTensor<> S_stress; // Piola Kirchhoff
         material->ComputeElasticStress(S_stress, E_strain);
 
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
-        B.setZero(); 
-        for (int i = 0; i < melement->GetNumNodes(); ++i) {
-            // g = ∇₀ N_i = J_X⁻¹ ∇_ξ N_i = dNdX(:, i)
-            //                          g₁* [F₁₁, F₂₁, F₃₁]
-            B.block<1, 3>(0, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 0).transpose();
-            //                          g₂* [F₁₂, F₂₂, F₃₂]
-            B.block<1, 3>(1, i * 3) = dNdX(1, i) * F.block<3, 1>(0, 1).transpose();
-            //                          g₃* [F₁₃, F₂₃, F₃₃]
-            B.block<1, 3>(2, i * 3) = dNdX(2, i) * F.block<3, 1>(0, 2).transpose();
-            //                          g₂* [F₁₃, F₂₃, F₃₃]                             + g₃ * [F₁₂, F₂₂, F₃₂]
-            B.block<1, 3>(2, i * 3) = dNdX(1, i) * F.block<3, 1>(0, 2).transpose() + dNdX(2, i) * F.block<3, 1>(0, 1).transpose();
-            //                          g₁* [F₁₃, F₂₃, F₃₃]                             + g₃ * [F₁₁, F₂₁, F₃₁]
-            B.block<1, 3>(2, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 2).transpose() + dNdX(2, i) * F.block<3, 1>(0, 0).transpose();
-            //                          g₁* [F₁₂, F₂₂, F₃₂]                             + g₂ * [F₁₁, F₂₁, F₃₁]
-            B.block<1, 3>(2, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 1).transpose() + dNdX(1, i) * F.block<3, 1>(0, 0).transpose();
-        }
-
+        this->ComputeB(B, dNdX, F);
+        
         // We have:  Fi = - K * T;
         // where     Fi = sum (B' * S * w * |J|)
         // so we compute  Fi += B' * S * s
@@ -2182,12 +2164,28 @@ public:
         ChRowVectorDynamic<> N;
         melement->ComputedNdX(eta, dNdX);
         melement->ComputeN(eta, N);
-        ChMatrixDynamic<> B;
-        B.setZero(); // ***TODO*** compute B matrix
-        ChMatrix66<double> C;
-        ChStrainTensor<> E_strain; // Green Lagrange
-        // ***TODO*** compute stress here, might be needed in ComputeTangentModulus
 
+        // F deformation tensor = J_x * J_X^{-1}
+        //   J_X: already available via element->ComputeJ()
+        //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
+        ChMatrixDynamic<> Xhat(3, melement->GetNumNodes());
+        for (int i = 0; i < melement->GetNumNodes(); ++i) {
+            Xhat.block(0, i, 3, 1) = ((ChFeaFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
+        }
+        ChMatrixDynamic<> dNde;
+        melement->ComputedNde(eta, dNde);
+        ChMatrix33d J_X_inv;
+        melement->ComputeJinv(eta, J_X_inv);
+
+        ChMatrix33d F = Xhat * dNde.transpose() * J_X_inv;
+
+        ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
+        this->ComputeB(B, dNdX, F);
+
+        ChStrainTensor<> E_strain; // Green Lagrange in Voigt notation
+        // ***TODO*** compute stress here - but not needed for this constant elasticity
+
+        ChMatrix66<double> C;
         this->material->ComputeTangentModulus(C, E_strain);
 
         // K  matrix 
@@ -2206,17 +2204,40 @@ public:
         }
     }
 
+private:
+    /// Utility: Compute  B as in  dE = B dx  where dE is variation in Green Lagrange strain (Voigt notation)
+    /// and dx is the variation in spatial node coordinates (also works as  dE = B du  with du variation in displacements)
+    void ComputeB(ChMatrixRef B, ChMatrixConstRef dNdX, ChMatrixConstRef F) {
+        B.resize(6, 3 * dNdX.cols());
+        B.setZero();
+        for (int i = 0; i < dNdX.cols(); ++i) {
+            // g = ∇₀ N_i = J_X⁻¹ ∇_ξ N_i = dNdX(:, i)
+            //                          g₁* [F₁₁, F₂₁, F₃₁]
+            B.block<1, 3>(0, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 0).transpose();
+            //                          g₂* [F₁₂, F₂₂, F₃₂]
+            B.block<1, 3>(1, i * 3) = dNdX(1, i) * F.block<3, 1>(0, 1).transpose();
+            //                          g₃* [F₁₃, F₂₃, F₃₃]
+            B.block<1, 3>(2, i * 3) = dNdX(2, i) * F.block<3, 1>(0, 2).transpose();
+            //                          g₂* [F₁₃, F₂₃, F₃₃]                             + g₃ * [F₁₂, F₂₂, F₃₂]
+            B.block<1, 3>(2, i * 3) = dNdX(1, i) * F.block<3, 1>(0, 2).transpose() + dNdX(2, i) * F.block<3, 1>(0, 1).transpose();
+            //                          g₁* [F₁₃, F₂₃, F₃₃]                             + g₃ * [F₁₁, F₂₁, F₃₁]
+            B.block<1, 3>(2, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 2).transpose() + dNdX(2, i) * F.block<3, 1>(0, 0).transpose();
+            //                          g₁* [F₁₂, F₂₂, F₃₂]                             + g₂ * [F₁₁, F₂₁, F₃₁]
+            B.block<1, 3>(2, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 1).transpose() + dNdX(1, i) * F.block<3, 1>(0, 0).transpose();
+        }
+    }
+
 };
 
 
 
-class ChFeaMaterialDomainThermalElastic : public ChFeaMaterialDomainImpl<
+class ChFeaDomainThermalElastic : public ChFeaDomainImpl<
     std::tuple<ChFeaFieldTemperature, ChFeaFieldDisplacement3D>, 
     ChFeaFieldDataNONE,
     ChFeaPerElementDataKRM> {
 public:
-    ChFeaMaterialDomainThermalElastic(std::shared_ptr<ChFeaFieldTemperature> mthermalfield, std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
-        : ChFeaMaterialDomainImpl({ mthermalfield, melasticfield })
+    ChFeaDomainThermalElastic(std::shared_ptr<ChFeaFieldTemperature> mthermalfield, std::shared_ptr<ChFeaFieldDisplacement3D> melasticfield)
+        : ChFeaDomainImpl({ mthermalfield, melasticfield })
     {
         // attach  default materials to simplify user side
         material_thermal = chrono_types::make_shared<ChFea3DMaterialThermal>();
