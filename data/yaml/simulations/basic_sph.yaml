@@ -15,7 +15,7 @@ simulation:
      delta_sph_coefficient: 0.1
      max_velocity: 1.0
      min_distance_coefficient: 0.01
-     density_reinit_steps: 2e8
+     density_reinit_steps: 200000
      use_density_based_projection: false
 
   kernel:

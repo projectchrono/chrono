@@ -41,10 +41,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Extract filenames from command-line arguments
-    std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop_fsi.yaml");
+    std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/objectdrop.yaml");
 
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "f,fsi_file", "model specification YAML file", fsi_yaml_filename);
+    cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", fsi_yaml_filename);
 
     if (!cli.Parse(argc, argv, true))
         return 1;
