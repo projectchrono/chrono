@@ -181,6 +181,7 @@ struct SimParams {
     double artificial_viscosity;
     double max_pressure;
     double plate_diameter;
+    double container_height;
 
     // Output/rendering parameters
     bool verbose;
@@ -218,6 +219,7 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
                           std::to_string(params.artificial_viscosity));
     cli.AddOption<double>("Physics", "max_pressure", "Max pressure", std::to_string(params.max_pressure));
     cli.AddOption<double>("Physics", "plate_diameter", "Plate diameter", std::to_string(params.plate_diameter));
+    cli.AddOption<double>("Physics", "container_height", "Container height", std::to_string(params.container_height));
     cli.AddOption<double>("Physics", "mu_s", "Friction coefficient", std::to_string(params.mu_s));
     cli.AddOption<double>("Physics", "mu_2", "Friction coefficient", std::to_string(params.mu_2));
     cli.AddOption<double>("Physics", "cohesion", "Cohesion", std::to_string(params.cohesion));
@@ -239,6 +241,7 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     params.artificial_viscosity = cli.GetAsType<double>("artificial_viscosity");
     params.max_pressure = cli.GetAsType<double>("max_pressure");
     params.plate_diameter = cli.GetAsType<double>("plate_diameter");
+    params.container_height = cli.GetAsType<double>("container_height");
     params.mu_s = cli.GetAsType<double>("mu_s");
     params.mu_2 = cli.GetAsType<double>("mu_2");
     params.cohesion = cli.GetAsType<double>("cohesion");
@@ -259,7 +262,8 @@ int main(int argc, char* argv[]) {
                         /*kernel_type*/ "wendland",
                         /*artificial_viscosity*/ 0.2,
                         /*max_pressure*/ 30 * 1000,  // 30 kPa
-                        /*plate_diameter*/ 0.19,     // 19 cm
+                        /*plate_diameter*/ 0.102,    // 19 cm
+                        /*container_height*/ 0.024,  // 2.4 cm
                         /*verbose*/ true,
                         /*output*/ true,
                         /*output_fps*/ 50,
@@ -291,6 +295,7 @@ int main(int argc, char* argv[]) {
     std::cout << "artificial_viscosity: " << params.artificial_viscosity << std::endl;
     std::cout << "max_pressure: " << params.max_pressure << std::endl;
     std::cout << "plate_diameter: " << params.plate_diameter << std::endl;
+    std::cout << "container_height: " << params.container_height << std::endl;
     std::cout << "mu_s: " << params.mu_s << std::endl;
     std::cout << "mu_2: " << params.mu_2 << std::endl;
     std::cout << "cohesion: " << params.cohesion << std::endl;
@@ -310,9 +315,9 @@ void SimulateMaterial(int i, const SimParams& params) {
     std::cout << "t_end: " << t_end << std::endl;
 
     // double container_diameter = params.plate_diameter * 1.5;  // Plate is 20 cm in diameter
-    double container_diameter = 0.584;  // Plate is 20 cm in diameter
-    double container_height = 0.024;    // 2.4 cm since experimentally the plate reaches 0.6 cm
-    double cyl_length = 0.018;          // To prevent effect of sand falling on top of the plate
+    double container_diameter = 0.30;                   // Plate is 10 cm in diameter
+    double container_height = params.container_height;  // configurable via CLI
+    double cyl_length = 0.018;                          // To prevent effect of sand falling on top of the plate
 
     // Create a physics system
     ChSystemSMC sysMBS;
@@ -497,15 +502,23 @@ void SimulateMaterial(int i, const SimParams& params) {
     if (params.output || params.snapshots) {
         // Base output directory
         std::string base_dir;
+        // Height string in cm with 1 decimal place
+        const std::string heightCmStr = [&]() {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(1) << (params.container_height * 100.0) << "cm";
+            return oss.str();
+        }();
         switch (params.testing_mode) {
             case 0:
-                base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_2.4cm/";
+                base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_" + heightCmStr + "/";
                 break;
             case 1:
-                base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_2.4cm_correctedInitPressure/";
+                base_dir =
+                    GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_" + heightCmStr + "_correctedInitPressure/";
                 break;
             case 2:
-                base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_2.4cm_CorrectedInitPressure_densityScale/";
+                base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_" + heightCmStr +
+                           "_correctedInitPressure_densityScale/";
                 break;
             default:
                 std::cerr << "Invalid testing mode" << std::endl;
