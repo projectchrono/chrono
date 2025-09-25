@@ -910,9 +910,13 @@ public:
 
 // Some ready-to-use fields.
 
-class ChFeaFieldNONE : public ChFeaField<ChFeaFieldDataGeneric<0>> {};
-class ChFeaFieldScalar : public ChFeaField<ChFeaFieldDataGeneric<1>> {};
-class ChFeaFieldVector : public ChFeaField<ChFeaFieldDataGeneric<3>> {};
+class ChFeaFieldDataNONE : public ChFeaFieldDataGeneric<0> {};
+class ChFeaFieldDataScalar : public ChFeaFieldDataGeneric<1> {};
+class ChFeaFieldDataVector : public ChFeaFieldDataGeneric<3> {};
+
+class ChFeaFieldNONE : public ChFeaField<ChFeaFieldDataNONE> {};
+class ChFeaFieldScalar : public ChFeaField<ChFeaFieldDataScalar> {};
+class ChFeaFieldVector : public ChFeaField<ChFeaFieldDataVector> {};
 
 class ChFeaFieldTemperature : public ChFeaFieldScalar {};
 class ChFeaFieldElectricPotential : public ChFeaFieldScalar {};
