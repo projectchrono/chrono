@@ -12,26 +12,23 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simple demo for populating a Chrono system from a YAML model file and
-// simulating it with parameters from a YAML simulation file.
+// Demo for vehicle simulation specified through YAML files.
+// The vehicle is controlled interactively (keyboard).
 //
 // =============================================================================
 
-////#include <float.h>
-////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+#include "chrono_parsers/yaml/ChParserVehicleYAML.h"
 
-#include "chrono_parsers/yaml/ChParserMbsYAML.h"
+#include "chrono/utils/ChUtils.h"
 
-#include "chrono/assets/ChVisualSystem.h"
-#include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
 
@@ -42,25 +39,15 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-bool second_instance = false;  // create a second instance of the model
-ChFramed frame1 = second_instance ? ChFramed(ChVector3d(0, -1, 0), QUNIT) : ChFramed(ChVector3d(0, 0, 0), QUNIT);
-ChFramed frame2 = ChFramed(ChVector3d(0, +1, 0), QUNIT);
-std::string prefix1 = second_instance ? "m1_" : "";
-std::string prefix2 = "m2_";
-int instance1 = -1;
-int instance2 = -1;
-
-// -----------------------------------------------------------------------------
-
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Extract filenames from command-line arguments
-    std::string model_yaml_filename = GetChronoDataFile("yaml/models/slider_crank.yaml");
-    std::string sim_yaml_filename = GetChronoDataFile("yaml/simulations/basic_mbs.yaml");
+    std::string model_yaml_filename = GetChronoDataFile("yaml/vehicle/polaris.yaml");
+    std::string sim_yaml_filename = GetChronoDataFile("yaml/vehicle/simulation_vehicle.yaml");
 
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "m,model_file", "model specification YAML file", model_yaml_filename);
+    cli.AddOption<std::string>("", "m,model_file", "vehicle model specification YAML file", model_yaml_filename);
     cli.AddOption<std::string>("", "s,sim_file", "simulation specification YAML file", sim_yaml_filename);
 
     if (!cli.Parse(argc, argv, true))
@@ -72,42 +59,43 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << std::endl;
-    std::cout << "Model YAML file:        " << model_yaml_filename << std::endl;
-    std::cout << "Simulation YAML file:   " << sim_yaml_filename << std::endl;
+    std::cout << "Vehicle model YAML file: " << model_yaml_filename << std::endl;
+    std::cout << "Simulation YAML file:    " << sim_yaml_filename << std::endl;
 
-    // Create YAML parser object
-    parsers::ChParserMbsYAML parser;
-    parser.SetVerbose(true);
+    // Create the YAML parser object
+    parsers::ChParserVehicleYAML parser(model_yaml_filename, sim_yaml_filename, true);
 
-    // Load the YAML simulation file and create a Chrono system based on its content
-    parser.LoadSimulationFile(sim_yaml_filename);
+    // Create Chrono system and vehicle model
     auto sys = parser.CreateSystem();
-
-    // Load the YAML model and populate the Chrono system
-    parser.LoadModelFile(model_yaml_filename);
-    instance1 = parser.Populate(*sys, frame1, prefix1);
-    if (second_instance)
-        instance2 = parser.Populate(*sys, frame2, prefix2);
+    parser.CreateVehicle(*sys);
 
     // Extract information from parsed YAML files
+    auto vehicle = parser.GetVehicle();
+    auto terrain = parser.GetTerrain();
+
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
     bool real_time = parser.EnforceRealtime();
     bool render = parser.Render();
     double render_fps = parser.GetRenderFPS();
-    CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
-    const ChVector3d& camera_location = parser.GetCameraLocation();
-    const ChVector3d& camera_target = parser.GetCameraTarget();
     bool enable_shadows = parser.EnableShadows();
     bool output = parser.Output();
     double output_fps = parser.GetOutputFPS();
 
-    // Print system hierarchy
-    ////sys->ShowHierarchy(std::cout);
+    const ChVector3d& chassis_point = parser.GetChassisPoint();
+    double chase_distance = parser.GetChaseDistance();
+    double chase_height = parser.GetChaseHeight();
 
-    // Create the run-time visualization system
-    std::shared_ptr<ChVisualSystem> vis;
+    // Create an interactive VSG driver system
+    auto driver = chrono_types::make_shared<vehicle::ChInteractiveDriver>(*vehicle);
+    driver->SetSteeringDelta(0.02);
+    driver->SetThrottleDelta(0.02);
+    driver->SetBrakingDelta(0.06);
+    driver->Initialize();
+
+    // Create the vehicle run-time visualization interface and the interactive driver
+    std::shared_ptr<vehicle::ChVehicleVisualSystem> vis;
     if (render) {
         ChVisualSystem::Type vis_type;
 
@@ -123,15 +111,16 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-                auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-                vis_irr->SetWindowSize(800, 600);
-                vis_irr->SetWindowTitle("YAML model - " + model_name);
-                vis_irr->SetCameraVertical(camera_vertical);
+                auto vis_irr = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemIrrlicht>();
+                vis_irr->SetWindowTitle("Vehicle YAML demo - " + model_name);
+                vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+                vis_irr->SetChaseCamera(chassis_point, chase_distance, chase_height);
                 vis_irr->Initialize();
+                vis_irr->AddLightDirectional();
+                vis_irr->AddSkyBox();
                 vis_irr->AddLogo();
-                vis_irr->AddTypicalLights();
-                vis_irr->AddCamera(camera_location, camera_target);
-                vis_irr->AttachSystem(sys.get());
+                vis_irr->AttachVehicle(vehicle.get());
+                vis_irr->AttachDriver(driver.get());
 
                 vis = vis_irr;
 #endif
@@ -140,20 +129,19 @@ int main(int argc, char* argv[]) {
             default:
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-                vis_vsg->AttachSystem(sys.get());
-                vis_vsg->SetWindowTitle("YAML model - " + model_name);
-                vis_vsg->AddCamera(camera_location, camera_target);
+                auto vis_vsg = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemVSG>();
+                vis_vsg->SetWindowTitle("Vehicle YAML demo - " + model_name);
+                vis_vsg->AttachVehicle(vehicle.get());
+                vis_vsg->AttachDriver(driver.get());
+                vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+                vis_vsg->SetChaseCamera(chassis_point, chase_distance, chase_height);
                 vis_vsg->SetWindowSize(1280, 800);
                 vis_vsg->SetWindowPosition(100, 100);
-                vis_vsg->SetBackgroundColor(ChColor(0.4f, 0.45f, 0.55f));
-                vis_vsg->SetCameraVertical(camera_vertical);
-                vis_vsg->SetCameraAngleDeg(40.0);
+                vis_vsg->EnableSkyBox();
+                vis_vsg->SetCameraAngleDeg(40);
                 vis_vsg->SetLightIntensity(1.0f);
-                vis_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
+                vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
                 vis_vsg->EnableShadows(enable_shadows);
-                vis_vsg->ToggleAbsFrameVisibility();
-                vis_vsg->SetAbsFrameScale(2.0);
                 vis_vsg->Initialize();
 
                 vis = vis_vsg;
@@ -163,9 +151,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create output directory
+        // Create output directory
     if (output) {
-        std::string out_dir = GetChronoOutputPath() + "YAML_MBS";
+        std::string out_dir = GetChronoOutputPath() + "YAML_VEHICLE";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
@@ -176,13 +164,17 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         parser.SetOutputDir(out_dir);
+
+        ////vehicle->SetSuspensionOutput(0, true);
+        ////vehicle->SetSuspensionOutput(1, true);
+        ////vehicle->SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, out_dir, "output", 0.1);
     }
 
     // Simulation loop
-    ChRealtimeStepTimer rt_timer;
+    vehicle->EnableRealtime(real_time);
+
     double time = 0;
     int render_frame = 0;
-    int output_frame = 0;
 
     while (true) {
         if (render) {
@@ -200,16 +192,29 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        if (output) {
-            if (time >= output_frame / output_fps) {
-                parser.SaveOutput(*sys, output_frame);
-                output_frame++;
-            }
-        }
+        // Get driver inputs
+        vehicle::DriverInputs driver_inputs = driver->GetInputs();
 
+        // Update modules (process inputs from other modules)
+        driver->Synchronize(time);
+        if (terrain) {
+            vehicle->Synchronize(time, driver_inputs, *terrain);
+            terrain->Synchronize(time);
+        } else {
+            vehicle->Synchronize(time, driver_inputs);
+        }
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
+
+        // Advance simulation for one timestep for all modules
+        driver->Advance(time_step);
+        vehicle->Advance(time_step);
         sys->DoStepDynamics(time_step);
-        if (real_time)
-            rt_timer.Spin(time_step);
+        if (terrain)
+            terrain->Advance(time_step);
+        if (vis)
+            vis->Advance(time_step);
+
         time += time_step;
     }
 

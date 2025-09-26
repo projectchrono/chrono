@@ -44,7 +44,13 @@ if(CH_ENABLE_MODULE_FSI)
         yaml/ChParserCfdYAML.cpp
         yaml/ChParserSphYAML.h
         yaml/ChParserSphYAML.cpp
-)
+    )
+endif()
+if(CH_ENABLE_MODULE_VEHICLE)
+    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+        yaml/ChParserVehicleYAML.h
+        yaml/ChParserVehicleYAML.cpp
+    )
 endif()
 source_group("yaml" FILES ${Chrono_PARSERS_YAML_FILES})
 
@@ -88,6 +94,9 @@ endif()
 if(CH_ENABLE_MODULE_FSI)
   list (APPEND DEPENDENCIES_PARSERS "FSISPH")
 endif()
+if(CH_ENABLE_MODULE_VEHICLE)
+  list (APPEND DEPENDENCIES_PARSER "VEHICLE")
+endif()
 
 set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
 
@@ -129,6 +138,10 @@ if(CH_ENABLE_MODULE_FSI)
   if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(Chrono_parsers PRIVATE Chrono_fsisph_vsg)
   endif()
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE)
+  target_link_libraries(Chrono_parsers PRIVATE Chrono_vehicle)
 endif()
 
 # Include URDF parser if found --------------------------------------------

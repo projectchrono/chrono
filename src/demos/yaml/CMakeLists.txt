@@ -3,8 +3,12 @@
 
 set(DEMOS demo_YAML_mbs)
 
-if (CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
   set(DEMOS ${DEMOS} demo_YAML_fsi)
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE)
+  set(DEMOS ${DEMOS} demo_YAML_vehicle)
 endif()
 
 #--------------------------------------------------------------
@@ -32,6 +36,16 @@ if(CH_ENABLE_MODULE_FSI)
   list(APPEND LIBS Chrono_fsisph)
   if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_fsisph_vsg")
+  endif()
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE)
+  list(APPEND LIBS "Chrono_vehicle")
+  if(CH_ENABLE_MODULE_VSG)
+      list(APPEND LIBS "Chrono_vehicle_vsg")
+  endif()
+  if(CH_ENABLE_MODULE_IRRLICHT)
+      list(APPEND LIBS "Chrono_vehicle_irrlicht")
   endif()
 endif()
 
