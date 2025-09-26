@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
 
     // Extract filenames from command-line arguments
     std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/objectdrop.yaml");
+    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/baffleflow.yaml");
 
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", fsi_yaml_filename);

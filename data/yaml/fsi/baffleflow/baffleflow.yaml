@@ -1,0 +1,22 @@
+chrono-version: 9.0
+
+model:
+  name: CRM baffle flow
+
+  multibody_model:      "model_mbs.yaml"
+  multibody_simulation: "simulation_mbs.yaml"
+
+  fluid_model:          "model_sph.yaml"
+  fluid_simulation:     "simulation_sph.yaml"
+
+fsi_bodies: [baffle1, baffle2, baffle3]
+
+simulation:
+  time_step: 1e-4
+  end_time: -1
+
+visualization:
+  render_fps: 100
+
+output:
+  output_fps: 100

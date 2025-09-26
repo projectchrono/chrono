@@ -128,7 +128,10 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         FluidParams();
         void PrintInfo();
 
+        fsi::sph::PhysicsProblem physics_problem;
+
         fsi::sph::ChFsiFluidSystemSPH::FluidProperties fluid_props;
+        fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties soil_props;
 
         std::unique_ptr<BoxDomain> fluid_domain_cartesian;
         std::unique_ptr<AnnulusDomain> fluid_domain_cylindrical;
@@ -200,6 +203,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Return the path to the specified data file.
     std::string GetDatafilePath(const std::string& filename);
 
+    static fsi::sph::PhysicsProblem ReadPhysicsProblemType(const YAML::Node& a);
     static GeometryType ReadGeometryType(const YAML::Node& a);
     static DataPathType ReadDataPathType(const YAML::Node& a);
     static fsi::sph::EosType ReadEosType(const YAML::Node& a);

@@ -63,7 +63,7 @@ color: &COLOR
 model:
   description: Definition of a Chrono::SPH fluid model
   type: object
-  required: [geometry_type, fluid_domain]
+  required: [physics_problem, geometry_type, fluid_domain]
 
   properties:
 
@@ -71,7 +71,12 @@ model:
       type: string
       description: Name of the model
       default: ''
-    
+
+    physics_problem:
+      description: Fluid physics type (incompresible fluid or homogenized granular dynamic).
+      type: string
+      enum: [CFD, CRM]
+
     geometry_type:
       description: Cartesian or cylindrical coordinate geometry.
       type: string
@@ -93,7 +98,7 @@ model:
             default: "."
 
     fluid_properties:
-      description: Physical parameters of the fluid.
+      description: Physical parameters of the fluid (CFD physics).
       type: object
       properties:
         density:
@@ -108,6 +113,12 @@ model:
           description: Characteristic length for Reynolds number calculation.
           type: number
           minimum: 0
+
+    soil_properties:
+      description: Physical parameters of the soil (CRM physics).
+      type: object
+      properties:
+        # TODO
 
     fluid_domain:
       description: Specification of the SPH fluid domain.

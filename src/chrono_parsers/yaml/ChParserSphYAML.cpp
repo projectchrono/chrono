@@ -13,7 +13,8 @@
 // =============================================================================
 
 //// TODO
-//// - associuate FSI flexible solids
+//// - add option to specify initial SPH particle properties (e.g. depth-based pressure, initial vel)
+//// - associate FSI flexible solids
 //// - output
 
 #include <algorithm>
@@ -110,6 +111,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
             m_sim.sph.density_reinit_steps = a["density_reinit_steps"].as<int>();
         if (a["use_density_based_projection"])
             m_sim.sph.use_density_based_projection = a["use_density_based_projection"].as<bool>();
+        if (a["free_surface_threshold"])
+            m_sim.sph.free_surface_threshold = a["free_surface_threshold"].as<double>();
     }
 
     // SPH kernel parameters
@@ -354,6 +357,10 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     ChAssertAlways(yaml["model"]);
     auto model = yaml["model"];
 
+    // Physics problem type is required
+    ChAssertAlways(model["physics_problem"]);
+    m_fluid.physics_problem = ReadPhysicsProblemType(model["physics_problem"]);
+
     // Problem geometry is required
     ChAssertAlways(model["geometry_type"]);
     m_geometry_type = ReadGeometryType(model["geometry_type"]);
@@ -383,7 +390,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     // Read fluid properties
-    if (model["fluid properties"]) {
+    if (model["fluid_properties"]) {
         auto a = model["fluid properties"];
         if (a["density"])
             m_fluid.fluid_props.density = a["density"].as<double>();
@@ -391,6 +398,27 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             m_fluid.fluid_props.viscosity = a["viscosity"].as<double>();
         if (a["char_length"])
             m_fluid.fluid_props.char_length = a["char_length"].as<double>();
+    }
+
+    // Read soil properties
+    if (model["soil_properties"]) {
+        auto a = model["soil properties"];
+        if (a["density"])
+            m_fluid.soil_props.density = a["density"].as<double>();
+        if (a["Young_modulus"])
+            m_fluid.soil_props.Young_modulus = a["Young_modulus"].as<double>();
+        if (a["Poisson_ratio"])
+            m_fluid.soil_props.Poisson_ratio = a["Poisson_ratio"].as<double>();
+        if (a["mu_I0"])
+            m_fluid.soil_props.mu_I0 = a["mu_I0"].as<double>();
+        if (a["mu_fric_s"])
+            m_fluid.soil_props.mu_fric_s = a["mu_fric_s"].as<double>();
+        if (a["mu_fric_2"])
+            m_fluid.soil_props.mu_fric_2 = a["mu_fric_2"].as<double>();
+        if (a["average_diam"])
+            m_fluid.soil_props.average_diam = a["average_diam"].as<double>();
+        if (a["cohesion_coefficient"])
+            m_fluid.soil_props.cohesion_coeff = a["cohesion_coefficient"].as<double>();
     }
 
     // Read fluid domain settings
@@ -446,19 +474,19 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         auto a = model["container"];
         switch (m_geometry_type) {
             case GeometryType::CARTESIAN:
-                m_fluid.fluid_domain_cartesian = chrono_types::make_unique<BoxDomain>();
+                m_fluid.container_cartesian = chrono_types::make_unique<BoxDomain>();
                 ChAssertAlways(a["dimensions"]);
-                m_fluid.fluid_domain_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
+                m_fluid.container_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
                 if (a["box_origin"]) {
-                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["box_origin"]);
+                    m_fluid.container_cartesian->origin = ChParserMbsYAML::ReadVector(a["box_origin"]);
                 } else {
-                    m_fluid.fluid_domain_cartesian->origin = VNULL;
+                    m_fluid.container_cartesian->origin = VNULL;
                 }
                 if (a["box_walls"]) {
-                    m_fluid.fluid_domain_cartesian->wall_code = ReadWallFlagsCartesian(a["box_walls"]);
-                    has_walls = (m_fluid.fluid_domain_cartesian->wall_code != fsi::sph::BoxSide::NONE);
+                    m_fluid.container_cartesian->wall_code = ReadWallFlagsCartesian(a["box_walls"]);
+                    has_walls = (m_fluid.container_cartesian->wall_code != fsi::sph::BoxSide::NONE);
                 } else {
-                    m_fluid.fluid_domain_cartesian->wall_code = fsi::sph::BoxSide::NONE;
+                    m_fluid.container_cartesian->wall_code = fsi::sph::BoxSide::NONE;
                 }
                 break;
             case GeometryType::CYLINDRICAL:
@@ -488,10 +516,11 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     if (model["computational_domain"]) {
         auto a = model["computational_domain"];
         m_fluid.computational_domain = chrono_types::make_unique<ComputationalDomain>();
-        ChAssertAlways(a["aabb"]);
+        ChAssertAlways(a["aabb_min"]);
+        ChAssertAlways(a["aabb_max"]);
         m_fluid.computational_domain->aabb.min = ChParserMbsYAML::ReadVector(a["aabb_min"]);
         m_fluid.computational_domain->aabb.max = ChParserMbsYAML::ReadVector(a["aabb_max"]);
-        if (a["x_bce_type"]) {
+        if (a["x_bc_type"]) {
             auto x_bc_type = ReadBoundaryConditionType(a["x_bc_type"]);
             if (x_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
@@ -501,7 +530,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             }
             m_fluid.computational_domain->bc_type.x = x_bc_type;
         }
-        if (a["y_bce_type"]) {
+        if (a["y_bc_type"]) {
             auto y_bc_type = ReadBoundaryConditionType(a["y_bc_type"]);
             if (y_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
@@ -511,7 +540,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             }
             m_fluid.computational_domain->bc_type.y = y_bc_type;
         }
-        if (a["z_bce_type"]) {
+        if (a["z_bc_type"]) {
             auto z_bc_type = ReadBoundaryConditionType(a["z_bc_type"]);
             if (z_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
                 ChAssertAlways(m_fluid.fluid_domain_cartesian->wall_code &
@@ -559,13 +588,22 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
             break;
     }
 
+    m_fsi_problem->SetVerbose(m_verbose);
+
     // Set simulation parameters
     m_fsi_problem->SetGravitationalAcceleration(m_sim.gravity);
     m_fsi_problem->SetStepSizeCFD(m_sim.time_step);
     m_fsi_problem->SetSPHParameters(m_sim.sph);
 
     // Set fluid properties
-    m_fsi_problem->SetCfdSPH(m_fluid.fluid_props);
+    switch (m_fluid.physics_problem) {
+        case fsi::sph::PhysicsProblem::CFD:
+            m_fsi_problem->SetCfdSPH(m_fluid.fluid_props);
+            break;
+        case fsi::sph::PhysicsProblem::CRM:
+            m_fsi_problem->SetElasticSPH(m_fluid.soil_props);
+            break;
+    }
 
     // Create fluid domain and optional container
     switch (m_geometry_type) {
@@ -672,11 +710,28 @@ void ChParserSphYAML::SaveOutput(int frame) {
 ChParserSphYAML::FluidParams::FluidParams() {}
 
 void ChParserSphYAML::FluidParams::PrintInfo() {
-    cout << "fluid parameters" << endl;
-    cout << "  properties" << endl;
-    cout << "     density:               " << fluid_props.density << endl;
-    cout << "     viscosity:             " << fluid_props.viscosity << endl;
-    cout << "     characteristic length: " << fluid_props.char_length << endl;
+    switch (physics_problem) {
+        case fsi::sph::PhysicsProblem::CFD:
+            cout << "fluid parameters" << endl;
+            cout << "  properties" << endl;
+            cout << "     density:               " << fluid_props.density << endl;
+            cout << "     viscosity:             " << fluid_props.viscosity << endl;
+            cout << "     characteristic length: " << fluid_props.char_length << endl;
+            break;
+        case fsi::sph::PhysicsProblem::CRM:
+            cout << "soil parameters" << endl;
+            cout << "  properties" << endl;
+            cout << "      density:               " << soil_props.density << endl;
+            cout << "      Young modulus:         " << soil_props.Young_modulus << endl;
+            cout << "      Poisson ratio:         " << soil_props.Poisson_ratio << endl;
+            cout << "      mu I0 :                " << soil_props.mu_I0 << endl;
+            cout << "      mu fric_s :            " << soil_props.mu_fric_s << endl;
+            cout << "      mu fric_2 :            " << soil_props.mu_fric_2 << endl;
+            cout << "      average diameter :     " << soil_props.average_diam << endl;
+            cout << "      cohesion coefficient : " << soil_props.cohesion_coeff << endl;
+            break;
+    }
+
     if (fluid_domain_cartesian) {
         cout << "  domain (CARTESIAN)" << endl;
         cout << "      dimensions: " << fluid_domain_cartesian->dimensions << endl;
@@ -690,6 +745,7 @@ void ChParserSphYAML::FluidParams::PrintInfo() {
         cout << "      origin:       " << fluid_domain_cylindrical->origin << endl;
         cout << "      wall code:    " << fluid_domain_cylindrical->wall_code << endl;
     }
+
     if (container_cartesian) {
         cout << "  container (CARTESIAN)" << endl;
         cout << "      dimensions: " << container_cartesian->dimensions << endl;
@@ -816,6 +872,15 @@ std::string ChParserSphYAML::GetDatafilePath(const std::string& filename) {
 }
 
 // -----------------------------------------------------------------------------
+
+fsi::sph::PhysicsProblem ChParserSphYAML::ReadPhysicsProblemType(const YAML::Node& a) {
+    auto val = ToUpper(a.as<std::string>());
+    if (val == "CFD")
+        return fsi::sph::PhysicsProblem::CFD;
+    if (val == "CRM")
+        return fsi::sph::PhysicsProblem::CRM;
+    return fsi::sph::PhysicsProblem::CFD;
+}
 
 ChParserSphYAML::GeometryType ChParserSphYAML::ReadGeometryType(const YAML::Node& a) {
     auto val = ToUpper(a.as<std::string>());

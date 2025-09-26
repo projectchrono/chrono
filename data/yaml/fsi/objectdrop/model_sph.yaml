@@ -2,6 +2,7 @@ chrono-version: 9.0
 
 model:
   name: Box water tank
+  physics_problem: CFD
   geometry_type: CARTESIAN
   #geometry_type: CYLINDRICAL
   
@@ -53,7 +54,7 @@ model:
   #computational_domain:
   #  aabb_min: [-1, -1, -1]
   #  aabb_max: [1, 1, 1]
-  #  x_bce_type: NONE
-  #  y_bce_type: NONE
-  #  z_bce_type: NONE
-    
+  #  x_bc_type: NONE
+  #  y_bc_type: NONE
+  #  z_bc_type: NONE
+   
