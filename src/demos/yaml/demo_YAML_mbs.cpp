@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Extract filenames from command-line arguments
-    std::string model_yaml_filename = GetChronoDataFile("yaml/models/slider_crank.yaml");
-    std::string sim_yaml_filename = GetChronoDataFile("yaml/simulations/basic_mbs.yaml");
+    std::string model_yaml_filename = GetChronoDataFile("yaml/mbs/slider_crank.yaml");
+    std::string sim_yaml_filename = GetChronoDataFile("yaml/mbs/simulation_mbs.yaml");
 
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "m,model_file", "model specification YAML file", model_yaml_filename);
