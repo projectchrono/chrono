@@ -15,6 +15,10 @@ model:
     viscosity: 1.0
     characteristic_length: 1.0
 
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 1.2
+
   fluid_domain:
     # Box domain (CARTESIAN)
     dimensions: [0.8, 0.8, 1.2]

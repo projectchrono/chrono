@@ -13,7 +13,6 @@
 // =============================================================================
 
 //// TODO
-//// - add option to specify initial SPH particle properties (e.g. depth-based pressure, initial vel)
 //// - associate FSI flexible solids
 //// - output
 
@@ -46,6 +45,9 @@ ChParserSphYAML::ChParserSphYAML(const std::string& yaml_model_filename,
       m_name("YAML SPH model"),
       m_data_path(DataPathType::ABS),
       m_rel_path("."),
+      m_depth_based_pressure(false),
+      m_initial_velocity(false),
+      m_velocity(VNULL),
       m_sim_loaded(false),
       m_model_loaded(false),
       m_output_dir("") {
@@ -421,6 +423,22 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             m_fluid.soil_props.cohesion_coeff = a["cohesion_coefficient"].as<double>();
     }
 
+    // Read SPH state initialization settings
+    if (model["initial_states"]) {
+        auto a = model["initial_states"];
+        if (a["depth_based_pressure"]) {
+            m_depth_based_pressure = true;
+            ChAssertAlways(a["zero_height"]);
+            m_zero_height = a["zero_height"].as<double>();
+            cout << "--------------   zero height " << m_zero_height << endl;
+        }
+        if (a["initial_velocity"]) {
+            m_initial_velocity = true;
+            m_velocity = ChParserMbsYAML::ReadVector(a["initial_velocity"]);
+            cout << "------------  initi vel " << m_velocity << endl;
+        }
+    }
+
     // Read fluid domain settings
     bool has_walls = false;
     ChAssertAlways(model["fluid_domain"]);
@@ -562,6 +580,33 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
 
 // -----------------------------------------------------------------------------
 
+// Callback for setting initial SPH particle properties
+class SPHPropertiesCallback : public fsi::sph::ChFsiProblemSPH::ParticlePropertiesCallback {
+  public:
+    SPHPropertiesCallback(bool set_pressure, double zero_height, bool set_velocity, const ChVector3d& init_velocity)
+        : ParticlePropertiesCallback(), set_pressure(set_pressure), zero_height(zero_height), set_velocity(set_velocity), init_velocity(init_velocity) {}
+
+    virtual void set(const fsi::sph::ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+        if (set_pressure) {
+            double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+            double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
+            p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+            rho0 = sysSPH.GetDensity() + p0 / c2;
+            mu0 = sysSPH.GetViscosity();
+        }
+
+        if (set_velocity) {
+            v0 = init_velocity;
+        }
+    }
+
+    bool set_pressure;
+    double zero_height;
+    bool set_velocity;
+    ChVector3d init_velocity;
+};
+
+
 std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(bool initialize) {
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
@@ -603,6 +648,12 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
         case fsi::sph::PhysicsProblem::CRM:
             m_fsi_problem->SetElasticSPH(m_fluid.soil_props);
             break;
+    }
+
+    // Set callback for initial states
+    if (m_depth_based_pressure || m_initial_velocity) {
+        m_fsi_problem->RegisterParticlePropertiesCallback(
+            chrono_types::make_shared<SPHPropertiesCallback>(m_depth_based_pressure, m_zero_height, m_initial_velocity, m_velocity));
     }
 
     // Create fluid domain and optional container

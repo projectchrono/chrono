@@ -232,6 +232,11 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> m_fsi_problem;  ///< underlying FSI problem
 
+    bool m_depth_based_pressure;
+    double m_zero_height;
+    bool m_initial_velocity;
+    ChVector3d m_velocity;
+
     std::string m_output_dir;               ///< root oputput directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
     OutputData m_output_data;               ///< output data

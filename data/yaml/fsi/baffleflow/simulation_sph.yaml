@@ -26,7 +26,7 @@ simulation:
 
   boundary_conditions:
      boundary_method: ADAMI
-     num_bce_layers: 4
+     num_bce_layers: 3
 
   integration:
      integration_scheme: RK2
