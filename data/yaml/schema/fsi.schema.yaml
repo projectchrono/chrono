@@ -9,7 +9,7 @@
 # http://projectchrono.org/license-chrono.txt.
 # =============================================================================
 #
-# Schema for a Chrono YAML FSI problem specification file.
+# Schema for a YAML Chrono::FSI problem specification file.
 # The `chrono-version` must match the Chrono major and minor version numbers.
 #
 # =============================================================================
@@ -25,7 +25,7 @@ chrono-version:
 
 model:
   description: |
-    Schema for FSDI problem parameters.
+    Schema for FSI problem parameters.
     This schema defines the multibody and fluid models, the simulation parameters for the two solvers, and the co-simulation metastep.
   type: object
   required: [multibody_model, multibody_simulation, fluid_model, fluid_simulation]

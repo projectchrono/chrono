@@ -23,6 +23,10 @@ The various YAML parser classes allows parsing YAML specification files for Chro
 * @subpage YAML_schema_mbs_models
 * @subpage YAML_schema_mbs_simulations
 
+**YAML specification of vehicle models**
+
+* @subpage YAML_schema_vehicle_models
+
 **YAML specification of FSI problems**
 
 * @subpage YAML_schema_fsi_problems
