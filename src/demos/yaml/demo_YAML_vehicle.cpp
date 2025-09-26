@@ -25,10 +25,12 @@
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
 
@@ -43,8 +45,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Extract filenames from command-line arguments
-    std::string model_yaml_filename = GetChronoDataFile("yaml/vehicle/polaris.yaml");
     std::string sim_yaml_filename = GetChronoDataFile("yaml/vehicle/simulation_vehicle.yaml");
+    std::string model_yaml_filename = GetChronoDataFile("yaml/vehicle/polaris.yaml");
+    ////std::string model_yaml_filename = GetChronoDataFile("yaml/vehicle/marder.yaml");
 
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "m,model_file", "vehicle model specification YAML file", model_yaml_filename);
@@ -71,6 +74,7 @@ int main(int argc, char* argv[]) {
 
     // Extract information from parsed YAML files
     auto vehicle = parser.GetVehicle();
+    auto vehicle_type = parser.GetVehicleType();
     auto terrain = parser.GetTerrain();
 
     const std::string& model_name = parser.GetName();
@@ -111,7 +115,11 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-                auto vis_irr = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemIrrlicht>();
+                std::shared_ptr<vehicle::ChVehicleVisualSystemIrrlicht> vis_irr;
+                if (vehicle_type == parsers::ChParserVehicleYAML::VehicleType::WHEELED)
+                    vis_irr = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemIrrlicht>();
+                else
+                    vis_irr = chrono_types::make_shared<vehicle::ChTrackedVehicleVisualSystemIrrlicht>();
                 vis_irr->SetWindowTitle("Vehicle YAML demo - " + model_name);
                 vis_irr->SetCameraVertical(CameraVerticalDir::Z);
                 vis_irr->SetChaseCamera(chassis_point, chase_distance, chase_height);
@@ -129,7 +137,11 @@ int main(int argc, char* argv[]) {
             default:
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                auto vis_vsg = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemVSG>();
+                std::shared_ptr<vehicle::ChVehicleVisualSystemVSG> vis_vsg;
+                if (vehicle_type == parsers::ChParserVehicleYAML::VehicleType::WHEELED)
+                    vis_vsg = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemVSG>();
+                else
+                    vis_vsg = chrono_types::make_shared<vehicle::ChTrackedVehicleVisualSystemVSG>();
                 vis_vsg->SetWindowTitle("Vehicle YAML demo - " + model_name);
                 vis_vsg->AttachVehicle(vehicle.get());
                 vis_vsg->AttachDriver(driver.get());

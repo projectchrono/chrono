@@ -12,6 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 
+//// TODO
+////    For now, we assume that the YAML file and the vehicle JSON data files reside in the Chrono data directory.
+////    Relax this constraint.
+
 //// TODO - support tracked vehicles
 
 #include "chrono/ChConfig.h"
@@ -20,6 +24,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_parsers/yaml/ChParserVehicleYAML.h"
 
@@ -83,6 +88,29 @@ static void CheckVersion(const YAML::Node& a) {
     ChAssertAlways(chrono_minor == CHRONO_VERSION_MINOR);
 }
 
+ChParserVehicleYAML::VehicleType ChParserVehicleYAML::ReadVehicleType(const std::string& vehicle_json) {
+    // Peek in vehicle JSON file and infer type
+    rapidjson::Document d;
+    vehicle::ReadFileJSON(vehicle_json, d);
+    ChAssertAlways(!d.IsNull());
+    ChAssertAlways(d.HasMember("Type"));
+    ChAssertAlways(d.HasMember("Template"));
+
+    std::string type = d["Type"].GetString();
+    ChAssertAlways(type.compare("Vehicle") == 0);
+    std::string subtype = d["Template"].GetString();
+
+    if (subtype == "WheeledVehicle")
+        return VehicleType::WHEELED;
+    return VehicleType::TRACKED;
+}
+
+std::string ChParserVehicleYAML::GetVehicleTypeAsString() const {
+    if (m_vehicle_type == VehicleType::WHEELED)
+        return "Wheeled";
+    return "Tracked";
+}
+
 void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
     auto path = filesystem::path(yaml_filename);
     if (!path.exists() || !path.is_file()) {
@@ -108,29 +136,34 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
     ChAssertAlways(model["vehicle_json"]);
     ChAssertAlways(model["engine_json"]);
     ChAssertAlways(model["transmission_json"]);
-    ChAssertAlways(model["tire_json"]);
     auto vehicle_json = model["vehicle_json"].as<std::string>();
     auto engine_json = model["engine_json"].as<std::string>();
     auto transmission_json = model["transmission_json"].as<std::string>();
-    auto tire_json = model["tire_json"].as<std::string>();
 
     m_vehicle_json = script_dir + "/" + vehicle_json;
     m_engine_json = script_dir + "/" + engine_json;
     m_transmission_json = script_dir + "/" + transmission_json;
-    m_tire_json = script_dir + "/" + tire_json;
 
-    if (model["terrain_json"]) {
-        auto terrain_json = model["terrain_json"].as<std::string>();
+    m_vehicle_type = ReadVehicleType(GetChronoDataFile(m_vehicle_json));
+
+    if (m_vehicle_type == VehicleType::WHEELED) {
+        ChAssertAlways(model["tire_json"]);
+        auto tire_json = model["tire_json"].as<std::string>();
+        m_tire_json = script_dir + "/" + tire_json;
+    }
+
+    if (yaml["terrain_json"]) {
+        auto terrain_json = yaml["terrain_json"].as<std::string>();
         m_terrain_json = script_dir + "/" + terrain_json;
     }
 
-    if (model["initial_position"])
-        m_init_position = ChParserMbsYAML::ReadVector(model["initial_position"]);
-    if (model["initial_yaw"])
-        m_init_yaw = CH_DEG_TO_RAD * model["initial_yaw"].as<double>();
+    if (yaml["initial_position"])
+        m_init_position = ChParserMbsYAML::ReadVector(yaml["initial_position"]);
+    if (yaml["initial_yaw"])
+        m_init_yaw = CH_DEG_TO_RAD * yaml["initial_yaw"].as<double>();
 
-    if (model["chase_camera"]) {
-        auto a = model["chase_camera"];
+    if (yaml["chase_camera"]) {
+        auto a = yaml["chase_camera"];
         ChAssertAlways(a["chassis_point"]);
         ChAssertAlways(a["chase_distance"]);
         ChAssertAlways(a["chase_height"]);
@@ -156,29 +189,66 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
 }
 
 void ChParserVehicleYAML::CreateVehicle(ChSystem& sys) {
+    if (m_verbose) {
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\nCreate vehicle (" << GetVehicleTypeAsString() << ")\n" << endl;
+    }
+
     // Create a wheeled vehicle system
-    auto vehicle =
-        chrono_types::make_shared<vehicle::WheeledVehicle>(&sys, GetChronoDataFile(m_vehicle_json), false, false);
-    vehicle->Initialize(ChCoordsys<>(m_init_position, QuatFromAngleZ(m_init_yaw)));
-    vehicle->GetChassis()->SetFixed(false);
-    vehicle->SetChassisVisualizationType(m_vis_chassis);
-    vehicle->SetChassisRearVisualizationType(m_vis_trailer);
-    vehicle->SetSubchassisVisualizationType(m_vis_subchassis);
-    vehicle->SetSuspensionVisualizationType(m_vis_suspension);
-    vehicle->SetSteeringVisualizationType(m_vis_steering);
-    vehicle->SetWheelVisualizationType(m_vis_wheel);
+    std::shared_ptr<vehicle::WheeledVehicle> vehicleW;
+    std::shared_ptr<vehicle::TrackedVehicle> vehicleT;
+
+    switch (m_vehicle_type) {
+        case VehicleType::WHEELED:
+            vehicleW = chrono_types::make_shared<vehicle::WheeledVehicle>(&sys, GetChronoDataFile(m_vehicle_json),
+                                                                          false, false);
+            vehicleW->Initialize(ChCoordsys<>(m_init_position, QuatFromAngleZ(m_init_yaw)));
+            vehicleW->GetChassis()->SetFixed(false);
+
+            vehicleW->SetChassisVisualizationType(m_vis_chassis);
+            vehicleW->SetChassisRearVisualizationType(m_vis_trailer);
+            vehicleW->SetSubchassisVisualizationType(m_vis_subchassis);
+            vehicleW->SetSuspensionVisualizationType(m_vis_suspension);
+            vehicleW->SetSteeringVisualizationType(m_vis_steering);
+            vehicleW->SetWheelVisualizationType(m_vis_wheel);
+
+            m_vehicle = vehicleW;
+
+            break;
+
+        case VehicleType::TRACKED:
+            vehicleT = chrono_types::make_shared<vehicle::TrackedVehicle>(&sys, GetChronoDataFile(m_vehicle_json));
+            vehicleT->Initialize(ChCoordsys<>(m_init_position, QuatFromAngleZ(m_init_yaw)));
+            vehicleT->GetChassis()->SetFixed(false);
+
+            vehicleT->SetChassisVisualizationType(m_vis_chassis);
+            vehicleT->SetSuspensionVisualizationType(m_vis_suspension);
+            vehicleT->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+            vehicleT->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+            vehicleT->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+            vehicleT->SetIdlerWheelVisualizationType(VisualizationType::PRIMITIVES);
+            vehicleT->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
+            vehicleT->SetRollerVisualizationType(VisualizationType::PRIMITIVES);
+            vehicleT->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+            m_vehicle = vehicleT;
+
+            break;
+    }
 
     // Create and initialize the powertrain system
     auto engine = vehicle::ReadEngineJSON(GetChronoDataFile(m_engine_json));
     auto transmission = vehicle::ReadTransmissionJSON(GetChronoDataFile(m_transmission_json));
     auto powertrain = chrono_types::make_shared<vehicle::ChPowertrainAssembly>(engine, transmission);
-    vehicle->InitializePowertrain(powertrain);
+    m_vehicle->InitializePowertrain(powertrain);
 
     // Create and initialize the tires
-    for (unsigned int i = 0; i < vehicle->GetNumberAxles(); i++) {
-        for (auto& wheel : vehicle->GetAxle(i)->GetWheels()) {
-            auto tire = vehicle::ReadTireJSON(GetChronoDataFile(m_tire_json));
-            vehicle->InitializeTire(tire, wheel, m_vis_tire);
+    if (m_vehicle_type == VehicleType::WHEELED) {
+        for (unsigned int i = 0; i < vehicleW->GetNumberAxles(); i++) {
+            for (auto& wheel : vehicleW->GetAxle(i)->GetWheels()) {
+                auto tire = vehicle::ReadTireJSON(GetChronoDataFile(m_tire_json));
+                vehicleW->InitializeTire(tire, wheel, m_vis_tire);
+            }
         }
     }
 
@@ -187,9 +257,6 @@ void ChParserVehicleYAML::CreateVehicle(ChSystem& sys) {
         m_terrain = chrono_types::make_shared<vehicle::RigidTerrain>(&sys, m_terrain_json);
         m_terrain->Initialize();
     }
-
-    // Cache the vehicle object
-    m_vehicle = vehicle;
 }
 
 }  // namespace parsers

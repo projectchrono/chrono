@@ -7,7 +7,7 @@ chrono-version: 9.0
 simulation:
   contact_method: SMC
   
-  time_step: 2e-3
+  time_step: 5e-4
   end_time: 10
   enforce_realtime: true
   
@@ -17,7 +17,7 @@ simulation:
   solver:
       type: Barzilai_Borwein
       max_iterations: 100
-      overrelaxation_factor: 1.0
+      overrelaxation_factor: 0.8
       sharpness_factor: 1.0
   
   output:

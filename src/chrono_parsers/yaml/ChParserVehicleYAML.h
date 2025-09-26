@@ -38,6 +38,8 @@ namespace parsers {
 /// Utility class to parse a YAML specification file for a vehicle model.
 class ChApiParsers ChParserVehicleYAML {
   public:
+    enum class VehicleType { WHEELED, TRACKED };
+
     /// Create a YAML parser and load the model from the specified input YAML file.
     ChParserVehicleYAML(const std::string& yaml_model_filename,
                         const std::string& yaml_sim_filename,
@@ -80,6 +82,12 @@ class ChApiParsers ChParserVehicleYAML {
     /// Return the name of the YAML vehicle model.
     const std::string& GetName() const { return m_name; }
 
+    /// Get vehicle type (from specified vehicleJSON file).
+    VehicleType GetVehicleType() const { return m_vehicle_type; }
+
+    /// Get vehicle type as a string.
+    std::string GetVehicleTypeAsString() const;
+
     /// Populate the given system with the cached Chrono::Vehicle model.
     void CreateVehicle(ChSystem& sys);
 
@@ -94,10 +102,13 @@ class ChApiParsers ChParserVehicleYAML {
     double GetChaseHeight() const { return m_chase_height; }
 
   private:
+    VehicleType ReadVehicleType(const std::string& vehicle_json);
+
     bool m_verbose;
 
     std::string m_name;
     bool m_model_loaded;
+    VehicleType m_vehicle_type;
 
     std::string m_vehicle_json;
     std::string m_tire_json;
