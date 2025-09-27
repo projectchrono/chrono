@@ -16,9 +16,7 @@
 #define CH_PARSER_VEHICLE_YAML_H
 
 #include <string>
-#include <vector>
 
-#include "chrono_parsers/ChApiParsers.h"
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 
 #include "chrono_vehicle/ChVehicle.h"
@@ -27,8 +25,6 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
-
 namespace chrono {
 namespace parsers {
 
@@ -36,7 +32,7 @@ namespace parsers {
 /// @{
 
 /// Utility class to parse a YAML specification file for a vehicle model.
-class ChApiParsers ChParserVehicleYAML {
+class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
   public:
     enum class VehicleType { WHEELED, TRACKED };
 
@@ -45,9 +41,6 @@ class ChApiParsers ChParserVehicleYAML {
                         const std::string& yaml_sim_filename,
                         bool verbose = false);
     ~ChParserVehicleYAML();
-
-    /// Set verbose temrinal output (default: false).
-    void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Return true if a YAML simulation file has been loaded.
     bool HasSimulationData() const { return m_parserMBS->HasSimulationData(); }
@@ -66,10 +59,6 @@ class ChApiParsers ChParserVehicleYAML {
     const ChVector3d& GetCameraLocation() const { return m_parserMBS->GetCameraLocation(); }
     const ChVector3d& GetCameraTarget() const { return m_parserMBS->GetCameraTarget(); }
     bool EnableShadows() const { return m_parserMBS->EnableShadows(); }
-    bool Output() const { return m_parserMBS->Output(); }
-    ChOutput::Type GetOutputType() const { return m_parserMBS->GetOutputType(); }
-    double GetOutputFPS() const { return m_parserMBS->GetOutputFPS(); }
-    void SetOutputDir(const std::string& out_dir) { m_parserMBS->SetOutputDir(out_dir); }
 
     /// Create and return a Chrono system configured from cached simulation parameters.
     std::shared_ptr<ChSystem> CreateSystem() { return m_parserMBS->CreateSystem(); }
@@ -78,9 +67,6 @@ class ChApiParsers ChParserVehicleYAML {
 
     /// Load the specified vehicle model input YAML file.
     void LoadModelFile(const std::string& yaml_filename);
-
-    /// Return the name of the YAML vehicle model.
-    const std::string& GetName() const { return m_name; }
 
     /// Get vehicle type (from specified vehicleJSON file).
     VehicleType GetVehicleType() const { return m_vehicle_type; }
@@ -104,9 +90,6 @@ class ChApiParsers ChParserVehicleYAML {
   private:
     VehicleType ReadVehicleType(const std::string& vehicle_json);
 
-    bool m_verbose;
-
-    std::string m_name;
     bool m_model_loaded;
     VehicleType m_vehicle_type;
 

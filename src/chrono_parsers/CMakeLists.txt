@@ -33,6 +33,8 @@ set(Chrono_PARSERS_FILES
 source_group("" FILES ${Chrono_PARSERS_FILES})
 
 set(Chrono_PARSERS_YAML_FILES
+    yaml/ChParserYAML.h
+    yaml/ChParserYAML.cpp
     yaml/ChParserMbsYAML.h
     yaml/ChParserMbsYAML.cpp
 )

@@ -16,10 +16,6 @@
 ////    For now, we assume that the YAML file and the vehicle JSON data files reside in the Chrono data directory.
 ////    Relax this constraint.
 
-//// TODO - support tracked vehicles
-
-#include "chrono/ChConfig.h"
-#include "chrono/ChVersion.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
@@ -40,8 +36,7 @@ namespace parsers {
 ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_model_filename,
                                          const std::string& yaml_sim_filename,
                                          bool verbose)
-    : m_name("YAML model"),
-      m_verbose(verbose),
+    : ChParserYAML(),
       m_init_position(VNULL),
       m_init_yaw(0.0),
       m_chassis_point(VNULL),
@@ -63,30 +58,6 @@ ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_model_filename,
 ChParserVehicleYAML::~ChParserVehicleYAML() {}
 
 // -----------------------------------------------------------------------------
-
-static std::string ToUpper(std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(), ::toupper);
-    return in;
-}
-
-static void CheckVersion(const YAML::Node& a) {
-    std::string chrono_version = a.as<std::string>();
-
-    auto first = chrono_version.find(".");
-    ChAssertAlways(first != std::string::npos);
-    std::string chrono_major = chrono_version.substr(0, first);
-
-    ChAssertAlways(first < chrono_version.size() - 1);
-    chrono_version = &chrono_version[first + 1];
-
-    auto second = chrono_version.find(".");
-    if (second == std::string::npos)
-        second = chrono_version.size();
-    std::string chrono_minor = chrono_version.substr(0, second);
-
-    ChAssertAlways(chrono_major == CHRONO_VERSION_MAJOR);
-    ChAssertAlways(chrono_minor == CHRONO_VERSION_MINOR);
-}
 
 ChParserVehicleYAML::VehicleType ChParserVehicleYAML::ReadVehicleType(const std::string& vehicle_json) {
     // Peek in vehicle JSON file and infer type
@@ -133,6 +104,16 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
     if (model["name"])
         m_name = model["name"].as<std::string>();
 
+    if (model["angle_degrees"])
+        m_use_degrees = model["angle_degrees"].as<bool>();
+
+    if (model["data_path"]) {
+        ChAssertAlways(model["data_path"]["type"]);
+        m_data_path = ReadDataPathType(model["data_path"]["type"]);
+        if (model["data_path"]["root"])
+            m_rel_path = model["data_path"]["root"].as<std::string>();
+    }
+
     ChAssertAlways(model["vehicle_json"]);
     ChAssertAlways(model["engine_json"]);
     ChAssertAlways(model["transmission_json"]);
@@ -158,7 +139,7 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     if (yaml["initial_position"])
-        m_init_position = ChParserMbsYAML::ReadVector(yaml["initial_position"]);
+        m_init_position = ReadVector(yaml["initial_position"]);
     if (yaml["initial_yaw"])
         m_init_yaw = CH_DEG_TO_RAD * yaml["initial_yaw"].as<double>();
 
@@ -167,7 +148,7 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
         ChAssertAlways(a["chassis_point"]);
         ChAssertAlways(a["chase_distance"]);
         ChAssertAlways(a["chase_height"]);
-        m_chassis_point = ChParserMbsYAML::ReadVector(a["chassis_point"]);
+        m_chassis_point = ReadVector(a["chassis_point"]);
         m_chase_distance = a["chase_distance"].as<double>();
         m_chase_height = a["chase_height"].as<double>();
     }

@@ -18,8 +18,6 @@
 
 #include <algorithm>
 
-#include "chrono/ChConfig.h"
-#include "chrono/ChVersion.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/output/ChOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
@@ -27,7 +25,6 @@
 #endif
 
 #include "chrono_parsers/yaml/ChParserSphYAML.h"
-#include "chrono_parsers/yaml/ChParserMbsYAML.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -42,15 +39,11 @@ ChParserSphYAML::ChParserSphYAML(const std::string& yaml_model_filename,
                                  const std::string& yaml_sim_filename,
                                  bool verbose)
     : ChParserCfdYAML(verbose),
-      m_name("YAML SPH model"),
-      m_data_path(DataPathType::ABS),
-      m_rel_path("."),
       m_depth_based_pressure(false),
       m_initial_velocity(false),
       m_velocity(VNULL),
       m_sim_loaded(false),
-      m_model_loaded(false),
-      m_output_dir("") {
+      m_model_loaded(false) {
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
 }
@@ -94,7 +87,7 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     if (sim["end_time"])
         m_sim.end_time = sim["end_time"].as<double>();
     if (sim["gravity"])
-        m_sim.gravity = ChParserMbsYAML::ReadVector(sim["gravity"]);
+        m_sim.gravity = ReadVector(sim["gravity"]);
 
     // Base SPH parameters
     if (sim["sph"]) {
@@ -225,7 +218,7 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     double max = b["max"].as<double>();
                     ChVector3d up = VECT_Z;
                     if (b["up"])
-                        up = ChParserMbsYAML::ReadVector(b["up"]);
+                        up = ReadVector(b["up"]);
                     m_sim.visualization.color_callback =
                         chrono_types::make_shared<fsi::sph::ParticleHeightColorCallback>(min, max, up);
                     break;
@@ -272,8 +265,8 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
             for (int i = 0; i < c.size(); i++) {
                 ChAssertAlways(c[i]["point"]);
                 ChAssertAlways(c[i]["normal"]);
-                auto point = ChParserMbsYAML::ReadVector(c[i]["point"]);
-                auto normal = ChParserMbsYAML::ReadVector(c[i]["normal"]);
+                auto point = ReadVector(c[i]["point"]);
+                auto normal = ReadVector(c[i]["normal"]);
                 planes.push_back({point, normal});
             }
 
@@ -325,17 +318,20 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
     // Output (optional)
     if (sim["output"]) {
         ChAssertAlways(sim["output"]["type"]);
-        m_sim.output.type = ReadOutputType(sim["output"]["type"]);
+        m_output.type = ReadOutputType(sim["output"]["type"]);
         if (sim["output"]["mode"])
-            m_sim.output.mode = ReadOutputMode(sim["output"]["mode"]);
+            m_output.mode = ReadOutputMode(sim["output"]["mode"]);
         if (sim["output"]["fps"])
-            m_sim.output.fps = sim["output"]["fps"].as<double>();
+            m_output.fps = sim["output"]["fps"].as<double>();
         if (sim["output"]["output_directory"])
-            m_sim.output.dir = sim["output"]["output_directory"].as<std::string>();
+            m_output.dir = sim["output"]["output_directory"].as<std::string>();
     }
 
-    if (m_verbose)
+    if (m_verbose) {
         m_sim.PrintInfo();
+        cout << endl;
+        m_output.PrintInfo();
+    }
 
     m_sim_loaded = true;
 }
@@ -370,6 +366,9 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     if (model["name"])
         m_name = model["name"].as<std::string>();
 
+    if (model["angle_degrees"])
+        m_use_degrees = model["angle_degrees"].as<bool>();
+
     if (model["data_path"]) {
         ChAssertAlways(model["data_path"]["type"]);
         m_data_path = ReadDataPathType(model["data_path"]["type"]);
@@ -382,10 +381,10 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         cout << "\n[ChParserSphYAML] Loading Chrono::SPH model specification from: '" << yaml_filename << "'\n" << endl;
         cout << "model name: '" << m_name << "'" << endl;
         switch (m_data_path) {
-            case DataPathType::ABS:
+            case ChParserYAML::DataPathType::ABS:
                 cout << "using absolute file paths" << endl;
                 break;
-            case DataPathType::REL:
+            case ChParserYAML::DataPathType::REL:
                 cout << "using file paths relative to: '" << m_rel_path << "'" << endl;
                 break;
         }
@@ -434,7 +433,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         }
         if (a["initial_velocity"]) {
             m_initial_velocity = true;
-            m_velocity = ChParserMbsYAML::ReadVector(a["initial_velocity"]);
+            m_velocity = ReadVector(a["initial_velocity"]);
             cout << "------------  initi vel " << m_velocity << endl;
         }
     }
@@ -448,9 +447,9 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             case GeometryType::CARTESIAN:
                 ChAssertAlways(a["dimensions"]);
                 m_fluid.fluid_domain_cartesian = chrono_types::make_unique<BoxDomain>();
-                m_fluid.fluid_domain_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
+                m_fluid.fluid_domain_cartesian->dimensions = ReadVector(a["dimensions"]);
                 if (a["box_origin"]) {
-                    m_fluid.fluid_domain_cartesian->origin = ChParserMbsYAML::ReadVector(a["box_origin"]);
+                    m_fluid.fluid_domain_cartesian->origin = ReadVector(a["box_origin"]);
                 } else {
                     m_fluid.fluid_domain_cartesian->origin = VNULL;
                 }
@@ -470,7 +469,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
                 m_fluid.fluid_domain_cylindrical->outer_radius = a["outer_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->height = a["height"].as<double>();
                 if (a["cyl_origin"]) {
-                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["cyl_origin"]);
+                    m_fluid.fluid_domain_cylindrical->origin = ReadVector(a["cyl_origin"]);
                 } else {
                     m_fluid.fluid_domain_cylindrical->origin = VNULL;
                 }
@@ -494,9 +493,9 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             case GeometryType::CARTESIAN:
                 m_fluid.container_cartesian = chrono_types::make_unique<BoxDomain>();
                 ChAssertAlways(a["dimensions"]);
-                m_fluid.container_cartesian->dimensions = ChParserMbsYAML::ReadVector(a["dimensions"]);
+                m_fluid.container_cartesian->dimensions = ReadVector(a["dimensions"]);
                 if (a["box_origin"]) {
-                    m_fluid.container_cartesian->origin = ChParserMbsYAML::ReadVector(a["box_origin"]);
+                    m_fluid.container_cartesian->origin = ReadVector(a["box_origin"]);
                 } else {
                     m_fluid.container_cartesian->origin = VNULL;
                 }
@@ -516,7 +515,7 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
                 m_fluid.fluid_domain_cylindrical->outer_radius = a["outer_radius"].as<double>();
                 m_fluid.fluid_domain_cylindrical->height = a["height"].as<double>();
                 if (a["cyl_origin"]) {
-                    m_fluid.fluid_domain_cylindrical->origin = ChParserMbsYAML::ReadVector(a["cyl_origin"]);
+                    m_fluid.fluid_domain_cylindrical->origin = ReadVector(a["cyl_origin"]);
                 } else {
                     m_fluid.fluid_domain_cylindrical->origin = VNULL;
                 }
@@ -536,8 +535,8 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
         m_fluid.computational_domain = chrono_types::make_unique<ComputationalDomain>();
         ChAssertAlways(a["aabb_min"]);
         ChAssertAlways(a["aabb_max"]);
-        m_fluid.computational_domain->aabb.min = ChParserMbsYAML::ReadVector(a["aabb_min"]);
-        m_fluid.computational_domain->aabb.max = ChParserMbsYAML::ReadVector(a["aabb_max"]);
+        m_fluid.computational_domain->aabb.min = ReadVector(a["aabb_min"]);
+        m_fluid.computational_domain->aabb.max = ReadVector(a["aabb_max"]);
         if (a["x_bc_type"]) {
             auto x_bc_type = ReadBoundaryConditionType(a["x_bc_type"]);
             if (x_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
@@ -584,7 +583,11 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
 class SPHPropertiesCallback : public fsi::sph::ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
     SPHPropertiesCallback(bool set_pressure, double zero_height, bool set_velocity, const ChVector3d& init_velocity)
-        : ParticlePropertiesCallback(), set_pressure(set_pressure), zero_height(zero_height), set_velocity(set_velocity), init_velocity(init_velocity) {}
+        : ParticlePropertiesCallback(),
+          set_pressure(set_pressure),
+          zero_height(zero_height),
+          set_velocity(set_velocity),
+          init_velocity(init_velocity) {}
 
     virtual void set(const fsi::sph::ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         if (set_pressure) {
@@ -605,7 +608,6 @@ class SPHPropertiesCallback : public fsi::sph::ChFsiProblemSPH::ParticleProperti
     bool set_velocity;
     ChVector3d init_velocity;
 };
-
 
 std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(bool initialize) {
     if (m_verbose) {
@@ -652,8 +654,8 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 
     // Set callback for initial states
     if (m_depth_based_pressure || m_initial_velocity) {
-        m_fsi_problem->RegisterParticlePropertiesCallback(
-            chrono_types::make_shared<SPHPropertiesCallback>(m_depth_based_pressure, m_zero_height, m_initial_velocity, m_velocity));
+        m_fsi_problem->RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(
+            m_depth_based_pressure, m_zero_height, m_initial_velocity, m_velocity));
     }
 
     // Create fluid domain and optional container
@@ -726,32 +728,7 @@ std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserSphYAML::GetVisualizatio
 // -----------------------------------------------------------------------------
 
 void ChParserSphYAML::SaveOutput(int frame) {
-    if (m_sim.output.type == ChOutput::Type::NONE)
-        return;
-
-    // Create the output DB if needed
-    if (!m_output_db) {
-        std::string filename = m_sim.output.dir + "/" + m_name;
-        if (!m_output_dir.empty())
-            filename = m_output_dir + "/" + filename;
-        if (m_verbose) {
-            cout << "\n-------------------------------------------------" << endl;
-            cout << "\nOutput file: " << filename << endl;
-        }
-        switch (m_sim.output.type) {
-            case ChOutput::Type::ASCII:
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename + ".txt");
-                break;
-            case ChOutput::Type::HDF5:
-#ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5", m_sim.output.mode);
-                break;
-#else
-                return;
-#endif
-        }
-        m_output_db->Initialize();
-    }
+    ChParserYAML::SaveOutput(frame);
 
     //// TODO
 }
@@ -824,9 +801,6 @@ ChParserSphYAML::VisParams::VisParams()
       write_images(false),
       image_dir(".") {}
 
-ChParserSphYAML::OutputParameters::OutputParameters()
-    : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100), dir(".") {}
-
 ChParserSphYAML::SimParams::SimParams() : gravity({0, 0, -9.8}), time_step(1e-4), end_time(-1) {}
 
 void ChParserSphYAML::SimParams::PrintInfo() {
@@ -841,8 +815,6 @@ void ChParserSphYAML::SimParams::PrintInfo() {
 
     cout << endl;
     visualization.PrintInfo();
-    cout << endl;
-    output.PrintInfo();
 }
 
 void ChParserSphYAML::VisParams::PrintInfo() {
@@ -867,62 +839,7 @@ void ChParserSphYAML::VisParams::PrintInfo() {
 #endif
 }
 
-void ChParserSphYAML::OutputParameters::PrintInfo() {
-    if (type == ChOutput::Type::NONE) {
-        cout << "no output" << endl;
-        return;
-    }
-
-    cout << "output" << endl;
-    cout << "  type:                 " << ChOutput::GetOutputTypeAsString(type) << endl;
-    cout << "  mode:                 " << ChOutput::GetOutputModeAsString(mode) << endl;
-    cout << "  output FPS:           " << fps << endl;
-    cout << "  outut directory:      " << dir << endl;
-}
-
 // =============================================================================
-
-static void PrintNodeType(const YAML::Node& node) {
-    switch (node.Type()) {
-        case YAML::NodeType::Null:
-            cout << " Null" << endl;
-            break;
-        case YAML::NodeType::Scalar:
-            cout << " Scalar" << endl;
-            break;
-        case YAML::NodeType::Sequence:
-            cout << " Sequence" << endl;
-            break;
-        case YAML::NodeType::Map:
-            cout << " Map" << endl;
-            break;
-        case YAML::NodeType::Undefined:
-            cout << " Undefined" << endl;
-            break;
-    }
-}
-
-std::string ChParserSphYAML::GetDatafilePath(const std::string& filename) {
-    std::string full_filename = "";
-    switch (m_data_path) {
-        case DataPathType::ABS:
-            full_filename = filename;
-            break;
-        case DataPathType::REL:
-            full_filename = m_script_directory + "/" + m_rel_path + "/" + filename;
-            break;
-    }
-
-    cout << "File: " << full_filename << endl;
-    auto filepath = filesystem::path(full_filename);
-
-    ChAssertAlways(filepath.exists());
-    ChAssertAlways(filepath.is_file());
-
-    return full_filename;
-}
-
-// -----------------------------------------------------------------------------
 
 fsi::sph::PhysicsProblem ChParserSphYAML::ReadPhysicsProblemType(const YAML::Node& a) {
     auto val = ToUpper(a.as<std::string>());
@@ -940,14 +857,6 @@ ChParserSphYAML::GeometryType ChParserSphYAML::ReadGeometryType(const YAML::Node
     if (val == "CYLINDRICAL")
         return GeometryType::CYLINDRICAL;
     return GeometryType::CARTESIAN;
-}
-
-ChParserSphYAML::DataPathType ChParserSphYAML::ReadDataPathType(const YAML::Node& a) {
-    auto val = ToUpper(a.as<std::string>());
-    if (val == "RELATIVE")
-        return DataPathType::REL;
-    else
-        return DataPathType::ABS;
 }
 
 fsi::sph::EosType ChParserSphYAML::ReadEosType(const YAML::Node& a) {
@@ -1022,24 +931,6 @@ fsi::sph::ViscosityMethod ChParserSphYAML::ReadViscosityMethod(const YAML::Node&
     if (val == "ARTIFICIAL_BILATERAL")
         return fsi::sph::ViscosityMethod::ARTIFICIAL_BILATERAL;
     return fsi::sph::ViscosityMethod::ARTIFICIAL_UNILATERAL;
-}
-
-ChOutput::Type ChParserSphYAML::ReadOutputType(const YAML::Node& a) {
-    auto type = ToUpper(a.as<std::string>());
-    if (type == "ASCII")
-        return ChOutput::Type::ASCII;
-    if (type == "HDF5")
-        return ChOutput::Type::HDF5;
-    return ChOutput::Type::NONE;
-}
-
-ChOutput::Mode ChParserSphYAML::ReadOutputMode(const YAML::Node& a) {
-    auto mode = ToUpper(a.as<std::string>());
-    if (mode == "SERIES")
-        return ChOutput::Mode::SERIES;
-    if (mode == "FRAMES")
-        return ChOutput::Mode::FRAMES;
-    return ChOutput::Mode::FRAMES;
 }
 
 int ChParserSphYAML::ReadWallFlagsCartesian(const YAML::Node& a) {

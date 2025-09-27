@@ -12,18 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#ifndef CH_PARSER_YAML_H
-#define CH_PARSER_YAML_H
+#ifndef CH_PARSER_MBS_YAML_H
+#define CH_PARSER_MBS_YAML_H
 
-#include <string>
 #include <vector>
 #include <unordered_map>
 
-#include "chrono_parsers/ChApiParsers.h"
+#include "chrono_parsers/yaml/ChParserYAML.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -36,10 +34,6 @@
 
 #include "chrono/utils/ChBodyGeometry.h"
 
-#include "chrono/output/ChOutput.h"
-
-#include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
-
 namespace chrono {
 namespace parsers {
 
@@ -49,16 +43,13 @@ namespace parsers {
 /// Utility class to parse YAML specification files for Chrono models and simulations.
 /// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
 /// populating a Chrono system and setting solver and simulation parameters.
-class ChApiParsers ChParserMbsYAML {
+class ChApiParsers ChParserMbsYAML : public ChParserYAML {
   public:
     ChParserMbsYAML();
 
     /// Create a YAML parser and load the model from the specified input YAML file.
     ChParserMbsYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);
     ~ChParserMbsYAML();
-
-    /// Set verbose termsinal output (default: false).
-    void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Return true if a YAML simulation file has been loaded.
     bool HasSimulationData() const { return m_sim_loaded; }
@@ -82,9 +73,6 @@ class ChApiParsers ChParserMbsYAML {
     const ChVector3d& GetCameraTarget() const { return m_sim.visualization.camera_target; }
     bool EnableShadows() const { return m_sim.visualization.enable_shadows; }
 
-    ChOutput::Type GetOutputType() const { return m_sim.output.type; }
-    double GetOutputFPS() const { return m_sim.output.fps; }
-
     /// Create and return a Chrono system configured from cached simulation parameters.
     /// If no YAML simulation file was loaded, this function returns a ChSystemNSC with default settings.
     std::shared_ptr<ChSystem> CreateSystem();
@@ -98,9 +86,6 @@ class ChApiParsers ChParserMbsYAML {
     /// Load the model from the specified input YAML model file.
     void LoadModelFile(const std::string& yaml_filename);
 
-    /// Return the name of the YAML model.
-    const std::string& GetName() const { return m_name; }
-
     /// Populate the given system with the cached Chrono components.
     /// An instance of the underlying Chrono model can be created at the specified frame (relative to the global frame),
     /// with all Chrono object names using the specified prefix. Throws an error if no YAML model file was loaded.
@@ -111,38 +96,10 @@ class ChApiParsers ChParserMbsYAML {
 
     // --------------
 
-    /// Return true if generating output.
-    bool Output() const { return m_sim.output.type != ChOutput::Type::NONE; }
-
-    /// Set root output directory (default: "").
-    void SetOutputDir(const std::string& out_dir) { m_output_dir = out_dir; }
-
     /// Save simulation output results at the current time.
     void SaveOutput(ChSystem& sys, int frame);
 
-  public:
-    /// Load and return a ChVector3d from the specified node.
-    static ChVector3d ReadVector(const YAML::Node& a);
-
-    /// Load and return a ChQuaternion from the specified node.
-    static ChQuaterniond ReadQuaternion(const YAML::Node& a);
-
-    /// Load a Cardan angle sequence from the specified node and return as a quaternion.
-    /// The sequence is assumed to be extrinsic rotations X-Y-Z.
-    static ChQuaterniond ReadCardanAngles(const YAML::Node& a, bool use_degrees);
-
-    /// Return a quaternion loaded from the specified node.
-    /// Data is assumed to provide a quaternion or a Cardan extrinsic X-Y-Z angle set.
-    static ChQuaterniond ReadRotation(const YAML::Node& a, bool use_degrees);
-
-    /// Load and return a coordinate system from the specified node.
-    static ChCoordsysd ReadCoordinateSystem(const YAML::Node& a, bool use_degrees);
-
-    /// Load and return a ChColor from the specified node.
-    static ChColor ReadColor(const YAML::Node& a);
-
   private:
-    enum class DataPathType { ABS, REL };
     enum class BodyLoadType { FORCE, TORQUE };
 
     /// Solver parameters.
@@ -188,17 +145,6 @@ class ChApiParsers ChParserMbsYAML {
         bool enable_shadows;
     };
 
-    /// Output parameters.
-    struct OutputParameters {
-        OutputParameters();
-        void PrintInfo();
-
-        ChOutput::Type type;
-        ChOutput::Mode mode;
-        double fps;
-        std::string dir;
-    };
-
     /// Simulation and run-time visualization parameters.
     struct SimParams {
         SimParams();
@@ -220,7 +166,6 @@ class ChApiParsers ChParserMbsYAML {
         SolverParams solver;
         IntegratorParams integrator;
         VisParams visualization;
-        OutputParameters output;
     };
 
     /// Internal specification of a body.
@@ -364,15 +309,9 @@ class ChApiParsers ChParserMbsYAML {
     };
 
   private:
-    /// Return the path to the specified data file.
-    std::string GetDatafilePath(const std::string& filename);
-
-    static DataPathType ReadDataPathType(const YAML::Node& a);
     static ChSolver::Type ReadSolverType(const YAML::Node& a);
     static ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
     static VisualizationType ReadVisualizationType(const YAML::Node& a);
-    static ChOutput::Type ReadOutputType(const YAML::Node& a);
-    static ChOutput::Mode ReadOutputMode(const YAML::Node& a);
 
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
@@ -447,21 +386,11 @@ class ChApiParsers ChParserMbsYAML {
     std::unordered_map<std::string, MotorLinearParams> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotationParams> m_rotmotors;   ///< rotational motors
 
-    std::string m_output_dir;               ///< root oputput directory
-    std::shared_ptr<ChOutput> m_output_db;  ///< output database
-    OutputData m_output_data;               ///< output data
-
-    bool m_verbose;  ///< verbose terminal output (default: false)
+    OutputData m_output_data;  ///< output data
 
     bool m_sim_loaded;     ///< YAML simulation file loaded
     bool m_model_loaded;   ///< YAML model file loaded
-    std::string m_name;    ///< name of the YAML model
-    bool m_use_degrees;    ///< all angles given in degrees (default: true)
     int m_instance_index;  ///< index of the last model instance created
-
-    DataPathType m_data_path;
-    std::string m_rel_path;
-    std::string m_script_directory;
 
     friend class ChParserFsiYAML;
 };

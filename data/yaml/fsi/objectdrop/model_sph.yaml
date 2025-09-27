@@ -5,7 +5,9 @@ model:
   physics_problem: CFD
   geometry_type: CARTESIAN
   #geometry_type: CYLINDRICAL
-  
+
+  angle_degrees: true
+ 
   data_path:
     type: RELATIVE
     root: "../.."

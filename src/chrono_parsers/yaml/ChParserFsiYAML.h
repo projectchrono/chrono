@@ -12,18 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#ifndef CH_FSI_PARSER_YAML_H
-#define CH_FSI_PARSER_YAML_H
+#ifndef CH_PARSER_FSI_YAML_H
+#define CH_PARSER_FSI_YAML_H
 
-#include <string>
 #include <vector>
 
-#include "chrono_parsers/ChApiParsers.h"
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #include "chrono_parsers/yaml/ChParserCfdYAML.h"
-#include "chrono_fsi/ChFsiSystem.h"
 
-#include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
+#include "chrono_fsi/ChFsiSystem.h"
 
 namespace chrono {
 namespace parsers {
@@ -32,23 +29,17 @@ namespace parsers {
 /// @{
 
 /// Utility class to parse a YAML specification file for a coupled FSI problem.
-class ChApiParsers ChParserFsiYAML {
+class ChApiParsers ChParserFsiYAML : public ChParserYAML {
   public:
     /// Create a YAML parser and load the model from the specified input YAML file.
     ChParserFsiYAML(const std::string& yaml_filename, bool verbose = false);
     ~ChParserFsiYAML();
-
-    /// Set verbose temrinal output (default: false).
-    void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Load the specified input YAML file.
     void LoadFile(const std::string& yaml_filename);
 
     /// Create and return a ChFsiSystem combining a Chrono MBS system and a fluid solver.
     void CreateFsiSystem();
-
-    /// Return the name of the FSI model.
-    const std::string& GetName() const { return m_name; }
 
     /// Return the multibody YAML parser.
     ChParserMbsYAML& GetMbsParser() const { return *m_parserMBS; }
@@ -82,15 +73,13 @@ class ChApiParsers ChParserFsiYAML {
     double GetRenderFPS() const { return m_render_fps; }
 
     /// Indicate whether to enable simulation output.
-    bool Output() const { return m_output; }
+    virtual bool Output() const override { return m_output; }
 
     /// Return frequency (frames-per-second) for simulation output.
-    double GetOutputFPS() const { return m_output_fps; }
+    virtual double GetOutputFPS() const override { return m_output_fps; }
 
   private:
-    bool m_verbose;
-
-    std::string m_name;
+    std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(const YAML::Node& a);
 
     std::string m_file_modelMBS;
     std::string m_file_simMBS;

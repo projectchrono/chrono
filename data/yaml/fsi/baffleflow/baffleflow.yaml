@@ -2,6 +2,11 @@ chrono-version: 9.0
 
 model:
   name: CRM baffle flow
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
 
   multibody_model:      "model_mbs.yaml"
   multibody_simulation: "simulation_mbs.yaml"
@@ -9,7 +14,7 @@ model:
   fluid_model:          "model_sph.yaml"
   fluid_simulation:     "simulation_sph.yaml"
 
-fsi_bodies: [baffle1, baffle2, baffle3]
+  fsi_bodies: [baffle1, baffle2, baffle3]
 
 simulation:
   time_step: 1e-4

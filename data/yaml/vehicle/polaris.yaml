@@ -2,6 +2,12 @@ chrono-version: 9.0
 
 model:
   name: Polaris
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
+
   vehicle_json: "../../vehicle/Polaris/Polaris.json"
   engine_json: "../../vehicle/Polaris/Polaris_EngineSimpleMap.json"
   transmission_json: "../../vehicle/Polaris/Polaris_AutomaticTransmissionSimpleMap.json"

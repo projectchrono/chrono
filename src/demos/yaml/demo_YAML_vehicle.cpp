@@ -26,12 +26,10 @@
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"

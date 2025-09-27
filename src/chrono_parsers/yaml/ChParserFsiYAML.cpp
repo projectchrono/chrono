@@ -12,8 +12,6 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/ChConfig.h"
-#include "chrono/ChVersion.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_parsers/yaml/ChParserFsiYAML.h"
@@ -29,7 +27,7 @@ namespace chrono {
 namespace parsers {
 
 ChParserFsiYAML::ChParserFsiYAML(const std::string& yaml_filename, bool verbose)
-    : m_name("YAML model"), m_verbose(false), m_end_time(-1), m_render(false), m_output(false) {
+    : ChParserYAML(), m_end_time(-1), m_render(false), m_output(false) {
     LoadFile(yaml_filename);
 }
 
@@ -37,28 +35,64 @@ ChParserFsiYAML::~ChParserFsiYAML() {}
 
 // -----------------------------------------------------------------------------
 
-static std::string ToUpper(std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(), ::toupper);
-    return in;
-}
+std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(const YAML::Node& a) {
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
 
-static void CheckVersion(const YAML::Node& a) {
-    std::string chrono_version = a.as<std::string>();
+    size_t num_shapes = a.size();
 
-    auto first = chrono_version.find(".");
-    ChAssertAlways(first != std::string::npos);
-    std::string chrono_major = chrono_version.substr(0, first);
+    for (size_t i = 0; i < num_shapes; i++) {
+        const YAML::Node& shape = a[i];
+        ChAssertAlways(shape["type"]);
+        ChAssertAlways(shape["material"]);
+        std::string type = ToUpper(shape["type"].as<std::string>());
 
-    ChAssertAlways(first < chrono_version.size() - 1);
-    chrono_version = &chrono_version[first + 1];
-
-    auto second = chrono_version.find(".");
-    if (second == std::string::npos)
-        second = chrono_version.size();
-    std::string chrono_minor = chrono_version.substr(0, second);
-
-    ChAssertAlways(chrono_major == CHRONO_VERSION_MAJOR);
-    ChAssertAlways(chrono_minor == CHRONO_VERSION_MINOR);
+        if (type == "SPHERE") {
+            ChAssertAlways(shape["location"]);
+            ChAssertAlways(shape["radius"]);
+            ChVector3d pos = ReadVector(shape["location"]);
+            double radius = shape["radius"].as<double>();
+            geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, -1));
+        } else if (type == "BOX") {
+            ChAssertAlways(shape["location"]);
+            ChAssertAlways(shape["orientation"]);
+            ChAssertAlways(shape["dimensions"]);
+            ChVector3d pos = ReadVector(shape["location"]);
+            ChQuaterniond rot = ReadRotation(shape["orientation"], m_use_degrees);
+            ChVector3d dims = ReadVector(shape["dimensions"]);
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims, -1));
+        } else if (type == "CYLINDER") {
+            ChAssertAlways(shape["location"]);
+            ChAssertAlways(shape["axis"]);
+            ChAssertAlways(shape["radius"]);
+            ChAssertAlways(shape["length"]);
+            ChVector3d pos = ReadVector(shape["location"]);
+            ChVector3d axis = ReadVector(shape["axis"]);
+            double radius = shape["radius"].as<double>();
+            double length = shape["length"].as<double>();
+            geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length, -1));
+        } else if (type == "HULL") {
+            ChAssertAlways(shape["filename"]);
+            std::string filename = shape["filename"].as<std::string>();
+            geometry->coll_hulls.push_back(utils::ChBodyGeometry::ConvexHullsShape(GetDatafilePath(filename), -1));
+        } else if (type == "MESH") {
+            ChAssertAlways(shape["filename"]);
+            std::string filename = shape["filename"].as<std::string>();
+            ChVector3d pos = VNULL;
+            ChQuaterniond rot = QUNIT;
+            double scale = 1;
+            double radius = 0;
+            if (shape["location"])
+                pos = ReadVector(shape["location"]);
+            if (shape["orientation"])
+                rot = ReadRotation(shape["orientation"], m_use_degrees);
+            if (shape["scale"])
+                scale = shape["scale"].as<double>();
+            if (shape["contact_radius"])
+                radius = shape["contact_radius"].as<double>();
+            geometry->coll_meshes.push_back(
+                utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale, radius, -1));
+        }
+    }
 }
 
 void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
@@ -79,12 +113,24 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
     // Read the model
     ChAssertAlways(yaml["model"]);
     auto model = yaml["model"];
+
+    if (model["name"])
+        m_name = model["name"].as<std::string>();
+    
+    if (model["angle_degrees"])
+        m_use_degrees = model["angle_degrees"].as<bool>();
+
+    if (model["data_path"]) {
+        ChAssertAlways(model["data_path"]["type"]);
+        m_data_path = ReadDataPathType(model["data_path"]["type"]);
+        if (model["data_path"]["root"])
+            m_rel_path = model["data_path"]["root"].as<std::string>();
+    }
+
     auto modelMBS = model["multibody_model"].as<std::string>();
     auto simMBS = model["multibody_simulation"].as<std::string>();
     auto modelCFD = model["fluid_model"].as<std::string>();
     auto simCFD = model["fluid_simulation"].as<std::string>();
-    if (model["name"])
-        m_name = model["name"].as<std::string>();
 
     m_file_modelMBS = script_dir + "/" + modelMBS;
     m_file_simMBS = script_dir + "/" + simMBS;
@@ -92,8 +138,8 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
     m_file_simCFD = script_dir + "/" + simCFD;
 
     // Read FSI bodies
-    if (yaml["fsi_bodies"]) {
-        auto fsi_bodies = yaml["fsi_bodies"];
+    if (model["fsi_bodies"]) {
+        auto fsi_bodies = model["fsi_bodies"];
         ChAssertAlways(fsi_bodies.IsSequence());
         for (int i = 0; i < fsi_bodies.size(); i++) {
             m_fsi_bodies.push_back(fsi_bodies[i].as<std::string>());
@@ -133,6 +179,15 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
         cout << "       Multibody simulation specification file: " << m_file_simMBS << endl;
         cout << "       Fluid model specification file:          " << m_file_modelCFD << endl;
         cout << "       Fluid simulation specification file:     " << m_file_simCFD << endl;
+        cout << "    Angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
+        switch (m_data_path) {
+            case ChParserYAML::DataPathType::ABS:
+                cout << "    Using absolute file paths" << endl;
+                break;
+            case ChParserYAML::DataPathType::REL:
+                cout << "    Using file paths relative to: '" << m_rel_path << "'" << endl;
+                break;
+        }
     }
 }
 

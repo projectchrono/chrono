@@ -5,6 +5,8 @@ model:
   physics_problem: CRM
   geometry_type: CARTESIAN
   
+  angle_degrees: true
+
   data_path:
     type: RELATIVE
     root: "../.."

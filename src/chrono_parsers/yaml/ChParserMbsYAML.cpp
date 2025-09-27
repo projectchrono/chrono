@@ -21,9 +21,6 @@
 
 #include <algorithm>
 
-#include "chrono/ChConfig.h"
-#include "chrono/ChVersion.h"
-
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
 
@@ -68,29 +65,12 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserMbsYAML::ChParserMbsYAML()
-    : m_name("YAML model"),
-      m_data_path(DataPathType::ABS),
-      m_rel_path("."),
-      m_verbose(false),
-      m_use_degrees(true),
-      m_sim_loaded(false),
-      m_model_loaded(false),
-      m_instance_index(-1),
-      m_output_dir("") {}
+ChParserMbsYAML::ChParserMbsYAML() : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_instance_index(-1) {}
 
 ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename,
                                  const std::string& yaml_sim_filename,
                                  bool verbose)
-    : m_name("YAML model"),
-      m_data_path(DataPathType::ABS),
-      m_rel_path("."),
-      m_verbose(verbose),
-      m_use_degrees(true),
-      m_sim_loaded(false),
-      m_model_loaded(false),
-      m_instance_index(-1),
-      m_output_dir("") {
+    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_instance_index(-1) {
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
 }
@@ -98,30 +78,6 @@ ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename,
 ChParserMbsYAML::~ChParserMbsYAML() {}
 
 // -----------------------------------------------------------------------------
-
-static std::string ToUpper(std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(), ::toupper);
-    return in;
-}
-
-static void CheckVersion(const YAML::Node& a) {
-    std::string chrono_version = a.as<std::string>();
-
-    auto first = chrono_version.find(".");
-    ChAssertAlways(first != std::string::npos);
-    std::string chrono_major = chrono_version.substr(0, first);
-
-    ChAssertAlways(first < chrono_version.size() - 1);
-    chrono_version = &chrono_version[first + 1];
-
-    auto second = chrono_version.find(".");
-    if (second == std::string::npos)
-        second = chrono_version.size();
-    std::string chrono_minor = chrono_version.substr(0, second);
-
-    ChAssertAlways(chrono_major == CHRONO_VERSION_MAJOR);
-    ChAssertAlways(chrono_minor == CHRONO_VERSION_MINOR);
-}
 
 void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
     auto path = filesystem::path(yaml_filename);
@@ -270,17 +226,20 @@ void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
     // Output (optional)
     if (sim["output"]) {
         ChAssertAlways(sim["output"]["type"]);
-        m_sim.output.type = ReadOutputType(sim["output"]["type"]);
+        m_output.type = ReadOutputType(sim["output"]["type"]);
         if (sim["output"]["mode"])
-            m_sim.output.mode = ReadOutputMode(sim["output"]["mode"]);
+            m_output.mode = ReadOutputMode(sim["output"]["mode"]);
         if (sim["output"]["fps"])
-            m_sim.output.fps = sim["output"]["fps"].as<double>();
+            m_output.fps = sim["output"]["fps"].as<double>();
         if (sim["output"]["output_directory"])
-            m_sim.output.dir = sim["output"]["output_directory"].as<std::string>();
+            m_output.dir = sim["output"]["output_directory"].as<std::string>();
     }
 
-    if (m_verbose)
+    if (m_verbose) {
         m_sim.PrintInfo();
+        cout << endl;
+        m_output.PrintInfo();
+    }
 
     m_sim_loaded = true;
 }
@@ -1014,32 +973,7 @@ void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {
 // -----------------------------------------------------------------------------
 
 void ChParserMbsYAML::SaveOutput(ChSystem& sys, int frame) {
-    if (m_sim.output.type == ChOutput::Type::NONE)
-        return;
-
-    // Create the output DB if needed
-    if (!m_output_db) {
-        std::string filename = m_sim.output.dir + "/" + m_name;
-        if (!m_output_dir.empty())
-            filename = m_output_dir + "/" + filename;
-        if (m_verbose) {
-            cout << "\n-------------------------------------------------" << endl;
-            cout << "\nOutput file: " << filename << endl;
-        }
-        switch (m_sim.output.type) {
-            case ChOutput::Type::ASCII:
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename + ".txt");
-                break;
-            case ChOutput::Type::HDF5:
-#ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5", m_sim.output.mode);
-                break;
-#else
-                return;
-#endif
-        }
-        m_output_db->Initialize();
-    }
+    ChParserYAML::SaveOutput(frame);
 
     // Output simulation results at current frame
     m_output_db->WriteTime(frame, sys.GetChTime());
@@ -1083,9 +1017,6 @@ ChParserMbsYAML::VisParams::VisParams()
       camera_location({0, -1, 0}),
       camera_target({0, 0, 0}),
       enable_shadows(true) {}
-
-ChParserMbsYAML::OutputParameters::OutputParameters()
-    : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100), dir(".") {}
 
 ChParserMbsYAML::SimParams::SimParams()
     : gravity({0, 0, -9.8}),
@@ -1167,8 +1098,6 @@ void ChParserMbsYAML::SimParams::PrintInfo() {
     integrator.PrintInfo();
     cout << endl;
     visualization.PrintInfo();
-    cout << endl;
-    output.PrintInfo();
 }
 
 void ChParserMbsYAML::VisParams::PrintInfo() {
@@ -1184,19 +1113,6 @@ void ChParserMbsYAML::VisParams::PrintInfo() {
     cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
     cout << "  camera location:      " << camera_location << endl;
     cout << "  camera target:        " << camera_target << endl;
-}
-
-void ChParserMbsYAML::OutputParameters::PrintInfo() {
-    if (type == ChOutput::Type::NONE) {
-        cout << "no output" << endl;
-        return;
-    }
-
-    cout << "output" << endl;
-    cout << "  type:                 " << ChOutput::GetOutputTypeAsString(type) << endl;
-    cout << "  mode:                 " << ChOutput::GetOutputModeAsString(mode) << endl;
-    cout << "  output FPS:           " << fps << endl;
-    cout << "  outut directory:      " << dir << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -1365,104 +1281,6 @@ void ChParserMbsYAML::MotorRotationParams::PrintInfo(const std::string& name) {
 
 // =============================================================================
 
-static void PrintNodeType(const YAML::Node& node) {
-    switch (node.Type()) {
-        case YAML::NodeType::Null:
-            cout << " Null" << endl;
-            break;
-        case YAML::NodeType::Scalar:
-            cout << " Scalar" << endl;
-            break;
-        case YAML::NodeType::Sequence:
-            cout << " Sequence" << endl;
-            break;
-        case YAML::NodeType::Map:
-            cout << " Map" << endl;
-            break;
-        case YAML::NodeType::Undefined:
-            cout << " Undefined" << endl;
-            break;
-    }
-}
-
-std::string ChParserMbsYAML::GetDatafilePath(const std::string& filename) {
-    std::string full_filename = "";
-    switch (m_data_path) {
-        case DataPathType::ABS:
-            full_filename = filename;
-            break;
-        case DataPathType::REL:
-            full_filename = m_script_directory + "/" + m_rel_path + "/" + filename;
-            break;
-    }
-
-    cout << "File: " << full_filename << endl;
-    auto filepath = filesystem::path(full_filename);
-
-    ChAssertAlways(filepath.exists());
-    ChAssertAlways(filepath.is_file());
-
-    return full_filename;
-}
-
-ChVector3d ChParserMbsYAML::ReadVector(const YAML::Node& a) {
-    ChAssertAlways(a.IsSequence());
-    ChAssertAlways(a.size() == 3);
-    return ChVector3d(a[0].as<double>(), a[1].as<double>(), a[2].as<double>());
-}
-
-ChQuaterniond ChParserMbsYAML::ReadRotation(const YAML::Node& a, bool use_degrees) {
-    ChAssertAlways(a.IsSequence());
-    ChAssertAlways(a.size() == 3 || a.size() == 4);
-
-    return (a.size() == 3) ? ReadCardanAngles(a, use_degrees) : ReadQuaternion(a);
-}
-
-ChQuaterniond ChParserMbsYAML::ReadQuaternion(const YAML::Node& a) {
-    ChAssertAlways(a.IsSequence());
-    ChAssertAlways(a.size() == 4);
-    return ChQuaterniond(a[0].as<double>(), a[1].as<double>(), a[2].as<double>(), a[3].as<double>());
-}
-
-ChQuaterniond ChParserMbsYAML::ReadCardanAngles(const YAML::Node& a, bool use_degrees) {
-    ChAssertAlways(a.IsSequence());
-    ChAssertAlways(a.size() == 3);
-    ChVector3d angles = ReadVector(a);
-
-    if (use_degrees)
-        angles *= CH_DEG_TO_RAD;
-
-    ChQuaterniond q1 = QuatFromAngleZ(angles.x());  // roll
-    ChQuaterniond q2 = QuatFromAngleY(angles.y());  // pitch
-    ChQuaterniond q3 = QuatFromAngleX(angles.z());  // yaw
-
-    ChQuaterniond q = q1 * q2 * q3;
-
-    return q;
-}
-
-ChCoordsysd ChParserMbsYAML::ReadCoordinateSystem(const YAML::Node& a, bool use_degrees) {
-    ChAssertAlways(a["location"]);
-    ChAssertAlways(a["orientation"]);
-    return ChCoordsysd(ReadVector(a["location"]), ReadRotation(a["orientation"], use_degrees));
-}
-
-ChColor ChParserMbsYAML::ReadColor(const YAML::Node& a) {
-    ChAssertAlways(a.IsSequence());
-    ChAssertAlways(a.size() == 3);
-    return ChColor(a[0].as<float>(), a[1].as<float>(), a[2].as<float>());
-}
-
-// -----------------------------------------------------------------------------
-
-ChParserMbsYAML::DataPathType ChParserMbsYAML::ReadDataPathType(const YAML::Node& a) {
-    auto type = ToUpper(a.as<std::string>());
-    if (type == "RELATIVE")
-        return DataPathType::REL;
-    else
-        return DataPathType::ABS;
-}
-
 ChSolver::Type ChParserMbsYAML::ReadSolverType(const YAML::Node& a) {
     auto type = ToUpper(a.as<std::string>());
     if (type == "BARZILAI_BORWEIN")
@@ -1516,24 +1334,6 @@ VisualizationType ChParserMbsYAML::ReadVisualizationType(const YAML::Node& a) {
     if (type == "COLLISION")
         return VisualizationType::COLLISION;
     return VisualizationType::NONE;
-}
-
-ChOutput::Type ChParserMbsYAML::ReadOutputType(const YAML::Node& a) {
-    auto type = ToUpper(a.as<std::string>());
-    if (type == "ASCII")
-        return ChOutput::Type::ASCII;
-    if (type == "HDF5")
-        return ChOutput::Type::HDF5;
-    return ChOutput::Type::NONE;
-}
-
-ChOutput::Mode ChParserMbsYAML::ReadOutputMode(const YAML::Node& a) {
-    auto mode = ToUpper(a.as<std::string>());
-    if (mode == "SERIES")
-        return ChOutput::Mode::SERIES;
-    if (mode == "FRAMES")
-        return ChOutput::Mode::FRAMES;
-    return ChOutput::Mode::FRAMES;
 }
 
 // -----------------------------------------------------------------------------
@@ -1692,24 +1492,24 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML:
             if (type == "SPHERE") {
                 ChAssertAlways(shape["location"]);
                 ChAssertAlways(shape["radius"]);
-                ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
+                ChVector3d pos = ReadVector(shape["location"]);
                 double radius = shape["radius"].as<double>();
                 geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, matID));
             } else if (type == "BOX") {
                 ChAssertAlways(shape["location"]);
                 ChAssertAlways(shape["orientation"]);
                 ChAssertAlways(shape["dimensions"]);
-                ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
-                ChQuaterniond rot = ChParserMbsYAML::ReadRotation(shape["orientation"], m_use_degrees);
-                ChVector3d dims = ChParserMbsYAML::ReadVector(shape["dimensions"]);
+                ChVector3d pos = ReadVector(shape["location"]);
+                ChQuaterniond rot = ReadRotation(shape["orientation"], m_use_degrees);
+                ChVector3d dims = ReadVector(shape["dimensions"]);
                 geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims, matID));
             } else if (type == "CYLINDER") {
                 ChAssertAlways(shape["location"]);
                 ChAssertAlways(shape["axis"]);
                 ChAssertAlways(shape["radius"]);
                 ChAssertAlways(shape["length"]);
-                ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
-                ChVector3d axis = ChParserMbsYAML::ReadVector(shape["axis"]);
+                ChVector3d pos = ReadVector(shape["location"]);
+                ChVector3d axis = ReadVector(shape["axis"]);
                 double radius = shape["radius"].as<double>();
                 double length = shape["length"].as<double>();
                 geometry->coll_cylinders.push_back(
@@ -1727,9 +1527,9 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML:
                 double scale = 1;
                 double radius = 0;
                 if (shape["location"])
-                    pos = ChParserMbsYAML::ReadVector(shape["location"]);
+                    pos = ReadVector(shape["location"]);
                 if (shape["orientation"])
-                    rot = ChParserMbsYAML::ReadRotation(shape["orientation"], m_use_degrees);
+                    rot = ReadRotation(shape["orientation"], m_use_degrees);
                 if (shape["scale"])
                     scale = shape["scale"].as<double>();
                 if (shape["contact_radius"])
@@ -1760,7 +1560,7 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML:
                 if (type == "SPHERE") {
                     ChAssertAlways(shape["location"]);
                     ChAssertAlways(shape["radius"]);
-                    ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
+                    ChVector3d pos = ReadVector(shape["location"]);
                     double radius = shape["radius"].as<double>();
                     auto sphere = utils::ChBodyGeometry::SphereShape(pos, radius);
                     sphere.color = color;
@@ -1769,9 +1569,9 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML:
                     ChAssertAlways(shape["location"]);
                     ChAssertAlways(shape["orientation"]);
                     ChAssertAlways(shape["dimensions"]);
-                    ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
-                    ChQuaterniond rot = ChParserMbsYAML::ReadRotation(shape["orientation"], m_use_degrees);
-                    ChVector3d dims = ChParserMbsYAML::ReadVector(shape["dimensions"]);
+                    ChVector3d pos = ReadVector(shape["location"]);
+                    ChQuaterniond rot = ReadRotation(shape["orientation"], m_use_degrees);
+                    ChVector3d dims = ReadVector(shape["dimensions"]);
                     auto box = utils::ChBodyGeometry::BoxShape(pos, rot, dims);
                     box.color = color;
                     geometry->vis_boxes.push_back(box);
@@ -1780,8 +1580,8 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML:
                     ChAssertAlways(shape["axis"]);
                     ChAssertAlways(shape["radius"]);
                     ChAssertAlways(shape["length"]);
-                    ChVector3d pos = ChParserMbsYAML::ReadVector(shape["location"]);
-                    ChVector3d axis = ChParserMbsYAML::ReadVector(shape["axis"]);
+                    ChVector3d pos = ReadVector(shape["location"]);
+                    ChVector3d axis = ReadVector(shape["axis"]);
                     double radius = shape["radius"].as<double>();
                     double length = shape["length"].as<double>();
                     auto cylinder = utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length);
@@ -1794,9 +1594,9 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML:
                     ChQuaterniond rot = QUNIT;
                     double scale = 1;
                     if (shape["location"])
-                        pos = ChParserMbsYAML::ReadVector(shape["location"]);
+                        pos = ReadVector(shape["location"]);
                     if (shape["orientation"])
-                        rot = ChParserMbsYAML::ReadRotation(shape["orientation"], m_use_degrees);
+                        rot = ReadRotation(shape["orientation"], m_use_degrees);
                     if (shape["scale"])
                         scale = shape["scale"].as<double>();
                     auto mesh = utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale);
