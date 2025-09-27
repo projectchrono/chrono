@@ -14,7 +14,27 @@ model:
   fluid_model:          "model_sph.yaml"
   fluid_simulation:     "simulation_sph.yaml"
 
-  fsi_bodies: [baffle1, baffle2, baffle3]
+  fsi_bodies: 
+    - name: baffle1
+      shapes:
+        - type: BOX
+          dimensions: [0.1, 0.1, 0.16]
+          location: [0, 0, 0.08]
+          orientation: [0, 0, 0]
+  
+    - name: baffle2
+      shapes:
+        - type: BOX
+          dimensions: [0.1, 0.1, 0.16]
+          location: [0, 0, 0.08]
+          orientation: [0, 0, 0]
+  
+    - name: baffle3
+      shapes:
+        - type: BOX
+          dimensions: [0.1, 0.1, 0.16]
+          location: [0, 0, 0.08]
+          orientation: [0, 0, 0]
 
 simulation:
   time_step: 1e-4

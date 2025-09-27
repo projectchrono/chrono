@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     auto sysFSI = parser.GetFsiSystem();
     auto sysCFD = parser.GetFluidSystem();
     auto sysMBS = parser.GetMultibodySystem();
-    auto sysCFD_type = parser.GetFluidSystemType();
+    ////auto sysCFD_type = parser.GetFluidSystemType();
 
     // Extract information from parsed YAML files
     const std::string& model_name = parser.GetName();

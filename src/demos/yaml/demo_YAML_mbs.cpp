@@ -89,6 +89,10 @@ int main(int argc, char* argv[]) {
     if (second_instance)
         instance2 = parser.Populate(*sys, frame2, prefix2);
 
+    // Print hierarchy of modeling components in ChSystem
+    ////std::cout << "Number of moidel instances: " << parser.GetNumInstances() << std::endl;
+    ////sys->ShowHierarchy(std::cout);
+
     // Extract information from parsed YAML files
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();

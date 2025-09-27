@@ -79,6 +79,12 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     virtual double GetOutputFPS() const override { return m_output_fps; }
 
   private:
+    struct FsiBody {
+        std::string name;                                 ///< body name
+        std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
+        std::shared_ptr<utils::ChBodyGeometry> geometry;  ///< FSI geometry
+    };
+
     std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(const YAML::Node& a);
 
     std::string m_file_modelMBS;
@@ -95,7 +101,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     std::shared_ptr<fsi::ChFsiFluidSystem> m_sysCFD;
     std::shared_ptr<ChSystem> m_sysMBS;
 
-    std::vector<std::string> m_fsi_bodies;
+    std::vector<FsiBody> m_fsi_bodies;
 
     double m_step;
     double m_end_time;

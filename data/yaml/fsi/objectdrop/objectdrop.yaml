@@ -16,8 +16,16 @@ model:
   fluid_simulation:     "simulation_sph.yaml"
   #fluid_simulation:     "../../simulations/basic_sph.yaml"
 
-  fsi_bodies: [object]
-
+  fsi_bodies: 
+    - name: object
+      shapes:
+        - type: CYLINDER
+          dimensions: [0.9, 0.9, 0.15]
+          location: [0, 0, 0]
+          axis: [1, 0, 0]
+          radius: 0.12
+          length: 0.20
+        
 simulation:
   time_step: 1e-4
   end_time: -1

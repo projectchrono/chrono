@@ -94,6 +94,15 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Remove from the specified system the Chrono objects from the specified instance.
     void Depopulate(ChSystem& sys, int instance_index);
 
+    /// Return the number of instances created from the YAML model file.
+    int GetNumInstances() const { return m_num_instances; }
+
+    /// Find and return with specified name in the current model instance.
+    std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name) const;
+
+    /// Find and return bodies with given base name from all model instances.
+    std::vector<std::shared_ptr<ChBodyAuxRef>> FindBodiesByName(const std::string& name) const;
+
     // --------------
 
     /// Save simulation output results at the current time.
@@ -366,15 +375,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     static std::string GetMotorActuationTypeString(MotorActuation type);
 
   private:
-    /// Utility function to check if parameters for a body with specified name exist.
-    bool HasBodyParams(const std::string& name) const;
-
-    /// Utility function to find the parameters for the body with specified name.
-    const BodyParams& FindBodyParams(const std::string& name) const;
-
-    /// Utility function to find the ChBodyAuxRef with specified name.
-    std::shared_ptr<ChBodyAuxRef> FindBody(const std::string& name) const;
-
     SimParams m_sim;  ///< simulation parameters
 
     std::unordered_map<std::string, BodyParams> m_bodies;               ///< bodies
@@ -388,9 +388,9 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     OutputData m_output_data;  ///< output data
 
-    bool m_sim_loaded;     ///< YAML simulation file loaded
-    bool m_model_loaded;   ///< YAML model file loaded
-    int m_instance_index;  ///< index of the last model instance created
+    bool m_sim_loaded;    ///< YAML simulation file loaded
+    bool m_model_loaded;  ///< YAML model file loaded
+    int m_num_instances;  ///< number of model instances
 
     friend class ChParserFsiYAML;
 };

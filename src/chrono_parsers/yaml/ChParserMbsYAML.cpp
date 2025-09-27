@@ -65,12 +65,12 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserMbsYAML::ChParserMbsYAML() : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_instance_index(-1) {}
+ChParserMbsYAML::ChParserMbsYAML() : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_num_instances(0) {}
 
 ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename,
                                  const std::string& yaml_sim_filename,
                                  bool verbose)
-    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_instance_index(-1) {
+    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_num_instances(0) {
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
 }
@@ -701,30 +701,24 @@ std::shared_ptr<ChSystem> ChParserMbsYAML::CreateSystem() {
 
 // -----------------------------------------------------------------------------
 
-bool ChParserMbsYAML::HasBodyParams(const std::string& name) const {
-    auto b = m_bodies.find(name);
-    if (b == m_bodies.end())
-        return false;
-    return true;
-}
-
-const ChParserMbsYAML::BodyParams& ChParserMbsYAML::FindBodyParams(const std::string& name) const {
+std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBodyByName(const std::string& name) const {
     auto b = m_bodies.find(name);
     if (b == m_bodies.end()) {
         cerr << "Cannot find body with name: " << name << endl;
         throw std::runtime_error("Invalid body name");
     }
-    return b->second;
+    return b->second.body[m_num_instances];
 }
 
-std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBody(const std::string& name) const {
+std::vector<std::shared_ptr<ChBodyAuxRef>> ChParserMbsYAML::FindBodiesByName(const std::string& name) const {
     auto b = m_bodies.find(name);
     if (b == m_bodies.end()) {
-        cerr << "Cannot find body with name: " << name << endl;
-        throw std::runtime_error("Invalid body name");
+        std::vector<std::shared_ptr<ChBodyAuxRef>> empty;
+        return empty;
     }
-    return b->second.body[m_instance_index];
+    return b->second.body;
 }
+
 
 int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std::string& model_prefix) {
     if (m_verbose) {
@@ -736,8 +730,6 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         cerr << "[ChParserMbsYAML::Populate] Error: no YAML model loaded." << endl;
         throw std::runtime_error("No YAML model loaded");
     }
-
-    m_instance_index++;
 
     // Create a load container for bushings and body forces
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
@@ -766,8 +758,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     if (m_verbose && !m_joints.empty())
         cout << "Create joints" << endl;
     for (auto& item : m_joints) {
-        auto body1 = FindBody(item.second.body1);
-        auto body2 = FindBody(item.second.body2);
+        auto body1 = FindBodyByName(item.second.body1);
+        auto body2 = FindBodyByName(item.second.body2);
         auto joint = chrono_types::make_shared<ChJoint>(item.second.type,                 //
                                                         model_prefix + item.first,        //
                                                         body1,                            //
@@ -788,8 +780,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     if (m_verbose && !m_dists.empty())
         cout << "Create distance constraints" << endl;
     for (auto& item : m_dists) {
-        auto body1 = FindBody(item.second.body1);
-        auto body2 = FindBody(item.second.body2);
+        auto body1 = FindBodyByName(item.second.body1);
+        auto body2 = FindBodyByName(item.second.body2);
 
         auto dist = chrono_types::make_shared<ChLinkDistance>();
         dist->SetName(model_prefix + item.first);
@@ -803,8 +795,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     if (m_verbose && !m_tsdas.empty())
         cout << "Create TSDAs" << endl;
     for (auto& item : m_tsdas) {
-        auto body1 = FindBody(item.second.body1);
-        auto body2 = FindBody(item.second.body2);
+        auto body1 = FindBodyByName(item.second.body1);
+        auto body2 = FindBodyByName(item.second.body2);
         auto tsda = chrono_types::make_shared<ChLinkTSDA>();
         tsda->SetName(model_prefix + item.first);
         tsda->Initialize(body1, body2, false, model_frame * item.second.point1, model_frame * item.second.point2);
@@ -819,8 +811,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     if (m_verbose && !m_rsdas.empty())
         cout << "Create RSDAs" << endl;
     for (auto& item : m_rsdas) {
-        auto body1 = FindBody(item.second.body1);
-        auto body2 = FindBody(item.second.body2);
+        auto body1 = FindBodyByName(item.second.body1);
+        auto body2 = FindBodyByName(item.second.body2);
 
         ChMatrix33d rot;
         rot.SetFromAxisX(item.second.axis);
@@ -840,7 +832,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     if (m_verbose && !m_body_loads.empty())
         cout << "Create body loads" << endl;
     for (auto& item : m_body_loads) {
-        auto body = FindBody(item.second.body);
+        auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
         switch (item.second.type) {
             case BodyLoadType::FORCE:
@@ -861,8 +853,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     if (m_verbose && !m_linmotors.empty())
         cout << "Create linear motors" << endl;
     for (auto& item : m_linmotors) {
-        auto body1 = FindBody(item.second.body1);
-        auto body2 = FindBody(item.second.body2);
+        auto body1 = FindBodyByName(item.second.body1);
+        auto body2 = FindBodyByName(item.second.body2);
 
         ChMatrix33d rot;
         rot.SetFromAxisX(item.second.axis);
@@ -893,8 +885,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     if (m_verbose && !m_rotmotors.empty())
         cout << "Create rotational motors" << endl;
     for (auto& item : m_rotmotors) {
-        auto body1 = FindBody(item.second.body1);
-        auto body2 = FindBody(item.second.body2);
+        auto body1 = FindBodyByName(item.second.body1);
+        auto body2 = FindBodyByName(item.second.body2);
 
         ChMatrix33d rot;
         rot.SetFromAxisX(item.second.axis);
@@ -924,18 +916,20 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     // Create body collision models
     for (auto& item : m_bodies) {
         if (item.second.geometry->HasCollision())
-            item.second.geometry->CreateCollisionShapes(item.second.body[m_instance_index], 0, sys.GetContactMethod());
+            item.second.geometry->CreateCollisionShapes(item.second.body[m_num_instances], 0, sys.GetContactMethod());
     }
 
     // Create visualization assets
     for (auto& item : m_bodies)
-        item.second.geometry->CreateVisualizationAssets(item.second.body[m_instance_index], m_sim.visualization.type);
+        item.second.geometry->CreateVisualizationAssets(item.second.body[m_num_instances], m_sim.visualization.type);
     for (auto& item : m_tsdas)
-        item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_instance_index]);
+        item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_num_instances]);
     for (auto& item : m_dists)
-        item.second.dist[m_instance_index]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        item.second.dist[m_num_instances]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
-    return m_instance_index;
+    m_num_instances++;
+
+    return m_num_instances - 1;
 }
 
 void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {

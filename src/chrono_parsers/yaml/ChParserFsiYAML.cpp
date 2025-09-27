@@ -43,7 +43,6 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(co
     for (size_t i = 0; i < num_shapes; i++) {
         const YAML::Node& shape = a[i];
         ChAssertAlways(shape["type"]);
-        ChAssertAlways(shape["material"]);
         std::string type = ToUpper(shape["type"].as<std::string>());
 
         if (type == "SPHERE") {
@@ -93,6 +92,8 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(co
                 utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale, radius, -1));
         }
     }
+
+    return geometry;
 }
 
 void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
@@ -116,7 +117,7 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
 
     if (model["name"])
         m_name = model["name"].as<std::string>();
-    
+
     if (model["angle_degrees"])
         m_use_degrees = model["angle_degrees"].as<bool>();
 
@@ -142,7 +143,10 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
         auto fsi_bodies = model["fsi_bodies"];
         ChAssertAlways(fsi_bodies.IsSequence());
         for (int i = 0; i < fsi_bodies.size(); i++) {
-            m_fsi_bodies.push_back(fsi_bodies[i].as<std::string>());
+            FsiBody fsi_body;
+            fsi_body.name = fsi_bodies[i]["name"].as<std::string>();
+            fsi_body.geometry = ReadCollisionGeometry(fsi_bodies[i]["shapes"]);
+            m_fsi_bodies.push_back(fsi_body);
         }
     }
 
@@ -220,13 +224,11 @@ void ChParserFsiYAML::CreateFsiSystem() {
             if (m_verbose && !m_fsi_bodies.empty())
                 cout << "Associate FSI rigid bodies" << endl;
             for (const auto& fsi_body : m_fsi_bodies) {
-                if (m_parserMBS->HasBodyParams(fsi_body)) {
-                    const auto& body_params = m_parserMBS->FindBodyParams(fsi_body);
-                    for (const auto& body : body_params.body)
-                        problemSPH->AddRigidBody(body, body_params.geometry, true);
-                } else {
-                    cerr << "  Warning: No body with name '" << fsi_body << "' was found. Ignoring." << endl;
-                }
+                auto bodies = m_parserMBS->FindBodiesByName(fsi_body.name);
+                if (bodies.empty())
+                    cerr << "  Warning: No body with name '" << fsi_body.name << "' was found. Ignoring." << endl;
+                for (auto body : bodies)
+                    problemSPH->AddRigidBody(body, fsi_body.geometry, true);
             }
 
             // Initialize the FSI problem (now that an MBS system and FSI solids are specified)
