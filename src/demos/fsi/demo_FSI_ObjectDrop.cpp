@@ -486,8 +486,8 @@ int main(int argc, char* argv[]) {
     rtf_file.close();
 
     if (use_variable_time_step) {
-        fsi.PrintFSIStats();
-        fsi.PrintFluidSystemSPHTimeSteps(out_dir + "/time_steps.txt");
+        fsi.PrintStats();
+        fsi.PrintTimeSteps(out_dir + "/time_steps.txt");
     }
 
 #ifdef CHRONO_POSTPROCESS

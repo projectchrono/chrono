@@ -195,9 +195,6 @@ class CH_FSI_API ChFsiSystem {
     /// The torque is expressed in the absolute frame.
     const ChVector3d& GetFsiBodyTorque(size_t i) const;
 
-    /// Print the FSI statistics
-    void PrintFSIStats() const;
-
     //// TODO: add functions to get force on FEA nodes
 
   protected:

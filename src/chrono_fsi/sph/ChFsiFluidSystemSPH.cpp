@@ -1557,11 +1557,11 @@ double ChFsiFluidSystemSPH::GetVariableStepSize() {
     }
 }
 
-void ChFsiFluidSystemSPH::PrintFluidSystemSPHStats() const {
+void ChFsiFluidSystemSPH::PrintStats() const {
     QuantityLogger::GetInstance().PrintStats();
 }
 
-void ChFsiFluidSystemSPH::PrintFluidSystemSPHTimeSteps(const std::string& path) const {
+void ChFsiFluidSystemSPH::PrintTimeSteps(const std::string& path) const {
     std::vector<std::string> quantities = {"time_step", "min_courant_viscous_time_step", "min_acceleration_time_step"};
     QuantityLogger::GetInstance().WriteQuantityValuesToFile(path, quantities);
 }

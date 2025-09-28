@@ -176,8 +176,8 @@ class CH_FSI_API ChFsiProblemSPH {
     virtual void Initialize();
 
     /// Print the FSI statistics
-    void PrintFSIStats() const;
-    void PrintFluidSystemSPHTimeSteps(const std::string& path) const;
+    void PrintStats() const;
+    void PrintTimeSteps(const std::string& path) const;
 
     /// Advance the dynamics of the underlying FSI system by the specified step.
     void DoStepDynamics(double step);

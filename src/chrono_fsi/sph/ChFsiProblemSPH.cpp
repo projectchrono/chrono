@@ -320,12 +320,12 @@ void ChFsiProblemSPH::Initialize() {
     m_initialized = true;
 }
 
-void ChFsiProblemSPH::PrintFSIStats() const {
-    m_sysSPH->PrintFluidSystemSPHStats();
+void ChFsiProblemSPH::PrintStats() const {
+    m_sysSPH->PrintStats();
 }
 
-void ChFsiProblemSPH::PrintFluidSystemSPHTimeSteps(const std::string& path) const {
-    m_sysSPH->PrintFluidSystemSPHTimeSteps(path);
+void ChFsiProblemSPH::PrintTimeSteps(const std::string& path) const {
+    m_sysSPH->PrintTimeSteps(path);
 }
 
 // Check if specified point is inside a primitive shape of the given geometry.

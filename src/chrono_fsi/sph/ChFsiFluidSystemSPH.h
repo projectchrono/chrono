@@ -477,10 +477,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::string GetSphIntegrationSchemeString() const;
 
     /// Print the FSI statistics
-    void PrintFluidSystemSPHStats() const;
+    void PrintStats() const;
+
     /// Print the three time step quantities and the final time step to a file
     /// Only valid in variable time step mode
-    void PrintFluidSystemSPHTimeSteps(const std::string& path) const;
+    void PrintTimeSteps(const std::string& path) const;
 
   private:
     /// SPH specification of an FSI rigid solid.

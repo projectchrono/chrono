@@ -820,8 +820,8 @@ int main(int argc, char* argv[]) {
     rtf_file.close();
 
     if (params.use_variable_time_step) {
-        sysSPH.PrintFluidSystemSPHStats();
-        sysSPH.PrintFluidSystemSPHTimeSteps(out_dir + "/time_steps.txt");
+        sysSPH.PrintStats();
+        sysSPH.PrintTimeSteps(out_dir + "/time_steps.txt");
     }
 
     return 0;
