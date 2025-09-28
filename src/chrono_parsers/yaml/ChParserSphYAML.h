@@ -107,15 +107,20 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         fsi::sph::BoundaryConditions bc_type;
     };
 
-    /// Fluid parameters.
-    struct FluidParams {
-        FluidParams();
+    /// Material (fluid or soil) properties
+    struct MaterialProperties {
+        MaterialProperties();
         void PrintInfo();
 
         fsi::sph::PhysicsProblem physics_problem;
-
         fsi::sph::ChFsiFluidSystemSPH::FluidProperties fluid_props;
         fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties soil_props;
+    };
+
+    /// Problem geometry (fluid domain, container, computational domain).
+    struct ProblemGeometry {
+        ProblemGeometry();
+        void PrintInfo();
 
         std::unique_ptr<BoxDomain> fluid_domain_cartesian;
         std::unique_ptr<AnnulusDomain> fluid_domain_cylindrical;
@@ -123,6 +128,20 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         std::unique_ptr<AnnulusDomain> container_cylindrical;
 
         std::unique_ptr<ComputationalDomain> computational_domain;
+    };
+
+    /// Wave tank settings.
+    struct Wavetank {
+        Wavetank();
+        void PrintInfo();
+
+        fsi::sph::ChFsiProblemWavetank::WavemakerType type;
+        BoxDomain container;
+        double depth;
+        bool end_wall;
+
+        std::shared_ptr<ChFunctionInterp> profile;
+        std::shared_ptr<ChFunction> actuation;
     };
 
     /// Run-time visualization parameters.
@@ -172,8 +191,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     };
 
   private:  // ---- Functions
-    static fsi::sph::PhysicsProblem ReadPhysicsProblemType(const YAML::Node& a);
     static GeometryType ReadGeometryType(const YAML::Node& a);
+    static fsi::sph::PhysicsProblem ReadPhysicsProblemType(const YAML::Node& a);
+    static fsi::sph::ChFsiProblemWavetank::WavemakerType ReadWavetankType(const YAML::Node& a);
     static fsi::sph::EosType ReadEosType(const YAML::Node& a);
     static fsi::sph::KernelType ReadKernelType(const YAML::Node& a);
     static fsi::sph::IntegrationScheme ReadIntegrationScheme(const YAML::Node& a);
@@ -193,10 +213,14 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
   private:  // ---- Member variables
     GeometryType m_geometry_type;
 
-    FluidParams m_fluid;  ///< fluid parameters
-    SimParams m_sim;      ///< simulation parameters
+    MaterialProperties m_material;  ///< material properties
+    ProblemGeometry m_geometry;     ///< fluid parameters
+    Wavetank m_wavetank;            ///< wave tank settings
+    SimParams m_sim;                ///< simulation parameters
 
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> m_fsi_problem;  ///< underlying FSI problem
+
+    bool m_has_wavetank;
 
     bool m_depth_based_pressure;
     double m_zero_height;

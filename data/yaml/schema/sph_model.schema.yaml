@@ -56,6 +56,69 @@ color: &COLOR
   minItems: 3
   maxItems: 3
 
+# Specification of a data array with 2 columns
+data_array_2: &DATA_ARRAY_2
+    type: array
+    description: Array of number pairs
+    items:
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+
+# Specification of a function of one variable
+function: &FUNCTION
+    type: object
+    description: Function of one variable
+    required: [type]
+    properties:
+      type:
+        type: string
+        enum: [CONSTANT, POLYNOMIAL, SINE, RAMP, DATA]
+        description: Function type
+      repeat:
+        type: object
+        description: Periodic replication of the underlying function
+        start:
+          type: number
+          description: Slice start position
+        width:
+          type: number
+          description: Slice width
+        shift:
+          type: number
+          description: Slice shift
+      value:
+        type: number
+        description: Constant value for CONSTANT type
+      coefficients:
+        type: array
+        description: Coefficents for POLYNOMIAL type
+        items:
+          type: number
+        minItems: 2
+      amplitude:
+        type: number
+        description: Amplitude for SINE type
+      frequency:
+        type: number
+        description: Frequency for SINE type
+      phase:
+        type: number
+        description: Phase for SINE type
+        default: 0.0
+      slope:
+        type: number
+        description: Slope for RAMP type
+      intercept:
+        type: number
+        description: Intercept value for RAMP type
+        default: 0.0
+      data:
+        <<: *DATA_ARRAY_2
+        description: Interpolation data points for DATA type [[x, f(x)], ...]  
+
 # -----------------------------------------------------------------------------
 # Definition of a Chrono::SPH fluid model
 # -----------------------------------------------------------------------------
@@ -119,6 +182,32 @@ model:
       type: object
       properties:
         # TODO
+
+    wave_tank:
+      description: Specification of a wave tank with wave maker mechanism.
+      type: object
+      required: [type, tank_dimensions, water_depth, actuation_function]
+      properties:
+        type:
+          description: Wave maker mechanism type.
+          type: string
+          enum: [PISTON, FLAP]
+        tank_dimensions:
+          <<: *VECTOR3D
+          description: Dimensions of the wave tank container.
+        tank_origin:
+          <<: *VECTOR3D
+          description: Origin of the wave tank container.
+        water_depth:
+          description: Initial water depth in the tank.
+          type: number
+          minimum: 0
+        profile:
+          <<: *DATA_ARRAY_2
+          description: Profile function of the water tank bottom.
+        actuation_function:
+          <<: *FUNCTION
+          description: Function of time defining actuation of the wave maker mechanism.
 
     fluid_domain:
       description: Specification of the SPH fluid domain.
