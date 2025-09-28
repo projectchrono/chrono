@@ -65,12 +65,16 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserMbsYAML::ChParserMbsYAML() : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_num_instances(0) {}
+ChParserMbsYAML::ChParserMbsYAML(bool verbose)
+    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_num_instances(0) {
+    SetVerbose(verbose);
+}
 
 ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename,
                                  const std::string& yaml_sim_filename,
                                  bool verbose)
     : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_num_instances(0) {
+    SetVerbose(verbose);
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
 }

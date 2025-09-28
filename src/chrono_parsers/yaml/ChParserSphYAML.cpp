@@ -44,6 +44,7 @@ ChParserSphYAML::ChParserSphYAML(const std::string& yaml_model_filename,
       m_velocity(VNULL),
       m_sim_loaded(false),
       m_model_loaded(false) {
+    SetVerbose(verbose);
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
 }

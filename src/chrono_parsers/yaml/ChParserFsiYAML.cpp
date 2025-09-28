@@ -28,6 +28,7 @@ namespace parsers {
 
 ChParserFsiYAML::ChParserFsiYAML(const std::string& yaml_filename, bool verbose)
     : ChParserYAML(), m_end_time(-1), m_render(false), m_output(false) {
+    SetVerbose(verbose);
     LoadFile(yaml_filename);
 }
 
@@ -176,7 +177,7 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
-        cout << "\nLoading Chrono::FSI specification from: " << yaml_filename << "\n" << endl;
+        cout << "\n[ChParserFsiYAML] Loading Chrono::FSI specification from: " << yaml_filename << "\n" << endl;
         cout << "    Model name: '" << m_name << "'" << endl;
         cout << "    Specification files" << endl;
         cout << "       Multibody model specification file:      " << m_file_modelMBS << endl;
@@ -235,13 +236,6 @@ void ChParserFsiYAML::CreateFsiSystem() {
             if (m_verbose)
                 cout << "Initialize FSI problem" << endl;
             problemSPH->Initialize();
-
-            if (m_verbose) {
-                auto domain_aabb = problemSPH->GetComputationalDomain();
-                cout << "Computational domain: " << endl;
-                cout << "   min: " << domain_aabb.min << endl;
-                cout << "   max: " << domain_aabb.max << endl;
-            }
 
             m_parserCFD = parserSPH;
             break;

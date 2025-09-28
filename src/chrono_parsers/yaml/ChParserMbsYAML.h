@@ -45,7 +45,7 @@ namespace parsers {
 /// populating a Chrono system and setting solver and simulation parameters.
 class ChApiParsers ChParserMbsYAML : public ChParserYAML {
   public:
-    ChParserMbsYAML();
+    ChParserMbsYAML(bool verbose = false);
 
     /// Create a YAML parser and load the model from the specified input YAML file.
     ChParserMbsYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);

@@ -49,7 +49,8 @@ ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_model_filename,
       m_vis_steering(VisualizationType::PRIMITIVES),
       m_vis_wheel(VisualizationType::MESH),
       m_vis_tire(VisualizationType::MESH) {
-    m_parserMBS = chrono_types::make_shared<ChParserMbsYAML>();
+    SetVerbose(verbose);
+    m_parserMBS = chrono_types::make_shared<ChParserMbsYAML>(verbose);
     m_parserMBS->LoadSimulationFile(yaml_sim_filename);
 
     LoadModelFile(yaml_model_filename);
