@@ -85,7 +85,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
         std::shared_ptr<utils::ChBodyGeometry> geometry;  ///< FSI geometry
     };
 
-    std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(const YAML::Node& a);
+    std::shared_ptr<utils::ChBodyGeometry> ReadCollisionGeometry(const YAML::Node& a);
 
     std::string m_file_modelMBS;
     std::string m_file_simMBS;
