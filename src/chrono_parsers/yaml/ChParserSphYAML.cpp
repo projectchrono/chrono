@@ -594,30 +594,30 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
             if (a["x_bc_type"]) {
                 auto x_bc_type = ReadBoundaryConditionType(a["x_bc_type"]);
                 if (x_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
-                    ChAssertAlways(m_geometry.fluid_domain_cartesian->wall_code &
-                                   static_cast<int>(fsi::sph::BoxSide::X_NEG) == 0);
-                    ChAssertAlways(m_geometry.fluid_domain_cartesian->wall_code &
-                                   static_cast<int>(fsi::sph::BoxSide::X_POS) == 0);
+                    ChAssertAlways((m_geometry.fluid_domain_cartesian->wall_code &
+                                    static_cast<int>(fsi::sph::BoxSide::X_NEG)) == 0);
+                    ChAssertAlways((m_geometry.fluid_domain_cartesian->wall_code &
+                                    static_cast<int>(fsi::sph::BoxSide::X_POS)) == 0);
                 }
                 m_geometry.computational_domain->bc_type.x = x_bc_type;
             }
             if (a["y_bc_type"]) {
                 auto y_bc_type = ReadBoundaryConditionType(a["y_bc_type"]);
                 if (y_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
-                    ChAssertAlways(m_geometry.fluid_domain_cartesian->wall_code &
-                                   static_cast<int>(fsi::sph::BoxSide::Y_NEG) == 0);
-                    ChAssertAlways(m_geometry.fluid_domain_cartesian->wall_code &
-                                   static_cast<int>(fsi::sph::BoxSide::Y_POS) == 0);
+                    ChAssertAlways((m_geometry.fluid_domain_cartesian->wall_code &
+                                    static_cast<int>(fsi::sph::BoxSide::Y_NEG)) == 0);
+                    ChAssertAlways((m_geometry.fluid_domain_cartesian->wall_code &
+                                    static_cast<int>(fsi::sph::BoxSide::Y_POS)) == 0);
                 }
                 m_geometry.computational_domain->bc_type.y = y_bc_type;
             }
             if (a["z_bc_type"]) {
                 auto z_bc_type = ReadBoundaryConditionType(a["z_bc_type"]);
                 if (z_bc_type != fsi::sph::BCType::NONE && m_geometry_type == GeometryType::CARTESIAN) {
-                    ChAssertAlways(m_geometry.fluid_domain_cartesian->wall_code &
-                                   static_cast<int>(fsi::sph::BoxSide::Z_NEG) == 0);
-                    ChAssertAlways(m_geometry.fluid_domain_cartesian->wall_code &
-                                   static_cast<int>(fsi::sph::BoxSide::Z_POS) == 0);
+                    ChAssertAlways((m_geometry.fluid_domain_cartesian->wall_code &
+                                    static_cast<int>(fsi::sph::BoxSide::Z_NEG)) == 0);
+                    ChAssertAlways((m_geometry.fluid_domain_cartesian->wall_code &
+                                    static_cast<int>(fsi::sph::BoxSide::Z_POS)) == 0);
                 }
                 m_geometry.computational_domain->bc_type.z = z_bc_type;
             }
