@@ -102,6 +102,9 @@ class ChApiParsers ChParserYAML {
     /// Load and return a coordinate system from the specified node.
     static ChCoordsysd ReadCoordinateSystem(const YAML::Node& a, bool use_degrees);
 
+    /// Load and return a ChFunction object from the specified node.
+    static std::shared_ptr<ChFunction> ReadFunction(const YAML::Node& a, bool use_degrees);
+
     /// Load and return a ChColor from the specified node.
     static ChColor ReadColor(const YAML::Node& a);
 

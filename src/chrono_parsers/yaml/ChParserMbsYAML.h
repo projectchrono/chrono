@@ -362,9 +362,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Load and return a rotation motor spindle constraint type from the specified node.
     ChLinkMotorRotation::SpindleConstraint ReadMotorSpindleType(const YAML::Node& a);
 
-    /// Load and return a motor actuation ChFunction object from the specified node.
-    std::shared_ptr<ChFunction> ReadFunction(const YAML::Node& a);
-
     /// Set Chrono solver parameters.
     void SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso);
 
