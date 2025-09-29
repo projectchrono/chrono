@@ -504,12 +504,16 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             BodyLoadParams load;
             load.type = ReadBodyLoadType(loads[i]["type"]);
             load.body = loads[i]["body"].as<std::string>();
-            load.local_load = loads[i]["local_load"].as<bool>();
-            load.value = ReadVector(loads[i]["load"]);
+            if (loads[i]["local_load"])
+                load.local_load = loads[i]["local_load"].as<bool>();
+            if (loads[i]["load"])
+                load.value = ReadVector(loads[i]["load"]);
             if (load.type == BodyLoadType::FORCE) {
                 load.local_point = loads[i]["local_point"].as<bool>();
                 load.point = ReadVector(loads[i]["point"]);
             }
+            if (loads[i]["modulation_function"])
+                load.modulation = ReadFunction(loads[i]["modulation_function"], m_use_degrees);
 
             if (m_verbose)
                 load.PrintInfo(name);
@@ -838,13 +842,22 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
         switch (item.second.type) {
-            case BodyLoadType::FORCE:
-                load = chrono_types::make_shared<ChLoadBodyForce>(body, item.second.value, item.second.local_load,
-                                                                  item.second.point, item.second.local_point);
+            case BodyLoadType::FORCE: {
+                auto loadF = chrono_types::make_shared<ChLoadBodyForce>(body, item.second.value, item.second.local_load,
+                                                                        item.second.point, item.second.local_point);
+                if (item.second.modulation)
+                    loadF->SetModulationFunction(item.second.modulation);
+                load = loadF;
                 break;
-            case BodyLoadType::TORQUE:
-                load = chrono_types::make_shared<ChLoadBodyTorque>(body, item.second.value, item.second.local_load);
+            }
+            case BodyLoadType::TORQUE: {
+                auto loadT =
+                    chrono_types::make_shared<ChLoadBodyTorque>(body, item.second.value, item.second.local_load);
+                if (item.second.modulation)
+                    loadT->SetModulationFunction(item.second.modulation);
+                load = loadT;
                 break;
+            }
         }
         load->SetName(model_prefix + item.first);
         load_container->Add(load);

@@ -262,6 +262,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         bool local_point;                                 ///< point provided in local frame?
         ChVector3d value;                                 ///< load value (force or torque)
         ChVector3d point;                                 ///< force application point
+        std::shared_ptr<ChFunction> modulation;           ///< modulation as function of time
     };
 
     /// Motor actuation type.

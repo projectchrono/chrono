@@ -83,24 +83,24 @@ Depending on the contact method, smooth contact formulation (SMC) or non-smooth 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
 | `name` | Unique identifier for the material | string | -- | Yes | -- |
-| `coefficient_of_friction` | Friction coefficient | double | -- | No | 0.8 |
+| `coefficient_of_friction`    | Friction coefficient | double | -- | No | 0.8 |
 | `coefficient_of_restitution` | Coefficient of restitution | double | -- | No | 0.01|
-| `properties` | (SMC only) contact material-based properties, such as Young's modulus and Poisson's ratio | object | -- | No | see below |
-| `Coefficients` | (SMC only) contact spring-damper coefficients, such as normal stiffness and damping | object | -- | No | see below |
+| `physical__properties` | (SMC only) contact material-based properties, such as Young's modulus and Poisson's ratio | object | -- | No | see below |
+| `coefficients`         | (SMC only) contact spring-damper coefficients, such as normal stiffness and damping       | object | -- | No | see below |
 <br>
-Properties for `material`->`properties`:
+Properties for `material`->`physical__properties`:
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `Youngs_modulus` | Young's modulus of the material | double | -- | Yes | 2e7 if `properties` not specified |
-| `Poisson_ratio` | Poisson's ratio of the material | double | -- | Yes | 0.3 if `properties` not specified |
+| `Youngs_modulus` | Young's modulus of the material | double | -- | Yes | 2e7 |
+| `Poisson_ratio`  | Poisson's ratio of the material | double | -- | Yes | 0.3 |
 <br>
-Properties for `material`->`Coefficients`:
+Properties for `material`->`coefficients`:
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `normal_stiffness` | Normal stiffness coefficient | double | -- | Yes | 2e5 if `Coefficients` not specified |
-| `normal_damping` | Normal damping coefficient | double | -- | Yes | 40 if `Coefficients` not specified |
-| `tangential_stiffness` | Tangential stiffness coefficient | double | -- | Yes | 2e5 if `Coefficients` not specified |
-| `tangential_damping` | Tangential damping coefficient | double | -- | Yes | 20 if `Coefficients` not specified |
+| `normal_stiffness`     | Normal stiffness coefficient     | double | -- | Yes | 2e5 |
+| `normal_damping`       | Normal damping coefficient       | double | -- | Yes | 40 |
+| `tangential_stiffness` | Tangential stiffness coefficient | double | -- | Yes | 2e5 |
+| `tangential_damping`   | Tangential damping coefficient   | double | -- | Yes | 20 |
 
 ##### Collision Shape
 
