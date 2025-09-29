@@ -477,6 +477,8 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
                 m_wavetank.profile->AddPoint(a["profile"][i][0].as<double>(), a["profile"][i][1].as<double>());
         }
         m_wavetank.actuation = ReadFunction(a["actuation_function"], m_use_degrees);
+        if (a["actuation_function"]["delay"])
+            m_wavetank.actuation_delay = a["actuation_function"]["delay"].as<double>();
 
         m_has_wavetank = true;
     }
@@ -639,6 +641,26 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
 
 // -----------------------------------------------------------------------------
 
+// Wrapper function for wave maker actuation with delay.
+class WavemakerFunction : public ChFunction {
+  public:
+    WavemakerFunction() : delay(0), actuation(nullptr) {}
+    WavemakerFunction(double delay, std::shared_ptr<ChFunction> actuation) : delay(delay), actuation(actuation) {}
+
+    virtual WavemakerFunction* Clone() const override { return new WavemakerFunction(); }
+
+    virtual double GetVal(double t) const override {
+        double val = 0;
+        if (t >= delay)
+            val = actuation->GetVal(t - delay);
+        return val;
+    }
+
+  private:
+    double delay;
+    std::shared_ptr<ChFunction> actuation;
+};
+
 // Callback for setting initial SPH particle properties
 class SPHPropertiesCallback : public fsi::sph::ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
@@ -738,8 +760,9 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
         if (m_wavetank.profile)
             fsi_problem->SetProfile(chrono_types::make_shared<WaveTankProfile>(*m_wavetank.profile),
                                     m_wavetank.end_wall);
+        auto actuation = chrono_types::make_shared<WavemakerFunction>(m_wavetank.actuation_delay, m_wavetank.actuation);
         fsi_problem->ConstructWaveTank(m_wavetank.type, m_wavetank.container.origin, m_wavetank.container.dimensions,
-                                       m_wavetank.depth, m_wavetank.actuation);
+                                       m_wavetank.depth, actuation);
     } else {
         // Construct the fluid domain, optional container, and optional computational domain
         switch (m_geometry_type) {
@@ -876,18 +899,19 @@ void ChParserSphYAML::ProblemGeometry::PrintInfo() {
     }
 }
 
-ChParserSphYAML::Wavetank::Wavetank() : end_wall(true) {}
+ChParserSphYAML::Wavetank::Wavetank() : end_wall(true), actuation_delay(0) {}
 
 void ChParserSphYAML::Wavetank::PrintInfo() {
     cout << "Wavetank settings" << endl;
     if (type == fsi::sph::ChFsiProblemWavetank::WavemakerType::PISTON)
-        cout << "  type:  PISTON " << endl;
+        cout << "  type:             PISTON " << endl;
     else
-        cout << "  type:  FLAP   " << endl;
-    cout << "  dimensions:   " << container.dimensions << endl;
-    cout << "  origin:       " << container.origin << endl;
-    cout << "  depth:        " << depth << endl;
-    cout << "  end wall:     " << end_wall << endl;
+        cout << "  type:             FLAP " << endl;
+    cout << "  dimensions:      " << container.dimensions << endl;
+    cout << "  origin:          " << container.origin << endl;
+    cout << "  depth:           " << depth << endl;
+    cout << "  end wall:        " << end_wall << endl;
+    cout << "  actuation delay: " << actuation_delay << endl;
 }
 
 ChParserSphYAML::VisParams::VisParams()

@@ -35,5 +35,6 @@ model:
       type: SINE
       amplitude: 0.1
       frequency: 1.0
-      phase: 1.5708
+      phase: -90
       shift: 0.1
+      delay: 0.25

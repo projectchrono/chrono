@@ -27,7 +27,7 @@ simulation:
 
   visualization:
       type: Model_file
-      render_fps: 120
+      render_fps: 240
       enable_shadows: false
       camera:
           vertical: Z

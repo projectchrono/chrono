@@ -142,6 +142,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
         std::shared_ptr<ChFunctionInterp> profile;
         std::shared_ptr<ChFunction> actuation;
+        double actuation_delay;
     };
 
     /// Run-time visualization parameters.
