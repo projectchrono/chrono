@@ -217,6 +217,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
     virtual void Update(double time, bool update_assets) override;
 
+    /// Update internal variables that must only be modified at the end of step.
+    virtual void EndOfStepInternalVariablesUpdate() override;
+
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void ForceToRest() override;
 

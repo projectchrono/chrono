@@ -665,6 +665,27 @@ void ChAssembly::Update(double time, bool update_assets) {
     }
 }
 
+// Update assembly's data that must only be updated at the end of the step
+// Currently, this will only update the internal state variables of the mechanical constitutive equations
+// for FEA elements inside the ChMesh objects
+void ChAssembly::EndOfStepInternalVariablesUpdate() {
+    for (auto& body : bodylist) {
+        body->EndOfStepInternalVariablesUpdate();
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->EndOfStepInternalVariablesUpdate();
+    }
+    for (auto& link : linklist) {
+        link->EndOfStepInternalVariablesUpdate();
+    }
+    for (auto& mesh : meshlist) {
+        mesh->EndOfStepInternalVariablesUpdate();
+    }
+    for (auto& item : otherphysicslist) {
+        item->EndOfStepInternalVariablesUpdate();
+    }
+}
+
 void ChAssembly::ForceToRest() {
     for (auto& body : bodylist) {
         body->ForceToRest();

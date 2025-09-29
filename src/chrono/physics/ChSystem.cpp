@@ -1228,6 +1228,14 @@ void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c) {
 }
 
 // -----------------------------------------------------------------------------
+//   END OF STEP UPDATE OPERATIONS
+// -----------------------------------------------------------------------------
+
+void ChSystem::EndOfStepUpdates() {
+    assembly.EndOfStepInternalVariablesUpdate();
+}
+
+// -----------------------------------------------------------------------------
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
@@ -1616,6 +1624,9 @@ bool ChSystem::AdvanceDynamics() {
 
     // Executes custom processing at the end of step
     CustomEndOfStep();
+
+    // Updates path-dependent data in the assembly that must only be modified at the end of step
+    EndOfStepUpdates();
 
     // Call method to gather contact forces/torques in rigid bodies
     contact_container->ComputeContactForces();

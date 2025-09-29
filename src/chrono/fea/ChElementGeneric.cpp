@@ -146,5 +146,10 @@ void ChElementGeneric::VariablesFbIncrementMq() {
     throw(std::runtime_error("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
 }
 
+void ChElementGeneric::EleUpdateStateVar() {
+    if (GetNumStateVar() <= 0) return;
+    statevar_old = statevar;
+    }
+
 }  // end namespace fea
 }  // end namespace chrono

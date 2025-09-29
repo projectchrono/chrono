@@ -96,6 +96,11 @@ class ChApi ChPhysicsItem : public ChObj {
     /// only if requested).
     virtual void Update(double time, bool update_assets) override;
 
+    /// Update internal variables that must only be modified at the end of step.
+    /// This is necessary for path-dependent data that can otherwise get corrupted
+    /// if updated at each iteration, e.g., internal variables of material constitutive model in FEA (plasticity)
+    virtual void EndOfStepInternalVariablesUpdate() {}
+
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
     /// It is used by owner ChSystem for some static analysis.

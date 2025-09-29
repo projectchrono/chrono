@@ -437,6 +437,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
 
+    /// Executes typical processing at the end of step.
+    /// By default, this updates the internal material state variables for the FEA elements
+    /// TODO JBC: I did not modify the function above for backward compatibility in case any user has inherited a special ChSystem
+    ///           This should not be of concern for general Chrono development. Building on top is less intrusive.
+    //            CustomEndOfStep() could be deleted, or the present development could be set inside it, rather than creating a new EndOfStepUpdates() function
+    void EndOfStepUpdates();
+
     /// Perform the collision detection, returning the number of contacts.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.
