@@ -305,6 +305,11 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                  const ChStateDelta& Dx  ///< state increment Dx
     );
 
+    /// Executes typical processing at the end of step.
+    /// This updates the data in the assembly of the ChSystem. Defined here because it is needed by StaticAnalysis
+    virtual void EndOfStepUpdates() {
+        throw std::runtime_error("EndOfStepUpdates() not implemented, integrable must be of type ChSystem. ");
+    }
     //
     // Functions required by implicit integration schemes
     //

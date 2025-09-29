@@ -442,7 +442,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// TODO JBC: I did not modify the function above for backward compatibility in case any user has inherited a special ChSystem
     ///           This should not be of concern for general Chrono development. Building on top is less intrusive.
     //            CustomEndOfStep() could be deleted, or the present development could be set inside it, rather than creating a new EndOfStepUpdates() function
-    void EndOfStepUpdates();
+    void EndOfStepUpdates() override;
 
     /// Perform the collision detection, returning the number of contacts.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.

@@ -1718,6 +1718,10 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
     if (visual_system)
         visual_system->OnUpdate(this);
 
+    // TODO JBC: I believe the SV should be updated here, to be confirmed !
+    // Updates path-dependent data in the assembly that must only be modified at the end of step
+    EndOfStepUpdates();
+
     return exit_flag;
 }
 
@@ -1790,6 +1794,11 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     if (visual_system)
         visual_system->OnUpdate(this);
 
+    // Updates path-dependent data in the assembly that must only be modified at the end of step
+    //    For ChStaticNonLinearIncremental analyses, the end of step variables are updated after every load increment
+    //    inside `ChStaticNonLinearIncremental::StaticAnalysis()` and the call below is redundant with the update after the last load increment
+    EndOfStepUpdates();
+
     return true;
 }
 
@@ -1850,6 +1859,9 @@ bool ChSystem::DoStaticLinear() {
     if (visual_system)
         visual_system->OnUpdate(this);
 
+    // Updates path-dependent data in the assembly that must only be modified at the end of step
+    EndOfStepUpdates();
+
     return true;
 }
 
@@ -1890,6 +1902,9 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     // Update any attached visualization system
     if (visual_system)
         visual_system->OnUpdate(this);
+
+    // Updates path-dependent data in the assembly that must only be modified at the end of step
+    EndOfStepUpdates();
 
     return true;
 }
@@ -1936,6 +1951,9 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     if (visual_system)
         visual_system->OnUpdate(this);
 
+    // Updates path-dependent data in the assembly that must only be modified at the end of step
+    EndOfStepUpdates();
+
     return true;
 }
 
@@ -1966,6 +1984,9 @@ bool ChSystem::DoStaticRelaxing(double step_size, int num_iterations) {
     // Update any attached visualization system
     if (visual_system)
         visual_system->OnUpdate(this);
+
+    // No need to call `EndOfStepUpdates()`.
+    // End of step data already updated by `DoFrameDynamics`
 
     return success;
 }

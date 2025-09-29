@@ -205,7 +205,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
             }
         }
 
-        X = Xnew;
+        X = Xnew; // TODO JBC: I think this is wrong. You should not update X until you converge (see HHT code)
 
         integrable->StateScatter(X, V, T, true);  // state -> system
         integrable->StateScatterReactions(L);     // -> system auxiliary data
@@ -769,9 +769,13 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
                 }
             }
 
-            X = Xnew;
+            X = Xnew; // TODO JBC: I think this is wrong. You should not update X until you converge (see HHT code)
 
         }  // end inner loop for Newton iteration
+
+        // Updates path-dependent data in the assembly that must only be modified at the end of step
+        // Each load increment is a step for which an update is necessary
+        integrable->EndOfStepUpdates();
 
     }  // end outer loop incrementing external loads
 
