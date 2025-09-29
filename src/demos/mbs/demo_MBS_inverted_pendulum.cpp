@@ -15,11 +15,11 @@
 // Demonstration of a user-defined PID controller in Chrono.
 //
 // The model consists of an inverted pendulum on a moving cart (which slides on
-// a horizontal prismatic joint). The SIMO controller applies a horizontal force
+// a horizontal prismatic joint). A PID controller applies a horizontal force
 // to the cart in order to maintain the pendulum vertical, while moving the cart
 // to a prescribed target location.  The target location switches periodically.
 //
-// The mechanical sys eveolves in the X-Y plane (Y up).
+// The mechanical sys evolves in the X-Y plane (Y up).
 //
 // =============================================================================
 
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // use_directLS = false: use default EULER_IMPLICIT_LINEARIZED timestepper with PSOR VI solver
-    // use_directLS = true:  use EULER_IMPLICIT timestepper with SparseQR solver 
+    // use_directLS = true:  use EULER_IMPLICIT timestepper with SparseQR solver
     bool use_directLS = false;
 
     // Create the Chrono physical sys
@@ -334,14 +334,14 @@ int main(int argc, char* argv[]) {
     double time_step = 0.001;
 
     // Initialize cart location target switching
-    int target_id = 0;
+    double travel_dir = +1;
     double switch_time = 0;
 
     while (vis->Run()) {
         // At a switch time, flip target for cart location
         if (sys.GetChTime() > switch_time) {
-            controller.SetTargetCartLocation(travel_dist * (1 - 2 * target_id));
-            target_id = 1 - target_id;
+            controller.SetTargetCartLocation(travel_dist * travel_dir);
+            travel_dir *= -1;
             switch_time += switch_period;
         }
 

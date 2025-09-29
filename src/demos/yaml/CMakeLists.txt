@@ -1,7 +1,10 @@
 #--------------------------------------------------------------
 # List of all MBS demos
 
-set(DEMOS demo_YAML_mbs)
+set(DEMOS
+    demo_YAML_mbs
+    demo_YAML_mbs_controller
+)
 
 if(CH_ENABLE_MODULE_FSI)
   set(DEMOS ${DEMOS} demo_YAML_fsi)

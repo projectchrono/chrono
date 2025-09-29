@@ -26,7 +26,6 @@
 
 #include "chrono/physics//ChSystemNSC.h"
 #include "chrono/physics//ChSystemSMC.h"
-#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorLinearForce.h"
@@ -66,14 +65,14 @@ namespace chrono {
 namespace parsers {
 
 ChParserMbsYAML::ChParserMbsYAML(bool verbose)
-    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_num_instances(0) {
+    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
     SetVerbose(verbose);
 }
 
 ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename,
                                  const std::string& yaml_sim_filename,
                                  bool verbose)
-    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_num_instances(0) {
+    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
     SetVerbose(verbose);
     LoadModelFile(yaml_model_filename);
     LoadSimulationFile(yaml_sim_filename);
@@ -522,6 +521,38 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
+    // Read external controllers
+    if (model["controllers"]) {
+        auto controllers = model["controllers"];
+        ChAssertAlways(controllers.IsSequence());
+        if (m_verbose) {
+            cout << "\nexternal controllers: " << controllers.size() << endl;
+        }
+        for (size_t i = 0; i < controllers.size(); i++) {
+            ChAssertAlways(controllers[i]["name"]);
+            ChAssertAlways(controllers[i]["type"]);
+            ChAssertAlways(controllers[i]["body"]);
+
+            auto name = controllers[i]["name"].as<std::string>();
+
+            BodyLoadParams load;
+            load.type = ReadBodyLoadType(controllers[i]["type"]);
+            load.body = controllers[i]["body"].as<std::string>();
+            if (controllers[i]["local_load"])
+                load.local_load = controllers[i]["local_load"].as<bool>();
+            if (load.type == BodyLoadType::FORCE) {
+                load.local_point = controllers[i]["local_point"].as<bool>();
+                load.point = ReadVector(controllers[i]["point"]);
+            }
+            load.value = 0;
+
+            if (m_verbose)
+                load.PrintInfo(name);
+
+            m_controllers.insert({name, load});
+        }
+    }
+
     // Read motors
     if (model["motors"]) {
         auto motors = model["motors"];
@@ -715,7 +746,7 @@ std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBodyByName(const std::string&
         cerr << "Cannot find body with name: " << name << endl;
         throw std::runtime_error("Invalid body name");
     }
-    return b->second.body[m_num_instances];
+    return b->second.body[m_crt_instance];
 }
 
 std::vector<std::shared_ptr<ChBodyAuxRef>> ChParserMbsYAML::FindBodiesByName(const std::string& name) const {
@@ -728,6 +759,8 @@ std::vector<std::shared_ptr<ChBodyAuxRef>> ChParserMbsYAML::FindBodiesByName(con
 }
 
 int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std::string& model_prefix) {
+    m_crt_instance++;
+
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
         cout << "\n[ChParserMbsYAML] Populate ChSystem\n" << endl;
@@ -865,6 +898,27 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         m_output_data.loads.push_back(load);
     }
 
+    // Create external body load controllers
+    if (m_verbose && !m_controllers.empty())
+        cout << "Create external body load controllers" << endl;
+    for (auto& item : m_controllers) {
+        auto body = FindBodyByName(item.second.body);
+        std::shared_ptr<ChLoadCustom> load;
+        switch (item.second.type) {
+            case BodyLoadType::FORCE:
+                load = chrono_types::make_shared<ChLoadBodyForce>(body, 0.0, item.second.local_load, item.second.point,
+                                                                  item.second.local_point);
+                break;
+            case BodyLoadType::TORQUE:
+                load = chrono_types::make_shared<ChLoadBodyTorque>(body, 0.0, item.second.local_load);
+                break;
+        }
+        load->SetName(model_prefix + item.first);
+        load_container->Add(load);
+        item.second.load.push_back(load);
+        m_output_data.loads.push_back(load);
+    }
+
     // Create linear motors
     if (m_verbose && !m_linmotors.empty())
         cout << "Create linear motors" << endl;
@@ -932,20 +986,18 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     // Create body collision models
     for (auto& item : m_bodies) {
         if (item.second.geometry->HasCollision())
-            item.second.geometry->CreateCollisionShapes(item.second.body[m_num_instances], 0, sys.GetContactMethod());
+            item.second.geometry->CreateCollisionShapes(item.second.body[m_crt_instance], 0, sys.GetContactMethod());
     }
 
     // Create visualization assets
     for (auto& item : m_bodies)
-        item.second.geometry->CreateVisualizationAssets(item.second.body[m_num_instances], m_sim.visualization.type);
+        item.second.geometry->CreateVisualizationAssets(item.second.body[m_crt_instance], m_sim.visualization.type);
     for (auto& item : m_tsdas)
-        item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_num_instances]);
+        item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_crt_instance]);
     for (auto& item : m_dists)
-        item.second.dist[m_num_instances]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        item.second.dist[m_crt_instance]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
-    m_num_instances++;
-
-    return m_num_instances - 1;
+    return m_crt_instance;
 }
 
 void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {
@@ -977,6 +1029,41 @@ void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {
         ChAssertAlways(item.second.rsda.size() > instance_index);
         sys.Remove(item.second.rsda[instance_index]);
         item.second.rsda.erase(item.second.rsda.begin() + instance_index);
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChParserMbsYAML::ApplyControllerLoads(const ControllerLoads& controller_loads) {
+    for (const auto& controller_load : controller_loads) {
+        const auto& name = controller_load.first;
+        const auto& val = controller_load.second;
+
+        // Find the controllers with this base name
+        auto c = m_controllers.find(name);
+        if (c == m_controllers.end()) {
+            cerr << "[ChParserMbsYAML::ApplyControllerLoads] Error: cannot find controller with name: " << name << endl;
+            throw std::runtime_error("Invalid controller name");
+        }
+        auto type = c->second.type;
+        bool local_load = c->second.local_load;
+        auto& controllers = c->second.load;
+
+        // Set the load to controllers from all model instances
+        for (auto& controller : controllers) {
+            switch (type) {
+                case BodyLoadType::FORCE: {
+                    auto controllerF = std::dynamic_pointer_cast<ChLoadBodyForce>(controller);
+                    controllerF->SetForce(val, local_load);
+                    break;
+                }
+                case BodyLoadType::TORQUE: {
+                    auto controllerT = std::dynamic_pointer_cast<ChLoadBodyTorque>(controller);
+                    controllerT->SetTorque(val, local_load);
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -1356,14 +1443,14 @@ ChContactMaterialData ChParserMbsYAML::ReadMaterialData(const YAML::Node& mat) {
     if (mat["coefficient_of_restitution"])
         minfo.cr = mat["coefficient_of_restitution"].as<float>();
 
-    if (mat["properties"]) {
-        ChAssertAlways(mat["properties"]["Young_modulus"]);
-        ChAssertAlways(mat["properties"]["Poisson_ratio"]);
-        minfo.Y = mat["properties"]["Young_modulus"].as<float>();
-        minfo.nu = mat["properties"]["Poisson_ratio"].as<float>();
+    if (mat["physical_properties"]) {
+        ChAssertAlways(mat["physical_properties"]["Young_modulus"]);
+        ChAssertAlways(mat["physical_properties"]["Poisson_ratio"]);
+        minfo.Y = mat["physical_properties"]["Young_modulus"].as<float>();
+        minfo.nu = mat["physical_properties"]["Poisson_ratio"].as<float>();
     }
 
-    if (mat["Coefficients"]) {
+    if (mat["coefficients"]) {
         ChAssertAlways(mat["coefficients"]["normal_stiffness"]);
         ChAssertAlways(mat["coefficients"]["normal_damping"]);
         ChAssertAlways(mat["coefficients"]["tangential_stiffness"]);

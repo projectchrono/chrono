@@ -22,6 +22,8 @@
 
 #include "chrono/assets/ChVisualSystem.h"
 
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -45,6 +47,8 @@ namespace parsers {
 /// populating a Chrono system and setting solver and simulation parameters.
 class ChApiParsers ChParserMbsYAML : public ChParserYAML {
   public:
+    typedef std::unordered_map<std::string, ChVector3d> ControllerLoads;
+
     ChParserMbsYAML(bool verbose = false);
 
     /// Create a YAML parser and load the model from the specified input YAML file.
@@ -95,13 +99,16 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     void Depopulate(ChSystem& sys, int instance_index);
 
     /// Return the number of instances created from the YAML model file.
-    int GetNumInstances() const { return m_num_instances; }
+    int GetNumInstances() const { return m_crt_instance + 1; }
 
-    /// Find and return with specified name in the current model instance.
+    /// Find and return the body with specified name in the current model instance.
     std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name) const;
 
     /// Find and return bodies with given base name from all model instances.
     std::vector<std::shared_ptr<ChBodyAuxRef>> FindBodiesByName(const std::string& name) const;
+
+    /// Apply current controller loads.
+    void ApplyControllerLoads(const ControllerLoads& controller_loads);
 
     // --------------
 
@@ -381,6 +388,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     std::unordered_map<std::string, TsdaParams> m_tsdas;                ///< TSDA force elements
     std::unordered_map<std::string, RsdaParams> m_rsdas;                ///< RSDA force elements
     std::unordered_map<std::string, BodyLoadParams> m_body_loads;       ///< body load elements
+    std::unordered_map<std::string, BodyLoadParams> m_controllers;      ///< external body load controllers
     std::unordered_map<std::string, MotorLinearParams> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotationParams> m_rotmotors;   ///< rotational motors
 
@@ -388,7 +396,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     bool m_sim_loaded;    ///< YAML simulation file loaded
     bool m_model_loaded;  ///< YAML model file loaded
-    int m_num_instances;  ///< number of model instances
+    int m_crt_instance;   ///< index of last instance created
 
     friend class ChParserFsiYAML;
 };

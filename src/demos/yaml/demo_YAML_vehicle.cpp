@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-        // Create output directory
+    // Create output directory
     if (output) {
         std::string out_dir = GetChronoOutputPath() + "YAML_VEHICLE";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
