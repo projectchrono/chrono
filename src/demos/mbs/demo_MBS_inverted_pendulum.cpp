@@ -277,17 +277,14 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
             vis_irr->SetWindowSize(800, 600);
             vis_irr->SetWindowTitle("Inverted Pendulum");
             vis_irr->SetCameraVertical(CameraVerticalDir::Y);
             vis_irr->Initialize();
             vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, 0, 5));
-            vis_irr->AttachSystem(&sys);
-            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
-                             ChColor(0.1f, 0.1f, 0.1f));
 
             vis = vis_irr;
 #endif
@@ -352,7 +349,9 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(time_step);
         controller.Advance(time_step);
 
+        vis->BeginScene();
         vis->Render();
+        vis->EndScene();
 
         realtime_timer.Spin(time_step);
     }

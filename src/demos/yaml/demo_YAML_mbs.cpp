@@ -150,7 +150,6 @@ int main(int argc, char* argv[]) {
                 vis_vsg->AddCamera(camera_location, camera_target);
                 vis_vsg->SetWindowSize(1280, 800);
                 vis_vsg->SetWindowPosition(100, 100);
-                vis_vsg->SetBackgroundColor(ChColor(0.4f, 0.45f, 0.55f));
                 vis_vsg->SetCameraVertical(camera_vertical);
                 vis_vsg->SetCameraAngleDeg(40.0);
                 vis_vsg->SetLightIntensity(1.0f);

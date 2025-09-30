@@ -20,6 +20,9 @@
 // to the cart in order to maintain the pendulum vertical, while moving the cart
 // to a prescribed target location.  The target location switches periodically.
 //
+// Note: PID controller is not perfectly tuned. This demo is for illustration
+//       purposes only.
+//
 // =============================================================================
 
 ////#include <float.h>
@@ -28,7 +31,6 @@
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"
 
 #ifdef CHRONO_VSG
@@ -39,105 +41,81 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-class InvertedPendulumController {
+class InvertedPendulumController : public parsers::ChLoadController {
   public:
-    InvertedPendulumController(std::shared_ptr<ChBody> cart, std::shared_ptr<ChBody> pend)
-        : m_cart(cart), m_pend(pend), m_force(0) {
-        // Set zero gains
-        SetGainsCart(0, 0, 0);
-        SetGainsPend(0, 0, 0);
+    InvertedPendulumController(double travel_dist,
+                               double switch_period)
+        : m_x_cart(travel_dist), m_a_pend(0), m_switch_period(switch_period) {}
 
-        // Set references to current configuration
-        SetTargetCartLocation(GetCurrentCartLocation());
-        SetTargetPendAngle(GetCurrentPendAngle());
+    void SetGainsCart(double Kp, double Ki, double Kd) { m_K_cart = ChVector3d(Kp, Ki, Kd); }
+    void SetGainsPend(double Kp, double Ki, double Kd) { m_K_pend = ChVector3d(Kp, Ki, Kd); }
 
-        // Initialize errors
-        m_e_cart = 0;
-        m_ed_cart = m_cart->GetPosDt().x();
-        m_ei_cart = 0;
+    virtual ChVector3d GetLoad() const override { return m_force; }
 
-        m_e_pend = 0;
-        m_ed_pend = m_pend->GetAngVelLocal().z();
-        m_ei_pend = 0;
+    // Initialize the controller
+    virtual void Initialize(const parsers::ChParserMbsYAML& parser, int model_instance) {
+        m_cart = parser.FindBodyByName("cart", 0);
+        m_pend = parser.FindBodyByName("pendulum", 0);
     }
 
-    // Set PID controller gains
-    void SetGainsCart(double Kp, double Ki, double Kd) {
-        m_Kp_cart = Kp;
-        m_Ki_cart = Ki;
-        m_Kd_cart = Kd;
+    // Synchronize controller at given time: at a switch time, flip target for cart location
+    virtual void Synchronize(double time) override {
+        static double switch_time = m_switch_period;
+        if (time >= switch_time) {
+            m_x_cart *= -1;
+            switch_time += m_switch_period;
+            std::cout << "Switch at time = " << time << " New target = " << m_x_cart << std::endl;
+            m_e_cart = VNULL;
+            m_e_pend = VNULL;
+        }
     }
-    void SetGainsPend(double Kp, double Ki, double Kd) {
-        m_Kp_pend = Kp;
-        m_Ki_pend = Ki;
-        m_Kd_pend = Kd;
-    }
-
-    // Set reference cart location and pendulum angle
-    void SetTargetCartLocation(double x_cart) { m_x_cart = x_cart; }
-    void SetTargetPendAngle(double a_pend) { m_a_pend = a_pend; }
 
     // Advance controller state and calculate output cart force
-    void Advance(double step) {
+    virtual void Advance(double step) override {
+        // Current cart location and pendulum angle
+        double x_cart = m_cart->GetPos().x();
+        ChVector3d dir = m_pend->TransformDirectionLocalToParent(ChVector3d(0, 0, 1));
+        double a_pend = std::atan2(-dir.x(), dir.z());
+
         // Calculate current errors and derivatives
-        double e_cart = GetCurrentCartLocation() - m_x_cart;
-        double e_pend = GetCurrentPendAngle() - m_a_pend;
+        double e_cart = x_cart - m_x_cart;
+        double e_pend = a_pend - m_a_pend;
 
         // Calculate current error derivatives
-        m_ed_cart = m_cart->GetPosDt().x();
-        m_ed_pend = -m_pend->GetAngVelLocal().y();
+        m_e_cart[2] = m_cart->GetPosDt().x();
+        m_e_pend[2] = -m_pend->GetAngVelLocal().y();
 
         // Calculate current error integrals (trapezoidal rule)
-        m_ei_cart += (m_e_cart + e_cart) * step / 2;
-        m_ei_pend += (m_e_pend + e_pend) * step / 2;
+        m_e_cart[1] += (m_e_cart[0] + e_cart) * step / 2;
+        m_e_pend[1] += (m_e_pend[0] + e_pend) * step / 2;
 
         // Cache new errors
-        m_e_cart = e_cart;
-        m_e_pend = e_pend;
+        m_e_cart[0] = e_cart;
+        m_e_pend[0] = e_pend;
 
         // Calculate PID output
-        double F_cart = m_Kp_cart * m_e_cart + m_Kd_cart * m_ed_cart + m_Ki_cart * m_ei_cart;
-        double F_pend = m_Kp_pend * m_e_pend + m_Kd_pend * m_ed_pend + m_Ki_pend * m_ei_pend;
+        double F_cart = Vdot(m_K_cart, m_e_cart);
+        double F_pend = Vdot(m_K_pend, m_e_pend);
 
-        m_force = F_cart + F_pend;
-    }
-
-    // Return the current cart force
-    double GetForce() const { return m_force; }
-
-    // Calculate current cart location
-    double GetCurrentCartLocation() { return m_cart->GetPos().x(); }
-
-    // Calculate current pendulum angle
-    double GetCurrentPendAngle() {
-        ChVector3d dir = m_pend->TransformDirectionLocalToParent(ChVector3d(0, 0, 1));
-        return std::atan2(-dir.x(), dir.z());
+        m_force.x() = F_cart + F_pend;
     }
 
   private:
     std::shared_ptr<ChBody> m_cart;
     std::shared_ptr<ChBody> m_pend;
 
-    double m_Kp_cart;  // gains for the PID for cart x displacement
-    double m_Ki_cart;
-    double m_Kd_cart;
+    double m_switch_period;
 
-    double m_Kp_pend;  // gains for the PID for pendulum angle
-    double m_Ki_pend;
-    double m_Kd_pend;
+    ChVector3d m_K_cart;  // gains for the PID for cart x displacement
+    ChVector3d m_K_pend;  // gains for the PID for pendulum angle
 
-    double m_x_cart;  // reference cart x location
-    double m_a_pend;  // reference pendulum angle
+    ChVector3d m_e_cart;  // cart x errors (P, I, D)
+    ChVector3d m_e_pend;  // pendulum angle errors (P, I, D)
 
-    double m_e_cart;   // error in cart x location
-    double m_ed_cart;  // derivative of error in cart x location
-    double m_ei_cart;  // integral of error in cart x location
+    double m_x_cart;  // target cart x location
+    double m_a_pend;  // target pendulum angle
 
-    double m_e_pend;   // error in pendulum angle
-    double m_ed_pend;  // derivative of error in pendulum angle
-    double m_ei_pend;  // integral of error in pendulum angle
-
-    double m_force;  // controller output force (horizontal force on cart body)
+    ChVector3d m_force;  // controller output force
 };
 
 // -----------------------------------------------------------------------------
@@ -169,7 +147,6 @@ int main(int argc, char* argv[]) {
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
-    bool real_time = parser.EnforceRealtime();
     bool render = parser.Render();
     double render_fps = parser.GetRenderFPS();
     bool enable_shadows = parser.EnableShadows();
@@ -179,18 +156,12 @@ int main(int argc, char* argv[]) {
 
     // ------------------------------
 
-    // Get bodies by name
-    auto cart = parser.FindBodyByName("cart");
-    auto pend = parser.FindBodyByName("pendulum");
-
-    // Construct controller
-    InvertedPendulumController controller(cart, pend);
-    controller.SetGainsCart(5, 0, -0.5);
-    controller.SetGainsPend(-150, -50, -10);
-
-    // Construct controller loads (for passing back actuation loads)
-    parsers::ChParserMbsYAML::ControllerLoads controller_loads;
-    controller_loads.insert({"cart_controller", VNULL});
+    // Create a controller corresponding to the "cart_controller" defintion in the YAML model file and specify that it
+    // should be used for the first instance of the MBS model.
+    auto controller = chrono_types::make_shared<InvertedPendulumController>(2.0, 20.0);
+    controller->SetGainsCart(5, 0, -0.5);
+    controller->SetGainsPend(-150, -100, -10);
+    parser.AttachForceController(controller, "cart_controller", 0);
 
     // ------------------------------
 
@@ -222,12 +193,6 @@ int main(int argc, char* argv[]) {
 #endif
     }
 
-    // Initialize cart location target switching
-    double travel_dist = 2;
-    double travel_dir = +1;
-    double switch_period = 20;
-    double switch_time = 0;
-
     // Simulation loop
     ChRealtimeStepTimer rt_timer;
     double time = 0;
@@ -249,30 +214,9 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        // -------------
-        
-        // At a switch time, flip target for cart location
-        if (time > switch_time) {
-            controller.SetTargetCartLocation(travel_dist * travel_dir);
-            travel_dir *= -1;
-            switch_time += switch_period;
-        }
+        // Advance multibody system dynamics (including controller)
+        parser.DoStepDynamics();
 
-        // Advance controller dynamics
-        controller.Advance(time_step);
-
-        // Apply controller loads
-        double force = controller.GetForce();
-        controller_loads["cart_controller"] = ChVector3d(force, 0, 0);
-        parser.ApplyControllerLoads(controller_loads);
-
-        // -------------
-
-        // Advance multibody system dynamics
-        sys->DoStepDynamics(time_step);
-
-        if (real_time)
-            rt_timer.Spin(time_step);
         time += time_step;
     }
 

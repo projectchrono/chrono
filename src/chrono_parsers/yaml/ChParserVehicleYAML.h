@@ -31,7 +31,8 @@ namespace parsers {
 /// @addtogroup parsers_module
 /// @{
 
-/// Utility class to parse a YAML specification file for a vehicle model.
+/// Parser for YAML specification file for Chrono::Vehicle models.
+/// Supports both wheeled and tracked vehicles (defined through JSON specification files).
 class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
   public:
     enum class VehicleType { WHEELED, TRACKED };

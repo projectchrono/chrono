@@ -21,7 +21,8 @@
 #include "chrono_parsers/yaml/ChParserYAML.h"
 
 #include "chrono/assets/ChVisualSystem.h"
-
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -31,9 +32,6 @@
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkMotorLinear.h"
 #include "chrono/physics/ChLinkMotorRotation.h"
-
-#include "chrono/functions/ChFunction.h"
-
 #include "chrono/utils/ChBodyGeometry.h"
 
 namespace chrono {
@@ -42,7 +40,26 @@ namespace parsers {
 /// @addtogroup parsers_module
 /// @{
 
-/// Utility class to parse YAML specification files for Chrono models and simulations.
+class ChParserMbsYAML;
+
+/// Base class for a force MBS controller.
+/// A load controller must have a corresponding specification in the model YAML file.
+/// A derived controller object can be attached for any given instance of a model created from the model YAML file.
+/// Attached controllers are processed and loads applied to the associated bodies in ChParserMbsYAML::DoStepDynamics.
+class ChLoadController {
+  public:
+    virtual void Initialize(const ChParserMbsYAML& parser, int model_instance) {}
+    virtual void Synchronize(double time) {}
+    virtual void Advance(double time_step) {}
+
+    virtual ChVector3d GetLoad() const = 0;
+
+  protected:
+    ChLoadController() {}
+    virtual ~ChLoadController() {}
+};
+
+/// Parser for YAML specification files for Chrono models and simulations.
 /// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
 /// populating a Chrono system and setting solver and simulation parameters.
 class ChApiParsers ChParserMbsYAML : public ChParserYAML {
@@ -104,15 +121,38 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Find and return the body with specified name in the current model instance.
     std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name) const;
 
+    /// Find and return the body with specified name in the given model instance.
+    std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name, int model_instance) const;
+
     /// Find and return bodies with given base name from all model instances.
     std::vector<std::shared_ptr<ChBodyAuxRef>> FindBodiesByName(const std::string& name) const;
 
-    /// Apply current controller loads.
-    void ApplyControllerLoads(const ControllerLoads& controller_loads);
-
     // --------------
 
+    /// Attach a controller for the associated name.
+    /// This function can be called only after the MBS model was loaded and the model specification must include
+    /// parameters for a load controller with specified name.
+    void AttachForceController(std::shared_ptr<ChLoadController> controller,
+                               const std::string& name,
+                               int model_instance = 0);
+
+    /// Advance dynamics of the multibody system.
+    /// - load controllers (if any are attached) are synchronized and their dynamics advanced in time;
+    /// - output is generated if requested in the simulation YAML file;
+    /// - the dynamics of the underlying Chrono system is advanced in time;
+    /// - soft real-time is enforced if requested in the simulation YAML file.
+    void DoStepDynamics();
+
+    /// Apply current controller loads.
+    /// Notes:
+    /// - controller loads are automatically set in ChParserMbsYAML::DoStepDynamics if controllers have been added with
+    ///   ChParserMbsYAML::AttachForceController.
+    /// - this function provides an alternative mechanism for applying controller loads (for arbitrary controllers, not
+    ///   necessarily derived from ChLoadController).
+    void ApplyControllerLoads(const ControllerLoads& controller_loads);
+
     /// Save simulation output results at the current time.
+    /// Note: this function is automatically called in ChParserMbsYAML::DoStepDynamics.
     void SaveOutput(ChSystem& sys, int frame);
 
   private:
@@ -264,12 +304,12 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
         std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
         BodyLoadType type;                                ///< load type: force or torque
-        std::string body;                                 ///< body to which the load is applied
-        bool local_load;                                  ///< load provided in local frame?
-        bool local_point;                                 ///< point provided in local frame?
+        std::string body;                                 ///< name of body to which the load is applied
+        bool local_load;                                  ///< is load provided in local frame?
+        bool local_point;                                 ///< is point provided in local frame?
         ChVector3d value;                                 ///< load value (force or torque)
         ChVector3d point;                                 ///< force application point
-        std::shared_ptr<ChFunction> modulation;           ///< modulation as function of time
+        std::shared_ptr<ChFunction> modulation;           ///< load modulation as function of time
     };
 
     /// Motor actuation type.
@@ -308,6 +348,12 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         ChVector3d axis;                                          ///< motor action axis (relative to instance frame)
         MotorActuation actuation_type;                            ///< actuation type (motor type)
         std::shared_ptr<ChFunction> actuation_function;           ///< actuation function
+    };
+
+    /// Controllers.
+    struct LoadController {
+        int model_instance;
+        std::shared_ptr<ChLoadController> controller;
     };
 
     /// Output database.
@@ -382,15 +428,20 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
   private:
     SimParams m_sim;  ///< simulation parameters
 
-    std::unordered_map<std::string, BodyParams> m_bodies;               ///< bodies
-    std::unordered_map<std::string, JointParams> m_joints;              ///< joints
-    std::unordered_map<std::string, DistanceConstraintParams> m_dists;  ///< distance constraints
-    std::unordered_map<std::string, TsdaParams> m_tsdas;                ///< TSDA force elements
-    std::unordered_map<std::string, RsdaParams> m_rsdas;                ///< RSDA force elements
-    std::unordered_map<std::string, BodyLoadParams> m_body_loads;       ///< body load elements
-    std::unordered_map<std::string, BodyLoadParams> m_controllers;      ///< external body load controllers
-    std::unordered_map<std::string, MotorLinearParams> m_linmotors;     ///< linear motors
-    std::unordered_map<std::string, MotorRotationParams> m_rotmotors;   ///< rotational motors
+    std::unordered_map<std::string, BodyParams> m_body_params;                     ///< bodies
+    std::unordered_map<std::string, JointParams> m_joint_params;                   ///< joints
+    std::unordered_map<std::string, DistanceConstraintParams> m_distcnstr_params;  ///< distance constraints
+    std::unordered_map<std::string, TsdaParams> m_tsda_params;                     ///< TSDA force elements
+    std::unordered_map<std::string, RsdaParams> m_rsda_params;                     ///< RSDA force elements
+    std::unordered_map<std::string, BodyLoadParams> m_bodyload_params;             ///< body load elements
+    std::unordered_map<std::string, BodyLoadParams> m_controller_params;           ///< external body load controllers
+    std::unordered_map<std::string, MotorLinearParams> m_linmot_params;            ///< linear motors
+    std::unordered_map<std::string, MotorRotationParams> m_rotmot_params;          ///< rotational motors
+
+    std::unordered_map<std::string, LoadController> m_load_controllers;
+
+    std::shared_ptr<ChSystem> m_sys;
+    ChRealtimeStepTimer m_rt_timer;
 
     OutputData m_output_data;  ///< output data
 

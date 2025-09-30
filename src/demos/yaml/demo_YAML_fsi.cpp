@@ -82,7 +82,6 @@ int main(int argc, char* argv[]) {
     CameraVerticalDir camera_vertical = parserMBS.GetCameraVerticalDir();
     const ChVector3d& camera_location = parserMBS.GetCameraLocation();
     const ChVector3d& camera_target = parserMBS.GetCameraTarget();
-    bool enable_shadows = parserMBS.EnableShadows();
     bool outputMBS = parserMBS.Output();
 
     auto& parserCFD = parser.GetCfdParser();
@@ -98,12 +97,11 @@ int main(int argc, char* argv[]) {
         visVSG->AddCamera(camera_location, camera_target);
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->SetBackgroundColor(ChColor(0.4f, 0.45f, 0.55f));
         visVSG->SetCameraVertical(camera_vertical);
         visVSG->SetCameraAngleDeg(40.0);
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(-CH_PI_4, CH_PI_4);
-        visVSG->EnableShadows(enable_shadows);
+        visVSG->EnableShadows(false);
         ////visVSG->ToggleAbsFrameVisibility();
         visVSG->SetAbsFrameScale(2.0);
 

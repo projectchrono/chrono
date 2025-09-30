@@ -344,7 +344,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
         if (m_verbose)
             body.PrintInfo(name);
 
-        m_bodies.insert({name, body});
+        m_body_params.insert({name, body});
     }
 
     // Read joints
@@ -379,7 +379,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             if (m_verbose)
                 joint.PrintInfo(name);
 
-            m_joints.insert({name, joint});
+            m_joint_params.insert({name, joint});
         }
     }
 
@@ -410,7 +410,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
                 if (m_verbose)
                     dist.PrintInfo(name);
 
-                m_dists.insert({name, dist});
+                m_distcnstr_params.insert({name, dist});
 
             } else if (type == "REVOLUTE-SPHERICAL") {
                 //// TODO
@@ -448,7 +448,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             if (m_verbose)
                 tsda.PrintInfo(name);
 
-            m_tsdas.insert({name, tsda});
+            m_tsda_params.insert({name, tsda});
         }
     }
 
@@ -482,7 +482,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             if (m_verbose)
                 rsda.PrintInfo(name);
 
-            m_rsdas.insert({name, rsda});
+            m_rsda_params.insert({name, rsda});
         }
     }
 
@@ -517,7 +517,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             if (m_verbose)
                 load.PrintInfo(name);
 
-            m_body_loads.insert({name, load});
+            m_bodyload_params.insert({name, load});
         }
     }
 
@@ -549,7 +549,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             if (m_verbose)
                 load.PrintInfo(name);
 
-            m_controllers.insert({name, load});
+            m_controller_params.insert({name, load});
         }
     }
 
@@ -592,7 +592,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
                 if (m_verbose)
                     motor.PrintInfo(name);
 
-                m_linmotors.insert({name, motor});
+                m_linmot_params.insert({name, motor});
 
             } else if (type == "ROTATION") {
                 MotorRotationParams motor;
@@ -609,7 +609,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
                 if (m_verbose)
                     motor.PrintInfo(name);
 
-                m_rotmotors.insert({name, motor});
+                m_rotmot_params.insert({name, motor});
             }
         }
     }
@@ -728,30 +728,38 @@ std::shared_ptr<ChSystem> ChParserMbsYAML::CreateSystem() {
     }
 
     // Create a Chrono system of specified type
-    auto sys = ChSystem::Create(m_sim.contact_method);
-    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    m_sys = ChSystem::Create(m_sim.contact_method);
+    m_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
 
     // Set solver and intergrator parameters
-    SetSimulationParameters(*sys);
+    SetSimulationParameters(*m_sys);
 
-    return sys;
+    return m_sys;
 }
 
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBodyByName(const std::string& name) const {
-    auto b = m_bodies.find(name);
-    if (b == m_bodies.end()) {
-        cerr << "Cannot find body with name: " << name << endl;
+    return FindBodyByName(name, m_crt_instance);
+}
+
+std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBodyByName(const std::string& name, int model_instance) const {
+    auto b = m_body_params.find(name);
+    if (b == m_body_params.end()) {
+        cerr << "[ChParserMbsYAML::FindBodyByName] Error: Cannot find body with name: " << name << endl;
         throw std::runtime_error("Invalid body name");
     }
-    return b->second.body[m_crt_instance];
+    if (model_instance >= GetNumInstances()) {
+        cerr << "[ChParserMbsYAML::AttachForceController] Error: incorrect model instance number" << endl;
+        throw std::runtime_error("Incorrect model instance number");
+    }
+    return b->second.body[model_instance];
 }
 
 std::vector<std::shared_ptr<ChBodyAuxRef>> ChParserMbsYAML::FindBodiesByName(const std::string& name) const {
-    auto b = m_bodies.find(name);
-    if (b == m_bodies.end()) {
+    auto b = m_body_params.find(name);
+    if (b == m_body_params.end()) {
         std::vector<std::shared_ptr<ChBodyAuxRef>> empty;
         return empty;
     }
@@ -776,9 +784,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     sys.Add(load_container);
 
     // Create bodies
-    if (m_verbose && !m_bodies.empty())
+    if (m_verbose && !m_body_params.empty())
         cout << "Create bodies" << endl;
-    for (auto& item : m_bodies) {
+    for (auto& item : m_body_params) {
         auto body = chrono_types::make_shared<ChBodyAuxRef>();
         body->SetName(model_prefix + item.first);
         body->SetFixed(item.second.is_fixed);
@@ -795,9 +803,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create joints (kinematic or bushings)
-    if (m_verbose && !m_joints.empty())
+    if (m_verbose && !m_joint_params.empty())
         cout << "Create joints" << endl;
-    for (auto& item : m_joints) {
+    for (auto& item : m_joint_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
         auto joint = chrono_types::make_shared<ChJoint>(item.second.type,                 //
@@ -817,9 +825,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create distance constraints
-    if (m_verbose && !m_dists.empty())
+    if (m_verbose && !m_distcnstr_params.empty())
         cout << "Create distance constraints" << endl;
-    for (auto& item : m_dists) {
+    for (auto& item : m_distcnstr_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
 
@@ -832,9 +840,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create TSDAs
-    if (m_verbose && !m_tsdas.empty())
+    if (m_verbose && !m_tsda_params.empty())
         cout << "Create TSDAs" << endl;
-    for (auto& item : m_tsdas) {
+    for (auto& item : m_tsda_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
         auto tsda = chrono_types::make_shared<ChLinkTSDA>();
@@ -848,9 +856,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create RSDAs
-    if (m_verbose && !m_rsdas.empty())
+    if (m_verbose && !m_rsda_params.empty())
         cout << "Create RSDAs" << endl;
-    for (auto& item : m_rsdas) {
+    for (auto& item : m_rsda_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
 
@@ -869,9 +877,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create body loads
-    if (m_verbose && !m_body_loads.empty())
+    if (m_verbose && !m_bodyload_params.empty())
         cout << "Create body loads" << endl;
-    for (auto& item : m_body_loads) {
+    for (auto& item : m_bodyload_params) {
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
         switch (item.second.type) {
@@ -899,9 +907,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create external body load controllers
-    if (m_verbose && !m_controllers.empty())
+    if (m_verbose && !m_controller_params.empty())
         cout << "Create external body load controllers" << endl;
-    for (auto& item : m_controllers) {
+    for (auto& item : m_controller_params) {
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
         switch (item.second.type) {
@@ -920,9 +928,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create linear motors
-    if (m_verbose && !m_linmotors.empty())
+    if (m_verbose && !m_linmot_params.empty())
         cout << "Create linear motors" << endl;
-    for (auto& item : m_linmotors) {
+    for (auto& item : m_linmot_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
 
@@ -952,9 +960,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create rotation motors
-    if (m_verbose && !m_rotmotors.empty())
+    if (m_verbose && !m_rotmot_params.empty())
         cout << "Create rotational motors" << endl;
-    for (auto& item : m_rotmotors) {
+    for (auto& item : m_rotmot_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
 
@@ -984,48 +992,48 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create body collision models
-    for (auto& item : m_bodies) {
+    for (auto& item : m_body_params) {
         if (item.second.geometry->HasCollision())
             item.second.geometry->CreateCollisionShapes(item.second.body[m_crt_instance], 0, sys.GetContactMethod());
     }
 
     // Create visualization assets
-    for (auto& item : m_bodies)
+    for (auto& item : m_body_params)
         item.second.geometry->CreateVisualizationAssets(item.second.body[m_crt_instance], m_sim.visualization.type);
-    for (auto& item : m_tsdas)
+    for (auto& item : m_tsda_params)
         item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_crt_instance]);
-    for (auto& item : m_dists)
+    for (auto& item : m_distcnstr_params)
         item.second.dist[m_crt_instance]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
     return m_crt_instance;
 }
 
 void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {
-    for (auto& item : m_bodies) {
+    for (auto& item : m_body_params) {
         ChAssertAlways(item.second.body.size() > instance_index);
         sys.Remove(item.second.body[instance_index]);
         item.second.body.erase(item.second.body.begin() + instance_index);
     }
 
-    for (auto& item : m_joints) {
+    for (auto& item : m_joint_params) {
         ChAssertAlways(item.second.joint.size() > instance_index);
         ChJoint::Remove(item.second.joint[instance_index]);
         item.second.joint.erase(item.second.joint.begin() + instance_index);
     }
 
-    for (auto& item : m_dists) {
+    for (auto& item : m_distcnstr_params) {
         ChAssertAlways(item.second.dist.size() > instance_index);
         sys.Remove(item.second.dist[instance_index]);
         item.second.dist.erase(item.second.dist.begin() + instance_index);
     }
 
-    for (auto& item : m_tsdas) {
+    for (auto& item : m_tsda_params) {
         ChAssertAlways(item.second.tsda.size() > instance_index);
         sys.Remove(item.second.tsda[instance_index]);
         item.second.tsda.erase(item.second.tsda.begin() + instance_index);
     }
 
-    for (auto& item : m_rsdas) {
+    for (auto& item : m_rsda_params) {
         ChAssertAlways(item.second.rsda.size() > instance_index);
         sys.Remove(item.second.rsda[instance_index]);
         item.second.rsda.erase(item.second.rsda.begin() + instance_index);
@@ -1034,32 +1042,63 @@ void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {
 
 // -----------------------------------------------------------------------------
 
+void ChParserMbsYAML::AttachForceController(std::shared_ptr<ChLoadController> controller,
+                                            const std::string& name,
+                                            int model_instance) {
+    if (!m_model_loaded) {
+        cerr << "[ChParserMbsYAML::AttachForceController] Error: No MBS model loaded" << endl;
+        throw std::runtime_error("No MBS model loaded");
+    }
+
+    // Check that parameters for a controller with this base name were specified in the input YAML file
+    auto c = m_controller_params.find(name);
+    if (c == m_controller_params.end()) {
+        cerr << "[ChParserMbsYAML::AttachForceController] Error: cannot find controller with name: " << name << endl;
+        throw std::runtime_error("Invalid controller name");
+    }
+
+    // Check the model instance number
+    if (model_instance >= GetNumInstances()) {
+        cerr << "[ChParserMbsYAML::AttachForceController] Error: incorrect model instance number" << endl;
+        throw std::runtime_error("Incorrect model instance number");
+    }
+
+    // Initialize the provided controller
+    controller->Initialize(*this, model_instance);
+
+    LoadController load_controller;
+    load_controller.controller = controller;
+    load_controller.model_instance = model_instance;
+
+    m_load_controllers.insert({name, load_controller});
+}
+
 void ChParserMbsYAML::ApplyControllerLoads(const ControllerLoads& controller_loads) {
     for (const auto& controller_load : controller_loads) {
         const auto& name = controller_load.first;
-        const auto& val = controller_load.second;
+        const auto& load = controller_load.second;
 
         // Find the controllers with this base name
-        auto c = m_controllers.find(name);
-        if (c == m_controllers.end()) {
+        auto c = m_controller_params.find(name);
+        if (c == m_controller_params.end()) {
             cerr << "[ChParserMbsYAML::ApplyControllerLoads] Error: cannot find controller with name: " << name << endl;
             throw std::runtime_error("Invalid controller name");
         }
         auto type = c->second.type;
         bool local_load = c->second.local_load;
-        auto& controllers = c->second.load;
+        auto& body_loads = c->second.load;
 
         // Set the load to controllers from all model instances
-        for (auto& controller : controllers) {
+        for (auto& body_load : body_loads) {
             switch (type) {
                 case BodyLoadType::FORCE: {
-                    auto controllerF = std::dynamic_pointer_cast<ChLoadBodyForce>(controller);
-                    controllerF->SetForce(val, local_load);
+                    auto body_load_F = std::dynamic_pointer_cast<ChLoadBodyForce>(body_load);
+                    body_load_F->SetForce(load, local_load);
                     break;
                 }
                 case BodyLoadType::TORQUE: {
-                    auto controllerT = std::dynamic_pointer_cast<ChLoadBodyTorque>(controller);
-                    controllerT->SetTorque(val, local_load);
+                    auto body_load_T = std::dynamic_pointer_cast<ChLoadBodyTorque>(body_load);
+                    body_load_T->SetTorque(load, local_load);
                     break;
                 }
             }
@@ -1067,7 +1106,60 @@ void ChParserMbsYAML::ApplyControllerLoads(const ControllerLoads& controller_loa
     }
 }
 
-// -----------------------------------------------------------------------------
+void ChParserMbsYAML::DoStepDynamics() {
+    double time = m_sys->GetChTime();
+    double time_step = m_sim.time_step;
+
+    // Process load controllers
+    for (auto& load_controller : m_load_controllers) {
+        // Model instance
+        int model_instance = load_controller.second.model_instance;
+
+        // Find parameters for this controller
+        const auto& name = load_controller.first;
+        auto c = m_controller_params.find(name);
+        ChAssertAlways(c != m_controller_params.end());
+        auto type = c->second.type;
+        bool local_load = c->second.local_load;
+        auto& body_load = c->second.load[model_instance];
+
+        // Synchronize at current time and advance controller dynamics
+        load_controller.second.controller->Synchronize(time);
+        load_controller.second.controller->Advance(time_step);
+
+        // Apply controller loads
+        auto load = load_controller.second.controller->GetLoad();
+
+        switch (type) {
+            case BodyLoadType::FORCE: {
+                auto body_load_F = std::dynamic_pointer_cast<ChLoadBodyForce>(body_load);
+                body_load_F->SetForce(load, local_load);
+                break;
+            }
+            case BodyLoadType::TORQUE: {
+                auto body_load_T = std::dynamic_pointer_cast<ChLoadBodyTorque>(body_load);
+                body_load_T->SetTorque(load, local_load);
+                break;
+            }
+        }
+    }
+
+    // Generate output (if requested)
+    static int output_frame = 0;
+    if (m_output.type != ChOutput::Type::NONE) {
+        if (time >= output_frame / m_output.fps) {
+            SaveOutput(*m_sys, output_frame);
+            output_frame++;
+        }
+    }
+
+    // Advance multibody system dynamics
+    m_sys->DoStepDynamics(time_step);
+
+    // Enforce soft real time (if requested)
+    if (m_sim.enforce_realtime)
+        m_rt_timer.Spin(time_step);
+}
 
 void ChParserMbsYAML::SaveOutput(ChSystem& sys, int frame) {
     ChParserYAML::SaveOutput(frame);

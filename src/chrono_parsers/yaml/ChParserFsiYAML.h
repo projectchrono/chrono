@@ -28,7 +28,7 @@ namespace parsers {
 /// @addtogroup parsers_module
 /// @{
 
-/// Utility class to parse a YAML specification file for a coupled FSI problem.
+/// Parser for YAML specification file for a coupled FSI problem.
 class ChApiParsers ChParserFsiYAML : public ChParserYAML {
   public:
     /// Create a YAML parser and load the model from the specified input YAML file.

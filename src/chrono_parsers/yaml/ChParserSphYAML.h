@@ -31,7 +31,7 @@ namespace parsers {
 /// @addtogroup parsers_module
 /// @{
 
-/// Utility class to parse YAML specification files for Chrono::SPH models and simulations.
+/// Parser for YAML specification files for Chrono::SPH models and simulations.
 /// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
 /// populating an FSI Chrono::SPH system and setting solver and simulation parameters.
 class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
