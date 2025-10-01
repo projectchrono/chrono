@@ -47,7 +47,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
   public:
     using ShapeVector = ChMatrixNM<double, 1, 10>;
     using Amatrix = ChMatrixNM<double,3,6> ;
-    using StateVarVector = ChVectorN<double, 18>;
 
     ChElementCBLCON();
 
@@ -56,6 +55,7 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     virtual unsigned int GetNumNodes() override { return 2; }
     virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 6; }
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 6; }
+    virtual unsigned int GetNumStateVar() override { return 1 * section->Get_material()->GetNumberOfStateVariables(); }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 	

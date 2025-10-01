@@ -49,7 +49,7 @@ ChWoodMaterialVECT::~ChWoodMaterialVECT() {}
 // statec(10): internal work
 // statec(11): crack opening
 
-void ChWoodMaterialVECT::ComputeStress(ChVector3d& strain, ChVector3d& curvature, ChVector3d& eigenstrain, double &len, StateVarVector& statev_old, StateVarVector& statev_new,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& strain, ChVector3d& curvature, ChVector3d& eigenstrain, double &len, const ChVectorDynamic<>& statev_old, ChVectorDynamic<>& statev_new,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {
     	ChVector3d mstrain;
     	ChVector3d mcurvature;
 
@@ -355,7 +355,7 @@ void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& 
 
 
 
-double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsQN,  double& epsT, StateVarVector& statev, double eps_max) {
+double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsQN,  double& epsT, const ChVectorDynamic<>& statev_old, double eps_max) {
 	//
 	double E0 = this->Get_E0();
 	double alpha = this->Get_alpha();
@@ -397,13 +397,13 @@ double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field,
 
 	double sigma_bt = sigma0 * exp(-H0 * std::max((eps_max - eps0), 0.0) / sigma0);
 
-	double strs_ela = E0 * (epsQ - statev(8)) + statev(9); // The elastic prediction increments from old values. TODO: take this out of this function, not its role
+	double strs_ela = E0 * (epsQ - statev_old(8)) + statev_old(9); // The elastic prediction increments from old values. TODO: take this out of this function, not its role
 	double sigma_fr = std::min(std::max(strs_ela, 0.0), sigma_bt);
 	return sigma_fr;
 }
 
 
-double ChWoodMaterialVECT::CompressBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsT, double& epsQN, StateVarVector& statev) {
+double ChWoodMaterialVECT::CompressBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsT, double& epsQN, const ChVectorDynamic<>& statev_old) {
 	//
 	double E0 = this->Get_E0();
 	double alpha = this->Get_alpha();
@@ -445,7 +445,7 @@ double ChWoodMaterialVECT::CompressBC(ChVector3d& mstrain, double& random_field,
 	
 	
 
-	double strs_ela = E0 * (epsQ - statev(8)) + statev(9);  // The elastic prediction increments from old values. TODO: take this out of this function, not its role
+	double strs_ela = E0 * (epsQ - statev_old(8)) + statev_old(9);  // The elastic prediction increments from old values. TODO: take this out of this function, not its role
 	double sigma_fr = std::min(std::max(strs_ela, 0.0), sigma_bt);
 	//std::cout<<"epsQ: "<<epsQ<<" epsQ_0: "<<statev(8)<<" sigma_0: "<<statev(9)<<" strs_ela: "<<strs_ela<<"\tsigma_bt: "<<sigma_bt<<"\tsigma_fr: "<<sigma_fr<<std::endl;
 	//exit(9);

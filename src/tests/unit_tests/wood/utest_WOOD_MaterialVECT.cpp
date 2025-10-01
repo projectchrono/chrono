@@ -65,9 +65,8 @@ TEST(WoodMaterialVECTTest, stress_no_eigenstrain){
     double facet_width = 3.165;
     double facet_height = 12.4864;
     double facet_area = facet_height * facet_width;
-    ChVectorN<double, 18> statev_old, statev_new;
-    statev_old.setZero();
-    statev_new.setZero();
+    ChVectorDynamic<> statev_old(my_mat->GetNumberOfStateVariables());
+    ChVectorDynamic<> statev_new(my_mat->GetNumberOfStateVariables());
     ChVector3d strain(4.186, 1.16, -86.48);
     ChVector3d curvature(0.123, -0.864, 0.793);
 

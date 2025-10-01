@@ -19,6 +19,7 @@
 #ifndef CHWOODMATERIALVECT_H
 #define CHWOODMATERIALVECT_H
 
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono_wood/ChWoodApi.h"
 #include "chrono/core/ChMatrix33.h"
@@ -35,7 +36,6 @@ namespace wood {
 /// Definition of materials to be used for CSL beams and LDPM tets utilizing the lattice discrete particle model.
 class ChWoodApi ChWoodMaterialVECT {
   public:
-    using StateVarVector = ChVectorN<double, 18>;
 
     /// Construct an isotropic elastic material.
     ChWoodMaterialVECT(double rho,  		///< material density
@@ -99,19 +99,22 @@ class ChWoodApi ChWoodMaterialVECT {
 	/// Return the tensile unloading.
     double GetElasticAnalysisFlag() const { return m_ElasticAnalysis; }
     void SetElasticAnalysisFlag(double ElasticAnalysis) { m_ElasticAnalysis = ElasticAnalysis; }	
+
+    /// Return the number of state variable required by this constitutive model
+    int GetNumberOfStateVariables() { return m_num_state_var; }
 	
 	
 	/// Return the tensile unloading.
     double GetCoupleContrib2EquStrainFlag() const { return m_CoupleContrib2EquStrain; }
     void SetCoupleContrib2EquStrainFlag(double CoupleContrib2EquStrain) { m_CoupleContrib2EquStrain = CoupleContrib2EquStrain; }	
     /// Compute stresses from given strains and state variables.
-    void ComputeStress(ChVector3d& strain, ChVector3d& curvature, ChVector3d& eigeinstrain, double &len, StateVarVector& statev_old, StateVarVector& statev_new, double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple);
+    void ComputeStress(ChVector3d& strain, ChVector3d& curvature, ChVector3d& eigeinstrain, double &len, const ChVectorDynamic<>& statev_old, ChVectorDynamic<>& statev_new, double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple);
     //void ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& curvature_incr, double &length, StateVarVector& statev, double& width, double& height, double& random_field, ChVector3d& stress, ChVector3d& surfacic_couple);
     //
     
-    double FractureBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsQN,  double& epsT, StateVarVector& statev, double eps_max);
+    double FractureBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsQN,  double& epsT, const ChVectorDynamic<>& statev_old, double eps_max);
 
-	double CompressBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsT, double& epsQN, StateVarVector& statev);
+	double CompressBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsT, double& epsQN, const ChVectorDynamic<>& statev_old);
     
   private:
     
@@ -129,6 +132,7 @@ class ChWoodApi ChWoodMaterialVECT {
     double mcouple_mult=0; ///<  influence factor for rotational DOF: beta_N = beta_M = beta_B
 	bool m_ElasticAnalysis=false;
 	bool m_CoupleContrib2EquStrain=false;
+    const int m_num_state_var = 18;
   //public:
   //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
