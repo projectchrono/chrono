@@ -30,6 +30,7 @@
 #include <ostream>
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
 
 namespace chrono {
@@ -169,24 +170,26 @@ void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
     // If large deflection disabled, return displacement in global frame
     // TODO: Go back to this function when we decide how to enable and formulate large deflection
     auto getDisplacement = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
-        ChVector3d local_disp;
+        ChVector3d global_disp;
         if (!LargeDeflection)
-            local_disp = node->Frame().GetPos() - node->GetX0().GetPos();
+            global_disp = node->Frame().GetPos() - node->GetX0().GetPos();
         else
-            local_disp = node->Frame().GetPos() - node->GetX0().GetPos(); // TODO: temporary
-        return local_disp;
+            global_disp = node->Frame().GetPos() - node->GetX0().GetPos(); // TODO: temporary
+        return global_disp;
     };
 
     // Node rotations
     // If Large deflection disabled, return rotation in global frame
     // TODO: Go back to this function when we decide how to enable and formulate large deflection
     auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
+        ChQuaternion<> global_dq = node->Frame().GetRot() * node->GetX0().GetRot().GetConjugate();
         ChVector3d delta_rot_dir;
         double delta_rot_angle;
+
         if (!LargeDeflection)
-            node->Frame().GetRot().GetAngleAxis(delta_rot_angle, delta_rot_dir);
+            global_dq.GetAngleAxis(delta_rot_angle, delta_rot_dir);
         else
-            node->Frame().GetRot().GetAngleAxis(delta_rot_angle, delta_rot_dir); // TODO: temporary
+            global_dq.GetAngleAxis(delta_rot_angle, delta_rot_dir); // TODO: temporary
         // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
         // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
         // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
@@ -219,12 +222,12 @@ void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
 }
 
 
-void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mstrain, ChVector3d& curvature) {
+void ChElementCBLCON::ComputeStrain(ChVectorN<double, 12>& displ, ChVector3d& mstrain, ChVector3d& curvature) {
     //
-    ChVector3d ui = displ_incr.segment(0,3);
-    ChVector3d ri = displ_incr.segment(3,3);
-    ChVector3d uj = displ_incr.segment(6,3);
-    ChVector3d rj = displ_incr.segment(9,3);
+    ChVector3d ui = displ.segment(0,3);
+    ChVector3d ri = displ.segment(3,3);
+    ChVector3d uj = displ.segment(6,3);
+    ChVector3d rj = displ.segment(9,3);
     ChVector3d xc_xi;
     ChVector3d xc_xj;
     double linv = 1.0 / this->length;
@@ -257,30 +260,6 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
     }
 }
 
-
-
-// TODO: this is not used consider deleting
-void ChElementCBLCON::ComputeStress(ChVector3d& mstress) {
-    ChVector3d mstrain;
-    ChVector3d curvature;
-    // Displacement and rotation increment of nodes:
-    this->ComputeStrainIncrement(dofs_increment, mstrain, curvature);
-    //std::cout<<"\nmstrain:\n"<<mstrain<<std::endl;
-    //
-    double E0=this->section-> Get_material()->Get_E0();
-    double alpha=this->section-> Get_material()->Get_alpha();
-    //
-    double epsQ=pow(mstrain[0]*mstrain[0]+alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5);
-    double strsQ=E0*epsQ;
-    //
-    if (epsQ!=0) {
-        mstress[0]=strsQ*mstrain[0]/epsQ;
-        mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
-        mstress[2]=alpha*strsQ*mstrain[2]/epsQ;
-    }else{
-        mstress.Set(0.0);
-    }
-}
 
 
 void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
@@ -503,12 +482,6 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     //
     this->UpdateRotation();
     //
-    // Initialize total displacement increment
-    //
-    ChVectorDynamic<> displ(12);
-    this->GetStateBlock(displ);
-    dofs_old=displ;
-    //
     // Initiliaze state variables:
     //
     // All state variables initialized at zero, which is the value in the Section constructor
@@ -610,11 +583,10 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
     assert(section);
 
-    // Displacement and rotation increment of nodes:
+    // Displacement and rotation of nodes:
     ChVectorDynamic<> displ(12);
-    this->GetStateBlock(displ);
-    dofs_increment = displ - dofs_old; // TODO JBC: Rotations are not additive, in general this is wrong for rotation DOFS and the approximation only holds for infinitesimal rotations, with error ~ angle !
-    dofs_old = displ;
+    this->GetStateBlock(displ); // TODO: bad Chrono design, there is no reason for that function to exist in higher-level parent with dynamic vector since it is never used outside of element. Each element should decide how to handle their DOFS
+    ChVectorN<double, 12> dofs = displ;
 
     //
     // Get facet area and length of beam
@@ -631,21 +603,39 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     auto mysection=this->section;
     ChVector3d mstress;
-    ChVector3d dmstrain;
+    ChVector3d mstrain;
     ChVector3d mcouple;
-    ChVector3d dcurvature;
-    StateVarVector statev;
-    this->ComputeStrainIncrement(dofs_increment, dmstrain, dcurvature);
-    statev=mysection->Get_StateVar();
+    ChVector3d curvature;
+
+    this->ComputeStrain(dofs, mstrain, curvature);
     double width=mysection->GetWidth()/2;
     double height=mysection->GetHeight()/2;
     double random_field =mysection->GetRandomField();
-
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
-    mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, statev, area, width, height, random_field, mstress, mcouple);
+    StateVarVector statev_old = mysection->Get_StateVar();
+    StateVarVector statev_new;
+    mysection->Get_material()->ComputeStress(mstrain, curvature, nonMechanicalStrain, length, statev_old, statev_new, area, width, height, random_field, mstress, mcouple);
 
+    mysection->Set_StateVarNew(statev_new);
 
-    mysection->Set_StateVar(statev);
+    // Code below replicates current behavior: updates state variables at every call to ComputeInternalForces, which is incorrect!
+    // TODO: to update at every step, we will need to call the function below (or equivalent, at the end of every step).
+    //       The Element has no idea how the timestepper operates, so we would have to do this outside of this Class.
+    //       and requires modifications to the base parent classes for the elements, and Chrono timestepper behavior.
+    //
+    //       A quick and dirty way to do this for now is to manually update the state variables inside the "run step" loop in the `main()` function of our compiled demos, e.g.:
+    // 
+    //          while (sys.GetChTime() < duration) {
+    //              sys.DoStepDynamics(timestep);
+    //              for (auto& element : my_mesh->GetElements()) {
+    //                  if (auto connector = std::dynamic_pointer_cast<ChElementCBLCON>(element)) {
+    //                      connector->GetSection()->UpdateStateVariables();
+    //                  }
+    //              }
+    //          }
+    // 
+    // Comment line below and add code above to your CBL demo to implement update at end of step only
+    mysection->Set_StateVar(statev_new);
 
     ChVector3d force = area * (nmL_tr * mstress);
     ChVector3d xc_xi;

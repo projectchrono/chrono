@@ -91,6 +91,7 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
   
     StateVarVector  Get_StateVar() const { return m_state; };
     void Set_StateVar(StateVarVector  state) { m_state=state; }
+    void Set_StateVarNew(StateVarVector  state) { m_state_new=state; }
     
     enum ConSectionType { transverse_regular_bot, transverse_regular_gen, transverse_regular_top, longitudinal, tangential_ray_bot, tangential_ray_gen, tangential_ray_top, radial_ray_bot, radial_ray_gen, radial_ray_top};
     
@@ -116,6 +117,8 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
 	
 	ChVector3d Get_nonMechanicStrain() const { return m_nonMechanicStrain; };
     void Set_nonMechanicStrain(ChVector3d nonMechanicStrain) { m_nonMechanicStrain=nonMechanicStrain; }
+
+    void UpdateStateVariables() { m_state = m_state_new; }
     
     
   protected:
@@ -123,6 +126,7 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     ChVector3d m_center;
     ChMatrix33<double> m_facetFrame;
     StateVarVector m_state;
+    StateVarVector m_state_new;
 	ChVector3d  m_nonMechanicStrain;
     //std::shared_ptr<ChInternalDataCSL> m_state;  
     double mcon_width=1.0;  

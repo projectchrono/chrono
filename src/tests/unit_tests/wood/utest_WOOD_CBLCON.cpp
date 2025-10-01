@@ -107,7 +107,7 @@ TEST(CBLConnectorTest, compute_strain){
     // Translation of node A
     for (int i = 0; i<3 ; i++) {
         displ_incr(i) = disp; // X, Y, Z direction
-        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        connector->ComputeStrain(displ_incr, strain, curvature);
         ASSERT_DOUBLE_EQ(strain[i], -disp / length);
         ASSERT_DOUBLE_EQ(strain[(i+1)%3], 0.0);
         ASSERT_DOUBLE_EQ(strain[(i+2)%3], 0.0);
@@ -115,7 +115,7 @@ TEST(CBLConnectorTest, compute_strain){
     }
         // XYZ direction
         displ_incr(0) = displ_incr(1) = displ_incr(2) = disp;
-        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        connector->ComputeStrain(displ_incr, strain, curvature);
         ASSERT_DOUBLE_EQ(strain[0], -disp / length);
         ASSERT_DOUBLE_EQ(strain[1], -disp / length);
         ASSERT_DOUBLE_EQ(strain[2], -disp / length);
@@ -125,7 +125,7 @@ TEST(CBLConnectorTest, compute_strain){
     double dir[3][3] = {{0, 0, 0}, {0, 0, 1}, {0, -1, 0}}; // Direction of vector product: rot x (x_A - X_Center)
     for (int i = 0; i<3 ; i++) {
         displ_incr(3+i) = rot; // X, Y, Z direction
-        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        connector->ComputeStrain(displ_incr, strain, curvature);
         ASSERT_DOUBLE_EQ(strain[0], rot * center_from_A * dir[i][0]);
         ASSERT_DOUBLE_EQ(strain[1], rot * center_from_A * dir[i][1]);
         ASSERT_DOUBLE_EQ(strain[2], rot * center_from_A * dir[i][2]);
@@ -135,7 +135,7 @@ TEST(CBLConnectorTest, compute_strain){
     // Translation of node B
     for (int i = 0; i<3 ; i++) {
         displ_incr(6+i) = disp; // X, Y, Z direction
-        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        connector->ComputeStrain(displ_incr, strain, curvature);
         ASSERT_DOUBLE_EQ(strain[i], disp / length);
         ASSERT_DOUBLE_EQ(strain[(i+1)%3], 0.0);
         ASSERT_DOUBLE_EQ(strain[(i+2)%3], 0.0);
@@ -143,7 +143,7 @@ TEST(CBLConnectorTest, compute_strain){
     }
         // XYZ direction
         displ_incr(6) = displ_incr(7) = displ_incr(8) = disp;
-        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        connector->ComputeStrain(displ_incr, strain, curvature);
         ASSERT_DOUBLE_EQ(strain[0], disp / length);
         ASSERT_DOUBLE_EQ(strain[1], disp / length);
         ASSERT_DOUBLE_EQ(strain[2], disp / length);
@@ -153,7 +153,7 @@ TEST(CBLConnectorTest, compute_strain){
     // Direction of vector product: rot x (x_B - X_Center) is the same as for node A
     for (int i = 0; i<3 ; i++) {
         displ_incr(9+i) = rot; // X, Y, Z direction
-        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        connector->ComputeStrain(displ_incr, strain, curvature);
         ASSERT_DOUBLE_EQ(strain[0], rot * (1 - center_from_A) * dir[i][0]);
         ASSERT_DOUBLE_EQ(strain[1], rot * (1 - center_from_A) * dir[i][1]);
         ASSERT_DOUBLE_EQ(strain[2], rot * (1 - center_from_A) * dir[i][2]);
@@ -382,18 +382,7 @@ TEST(CBLConnectorTest, internal_forces){
     // Analytical calculation of the internal forces
     // Equation (12) (13) of https://doi.org/10.1016/j.cemconcomp.2011.02.011
 
-    // TODO JBC: Current rotational DOFs increment calculation inside ComputeInternalForces() is additive in terms of rotation vector
-    // Multiplicative composition of quaternion/rotation matrices, which is exact, does not give the same result:
-    // If the increment of rotation is given by the quaternion dq, then q2 = dq * q1. The increment rotation vector is RotVec(dq)
-    // However, RotVec(q2) - RotVec(q1) != RotVec(dq). For small rotations dq, this is a fair enough approximation.
-    // But this is wrong enough for testing! The error is in the order of magnitude of the angle, i.e., 1% error for rotB_angle = 1e-2 rad.
-    // To pass the test, and actually exercise the code the way it is currently written (even though that way is wrong !!!) we are using additive rotation vector decomposition
-
-    // TODO JBC: The commented line below is the mathematically correct multiplicative decomposition
-    // ChVector3d rot_incr = drotB;
-    // TODO JBC: The line below is for the small rotation assumption used in the code.
-    // Once/if we debug and refactor this aspect of the code, this test should fail and we should use the commented line above instead
-    ChVector3d rot_incr = qB.GetRotVec() - qB_ini.GetRotVec();
+    ChVector3d rot_incr = drotB;
 
     ChVectorN<double, 12> Fi_analytical;
     ChVector3<> imposed_local_strain = facetFrame.transpose() * (dispB + rot_incr.Cross(center - posNodeB)) / length;

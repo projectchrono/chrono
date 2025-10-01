@@ -49,9 +49,12 @@ ChWoodMaterialVECT::~ChWoodMaterialVECT() {}
 // statec(10): internal work
 // statec(11): crack opening
 
-void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVector3d& eigenstrain, double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& strain, ChVector3d& curvature, ChVector3d& eigenstrain, double &len, StateVarVector& statev_old, StateVarVector& statev_new,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {
     	ChVector3d mstrain;
-    	ChVector3d mcurvature;	
+    	ChVector3d mcurvature;
+
+        ChVector3d dmstrain;
+    	ChVector3d dmcurvature;
 	//
 	double E0=this->Get_E0();
 	double alpha=this->Get_alpha();	
@@ -61,7 +64,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		E0=E0*random_field;
 	//std::cout<<"E0: "<<E0<<" alpha: "<<alpha<<std::endl;	
 	// 	
-	mstrain=statev.segment(0,3)+dmstrain.eigen()-eigenstrain.eigen();
+	mstrain = strain.eigen() - eigenstrain.eigen();
+    dmstrain = strain - statev_old.segment(0,3); // Increment of strain over the current step so far !!! Not over the current iteration
 	//	
 	//
 	double epsQ, epsQN;
@@ -75,9 +79,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		epsQN = mstrain[0];
 	}else{	
 		double multiplier=this->GetCoupleMultiplier()/3.;
-		mcurvature=statev.segment(12,3)+dmcurvature.eigen();
-		//std::cout<<"mstrain: "<<mstrain<<" mcurvature: "<<mcurvature<<std::endl;
-		//std::cout<<"curvature: "<<mcurvature<<std::endl;		
+        mcurvature = curvature; // TODO: no eigencurvature ?
+		dmcurvature = curvature - statev_old.segment(12,3); // Increment of curvature over the current step so far !!! Not over the current iteration
 				
 		epsQN = std::sqrt(mstrain[0] * mstrain[0] + multiplier*( mcurvature[1]*mcurvature[1]*w2 + mcurvature[2]*mcurvature[2]*h2));
 		epsT = std::sqrt(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]+multiplier*mcurvature[0]*mcurvature[0]*(w2+h2));
@@ -86,12 +89,18 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 	
 	}
 	
-	if (statev(6) < epsQN) {
-		statev(6) = epsQN;
-	}
-	if (statev(7) < epsT) {
-		statev(7) = epsT;
-	}
+	if (statev_old(6) < epsQN) {
+		statev_new(6) = epsQN;
+	} else {
+        statev_new(6) = statev_old(6);
+    }
+	if (statev_old(7) < epsT) {
+		statev_new(7) = epsT;
+	} else {
+        statev_new(7) = statev_old(7);
+    }
+
+    double eps_max = std::sqrt(statev_new(6) * statev_new(6) + alpha * statev_new(7) * statev_new(7));
 	
 	
 	if (!GetElasticAnalysisFlag()) {
@@ -102,7 +111,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		if (mstrain[0] > 10e-16 || sigmat<sigmac) {     // fracture behaivor
              // TODO JBC: test for sigmat<sigmac is currently debated
              //           and was not present in the eigenstrain version of that function before this refactoring
-			double strsQ = FractureBC(mstrain, random_field, len, epsQ, epsQN, epsT, statev);
+			double strsQ = FractureBC(mstrain, random_field, len, epsQ, epsQN, epsT, statev_old, eps_max);
 			mstress[0] = strsQ * mstrain[0] / epsQ;
 			mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
 			mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
@@ -116,7 +125,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		}
 		else {
 			
-			 double strsQ = CompressBC(mstrain, random_field, len, epsQ, epsT, epsQN, statev);
+			 double strsQ = CompressBC(mstrain, random_field, len, epsQ, epsT, epsQN, statev_old);
 			 
 			 mstress[0] = strsQ * mstrain[0] / epsQ;
 			 mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
@@ -129,40 +138,40 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 				 mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;						
 			 }
 		}
-		double Wint = len * area * (((mstress[0] + statev(3)) / 2.0) * dmstrain[0] + ((mstress[1] + statev(4)) / 2.0) * dmstrain[1] + ((mstress[2] + statev(5)) / 2.0) * dmstrain[2] + ((mcouple[0] + statev(15)) / 2.0) * dmcurvature[0] + ((mcouple[1] + statev(16)) / 2.0) * dmcurvature[1] + ((mcouple[2] + statev(17)) / 2.0) * dmcurvature[2]);
+		double Wint = len * area * (((mstress[0] + statev_old(3)) / 2.0) * dmstrain[0] + ((mstress[1] + statev_old(4)) / 2.0) * dmstrain[1] + ((mstress[2] + statev_old(5)) / 2.0) * dmstrain[2] + ((mcouple[0] + statev_old(15)) / 2.0) * dmcurvature[0] + ((mcouple[1] + statev_old(16)) / 2.0) * dmcurvature[1] + ((mcouple[2] + statev_old(17)) / 2.0) * dmcurvature[2]);
 		double w_N = len * (mstrain[0] - mstress[0] / E0);
 		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
 		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
 
 		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
 
-		statev(0) = mstrain[0] + eigenstrain[0]; // TODO JBC: it is a bug to only update those inside this code branch.
-		statev(1) = mstrain[1] + eigenstrain[1]; //           If you unload to exactly zero (like in the unit tests)
-		statev(2) = mstrain[2] + eigenstrain[2]; //           you go to the `else` branch and the state variables do not get updated
-		statev(3) = mstress[0];                  //           while a loading step did happen!
-		statev(4) = mstress[1];                  //           I am leaving this as is for now because we will refactor this in depth soon!
-		statev(5) = mstress[2];                  //           The current fix aims to retrieve the "old" behavior
-        statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)));
-        statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha);
-        statev(10) = Wint + statev(10);
-		statev(11) = w;
+		statev_new(0) = mstrain[0] + eigenstrain[0]; // TODO JBC: it is a bug to only update those inside this code branch.
+		statev_new(1) = mstrain[1] + eigenstrain[1]; //           If you unload to exactly zero (like in the unit tests)
+		statev_new(2) = mstrain[2] + eigenstrain[2]; //           you go to the `else` branch and the state variables do not get updated
+		statev_new(3) = mstress[0];                  //           while a loading step did happen!
+		statev_new(4) = mstress[1];                  //           I am leaving this as is for now because we will refactor this in depth soon!
+		statev_new(5) = mstress[2];                  //           The current fix aims to retrieve the "old" behavior
+        statev_new(8) = std::sqrt(statev_new(0) * statev_new(0) + alpha * (statev_new(1) * statev_new(1) + statev_new(2) * statev_new(2)));
+        statev_new(9) = std::sqrt(statev_new(3) * statev_new(3) + (statev_new(4) * statev_new(4) + statev_new(5) * statev_new(5)) / alpha);
+        statev_new(10) = Wint + statev_old(10);
+		statev_new(11) = w;
 		//
 		if(this->GetCoupleMultiplier()){
-            statev(12) = mcurvature[0];
-            statev(13) = mcurvature[1];
-            statev(14) = mcurvature[2];
+            statev_new(12) = mcurvature[0];
+            statev_new(13) = mcurvature[1];
+            statev_new(14) = mcurvature[2];
             //
-            statev(15) = mcouple[0];
-            statev(16) = mcouple[1];
-            statev(17) = mcouple[2];
+            statev_new(15) = mcouple[0];
+            statev_new(16) = mcouple[1];
+            statev_new(17) = mcouple[2];
             // TODO: below is temporary just to fix the bugs from improperly defined effective strain / stress. Will refactor later
             double multiplier=this->GetCoupleMultiplier()/3.;
-            statev(8) = std::sqrt(statev(8) * statev(8) +
-                                  multiplier * (statev(13) * statev(13) * w2 + statev(14) * statev(14) * h2 +
-                                                alpha * statev(12) * statev(12) * (w2 + h2)));
-            statev(9) = std::sqrt(statev(9) * statev(9) +
-                                  (statev(16) * statev(16) / w2 + statev(17) * statev(17) / h2 +
-                                   statev(15) * statev(15) / (w2 + h2) / alpha) / multiplier);
+            statev_new(8) = std::sqrt(statev_new(8) * statev_new(8) +
+                                      multiplier * (statev_new(13) * statev_new(13) * w2 + statev_new(14) * statev_new(14) * h2 +
+                                                    alpha * statev_new(12) * statev_new(12) * (w2 + h2)));
+            statev_new(9) = std::sqrt(statev_new(9) * statev_new(9) +
+                                      (statev_new(16) * statev_new(16) / w2 + statev_new(17) * statev_new(17) / h2 +
+                                       statev_new(15) * statev_new(15) / (w2 + h2) / alpha) / multiplier);
 		}
 	}
 	else {
@@ -184,23 +193,23 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		mstress[2]=alpha*strsQ*mstrain[2]/epsQ;		
 		
 		
-		double Wint = len * area * (((mstress[0] + statev(3)) / 2.0) * dmstrain[0] + ((mstress[1] + statev(4)) / 2.0) * dmstrain[1] + ((mstress[2] + statev(5)) / 2.0) * dmstrain[2] + ((mcouple[0] + statev(15)) / 2.0) * dmcurvature[0] + ((mcouple[1] + statev(16)) / 2.0) * dmcurvature[1] + ((mcouple[2] + statev(17)) / 2.0) * dmcurvature[2]);
+		double Wint = len * area * (((mstress[0] + statev_old(3)) / 2.0) * dmstrain[0] + ((mstress[1] + statev_old(4)) / 2.0) * dmstrain[1] + ((mstress[2] + statev_old(5)) / 2.0) * dmstrain[2] + ((mcouple[0] + statev_old(15)) / 2.0) * dmcurvature[0] + ((mcouple[1] + statev_old(16)) / 2.0) * dmcurvature[1] + ((mcouple[2] + statev_old(17)) / 2.0) * dmcurvature[2]);
 		double w_N = len * (mstrain[0] - mstress[0] / E0);
 		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
 		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
 
 		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
 		
-		statev(0) = mstrain[0] + eigenstrain[0];
-		statev(1) = mstrain[1] + eigenstrain[1];
-		statev(2) = mstrain[2] + eigenstrain[2];
-		statev(3) = mstress[0];
-		statev(4) = mstress[1];
-		statev(5) = mstress[2];
-		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)));
-		statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha);
-		statev(10) = Wint + statev(10);
-		statev(11) = w;
+		statev_new(0) = mstrain[0] + eigenstrain[0];
+		statev_new(1) = mstrain[1] + eigenstrain[1];
+		statev_new(2) = mstrain[2] + eigenstrain[2];
+		statev_new(3) = mstress[0];
+		statev_new(4) = mstress[1];
+		statev_new(5) = mstress[2];
+		statev_new(8) = std::sqrt(statev_new(0) * statev_new(0) + alpha * (statev_new(1) * statev_new(1) + statev_new(2) * statev_new(2)));
+		statev_new(9) = std::sqrt(statev_new(3) * statev_new(3) + (statev_new(4) * statev_new(4) + statev_new(5) * statev_new(5)) / alpha);
+		statev_new(10) = Wint + statev_old(10);
+		statev_new(11) = w;
 		
 		
 		if(this->GetCoupleMultiplier()){
@@ -209,22 +218,22 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 			mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
 			mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;
 			//
-			statev(12) = mcurvature[0];
-			statev(13) = mcurvature[1];
-			statev(14) = mcurvature[2];
+			statev_new(12) = mcurvature[0];
+			statev_new(13) = mcurvature[1];
+			statev_new(14) = mcurvature[2];
 			//std::cout<<"mcurvature: "<<mcurvature.x()<<"\t"<<mcurvature.y()<<"\t"<<mcurvature.z()<<std::endl;
 			//std::cout<<"mcouple: "<<mcouple.x()<<"\t"<<mcouple.y()<<"\t"<<mcouple.z()<<std::endl;
 			//
-			statev(15) = mcouple[0];
-			statev(16) = mcouple[1];
-			statev(17) = mcouple[2];
+			statev_new(15) = mcouple[0];
+			statev_new(16) = mcouple[1];
+			statev_new(17) = mcouple[2];
             // TODO: below is temporary just to fix the bugs from improperly defined effective strain / stress. Will refactor later
-            statev(8) = std::sqrt(statev(8) * statev(8) +
-                                  multiplier * (statev(13) * statev(13) * w2 + statev(14) * statev(14) * h2 +
-                                                alpha * statev(12) * statev(12) * (w2 + h2)));
-            statev(9) = std::sqrt(statev(9) * statev(9) +
-                                  (statev(16) * statev(16) / w2 + statev(17) * statev(17) / h2 +
-                                   statev(15) * statev(15) / (w2 + h2) / alpha) / multiplier);
+            statev_new(8) = std::sqrt(statev_new(8) * statev_new(8) +
+                                      multiplier * (statev_new(13) * statev_new(13) * w2 + statev_new(14) * statev_new(14) * h2 +
+                                                    alpha * statev_new(12) * statev_new(12) * (w2 + h2)));
+            statev_new(9) = std::sqrt(statev_new(9) * statev_new(9) +
+                                      (statev_new(16) * statev_new(16) / w2 + statev_new(17) * statev_new(17) / h2 +
+                                       statev_new(15) * statev_new(15) / (w2 + h2) / alpha) / multiplier);
 		}
 		
 	}else{
@@ -346,7 +355,7 @@ void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& 
 
 
 
-double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsQN,  double& epsT, StateVarVector& statev) {
+double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsQN,  double& epsT, StateVarVector& statev, double eps_max) {
 	//
 	double E0 = this->Get_E0();
 	double alpha = this->Get_alpha();
@@ -386,10 +395,9 @@ double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field,
 	double Ht = 2 * E0 / (lt / len - 1);
 	double H0 = Ht * pow(2 * omega / CH_PI, nt);
 
-	double eps_max = std::sqrt(statev(6) * statev(6) + alpha * statev(7) * statev(7));
 	double sigma_bt = sigma0 * exp(-H0 * std::max((eps_max - eps0), 0.0) / sigma0);
 
-	double strs_ela = E0 * (epsQ - statev(8)) + statev(9);
+	double strs_ela = E0 * (epsQ - statev(8)) + statev(9); // The elastic prediction increments from old values. TODO: take this out of this function, not its role
 	double sigma_fr = std::min(std::max(strs_ela, 0.0), sigma_bt);
 	return sigma_fr;
 }
@@ -437,7 +445,7 @@ double ChWoodMaterialVECT::CompressBC(ChVector3d& mstrain, double& random_field,
 	
 	
 
-	double strs_ela = E0 * (epsQ - statev(8)) + statev(9); 
+	double strs_ela = E0 * (epsQ - statev(8)) + statev(9);  // The elastic prediction increments from old values. TODO: take this out of this function, not its role
 	double sigma_fr = std::min(std::max(strs_ela, 0.0), sigma_bt);
 	//std::cout<<"epsQ: "<<epsQ<<" epsQ_0: "<<statev(8)<<" sigma_0: "<<statev(9)<<" strs_ela: "<<strs_ela<<"\tsigma_bt: "<<sigma_bt<<"\tsigma_fr: "<<sigma_fr<<std::endl;
 	//exit(9);
