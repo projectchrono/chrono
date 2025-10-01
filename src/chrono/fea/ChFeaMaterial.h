@@ -325,10 +325,10 @@ private:
 /// Linear hexahedron for generic constitutive laws. Can be used for multiphysics.
 /// It uses 8 nodes.
 
-class ChApi ChFeaElementTetrahedron_8 : public ChFeaElement {
+class ChApi ChFeaElementHexahedron_8 : public ChFeaElement {
 public:
-    ChFeaElementTetrahedron_8() {}
-    virtual ~ChFeaElementTetrahedron_8() {}
+    ChFeaElementHexahedron_8() {}
+    virtual ~ChFeaElementHexahedron_8() {}
 
     //
     // Tetrahedron-specific
