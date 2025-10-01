@@ -849,8 +849,8 @@ public:
 
             // Count the actual degrees of freedom (consider only nodes that are not fixed)
             if (!node.second.IsFixed()) {
-                n_dofs += GetNumFieldCoordsPosLevel();
-                n_dofs_w += GetNumFieldCoordsVelLevel();
+                n_dofs   += T_data_per_node::GetNumCoordsPosLevel();
+                n_dofs_w += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     };
@@ -877,8 +877,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                local_off_x += GetNumFieldCoordsPosLevel();
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_x += T_data_per_node::GetNumCoordsPosLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
         T = GetChTime();
@@ -897,8 +897,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                local_off_x += GetNumFieldCoordsPosLevel();
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_x += T_data_per_node::GetNumCoordsPosLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
         Update(T, full_update);
@@ -912,7 +912,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateGatherAcceleration(off_a + local_off_a, a);
-                local_off_a += GetNumFieldCoordsVelLevel();
+                local_off_a += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -925,7 +925,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateScatterAcceleration(off_a + local_off_a, a);
-                local_off_a += GetNumFieldCoordsVelLevel();
+                local_off_a += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -944,8 +944,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                local_off_x += GetNumFieldCoordsPosLevel();
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_x += T_data_per_node::GetNumCoordsPosLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -964,8 +964,8 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                local_off_x += GetNumFieldCoordsPosLevel();
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_x += T_data_per_node::GetNumCoordsPosLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -981,7 +981,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntLoadResidual_F(off + local_off_v, R, c);
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -998,7 +998,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -1016,7 +1016,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -1034,7 +1034,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntToDescriptor(off_v + local_off_v, v, R);
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
@@ -1050,7 +1050,7 @@ public:
         for (auto& node : this->node_data) {
             if (!node.second.IsFixed()) {
                 node.second.NodeIntFromDescriptor(off_v + local_off_v, v);
-                local_off_v += GetNumFieldCoordsVelLevel();
+                local_off_v += T_data_per_node::GetNumCoordsVelLevel();
             }
         }
     }
