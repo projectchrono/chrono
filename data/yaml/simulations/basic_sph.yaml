@@ -53,7 +53,7 @@ simulation:
      artificial_viscosity: 0.02
   
   output:
-      type: HDF5
+      type: NONE
       mode: FRAMES
       fps: 20
       output_directory: "."
