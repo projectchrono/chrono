@@ -11,9 +11,10 @@
 // =============================================================================
 // Author: Huzaifa Mustafa Unjhawala
 // =============================================================================
-// Normal Bevameter Validation Problem involving immersing a bevameter at a specified velocity
-// and measureing the force on the bevameter tip
-// Comparing against GRC-1 paper - https://www.sciencedirect.com/science/article/pii/S0022489810000388
+// Cone Penetrometer Validation Problem involving immersing a cone at a specified velocity
+// and measureing the force on the cone tip
+// Thesis reference for similar test in GRC-1
+// https://uwmadison.box.com/s/606t8ppn48kpp5y53c6wp5tftjm27sfb - Page 58
 // =============================================================================
 
 #include <cassert>
@@ -27,9 +28,10 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/physics/ChLinkMotorLinearForce.h"
+#include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
+// #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -38,14 +40,9 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
-#ifdef CHRONO_POSTPROCESS
-    #include "chrono_postprocess/ChGnuPlot.h"
-#endif
-
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
-
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
@@ -55,6 +52,142 @@ class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVis
     virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
 };
 #endif
+// -----------------------------------------------------------------------------
+// Material properties of the 15 materials
+// std::vector<double> y_modulus = {1e6, 1e6};  // in Pa
+// std::vector<double> y_modulus = {1e6};  // in Pa
+double nu_poisson = 0.3;
+// std::vector<double> cohesions = {0};  // In Pa
+// // std::vector<double> densities = {1600, 1800};  // In kg/m^3
+// std::vector<double> densities = {1600};  // In kg/m^3
+// // std::vector<double> mu_s = {0.5727, 0.9131};
+// // std::vector<double> mu_2 = {0.5727, 0.9131};
+// std::vector<double> mu_s = {0.5727};
+// std::vector<double> mu_2 = {0.5727};
+
+// Cone material
+struct solid_material {
+    double youngs_modulus = 193e9;
+    double friction_coefficient = 0.7;
+    double density = 7.8e3;
+    double restitution = 0.05;
+    double adhesion = 0;
+};
+
+// Add cone properties struct near material properties
+struct ConeProperties {
+    double surface_area = 323e-6;  // 323 mm^2
+    double diameter = sqrt(surface_area * 4 / CH_PI);
+    double length = 0.01756;  // 60 deg tip
+    double density = 7.8e3;
+};
+
+// -----------------------------------------------------------------------------
+
+struct SimParams {
+    // Simulation parameters
+    int ps_freq;
+    double initial_spacing;
+    double d0_multiplier;
+    double time_step;
+    std::string boundary_type;
+    std::string viscosity_type;
+    std::string kernel_type;
+
+    // Physics parameters
+    double artificial_viscosity;
+    double penetration_depth;
+    double container_height;
+
+    // Output/rendering parameters
+    bool verbose;
+    bool output;
+    double output_fps;
+    bool snapshots;
+    bool render;
+    double render_fps;
+    bool write_marker_files;
+    // Need to play around with these too
+    double mu_s;
+    double mu_2;
+    double cohesion;
+    double density;
+    double y_modulus;
+    std::string integration_scheme;
+};
+void SimulateMaterial(int i, const SimParams& params, const ConeProperties& coneProp);
+
+//------------------------------------------------------------------
+// Function to generate a cone mesh and save to VTK file
+//------------------------------------------------------------------
+void WriteConeVTK(const std::string& filename,
+                  std::shared_ptr<ChBody> body,
+                  double radius,
+                  double height,
+                  int resolution = 16) {
+    // Generate a cone mesh
+    ChTriangleMeshConnected mesh;
+    std::vector<ChVector3d>& vertices = mesh.GetCoordsVertices();
+    std::vector<ChVector3i>& indices = mesh.GetIndicesVertexes();
+
+    // Add tip vertex
+    vertices.push_back(ChVector3d(0, 0, -height));
+
+    // Add base vertices in circular pattern
+    for (int i = 0; i < resolution; i++) {
+        double theta = 2 * CH_PI * i / resolution;
+        double x = radius * cos(theta);
+        double y = radius * sin(theta);
+        vertices.push_back(ChVector3d(x, y, 0));
+    }
+
+    // Create triangular faces for the cone
+    for (int i = 0; i < resolution; i++) {
+        int next = (i + 1) % resolution + 1;  // +1 because index 0 is the tip
+        indices.push_back(ChVector3i(0, i + 1, next));
+    }
+
+    // Add base of cone (as triangular fan)
+    // First add center of base
+    vertices.push_back(ChVector3d(0, 0, 0));
+    int center_idx = vertices.size() - 1;
+
+    // Create triangles for the base
+    for (int i = 0; i < resolution; i++) {
+        int current = i + 1;  // +1 because index 0 is the tip
+        int next = (i + 1) % resolution + 1;
+        indices.push_back(ChVector3i(center_idx, next, current));
+    }
+
+    // Now write the mesh to VTK file, transforming it to the body's position
+    std::ofstream outf(filename);
+    outf << "# vtk DataFile Version 2.0" << std::endl;
+    outf << "Cone VTK from simulation" << std::endl;
+    outf << "ASCII" << std::endl;
+    outf << "DATASET UNSTRUCTURED_GRID" << std::endl;
+
+    // Write vertices transformed by body frame
+    ChFrame<> frame = body->GetFrameRefToAbs();
+    outf << "POINTS " << vertices.size() << " float" << std::endl;
+    for (const auto& v : vertices) {
+        auto w = frame.TransformPointLocalToParent(v);
+        outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
+    }
+
+    // Write triangular cells
+    int nf = static_cast<int>(indices.size());
+    outf << "CELLS " << nf << " " << 4 * nf << std::endl;
+    for (const auto& f : indices) {
+        outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
+    }
+
+    // Write cell types (5 = VTK_TRIANGLE)
+    outf << "CELL_TYPES " << nf << std::endl;
+    for (int i = 0; i < nf; i++) {
+        outf << "5" << std::endl;
+    }
+    outf.close();
+}
 
 //------------------------------------------------------------------
 // Function to generate a cylinder mesh and save to VTK file
@@ -63,65 +196,54 @@ void WriteCylinderVTK(const std::string& filename,
                       std::shared_ptr<ChBody> body,
                       double radius,
                       double height,
-                      int resolution = 32) {
+                      int resolution = 16) {
     // Generate a cylinder mesh
     ChTriangleMeshConnected mesh;
     std::vector<ChVector3d>& vertices = mesh.GetCoordsVertices();
     std::vector<ChVector3i>& indices = mesh.GetIndicesVertexes();
 
-    // Create vertices for top and bottom circular caps
-    ChVector3d top_center(0, 0, height / 2);
-    ChVector3d bottom_center(0, 0, -height / 2);
-    vertices.push_back(top_center);     // Vertex 0 (top center)
-    vertices.push_back(bottom_center);  // Vertex 1 (bottom center)
+    // Create top and bottom circular caps
+    for (int cap = 0; cap < 2; cap++) {
+        double z = (cap == 0) ? 0 : height;
 
-    int top_center_idx = 0;
-    int bottom_center_idx = 1;
+        // Add center vertex for the cap
+        int center_idx = vertices.size();
+        vertices.push_back(ChVector3d(0, 0, z));
 
-    // Create vertices for top and bottom circles and side walls
-    for (int i = 0; i < resolution; i++) {
-        double theta = 2 * CH_PI * i / resolution;
-        double x = radius * cos(theta);
-        double y = radius * sin(theta);
+        // Add vertices around the cap
+        int first_idx = vertices.size();
+        for (int i = 0; i < resolution; i++) {
+            double theta = 2 * CH_PI * i / resolution;
+            double x = radius * cos(theta);
+            double y = radius * sin(theta);
+            vertices.push_back(ChVector3d(x, y, z));
+        }
 
-        // Top circle vertex
-        vertices.push_back(ChVector3d(x, y, height / 2));
-
-        // Bottom circle vertex
-        vertices.push_back(ChVector3d(x, y, -height / 2));
+        // Create triangles for the cap
+        for (int i = 0; i < resolution; i++) {
+            int current = first_idx + i;
+            int next = first_idx + (i + 1) % resolution;
+            if (cap == 0) {  // Bottom cap (counter-clockwise)
+                indices.push_back(ChVector3i(center_idx, next, current));
+            } else {  // Top cap (clockwise)
+                indices.push_back(ChVector3i(center_idx, current, next));
+            }
+        }
     }
 
-    // Create triangular faces for top cap
+    // Create the side of the cylinder
+    int bottom_start = 1;                           // Index of first vertex on bottom cap
+    int top_start = bottom_start + resolution + 1;  // Index of first vertex on top cap
+
     for (int i = 0; i < resolution; i++) {
-        int next_i = (i + 1) % resolution;
-        int top_idx = 2 + i * 2;
-        int next_top_idx = 2 + next_i * 2;
+        int i1 = bottom_start + i;
+        int i2 = bottom_start + (i + 1) % resolution;
+        int i3 = top_start + i;
+        int i4 = top_start + (i + 1) % resolution;
 
-        // Top cap triangle
-        indices.push_back(ChVector3i(top_center_idx, top_idx, next_top_idx));
-    }
-
-    // Create triangular faces for bottom cap
-    for (int i = 0; i < resolution; i++) {
-        int next_i = (i + 1) % resolution;
-        int bottom_idx = 3 + i * 2;
-        int next_bottom_idx = 3 + next_i * 2;
-
-        // Bottom cap triangle (note reverse winding order for outward normal)
-        indices.push_back(ChVector3i(bottom_center_idx, next_bottom_idx, bottom_idx));
-    }
-
-    // Create triangular faces for side walls
-    for (int i = 0; i < resolution; i++) {
-        int next_i = (i + 1) % resolution;
-        int top_idx = 2 + i * 2;
-        int bottom_idx = 3 + i * 2;
-        int next_top_idx = 2 + next_i * 2;
-        int next_bottom_idx = 3 + next_i * 2;
-
-        // Each rectangular face split into two triangles
-        indices.push_back(ChVector3i(top_idx, bottom_idx, next_bottom_idx));
-        indices.push_back(ChVector3i(top_idx, next_bottom_idx, next_top_idx));
+        // Add two triangles for each quad on the side
+        indices.push_back(ChVector3i(i1, i2, i3));
+        indices.push_back(ChVector3i(i3, i2, i4));
     }
 
     // Now write the mesh to VTK file, transforming it to the body's position
@@ -154,55 +276,167 @@ void WriteCylinderVTK(const std::string& filename,
     outf.close();
 }
 
-double nu_poisson = 0.3;
+//------------------------------------------------------------------
+// Function to write a combined VTK with both cone and cylinder
+//------------------------------------------------------------------
+void WriteConePenetrometerVTK(const std::string& filename,
+                              std::shared_ptr<ChBody> cone,
+                              double cone_radius,
+                              double cone_height,
+                              std::shared_ptr<ChBody> cylinder,
+                              double cyl_radius,
+                              double cyl_height,
+                              int resolution = 16) {
+    // Generate meshes for both cone and cylinder
+    ChTriangleMeshConnected cone_mesh;
+    std::vector<ChVector3d>& cone_vertices = cone_mesh.GetCoordsVertices();
+    std::vector<ChVector3i>& cone_indices = cone_mesh.GetIndicesVertexes();
 
-// Plate material - Steel
-struct solid_material {
-    double youngs_modulus = 193e9;
-    double friction_coefficient = 0.7;
-    double density = 7.8e3;
-    double restitution = 0.05;
-    double adhesion = 0;
-};
+    ChTriangleMeshConnected cyl_mesh;
+    std::vector<ChVector3d>& cyl_vertices = cyl_mesh.GetCoordsVertices();
+    std::vector<ChVector3i>& cyl_indices = cyl_mesh.GetIndicesVertexes();
 
-// -----------------------------------------------------------------------------
+    // Create cone mesh
+    // Add tip vertex
+    cone_vertices.push_back(ChVector3d(0, 0, -cone_height));
 
-struct SimParams {
-    // Simulation parameters
-    int ps_freq;
-    double initial_spacing;
-    double d0_multiplier;
-    double time_step;
-    std::string boundary_type;
-    std::string viscosity_type;
-    std::string kernel_type;
+    // Add base vertices in circular pattern
+    for (int i = 0; i < resolution; i++) {
+        double theta = 2 * CH_PI * i / resolution;
+        double x = cone_radius * cos(theta);
+        double y = cone_radius * sin(theta);
+        cone_vertices.push_back(ChVector3d(x, y, 0));
+    }
 
-    // Physics parameters
-    double artificial_viscosity;
-    double max_pressure;
-    double plate_diameter;
-    double container_height;
+    // Create triangular faces for the cone
+    for (int i = 0; i < resolution; i++) {
+        int next = (i + 1) % resolution + 1;  // +1 because index 0 is the tip
+        cone_indices.push_back(ChVector3i(0, i + 1, next));
+    }
 
-    // Output/rendering parameters
-    bool verbose;
-    bool output;
-    double output_fps;
-    bool snapshots;
-    bool render;
-    double render_fps;
-    bool write_marker_files;
-    // Need to play around with these too
-    double mu_s;
-    double mu_2;
-    double cohesion;
-    double density;
-    double y_modulus;
-    std::string integration_scheme;
-};
-void SimulateMaterial(int i, const SimParams& params);
+    // Add base of cone (as triangular fan)
+    cone_vertices.push_back(ChVector3d(0, 0, 0));
+    int center_idx = cone_vertices.size() - 1;
+
+    // Create triangles for the base
+    for (int i = 0; i < resolution; i++) {
+        int current = i + 1;  // +1 because index 0 is the tip
+        int next = (i + 1) % resolution + 1;
+        cone_indices.push_back(ChVector3i(center_idx, next, current));
+    }
+
+    // Create cylinder mesh
+    // Create top and bottom circular caps
+    for (int cap = 0; cap < 2; cap++) {
+        double z = (cap == 0) ? 0 : cyl_height;
+
+        // Add center vertex for the cap
+        int center_idx = cyl_vertices.size();
+        cyl_vertices.push_back(ChVector3d(0, 0, z));
+
+        // Add vertices around the cap
+        int first_idx = cyl_vertices.size();
+        for (int i = 0; i < resolution; i++) {
+            double theta = 2 * CH_PI * i / resolution;
+            double x = cyl_radius * cos(theta);
+            double y = cyl_radius * sin(theta);
+            cyl_vertices.push_back(ChVector3d(x, y, z));
+        }
+
+        // Create triangles for the cap
+        for (int i = 0; i < resolution; i++) {
+            int current = first_idx + i;
+            int next = first_idx + (i + 1) % resolution;
+            if (cap == 0) {  // Bottom cap (counter-clockwise)
+                cyl_indices.push_back(ChVector3i(center_idx, next, current));
+            } else {  // Top cap (clockwise)
+                cyl_indices.push_back(ChVector3i(center_idx, current, next));
+            }
+        }
+    }
+
+    // Create the side of the cylinder
+    int bottom_start = 1;                           // Index of first vertex on bottom cap
+    int top_start = bottom_start + resolution + 1;  // Index of first vertex on top cap
+
+    for (int i = 0; i < resolution; i++) {
+        int i1 = bottom_start + i;
+        int i2 = bottom_start + (i + 1) % resolution;
+        int i3 = top_start + i;
+        int i4 = top_start + (i + 1) % resolution;
+
+        // Add two triangles for each quad on the side
+        cyl_indices.push_back(ChVector3i(i1, i2, i3));
+        cyl_indices.push_back(ChVector3i(i3, i2, i4));
+    }
+
+    // Now write the combined mesh to VTK file, transforming to respective body frames
+    std::ofstream outf(filename);
+    outf << "# vtk DataFile Version 2.0" << std::endl;
+    outf << "Cone Penetrometer VTK from simulation" << std::endl;
+    outf << "ASCII" << std::endl;
+    outf << "DATASET UNSTRUCTURED_GRID" << std::endl;
+
+    // Calculate the total number of vertices and triangles
+    int total_vertices = cone_vertices.size() + cyl_vertices.size();
+    int total_triangles = cone_indices.size() + cyl_indices.size();
+
+    // Write all vertices
+    outf << "POINTS " << total_vertices << " float" << std::endl;
+
+    // Write cone vertices transformed by cone frame
+    ChFrame<> cone_frame = cone->GetFrameRefToAbs();
+    for (const auto& v : cone_vertices) {
+        auto w = cone_frame.TransformPointLocalToParent(v);
+        outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
+    }
+
+    // Write cylinder vertices transformed by cylinder frame
+    ChFrame<> cyl_frame = cylinder->GetFrameRefToAbs();
+    for (const auto& v : cyl_vertices) {
+        auto w = cyl_frame.TransformPointLocalToParent(v);
+        outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
+    }
+
+    // Write all triangular cells
+    outf << "CELLS " << total_triangles << " " << 4 * total_triangles << std::endl;
+
+    // Write cone triangles
+    for (const auto& f : cone_indices) {
+        outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
+    }
+
+    // Write cylinder triangles (adjusting indices to account for cone vertices)
+    int offset = cone_vertices.size();
+    for (const auto& f : cyl_indices) {
+        outf << "3 " << (f.x() + offset) << " " << (f.y() + offset) << " " << (f.z() + offset) << std::endl;
+    }
+
+    // Write cell types (5 = VTK_TRIANGLE)
+    outf << "CELL_TYPES " << total_triangles << std::endl;
+    for (int i = 0; i < total_triangles; i++) {
+        outf << "5" << std::endl;
+    }
+
+    // Add scalar data to identify parts
+    outf << "CELL_DATA " << total_triangles << std::endl;
+    outf << "SCALARS part int 1" << std::endl;
+    outf << "LOOKUP_TABLE default" << std::endl;
+
+    // Write 0 for cone triangles and 1 for cylinder triangles
+    for (size_t i = 0; i < cone_indices.size(); i++) {
+        outf << "0" << std::endl;
+    }
+    for (size_t i = 0; i < cyl_indices.size(); i++) {
+        outf << "1" << std::endl;
+    }
+
+    outf.close();
+}
+
 // Function to handle CLI arguments
 bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
-    ChCLI cli(argv[0], "FSI Normal Bevameter Validation Problem");
+    ChCLI cli(argv[0], "FSI Cone Penetrometer Demo");
 
     cli.AddOption<int>("Simulation", "ps_freq", "Proximity search frequency", std::to_string(params.ps_freq));
     cli.AddOption<double>("Simulation", "initial_spacing", "Initial spacing", std::to_string(params.initial_spacing));
@@ -216,8 +450,9 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
 
     cli.AddOption<double>("Physics", "artificial_viscosity", "Artificial viscosity",
                           std::to_string(params.artificial_viscosity));
-    cli.AddOption<double>("Physics", "max_pressure", "Max pressure", std::to_string(params.max_pressure));
-    cli.AddOption<double>("Physics", "plate_diameter", "Plate diameter", std::to_string(params.plate_diameter));
+    cli.AddOption<double>("Physics", "penetration_depth",
+                          "Penetration depth at which we would like to take the readings",
+                          std::to_string(params.penetration_depth));
     cli.AddOption<double>("Physics", "container_height", "Container height", std::to_string(params.container_height));
     cli.AddOption<double>("Physics", "mu_s", "Friction coefficient", std::to_string(params.mu_s));
     cli.AddOption<double>("Physics", "mu_2", "Friction coefficient", std::to_string(params.mu_2));
@@ -237,8 +472,7 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     params.viscosity_type = cli.GetAsType<std::string>("viscosity_type");
     params.kernel_type = cli.GetAsType<std::string>("kernel_type");
     params.artificial_viscosity = cli.GetAsType<double>("artificial_viscosity");
-    params.max_pressure = cli.GetAsType<double>("max_pressure");
-    params.plate_diameter = cli.GetAsType<double>("plate_diameter");
+    params.penetration_depth = cli.GetAsType<double>("penetration_depth");
     params.container_height = cli.GetAsType<double>("container_height");
     params.mu_s = cli.GetAsType<double>("mu_s");
     params.mu_2 = cli.GetAsType<double>("mu_2");
@@ -250,6 +484,8 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
 }
 
 int main(int argc, char* argv[]) {
+    ConeProperties coneProp;  // Create cone instance
+
     SimParams params = {/*ps_freq*/ 1,
                         /*initial_spacing*/ 0.001,
                         /*d0_multiplier*/ 1.3,
@@ -258,20 +494,19 @@ int main(int argc, char* argv[]) {
                         /*viscosity_type*/ "artificial_bilateral",
                         /*kernel_type*/ "wendland",
                         /*artificial_viscosity*/ 0.2,
-                        /*max_pressure*/ 30 * 1000,  // 30 kPa
-                        /*plate_diameter*/ 0.102,    // 19 cm
-                        /*container_height*/ 0.024,  // 2.4 cm
+                        /*penetration_depth*/ 0.18,  // 18 cm is the max depth
+                        /*container_height*/ 0.24,
                         /*verbose*/ true,
                         /*output*/ true,
-                        /*output_fps*/ 50,
+                        /*output_fps*/ 60,
                         /*snapshots*/ false,
-                        /*render*/ false,
-                        /*render_fps*/ 100,
+                        /*render*/ true,
+                        /*render_fps*/ 60,
                         /*write_marker_files*/ false,
-                        /*mu_s*/ 0.6593,
-                        /*mu_2*/ 0.6593,
+                        /*mu_s*/ 0.67,
+                        /*mu_2*/ 0.67,
                         /*cohesions*/ 0,
-                        /*densities*/ 1670,
+                        /*densities*/ 1600,
                         /*y_modulus*/ 1e6,
                         /*integration_scheme*/ "rk2"};
 
@@ -289,8 +524,7 @@ int main(int argc, char* argv[]) {
     std::cout << "viscosity_type: " << params.viscosity_type << std::endl;
     std::cout << "kernel_type: " << params.kernel_type << std::endl;
     std::cout << "artificial_viscosity: " << params.artificial_viscosity << std::endl;
-    std::cout << "max_pressure: " << params.max_pressure << std::endl;
-    std::cout << "plate_diameter: " << params.plate_diameter << std::endl;
+    std::cout << "penetration_depth: " << params.penetration_depth << std::endl;
     std::cout << "container_height: " << params.container_height << std::endl;
     std::cout << "mu_s: " << params.mu_s << std::endl;
     std::cout << "mu_2: " << params.mu_2 << std::endl;
@@ -301,19 +535,18 @@ int main(int argc, char* argv[]) {
 
     int num_materials = 1;
     for (int i = 0; i < num_materials; i++) {
-        SimulateMaterial(i, params);
+        SimulateMaterial(i, params, coneProp);
     }
 }
 
-void SimulateMaterial(int i, const SimParams& params) {
-    double t_end = 3.5;
-    double max_pressure_time = 3;
+void SimulateMaterial(int i, const SimParams& params, const ConeProperties& coneProp) {
+    double penetration_velocity = 0.03;  // 0.3 cm/s
+    double t_end = params.penetration_depth / penetration_velocity;
     std::cout << "t_end: " << t_end << std::endl;
 
-    // double container_diameter = params.plate_diameter * 1.5;  // Plate is 20 cm in diameter
-    double container_diameter = 0.30;                   // Plate is 10 cm in diameter
+    double container_diameter = 0.30;                   // container diameter (m)
     double container_height = params.container_height;  // configurable via CLI
-    double cyl_length = 0.018;                          // To prevent effect of sand falling on top of the plate
+    double cyl_length = 0.2;
 
     // Create a physics system
     ChSystemSMC sysMBS;
@@ -345,7 +578,6 @@ void SimulateMaterial(int i, const SimParams& params) {
     mat_props.cohesion_coeff = params.cohesion;
 
     sysSPH.SetElasticSPH(mat_props);
-
     if (params.integration_scheme == "euler") {
         sph_params.integration_scheme = IntegrationScheme::EULER;
     } else if (params.integration_scheme == "rk2") {
@@ -355,7 +587,7 @@ void SimulateMaterial(int i, const SimParams& params) {
     sph_params.d0_multiplier = params.d0_multiplier;
     sph_params.artificial_viscosity = params.artificial_viscosity;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
-    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_xsph_eps = 0.5;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
     sph_params.free_surface_threshold = 0.8;
@@ -378,8 +610,7 @@ void SimulateMaterial(int i, const SimParams& params) {
     } else {
         sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     }
-    sph_params.use_delta_sph = true;
-    sysFSI.SetVerbose(params.verbose);
+
     sysSPH.SetSPHParameters(sph_params);
     // -------------------------------------------------------------------------
 
@@ -430,6 +661,7 @@ void SimulateMaterial(int i, const SimParams& params) {
 
     solid_material solid_mat;
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
+    auto vis_material = chrono_types::make_shared<ChVisualMaterial>();
     cmaterial->SetYoungModulus(solid_mat.youngs_modulus);
     cmaterial->SetFriction(solid_mat.friction_coefficient);
     cmaterial->SetRestitution(solid_mat.restitution);
@@ -442,56 +674,81 @@ void SimulateMaterial(int i, const SimParams& params) {
                                    ChVector3i(2, 2, -1),                           //
                                    false);
     box->EnableCollision(false);
+    // Add BCE particles attached on the walls into FSI system (new API)
     auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), ChVector3i(2, 2, -1));
     sysFSI.AddFsiBoundary(box_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT));
 
-    // Create plate
-    auto plate = chrono_types::make_shared<ChBody>();
-    double plate_z_pos = fzDim + cyl_length / 2 + params.initial_spacing;
-    plate->SetPos(ChVector3d(0, 0, plate_z_pos));
-    plate->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    plate->SetFixed(false);
+    // ==============================
+    // Create cone
+    // ==============================
 
-    double plate_area = CH_PI * params.plate_diameter * params.plate_diameter / 4;
-    double plate_mass = params.density * plate_area * cyl_length;
-    std::cout << "plate_mass: " << plate_mass << std::endl;
-    plate->SetMass(plate_mass);
-    ChMatrix33<> plate_inertia = plate_mass * ChCylinder::GetGyration(params.plate_diameter / 2, cyl_length);
-    plate->SetInertia(plate_inertia);
-    sysMBS.AddBody(plate);
+    auto cone = chrono_types::make_shared<ChBody>();
+    double cone_z_pos = bzDim - clearance + coneProp.length;
+    cone->SetPos(ChVector3d(0, 0, cone_z_pos));
 
-    auto plate_bce = sysSPH.CreatePointsCylinderInterior(params.plate_diameter / 2, cyl_length, true);
-    sysFSI.AddFsiBody(plate, plate_bce, ChFrame<>(VNULL, QUNIT), false);
+    ChQuaternion<> cone_rot = Q_FLIP_AROUND_X;
+
+    cone->SetRot(cone_rot);
+
+    double volume = ChCone::GetVolume(coneProp.diameter / 2, coneProp.length);
+    double cone_mass = coneProp.density * volume;
+    std::cout << "cone_mass: " << cone_mass << std::endl;
+    cone->SetMass(cone_mass);
+    // Mass/2 because we also have a cylinder that takes up half the mass
+    ChMatrix33<> inertia = cone_mass / 2 * ChCone::GetGyration(coneProp.diameter / 2, coneProp.length);
+    cone->SetInertia(inertia);
+    cone->SetFixed(false);
+    sysMBS.AddBody(cone);
+
+    chrono::utils::AddConeGeometry(cone.get(), cmaterial, coneProp.diameter / 2., coneProp.length,
+                                   ChVector3d(0, 0, coneProp.length / 2), QUNIT, true, vis_material);
+    cone->GetCollisionModel()->SetSafeMargin(params.initial_spacing);
+
+    // Register cone as FSI body with explicit BCE points
+    auto cone_bce = sysSPH.CreatePointsConeInterior(coneProp.diameter / 2, coneProp.length, true);
+    sysFSI.AddFsiBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
+    // Create the linear motor to move the cone at the prescribed velocity
+    auto motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(-penetration_velocity));
+    motor->Initialize(cone, box, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
+    sysMBS.AddLink(motor);
+
+    // Add cylinder on top of cone like in the experiment
+    // This is to prevent soild from falling on top of the cone, pushing it down
+    auto cyl = chrono_types::make_shared<ChBody>();
+
+    double cyl_radius = coneProp.diameter / 2;
+    cyl->SetPos(ChVector3d(0, 0, cone_z_pos + cyl_length / 2));
+    cyl->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    double cyl_volume = CH_PI * cyl_radius * cyl_radius * cyl_length;
+    double cyl_mass = coneProp.density * cyl_volume;
+    cyl->SetMass(cyl_mass * 10);  // *10 because we fake the length compared to DEM
+    ChMatrix33<> cyl_inertia = cyl_mass * ChCylinder::GetGyration(cyl_radius, cyl_length);
+    cyl->SetInertia(cyl_inertia);
+    sysMBS.AddBody(cyl);
+    chrono::utils::AddCylinderGeometry(cyl.get(), cmaterial, cyl_radius, cyl_length);
+    cyl->GetCollisionModel()->SetSafeMargin(params.initial_spacing);
+    // Register cylinder with explicit BCE points. Shorten to avoid overlap with cone
+    auto cyl_bce = sysSPH.CreatePointsCylinderInterior(cyl_radius, cyl_length - 2 * params.initial_spacing, true);
+    sysFSI.AddFsiBody(cyl, cyl_bce, ChFrame<>(VNULL, QUNIT), false);
+    // Constraint cylinder to cone
+    auto constraint = chrono_types::make_shared<ChLinkLockLock>();
+    constraint->Initialize(cone, cyl, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
+    sysMBS.AddLink(constraint);
     sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
     sysFSI.Initialize();
-
-    // Add motor to push the plate at a force that increases the pressure to max pressure in t_end
-    auto motor = chrono_types::make_shared<ChLinkMotorLinearForce>();
-    double max_force = params.max_pressure * plate_area;
-
-    ChFunctionSequence seq;
-    auto f_ramp = chrono_types::make_shared<ChFunctionRamp>(0, -max_force / max_pressure_time);
-    auto f_const = chrono_types::make_shared<ChFunctionConst>(-max_force);
-    seq.InsertFunct(f_ramp, max_pressure_time);
-    seq.InsertFunct(f_const, t_end - max_pressure_time);
-    seq.Setup();
-    motor->SetForceFunction(chrono_types::make_shared<ChFunctionSequence>(seq));
-    motor->Initialize(plate, box, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
-    sysMBS.AddLink(motor);
 
     // Output directories
     std::string out_dir;
     if (params.output || params.snapshots) {
-        // Base output directory
+        // Base output directory depends on testing_mode and includes container height in cm
         std::string base_dir;
-        // Height string in cm with 1 decimal place
         const std::string heightCmStr = [&]() {
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(1) << (params.container_height * 100.0) << "cm";
             return oss.str();
         }();
-        base_dir =
-            GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_" + heightCmStr + "_correctedInitPressure_densityScale/";
+        base_dir = GetChronoOutputPath() + "FSI_ConePenetrometer_GRC1_" + heightCmStr + "/";
         if (!filesystem::create_directory(filesystem::path(base_dir))) {
             std::cerr << "Error creating directory " << base_dir << std::endl;
             return;
@@ -504,17 +761,10 @@ void SimulateMaterial(int i, const SimParams& params) {
             return oss.str();
         };
 
-        // Format the max pressure with fixed precision in kPa
-        const std::string maxPressureStr = [&]() {
+        // Format the penetration depth with fixed precision.
+        const std::string penetrationDepthStr = [&]() {
             std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2) << (params.max_pressure / 1000.0);  // Convert to kPa
-            return oss.str();
-        }();
-
-        // Format plate diameter in cm
-        const std::string plateDiameterStr = [&]() {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2) << (params.plate_diameter * 100.0);  // Convert to cm
+            oss << std::fixed << std::setprecision(2) << params.penetration_depth;
             return oss.str();
         }();
 
@@ -526,8 +776,7 @@ void SimulateMaterial(int i, const SimParams& params) {
         const std::string cohesionStr = toString(params.cohesion);
 
         // Build the vector of subdirectory names.
-        std::vector<std::string> subdirs = {"maxPressure_" + maxPressureStr,
-                                            "plateDiameter_" + plateDiameterStr,
+        std::vector<std::string> subdirs = {"penetrationDepth_" + penetrationDepthStr,
                                             "youngsModulus_" + youngsModulusStr,
                                             "density_" + densityStr,
                                             "mu_s_" + muSStr,
@@ -580,7 +829,13 @@ void SimulateMaterial(int i, const SimParams& params) {
                 return;
             }
         }
+
+        // Write initial VTK files for the cone and cylinder setup
+        std::cout << "Writing initial VTK files for visualization..." << std::endl;
+        WriteConeVTK(out_dir + "/vtk/cone_initial.vtk", cone, coneProp.diameter / 2, coneProp.length);
+        WriteCylinderVTK(out_dir + "/vtk/cylinder_initial.vtk", cyl, cyl_radius, cyl_length);
     }
+
     // Create a run-time visualizer
     std::shared_ptr<ChVisualSystem> vis;
     // Create a run-time visualizer
@@ -598,7 +853,7 @@ void SimulateMaterial(int i, const SimParams& params) {
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
-        visVSG->SetWindowTitle("FSI Normal Bevameter");
+        visVSG->SetWindowTitle("FSI Cone Penetrometer");
         visVSG->SetWindowSize(1280, 720);
         visVSG->AddCamera(ChVector3d(0, -3 * container_height, 0.75 * container_height),
                           ChVector3d(0, 0, 0.75 * container_height));
@@ -623,26 +878,41 @@ void SimulateMaterial(int i, const SimParams& params) {
     std::ofstream ofile(out_file, std::ios::trunc);
 
     // Add comma-separated header to the output file
-    ofile << "Time,Force-x,Force-y,Force-z,position-x,position-y,penetration-depth,plate-vel-z,plate-NetPressure,plate-"
-             "ExternalLoadPressure"
-          << std::endl;
+    ofile << "Time,Force-x,Force-y,Force-z,position-x,position-y,penetration-depth,cone-pressure" << std::endl;
 
     ChTimer timer;
     timer.start();
     while (time < t_end) {
         // Calculate current penetration depth
-        double current_depth = plate->GetPos().z() - fzDim - cyl_length / 2 - params.initial_spacing;
+        double current_depth = -(cone->GetPos().z() - (bzDim - clearance));
 
+        // Check if penetration depth is reached within tolerance
+        const double depth_tolerance = 1e-6;  // Small tolerance for floating-point comparison
+        if (std::abs(current_depth - params.penetration_depth) < depth_tolerance) {
+            std::cout << "Penetration depth reached" << std::endl;
+            std::cout << "Current depth: " << current_depth << std::endl;
+            std::cout << "Target depth: " << params.penetration_depth << std::endl;
+            std::cout << "Time: " << time << std::endl;
+            std::cout << "Cone now fixed" << std::endl;
+            motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0));
+        }
         if (params.output && time >= out_frame / params.output_fps) {
             if (params.write_marker_files) {
                 sysSPH.SaveParticleData(out_dir + "/particles");
                 sysSPH.SaveSolidData(out_dir + "/fsi", time);
+                // Write VTK files for cone and cylinder
+                std::stringstream cone_vtk_filename;
+                cone_vtk_filename << out_dir << "/vtk/cone_" << std::setw(5) << std::setfill('0') << out_frame
+                                  << ".vtk";
+                WriteConeVTK(cone_vtk_filename.str(), cone, coneProp.diameter / 2, coneProp.length);
 
-                // Write VTK file for the plate
-                std::ostringstream vtk_filename;
-                vtk_filename << out_dir << "/vtk/plate_" << std::setw(5) << std::setfill('0') << out_frame << ".vtk";
-                WriteCylinderVTK(vtk_filename.str(), plate, params.plate_diameter / 2, cyl_length);
+                std::stringstream cyl_vtk_filename;
+                cyl_vtk_filename << out_dir << "/vtk/cylinder_" << std::setw(5) << std::setfill('0') << out_frame
+                                 << ".vtk";
+                WriteCylinderVTK(cyl_vtk_filename.str(), cyl, cyl_radius, cyl_length);
             }
+            std::cout << "Time: " << time << std::endl;
+            std::cout << "Current Depth: " << current_depth << std::endl;
             out_frame++;
         }
 #ifdef CHRONO_VSG
@@ -662,15 +932,11 @@ void SimulateMaterial(int i, const SimParams& params) {
         }
 #endif
         if (time >= pres_out_frame / pres_out_fps) {
-            double plate_NetPressure = abs(plate->GetAppliedForce().z() / plate_area);
-            double plate_ExternalLoadPressure = motor->GetMotorForce() / plate_area;
-            ofile << time << "," << plate->GetAppliedForce().x() << "," << plate->GetAppliedForce().y() << ","
-                  << plate->GetAppliedForce().z() << "," << plate->GetPos().x() << "," << plate->GetPos().y() << ","
-                  << current_depth << "," << plate->GetPosDt().z() << "," << plate_NetPressure << ","
-                  << plate_ExternalLoadPressure << std::endl;
+            double cone_pressure = abs(cone->GetAppliedForce().z() / (CH_PI * pow(coneProp.diameter / 2, 2)));
+            ofile << time << "," << cone->GetAppliedForce().x() << "," << cone->GetAppliedForce().y() << ","
+                  << cone->GetAppliedForce().z() << "," << cone->GetPos().x() << "," << cone->GetPos().y() << ","
+                  << current_depth << "," << cone_pressure << std::endl;
             pres_out_frame++;
-            std::cout << "time: " << time << std::endl;
-            std::cout << "current_depth: " << current_depth << std::endl;
         }
 
         // Advance simulation for one timestep for all systems
@@ -682,16 +948,5 @@ void SimulateMaterial(int i, const SimParams& params) {
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
 
-#ifdef CHRONO_POSTPROCESS
     ofile.close();
-    std::ostringstream plot_filename;
-    plot_filename << out_dir << "/results_depth_h_" << std::fixed << std::setprecision(3) << container_height
-                  << "m.gpl";
-    postprocess::ChGnuPlot gplot(plot_filename.str());
-    gplot.SetGrid();
-    gplot.SetTitle("Penetration depth vs time");
-    gplot.SetLabelX("time (s)");
-    gplot.SetLabelY("penetration depth (m)");
-    gplot.Plot(out_file, 1, 7, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
-#endif
 }

@@ -20,6 +20,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_Cratering
    demo_FSI_RassorDrum
    demo_FSI_NormalBevameter
+   demo_FSI_ConePenetrometer
 )
 
 if(CH_ENABLE_MODULE_VSG)
