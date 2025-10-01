@@ -229,7 +229,8 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     sys.DoStepDynamics(0);
 
     // Chrono-CBL calculation of the stiffness matrix
-    connector->ComputeStiffnessMatrix();
+    ChMatrixNM<double, 12, 12> CBLCON_matrix;
+    connector->ComputeStiffnessMatrixGlobal(CBLCON_matrix);
 
 
     // Analytical calculation of the stiffness matrix
@@ -286,7 +287,7 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
 
     for (int i = 0; i < 12; i++){
         for (int j = 0 ; j < 12 ; j++) {
-            ASSERT_NEAR(connector->Km(i, j), analytical_matrix(i, j), tol);
+            ASSERT_NEAR(CBLCON_matrix(i, j), analytical_matrix(i, j), tol);
         }
     }
 }

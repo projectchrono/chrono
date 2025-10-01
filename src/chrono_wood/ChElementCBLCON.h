@@ -162,20 +162,12 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	///
 	///	
 	virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
-    /// Computes the local (material) stiffness matrix of the element:
-    /// K = integral( [B]' * [D] * [B] ),
-    /// Note: in this 'basic' implementation, constant section and
-    /// constant material are assumed, so the explicit result of quadrature is used.
-    /// Also, this local material stiffness matrix is constant, computed only at the beginning 
-    /// for performance reasons; if you later change some material property, call this or InitialSetup().
-    void ComputeStiffnessMatrix();
 
-    /// Computes the local geometric stiffness Kg of the element.
-    /// Note: this->Kg will be set as the geometric stiffness EXCLUDING the multiplication by the P pull force,
-    /// in fact P multiplication happens in all terms, thus this allows making the Kg as a constant matrix that
-    /// is computed only at the beginning, and later it is multiplied by P all times the real Kg is needed.
-    /// If you later change some material property, call this or InitialSetup().
-    void ComputeGeometricStiffnessMatrix();
+    /// Computes the global stiffness matrix of the element:
+    void ComputeStiffnessMatrixGlobal(ChMatrixRef Km);
+
+    /// Computes the global geometric stiffness Kg of the element.
+    void ComputeGeometricStiffnessMatrixGlobal(ChMatrixRef Kg);
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -323,8 +315,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 
     std::shared_ptr<ChBeamSectionCBLCON> section;
 
-    ChMatrixDynamic<> Km;  ///< local material  stiffness matrix
-    ChMatrixDynamic<> Kg;  ///< local geometric stiffness matrix NORMALIZED by P
 
     ChQuaternion<> q_refrotA;
     ChQuaternion<> q_refrotB;
