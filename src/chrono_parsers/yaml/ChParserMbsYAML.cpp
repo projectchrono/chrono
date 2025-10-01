@@ -522,8 +522,8 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     // Read external controllers
-    if (model["controllers"]) {
-        auto controllers = model["controllers"];
+    if (model["load_controllers"]) {
+        auto controllers = model["load_controllers"];
         ChAssertAlways(controllers.IsSequence());
         if (m_verbose) {
             cout << "\nexternal controllers: " << controllers.size() << endl;
@@ -549,7 +549,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             if (m_verbose)
                 load.PrintInfo(name);
 
-            m_controller_params.insert({name, load});
+            m_loadcontroller_params.insert({name, load});
         }
     }
 
@@ -751,7 +751,7 @@ std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBodyByName(const std::string&
         throw std::runtime_error("Invalid body name");
     }
     if (model_instance >= GetNumInstances()) {
-        cerr << "[ChParserMbsYAML::AttachForceController] Error: incorrect model instance number" << endl;
+        cerr << "[ChParserMbsYAML::FindBodyByName] Error: incorrect model instance number" << endl;
         throw std::runtime_error("Incorrect model instance number");
     }
     return b->second.body[model_instance];
@@ -907,9 +907,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create external body load controllers
-    if (m_verbose && !m_controller_params.empty())
+    if (m_verbose && !m_loadcontroller_params.empty())
         cout << "Create external body load controllers" << endl;
-    for (auto& item : m_controller_params) {
+    for (auto& item : m_loadcontroller_params) {
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
         switch (item.second.type) {
@@ -1042,24 +1042,24 @@ void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {
 
 // -----------------------------------------------------------------------------
 
-void ChParserMbsYAML::AttachForceController(std::shared_ptr<ChLoadController> controller,
+void ChParserMbsYAML::AttachLoadController(std::shared_ptr<ChLoadController> controller,
                                             const std::string& name,
                                             int model_instance) {
     if (!m_model_loaded) {
-        cerr << "[ChParserMbsYAML::AttachForceController] Error: No MBS model loaded" << endl;
+        cerr << "[ChParserMbsYAML::AttachLoadController] Error: No MBS model loaded" << endl;
         throw std::runtime_error("No MBS model loaded");
     }
 
     // Check that parameters for a controller with this base name were specified in the input YAML file
-    auto c = m_controller_params.find(name);
-    if (c == m_controller_params.end()) {
-        cerr << "[ChParserMbsYAML::AttachForceController] Error: cannot find controller with name: " << name << endl;
+    auto c = m_loadcontroller_params.find(name);
+    if (c == m_loadcontroller_params.end()) {
+        cerr << "[ChParserMbsYAML::AttachLoadController] Error: cannot find controller with name: " << name << endl;
         throw std::runtime_error("Invalid controller name");
     }
 
     // Check the model instance number
     if (model_instance >= GetNumInstances()) {
-        cerr << "[ChParserMbsYAML::AttachForceController] Error: incorrect model instance number" << endl;
+        cerr << "[ChParserMbsYAML::AttachLoadController] Error: incorrect model instance number" << endl;
         throw std::runtime_error("Incorrect model instance number");
     }
 
@@ -1073,15 +1073,15 @@ void ChParserMbsYAML::AttachForceController(std::shared_ptr<ChLoadController> co
     m_load_controllers.insert({name, load_controller});
 }
 
-void ChParserMbsYAML::ApplyControllerLoads(const ControllerLoads& controller_loads) {
+void ChParserMbsYAML::ApplyLoadControllerLoads(const LoadControllerLoads& controller_loads) {
     for (const auto& controller_load : controller_loads) {
         const auto& name = controller_load.first;
         const auto& load = controller_load.second;
 
         // Find the controllers with this base name
-        auto c = m_controller_params.find(name);
-        if (c == m_controller_params.end()) {
-            cerr << "[ChParserMbsYAML::ApplyControllerLoads] Error: cannot find controller with name: " << name << endl;
+        auto c = m_loadcontroller_params.find(name);
+        if (c == m_loadcontroller_params.end()) {
+            cerr << "[ChParserMbsYAML::ApplyLoadControllerLoads] Error: cannot find controller with name: " << name << endl;
             throw std::runtime_error("Invalid controller name");
         }
         auto type = c->second.type;
@@ -1106,6 +1106,8 @@ void ChParserMbsYAML::ApplyControllerLoads(const ControllerLoads& controller_loa
     }
 }
 
+
+
 void ChParserMbsYAML::DoStepDynamics() {
     double time = m_sys->GetChTime();
     double time_step = m_sim.time_step;
@@ -1117,8 +1119,8 @@ void ChParserMbsYAML::DoStepDynamics() {
 
         // Find parameters for this controller
         const auto& name = load_controller.first;
-        auto c = m_controller_params.find(name);
-        ChAssertAlways(c != m_controller_params.end());
+        auto c = m_loadcontroller_params.find(name);
+        ChAssertAlways(c != m_loadcontroller_params.end());
         auto type = c->second.type;
         bool local_load = c->second.local_load;
         auto& body_load = c->second.load[model_instance];

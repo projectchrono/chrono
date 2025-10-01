@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     auto controller = chrono_types::make_shared<InvertedPendulumController>(2.0, 20.0);
     controller->SetGainsCart(5, 0, -0.5);
     controller->SetGainsPend(-150, -100, -10);
-    parser.AttachForceController(controller, "cart_controller", 0);
+    parser.AttachLoadController(controller, "cart_controller", 0);
 
     // ------------------------------
 

@@ -73,7 +73,7 @@ model:
       location: [0, 0, 0]
       axis: [0, 1, 0]
 
-  controllers:
+  load_controllers:
     - name: cart_controller
       type: FORCE
       body: cart

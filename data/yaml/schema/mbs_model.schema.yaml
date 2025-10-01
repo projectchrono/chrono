@@ -667,7 +667,7 @@ model:
           description: Optional function of time which modulates applied load
           default: 1.0
 
-    controllers:
+    load_controllers:
       type: array
       description: List of body loads applied by external controllers
       items:
