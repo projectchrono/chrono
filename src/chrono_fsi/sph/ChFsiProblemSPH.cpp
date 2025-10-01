@@ -277,20 +277,6 @@ void ChFsiProblemSPH::Initialize() {
     // (ATTENTION: BCE markers must be created after the SPH particles!)
     m_sysSPH->AddBCEBoundary(bce_points, m_ground->GetFrameRefToAbs());
 
-    // Update AABB using geometry of FSI solids
-    for (const auto& b : m_sysSPH->m_bodies) {
-        auto body_aabb = b.fsi_body->geometry->CalculateAABB();
-        aabb += body_aabb.Transform(b.fsi_body->body->GetFrameRefToAbs());
-    }
-    for (const auto& m : m_sysSPH->m_meshes1D) {
-        auto mesh_aabb = m.fsi_mesh->contact_surface->GetAABB();
-        aabb += mesh_aabb;
-    }
-    for (const auto& m : m_sysSPH->m_meshes2D) {
-        auto mesh_aabb = m.fsi_mesh->contact_surface->GetAABB();
-        aabb += mesh_aabb;
-    }
-
     if (m_verbose) {
         cout << "AABB of SPH particles:" << endl;
         cout << "  min: " << m_sph_aabb.min << endl;

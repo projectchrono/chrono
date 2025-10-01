@@ -112,7 +112,7 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
                                                     bool check_embedded) {
     ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
-    ChAssertAlways(geometry->HasCollision());
+    ChAssertAlways(!geometry || geometry->HasCollision());
 
     auto fsi_body = chrono_types::make_shared<FsiBody>();
     fsi_body->body = body;
@@ -518,8 +518,8 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
         size_t ibody = 0;
         for (const auto& fsi_body : m_fsi_bodies) {
             fsi_body->body->EmptyAccumulator(fsi_body->fsi_accumulator);
-            fsi_body->body->AccumulateForce(fsi_body->fsi_accumulator, body_forces[ibody].force, fsi_body->body->GetPos(),
-                                           false);
+            fsi_body->body->AccumulateForce(fsi_body->fsi_accumulator, body_forces[ibody].force,
+                                            fsi_body->body->GetPos(), false);
             fsi_body->body->AccumulateTorque(fsi_body->fsi_accumulator, body_forces[ibody].torque, false);
             ibody++;
         }
