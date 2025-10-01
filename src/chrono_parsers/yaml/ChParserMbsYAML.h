@@ -67,7 +67,6 @@ typedef std::unordered_map<std::string, ChVector3d> LoadControllerLoads;
 /// populating a Chrono system and setting solver and simulation parameters.
 class ChApiParsers ChParserMbsYAML : public ChParserYAML {
   public:
-
     ChParserMbsYAML(bool verbose = false);
 
     /// Create a YAML parser and load the model from the specified input YAML file.
@@ -135,8 +134,8 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// This function can be called only after the MBS model was loaded and the model specification must include
     /// parameters for a load controller with specified name.
     void AttachLoadController(std::shared_ptr<ChLoadController> controller,
-                               const std::string& name,
-                               int model_instance = 0);
+                              const std::string& name,
+                              int model_instance = 0);
 
     /// Advance dynamics of the multibody system.
     /// - load controllers (if any are attached) are synchronized and their dynamics advanced in time;
@@ -158,8 +157,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     void SaveOutput(ChSystem& sys, int frame);
 
   private:
-    enum class BodyLoadType { FORCE, TORQUE };
-
     /// Solver parameters.
     struct SolverParams {
         SolverParams();
@@ -299,13 +296,16 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
     };
 
+    /// Body load type.
+    enum class BodyLoadType { FORCE, TORQUE };
+
     /// Internal specification of a body load (applied force or torque).
     struct BodyLoadParams {
         BodyLoadParams();
         void PrintInfo(const std::string& name);
 
         std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
-        BodyLoadType type;                                ///< load type: force or torque
+        BodyLoadType type;                                ///< load type: FORCE or TORQUE
         std::string body;                                 ///< name of body to which the load is applied
         bool local_load;                                  ///< is load provided in local frame?
         bool local_point;                                 ///< is point provided in local frame?
@@ -313,6 +313,9 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         ChVector3d point;                                 ///< force application point
         std::shared_ptr<ChFunction> modulation;           ///< load modulation as function of time
     };
+
+    /// Motor type.
+    enum class MotorType { LINEAR, ROTATION };
 
     /// Motor actuation type.
     enum class MotorActuation {
@@ -322,34 +325,21 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         NONE
     };
 
-    /// Internal specification of a linear motor.
-    struct MotorLinearParams {
-        MotorLinearParams();
+    /// Internal specification of a motor (linear or rotationa).
+    struct MotorParams {
+        MotorParams();
         void PrintInfo(const std::string& name);
 
-        std::vector<std::shared_ptr<ChLinkMotorLinear>> motor;  ///< underlying Chrono motors (one per instance)
-        ChLinkMotorLinear::GuideConstraint guide;               ///< motor guide type
-        std::string body1;                                      ///< identifier of 1st body
-        std::string body2;                                      ///< identifier of 2nd body
-        ChVector3d pos;                                         ///< motor position (relative to instance frame)
-        ChVector3d axis;                                        ///< motor action axis (relative to instance frame)
-        MotorActuation actuation_type;                          ///< actuation type (motor type)
-        std::shared_ptr<ChFunction> actuation_function;         ///< actuation function
-    };
-
-    /// Internal specification of a rotational motor.
-    struct MotorRotationParams {
-        MotorRotationParams();
-        void PrintInfo(const std::string& name);
-
-        std::vector<std::shared_ptr<ChLinkMotorRotation>> motor;  ///< underlying Chrono motors (one per instance)
-        ChLinkMotorRotation::SpindleConstraint spindle;           ///< motor spindle type
-        std::string body1;                                        ///< identifier of 1st body
-        std::string body2;                                        ///< identifier of 2nd body
-        ChVector3d pos;                                           ///< motor position (relative to instance frame)
-        ChVector3d axis;                                          ///< motor action axis (relative to instance frame)
-        MotorActuation actuation_type;                            ///< actuation type (motor type)
-        std::shared_ptr<ChFunction> actuation_function;           ///< actuation function
+        std::vector<std::shared_ptr<ChLinkMotor>> motor;  ///< underlying Chrono linear motors (one per instance)
+        MotorType type;                                   ///< motor type: LINEAR or ROTATION
+        ChLinkMotorLinear::GuideConstraint guide;         ///< motor guide type (for a LINEAR motor)
+        ChLinkMotorRotation::SpindleConstraint spindle;   ///< motor spindle type (for a ROTATION motor)
+        std::string body1;                                ///< identifier of 1st body
+        std::string body2;                                ///< identifier of 2nd body
+        ChVector3d pos;                                   ///< motor position (relative to instance frame)
+        ChVector3d axis;                                  ///< motor action axis (relative to instance frame)
+        MotorActuation actuation_type;                    ///< actuation type (motor type)
+        std::shared_ptr<ChFunction> actuation_function;   ///< actuation function
     };
 
     /// Load controllers.
@@ -409,6 +399,9 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Load and return the body load type from the specified node.
     BodyLoadType ReadBodyLoadType(const YAML::Node& a);
 
+    /// Load and return the motor type from the specified node.
+    MotorType ReadMotorType(const YAML::Node& a);
+
     /// Load and return a motor actuation type from the specified node.
     MotorActuation ReadMotorActuationType(const YAML::Node& a);
 
@@ -435,10 +428,9 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     std::unordered_map<std::string, DistanceConstraintParams> m_distcnstr_params;  ///< distance constraints
     std::unordered_map<std::string, TsdaParams> m_tsda_params;                     ///< TSDA force elements
     std::unordered_map<std::string, RsdaParams> m_rsda_params;                     ///< RSDA force elements
-    std::unordered_map<std::string, BodyLoadParams> m_bodyload_params;             ///< body load elements
-    std::unordered_map<std::string, BodyLoadParams> m_loadcontroller_params;       ///< external body load controllers
-    std::unordered_map<std::string, MotorLinearParams> m_linmot_params;            ///< linear motors
-    std::unordered_map<std::string, MotorRotationParams> m_rotmot_params;          ///< rotational motors
+    std::unordered_map<std::string, BodyLoadParams> m_bodyload_params;             ///< body loads
+    std::unordered_map<std::string, BodyLoadParams> m_load_controller_params;      ///< external body load controllers
+    std::unordered_map<std::string, MotorParams> m_motor_params;                   ///< motors
 
     std::unordered_map<std::string, LoadController> m_load_controllers;
 

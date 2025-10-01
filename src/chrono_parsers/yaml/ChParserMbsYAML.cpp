@@ -549,7 +549,7 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             if (m_verbose)
                 load.PrintInfo(name);
 
-            m_loadcontroller_params.insert({name, load});
+            m_load_controller_params.insert({name, load});
         }
     }
 
@@ -563,54 +563,39 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
         for (size_t i = 0; i < motors.size(); i++) {
             ChAssertAlways(motors[i]["name"]);
             ChAssertAlways(motors[i]["type"]);
-            auto name = motors[i]["name"].as<std::string>();
-            auto type = ToUpper(motors[i]["type"].as<std::string>());
-
             ChAssertAlways(motors[i]["body1"]);
             ChAssertAlways(motors[i]["body2"]);
             ChAssertAlways(motors[i]["actuation_type"]);
             ChAssertAlways(motors[i]["actuation_function"]);
-            auto body1 = motors[i]["body1"].as<std::string>();
-            auto body2 = motors[i]["body2"].as<std::string>();
-            auto actuation_type = ReadMotorActuationType(motors[i]["actuation_type"]);
-            auto actuation_function = ReadFunction(motors[i]["actuation_function"], m_use_degrees);
-
             ChAssertAlways(motors[i]["location"]);
             ChAssertAlways(motors[i]["axis"]);
-            if (type == "LINEAR") {
-                MotorLinearParams motor;
-                motor.body1 = body1;
-                motor.body2 = body2;
-                motor.actuation_type = actuation_type;
-                if (motors[i]["guide"])
-                    motor.guide = ReadMotorGuideType(motors[i]["guide"]);
-                motor.pos = ReadVector(motors[i]["location"]);
-                motor.axis = ReadVector(motors[i]["axis"]);
-                motor.axis.Normalize();
-                motor.actuation_function = actuation_function;
 
-                if (m_verbose)
-                    motor.PrintInfo(name);
+            auto name = motors[i]["name"].as<std::string>();
 
-                m_linmot_params.insert({name, motor});
+            MotorParams motor;
+            motor.type = ReadMotorType(motors[i]["type"]);
+            motor.body1 = motors[i]["body1"].as<std::string>();
+            motor.body2 = motors[i]["body2"].as<std::string>();
+            motor.actuation_type = ReadMotorActuationType(motors[i]["actuation_type"]);
+            motor.actuation_function = ReadFunction(motors[i]["actuation_function"], m_use_degrees);
+            motor.pos = ReadVector(motors[i]["location"]);
+            motor.axis = ReadVector(motors[i]["axis"]);
 
-            } else if (type == "ROTATION") {
-                MotorRotationParams motor;
-                motor.body1 = body1;
-                motor.body2 = body2;
-                motor.actuation_type = actuation_type;
-                if (motors[i]["spindle"])
-                    motor.spindle = ReadMotorSpindleType(motors[i]["spindle"]);
-                motor.pos = ReadVector(motors[i]["location"]);
-                motor.axis = ReadVector(motors[i]["axis"]);
-                motor.axis.Normalize();
-                motor.actuation_function = actuation_function;
-
-                if (m_verbose)
-                    motor.PrintInfo(name);
-
-                m_rotmot_params.insert({name, motor});
+            switch (motor.type) {
+                case MotorType::LINEAR:
+                    if (motors[i]["guide"])
+                        motor.guide = ReadMotorGuideType(motors[i]["guide"]);
+                    break;
+                case MotorType::ROTATION:
+                    if (motors[i]["spindle"])
+                        motor.spindle = ReadMotorSpindleType(motors[i]["spindle"]);
+                    break;
             }
+
+            if (m_verbose)
+                motor.PrintInfo(name);
+
+            m_motor_params.insert({name, motor});
         }
     }
 
@@ -907,9 +892,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create external body load controllers
-    if (m_verbose && !m_loadcontroller_params.empty())
+    if (m_verbose && !m_load_controller_params.empty())
         cout << "Create external body load controllers" << endl;
-    for (auto& item : m_loadcontroller_params) {
+    for (auto& item : m_load_controller_params) {
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
         switch (item.second.type) {
@@ -927,10 +912,10 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         m_output_data.loads.push_back(load);
     }
 
-    // Create linear motors
-    if (m_verbose && !m_linmot_params.empty())
-        cout << "Create linear motors" << endl;
-    for (auto& item : m_linmot_params) {
+    // Create motors
+    if (m_verbose && !m_motor_params.empty())
+        cout << "Create motors" << endl;
+    for (auto& item : m_motor_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
 
@@ -938,57 +923,55 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         rot.SetFromAxisX(item.second.axis);
         ChQuaterniond quat = rot.GetQuaternion() * QuatFromAngleY(CH_PI_2);
 
-        std::shared_ptr<ChLinkMotorLinear> motor;
-        switch (item.second.actuation_type) {
-            case MotorActuation::POSITION:
-                motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+        switch (item.second.type) {
+            case MotorType::LINEAR: {
+                std::shared_ptr<ChLinkMotorLinear> motor;
+                switch (item.second.actuation_type) {
+                    case MotorActuation::POSITION:
+                        motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+                        break;
+                    case MotorActuation::SPEED:
+                        motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
+                        break;
+                    case MotorActuation::FORCE:
+                        motor = chrono_types::make_shared<ChLinkMotorLinearForce>();
+                        break;
+                }
+                motor->SetName(model_prefix + item.first);
+                motor->SetGuideConstraint(item.second.guide);
+                motor->SetMotorFunction(item.second.actuation_function);
+                motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
+                sys.AddLink(motor);
+                item.second.motor.push_back(motor);
+                m_output_data.lin_motors.push_back(motor);
+
                 break;
-            case MotorActuation::SPEED:
-                motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
+            }
+
+            case MotorType::ROTATION: {
+                std::shared_ptr<ChLinkMotorRotation> motor;
+                switch (item.second.actuation_type) {
+                    case MotorActuation::POSITION:
+                        motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+                        break;
+                    case MotorActuation::SPEED:
+                        motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+                        break;
+                    case MotorActuation::FORCE:
+                        motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
+                        break;
+                }
+                motor->SetName(model_prefix + item.first);
+                motor->SetSpindleConstraint(item.second.spindle);
+                motor->SetMotorFunction(item.second.actuation_function);
+                motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
+                sys.AddLink(motor);
+                item.second.motor.push_back(motor);
+                m_output_data.rot_motors.push_back(motor);
+
                 break;
-            case MotorActuation::FORCE:
-                motor = chrono_types::make_shared<ChLinkMotorLinearForce>();
-                break;
+            }
         }
-        motor->SetName(model_prefix + item.first);
-        motor->SetGuideConstraint(item.second.guide);
-        motor->SetMotorFunction(item.second.actuation_function);
-        motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
-        sys.AddLink(motor);
-        item.second.motor.push_back(motor);
-        m_output_data.lin_motors.push_back(motor);
-    }
-
-    // Create rotation motors
-    if (m_verbose && !m_rotmot_params.empty())
-        cout << "Create rotational motors" << endl;
-    for (auto& item : m_rotmot_params) {
-        auto body1 = FindBodyByName(item.second.body1);
-        auto body2 = FindBodyByName(item.second.body2);
-
-        ChMatrix33d rot;
-        rot.SetFromAxisX(item.second.axis);
-        ChQuaterniond quat = rot.GetQuaternion() * QuatFromAngleY(CH_PI_2);
-
-        std::shared_ptr<ChLinkMotorRotation> motor;
-        switch (item.second.actuation_type) {
-            case MotorActuation::POSITION:
-                motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-                break;
-            case MotorActuation::SPEED:
-                motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-                break;
-            case MotorActuation::FORCE:
-                motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
-                break;
-        }
-        motor->SetName(model_prefix + item.first);
-        motor->SetSpindleConstraint(item.second.spindle);
-        motor->SetMotorFunction(item.second.actuation_function);
-        motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
-        sys.AddLink(motor);
-        item.second.motor.push_back(motor);
-        m_output_data.rot_motors.push_back(motor);
     }
 
     // Create body collision models
@@ -1043,16 +1026,16 @@ void ChParserMbsYAML::Depopulate(ChSystem& sys, int instance_index) {
 // -----------------------------------------------------------------------------
 
 void ChParserMbsYAML::AttachLoadController(std::shared_ptr<ChLoadController> controller,
-                                            const std::string& name,
-                                            int model_instance) {
+                                           const std::string& name,
+                                           int model_instance) {
     if (!m_model_loaded) {
         cerr << "[ChParserMbsYAML::AttachLoadController] Error: No MBS model loaded" << endl;
         throw std::runtime_error("No MBS model loaded");
     }
 
     // Check that parameters for a controller with this base name were specified in the input YAML file
-    auto c = m_loadcontroller_params.find(name);
-    if (c == m_loadcontroller_params.end()) {
+    auto c = m_load_controller_params.find(name);
+    if (c == m_load_controller_params.end()) {
         cerr << "[ChParserMbsYAML::AttachLoadController] Error: cannot find controller with name: " << name << endl;
         throw std::runtime_error("Invalid controller name");
     }
@@ -1079,9 +1062,10 @@ void ChParserMbsYAML::ApplyLoadControllerLoads(const LoadControllerLoads& contro
         const auto& load = controller_load.second;
 
         // Find the controllers with this base name
-        auto c = m_loadcontroller_params.find(name);
-        if (c == m_loadcontroller_params.end()) {
-            cerr << "[ChParserMbsYAML::ApplyLoadControllerLoads] Error: cannot find controller with name: " << name << endl;
+        auto c = m_load_controller_params.find(name);
+        if (c == m_load_controller_params.end()) {
+            cerr << "[ChParserMbsYAML::ApplyLoadControllerLoads] Error: cannot find controller with name: " << name
+                 << endl;
             throw std::runtime_error("Invalid controller name");
         }
         auto type = c->second.type;
@@ -1106,8 +1090,6 @@ void ChParserMbsYAML::ApplyLoadControllerLoads(const LoadControllerLoads& contro
     }
 }
 
-
-
 void ChParserMbsYAML::DoStepDynamics() {
     double time = m_sys->GetChTime();
     double time_step = m_sim.time_step;
@@ -1119,8 +1101,8 @@ void ChParserMbsYAML::DoStepDynamics() {
 
         // Find parameters for this controller
         const auto& name = load_controller.first;
-        auto c = m_loadcontroller_params.find(name);
-        ChAssertAlways(c != m_loadcontroller_params.end());
+        auto c = m_load_controller_params.find(name);
+        ChAssertAlways(c != m_load_controller_params.end());
         auto type = c->second.type;
         bool local_load = c->second.local_load;
         auto& body_load = c->second.load[model_instance];
@@ -1339,22 +1321,15 @@ ChParserMbsYAML::RsdaParams::RsdaParams()
 ChParserMbsYAML::BodyLoadParams::BodyLoadParams()
     : type(BodyLoadType::FORCE), body(""), local_load(true), local_point(true), value(VNULL), point(VNULL) {}
 
-ChParserMbsYAML::MotorLinearParams::MotorLinearParams()
-    : actuation_type(MotorActuation::NONE),
+ChParserMbsYAML::MotorParams::MotorParams()
+    : type(MotorType::ROTATION),
+      actuation_type(MotorActuation::NONE),
       actuation_function(chrono_types::make_shared<ChFunctionConst>(0.0)),
       body1(""),
       body2(""),
       pos(VNULL),
       axis(ChVector3d(0, 0, 1)),
-      guide(ChLinkMotorLinear::GuideConstraint::PRISMATIC) {}
-
-ChParserMbsYAML::MotorRotationParams::MotorRotationParams()
-    : actuation_type(MotorActuation::NONE),
-      actuation_function(chrono_types::make_shared<ChFunctionConst>(0.0)),
-      body1(""),
-      body2(""),
-      pos(VNULL),
-      axis(ChVector3d(0, 0, 1)),
+      guide(ChLinkMotorLinear::GuideConstraint::PRISMATIC),
       spindle(ChLinkMotorRotation::SpindleConstraint::REVOLUTE) {}
 
 std::string ChParserMbsYAML::GetMotorActuationTypeString(MotorActuation type) {
@@ -1450,24 +1425,26 @@ void ChParserMbsYAML::BodyLoadParams::PrintInfo(const std::string& name) {
     }
 }
 
-void ChParserMbsYAML::MotorLinearParams::PrintInfo(const std::string& name) {
-    cout << "  name:           " << name << endl;
-    cout << "     actuation:   " << GetMotorActuationTypeString(actuation_type) << endl;
-    cout << "     guide:       " << ChLinkMotorLinear::GetGuideTypeString(guide) << endl;
-    cout << "     body1:       " << body1 << endl;
-    cout << "     body2:       " << body2 << endl;
-    cout << "     pos:         " << pos << endl;
-    cout << "     axis:        " << axis << endl;
-}
+void ChParserMbsYAML::MotorParams::PrintInfo(const std::string& name) {
+    std::string type_str = "linear";
+    if (type == MotorType::ROTATION)
+        type_str = "rotation";
 
-void ChParserMbsYAML::MotorRotationParams::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
+    cout << "     type:       " << type_str << endl;
     cout << "     actuation:   " << GetMotorActuationTypeString(actuation_type) << endl;
-    cout << "     spindle:     " << ChLinkMotorRotation::GetSpindleTypeString(spindle) << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
     cout << "     pos:         " << pos << endl;
     cout << "     axis:        " << axis << endl;
+    switch (type) {
+        case MotorType::LINEAR:
+            cout << "     guide:       " << ChLinkMotorLinear::GetGuideTypeString(guide) << endl;
+            break;
+        case MotorType::ROTATION:
+            cout << "     spindle:     " << ChLinkMotorRotation::GetSpindleTypeString(spindle) << endl;
+            break;
+    }
 }
 
 // =============================================================================
@@ -2158,6 +2135,13 @@ ChParserMbsYAML::BodyLoadType ChParserMbsYAML::ReadBodyLoadType(const YAML::Node
     if (type == "TORQUE")
         return BodyLoadType::TORQUE;
     return BodyLoadType::FORCE;
+}
+
+ChParserMbsYAML::MotorType ChParserMbsYAML::ReadMotorType(const YAML::Node& a) {
+    std::string type = ToUpper(a.as<std::string>());
+    if (type == "LINEAR")
+        return MotorType::LINEAR;
+    return MotorType::ROTATION;
 }
 
 ChParserMbsYAML::MotorActuation ChParserMbsYAML::ReadMotorActuationType(const YAML::Node& a) {
