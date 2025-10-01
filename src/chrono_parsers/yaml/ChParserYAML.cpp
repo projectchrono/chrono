@@ -153,6 +153,7 @@ std::shared_ptr<ChFunction> ChParserYAML::ReadFunction(const YAML::Node& a, bool
     }
 
     std::shared_ptr<ChFunction> f_base = nullptr;
+    bool is_controller = false;
     if (type == "CONSTANT") {
         ChAssertAlways(a["value"]);
         auto value = a["value"].as<double>();
@@ -200,6 +201,9 @@ std::shared_ptr<ChFunction> ChParserYAML::ReadFunction(const YAML::Node& a, bool
             f_interp->AddPoint(t, f);
         }
         f_base = f_interp;
+    } else if (type == "CONTROLLER") {
+        is_controller = true;
+        f_base = chrono_types::make_shared<ChFunctionSetpoint>();
     } else {
         cerr << "Incorrect function type: " << a["type"] << endl;
         throw std::runtime_error("Incorrect function type");
@@ -207,7 +211,7 @@ std::shared_ptr<ChFunction> ChParserYAML::ReadFunction(const YAML::Node& a, bool
     //// TODO - more function types
 
     // Check if base function must be repeated
-    if (repeat) {
+    if (repeat && !is_controller) {
         // Yes: construct and return repeated function
         auto f_repeat = chrono_types::make_shared<ChFunctionRepeat>(f_base, repeat_start, repeat_width, repeat_shift);
         return f_repeat;
@@ -288,24 +292,30 @@ void ChParserYAML::SaveOutput(int frame) {
     // Create the output DB if needed
     if (!m_output_db) {
         std::string filename = m_output.dir + "/" + m_name;
+
         if (!m_output_dir.empty())
             filename = m_output_dir + "/" + filename;
-        if (m_verbose) {
-            cout << "\n-------------------------------------------------" << endl;
-            cout << "\nOutput file: " << filename << endl;
-        }
+        
         switch (m_output.type) {
             case ChOutput::Type::ASCII:
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename + ".txt");
+                filename += ".txt";
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename);
                 break;
             case ChOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename + ".h5", m_output.mode);
+                filename += ".h5";
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename, m_output.mode);
                 break;
 #else
                 return;
 #endif
         }
+
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\nOutput file: " << filename << endl;
+        }
+
         m_output_db->Initialize();
     }
 }

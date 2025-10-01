@@ -37,20 +37,25 @@
     #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
+#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+
 using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-class InvertedPendulumController : public parsers::ChLoadController {
+// PID controller for an inverted pendulum, implementing bothh the ChLoadController and ChMotorController interfaces.
+// This controller can therefore be used to either set a body load controller or a motor actuation.
+class InvertedPendulumController : public parsers::ChLoadController, public parsers::ChMotorController {
   public:
-    InvertedPendulumController(double travel_dist,
-                               double switch_period)
+    InvertedPendulumController(double travel_dist, double switch_period)
         : m_x_cart(travel_dist), m_a_pend(0), m_switch_period(switch_period) {}
 
     void SetGainsCart(double Kp, double Ki, double Kd) { m_K_cart = ChVector3d(Kp, Ki, Kd); }
     void SetGainsPend(double Kp, double Ki, double Kd) { m_K_pend = ChVector3d(Kp, Ki, Kd); }
 
     virtual ChVector3d GetLoad() const override { return m_force; }
+    virtual double GetActuation() const override { return m_force.x(); }
 
     // Initialize the controller
     virtual void Initialize(const parsers::ChParserMbsYAML& parser, int model_instance) {
@@ -120,11 +125,34 @@ class InvertedPendulumController : public parsers::ChLoadController {
 
 // -----------------------------------------------------------------------------
 
+enum class ControllerType { LOAD, MOTOR };
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    // Extract controiller type from command-line arguments
+    ControllerType type = ControllerType::LOAD;
+    std::string type_string = "LOAD";
+
+    ChCLI cli(argv[0], "");
+    cli.AddOption<std::string>("", "c,controller", "controller type (LOAD or MOTOR)", type_string);
+    if (!cli.Parse(argc, argv, true))
+        return 1;
+    if (argc == 1)
+        cli.Help();
+    type_string = cli.GetAsType<std::string>("controller");
+
+    std::cout << std::endl;
+    std::cout << "Controller type: " << type_string << std::endl;
+    if (type_string == "MOTOR")
+        type = ControllerType::MOTOR;
+
     // Extract filenames from command-line arguments
-    std::string model_yaml_filename = GetChronoDataFile("yaml/mbs/inverted_pendulum.yaml");
+    std::string model_yaml_filename = type == ControllerType::LOAD
+                                          ? GetChronoDataFile("yaml/mbs/inverted_pendulum_load.yaml")
+                                          : GetChronoDataFile("yaml/mbs/inverted_pendulum_motor.yaml");
     std::string sim_yaml_filename = GetChronoDataFile("yaml/mbs/simulation_mbs.yaml");
 
     // Create YAML parser object
@@ -150,18 +178,26 @@ int main(int argc, char* argv[]) {
     bool render = parser.Render();
     double render_fps = parser.GetRenderFPS();
     bool enable_shadows = parser.EnableShadows();
+    bool output = parser.Output();
 
     // Print system hierarchy
     ////sys->ShowHierarchy(std::cout);
 
     // ------------------------------
 
-    // Create a controller corresponding to the "cart_controller" defintion in the YAML model file and specify that it
+    // Create a controller corresponding to the "cart_controller" definition in the YAML model file and specify that it
     // should be used for the first instance of the MBS model.
     auto controller = chrono_types::make_shared<InvertedPendulumController>(2.0, 20.0);
     controller->SetGainsCart(5, 0, -0.5);
     controller->SetGainsPend(-150, -100, -10);
-    parser.AttachLoadController(controller, "cart_controller", 0);
+    switch (type) {
+        case ControllerType::LOAD:
+            parser.AttachLoadController(controller, "cart_controller", 0);
+            break;
+        case ControllerType::MOTOR:
+            parser.AttachMotorController(controller, "cart_controller", 0);
+            break;
+    }
 
     // ------------------------------
 
@@ -191,6 +227,21 @@ int main(int argc, char* argv[]) {
 
         vis = vis_vsg;
 #endif
+    }
+
+    // Create output directory
+    if (output) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_MBS";
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        out_dir = out_dir + "/" + model_name;
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        parser.SetOutputDir(out_dir);
     }
 
     // Simulation loop

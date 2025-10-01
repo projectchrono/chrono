@@ -1,7 +1,7 @@
 chrono-version: 9.0
 
 model:
-  name: Inverted pendulum with external controller
+  name: Inverted pendulum with external MOTOR controller
   angle_degrees: true
   
   data_path:
@@ -59,24 +59,21 @@ model:
             color: [0.2, 0.2, 0.6]
 
   joints:
-    - name: prism_joint
-      type: PRISMATIC
-      body1: ground
-      body2: cart
-      location: [0, 0, 0]
-      axis: [1, 0, 0]
-
     - name: rev_joint
       type: REVOLUTE
-      body1: cart
-      body2: pendulum
+      body1: pendulum
+      body2: cart
       location: [0, 0, 0]
       axis: [0, 1, 0]
 
-  load_controllers:
+  motors:
     - name: cart_controller
-      type: FORCE
-      body: cart
-      local_load: true
-      point: [0, 0, 0]
-      local_point: true
+      type: LINEAR
+      guide: PRISMATIC
+      body1: cart
+      body2: ground
+      location: [0, 0, 0]
+      axis: [1, 0, 0]
+      actuation_type: force
+      actuation_function:
+        type: CONTROLLER

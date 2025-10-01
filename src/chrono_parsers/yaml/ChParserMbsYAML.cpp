@@ -521,12 +521,12 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
-    // Read external controllers
+    // Read external load controllers
     if (model["load_controllers"]) {
         auto controllers = model["load_controllers"];
         ChAssertAlways(controllers.IsSequence());
         if (m_verbose) {
-            cout << "\nexternal controllers: " << controllers.size() << endl;
+            cout << "\nexternal load controllers: " << controllers.size() << endl;
         }
         for (size_t i = 0; i < controllers.size(); i++) {
             ChAssertAlways(controllers[i]["name"]);
@@ -565,10 +565,10 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             ChAssertAlways(motors[i]["type"]);
             ChAssertAlways(motors[i]["body1"]);
             ChAssertAlways(motors[i]["body2"]);
-            ChAssertAlways(motors[i]["actuation_type"]);
-            ChAssertAlways(motors[i]["actuation_function"]);
             ChAssertAlways(motors[i]["location"]);
             ChAssertAlways(motors[i]["axis"]);
+            ChAssertAlways(motors[i]["actuation_type"]);
+            ChAssertAlways(motors[i]["actuation_function"]);
 
             auto name = motors[i]["name"].as<std::string>();
 
@@ -576,10 +576,10 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
             motor.type = ReadMotorType(motors[i]["type"]);
             motor.body1 = motors[i]["body1"].as<std::string>();
             motor.body2 = motors[i]["body2"].as<std::string>();
-            motor.actuation_type = ReadMotorActuationType(motors[i]["actuation_type"]);
-            motor.actuation_function = ReadFunction(motors[i]["actuation_function"], m_use_degrees);
             motor.pos = ReadVector(motors[i]["location"]);
             motor.axis = ReadVector(motors[i]["axis"]);
+            motor.actuation_type = ReadMotorActuationType(motors[i]["actuation_type"]);
+            motor.actuation_function = ReadFunction(motors[i]["actuation_function"], m_use_degrees);
 
             switch (motor.type) {
                 case MotorType::LINEAR:
@@ -591,6 +591,10 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
                         motor.spindle = ReadMotorSpindleType(motors[i]["spindle"]);
                     break;
             }
+
+            // A ChFunctionSetpoint actuatin function indicates an external controller
+            if (std::dynamic_pointer_cast<ChFunctionSetpoint>(motor.actuation_function))
+                motor.has_controller = true;
 
             if (m_verbose)
                 motor.PrintInfo(name);
@@ -750,6 +754,34 @@ std::vector<std::shared_ptr<ChBodyAuxRef>> ChParserMbsYAML::FindBodiesByName(con
     }
     return b->second.body;
 }
+
+std::shared_ptr<ChLinkMotor> ChParserMbsYAML::FindMotorByName(const std::string& name) const {
+    return FindMotorByName(name, m_crt_instance);
+}
+
+std::shared_ptr<ChLinkMotor> ChParserMbsYAML::FindMotorByName(const std::string& name, int model_instance) const {
+    auto m = m_motor_params.find(name);
+    if (m == m_motor_params.end()) {
+        cerr << "[ChParserMbsYAML::FindMotorByName] Error: Cannot find motor with name: " << name << endl;
+        throw std::runtime_error("Invalid motor name");
+    }
+    if (model_instance >= GetNumInstances()) {
+        cerr << "[ChParserMbsYAML::FindMotorByName] Error: incorrect model instance number" << endl;
+        throw std::runtime_error("Incorrect model instance number");
+    }
+    return m->second.motor[model_instance];
+}
+
+std::vector<std::shared_ptr<ChLinkMotor>> ChParserMbsYAML::FindMotorsByName(const std::string& name) const {
+    auto m = m_motor_params.find(name);
+    if (m == m_motor_params.end()) {
+        std::vector<std::shared_ptr<ChLinkMotor>> empty;
+        return empty;
+    }
+    return m->second.motor;
+}
+
+// -----------------------------------------------------------------------------
 
 int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std::string& model_prefix) {
     m_crt_instance++;
@@ -1056,6 +1088,44 @@ void ChParserMbsYAML::AttachLoadController(std::shared_ptr<ChLoadController> con
     m_load_controllers.insert({name, load_controller});
 }
 
+void ChParserMbsYAML::AttachMotorController(std::shared_ptr<ChMotorController> controller,
+                                            const std::string& name,
+                                            int model_instance) {
+    if (!m_model_loaded) {
+        cerr << "[ChParserMbsYAML::AttachMotorController] Error: No MBS model loaded" << endl;
+        throw std::runtime_error("No MBS model loaded");
+    }
+
+    // Check that a motor with this base name was specified in the input YAML file
+    auto c = m_motor_params.find(name);
+    if (c == m_motor_params.end()) {
+        cerr << "[ChParserMbsYAML::AttachMotorController] Error: cannot find motor with name: " << name << endl;
+        throw std::runtime_error("Invalid motor name");
+    }
+
+    // Check that the motor was flag as externally actuated
+    if (!c->second.has_controller) {
+        cerr << "[ChParserMbsYAML::AttachMotorController] Error: the motor " << name << " is not externally controlled"
+             << endl;
+        throw std::runtime_error("Invalid motor");
+    }
+
+    // Check the model instance number
+    if (model_instance >= GetNumInstances()) {
+        cerr << "[ChParserMbsYAML::AttachMotorController] Error: incorrect model instance number" << endl;
+        throw std::runtime_error("Incorrect model instance number");
+    }
+
+    // Initialize the provided controller
+    controller->Initialize(*this, model_instance);
+
+    MotorController motor_controller;
+    motor_controller.controller = controller;
+    motor_controller.model_instance = model_instance;
+    motor_controller.motor = FindMotorByName(name);
+    m_motor_controllers.insert({name, motor_controller});
+}
+
 void ChParserMbsYAML::ApplyLoadControllerLoads(const LoadControllerLoads& controller_loads) {
     for (const auto& controller_load : controller_loads) {
         const auto& name = controller_load.first;
@@ -1086,6 +1156,35 @@ void ChParserMbsYAML::ApplyLoadControllerLoads(const LoadControllerLoads& contro
                     break;
                 }
             }
+        }
+    }
+}
+
+void ChParserMbsYAML::ApplyMotorControllerActuations(const MotorControllerActuations& controller_actuations) {
+    double time = m_sys->GetChTime();
+
+    for (const auto& controller_actuation : controller_actuations) {
+        const auto& name = controller_actuation.first;
+        double actuation = controller_actuation.second;
+
+        // Find the motor with this base name
+        auto c = m_motor_params.find(name);
+        if (c == m_motor_params.end()) {
+            cerr << "[ChParserMbsYAML::ApplyMotorControllerLoads] Error: cannot find motor with name: " << name << endl;
+            throw std::runtime_error("Invalid motor name");
+        }
+
+        // Ensure this is a controlled motor
+        if (!c->second.has_controller) {
+            cerr << "[ChParserMbsYAML::ApplyMotorControllerLoads] Error: the motor " << name
+                 << " is not externally controlled" << endl;
+            throw std::runtime_error("Invalid motor");
+        }
+
+        // Set the actuation function value for the named motor in all model instances
+        for (auto& motor : c->second.motor) {
+            auto function = std::static_pointer_cast<ChFunctionSetpoint>(motor->GetMotorFunction());
+            function->SetSetpoint(time, actuation);
         }
     }
 }
@@ -1126,6 +1225,20 @@ void ChParserMbsYAML::DoStepDynamics() {
                 break;
             }
         }
+    }
+
+    // Process motor controllers
+    for (auto& motor_controller : m_motor_controllers) {
+        // Model instance
+        int model_instance = motor_controller.second.model_instance;
+
+        motor_controller.second.controller->Synchronize(time);
+        motor_controller.second.controller->Advance(time_step);
+
+        // Set controller actuation
+        auto actuation = motor_controller.second.controller->GetActuation();
+        auto function = std::static_pointer_cast<ChFunctionSetpoint>(motor_controller.second.motor->GetMotorFunction());
+        function->SetSetpoint(actuation, time);
     }
 
     // Generate output (if requested)
@@ -1324,7 +1437,8 @@ ChParserMbsYAML::BodyLoadParams::BodyLoadParams()
 ChParserMbsYAML::MotorParams::MotorParams()
     : type(MotorType::ROTATION),
       actuation_type(MotorActuation::NONE),
-      actuation_function(chrono_types::make_shared<ChFunctionConst>(0.0)),
+      actuation_function(nullptr),
+      has_controller(false),
       body1(""),
       body2(""),
       pos(VNULL),
@@ -1431,8 +1545,9 @@ void ChParserMbsYAML::MotorParams::PrintInfo(const std::string& name) {
         type_str = "rotation";
 
     cout << "  name:           " << name << endl;
-    cout << "     type:       " << type_str << endl;
+    cout << "     type:        " << type_str << endl;
     cout << "     actuation:   " << GetMotorActuationTypeString(actuation_type) << endl;
+    cout << "     controller:  " << has_controller << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
     cout << "     pos:         " << pos << endl;

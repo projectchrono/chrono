@@ -339,8 +339,10 @@ A `function` object is used to specify actuation inputs. The only required field
 - `POLYNOMIAL` defines a polynomial function of the form `f(x) = a₀ + a₁x + a₂x² + ...` using the `coefficients` field: `[a₀, a₁, a₂, ...]`;
 - `SINE` defines a sinusoidal function with `amplitude`, `frequency` and `phase`;
 - `RAMP` defines a ramp function with `slope` and `intercept`;
-- `DATA` interpolates a series of data points, for example: 
+- `DATA` interpolates a series of data points (see below);
+- `CONTROLLER` indicates that an external controller will be provided to provide the function value.
 
+A function of `DATA` type uses linear interpolation between the specified data points:
 ```yaml
 type: DATA
 data:
@@ -349,7 +351,7 @@ data:
   - [2.0, 2.5]
 ```
 
-All function types can include an optional `repeat` field to periodically replicate the function. 
+All function types (except `CONTROLLER`) can include an optional `repeat` field to periodically replicate the function. 
 For example:
 ```yaml
 repeat:
