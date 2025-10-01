@@ -47,14 +47,13 @@ int main(int argc, char* argv[]) {
 
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", fsi_yaml_filename);
-
     if (!cli.Parse(argc, argv, true))
         return 1;
-
     if (argc == 1) {
         cli.Help();
         std::cout << "Using default YAML specification file" << std::endl;
     }
+    fsi_yaml_filename = cli.GetAsType<std::string>("fsi_file");
 
     std::cout << std::endl;
     std::cout << "YAML specification file: " << fsi_yaml_filename << std::endl;
