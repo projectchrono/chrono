@@ -283,7 +283,7 @@ public:
         if (order==1) 
             return 1; // shortcut
         ChQuadratureTablesTetrahedron* mtables = ChQuadrature::GetStaticTablesTetrahedron();
-        return (mtables->Weight[order - 1].size());
+        return (int)(mtables->Weight[order - 1].size());
     }
 
     // Get i-th Gauss point weight and parametric coordinates
@@ -439,14 +439,14 @@ public:
         if (order == 1)
             return 1; // shortcut
         ChQuadratureTables* mtables = ChQuadrature::GetStaticTables();
-        int points_on_abscissa = mtables->Weight[order - 1].size();
+        int points_on_abscissa = (int)mtables->Weight[order - 1].size();
         return (points_on_abscissa * points_on_abscissa * points_on_abscissa);
     }
 
     // Get i-th Gauss point weight and parametric coordinates
     virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords)  const override {
         ChQuadratureTables* mtables = ChQuadrature::GetStaticTables();
-        int points_on_abscissa = mtables->Weight[order - 1].size();
+        int points_on_abscissa = (int)mtables->Weight[order - 1].size();
         int j = i / (points_on_abscissa * points_on_abscissa);
         int k = (i / points_on_abscissa) % points_on_abscissa;
         int l = i % points_on_abscissa;
@@ -479,7 +479,9 @@ private:
 // -----------------------------------------------------------------------------
 
 /// Base class for the per-node and per-materialpoint properties of some material,
-/// for example it can contain some type of ChVariable. Used in ChFeaField.
+/// for example it can contain some type of ChVariable for integrable state. 
+/// Used, among others, in ChFeaField.
+
 class ChFeaFieldData {
 public:
     // Access state at node
@@ -494,17 +496,14 @@ public:
     /// Access the contained ChVariable. 
     virtual ChVariables& GetVariable() = 0;
 
-    /// Fix/release this node.
+    /// Fix/release this state.
     /// If fixed, its state variables are not changed by the solver.
     virtual void SetFixed(bool fixed) = 0;
     virtual bool IsFixed() const = 0;
 
-    /// Get the number of degrees of freedom of the field.
+    /// Get the number of degrees of freedom of this state.
     static unsigned int GetNumCoordsPosLevel() { return 0; }
     static unsigned int GetNumCoordsVelLevel() { return 0; }
-    //virtual unsigned int GetNumCoordsPosLevelActive() const { return GetNumCoordsPosLevel(); }
-    //virtual unsigned int GetNumCoordsVelLevel() const { return GetNumCoordsVelLevel(); }
-    virtual bool IsAllCoordsActive() const { return true; }
 
     unsigned int NodeGetOffsetPosLevel() { return offset_x; }
     unsigned int NodeGetOffsetVelLevel() { return offset_w; }
@@ -821,16 +820,9 @@ public:
     virtual unsigned int GetNumFieldCoordsVelLevel() const { return T_data_per_node::GetNumCoordsVelLevel(); }
 
 
-    T_data_per_node& GetNodeData(std::shared_ptr<ChNodeFEAbase> node) {
+    T_data_per_node& NodeData(std::shared_ptr<ChNodeFEAbase> node) {
         return node_data[node];
     }
-
-    
-
-    std::unordered_map<std::shared_ptr<ChNodeFEAbase>, T_data_per_node> node_data;
-
-    unsigned int n_dofs;    ///< total degrees of freedom
-    unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 
 public: 
     // INTERFACE to ChPhysicsItem
@@ -1059,6 +1051,12 @@ public:
         for (auto& node : this->node_data)
             node.second.InjectVariables(descriptor);
     }
+
+protected:
+    std::unordered_map<std::shared_ptr<ChNodeFEAbase>, T_data_per_node> node_data;
+
+    unsigned int n_dofs;    ///< total degrees of freedom
+    unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 };
 
 
@@ -1080,21 +1078,30 @@ class ChFeaFieldDisplacement3D : public ChFeaField<ChFeaFieldDataPos3D> {};
 
 
 
-/// Base class for the per-element properties of some material,
-/// for example it can contain the ChKRMBlock object with tangent stiffness etc.
+/// Base class for the per-element properties of some material.
+/// Inherit from this if you want to attach some property such as "float price; string name;" etc.
+/// Note: better inherit from ChFeaPerElementDataKRM if you want that your elements have 
+/// tangent stiffness and tangent damping, that are used in implicit integration.
+
 class ChFeaPerElementDataNONE {
 public:
     ChKRMBlock* GetKRM() { return nullptr; }
 };
 
-/// Class for the per - element properties of some material,
-/// containing the ChKRMBlock object with tangent stiffness.
+/// Class for the per-element properties of some material.
+/// Inherit from this if you want to attach some property such as "float price; string name;", 
+/// as well as for storing often-used data structures that persist together with the element and
+/// that could be updated at each Update() of the element in order to speedup other computations later.
+/// This contains the ChKRMBlock object, for automatic handling of tangent stiffness and tangent 
+/// damping matrices that are used in implicit integration.
+
 class ChFeaPerElementDataKRM : public ChFeaPerElementDataNONE {
 public:
     ChKRMBlock* GetKRM() { return &Kmatr; }
 private:
     ChKRMBlock Kmatr;
 };
+
 
 //------------------------------------------------------------------------------
 
@@ -1108,7 +1115,7 @@ public:
 class ChFea3DDensity : ChFeaMaterialProperty {
 public:
     ChFea3DDensity(double density = 1000) : m_density(density) {}
-    ChFea3DDensity(const ChFea3DDensity& other) { m_density = other.m_density; }
+
     virtual ~ChFea3DDensity() {}
 
     /// Set the density of the material, in kg/m^2.
@@ -1131,9 +1138,7 @@ protected:
 class ChApi ChFea3DContinuumPoisson : public ChFea3DDensity {
 public:
     ChFea3DContinuumPoisson() { ConstitutiveMatrix.setIdentity(3, 3); }
-    ChFea3DContinuumPoisson(const ChFea3DContinuumPoisson& other) : ChFea3DDensity(other) {
-        ConstitutiveMatrix = other.ConstitutiveMatrix;
-    }
+
     virtual ~ChFea3DContinuumPoisson() {}
 
     /// Get the constitutive matrix [C] to compute the bilinear form in the weak formulation
@@ -1153,10 +1158,7 @@ protected:
 class ChApi ChFea3DMaterialThermal : public ChFea3DContinuumPoisson {
 public:
     ChFea3DMaterialThermal() : k_thermal_conductivity(1), c_mass_specific_heat_capacity(1000) {}
-    ChFea3DMaterialThermal(const ChFea3DMaterialThermal& other) : ChFea3DContinuumPoisson(other) {
-        k_thermal_conductivity = other.k_thermal_conductivity;
-        c_mass_specific_heat_capacity = other.c_mass_specific_heat_capacity;
-    }
+
     virtual ~ChFea3DMaterialThermal() {}
 
     /// Sets the k conductivity constant of the material,
@@ -1199,8 +1201,6 @@ class ChFea3DMaterialStress : public ChFea3DDensity {
 public:
     ChFea3DMaterialStress() {}
 
-    //ChFea3DMaterialStress(const ChContinuumElastic& other);
-
     virtual ~ChFea3DMaterialStress() {}
 
     /// Compute elastic stress from elastic strain.  Assuming the 2* factor in the last 3 values of strain Voigt notation.
@@ -1216,14 +1216,17 @@ public:
     //virtual void ArchiveIn(ChArchiveIn& archive_in) override; 
 };
 
-
+/// Class for properties of the 3D elasticity from StVenant-Kirchhoff model.
+/// It is the simplest type of hyperelastic material. For S PiolaKirchhoff stress 
+/// and E Green Lagrange strain tensors, it is S=C:E with C constant 4th order elastic tensor.
+/// For small deformations it corresponds to the classical σ=C:ε. In Voigt notation, S=[C]*E,  σ=[C]*ε
 
 class ChFea3DMaterialStressStVenant : public ChFea3DMaterialStress {
 private:
     double m_E;                            ///< Young Modulus
     double m_poisson;                      ///< Poisson ratio
     double m_lamefirst;                    ///< Lame's first parameter
-    ChMatrixDynamic<> StressStrainMatrix;  ///< Elasticity (stiffness) matrix :   = [E] ε
+    ChMatrixNM<double, 6, 6> StressStrainMatrix;  ///< Elastic matrix in σ=[C]*ε (stored precomputed as it is constant, to speedup)
 
     double m_rayl_damping_alpha;  ///< Rayleigh damping coeff, M proportional
     double m_rayl_damping_beta;   ///< Rayleigh damping coeff, K proportional
@@ -1231,12 +1234,10 @@ private:
 public:
     ChFea3DMaterialStressStVenant(double young = 10000000, double poisson = 0.4, double density = 1000) {
         m_E = young;
-        SetPoissonRatio(poisson);     // sets also Lamé
+        SetPoissonRatio(poisson);     // sets also Lamé, precomputes E matrix
         this->m_rayl_damping_alpha = 0;
         this->m_rayl_damping_beta = 0;
     }
-
-    //ChFea3DMaterialStressStVenant(const ChContinuumElastic& other);
 
     virtual ~ChFea3DMaterialStressStVenant() {}
 
@@ -1245,7 +1246,7 @@ public:
     void SetYoungModulus(double E) {
         m_E = E;
         m_lamefirst = (m_poisson * m_E) / ((1 + m_poisson) * (1 - 2 * m_poisson));  // Lame's constant l
-        //ComputeStressStrainMatrix();                                                // updates Elasticity matrix
+        UpdateStressStrainMatrix();                                                // updates Elasticity matrix
     }
 
     /// Get the Young elastic modulus, in Pa (N/m^2).
@@ -1258,7 +1259,7 @@ public:
     void SetPoissonRatio(double v) {
         m_poisson = v;
         m_lamefirst = (m_poisson * m_E) / ((1 + m_poisson) * (1 - 2 * m_poisson));  // Lame's constant l
-        //ComputeStressStrainMatrix();                                                // updates Elasticity matrix
+        UpdateStressStrainMatrix();                                                 // updates Elasticity matrix
     }
 
     /// Get the Poisson ratio, as v=-transverse_strain/axial_strain.
@@ -1269,7 +1270,7 @@ public:
     void SetShearModulus(double G) {
         m_poisson = (m_E / (2 * G)) - 1;                                            // fixed G, E, get v
         m_lamefirst = (m_poisson * m_E) / ((1 + m_poisson) * (1 - 2 * m_poisson));  // Lame's constant l
-        //ComputeStressStrainMatrix();                                                // updates Elasticity matrix
+        UpdateStressStrainMatrix();                                                 // updates Elasticity matrix
     }
 
     /// Get the shear modulus G, in Pa (N/m^2)
@@ -1284,6 +1285,7 @@ public:
     /// Get P-wave modulus (if V=speed of propagation of a P-wave, then (M/density)=V^2 )
     double GetPWaveModulus() const { return m_E * ((1 - m_poisson) / (1 + m_poisson) * (1 - 2 * m_poisson)); }
 
+
     /// Compute elastic stress from elastic strain.  Assuming the 2* factor in the last 3 values of strain Voigt notation.
     /// Assuming strain is Green-Lagrange E tensor, in Voigt notation. For small strains it coincides with espilon tensor.
     /// Assuming stress if Piola-Kirchhoff S tensor, in Voigt notation. 
@@ -1295,27 +1297,13 @@ public:
             stress.XY() = strain.XY() * G;
             stress.XZ() = strain.XZ() * G;
             stress.YZ() = strain.YZ() * G;
-     }
+    }
 
-    /// Computes the tangent modulus for a given strain.   Assuming the 2* factor in the last 3 values of strain Voigt notation.
-    /// Since here we are using the StVenant model, this is linear elasticity and E is constant. 
+    /// Computes the tangent modulus C for a given strain. Assuming the 2* factor in the last 3 values of strain Voigt notation.
+    /// Since here we are using the StVenant model S=[C]*E, this is linear elasticity and C is constant matrix. 
     /// Assuming strain is Green-Lagrange E tensor, in Voigt notation. For small strains it coincides with espilon tensor.
     virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& C, const ChStrainTensor<>& strain) override {
-        C.setZero(6, 6);
-        double G = GetShearModulus();
-        // Fill the upper-left 3x3 block
-        for (int i = 0; i < 3; ++i) {
-            C(i,i) = m_lamefirst + 2.0 * G;
-            for (int j = 0; j < 3; ++j) {
-                if (i != j) {
-                    C(i,j) = m_lamefirst;
-                }
-            }
-        }
-        // Fill the shear components
-        C(3, 3) = G;
-        C(4, 4) = G;
-        C(5, 5) = G;
+        C = this->StressStrainMatrix;
     }
 
 
@@ -1335,6 +1323,29 @@ public:
 
     //virtual void ArchiveOut(ChArchiveOut& archive_out) override;  TODO
     //virtual void ArchiveIn(ChArchiveIn& archive_in) override; 
+
+private:
+
+    /// This is just for optimization. The following code should go into ComputeTangentModulus(), but
+    /// since E is constant, it is computed here into this->StressStrainMatrix every time one changes shear modulus, etc. via setters like SetShearModulus() etc.
+    /// Later, the ComputeTangentModulus() can just copy from this->StressStrainMatrix, achieving higher speed. 
+    void UpdateStressStrainMatrix() {
+        StressStrainMatrix.setZero(6, 6);
+        double G = GetShearModulus();
+        // Fill the upper-left 3x3 block
+        for (int i = 0; i < 3; ++i) {
+            StressStrainMatrix(i, i) = m_lamefirst + 2.0 * G;
+            for (int j = 0; j < 3; ++j) {
+                if (i != j) {
+                    StressStrainMatrix(i, j) = m_lamefirst;
+                }
+            }
+        }
+        // Fill the shear components
+        StressStrainMatrix(3, 3) = G;
+        StressStrainMatrix(4, 4) = G;
+        StressStrainMatrix(5, 5) = G;
+    }
 };
 
 
@@ -1352,59 +1363,8 @@ struct tuple_as_sharedptr<std::tuple<Ts...>> {
     using type = std::tuple<typename std::shared_ptr<Ts>...>;
 };
 
-// Type automation.
-// Turning a std::tuple<ClassA,ClassB,..> into std::tuple<ClassA::T_nodefield*>,ClassA::T_nodefield*,..>
-/*
-template <typename Tuple>
-struct tuple_as_field_ptrs;
-template <typename... Ts>
-struct tuple_as_field_ptrs<std::tuple<Ts...>> {
-    using type = std::tuple<typename Ts::T_nodefield*...>;
-};
-*/
-
-// Type automation.
-// Turning a std::tuple<ClassA,ClassB,..> into a std::array<ChFeaFieldData*, N>  type, with N as size of tuple.
-/*
-template <typename Tuple>
-struct tuple_to_base_ptr_array;
-template <typename... Ts>
-struct tuple_to_base_ptr_array<std::tuple<Ts...>> {
-    static_assert((std::is_base_of_v<ChFeaFieldData, Ts::T_nodefield> && ...), "All Ts::T_nodefield in tuple must inherit from ChFeaFieldData");
-    using type = std::array<ChFeaFieldData*, sizeof...(Ts)>;
-};
-*/
-
-template<typename Base, typename Tuple, std::size_t... Is>
-constexpr auto tuple_to_base_array_impl(Tuple&& t, std::index_sequence<Is...>) {
-    using BasePtr = std::shared_ptr<Base>;
-    return std::array<BasePtr, sizeof...(Is)>{
-        std::static_pointer_cast<Base>(std::get<Is>(std::forward<Tuple>(t)))...
-    };
-}
-template<typename Base, typename Tuple>
-constexpr auto tuple_to_base_array(Tuple&& t) {
-    constexpr auto N = std::tuple_size_v<std::decay_t<Tuple>>;
-    return tuple_to_base_array_impl<Base>(std::forward<Tuple>(t), std::make_index_sequence<N>{});
-}
-
-/*
-// Data automation.
-// From a std::tuple<std::shared_ptr<ClassA>,std::shared_ptr<ClassB>,..> and the pointer
-// to a node std::shared_ptr<ChNodeFEAbase>, makes the tuple 
-// std::tuple<ClassA::T_nodefield*>,ClassA::T_nodefield*,..>
-template <typename Tuple, std::size_t... Is>
-auto make_nodefields_pointer_tuple_IMPL(std::shared_ptr<ChNodeFEAbase> mnode, const Tuple& t, std::index_sequence<Is...>) {
-    return std::make_tuple(&(std::get<Is>(t)->GetNodeData(mnode)) ...);
-}
-template <typename... Ts>
-auto make_nodefields_pointer_tuple(std::shared_ptr<ChNodeFEAbase> mnode, const std::tuple<Ts...>& t) {
-    return make_nodefields_pointer_tuple_IMPL(mnode, t, std::index_sequence_for<Ts...>{});
-}
-*/
-
 // From a std::tuple<std::shared_ptr<Base>,std::shared_ptr<ClassDerivedFromBase>,..> 
-// to std::array<std::shared_ptr<Base>,N> // 
+// to std::array<std::shared_ptr<Base>,N> 
 template <typename Base, typename Tuple, std::size_t... Is>
 auto make_basearray_from_tuple_IMPL( const Tuple& t, std::index_sequence<Is...>) {
     return std::array<std::shared_ptr<Base>, std::tuple_size_v<Tuple>> { std::get<Is>(t)... };
@@ -1415,7 +1375,15 @@ auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
 }
 
 
-/// Base class for all material implementations for FEA
+/// Base class for domains subject to a material model. They define (sub) regions of 
+/// the mesh where the material has effect.
+/// A ChFeaDomain has these components:
+///   - a ChFeaMaterialProperty with properties for the domain material model 
+///   - set of elements subject to the model
+///   - set of fields needed for the material model
+///   - additional data linked to finite elements and helper structures
+/// Children classes should specialize this, possibly inheriting from ChFeaDomainImpl
+
 class ChFeaDomain : public ChPhysicsItem {
 public:
     virtual void AddElement(std::shared_ptr<ChFeaElement> melement) = 0;
@@ -1446,9 +1414,15 @@ protected:
     unsigned int n_dofs_w;  ///< total degrees of freedom of element materialpoint states (ex plasticity), derivative (Lie algebra)
 };
 
-/// Class for all material implementations for FEA, and for 
-/// defining (sub) regions of the mesh where the material has effect.
-/// Usually it contains one or more ChFeaMaterialProperty objects.
+
+/// Base class for domains subject to a material model. They define (sub) regions of 
+/// the mesh where the material has effect.
+/// A ChFeaDomain has these components:
+///   - a ChFeaMaterialProperty with properties for the domain material model 
+///   - set of elements subject to the model
+///   - set of fields needed for the material model
+///   - additional data linked to finite elements and helper structures
+/// Children classes should inherit and specialize this.
 /// The T_... types are used to carry type info about 
 /// the per-node or per-element or per-integration point data to instance.
 
@@ -1477,7 +1451,7 @@ public:
 
     ChFeaDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFeaFieldBase>(mfields); }
 
-    DataPerElement& GetElementData(std::shared_ptr<ChFeaElement> melement) {
+    DataPerElement& ElementData(std::shared_ptr<ChFeaElement> melement) {
         return element_datamap[melement];
     }
 
@@ -1504,25 +1478,25 @@ public:
     virtual int GetNumNodes() override { return num_nodes; }
 
     virtual void GetStateBlock(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& S) override {
-        auto& elementdata = this->GetElementData(melement);
+        auto& elementdata = this->ElementData(melement);
         S.resize(this->GetNumPerNodeCoordsPosLevel()*melement->GetNumNodes());
         int off = 0;
-        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
-            for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                int ifieldsize = elementdata.nodes_data[i][i_field]->State().size();
-                S.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->State();
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int ifieldsize = elementdata.nodes_data[i_node][i_field]->State().size();
+                S.segment(off, ifieldsize) = elementdata.nodes_data[i_node][i_field]->State();
                 off += ifieldsize;
             }
         }
     }
     virtual void GetStateBlockDt(std::shared_ptr<ChFeaElement> melement, ChVectorDynamic<>& dSdt) override {
-        auto& elementdata = this->GetElementData(melement);
+        auto& elementdata = this->ElementData(melement);
         dSdt.resize(this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes());
         int off = 0;
-        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
-            for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                int ifieldsize = elementdata.nodes_data[i][i_field]->State().size();
-                dSdt.segment(off, ifieldsize) = elementdata.nodes_data[i][i_field]->StateDt();
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int ifieldsize = elementdata.nodes_data[i_node][i_field]->State().size();
+                dSdt.segment(off, ifieldsize) = elementdata.nodes_data[i_node][i_field]->StateDt();
                 off += ifieldsize;
             }
         }
@@ -1562,9 +1536,7 @@ public:
     ) {
         int quadorder = melement->GetMinQuadratureOrder();
         int numpoints = melement->GetNumQuadraturePoints(quadorder);
-        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
-        H.resize(numelcoords, numelcoords);
-        H.setZero();
+        H.setZero(); // should be already of proper size
         ChMatrix33<> J;
         ChVector3d eta;
         double weight;
@@ -1580,6 +1552,38 @@ public:
                 Mfactor * s);
         }
     }
+
+    /// For a given finite element, computes the lumped mass matrix.
+    /// This falls back to the generic "Diagonal Scaling with Mass Preservation" approach, that 
+    /// takes the full consistent mass matrix and reduces it to a diagonal by scaling the total mass.
+    /// It works for all elements, 2D, 3D etc. It is not very efficient because it must compute the consitent mass matrix before.
+    virtual void ElementIntLoadLumpedMass_Md(std::shared_ptr<ChFeaElement> melement, DataPerElement& data, 
+                                            ChVectorDynamic<>& Md_i,
+                                            double& error
+    ) {
+        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
+        Md_i.setZero(numelcoords);
+
+        // Pass through the computation of the consistent mass matrix (generic approach but inefficient)
+        ChMatrixDynamic<> M_consistent(numelcoords, numelcoords);
+
+        ElementComputeKRMmatrices(melement, data, M_consistent, 0, 0, 1);
+
+        // Calculate total mass (sum of all elements)
+        double total_mass = M_consistent.sum();
+        // Extract diagonal elements
+        Eigen::VectorXd diag_vals = M_consistent.diagonal();
+        // Calculate sum of diagonal elements
+        double diag_sum = diag_vals.sum();
+        // Check for zero or negative diagonal sum
+        assert(diag_sum > 0.0);
+        // Scale diagonal to preserve total mass
+        double scale_factor = total_mass / diag_sum;
+
+        error += std::abs(total_mass - diag_sum);
+        Md_i = diag_vals * scale_factor;
+    }
+
 
 
     // MATERIAL CONSTITUTIVE LAWS MUST IMPLEMENT THE FOLLOWING
@@ -1784,7 +1788,7 @@ public:
         ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
         const double c           ///< a scaling factor
     ) override {
-        // loads on element states (if any)
+        // loads on element integration points states (if any)
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
@@ -1802,21 +1806,20 @@ public:
             //****COMPUTATIONAL OVERHEAD - compute all the F loads here
             ElementComputeInternalLoads(mel.first, mel.second, Fi);
 
-            Fi *= c;
-
-            // Fi is contiguous, so must store sparsely in R
+            // Fi is contiguous, so must store sparsely in R, per each node and per each field of node
             unsigned int stride = 0;
-            for (unsigned int in = 0; in < mel.first->GetNumNodes(); in++) {
-                auto mnode = mel.first->GetNode(in);
-                unsigned int node_dofs = mnode->GetNumCoordsVelLevel();
-                if (!mnode->IsFixed()) {
-                    for (unsigned int j = 0; j < node_dofs; j++)
-                        R(mnode->NodeGetOffsetVelLevel() + j) += Fi(stride + j);  // todo - use .block()
+            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                    ChFeaFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                    if (!mfielddata->IsFixed()) {
+                        R.segment(mfielddata->NodeGetOffsetVelLevel(), nfield_coords) += c * Fi.segment(stride, nfield_coords);
+                    }
+                    stride += nfield_coords;
                 }
-                stride += node_dofs;
             }
 
-        }
+        } // end loop on elements
 
     }
 
@@ -1827,7 +1830,7 @@ public:
         const ChVectorDynamic<>& w,  ///< the w vector
         const double c               ///< a scaling factor
     ) override {
-        // M*w   caused by element states (if any) if they have some 'mass'
+        // M*w   caused by element states (if any) if they have some atomic mass
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
@@ -1837,9 +1840,45 @@ public:
                 }
             }
         }
+
         // M*w   caused by elements, where M is the mass matrix of the element
         for (auto& mel : this->element_datamap) {
-            //***TODO***
+
+            int numelcoords = this->GetNumPerNodeCoordsVelLevel() * mel.first->GetNumNodes();
+
+            // Possible computational inefficiency: compute the consistent M matrix 
+            ChMatrixDynamic<> M_i(numelcoords, numelcoords);
+            ElementComputeKRMmatrices(mel.first, mel.second, M_i, 0, 0, 1);
+            
+            ChVectorDynamic<> W_i(numelcoords);
+            W_i.setZero();
+            // sparse w to contiguous W_i
+            unsigned int stride = 0;
+            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                    ChFeaFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                    if (!mfielddata->IsFixed()) {
+                        W_i.segment(stride, nfield_coords) = w.segment(mfielddata->NodeGetOffsetVelLevel(), nfield_coords);
+                    }
+                    stride += nfield_coords;
+                }
+            }
+
+            // R_i = c*M_i*W_i is contiguous, so must store sparsely in R, per each node and per each field of node
+            stride = 0;
+            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                    ChFeaFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                    if (!mfielddata->IsFixed()) {
+                        R.segment(mfielddata->NodeGetOffsetVelLevel(), nfield_coords) += c * M_i.middleRows(stride, nfield_coords) * W_i;
+                    }
+                    stride += nfield_coords;
+                }
+            }
+
+
         }
     }
 
@@ -1863,7 +1902,24 @@ public:
         }
         // Md   caused by elements, based on mass matrix of the element
         for (auto& mel : this->element_datamap) {
-            //***TODO***
+
+            // Possible computational inefficiency: compute the consistent M matrix
+            ChVectorDynamic<> Md_i;
+            ElementIntLoadLumpedMass_Md(mel.first, mel.second, Md_i, err);
+
+            // Md_i is contiguous, so must store sparsely in Md, per each node and per each field of node
+            unsigned int stride = 0;
+            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                    ChFeaFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                    if (!mfielddata->IsFixed()) {
+                        Md.segment(mfielddata->NodeGetOffsetVelLevel(), nfield_coords) += c * Md_i.segment(stride, nfield_coords);
+                    }
+                    stride += nfield_coords;
+                }
+            }
+
         }
     }
 
@@ -2118,7 +2174,7 @@ public:
         //   J_X: already available via element->ComputeJ()
         //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
         ChMatrixDynamic<> Xhat(3, melement->GetNumNodes());
-        for (int i = 0; i < melement->GetNumNodes(); ++i) {
+        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
             Xhat.block(0, i, 3, 1) = ((ChFeaFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
         }
         ChMatrixDynamic<> dNde;
@@ -2169,24 +2225,42 @@ public:
         //   J_X: already available via element->ComputeJ()
         //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
         ChMatrixDynamic<> Xhat(3, melement->GetNumNodes());
-        for (int i = 0; i < melement->GetNumNodes(); ++i) {
+        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
             Xhat.block(0, i, 3, 1) = ((ChFeaFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
         }
+//std::cout << "Xhat = \n" << Xhat << "\n";
         ChMatrixDynamic<> dNde;
         melement->ComputedNde(eta, dNde);
+/*
+std::cout << "dNde = \n" << dNde << "\n";
+std::cout << "dNdX = \n" << dNdX << "\n";
+ChMatrix33d mJ;
+melement->ComputeJ(eta, mJ);
+std::cout << "J = \n" << mJ << "\n";
+ChMatrixDynamic<> xhat(3, melement->GetNumNodes());
+for (int i = 0; i < melement->GetNumNodes(); ++i) {
+    xhat.block(0, i, 3, 1) = std::dynamic_pointer_cast<ChFeaNodeXYZ>(melement->GetNode(i))->GetReferencePos().eigen();
+}
+std::cout << "J as  x_hat*dNde^T \n" << (xhat * dNde.transpose()) << "\n";
+std::cout << "dNdX as J^-T dNde = \n" << (mJ.inverse().transpose() * dNde) << "\n";
+std::cout << "J_inv as J.inverse()" << (mJ.inverse()) << "\n";
+*/
         ChMatrix33d J_X_inv;
         melement->ComputeJinv(eta, J_X_inv);
-
+//std::cout << "J_X_inv = \n" << J_X_inv << "\n";
         ChMatrix33d F = Xhat * dNde.transpose() * J_X_inv;
+//std::cout << "F = \n" << F << "\n";
 
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
         this->ComputeB(B, dNdX, F);
+//std::cout << "B = \n" << B << "\n";
 
         ChStrainTensor<> E_strain; // Green Lagrange in Voigt notation
         // ***TODO*** compute stress here - but not needed for this constant elasticity
 
         ChMatrix66<double> C;
         this->material->ComputeTangentModulus(C, E_strain);
+//std::cout << "C = \n" << C << "\n";
 
         // K  matrix 
         // K = sum (B' * k * B  * w * |J|)  
@@ -2199,7 +2273,23 @@ public:
         // M  matrix : consistent mass matrix:   
         // M = sum (N' * rho * N * w * |J|)
         if (Mpfactor) {
-            H += (Mpfactor * this->material->GetDensity()) * (N.transpose() * N);
+            // If we had the "3 rows" form of the shape function matrix, say N_ where N_=[N(1)*I, N(2)*I, ], it would be
+            //   M = sum (N_' * rho * N_ * w * |J|)     that is simply:
+            //   H += (Mpfactor * this->material->GetDensity()) * (N_.transpose() * N_);
+            // But the N_ matrix would be very sparse, so to speedup computation we unroll it and do:
+            double scalar_factor = Mpfactor * this->material->GetDensity();
+            for (int i = 0; i < N.cols(); i++) {
+                for (int j = 0; j < N.cols(); j++) {
+                    // Compute the scalar entry for the 8x8 scalar mass matrix
+                    double scalar_entry = scalar_factor * N(i) * N(j);
+                    int row_start = i * 3;
+                    int col_start = j * 3;
+                    H(row_start, col_start)         += scalar_entry; // xx
+                    H(row_start + 1, col_start + 1) += scalar_entry; // yy  
+                    H(row_start + 2, col_start + 2) += scalar_entry; // zz
+                }
+            }
+
             // ***TODO*** rayleigh damping
         }
     }
