@@ -237,7 +237,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual Type GetType() const override { return Type::TRIANGLEMESH_CONNECTED; }
 
     /// Return the bounding box of a triangle mesh with given vertices.
-    static ChAABB GetBoundingBox(std::vector<ChVector3d> vertices);
+    static ChAABB CalcBoundingBox(std::vector<ChVector3d> vertices);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

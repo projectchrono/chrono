@@ -32,17 +32,17 @@ ChRoundedCylinder::ChRoundedCylinder(const ChRoundedCylinder& source) {
 
 // -----------------------------------------------------------------------------
 
-double ChRoundedCylinder::GetVolume(double radius, double height, double srad) {
+double ChRoundedCylinder::CalcVolume(double radius, double height, double srad) {
     double tmp = (radius + srad) * (radius + srad) * height / 2 + srad * (radius * radius + CH_2_3 * srad * srad) +
                  (CH_PI_2 - 1.0) * radius * srad * srad;
     return 2.0 * CH_PI * tmp;
 }
 
 double ChRoundedCylinder::GetVolume() const {
-    return GetVolume(r, h, sr);
+    return CalcVolume(r, h, sr);
 }
 
-ChMatrix33<> ChRoundedCylinder::GetGyration(double radius, double height, double srad) {
+ChMatrix33<> ChRoundedCylinder::CalcGyration(double radius, double height, double srad) {
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = (1.0 / 12.0) * (3 * radius * radius + height * height);
@@ -53,24 +53,24 @@ ChMatrix33<> ChRoundedCylinder::GetGyration(double radius, double height, double
 }
 
 ChMatrix33<> ChRoundedCylinder::GetGyration() const {
-    return GetGyration(r, h, sr);
+    return CalcGyration(r, h, sr);
 }
 
-ChAABB ChRoundedCylinder::GetBoundingBox(double radius, double height, double srad) {
+ChAABB ChRoundedCylinder::CalcBoundingBox(double radius, double height, double srad) {
     return ChAABB(ChVector3d(-radius, -radius, -height / 2) - srad,  //
                   ChVector3d(+radius, +radius, +height / 2) + srad);
 }
 
 ChAABB ChRoundedCylinder::GetBoundingBox() const {
-    return GetBoundingBox(r, h, sr);
+    return CalcBoundingBox(r, h, sr);
 }
 
-double ChRoundedCylinder::GetBoundingSphereRadius(double radius, double height, double srad) {
+double ChRoundedCylinder::CalcBoundingSphereRadius(double radius, double height, double srad) {
     return std::sqrt(height * height / 4 + radius * radius) + srad;
 }
 
 double ChRoundedCylinder::GetBoundingSphereRadius() const {
-    return GetBoundingSphereRadius(r, h, sr);
+    return CalcBoundingSphereRadius(r, h, sr);
 }
 
 // -----------------------------------------------------------------------------
