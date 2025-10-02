@@ -146,6 +146,9 @@ using namespace chrono::vehicle::m113;
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define CH_VEHICLE_API 
+#ifdef CHRONO_FSI
+#define CH_FSI_API
+#endif
 #define ChApi
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #define CH_DEPRECATED(msg)
@@ -199,6 +202,9 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
 
+#ifdef CHRONO_FSI
+%shared_ptr(chrono::vehicle::CRMTerrain)
+#endif
 
 
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
@@ -240,6 +246,10 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 
 %import(module = "pychrono.core") "../../../chrono/output/ChOutput.h"
+
+#ifdef CHRONO_FSI
+%import(module = "pychrono.fsi") "chrono_swig/interface/fsi/ChFsiProblemSPH.i"
+#endif
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_VSG

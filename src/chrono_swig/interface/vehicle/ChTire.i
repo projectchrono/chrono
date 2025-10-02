@@ -51,6 +51,16 @@
 %shared_ptr(chrono::vehicle::ReissnerToroidalTire)
 %shared_ptr(chrono::vehicle::FialaTire)
 
+%shared_ptr(chrono::vehicle::ChFEATire)
+%shared_ptr(chrono::vehicle::FEATire)
+%shared_ptr(chrono::vehicle::ChDeformableTire)
+%shared_ptr(chrono::vehicle::ChReissnerTire)
+%shared_ptr(chrono::vehicle::ReissnerTire)
+%shared_ptr(chrono::vehicle::ReissnerToroidalTire)
+%shared_ptr(chrono::vehicle::ChANCFTire)
+%shared_ptr(chrono::vehicle::ANCFToroidalTire)
+%shared_ptr(chrono::vehicle::ANCFTire)
+
 #ifdef SWIGCSHARP
 %import "chrono_swig/interface/core/ChShaft.i"
 #endif
@@ -79,8 +89,7 @@
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 
-//// TODO: wrap flexible tire models
-/*
+
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
@@ -90,6 +99,5 @@
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
-*/
 
 %include "chrono_swig/interface/models/TireModels.i"

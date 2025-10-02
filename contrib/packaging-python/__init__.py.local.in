@@ -34,6 +34,10 @@ try:
 except:
     pass
 try:
+    from . import fsi
+except:
+    pass
+try:
     @ADD_OCC_DLL@
     from . import cascade
 except:
