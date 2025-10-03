@@ -454,14 +454,15 @@ if(CH_ENABLE_MODULE_VSG)
 
 endif()
 
+#-----------------------------------------------------------------------------
+# MODULE for the fsi python wrapper.
+#-----------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_FSI)
+
   if (NOT CH_ENABLE_MODULE_VSG)
     message(FATAL_ERROR "Chrono::FSI module's Python binding requires Chrono::VSG module. Please enable CH_ENABLE_MODULE_VSG.")
   endif()
-  #-----------------------------------------------------------------------------
-  # MODULE for the fsi python wrapper.
-  #-----------------------------------------------------------------------------
 
   message(STATUS "Add python FSI module")
 
@@ -469,6 +470,7 @@ if(CH_ENABLE_MODULE_FSI)
   set(CHPY_FSI fsi)
 
   set(CHPY_FSI_MODULE_FILE ChModuleFsi_python.i)
+
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_FSI_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
@@ -495,7 +497,7 @@ if(CH_ENABLE_MODULE_FSI)
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${CHPY_FSI} PROPERTIES
                         PROJECT_LABEL "Chrono_python_fsi"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
@@ -505,19 +507,12 @@ if(CH_ENABLE_MODULE_FSI)
   add_dependencies(${CHPY_FSI} Chrono_fsi)
   add_dependencies(${CHPY_FSI} Chrono_fsisph)
   add_dependencies(${CHPY_FSI} Chrono_fsisph_vsg)
-  add_dependencies(${CHPY_FSI} Chrono_core)
 
   # Copy PY file in a package dir
   set(CHPY_FSI_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FSI}.py")
-
-  set(CHPY_FSI_PYD_PATH $<TARGET_FILE_DIR:${CHPY_FSI}>)
-
   add_custom_command(TARGET ${CHPY_FSI}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_FSI_PYD_PATH}/pychrono)
-  add_custom_command(TARGET ${CHPY_FSI}
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FSI_PY_FILE} ${CHPY_FSI_PYD_PATH}/pychrono)
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FSI_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${CHPY_FSI}
@@ -531,7 +526,6 @@ if(CH_ENABLE_MODULE_FSI)
   if (DBG_SCRIPT)
     message("Module name:     ${CHPY_FSI}")
     message("PY file:         ${CHPY_FSI_PY_FILE}")
-    message("PYD path:        ${CHPY_FSI_PYD_PATH}")
   endif()
 
 endif()
@@ -786,11 +780,6 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   # Make sure CHRONO_VSG is defined for the SWIG processor
   if (CH_ENABLE_MODULE_VSG)
       set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
-  endif()
-
-  # Make sure CHRONO_FSI is defined for the SWIG processor
-  if (CH_ENABLE_MODULE_FSI)
-      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI")
   endif()
 
 
