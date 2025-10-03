@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/optix/ChOptixUtils.h"
-#include "chrono_sensor/ChConfigSensor.h"
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -30,6 +28,9 @@
 #ifdef USE_CUDA_NVRTC
     #include <nvrtc.h>
 #endif
+
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/optix/ChOptixUtils.h"
 
 namespace chrono {
 namespace sensor {

@@ -413,25 +413,20 @@ set(CH_USE_CUDA_NVRTC ON CACHE BOOL "Compile shader code at run-time with NVRTC 
 
 if(CH_USE_CUDA_NVRTC)
   message(STATUS "Building Chrono::Sensor with NVRTC ON")
-
   find_package(CUDAToolkit REQUIRED)
-
   if(NOT TARGET CUDA::nvrtc)
-    message(WARNING "CUDA::nvrtc target is missing; NVRTC will be turned off")
-    set(CH_USE_CUDA_NVRTC OFF CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX" FORCE)
-  else()
-    message(STATUS "CUDA::nvrtc found and enabled")
-    target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
+      message(WARNING "CUDA::nvrtc target is missing; NVRTC will be turned off")
+      set(CH_USE_CUDA_NVRTC OFF CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX" FORCE)
+  endif()
+endif()
 
+if(CH_USE_CUDA_NVRTC)
+    message(STATUS "CUDA::nvrtc found and enabled")
+
+    target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
     target_link_libraries(Chrono_sensor PRIVATE CUDA::nvrtc)
 
-    install(FILES ${Chrono_sensor_RT_SOURCES}
-            DESTINATION include/chrono_sensor/optix/shaders)  
-
-
-    ##
     # Flags used directly in the source code as defines
-    ##
 
     #set(CUDA_NVRTC_FLAGS -arch compute_30 -use_fast_math -lineinfo -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++11 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
@@ -459,9 +454,14 @@ if(CH_USE_CUDA_NVRTC)
     set(CUDA_NVRTC_INCLUDE_LIST "${CUDA_NVRTC_INCLUDE_LIST} \\\n  0,")
 
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
-    target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SHADER_OUTPUT_PATH="${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/">)
+ 
+    # Install the shader sources
+    install(FILES ${Chrono_sensor_RT_SOURCES}
+            DESTINATION include/chrono_sensor/optix/shaders)  
 
-  endif()
+    # Set shader location for build and install trees
+    set(SHADER_OUTPUT_PATH_BUILD "${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/")
+    set(SHADER_OUTPUT_PATH_INSTALL "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
 else()
   message(STATUS "Building Chrono::Sensor with NVRTC OFF")
 
@@ -480,27 +480,49 @@ else()
     target_link_libraries(Chrono_sensor_ptx PRIVATE OpenVDB::nanovdb)
   endif()
 
-  install(DIRECTORY $<TARGET_OBJECTS:Chrono_sensor_ptx>
-          DESTINATION lib/sensor_ptx)
+  # Copy PTX files to known location (under lib/sensor_ptx)
+  # Notes:
+  #   1. We cannot install the PTX files since these are "objects" not known at configuration time.
+  #   2. By design, CMake does not allow redirecting output of object files. So we cannot set output properties on the Chrono_sensor_ptx target.
+  #   3. A POST_BUILD command cannot be associated with an OBJECT library target. So we cannot do this after Chrono_sensor_ptx.
+  # The solution is to do the copy in a PRE_BUILD command of the Chrono_sensor target (which depends on Chrono_sensor_ptx).
+  add_custom_command(TARGET Chrono_sensor
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
+    COMMAND_EXPAND_LISTS
+    COMMENT "Copy Chrono::Sensor PTX files."
+  )
 
   # Link PTX helper library, use NVCC, and set macro with location of PTX files
   target_link_libraries(Chrono_sensor PUBLIC ${Chrono_sensor_ptx})
   target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVCC>)
-  target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SHADER_OUTPUT_PATH="${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/">)
-endif()
 
+  # Install the shader PTX files
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/lib/sensor_ptx 
+          DESTINATION lib)
+
+  # Set shader location for build and install trees
+  set(SHADER_OUTPUT_PATH_BUILD "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
+  set(SHADER_OUTPUT_PATH_INSTALL "${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/")
+endif()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
-# Generate the configuration header file using substitution variables.
+# Generate the configuration header file using substitution variables for build and install trees
+set(SHADER_OUTPUT_PATH ${SHADER_OUTPUT_PATH_BUILD})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
     ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h)
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h"
-    DESTINATION include/chrono_sensor)
+set(SHADER_OUTPUT_PATH ${SHADER_OUTPUT_PATH_INSTALL})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
+    ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h)
 
+install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h"
+        RENAME "ChConfigSensor.h"
+        DESTINATION include/chrono_sensor)
 
 # ------------------------------------------------------------------------------
 # Find optional GL support
