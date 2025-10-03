@@ -320,6 +320,23 @@ set(SENSOR_TINYOBJ_FILES
 source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
 #-----------------------------------------------------------------------------
+# Copy shader sources to build tree
+#-----------------------------------------------------------------------------
+
+get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(MULTI_CONFIG)
+    set(CH_SHADERS_DIR ${CMAKE_BINARY_DIR}/bin/sensor_shaders)
+    message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
+else()
+    set(CH_SHADERS_DIR ${CMAKE_BINARY_DIR}/sensor_shaders)
+    message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
+endif()
+
+message(STATUS "Shader directory: ${CH_SHADERS_DIR}")
+file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_SHADERS_DIR})
+file(COPY ${Chrono_sensor_RT_HEADERS} DESTINATION ${CH_SHADERS_DIR})
+
+#-----------------------------------------------------------------------------
 # Create the Chrono_sensor library
 #-----------------------------------------------------------------------------
 # Collect all sources
@@ -458,10 +475,6 @@ if(CH_USE_CUDA_NVRTC)
     # Install the shader sources
     install(FILES ${Chrono_sensor_RT_SOURCES}
             DESTINATION include/chrono_sensor/optix/shaders)  
-
-    # Set shader location for build and install trees
-    set(SHADER_OUTPUT_PATH_BUILD "${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/")
-    set(SHADER_OUTPUT_PATH_INSTALL "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
 else()
   message(STATUS "Building Chrono::Sensor with NVRTC OFF")
 
@@ -488,8 +501,7 @@ else()
   # The solution is to do the copy in a PRE_BUILD command of the Chrono_sensor target (which depends on Chrono_sensor_ptx).
   add_custom_command(TARGET Chrono_sensor
     PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CH_SHADERS_DIR}"
     COMMAND_EXPAND_LISTS
     COMMENT "Copy Chrono::Sensor PTX files."
   )
@@ -497,31 +509,24 @@ else()
   # Link PTX helper library, use NVCC, and set macro with location of PTX files
   target_link_libraries(Chrono_sensor PUBLIC ${Chrono_sensor_ptx})
   target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVCC>)
-
-  # Install the shader PTX files
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/lib/sensor_ptx 
-          DESTINATION lib)
-
-  # Set shader location for build and install trees
-  set(SHADER_OUTPUT_PATH_BUILD "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
-  set(SHADER_OUTPUT_PATH_INSTALL "${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/")
 endif()
+
+# Install the shaders directory
+install(DIRECTORY ${CH_SHADERS_DIR}/ DESTINATION "sensor_shaders")
+
+# Shader path (relative to binaries)
+set(SHADER_OUTPUT_PATH "../sensor_shaders")
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
 # Generate the configuration header file using substitution variables for build and install trees
-set(SHADER_OUTPUT_PATH ${SHADER_OUTPUT_PATH_BUILD})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
     ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h)
 
-set(SHADER_OUTPUT_PATH ${SHADER_OUTPUT_PATH_INSTALL})
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
-    ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h)
-
-install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h"
-        RENAME "ChConfigSensor.h"
+install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h"
         DESTINATION include/chrono_sensor)
 
 # ------------------------------------------------------------------------------
