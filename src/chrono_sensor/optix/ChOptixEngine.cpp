@@ -41,6 +41,7 @@
 #include "chrono/assets/ChVisualShapeRoundedBox.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/optix/ChNVDBVolume.h"
@@ -569,19 +570,20 @@ void ChOptixEngine::ConstructScene() {
                 #endif
                 else if (auto sphere_shape = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
                     sphereVisualization(body, sphere_shape, shape_frame);
-
                 } else if (auto cylinder_shape = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
                     cylinderVisualization(body, cylinder_shape, shape_frame);
-
                 } else if (auto trimesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
                     if (!trimesh_shape->IsMutable()) {
                         rigidMeshVisualization(body, trimesh_shape, shape_frame);
-
-                        // added_asset_for_body = true;
                     } else {
                         deformableMeshVisualization(body, trimesh_shape, shape_frame);
                     }
-
+                } else if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+                    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
+                    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+                    trimesh_shape->SetMesh(trimesh);
+                    trimesh_shape->SetMutable(false);
+                    rigidMeshVisualization(body, trimesh_shape, shape_frame);
                 } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
                 } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
                 } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
