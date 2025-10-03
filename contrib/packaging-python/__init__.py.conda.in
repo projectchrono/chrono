@@ -19,6 +19,10 @@ try:
 except:
     pass
 try:
+    from . import fsi
+except:
+    pass
+try:
     from . import cascade
 except:
     pass
