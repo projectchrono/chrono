@@ -70,7 +70,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// A derived class should invoke ChCollisionSystem::Remove for each of its collision models.
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {}
 
-    /// Synchronize the position and bounding box of any collsion models managed by this physics item.
+    /// Synchronize the position and bounding box of any collision models managed by this physics item.
     virtual void SyncCollisionModels() {}
 
     /// Get the axis-aligned bounding box (AABB) of this object.

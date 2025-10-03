@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
                                     ChVector3d(terrain_length, 0, vehicle_init_height), 1);
             break;
         case PatchType::HEIGHT_MAP:
-            // Create a patch from a heigh field map image
+            // Create a patch from a height field map image
             terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                               terrain_length, terrain_width,                           // length (X) and width (Y)
                               {0, 0.3},                                                // height range

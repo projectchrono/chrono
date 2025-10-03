@@ -164,7 +164,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Set terain patch size and initial vehicle location
+    // Set terrain patch size and initial vehicle location
     ChVector3d init_loc;
     ChVector2d patch_size;
     ChAABB patch_aabb;

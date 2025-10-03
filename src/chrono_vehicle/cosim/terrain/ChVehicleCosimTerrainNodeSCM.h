@@ -102,7 +102,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     double m_Mohr_friction;  ///< Friction angle (in degrees!), for shear failure
     double m_Janosi_shear;   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
     double m_elastic_K;      ///< elastic stiffness K per unit area [Pa/m]
-    double m_damping_R;      ///< vetical damping R per unit area [Pa.s/m]
+    double m_damping_R;      ///< vertical damping R per unit area [Pa.s/m]
 
     double m_radius_p;  ///< radius for a proxy body
 

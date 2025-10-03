@@ -24,7 +24,7 @@ namespace chrono {
 /// @{
 
 /// Collision 2D segment shape.
-/// This is a low-level collsion shape that is automatically generated when adding a ChCollisionShapePath2D.
+/// This is a low-level collision shape that is automatically generated when adding a ChCollisionShapePath2D.
 class ChApi ChCollisionShapeSegment2D : public ChCollisionShape {
   public:
     ChCollisionShapeSegment2D();

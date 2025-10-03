@@ -330,7 +330,7 @@ std::shared_ptr<ChBody> CreateFallingBall(ChSystemMulticore* system, double z, d
 
 // -----------------------------------------------------------------------------
 // Find the height of the highest and lowest, respectively, sphere in the
-// granular mix, respectively.  We only look at bodies whith stricty positive
+// granular mix, respectively.  We only look at bodies with stricty positive
 // identifiers (to exclude the containing bin).
 // -----------------------------------------------------------------------------
 double FindHighest(ChSystem* sys) {

@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
-    // Create a collsion system and associate it with the underlying Chrono system
+    // Create a collision system and associate it with the underlying Chrono system
     vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));

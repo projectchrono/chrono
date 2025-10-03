@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChWorldFrame {
     static void Project(ChVector3d& v);
 
   private:
-    /// Default world frame is ISO, corresonding to an identity rotation.
+    /// Default world frame is ISO, corresponding to an identity rotation.
     ChWorldFrame() : m_rot(1), m_quat(1, 0, 0, 0), m_vertical(0, 0, 1), m_forward(1, 0, 0), m_ISO(true) {}
 
     /// Return the (unique) instance of the world frame.
@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChWorldFrame {
     ChQuaternion<> m_quat;  ///< world frame orientation (relative to ISO) as quaternion
     ChVector3d m_vertical;  ///< vertical direction of the world frame
     ChVector3d m_forward;   ///< forward direction of the world frame
-    bool m_ISO;             ///< flag indicating whther or not the world frame is ISO
+    bool m_ISO;             ///< flag indicating whether or not the world frame is ISO
 };
 
 /// @} vehicle

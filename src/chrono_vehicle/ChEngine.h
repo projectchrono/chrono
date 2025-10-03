@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChEngine : public ChPart {
 
     /// Update the engine system at the current time.
     /// The engine is provided the current driver throttle input, a value in the range [0,1].
-    /// The motorshaft speed represents the input to the engine from the transmision system.
+    /// The motorshaft speed represents the input to the engine from the transmission system.
     /// This default implementation sets the speed of the motorshaft.
     virtual void Synchronize(double time,                        ///< current time
                              const DriverInputs& driver_inputs,  ///< current driver inputs

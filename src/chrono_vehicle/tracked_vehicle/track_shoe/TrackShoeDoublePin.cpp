@@ -95,7 +95,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     }
     m_ground_geometry.materials = m_geometry.materials;
 
-    // Read geometric collison data
+    // Read geometric collision data
     int num_shapes = d["Contact"]["Shoe Shapes"].Size();
     assert(num_shapes > 0);
 

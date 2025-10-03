@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
             );
             break;
         case PatchType::HEIGHT_MAP:
-            // Create a patch from a heigh field map image
+            // Create a patch from a height field map image
             terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                               terrain_length, terrain_width,                           // length (X) and width (Y)
                               {0.25, 0.55},                                            // height range

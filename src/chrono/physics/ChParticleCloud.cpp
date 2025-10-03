@@ -677,7 +677,7 @@ void ChParticleCloud::EnableCollision(bool state) {
         return;
 
     // Nothing to do if no collision system or the system was not initialized
-    // (in the latter case, the collsion model will be processed at initialization)
+    // (in the latter case, the collision model will be processed at initialization)
     auto coll_sys = GetSystem()->GetCollisionSystem();
     if (!coll_sys || !coll_sys->IsInitialized())
         return;

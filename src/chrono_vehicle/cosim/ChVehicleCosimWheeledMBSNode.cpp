@@ -147,7 +147,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     }
 
     // Incorporate information on tire mass, radius, and width.
-    // This is defered to this point so that the MBS system could be initialized first and correct spindle locations
+    // This is deferred to this point so that the MBS system could be initialized first and correct spindle locations
     // sent to the tire nodes. Only after their own initialization can the tire nodes send back here the tire info.
     ApplyTireInfo(tire_info);
 

@@ -400,14 +400,14 @@ int main(int argc, char* argv[]) {
     std::cout << "  Crest Factor                 = " << cf << "\n";
     std::cout << "  VDV based Severity Criterion = " << svdv << "\n";
     if (svdv < 1.75) {
-        std::cout << "\nVDV Severitiy < 1.75: the Weighted Acceleration AWV ist the prefered result\n";
+        std::cout << "\nVDV Severitiy < 1.75: the Weighted Acceleration AWV ist the preferred result\n";
         if (awv <= ride_limit) {
             std::cout << "  AWV <= " << ride_limit << "m/s^2 (ok)\n";
         } else {
             std::cout << "  AWV > " << ride_limit << "m/s^2 (above limit)\n";
         }
     } else {
-        std::cout << "\nVDV Severitiy >= 1.75: the Vibration Dose Value VDV ist the prefered result\n";
+        std::cout << "\nVDV Severitiy >= 1.75: the Vibration Dose Value VDV ist the preferred result\n";
         if (vdv <= ride_limit) {
             std::cout << "  VDV <= " << ride_limit << "m/s^1.75 (ok)\n";
         } else {

@@ -605,7 +605,7 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
 // Include contact impulses (linear and rotational) for all bodies that are
 // involved in at least one contact. For each such body, the corresponding
 // entries in the arrays 'ct_body_force' and 'ct_body_torque' contain the
-// cummulative force and torque, respectively, over all contacts involving that
+// cumulative force and torque, respectively, over all contacts involving that
 // body.
 // -----------------------------------------------------------------------------
 void ChIterativeSolverMulticoreSMC::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {

@@ -47,7 +47,7 @@ class CH_SENSOR_API ChFilterPCfromDepth : public ChFilter {
   private:
     float m_hFOV;                                          ///< field of view of the parent lidar
     float m_min_vert_angle;                                ///< mimimum vertical angle of parent lidar
-    float m_max_vert_angle;                                ///< maximum vetical angle of parent lidar
+    float m_max_vert_angle;                                ///< maximum vertical angle of parent lidar
     CUstream m_cuda_stream;                                ///< reference to the cuda stream
     std::shared_ptr<SensorDeviceDIBuffer> m_buffer_in;     ///< holder of the input buffer
     std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_out;  ///< holder of the output buffer
