@@ -97,7 +97,7 @@ def main():
     hmmwv.GetVehicle().SetChassisOutput(True)
     hmmwv.GetVehicle().SetSuspensionOutput(0, True)
     hmmwv.GetVehicle().SetSteeringOutput(0, True)
-    hmmwv.GetVehicle().SetOutput(chrono.ChOutput.Type_ASCII, out_dir, "output", 0.1)
+    hmmwv.GetVehicle().SetOutput(chrono.ChOutput.Type_ASCII, chrono.ChOutput.Mode_FRAMES, out_dir, "output", 0.1)
 
     # Generate JSON information with available output channels
     hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json")
@@ -127,7 +127,7 @@ def main():
 
     if (contact_vis):
         vis.SetSymbolScale(1e-4)
-        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES);
+        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES)
 
     # ---------------------------------------------
     # Create a sensor manager and add a point light
@@ -153,8 +153,8 @@ def main():
         fov                    # camera's horizontal field of view
     )
     cam.SetName("Camera Sensor")
-    # cam.SetLag(0);
-    # cam.SetCollectionWindow(0);
+    # cam.SetLag(0)
+    # cam.SetCollectionWindow(0)
 
     # Visualizes the image
     if vis:

@@ -53,7 +53,7 @@ def main() :
     rig.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
     rig.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
     rig.SetSubchassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
-    rig.SetWheelVisualizationType(chrono.VisualizationType_NONE);
+    rig.SetWheelVisualizationType(chrono.VisualizationType_NONE)
     rig.SetTireVisualizationType(chrono.VisualizationType_MESH)
     
     # Create and attach an STR driver
@@ -81,7 +81,7 @@ def main() :
            print("Error creating output directory " )
     
     if output:
-        rig.SetOutput(chrono.ChOutput.Type_ASCII, out_dir, 'output', out_step_size)
+        rig.SetOutput(chrono.ChOutput.Type_ASCII, chrono.ChOutput.Mode_FRAMES, out_dir, 'output', out_step_size)
     if plot:
         rig.SetPlotOutput(out_step_size)
 

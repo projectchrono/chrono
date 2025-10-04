@@ -15,6 +15,7 @@
 # RoboSimian on rigid terrain
 #
 # =============================================================================
+
 import errno
 import os
 import math

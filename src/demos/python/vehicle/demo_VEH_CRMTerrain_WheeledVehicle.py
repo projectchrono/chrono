@@ -17,8 +17,6 @@
 #
 # =============================================================================
 
-
-
 import pychrono.core as chrono
 import pychrono.vehicle as veh
 import pychrono.fsi as fsi
