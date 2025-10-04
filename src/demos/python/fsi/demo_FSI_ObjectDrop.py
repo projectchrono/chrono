@@ -90,6 +90,9 @@ def main(argv):
     boundary_method = args.boundary_method
     viscosity_method = args.viscosity_method
 
+    # Set output root directory
+    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
     # Create the Chrono system and associated collision system
     sysMBS = chrono.ChSystemNSC()
     sysMBS.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)

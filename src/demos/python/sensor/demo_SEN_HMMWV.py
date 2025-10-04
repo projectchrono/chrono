@@ -32,6 +32,9 @@ import math
 def main():
     print("Copyright (c) 2017 projectchrono.org" + "\n\n")
 
+    # Set output root directory
+    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
     # Create systems
 
     #  Create the HMMWV vehicle, set parameters, and initialize

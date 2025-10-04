@@ -33,6 +33,10 @@ class ChFunctionMyFun (chrono.ChFunction):
         else:
             return -chrono.CH_PI * (1.0 - m.cos(chrono.CH_PI * x / 0.4)) / 2.0
 
+
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
 out_dir = chrono.GetChronoOutputPath() + "BEAM_BUCKLING"
 

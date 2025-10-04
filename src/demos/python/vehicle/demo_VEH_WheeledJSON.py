@@ -19,6 +19,9 @@ import os
 
 def main() : 
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
+    
+    # Set output root directory
+    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
     # Create the vehicle system
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)

@@ -54,7 +54,10 @@ def CreateFSIWheels(vehicle, terrain):
                 # If we can't access FEA mesh methods, treat as rigid tire
                 terrain.AddRigidBody(wheel.GetSpindle(), geometry, False)
 
-    
+
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 # Problem settings (mirroring the C++ demo)
 target_speed = 7.0

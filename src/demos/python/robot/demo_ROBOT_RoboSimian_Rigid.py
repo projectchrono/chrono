@@ -153,6 +153,10 @@ def SetContactProperties(robot):
     
 # =============================================================================
 
+
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # ------------
 # Timed events
 # ------------

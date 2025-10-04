@@ -25,6 +25,9 @@ import time
 
 
 def main():
+    # Set output root directory
+    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
     # -----------------
     # Create the system
     # -----------------

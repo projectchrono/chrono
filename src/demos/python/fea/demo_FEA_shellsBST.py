@@ -18,6 +18,9 @@ import errno
 import os
 
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
 out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
 
