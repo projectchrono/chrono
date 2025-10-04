@@ -81,10 +81,12 @@
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono/output/ChOutput.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 using namespace chrono::fea;
 %}
 
@@ -213,7 +215,6 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChParticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
-%shared_ptr(chrono::ChParticleCloud)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
@@ -275,30 +276,6 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChLinkBushing)
 %shared_ptr(chrono::ChJoint)
 
-%shared_ptr(chrono::ChGeometry)
-%shared_ptr(chrono::ChLine)
-%shared_ptr(chrono::ChVolume)
-%shared_ptr(chrono::ChSurface)
-%shared_ptr(chrono::ChBox)
-%shared_ptr(chrono::ChSphere)
-%shared_ptr(chrono::ChCylinder)
-%shared_ptr(chrono::ChCapsule)
-%shared_ptr(chrono::ChCone)
-%shared_ptr(chrono::ChEllipsoid)
-%shared_ptr(chrono::ChLineArc)
-%shared_ptr(chrono::ChLineSegment)
-%shared_ptr(chrono::ChLineNurbs)
-%shared_ptr(chrono::ChLinePath)
-%shared_ptr(chrono::ChLinePoly)
-%shared_ptr(chrono::ChLineBezier)
-%shared_ptr(chrono::ChLineCam)
-%shared_ptr(chrono::ChLineBSpline)
-%shared_ptr(chrono::ChTriangle)
-%shared_ptr(chrono::ChSurfaceNurbs)
-%shared_ptr(chrono::ChTriangleMesh)
-%shared_ptr(chrono::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChTriangleMeshSoup)
-
 // Cross-inheritance for callbacks that must be inherited.
 // Put these 'director' features _before_ class wrapping declaration.
 
@@ -349,8 +326,6 @@ inline const char* ChUtils_GetFilename() {
 // geometry/   classes
 %include "ChGeometry.i"
 
-%include "ChBodyGeometry.i"
-
 
 //collision classes
 %include "ChContactMaterial.i"
@@ -365,6 +340,10 @@ inline const char* ChUtils_GetFilename() {
 #ifdef CHRONO_COLLISION
 %include "../../../chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
+
+// utils classes
+%include "ChBodyGeometry.i"
+%include "ChUtilsSamplers.i"
 
 // functions/   classes
 %include "ChFunction.i"

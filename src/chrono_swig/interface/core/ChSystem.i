@@ -48,6 +48,8 @@ class ChVisualSystem;
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChSystem::CustomCollisionCallback)
 
+%template(vector_ChSystem) std::vector< chrono::ChSystem* >;
+
 // Forward ref
 %import "chrono_swig/interface/core/ChAssembly.i"
 %import "chrono_swig/interface/core/ChTimestepper.i"

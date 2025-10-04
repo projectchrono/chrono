@@ -455,6 +455,82 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 #-----------------------------------------------------------------------------
+# MODULE for the fsi python wrapper.
+#-----------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_FSI)
+
+  if (NOT CH_ENABLE_MODULE_VSG)
+    message(FATAL_ERROR "Chrono::FSI module's Python binding requires Chrono::VSG module. Please enable CH_ENABLE_MODULE_VSG.")
+  endif()
+
+  message(STATUS "Add python FSI module")
+
+  # Python module name
+  set(CHPY_FSI fsi)
+
+  set(CHPY_FSI_MODULE_FILE ChModuleFsi_python.i)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${CHPY_FSI_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${CHPY_FSI_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_FSI_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
+
+  swig_add_library(${CHPY_FSI} LANGUAGE python SOURCES ${CHPY_FSI_MODULE_FILE})
+  target_link_libraries(${CHPY_FSI} PRIVATE Python3::Python Chrono_core Chrono_vsg Chrono_fsi Chrono_fsisph Chrono_fsisph_vsg)
+
+    # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(${CHPY_FSI} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_FSI} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_FSI} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_FSI} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_FSI} PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(${CHPY_FSI} PRIVATE "-Wno-unused-variable")
+  endif()
+
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(${CHPY_FSI} PROPERTIES
+                        PROJECT_LABEL "Chrono_python_fsi"
+                        LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
+                        SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+                        )
+
+  target_compile_definitions(${CHPY_FSI} PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(${CHPY_FSI} Chrono_core)
+  add_dependencies(${CHPY_FSI} Chrono_fsi)
+  add_dependencies(${CHPY_FSI} Chrono_fsisph)
+  add_dependencies(${CHPY_FSI} Chrono_fsisph_vsg)
+
+  # Copy PY file in a package dir
+  set(CHPY_FSI_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FSI}.py")
+  add_custom_command(TARGET ${CHPY_FSI}
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FSI_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
+
+  # Install .pyd binary module (.so on linux)
+  install(TARGETS ${CHPY_FSI}
+          EXPORT ChronoTargets
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+  # Install .py module wrapper
+  install(FILES "${CHPY_FSI_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CHPY_FSI}")
+    message("PY file:         ${CHPY_FSI_PY_FILE}")
+  endif()
+
+endif()
+
+#-----------------------------------------------------------------------------
 # MODULE for the irrlicht python wrapper.
 #-----------------------------------------------------------------------------
 
@@ -706,6 +782,10 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
       set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
   endif()
 
+  # Make sure CHRONO_FSI is defined for the SWIG processor
+  if (CH_ENABLE_MODULE_FSI)
+      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI")
+  endif()
 
   swig_add_library(${CHPY_VEHICLE} LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
   target_link_libraries(${CHPY_VEHICLE} PRIVATE Python3::Python Chrono_core Chrono_vehicle ChronoModels_vehicle)

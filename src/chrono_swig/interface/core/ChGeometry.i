@@ -42,6 +42,8 @@ using namespace chrono;
 
 %}
 
+%shared_ptr(chrono::ChAABB)
+
 %shared_ptr(chrono::ChGeometry)
 %shared_ptr(chrono::ChLine)
 %shared_ptr(chrono::ChVolume)
