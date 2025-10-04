@@ -113,7 +113,7 @@ void GetShaderFromFile(OptixDeviceContext context,
     // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
 #else
-    std::string ptx_file = shader_dir + "/" +  file_name + ".ptx";
+    std::string ptx_file = shader_dir + "/" + file_name + ".ptx";
     std::string ptx;
     std::ifstream f(ptx_file);
     if (f.good()) {

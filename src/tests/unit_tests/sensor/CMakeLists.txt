@@ -1,6 +1,6 @@
-SET(LIBRARIES Chrono_core Chrono_sensor)
+set(LIBRARIES Chrono_core Chrono_sensor)
 
-SET(TESTS
+set(TESTS
     utest_SEN_gps
     utest_SEN_interface
     utest_SEN_optixengine
@@ -10,21 +10,38 @@ SET(TESTS
     utest_SEN_radar
 )
 
-MESSAGE(STATUS "Add unit test programs for SENSOR module")
+#--------------------------------------------------------------
 
-FOREACH(PROGRAM ${TESTS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
+# A hack to set the working directory in which to execute the CTest runs.
+# This is needed for tests that need to access the Chrono sensor_shaders directory (since we use a relative path to it)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
+else()
+  set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
+endif()
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+#--------------------------------------------------------------
+# Add executables
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER tests)
+message(STATUS "Add unit test programs for SENSOR module")
 
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
+foreach(PROGRAM ${TESTS})
+    #message(STATUS "...add ${PROGRAM}")
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
+
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER tests)
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
+
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+
+    add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    
     if(MSVC)
       set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
+
+    set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
 ENDFOREACH(PROGRAM)
