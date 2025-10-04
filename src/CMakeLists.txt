@@ -694,6 +694,12 @@ else()
   set(CHRONO_COLLISION "#undef CHRONO_COLLISION")
 endif()
 
+if(CH_CXX17)
+    set(CHRONO_HAS_CXX17 "#define CHRONO_HAS_CXX17")
+else()
+    set(CHRONO_HAS_CXX17 "#undef CHRONO_HAS_CXX17")
+endif()
+
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
                @ONLY)
