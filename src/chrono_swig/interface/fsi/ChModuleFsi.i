@@ -141,7 +141,9 @@ using namespace chrono::fsi;
 %import(module="pychrono.core") "chrono_swig/interface/core/ChGeometry.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChParticleCloud.i"
+#ifdef CHRONO_VSG
 %import(module="pychrono.vsg3d") "chrono_swig/interface/vsg/ChVisualSystemVSG.i"
+#endif
 
 %include "ChFsiDefinitions.i"
 %include "ChFsiDefinitionsSPH.i"
@@ -149,4 +151,6 @@ using namespace chrono::fsi;
 %include "ChFsiFluidSystemSPH.i"
 %include "ChFsiSystemSPH.i"
 %include "ChFsiProblemSPH.i"
+#ifdef CHRONO_VSG
 %include "ChSphVisualizationVSG.i"
+#endif
