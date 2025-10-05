@@ -219,9 +219,9 @@ int main(int argc, char* argv[]) {
     // Create the driver
     // -----------------
 
-    auto path = ChBezierCurve::Read(vehicle::GetDataFile(path_file));
-    ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
-                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
+    auto path = ChBezierCurve::Read(GetVehicleDataFile(path_file));
+    ChPathFollowerDriver driver(vehicle, GetVehicleDataFile(steering_controller_file),
+                                GetVehicleDataFile(speed_controller_file), path, "my_path", target_speed);
     driver.Initialize();
 
     // ---------------------------------
@@ -367,9 +367,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    std::cout << "data at: " << vehicle::GetDataFile(steering_controller_file) << std::endl;
-    std::cout << "data at: " << vehicle::GetDataFile(speed_controller_file) << std::endl;
-    std::cout << "data at: " << vehicle::GetDataFile(path_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(steering_controller_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(speed_controller_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(path_file) << std::endl;
 
     int step_number = 0;
     double time = 0;

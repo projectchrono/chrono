@@ -92,7 +92,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
 void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     //// TODO:
     ////    Currently, we assume that the INP file contains a tire with rotation axis along X
-    ChMeshFileLoader::FromAbaqusFile(m_mesh, GetDataFile(m_input_file).c_str(), m_material, m_node_sets,
+    ChMeshFileLoader::FromAbaqusFile(m_mesh, GetVehicleDataFile(m_input_file).c_str(), m_material, m_node_sets,
                                      wheel_frame.GetPos(),
                                      wheel_frame.GetRotMat() * ChMatrix33<>(CH_PI_2, ChVector3d(0, 0, 1)));
 

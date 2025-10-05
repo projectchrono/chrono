@@ -105,7 +105,7 @@ class CH_MODELS_API M113_SprocketDoublePinLeft : public M113_SprocketDoublePin {
     M113_SprocketDoublePinLeft() : M113_SprocketDoublePin("M113_SprocketLeft") {}
     ~M113_SprocketDoublePinLeft() {}
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;
@@ -117,7 +117,7 @@ class CH_MODELS_API M113_SprocketDoublePinRight : public M113_SprocketDoublePin 
     M113_SprocketDoublePinRight() : M113_SprocketDoublePin("M113_SprocketRight") {}
     ~M113_SprocketDoublePinRight() {}
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;

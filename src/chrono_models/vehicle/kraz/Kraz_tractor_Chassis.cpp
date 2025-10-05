@@ -66,7 +66,7 @@ Kraz_tractor_Chassis::Kraz_tractor_Chassis(const std::string& name, bool fixed, 
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("longhaul/meshes/SemiTractorBody.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("longhaul/meshes/SemiTractorBody.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -74,14 +74,14 @@ Kraz_tractor_Chassis::Kraz_tractor_Chassis(const std::string& name, bool fixed, 
             m_geometry.coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("longhaul/meshes/SemiTractorCab_col.obj"),
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("longhaul/meshes/SemiTractorCab_col.obj"),
                                                          0);
             m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
             utils::ChBodyGeometry::TrimeshShape trimesh(
-                VNULL, QUNIT, vehicle::GetDataFile("longhaul/meshes/SemiTractorCab_col.obj"), 1.0, 0.005, 0);
+                VNULL, QUNIT, GetVehicleDataFile("longhaul/meshes/SemiTractorCab_col.obj"), 1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }

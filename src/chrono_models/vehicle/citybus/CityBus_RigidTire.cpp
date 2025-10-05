@@ -41,7 +41,7 @@ const std::string CityBus_RigidTire::m_meshFile = "citybus/CityBusTire.obj";
 // -----------------------------------------------------------------------------
 CityBus_RigidTire::CityBus_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("citybus/CityBusTire.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("citybus/CityBusTire.obj"), 0.005);
     }
 }
 

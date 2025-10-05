@@ -41,7 +41,7 @@ const std::string UAZBUS_RigidTire::m_meshFile = "uaz/uaz_tire_fine.obj";
 // -----------------------------------------------------------------------------
 UAZBUS_RigidTire::UAZBUS_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("uaz/uaz_tire_fine.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("uaz/uaz_tire_fine.obj"), 0.005);
     }
 }
 

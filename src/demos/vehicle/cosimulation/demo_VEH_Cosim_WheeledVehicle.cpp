@@ -211,14 +211,14 @@ int main(int argc, char** argv) {
     cosim::InitializeFramework(4);
 
     // Peek in spec file and extract terrain type
-    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
+    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(GetVehicleDataFile(terrain_specfile));
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
         MPI_Finalize();
         return 1;
     }
 
     // Peek in spec file and extract tire type
-    auto tire_type = ChVehicleCosimTireNode::GetTireTypeFromSpecfile(vehicle::GetDataFile(vehicle_model.TireJSON()));
+    auto tire_type = ChVehicleCosimTireNode::GetTireTypeFromSpecfile(GetVehicleDataFile(vehicle_model.TireJSON()));
     if (tire_type == ChVehicleCosimTireNode::TireType::UNKNOWN) {
         if (rank == 0)
             std::cout << "Unsupported tire type" << std::endl;
@@ -256,9 +256,9 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
         ChVehicleCosimWheeledVehicleNode* vehicle;
-        vehicle = new ChVehicleCosimWheeledVehicleNode(vehicle::GetDataFile(vehicle_model.VehicleJSON()),
-                                                       vehicle::GetDataFile(vehicle_model.EngineJSON()),
-                                                       vehicle::GetDataFile(vehicle_model.TransmissionJSON()));
+        vehicle = new ChVehicleCosimWheeledVehicleNode(GetVehicleDataFile(vehicle_model.VehicleJSON()),
+                                                       GetVehicleDataFile(vehicle_model.EngineJSON()),
+                                                       GetVehicleDataFile(vehicle_model.TransmissionJSON()));
 
         if (use_DBP_rig) {
             auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
@@ -301,7 +301,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeRigid(vehicle::GetDataFile(terrain_specfile), method);
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(GetVehicleDataFile(terrain_specfile), method);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_terrain);
@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNodeChrono::Type::SCM: {
-                auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile(terrain_specfile));
+                auto terrain = new ChVehicleCosimTerrainNodeSCM(GetVehicleDataFile(terrain_specfile));
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_terrain);
@@ -348,7 +348,7 @@ int main(int argc, char** argv) {
 
         switch (tire_type) {
             case ChVehicleCosimTireNode::TireType::RIGID: {
-                auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(vehicle_model.TireJSON()));
+                auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, GetVehicleDataFile(vehicle_model.TireJSON()));
                 tire->SetVerbose(verbose);
                 tire->SetStepSize(step_rigid_tire);
                 tire->SetOutDir(out_dir);
@@ -360,7 +360,7 @@ int main(int argc, char** argv) {
             }
             case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
                 auto tire =
-                    new ChVehicleCosimTireNodeFlexible(rank - 2, vehicle::GetDataFile(vehicle_model.TireJSON()));
+                    new ChVehicleCosimTireNodeFlexible(rank - 2, GetVehicleDataFile(vehicle_model.TireJSON()));
                 tire->EnableTirePressure(true);
                 tire->SetVerbose(verbose);
                 tire->SetStepSize(step_fea_tire);

@@ -41,7 +41,7 @@ const std::string Duro_RigidTire::m_meshFile = "duro/Duro_Tire.obj";
 // -----------------------------------------------------------------------------
 Duro_RigidTire::Duro_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("duro/Duro_Tire.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("duro/Duro_Tire.obj"), 0.005);
     }
 }
 

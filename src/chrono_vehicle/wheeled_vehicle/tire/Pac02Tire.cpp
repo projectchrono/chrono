@@ -551,7 +551,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
 
 void Pac02Tire::SetMFParams() {
     if (!m_tir_file.empty()) {
-        SetMFParamsByFile(vehicle::GetDataFile(m_tir_file));
+        SetMFParamsByFile(GetVehicleDataFile(m_tir_file));
     } else {
         //// TODO
     }

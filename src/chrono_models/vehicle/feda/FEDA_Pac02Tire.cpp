@@ -55,7 +55,7 @@ void FEDA_Pac02Tire::SetMFParams() {
     else
         tir_file = "feda/tires/335_65R22_5_G275MSA_95psi.tir";
 
-    SetMFParamsByFile(vehicle::GetDataFile(tir_file));
+    SetMFParamsByFile(GetVehicleDataFile(tir_file));
 }
 
 // -----------------------------------------------------------------------------

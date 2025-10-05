@@ -70,7 +70,7 @@ class CH_MODELS_API ARTcar_WheelLeft : public ARTcar_Wheel {
     ~ARTcar_WheelLeft() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -84,7 +84,7 @@ class CH_MODELS_API ARTcar_WheelRight : public ARTcar_Wheel {
     ~ARTcar_WheelRight() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;

@@ -78,7 +78,7 @@ class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;
@@ -92,7 +92,7 @@ class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;

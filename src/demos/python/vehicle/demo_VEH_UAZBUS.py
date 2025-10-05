@@ -35,7 +35,7 @@ import os
 # Set output root directory
 chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 0.4)
@@ -128,7 +128,7 @@ patch = terrain.AddPatch(patch_mat,
                          chrono.CSYSNORM, 
                          200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
 
 # -------------------------------------

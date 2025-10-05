@@ -42,7 +42,7 @@ void HMMWV_Pac02Tire::SetMFParams() {
 
     tir_file = "hmmwv/tire/HMMWV_Pac02Tire.tir";
 
-    SetMFParamsByFile(vehicle::GetDataFile(tir_file));
+    SetMFParamsByFile(GetVehicleDataFile(tir_file));
 }
 
 // -----------------------------------------------------------------------------

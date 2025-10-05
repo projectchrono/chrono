@@ -80,8 +80,8 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = ReadWheelJSON(vehicle::GetDataFile(wheel_json));
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
     bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 

@@ -30,7 +30,7 @@ namespace synchrono {
 
 void SetChronoDataPaths(const std::string& chrono_main, const std::string& chrono_vehicle) {
     SetChronoDataPath(chrono_main);
-    vehicle::SetDataPath(chrono_vehicle);
+    vehicle::SetVehicleDataPath(chrono_vehicle);
 }
 
 // -----------------------------------------------------------------------------
@@ -40,18 +40,17 @@ void SetChronoDataPaths(const std::string& chrono_main, const std::string& chron
 static std::string synchrono_data_path("../data/synchrono/");
 
 // Set the path to the SynChrono data directory (ATTENTION: not thread safe)
-void SetDataPath(const std::string& path) {
+void SetSynchronoDataPath(const std::string& path) {
     synchrono_data_path = path;
 }
 
 // Obtain the current path to the SynChrono data directory (thread safe)
-const std::string& GetDataPath() {
+const std::string& GetSynchronoDataPath() {
     return synchrono_data_path;
 }
 
-// Obtain the complete path to the specified filename, given relative to the
-// SynChrono data directory (thread safe)
-std::string GetDataFile(const std::string& filename) {
+// Obtain the complete path to the specified filename, given relative to the SynChrono data directory (thread safe)
+std::string GetSynchronoDataFile(const std::string& filename) {
     return synchrono_data_path + filename;
 }
 

@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::SMC);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
     // -------------------------------------------
@@ -552,7 +552,7 @@ void AddFixedObstacles(ChSystem* system) {
 
     // Visualization
     auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
-    vis_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
+    vis_shape->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 10, 10);
     obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Contact

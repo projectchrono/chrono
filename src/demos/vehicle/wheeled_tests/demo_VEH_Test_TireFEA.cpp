@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     wheel->SetVisualizationType(VisualizationType::NONE);
 
     // Create the tire
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
     auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire);
     if (!tire_def) {
         cerr << "ERROR: Incorrect tire specification JSON file" << endl;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
             auto terrain_rigid = chrono_types::make_shared<RigidTerrain>(&sys);
             auto patch = terrain_rigid->AddPatch(mat, ChCoordsys<>(ChVector3d(0, 0, -radius - 0.01), QUNIT), 4 * radius,
                                                  4 * radius);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 10, 5);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 10, 5);
             terrain_rigid->Initialize();
 
             terrain = terrain_rigid;

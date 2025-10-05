@@ -42,7 +42,7 @@ const std::string mrole_RigidTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.ob
 // -----------------------------------------------------------------------------
 mrole_RigidTire::mrole_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
     }
 }
 

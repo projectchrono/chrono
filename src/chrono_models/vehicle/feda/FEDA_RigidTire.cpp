@@ -41,7 +41,7 @@ const std::string FEDA_RigidTire::m_meshFile = "feda/meshes/feda_tire_fine.obj";
 // -----------------------------------------------------------------------------
 FEDA_RigidTire::FEDA_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("feda/meshes/feda_tire_fine.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("feda/meshes/feda_tire_fine.obj"), 0.005);
     }
 }
 

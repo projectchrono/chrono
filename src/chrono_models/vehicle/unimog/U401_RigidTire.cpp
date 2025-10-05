@@ -41,7 +41,7 @@ const std::string U401_RigidTire::m_meshFile = "unimog/U401_Tire.obj";
 // -----------------------------------------------------------------------------
 U401_RigidTire::U401_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("unimog/U401_Tire.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("unimog/U401_Tire.obj"), 0.005);
     }
 }
 

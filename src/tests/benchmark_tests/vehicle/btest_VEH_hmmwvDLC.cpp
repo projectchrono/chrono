@@ -92,7 +92,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     patch_material->SetYoungModulus(2e7f);
     auto patch = m_terrain->AddPatch(patch_material, CSYSNORM, 300, 20);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 300, 20);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 300, 20);
     m_terrain->Initialize();
 
     // Parameterized NATO double lane change (to right)

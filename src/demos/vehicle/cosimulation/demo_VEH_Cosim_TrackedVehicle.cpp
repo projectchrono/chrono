@@ -207,9 +207,9 @@ int main(int argc, char** argv) {
         ChVehicleCosimTrackedVehicleNode* vehicle;
         if (use_JSON_spec) {
             vehicle = new ChVehicleCosimTrackedVehicleNode(
-                vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json"),
-                vehicle::GetDataFile("M113/powertrain/M113_EngineShafts.json"),
-                vehicle::GetDataFile("M113/powertrain/M113_AutomaticTransmissionShafts.json"));
+                GetVehicleDataFile("M113/vehicle/M113_Vehicle_SinglePin.json"),
+                GetVehicleDataFile("M113/powertrain/M113_EngineShafts.json"),
+                GetVehicleDataFile("M113/powertrain/M113_AutomaticTransmissionShafts.json"));
         } else {
             auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle_SinglePin>(
                 false, DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNodeChrono::Type::SCM: {
-                auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/terrain/scm_hard.json"));
+                auto terrain = new ChVehicleCosimTerrainNodeSCM(GetVehicleDataFile("cosim/terrain/scm_hard.json"));
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);

@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     if (flat_patch) {
         terrain->Initialize(size_x, size_y, 1 / dpu);
     } else {
-        terrain->Initialize(vehicle::GetDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
+        terrain->Initialize(GetVehicleDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
     }
 
     // Create an SCMTerrainAgent and add it to the SynChrono manager

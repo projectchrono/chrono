@@ -128,8 +128,8 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method, detracking_control);
-        std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
+        rig = new ChTrackTestRig(GetVehicleDataFile(filename), create_track, contact_method, detracking_control);
+        std::cout << "Rig uses track assembly from JSON file: " << GetVehicleDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
         BrakeType brake_type = BrakeType::SIMPLE;
@@ -174,13 +174,13 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::DATAFILE: {
-            auto data_driver = chrono_types::make_shared<ChTrackTestRigDataDriver>(vehicle::GetDataFile(driver_file));
+            auto data_driver = chrono_types::make_shared<ChTrackTestRigDataDriver>(GetVehicleDataFile(driver_file));
             driver = data_driver;
             break;
         }
         case DriverMode::ROADPROFILE: {
             auto road_driver =
-                chrono_types::make_shared<ChTrackTestRigRoadDriver>(vehicle::GetDataFile(road_file), road_speed);
+                chrono_types::make_shared<ChTrackTestRigRoadDriver>(GetVehicleDataFile(road_file), road_speed);
             driver = road_driver;
             break;
         }

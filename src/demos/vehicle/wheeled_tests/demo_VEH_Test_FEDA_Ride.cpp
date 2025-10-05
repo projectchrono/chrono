@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
             cli.Help();
             return 1;
     }
-    crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
+    crg_road_file = GetVehicleDataFile(cli.GetAsType<std::string>("roadfile"));
     speed = cli.GetAsType<double>("speed");
 
     // ----------------

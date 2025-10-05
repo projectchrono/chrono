@@ -299,7 +299,7 @@ int main(int argc, char** argv) {
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
         auto tire = new ChVehicleCosimTireNodeRigid(
-            rank - 2, vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
+            rank - 2, GetVehicleDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetOutDir(out_dir, suffix);

@@ -31,7 +31,7 @@ def CreateFSIWheels(vehicle, terrain):
         vehicle: WheeledVehicle object
         terrain: CRMTerrain object
     """
-    mesh_filename = veh.GetDataFile("Polaris/meshes/Polaris_tire_collision.obj")
+    mesh_filename = veh.GetVehicleDataFile("Polaris/meshes/Polaris_tire_collision.obj")
     
     # Create geometry for rigid wheels
     geometry = chrono.ChBodyGeometry()
@@ -58,7 +58,7 @@ def CreateFSIWheels(vehicle, terrain):
 # Set output root directory
 chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 # Problem settings (mirroring the C++ demo)
 target_speed = 7.0
 tend = 30.0
@@ -109,7 +109,7 @@ tire_vis_type = chrono.VisualizationType_MESH
 print("Create vehicle...")
 vehicle_init_height = 0.25
 # This assumes a WheeledVehicle class and similar API as C++
-vehicle = veh.WheeledVehicle(veh.GetDataFile(vehicle_json), chrono.ChContactMethod_SMC)
+vehicle = veh.WheeledVehicle(veh.GetVehicleDataFile(vehicle_json), chrono.ChContactMethod_SMC)
 vehicle.Initialize(chrono.ChCoordsysd(chrono.ChVector3d(3.5, 0, vehicle_init_height), chrono.QUNIT))
 vehicle.GetChassis().SetFixed(False)
 vehicle.SetChassisVisualizationType(chassis_vis_type)
@@ -119,15 +119,15 @@ vehicle.SetWheelVisualizationType(wheel_vis_type)
 vehicle.SetTireVisualizationType(tire_vis_type)
 
 # Powertrain
-engine = veh.ReadEngineJSON(veh.GetDataFile(engine_json))
-transmission = veh.ReadTransmissionJSON(veh.GetDataFile(transmission_json))
+engine = veh.ReadEngineJSON(veh.GetVehicleDataFile(engine_json))
+transmission = veh.ReadTransmissionJSON(veh.GetVehicleDataFile(transmission_json))
 powertrain = veh.ChPowertrainAssembly(engine, transmission)
 vehicle.InitializePowertrain(powertrain)
 
 # Tires
 for axle in vehicle.GetAxles():
     for wheel in axle.GetWheels():
-        tire = veh.ReadTireJSON(veh.GetDataFile(tire_json))
+        tire = veh.ReadTireJSON(veh.GetVehicleDataFile(tire_json))
         vehicle.InitializeTire(tire, wheel, chrono.VisualizationType_MESH)
 
         

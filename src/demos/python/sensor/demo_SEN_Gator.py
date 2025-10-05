@@ -34,7 +34,7 @@ import os
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 print(chrono.GetChronoDataPath() + 'vehicle/')
 # Initial vehicle location and orientation
@@ -131,7 +131,7 @@ patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 600, 600)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 600, 600)
+patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 600, 600)
 terrain.Initialize()
 
 # -------------------------------------

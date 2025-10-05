@@ -345,7 +345,7 @@ int main(int argc, char* argv[]) {
     ///(~TrackCollide::SPROCKET_RIGHT));
 
     // Create the driver sys
-    ChDataDriver driver(m113.GetVehicle(), vehicle::GetDataFile("M113/driver/Acceleration.txt"));
+    ChDataDriver driver(m113.GetVehicle(), GetVehicleDataFile("M113/driver/Acceleration.txt"));
     driver.Initialize();
 
     // ---------------

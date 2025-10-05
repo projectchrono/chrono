@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
     // Add vehicle as an agent
     auto vehicle_agent = chrono_types::make_shared<SynTrackedVehicleAgent>(&m113.GetVehicle(),
-                                                                           synchrono::GetDataFile("vehicle/M113.json"));
+                                                                           GetSynchronoDataFile("vehicle/M113.json"));
     syn_manager.AddAgent(vehicle_agent);
 
     // ----------------------
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     if (flat_patch) {
         terrain->Initialize(size_x, size_y, 1 / dpu);
     } else {
-        terrain->Initialize(vehicle::GetDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
+        terrain->Initialize(GetVehicleDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
     }
 
     // Create an SCMTerrainAgent and add it to the SynChrono manager

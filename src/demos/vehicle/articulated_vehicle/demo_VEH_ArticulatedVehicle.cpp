@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     auto patch =
         terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.5f, 1));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
     // Create and initialize the powertrain subsystems

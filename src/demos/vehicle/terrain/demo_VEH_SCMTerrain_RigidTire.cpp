@@ -210,11 +210,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize(width, length, mesh_resolution);
 
     // Or use a height map:
-    ////terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
+    ////terrain.Initialize(GetVehicleDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
     ///mesh_resolution);
 
     // Or use a mesh:
-    ////terrain.Initialize(vehicle::GetDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
+    ////terrain.Initialize(GetVehicleDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
 
     // Set the soil terramechanical parameters
     if (var_params) {
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     
-    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+    ////terrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);

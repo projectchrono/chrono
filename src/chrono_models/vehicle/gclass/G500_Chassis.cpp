@@ -63,7 +63,7 @@ G500_Chassis::G500_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("gclass/G500long.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("gclass/G500long.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -71,12 +71,12 @@ G500_Chassis::G500_Chassis(const std::string& name, bool fixed, CollisionType ch
             m_geometry.coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("gclass/G500long_col.obj"), 0);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("gclass/G500long_col.obj"), 0);
             m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, vehicle::GetDataFile("gclass/G500long_col.obj"),
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, GetVehicleDataFile("gclass/G500long_col.obj"),
                                                         1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;

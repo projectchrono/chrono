@@ -140,7 +140,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& spec_filename)
     assert(type.compare("SuspensionTestRig") == 0);
 
     assert(d.HasMember("Vehicle Input File"));
-    m_vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(d["Vehicle Input File"].GetString()),
+    m_vehicle = chrono_types::make_shared<WheeledVehicle>(GetVehicleDataFile(d["Vehicle Input File"].GetString()),
                                                           ChContactMethod::SMC);
 
     assert(d.HasMember("Test Axle Indices"));

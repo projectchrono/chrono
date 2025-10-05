@@ -41,7 +41,7 @@ const std::string FMTV_RigidTire::m_meshFile = "mtv/meshes/MTV_tire.obj";
 // -----------------------------------------------------------------------------
 FMTV_RigidTire::FMTV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("mtv/meshes/MTV_tire.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("mtv/meshes/MTV_tire.obj"), 0.005);
     }
 }
 

@@ -134,7 +134,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> SynTrackedVehicleAgent::CreateMeshZom
     const std::string& filename) {
     auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     if (!filename.empty()) {
-        auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), false, false);
+        auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(filename), false, false);
         trimesh->SetMesh(mesh);
         trimesh->SetMutable(false);
         trimesh->SetName(filesystem::path(filename).stem());

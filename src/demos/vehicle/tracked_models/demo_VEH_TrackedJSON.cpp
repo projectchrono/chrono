@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle system
     cout << "VEHICLE: " << vehicle_model.ModelName() << endl;
-    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), contact_method);
+    TrackedVehicle vehicle(GetVehicleDataFile(vehicle_model.VehicleJSON()), contact_method);
 
     // Change collision shape for road wheels and idlers (true: cylinder; false: cylshell)
     ////vehicle.GetTrackAssembly(LEFT)->SetWheelCollisionType(false, false, false);
@@ -310,8 +310,8 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetRenderContactForces(true, 1e-4);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(vehicle_model.EngineJSON()));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(vehicle_model.TransmissionJSON()));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(vehicle_model.EngineJSON()));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(vehicle_model.TransmissionJSON()));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
     vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile(rigidterrain_file));
     terrain.Initialize();
 
     // Compatibility checks
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::DATAFILE: {
-            auto data_driver = chrono_types::make_shared<ChDataDriver>(vehicle, vehicle::GetDataFile(driver_file));
+            auto data_driver = chrono_types::make_shared<ChDataDriver>(vehicle, GetVehicleDataFile(driver_file));
             driver = data_driver;
             break;
         }

@@ -42,7 +42,7 @@ void CityBus_Pac02Tire::SetMFParams() {
 
     tir_file = "citybus/tire/CityBus_Pac02Tire.tir";
 
-    SetMFParamsByFile(vehicle::GetDataFile(tir_file));
+    SetMFParamsByFile(GetVehicleDataFile(tir_file));
 }
 
 // -----------------------------------------------------------------------------

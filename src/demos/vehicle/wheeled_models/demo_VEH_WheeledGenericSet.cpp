@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
                                   ChCoordsys<>(ChVector3d(terrain_x, terrain_y, 0), QUNIT),  //
                                   terrain_size_x, terrain_size_y);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
     // ---------------------------------

@@ -30,15 +30,14 @@ namespace synchrono {
 /// @addtogroup synchrono_utils
 /// @{
 
-/// @brief Set the path to the SynChrono data directory (ATTENTION: not thread safe)
-SYN_API void SetDataPath(const std::string& path);
+/// Set the path to the SynChrono data directory (ATTENTION: not thread safe).
+SYN_API void SetSynchronoDataPath(const std::string& path);
 
-/// @brief Obtain the current path to the SynChrono data directory (thread safe)
-SYN_API const std::string& GetDataPath();
+/// Obtain the current path to the SynChrono data directory (thread safe).
+SYN_API const std::string& GetSynchronoDataPath();
 
-/// @brief Obtain the complete path to the specified filename, given relative to the SynChrono data directory (thread
-/// safe)
-SYN_API std::string GetDataFile(const std::string& filename);
+/// Obtain the complete path to the specified filename, given relative to the SynChrono data directory (thread safe).
+SYN_API std::string GetSynchronoDataFile(const std::string& filename);
 
 /// @} synchrono_utils
 

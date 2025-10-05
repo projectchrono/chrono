@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     syn_manager.Initialize(vehicle.GetSystem());
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile("terrain/RigidPlane.json"));
 
     // Create the vehicle Irrlicht interface
     IrrAppWrapper app;
@@ -332,10 +332,10 @@ void GetVehicleModelFiles(VehicleType type,
                           double& cam_distance) {
     switch (type) {
         case VehicleType::M113:
-            vehicle = vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json");
-            engine = vehicle::GetDataFile("M113/powertrain/M113_EngineSimple.json");
-            transmission = vehicle::GetDataFile("M113/powertrain/M113_AutomaticTransmissionSimpleMap.json");
-            zombie = synchrono::GetDataFile("vehicle/M113.json");
+            vehicle = GetVehicleDataFile("M113/vehicle/M113_Vehicle_SinglePin.json");
+            engine = GetVehicleDataFile("M113/powertrain/M113_EngineSimple.json");
+            transmission = GetVehicleDataFile("M113/powertrain/M113_AutomaticTransmissionSimpleMap.json");
+            zombie = GetSynchronoDataFile("vehicle/M113.json");
             cam_distance = 8.0;
             break;
     }

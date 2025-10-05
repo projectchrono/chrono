@@ -880,7 +880,7 @@ ChJoystickIRR::ChJoystickIRR(ChVehicleVisualSystemIrrlicht* vsys)
       m_joystick_proccess_frame(0),
       callback_button(-1),
       callback_function(nullptr),
-      joystick_file(GetDataFile("joystick/controller_Default.json")) {}
+      joystick_file(GetVehicleDataFile("joystick/controller_Default.json")) {}
 
 void ChJoystickIRR::Initialize() {
     // Activate joysticks, is any

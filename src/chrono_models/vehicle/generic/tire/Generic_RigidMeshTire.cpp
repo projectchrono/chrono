@@ -41,7 +41,7 @@ const std::string Generic_RigidMeshTire::m_meshFile("generic/tire/generic_tire_c
 Generic_RigidMeshTire::Generic_RigidMeshTire(const std::string& name) : ChRigidTire(name) {
     // Contact and visualization meshes
     double sweep_radius = 0.005;
-    SetMeshFilename(vehicle::GetDataFile(m_meshFile), sweep_radius);
+    SetMeshFilename(GetVehicleDataFile(m_meshFile), sweep_radius);
 }
 
 // -----------------------------------------------------------------------------

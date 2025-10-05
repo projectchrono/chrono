@@ -147,8 +147,8 @@ int main(int argc, char* argv[]) {
     // Construct flat rectangular CRM terrain
     ////terrain.Construct(ChVector3d(10, 4, 0.5), ChVector3d(5, 0, -0.5), true);
     // Construct the terrain using SPH particles and BCE markers from files
-    terrain.Construct(vehicle::GetDataFile(terrain_dir + "/sph_particles.txt"),
-                      vehicle::GetDataFile(terrain_dir + "/bce_markers.txt"), VNULL);
+    terrain.Construct(GetVehicleDataFile(terrain_dir + "/sph_particles.txt"),
+                      GetVehicleDataFile(terrain_dir + "/bce_markers.txt"), VNULL);
 
     // Initialize the terrain system
     terrain.Initialize();
@@ -269,7 +269,7 @@ std::shared_ptr<TrackedVehicle> CreateVehicle(const ChCoordsys<>& init_pos) {
     std::string transmission_json = "M113/powertrain/M113_AutomaticTransmissionSimpleMap.json";
 
     // Create and initialize the vehicle
-    auto vehicle = chrono_types::make_shared<TrackedVehicle>(vehicle::GetDataFile(vehicle_json), ChContactMethod::NSC);
+    auto vehicle = chrono_types::make_shared<TrackedVehicle>(GetVehicleDataFile(vehicle_json), ChContactMethod::NSC);
     vehicle->Initialize(init_pos);
     vehicle->GetChassis()->SetFixed(false);
 
@@ -283,8 +283,8 @@ std::shared_ptr<TrackedVehicle> CreateVehicle(const ChCoordsys<>& init_pos) {
     vehicle->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(engine_json));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(transmission_json));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle->InitializePowertrain(powertrain);
 
@@ -293,7 +293,7 @@ std::shared_ptr<TrackedVehicle> CreateVehicle(const ChCoordsys<>& init_pos) {
 
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
     // Open input file
-    std::ifstream ifile(vehicle::GetDataFile(path_file));
+    std::ifstream ifile(GetVehicleDataFile(path_file));
     std::string line;
 
     // Read number of knots and type of curve
