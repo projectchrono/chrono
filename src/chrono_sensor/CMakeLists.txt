@@ -512,7 +512,7 @@ else()
 endif()
 
 # Install the shaders directory
-install(DIRECTORY ${CH_SHADERS_DIR}/ DESTINATION "sensor_shaders")
+install(DIRECTORY ${CH_SHADERS_DIR}/ DESTINATION ${CH_INSTALL_SENSOR_SHADERS})
 
 # Shader path (relative to binaries)
 set(SHADER_OUTPUT_PATH "../sensor_shaders")

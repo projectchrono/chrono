@@ -93,6 +93,9 @@ bool save = false;
 // Render camera images
 bool vis = true;
 
+// Verbose terminal output
+bool verbose = false;
+
 // Output directory
 const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
 
@@ -217,10 +220,13 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    float intensity = 1.0;
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    manager->SetVerbose(verbose);
+
+    float intensity = 1.0;
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
     manager->scene->SetAmbientLight({0.1f, 0.1f, 0.1f});
+
     Background b;
     b.mode = BackgroundMode::ENVIRONMENT_MAP;
     b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
@@ -419,7 +425,7 @@ int main(int argc, char* argv[]) {
 
         // Access the depth buffer from depth camera
         depth_ptr = depth->GetMostRecentBuffer<UserDepthBufferPtr>();
-        if (depth_ptr->Buffer) {
+        if (verbose && depth_ptr->Buffer) {
             // Print max depth values
             // float min_depth = depth_ptr->Buffer[0].depth;
             // float max_depth = depth_ptr->Buffer[0].depth;
@@ -429,8 +435,7 @@ int main(int argc, char* argv[]) {
             float d = depth_ptr->Buffer[depth_ptr->Height * depth_ptr->Width / 2].depth;
             std::cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
                       << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
-                      << ", depth ["<<depth_ptr->Height * depth_ptr->Width / 2 << "] ="<< d << "m" << std::endl
-                      << std::endl;
+                      << ", depth [" << depth_ptr->Height * depth_ptr->Width / 2 << "] =" << d << "m" << std::endl;
         }
 
         // Access the RGBA8 buffer from the first camera
