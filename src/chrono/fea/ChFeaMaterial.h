@@ -1065,11 +1065,19 @@ protected:
 class ChFeaFieldDataNONE : public ChFeaFieldDataGeneric<0> {};
 class ChFeaFieldDataScalar : public ChFeaFieldDataGeneric<1> {};
 class ChFeaFieldDataVector : public ChFeaFieldDataGeneric<3> {};
+class ChFeaFieldDataTemperature : public ChFeaFieldDataScalar { 
+    double& T() { return State()[0]; } 
+    double& T_dt() { return StateDt()[0]; }
+};
+class ChFeaFieldDataElectricPotential : public ChFeaFieldDataScalar {
+    double& V() { return State()[0]; }
+    double& V_dt() { return StateDt()[0]; }
+};
 
 class ChFeaFieldNONE : public ChFeaField<ChFeaFieldDataNONE> {};
 class ChFeaFieldScalar : public ChFeaField<ChFeaFieldDataScalar> {};
 class ChFeaFieldVector : public ChFeaField<ChFeaFieldDataVector> {};
-class ChFeaFieldTemperature : public ChFeaFieldScalar {};
+class ChFeaFieldTemperature : public ChFeaField<ChFeaFieldDataTemperature> {};
 class ChFeaFieldElectricPotential : public ChFeaFieldScalar {};
 class ChFeaFieldDisplacement3D : public ChFeaField<ChFeaFieldDataPos3D> {};
 
