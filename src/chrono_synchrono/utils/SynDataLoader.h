@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Global functions for accessing SynChrono data files. Modeled off of
-// chrono_vehicle/ChVehicleModelData.h
+// chrono_vehicle/ChVehicleDataPath.h
 //
 // =============================================================================
 

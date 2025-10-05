@@ -68,7 +68,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChWorldFrame.h"
@@ -357,7 +357,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %ignore chrono::vehicle::VehiclePartTag;
 %include "../../../chrono_vehicle/ChSubsysDefs.h"
 %include "chrono_models/vehicle/ChVehicleModelDefs.h"
-%include "../../../chrono_vehicle/ChVehicleModelData.h"
+%include "../../../chrono_vehicle/ChVehicleDataPath.h"
 %include "../../../chrono_vehicle/ChPart.h"
 %include "../../../chrono_vehicle/ChWorldFrame.h"
 %include "ChChassis.i"

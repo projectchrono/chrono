@@ -10,8 +10,8 @@
 //
 // =============================================================================
 
-#ifndef CHGLOBAL_H
-#define CHGLOBAL_H
+#ifndef CH_DATA_PATH_H
+#define CH_DATA_PATH_H
 
 #include <string>
 #include "chrono/core/ChApiCE.h"

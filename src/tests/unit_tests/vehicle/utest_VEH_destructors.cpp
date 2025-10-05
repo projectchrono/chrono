@@ -18,7 +18,7 @@
 
 #include "gtest/gtest.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/chassis/ChassisConnectorArticulated.h"

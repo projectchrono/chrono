@@ -20,7 +20,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
 #include "chrono_models/vehicle/feda/FEDA_BrakeSimple.h"

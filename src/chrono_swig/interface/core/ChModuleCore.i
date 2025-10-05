@@ -303,7 +303,7 @@ inline const char* ChUtils_GetFilename() {
 
 //  core/  classes
 %include "ChClassFactory.i"
-%include "../../../chrono/core/ChGlobal.h"
+%include "../../../chrono/core/ChDataPath.h"
 //%include "ChArchive.i"
 %include "ChMatrix.i"
 %include "ChVector2.i"

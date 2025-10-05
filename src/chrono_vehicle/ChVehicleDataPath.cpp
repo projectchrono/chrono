@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono/core/ChDataPath.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 namespace chrono {
 namespace vehicle {

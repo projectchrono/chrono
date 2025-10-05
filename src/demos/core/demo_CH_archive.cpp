@@ -27,7 +27,7 @@
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChObjectExplorer.h"
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"

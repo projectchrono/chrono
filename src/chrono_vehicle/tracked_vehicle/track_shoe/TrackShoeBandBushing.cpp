@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandBushing.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 

@@ -13,14 +13,14 @@
 // =============================================================================
 //
 // Global functions for accessing SynChrono data files. Modeled off of
-// chrono_vehicle/ChVehicleModelData.h
+// chrono_vehicle/ChVehicleDataPath.h
 //
 // =============================================================================
 
 #include "chrono_synchrono/utils/SynDataLoader.h"
 
-#include "chrono/core/ChGlobal.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono/core/ChDataPath.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;

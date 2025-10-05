@@ -27,7 +27,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 #include "chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"

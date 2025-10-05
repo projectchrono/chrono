@@ -18,7 +18,7 @@
 
 #include "chrono_models/vehicle/generic/tire/Generic_RigidMeshTire.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 namespace chrono {
 namespace vehicle {

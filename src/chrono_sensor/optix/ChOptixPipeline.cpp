@@ -18,7 +18,7 @@
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include <optix_stack_size.h>

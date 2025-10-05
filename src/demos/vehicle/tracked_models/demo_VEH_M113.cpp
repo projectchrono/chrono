@@ -21,7 +21,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/output/ChOutputASCII.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"

@@ -29,7 +29,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
 #include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"

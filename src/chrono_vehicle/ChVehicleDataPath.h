@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_VEHICLE_MODELDATA_H
-#define CH_VEHICLE_MODELDATA_H
+#ifndef CH_VEHICLE_DATA_PATH_H
+#define CH_VEHICLE_DATA_PATH_H
 
 #include <string>
 

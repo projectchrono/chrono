@@ -19,7 +19,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;

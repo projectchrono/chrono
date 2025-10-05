@@ -23,7 +23,7 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 

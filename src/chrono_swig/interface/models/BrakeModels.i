@@ -3,7 +3,7 @@
 /* Includes additional C++ in the wrapper code */
 
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 
 #include "chrono_models/ChApiModels.h"

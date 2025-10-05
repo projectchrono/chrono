@@ -20,7 +20,7 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace chrono::fea;

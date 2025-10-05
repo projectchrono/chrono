@@ -23,7 +23,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/robot/viper/Viper.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"

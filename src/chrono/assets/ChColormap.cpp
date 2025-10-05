@@ -19,7 +19,7 @@
 
 #include "chrono/assets/ChColormap.h"
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtils.h"
 
 namespace chrono {

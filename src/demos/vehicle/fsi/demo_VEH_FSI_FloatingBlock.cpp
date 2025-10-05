@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChBodyGeometry.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"

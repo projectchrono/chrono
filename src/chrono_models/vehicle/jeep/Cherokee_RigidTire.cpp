@@ -19,7 +19,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/jeep/Cherokee_RigidTire.h"
 
 namespace chrono {
