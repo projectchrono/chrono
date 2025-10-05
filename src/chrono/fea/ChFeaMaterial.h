@@ -2235,39 +2235,23 @@ public:
         for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
             Xhat.block(0, i, 3, 1) = ((ChFeaFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
         }
-//std::cout << "Xhat = \n" << Xhat << "\n";
+
         ChMatrixDynamic<> dNde;
         melement->ComputedNde(eta, dNde);
-/*
-std::cout << "dNde = \n" << dNde << "\n";
-std::cout << "dNdX = \n" << dNdX << "\n";
-ChMatrix33d mJ;
-melement->ComputeJ(eta, mJ);
-std::cout << "J = \n" << mJ << "\n";
-ChMatrixDynamic<> xhat(3, melement->GetNumNodes());
-for (int i = 0; i < melement->GetNumNodes(); ++i) {
-    xhat.block(0, i, 3, 1) = std::dynamic_pointer_cast<ChFeaNodeXYZ>(melement->GetNode(i))->GetReferencePos().eigen();
-}
-std::cout << "J as  x_hat*dNde^T \n" << (xhat * dNde.transpose()) << "\n";
-std::cout << "dNdX as J^-T dNde = \n" << (mJ.inverse().transpose() * dNde) << "\n";
-std::cout << "J_inv as J.inverse()" << (mJ.inverse()) << "\n";
-*/
+
         ChMatrix33d J_X_inv;
         melement->ComputeJinv(eta, J_X_inv);
-//std::cout << "J_X_inv = \n" << J_X_inv << "\n";
+
         ChMatrix33d F = Xhat * dNde.transpose() * J_X_inv;
-//std::cout << "F = \n" << F << "\n";
 
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
         this->ComputeB(B, dNdX, F);
-//std::cout << "B = \n" << B << "\n";
 
         ChStrainTensor<> E_strain; // Green Lagrange in Voigt notation
         // ***TODO*** compute stress here - but not needed for this constant elasticity
 
         ChMatrix66<double> C;
         this->material->ComputeTangentModulus(C, E_strain);
-//std::cout << "C = \n" << C << "\n";
 
         // K  matrix 
         // K = sum (B' * k * B  * w * |J|)  
