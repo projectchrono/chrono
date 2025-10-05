@@ -209,7 +209,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     static ParticleColoringType ReadParticleColoringType(const YAML::Node& a);
     static ChColormap::Type ReadColorMapType(const YAML::Node& a);
+#ifdef CHRONO_VSG
     static fsi::sph::MarkerPlanesVisibilityCallback::Mode ReadVisibilityMode(const YAML::Node& a);
+#endif
 
   private:  // ---- Member variables
     GeometryType m_geometry_type;
