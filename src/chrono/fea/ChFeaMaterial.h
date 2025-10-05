@@ -2102,8 +2102,8 @@ public:
 
         // We have:  Fi = - K * T;
         // where      K = sum (dNdX' * k * dNdX * w * |J|)
-        // so we compute  Fi += dNdX' * k * dNdX * T * s
-        Fi += (dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX) * T * s;
+        // so we compute  Fi += -(dNdX' * k * dNdX * T) * s
+        Fi += -(dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX) * T * s;
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
