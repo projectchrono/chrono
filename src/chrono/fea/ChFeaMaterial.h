@@ -2198,10 +2198,9 @@ public:
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
         this->ComputeB(B, dNdX, F);
         
-        // We have:  Fi = - K * T;
-        // where     Fi = sum (B' * S * w * |J|)
-        // so we compute  Fi += B' * S * s
-        Fi += (B.transpose() * S_stress) * s;
+        // We have:             Fi = - sum (B' * S * w * |J|)
+        // so here we compute  Fi += - B' * S * s
+        Fi += -(B.transpose() * S_stress) * s;
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
