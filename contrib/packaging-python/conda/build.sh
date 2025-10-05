@@ -15,10 +15,10 @@ else
     PY_LIB="libpython${PY_VER}.so"
 fi
 
-ROS_SETUP_SCRIPT="$HOME/Packages/ros_ws/install/setup.sh"
-if [ -f "$ROS_SETUP_SCRIPT" ]; then
-  source $ROS_SETUP_SCRIPT
-fi
+# ROS_SETUP_SCRIPT="$HOME/Packages/ros_ws/install/setup.sh"
+# if [ -f "$ROS_SETUP_SCRIPT" ]; then
+#   source $ROS_SETUP_SCRIPT
+# fi
 
 # set MKL vars
 export MKL_INTERFACE_LAYER=LP64
@@ -41,7 +41,7 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCH_ENABLE_MODULE_VEHICLE=ON \
  -DCH_ENABLE_MODULE_PYTHON=ON \
  -DCH_ENABLE_MODULE_SENSOR=ON \
- -DCH_ENABLE_MODULE_ROS=ON \
+ -DCH_ENABLE_MODULE_ROS=OFF \
  -DCH_ENABLE_MODULE_PARSERS=ON \
  -DCH_USE_CUDA_NVRTC=OFF \
  -DCUDA_ARCH_NAME=Manual \

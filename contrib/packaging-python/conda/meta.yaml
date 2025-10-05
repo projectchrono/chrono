@@ -65,6 +65,7 @@ requirements:
     - libgl # [linux]
     - openmpi
     - yaml
+    - tinyxml2
 
 about:
   home: https://github.com/projectchrono/chrono
