@@ -32,7 +32,7 @@
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"

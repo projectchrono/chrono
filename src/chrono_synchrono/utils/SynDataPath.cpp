@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"

@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef SYN_DATA_LOADER_H
-#define SYN_DATA_LOADER_H
+#ifndef SYN_DATA_PATH_H
+#define SYN_DATA_PATH_H
 
 #include <string>
 
