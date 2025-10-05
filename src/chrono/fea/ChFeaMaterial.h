@@ -431,7 +431,7 @@ public:
 
     // Tell the minimum required quadrature order when integrating over the element
     virtual int GetMinQuadratureOrder() const override {
-        return 1;
+        return 2;
     }
 
     // Tell how many Gauss points are needed for integration
