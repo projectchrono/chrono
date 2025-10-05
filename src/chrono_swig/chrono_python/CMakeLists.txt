@@ -139,7 +139,7 @@ else()
   if(CH_USE_CUDA_NVRTC)
     set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
   else()
-    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/")
+    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
   endif()
 
   # Generate the __init__.py file using substitution variables and place it in a temporary place
