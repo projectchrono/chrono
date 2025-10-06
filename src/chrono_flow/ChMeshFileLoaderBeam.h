@@ -37,21 +37,11 @@ namespace flow {
 /// Collection of mesh file loader utilities.
 class ChFlowApi ChMeshFileLoaderBeam {
   public:
-    /// Load tetrahedrons from .node and .ele files as saved by TetGen.
-    /// The file format for .node (with point# starting from 1) is:
-    ///   [# of points] [dimension (only 3)] [# of attributes (only 0)] [markers (only 0)]
-    ///   [node #] [x] [y] [z]
-    ///   [node #] [x] [y] [z]   etc.
-    /// The file format for .ele (with tet# starting from 1) is:
-    ///   [# of tetrahedrons] [dimension (only 4 supported)] [# of attributes (only 0)]
-    ///   [tet #] [node #] [node #] [node #] [node #]
-    ///   [tet #] [node #] [node #] [node #] [node #]   etc.
-    /// If you pass a material inherited by ChContinuumElastic, nodes with 3D motion are used, and corotational
-    /// elements.
-    /// If you pass a material inherited by ChContinuumPoisson3D, nodes with scalar field are used (ex. thermal,
-    /// electrostatics, etc)
-    /// Load tetrahedrons, if any, saved in a .inp file for Abaqus.
-    static void FromFreeCADFile(
+  /// Load mesh information imported from various software, for use as generic FEA 
+  /// or specific CBL flow elements (in the case of CBLMultiMat, with different materials for longitudinal and lateral elements).
+
+    // Similar to FromAbaqusFile but for FreeCAD exported .inp files
+    static void FromFreeCADFile( 
         std::shared_ptr<ChMesh> mesh,                      /// destination mesh
         const char* filename,                              /// input file name
         std::shared_ptr<ChContinuumMaterial> my_material,  /// material for the created tetahedrons
@@ -62,7 +52,7 @@ class ChFlowApi ChMeshFileLoaderBeam {
         bool discard_unused_nodes =
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
     );
-
+    // Imports for use in flow elements, with different materials for longitudinal and lateral elements based on FreeCAD export
     static void FromFreeCADFileCBLMultiMat(
         std::shared_ptr<ChMesh> mesh,                       /// destination mesh
         const char* filename,                               /// input file name
