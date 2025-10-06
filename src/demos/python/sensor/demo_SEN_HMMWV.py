@@ -32,9 +32,6 @@ import math
 def main():
     print("Copyright (c) 2017 projectchrono.org" + "\n\n")
 
-    # Set output root directory
-    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
-
     # Create systems
 
     #  Create the HMMWV vehicle, set parameters, and initialize
@@ -77,6 +74,16 @@ def main():
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
 
+    # Create the interactive driver system
+    driver = veh.ChInteractiveDriver(hmmwv.GetVehicle())
+    steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
+    throttle_time = 1.0  # time to go from 0 to +1
+    braking_time = 0.3   # time to go from 0 to +1
+    driver.SetSteeringDelta(render_step_size / steering_time)
+    driver.SetThrottleDelta(render_step_size / throttle_time)
+    driver.SetBrakingDelta(render_step_size / braking_time)
+    driver.Initialize()
+
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
     vis.SetWindowTitle('HMMWV')
@@ -87,6 +94,7 @@ def main():
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv.GetVehicle())
+    vis.AttachDriver(driver)
 
     # Initialize output
 
@@ -104,19 +112,6 @@ def main():
 
     # Generate JSON information with available output channels
     hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json")
-
-    # Create the interactive driver system
-    driver = veh.ChInteractiveDriverIRR(vis)
-
-    # Set the time response for steering and throttle keyboard inputs.
-    steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
-    throttle_time = 1.0  # time to go from 0 to +1
-    braking_time = 0.3   # time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time)
-    driver.SetThrottleDelta(render_step_size / throttle_time)
-    driver.SetBrakingDelta(render_step_size / braking_time)
-
-    driver.Initialize()
 
     # Simulation loop
 
@@ -363,8 +358,11 @@ t_end = 1000
 # Time interval between two render frames
 render_step_size = 1.0 / 50  # FPS = 50
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
-out_dir = "SENSOR_OUTPUT/"
+out_dir = chrono.GetChronoOutputPath() + "Sensors_HMMWV/"
 
 # Debug logging
 debug_output = False
