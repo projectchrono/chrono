@@ -514,19 +514,27 @@ endif()
 # Install the shaders directory
 install(DIRECTORY ${CH_SHADERS_DIR}/ DESTINATION ${CH_INSTALL_SENSOR_SHADERS})
 
-# Shader path (relative to binaries)
-set(SHADER_OUTPUT_PATH "../sensor_shaders")
-
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
-# Generate the configuration header file using substitution variables for build and install trees
+message(STATUS "Create Chrono::Sensor configuration file")
 
+# For the build tree
+set(SHADER_DIR ${CH_SHADERS_DIR})
+message(STATUS "   build tree:   SHADER_DIR = ${SHADER_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
     ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h)
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h"
+# For the install tree
+set(SHADER_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
+message(STATUS "   install tree: SHADER_DIR = ${SHADER_DIR}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
+    ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h)
+
+# Install configuration file
+install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h"
+        RENAME "ChConfigSensor.h"
         DESTINATION include/chrono_sensor)
 
 # ------------------------------------------------------------------------------
