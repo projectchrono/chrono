@@ -465,6 +465,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChForceElementTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMeasyTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMsimpleTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac89Tire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac02Tire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFialaTire)

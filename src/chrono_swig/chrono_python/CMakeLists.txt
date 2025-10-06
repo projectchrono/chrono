@@ -126,7 +126,7 @@ if (CH_CONDA_INSTALL)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.conda.in
                  ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
 else()
-  # Path to Chrono data directory and Chrono::Sensor shaders (in BUILD tree)
+  # Path to Chrono data directory and Chrono::Sensor shaders (in local INSTALL tree)
   set(PYC_DATA_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
   set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
   
