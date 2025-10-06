@@ -454,7 +454,6 @@ set(Chrono_fea_materials_SOURCES
     fea/ChMaterialHexaANCF.cpp
     fea/ChMaterialShellReissner.cpp
     fea/ChMaterialShellKirchhoff.cpp
-    fea/ChFeaMaterial.cpp
     )
 set(Chrono_fea_materials_HEADERS
     fea/ChContinuumMaterial.h
@@ -466,9 +465,48 @@ set(Chrono_fea_materials_HEADERS
     fea/ChMaterialHexaANCF.h
     fea/ChMaterialShellReissner.h
     fea/ChMaterialShellKirchhoff.h
-    fea/ChFeaMaterial.h
     )
 source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_materials_HEADERS})
+
+set(Chrono_fea_multiphysics_SOURCES
+    fea/ChNodeFEAmultiXYZ.cpp
+    fea/ChFieldElement.cpp
+    fea/ChFieldElementTetrahedron_4.cpp
+    fea/ChFieldElementHexahedron_8.cpp
+    fea/ChFieldData.cpp
+    fea/ChField.cpp
+    fea/ChMaterial.cpp
+    fea/ChMaterial3DDensity.cpp
+    fea/ChMaterialPoisson.cpp
+    fea/ChMaterial3DThermal.cpp
+    fea/ChMaterial3DStress.cpp
+    fea/ChMaterial3DHyperelastic.cpp
+    fea/ChMaterial3DStressStVenant.cpp
+    fea/ChDomain.cpp
+    fea/ChDomainThermal.cpp
+    fea/ChDomainElastic.cpp
+    fea/ChDomainThermoElastic.cpp
+    )
+set(Chrono_fea_multiphysics_HEADERS
+    fea/ChNodeFEAmultiXYZ.h
+    fea/ChFieldElement.h
+    fea/ChFieldElementTetrahedron_4.h
+    fea/ChFieldElementHexahedron_8.h
+    fea/ChFieldData.h
+    fea/ChField.h
+    fea/ChMaterial.h
+    fea/ChMaterial3DDensity.h
+    fea/ChMaterialPoisson.h
+    fea/ChMaterial3DThermal.h
+    fea/ChMaterial3DStress.h
+    fea/ChMaterial3DHyperelastic.h
+    fea/ChMaterial3DStressStVenant.h
+    fea/ChDomain.h
+    fea/ChDomainThermal.h
+    fea/ChDomainElastic.h
+    fea/ChDomainThermoElastic.h
+    )
+source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 
 set(Chrono_fea_sections_SOURCES
     fea/ChBeamSection.cpp
@@ -1279,6 +1317,7 @@ set(Chrono_SOURCES
     ${Chrono_fea_constraints_SOURCES}
     ${Chrono_fea_materials_SOURCES}
     ${Chrono_fea_sections_SOURCES}
+    ${Chrono_fea_multiphysics_SOURCES}
     ${Chrono_solver_SOURCES}
     ${Chrono_solver_constraints_SOURCES}
     ${Chrono_solver_variables_SOURCES}
@@ -1309,6 +1348,7 @@ set(Chrono_HEADERS
     ${Chrono_fea_elements_HEADERS}
     ${Chrono_fea_constraints_HEADERS}
     ${Chrono_fea_materials_HEADERS}
+    ${Chrono_fea_multiphysics_HEADERS}
     ${Chrono_fea_sections_HEADERS}
     ${Chrono_fea_constraints_HEADERS}
     ${Chrono_solver_HEADERS}
