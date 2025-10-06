@@ -25,12 +25,12 @@
 #include <optix_stubs.h>
 // #include <optix_function_table_definition.h>
 
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/optix/ChOptixUtils.h"
+
 #ifdef USE_CUDA_NVRTC
     #include <nvrtc.h>
 #endif
-
-#include "chrono_sensor/ChConfigSensor.h"
-#include "chrono_sensor/optix/ChOptixUtils.h"
 
 namespace chrono {
 namespace sensor {
@@ -39,6 +39,10 @@ static std::string shader_dir = SHADER_OUTPUT_PATH;
 
 void SetSensorShaderDir(const std::string& path) {
     shader_dir = path;
+}
+
+const std::string& GetSensorShaderDir() {
+    return shader_dir;
 }
 
 void GetShaderFromFile(OptixDeviceContext context,

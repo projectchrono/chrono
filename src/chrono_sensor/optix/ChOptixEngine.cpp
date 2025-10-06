@@ -579,11 +579,11 @@ void ChOptixEngine::ConstructScene() {
                         deformableMeshVisualization(body, trimesh_shape, shape_frame);
                     }
                 } else if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-                    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
-                    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-                    trimesh_shape->SetMesh(trimesh);
-                    trimesh_shape->SetMutable(false);
-                    rigidMeshVisualization(body, trimesh_shape, shape_frame);
+                    auto obj_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
+                    auto obj_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+                    obj_trimesh_shape->SetMesh(obj_trimesh);
+                    obj_trimesh_shape->SetMutable(false);
+                    rigidMeshVisualization(body, obj_trimesh_shape, shape_frame);
                 } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
                 } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
                 } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {

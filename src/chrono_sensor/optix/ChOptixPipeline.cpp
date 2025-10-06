@@ -21,6 +21,10 @@
 #include "chrono/core/ChDataPath.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
+#ifdef CHRONO_HAS_CXX17
+    #include <filesystem>
+#endif
+
 #include <optix_stack_size.h>
 #include <optix_stubs.h>
 
@@ -249,6 +253,13 @@ void ChOptixPipeline::CleanMaterials() {
 }
 
 void ChOptixPipeline::CompileBaseShaders() {
+    if (m_debug) {
+#ifdef CHRONO_HAS_CXX17
+        std::cout << "Current directory: " << std::filesystem::current_path() << std::endl;
+        std::cout << "Shader directory:  " << GetSensorShaderDir() << std::endl;
+#endif
+    }
+
     OptixModuleCompileOptions module_compile_options = {};
     if (m_debug) {
         module_compile_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
