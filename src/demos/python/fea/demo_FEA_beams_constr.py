@@ -38,7 +38,7 @@ class ChFunctionMyFun (chrono.ChFunction):
 chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # Output directory
-out_dir = chrono.GetChronoOutputPath() + "BEAM_BUCKLING"
+out_dir = chrono.GetChronoOutputPath() + "FEA_Beams_Buckling/"
 
 print( "Copyright (c) 2017 projectchrono.org \n")
 

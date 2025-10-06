@@ -25,9 +25,6 @@ import math
 import numpy as np
 
 def main():
-    # Set output root directory
-    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
-
     # -----------------
     # Create the system
     # -----------------
@@ -346,8 +343,11 @@ save = False
 # Render camera images
 vis = True
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
-out_dir = "SENSOR_OUTPUT/SENSORS_PY"
+out_dir = chrono.GetChronoOutputPath() + "Sensors/"
 
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.

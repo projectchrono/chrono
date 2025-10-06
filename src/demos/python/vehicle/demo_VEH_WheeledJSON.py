@@ -19,9 +19,6 @@ import os
 
 def main() : 
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
-    
-    # Set output root directory
-    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
     # Create the vehicle system
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
@@ -154,9 +151,12 @@ step_size = 2e-3
 
 # Time interval between two render frames
 render_step_size = 1.0 / 50  # FPS = 50
+    
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # Output directories
-out_dir =  './WHEELED_JSON';
+out_dir = chrono.GetChronoOutputPath() + "Wheeled_JSON/"
 
 # Run-time visualization type (VSG or Irrlicht)
 vis_type = chrono.ChVisualSystem.Type_VSG;

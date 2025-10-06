@@ -27,6 +27,10 @@ try:
 except:
    print('Could not import ChronoIrrlicht')
 
+    
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 time_step = 1e-3
 
 # Drop the robot on rigid terrain
@@ -48,7 +52,7 @@ output_fps = 100
 render_fps = 60
 
 # Output directories
-out_dir = "./ROBOSIMIAN_RIGID"
+out_dir = chrono.GetChronoOutputPath() + "ROBOSIMIAN_Rigid/"
 pov_dir = out_dir + "/POVRAY"
 img_dir = out_dir + "/IMG"
 

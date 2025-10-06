@@ -68,7 +68,7 @@ tend = 15
 render_step_size = 1.0 / 50  # FPS = 50
 
 # Output directories
-out_dir = "./UAZBUS"
+out_dir = chrono.GetChronoOutputPath() + "UAZBUS/"
 
 
 # =============================================================================

@@ -31,7 +31,7 @@ print ('Demonstration of functions for y = f(x)')
 chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # Create the output directory
-out_dir = os.path.join(os.path.dirname(__file__), "Functions_demo")
+out_dir = chrono.GetChronoOutputPath() + "Functions/"
 try:
     os.mkdir(out_dir)
 except OSError as exc:

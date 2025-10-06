@@ -37,9 +37,6 @@ import math as m
 def main() : 
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
 
-    # Set output root directory
-    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
-
     # Create the rig from a JSON specification file
     rig = veh.ChSuspensionTestRigPushrod(str_file)
 
@@ -135,10 +132,13 @@ test_axles = [1, 2]
 # Simulation step size
 step_size = 1e-3
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output collection
 output = True
 plot = True
-out_dir =  './SUSPENSION_TEST_RIG'
+out_dir =  chrono.GetChronoOutputPath() + "Suspension_Test_Rig/"
 out_step_size = 1e-2
 
 main()

@@ -32,9 +32,6 @@ import math as m
 def main():
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
 
-    # Set output root directory
-    chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
-
     # Create systems
 
     #  Create the HMMWV vehicle, set parameters, and initialize
@@ -245,8 +242,11 @@ t_end = 1000
 # Time interval between two render frames
 render_step_size = 1.0 / 50  # FPS = 50
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directories
-out_dir = os.path.join(os.path.dirname(__file__), "HMMWV_demo")
+out_dir = chrono.GetChronoOutputPath() + "HMMWV/"
 
 # Debug logging
 debug_output = True
