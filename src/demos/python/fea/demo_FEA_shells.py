@@ -19,8 +19,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
-out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS"
+out_dir = chrono.GetChronoOutputPath() + "FEA_Shells/"
 
 print( "Copyright (c) 2017 projectchrono.org")
 

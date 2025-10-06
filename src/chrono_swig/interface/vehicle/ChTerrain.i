@@ -20,6 +20,13 @@
 #if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
     #include "chrono_vehicle/terrain/CRGTerrain.h"
 #endif
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI
+#include "chrono_vehicle/terrain/CRMTerrain.h"
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
 
@@ -57,6 +64,12 @@
 %shared_ptr(chrono::vehicle::SCMTerrain)
 %shared_ptr(chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI
+%shared_ptr(chrono::vehicle::CRMTerrain)
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
 #if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
 %shared_ptr(chrono::vehicle::CRGTerrain)
 #endif
@@ -74,6 +87,12 @@
 %pointer_functions(int, intp)
 %pointer_functions(double, doublep)
 %include "../../../chrono_vehicle/terrain/SCMTerrain.h"
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI
+%include "../../../chrono_vehicle/terrain/CRMTerrain.h"
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
 
 #if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
 %include "../../../chrono_vehicle/terrain/CRGTerrain.h"

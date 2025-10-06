@@ -109,20 +109,20 @@ struct ChFsiParamsSPH {
 
     double pressure_height;  ///< height for pressure initialization
 
-    int densityReinit;  ///< Reinitialize density after densityReinit steps. Note that doing this more frequently helps
-                        /// in getting more accurate incompressible fluid, but more stable solution is obtained for
-                        /// larger densityReinit
+    // Note: more frequent re-initialization helps in getting more accurate incompressible fluid, 
+    // but more stable solution is obtained for larger values of density_reinit_steps
+    int density_reinit_steps;  ///< reinitialize density after density_reinit_steps steps
 
-    bool Conservative_Form;  ///< Whether conservative or consistent discretization should be used
+    bool Conservative_Form;  ///< use conservative or consistent discretization
     int gradient_type;       ///< Type of the gradient operator
     int laplacian_type;      ///< Type of the laplacian operator
 
-    bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
-    bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
-    bool USE_Delta_SPH;     ///< Use delta SPH
-    Real density_delta;     ///< Parameter for delta SPH
+    bool use_consistent_gradient_discretization;                         ///< use consistent discretization for gradient operator
+    bool use_consistent_laplacian_discretization;  ///< use consistent discretization for laplacian operator
+    bool use_delta_sph;                            ///< use delta SPH
+    Real density_delta;                            ///< parameter for delta SPH
 
-    bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
+    bool use_density_based_projection;  ///< Set true to use density based projetion scheme in ISPH solver
 
     bool Pressure_Constraint;  ///< Whether the singularity of the pressure equation should be fixed
     SolverType LinearSolver;   ///< Type of the linear solver
@@ -164,9 +164,9 @@ struct ChFsiParamsSPH {
     Real INV_G_shear;   ///< 1.0 / G_shear
     Real K_bulk;        ///< Bulk modulus
     Real Nu_poisson;    ///< Poisson's ratio
-    Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
+    Real artificial_viscosity;  ///< Artifical viscosity coefficient
     Real Coh_coeff;     ///< Cohesion coefficient
-    Real C_Wi;          ///< Threshold of the integration of the kernel function
+    Real free_surface_threshold;          ///< Threshold of the integration of the kernel function
 
     Real boxDimX;  ///< Dimension of the space domain - X
     Real boxDimY;  ///< Dimension of the space domain - Y
@@ -191,6 +191,7 @@ struct ChFsiParamsSPH {
     Real settlingTime;       ///< Time for the granular to settle down
 
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists
+    bool use_variable_time_step;     ///< use variable time step (default: false)
 };
 
 /// @} fsisph

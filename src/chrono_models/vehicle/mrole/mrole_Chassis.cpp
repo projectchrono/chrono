@@ -19,7 +19,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/mrole/mrole_Chassis.h"
 
@@ -91,7 +91,7 @@ mrole_Chassis::mrole_Chassis(const std::string& name, bool fixed, CollisionType 
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("");
+    m_geometry.vis_model_file = GetVehicleDataFile("");
 
     switch (chassis_collision_type) {
         default:
@@ -102,7 +102,7 @@ mrole_Chassis::mrole_Chassis(const std::string& name, bool fixed, CollisionType 
             m_geometry.coll_boxes.push_back(box2);
             break;
         ////case CollisionType::HULLS: {
-        ////    utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile(""), 0);
+        ////    utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile(""), 0);
         ////    m_geometry.coll_hulls.push_back(hull);
         ////    break;
         ////}

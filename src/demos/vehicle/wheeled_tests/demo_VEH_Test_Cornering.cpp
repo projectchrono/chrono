@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
@@ -89,14 +89,14 @@ int main(int argc, char** argv) {
     std::string crg_road_file;
     if (big_radius) {
         if (right_turn)
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_100m_right.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_100m_right.crg");
         else
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_100m_left.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_100m_left.crg");
     } else {
         if (right_turn)
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_50m_right.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_50m_right.crg");
         else
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_50m_left.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_50m_left.crg");
     }
 
     // ----------------------------

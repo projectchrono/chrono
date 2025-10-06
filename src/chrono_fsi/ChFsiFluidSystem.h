@@ -92,10 +92,13 @@ class CH_FSI_API ChFsiFluidSystem {
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) = 0;
 
+    /// Get the step size.
+    virtual double GetVariableStepSize() = 0;
+
   protected:
     ChFsiFluidSystem();
 
-    void UseNodeDirections(bool val) { m_use_node_directions = val; }
+    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
 
     /// Solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {}
@@ -115,8 +118,8 @@ class CH_FSI_API ChFsiFluidSystem {
     bool m_verbose;        ///< enable/disable m_verbose terminal output
     std::string m_outdir;  ///< output directory
 
-    bool m_use_node_directions;  ///< use FEA node directions
-    bool m_is_initialized;       ///< set to true once the Initialize function is called
+    NodeDirectionsMode m_node_directions_mode;  ///< mode used for FEA node directions
+    bool m_is_initialized;                      ///< set to true once the Initialize function is called
 
     double m_step;         ///< time step for fluid dynamics
     unsigned int m_frame;  ///< current simulation frame

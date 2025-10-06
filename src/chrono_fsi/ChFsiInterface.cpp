@@ -40,8 +40,12 @@ namespace fsi {
 
 // =============================================================================
 
-ChFsiInterface::ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
-    : m_sysMBS(sysMBS), m_sysCFD(sysCFD), m_verbose(true), m_initialized(false), m_use_node_directions(false) {}
+ChFsiInterface::ChFsiInterface(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
+    : m_sysMBS(sysMBS),
+      m_sysCFD(sysCFD),
+      m_verbose(true),
+      m_initialized(false),
+      m_node_directions_mode(NodeDirectionsMode::NONE) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -99,9 +103,17 @@ const ChVector3d& ChFsiInterface::GetFsiBodyTorque(size_t i) const {
 
 // ------------
 
+void ChFsiInterface::AttachMultibodySystem(ChSystem* sys) {
+    m_sysMBS = sys;
+}
+
 std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body,
                                                     std::shared_ptr<utils::ChBodyGeometry> geometry,
                                                     bool check_embedded) {
+    ChAssertAlways(m_sysMBS);
+    ChAssertAlways(m_sysCFD);
+    ChAssertAlways(!geometry || geometry->HasCollision());
+
     auto fsi_body = chrono_types::make_shared<FsiBody>();
     fsi_body->body = body;
     fsi_body->geometry = geometry;
@@ -115,7 +127,7 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
     fsi_body->index = m_fsi_bodies.size();
 
     // Let the fluid solver process the FSI solid
-    m_sysCFD.OnAddFsiBody(fsi_body, check_embedded);
+    m_sysCFD->OnAddFsiBody(fsi_body, check_embedded);
 
     // Store the body
     m_fsi_bodies.push_back(fsi_body);
@@ -125,6 +137,9 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
 
 std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface,
                                                         bool check_embedded) {
+    ChAssertAlways(m_sysMBS);
+    ChAssertAlways(m_sysCFD);
+
     auto fsi_mesh = chrono_types::make_shared<FsiMesh1D>();
     fsi_mesh->contact_surface = surface;
 
@@ -146,7 +161,7 @@ std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChC
     fsi_mesh->index = m_fsi_bodies.size();
 
     // Let the fluid solver process the FSI solid
-    m_sysCFD.OnAddFsiMesh1D(fsi_mesh, check_embedded);
+    m_sysCFD->OnAddFsiMesh1D(fsi_mesh, check_embedded);
 
     // Store the mesh contact surface
     m_fsi_meshes1D.push_back(fsi_mesh);
@@ -156,6 +171,9 @@ std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChC
 
 std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface,
                                                         bool check_embedded) {
+    ChAssertAlways(m_sysMBS);
+    ChAssertAlways(m_sysCFD);
+
     auto fsi_mesh = chrono_types::make_shared<FsiMesh2D>();
     fsi_mesh->contact_surface = surface;
 
@@ -184,7 +202,7 @@ std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChC
     fsi_mesh->index = m_fsi_bodies.size();
 
     // Let the fluid solver process the FSI solid
-    m_sysCFD.OnAddFsiMesh2D(fsi_mesh, check_embedded);
+    m_sysCFD->OnAddFsiMesh2D(fsi_mesh, check_embedded);
 
     // Store the mesh contact surface
     m_fsi_meshes2D.push_back(fsi_mesh);
@@ -211,11 +229,6 @@ void ChFsiInterface::Initialize() {
 
 // ------------
 
-void ChFsiInterface::UseNodeDirections(bool val) {
-    ChAssertAlways(!m_initialized);
-    m_use_node_directions = val;
-}
-
 void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states,
                                           std::vector<FsiMeshState>& mesh1D_states,
                                           std::vector<FsiMeshState>& mesh2D_states) const {
@@ -231,7 +244,7 @@ void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states
         mesh1D_states[imesh].pos.resize(num_nodes);
         mesh1D_states[imesh].vel.resize(num_nodes);
         mesh1D_states[imesh].acc.resize(num_nodes);
-        if (m_use_node_directions)
+        if (m_node_directions_mode != NodeDirectionsMode::NONE)
             mesh1D_states[imesh].dir.resize(num_nodes);
     }
 
@@ -241,7 +254,7 @@ void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states
         mesh2D_states[imesh].pos.resize(num_nodes);
         mesh2D_states[imesh].vel.resize(num_nodes);
         mesh2D_states[imesh].acc.resize(num_nodes);
-        if (m_use_node_directions)
+        if (m_node_directions_mode != NodeDirectionsMode::NONE)
             mesh2D_states[imesh].dir.resize(num_nodes);
     }
 }
@@ -397,7 +410,10 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                 mesh1D_states[imesh].vel[inode] = node->GetPosDt();
                 mesh1D_states[imesh].acc[inode] = node->GetPosDt2();
             }
-            if (m_use_node_directions) {
+            bool calculate_node_directions = (m_node_directions_mode == NodeDirectionsMode::AVERAGE);
+            //// TODO - exact node directions
+            //// use exact from FEA mesh or fall back on average
+            if (calculate_node_directions) {
                 ChDebugLog("mesh1D " << imesh << " dir size: " << mesh1D_states[imesh].dir.size());
                 CalculateDirectionsMesh1D(*fsi_mesh, mesh1D_states[imesh]);
                 mesh1D_states[imesh].has_node_directions = true;
@@ -416,7 +432,10 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                 mesh2D_states[imesh].vel[inode] = node->GetPosDt();
                 mesh2D_states[imesh].acc[inode] = node->GetPosDt2();
             }
-            if (m_use_node_directions) {
+            bool calculate_node_directions = (m_node_directions_mode == NodeDirectionsMode::AVERAGE);
+            //// TODO - exact node directions
+            //// use exact from FEA mesh or fall back on average
+            if (calculate_node_directions) {
                 ChDebugLog("mesh2D " << imesh << " dir size: " << mesh2D_states[imesh].dir.size());
                 CalculateDirectionsMesh2D(*fsi_mesh, mesh2D_states[imesh]);
                 mesh2D_states[imesh].has_node_directions = true;
@@ -499,8 +518,8 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
         size_t ibody = 0;
         for (const auto& fsi_body : m_fsi_bodies) {
             fsi_body->body->EmptyAccumulator(fsi_body->fsi_accumulator);
-            fsi_body->body->AccumulateForce(fsi_body->fsi_accumulator, body_forces[ibody].force, fsi_body->body->GetPos(),
-                                           false);
+            fsi_body->body->AccumulateForce(fsi_body->fsi_accumulator, body_forces[ibody].force,
+                                            fsi_body->body->GetPos(), false);
             fsi_body->body->AccumulateTorque(fsi_body->fsi_accumulator, body_forces[ibody].torque, false);
             ibody++;
         }
@@ -535,7 +554,7 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
 
 // =============================================================================
 
-ChFsiInterfaceGeneric::ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
+ChFsiInterfaceGeneric::ChFsiInterfaceGeneric(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
     : ChFsiInterface(sysMBS, sysCFD) {}
 
 ChFsiInterfaceGeneric::~ChFsiInterfaceGeneric() {}
@@ -552,12 +571,12 @@ void ChFsiInterfaceGeneric::ExchangeSolidStates() {
     StoreSolidStates(m_body_states, m_mesh1D_states, m_mesh2D_states);
 
     // Pass solid states to the fluid solver
-    m_sysCFD.LoadSolidStates(m_body_states, m_mesh1D_states, m_mesh2D_states);
+    m_sysCFD->LoadSolidStates(m_body_states, m_mesh1D_states, m_mesh2D_states);
 }
 
 void ChFsiInterfaceGeneric::ExchangeSolidForces() {
     // Get solid forces from the fluid solver
-    m_sysCFD.StoreSolidForces(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
+    m_sysCFD->StoreSolidForces(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
 
     // Load solid forces to the multibody system (apply as external loads)
     LoadSolidForces(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);

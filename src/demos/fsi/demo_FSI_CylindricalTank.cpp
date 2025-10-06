@@ -23,7 +23,7 @@
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -79,7 +79,7 @@ bool show_particles_sph = true;
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
     virtual bool get(unsigned int n) const override { return pos[n].x < 0 || pos[n].y < 0; }
@@ -98,9 +98,9 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblemCylindrical fsi(sysMBS, initial_spacing);
+    ChFsiProblemCylindrical fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetFsiSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
@@ -126,8 +126,8 @@ int main(int argc, char* argv[]) {
     sph_params.max_velocity = 8.0;
     sph_params.shifting_method = ShiftingMethod::XSPH;
     sph_params.shifting_xsph_eps = 0.5;
-    sph_params.consistent_gradient_discretization = false;
-    sph_params.consistent_laplacian_discretization = false;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = 1;
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
@@ -140,8 +140,8 @@ int main(int argc, char* argv[]) {
 
     // Create a rigid body
     double radius = 0.12;
-    double mass = density * ChSphere::GetVolume(radius);
-    ChMatrix33d inertia = mass * ChSphere::GetGyration(radius);
+    double mass = density * ChSphere::CalcVolume(radius);
+    ChMatrix33d inertia = mass * ChSphere::CalcGyration(radius);
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetName("ball");
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);

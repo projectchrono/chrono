@@ -21,7 +21,7 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
@@ -91,10 +91,10 @@ int main(int argc, char* argv[]) {
     auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector3d(0, +25, 0), QUNIT), 100, 50);
 
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);
+    patch1->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 200, 50);
 
     patch2->SetColor(ChColor(0.5f, 0.5f, 0.8f));
-    patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 50);
+    patch2->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 50);
 
     terrain.Initialize();
 

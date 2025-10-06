@@ -24,7 +24,7 @@
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
 
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
 
 namespace chrono {
 namespace fsi {

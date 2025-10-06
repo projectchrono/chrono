@@ -19,7 +19,7 @@
 #pragma once
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/artcar/ARTcar.h"
 #include "chrono_models/vehicle/jeep/Cherokee.h"

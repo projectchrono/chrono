@@ -21,7 +21,7 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
@@ -116,13 +116,13 @@ int main(int argc, char* argv[]) {
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::NSC);
 
     auto patch1 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(-25, 0, 0), QUNIT), 200.0, 100.0);
-    patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 100, 50);
+    patch1->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 100, 50);
 
     double s = std::sin(slope);
     double c = std::cos(slope);
     auto patch2 =
         terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(100 * c, 0, 100 * s), QuatFromAngleY(-slope)), 200.0, 20.0);
-    patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 100, 10);
+    patch2->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 100, 10);
 
     terrain.Initialize();
 

@@ -24,14 +24,14 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -80,8 +80,8 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = ReadWheelJSON(vehicle::GetDataFile(wheel_json));
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
     bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 
@@ -218,13 +218,13 @@ int main() {
     // Create the run-time visualization
     // ---------------------------------
 
-    auto& sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetSystemFSI();
     std::shared_ptr<ChVisualSystem> vis;
 
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetFsiSystemSPH();
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(true);

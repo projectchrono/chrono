@@ -126,8 +126,8 @@ set(SYN_FLATBUFFER_FILES
 source_group("flatbuffer" FILES ${SYN_FLATBUFFER_FILES})
 
 set(SYN_UTILS_FILES
-	utils/SynDataLoader.h
-	utils/SynDataLoader.cpp
+	utils/SynDataPath.h
+	utils/SynDataPath.cpp
     utils/SynGPSTools.h
     utils/SynGPSTools.cpp
     utils/SynLog.h

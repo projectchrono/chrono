@@ -41,7 +41,7 @@ foreach(PROGRAM ${TEST_PROGRAMS})
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")
 
-  SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER tests)
+  set_target_properties(${PROGRAM} PROPERTIES FOLDER tests)
   set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
   target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
 

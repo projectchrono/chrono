@@ -27,7 +27,7 @@
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), vehicle_model.ContactMethod());
+    WheeledVehicle vehicle(GetVehicleDataFile(vehicle_model.VehicleJSON()), vehicle_model.ContactMethod());
     vehicle.Initialize(ChCoordsys<>(initLoc, QuatFromAngleZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
@@ -102,15 +102,15 @@ int main(int argc, char* argv[]) {
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(vehicle_model.EngineJSON()));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(vehicle_model.TransmissionJSON()));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(vehicle_model.EngineJSON()));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(vehicle_model.TransmissionJSON()));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
     for (auto& axle : vehicle.GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(vehicle_model.TireJSON()));
+            auto tire = ReadTireJSON(GetVehicleDataFile(vehicle_model.TireJSON()));
             vehicle.InitializeTire(tire, wheel, VisualizationType::MESH);
         }
     }
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     auto system = vehicle.GetSystem();
 
     // Create the terrain
-    RigidTerrain terrain(system, vehicle::GetDataFile(rigidterrain_file));
+    RigidTerrain terrain(system, GetVehicleDataFile(rigidterrain_file));
     terrain.Initialize();
 
     // Create the basic driver

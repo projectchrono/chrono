@@ -25,7 +25,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
@@ -95,8 +95,8 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = ReadWheelJSON(vehicle::GetDataFile(wheel_json));
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
     bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
     bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;

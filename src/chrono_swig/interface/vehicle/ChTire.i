@@ -17,22 +17,26 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/MBTire.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -45,10 +49,12 @@
 
 %shared_ptr(chrono::vehicle::ChForceElementTire)
 %shared_ptr(chrono::vehicle::ChTMeasyTire)
+%shared_ptr(chrono::vehicle::ChTMsimpleTire)
 %shared_ptr(chrono::vehicle::ChPac89Tire)
 %shared_ptr(chrono::vehicle::ChPac02Tire)
 %shared_ptr(chrono::vehicle::ChFialaTire)
 %shared_ptr(chrono::vehicle::TMeasyTire)
+%shared_ptr(chrono::vehicle::TMsimpleTire)
 %shared_ptr(chrono::vehicle::Pac89Tire)
 %shared_ptr(chrono::vehicle::Pac02Tire)
 %shared_ptr(chrono::vehicle::FialaTire)
@@ -57,11 +63,13 @@
 %shared_ptr(chrono::vehicle::ChFEATire)
 %shared_ptr(chrono::vehicle::ChANCFTire)
 %shared_ptr(chrono::vehicle::ChReissnerTire)
-%shared_ptr(chrono::vehicle::MBTireModel)
 %shared_ptr(chrono::vehicle::ChMBTire)
 %shared_ptr(chrono::vehicle::FEATire)
 %shared_ptr(chrono::vehicle::ANCFTire)
+%shared_ptr(chrono::vehicle::ANCFToroidalTire)
 %shared_ptr(chrono::vehicle::ReissnerTire)
+%shared_ptr(chrono::vehicle::ReissnerToroidalTire)
+%shared_ptr(chrono::vehicle::MBTireModel)
 %shared_ptr(chrono::vehicle::MBTire)
 
 #ifdef SWIGCSHARP
@@ -83,22 +91,26 @@
 
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/tire/MBTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/MBTire.h"
 
 %include "chrono_swig/interface/models/TireModels.i"

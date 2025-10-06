@@ -29,7 +29,7 @@
 #include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
@@ -116,7 +116,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
         if (d["Geometry"].HasMember("Connected Mesh")) {
             connected_mesh = d["Geometry"]["Connected Mesh"].GetBool();
         }
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file), connected_mesh);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), GetVehicleDataFile(mesh_file), connected_mesh);
     } else if (d["Geometry"].HasMember("Height Map Filename")) {
         std::string bmp_file = d["Geometry"]["Height Map Filename"].GetString();
         double sx = d["Geometry"]["Size"][0u].GetDouble();
@@ -127,7 +127,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
         if (d["Geometry"].HasMember("Connected Mesh")) {
             connected_mesh = d["Geometry"]["Connected Mesh"].GetBool();
         }
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), sx, sy, hMin, hMax,
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), GetVehicleDataFile(bmp_file), sx, sy, hMin, hMax,
                          connected_mesh);
     }
 
@@ -145,7 +145,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
                 sx = d["Visualization"]["Texture Scaling"][0u].GetFloat();
                 sy = d["Visualization"]["Texture Scaling"][1u].GetFloat();
             }
-            patch->SetTexture(vehicle::GetDataFile(tex_file), sx, sy);
+            patch->SetTexture(GetVehicleDataFile(tex_file), sx, sy);
         }
         patch->m_visualize = true;
     } else {
@@ -863,7 +863,7 @@ void RigidTerrain::Patch::SetTexture(const std::string& filename, float scale_x,
 class RTContactCallback : public ChContactContainer::AddContactCallback {
   public:
     virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
-        //// TODO: also accomodate terrain contact with FEA meshes.
+        //// TODO: also accommodate terrain contact with FEA meshes.
 
         // Loop over all patch bodies and check if this contact involves one of them.
         ChBody* body_patch = nullptr;
@@ -886,7 +886,7 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
         }
 
         // Do nothing if this contact does not involve a terrain body or if the other contactable
-        // is not a body or if the collsion does not involve a shape (e.g., a contact added by the user)
+        // is not a body or if the collision does not involve a shape (e.g., a contact added by the user)
         if (!body_patch || !body_other || !shape_other)
             return;
 

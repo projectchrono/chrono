@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     auto limb3_wheel = robot.GetChBody("limb3_link8");
     auto limb4_wheel = robot.GetChBody("limb4_link8");
 
-    // Enable collsion and set contact material for selected bodies of the robot
+    // Enable collision and set contact material for selected bodies of the robot
     sled->EnableCollision(true);
     limb1_wheel->EnableCollision(true);
     limb2_wheel->EnableCollision(true);

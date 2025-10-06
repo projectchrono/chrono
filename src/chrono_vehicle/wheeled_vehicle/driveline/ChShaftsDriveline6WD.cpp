@@ -122,7 +122,7 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddShaft(m_front_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
-    // non parallel shafts. This is the case of the 90° bevel gears in the
+    // non parallel shafts. This is the case of the 90 deg bevel gears in the
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
@@ -165,7 +165,7 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddShaft(m_rear2_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
-    // non parallel shafts. This is the case of the 90° bevel gears in the
+    // non parallel shafts. This is the case of the 90 deg bevel gears in the
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
@@ -201,7 +201,7 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddShaft(m_rear1_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
-    // non parallel shafts. This is the case of the 90° bevel gears in the
+    // non parallel shafts. This is the case of the 90 deg bevel gears in the
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).

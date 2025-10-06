@@ -24,7 +24,7 @@
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
@@ -59,12 +59,12 @@ int main(int argc, char* argv[]) {
     spindle->SetRot(QuatFromAngleZ(CH_PI_2));
 
     // The wheel object:
-    auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
+    auto wheel = chrono_types::make_shared<Wheel>(GetVehicleDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
     wheel->Initialize(nullptr, spindle, LEFT);
 
     // The tire:
     auto tire_reissner =
-        chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
+        chrono_types::make_shared<ReissnerTire>(GetVehicleDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
     tire_reissner->EnablePressure(false);
     tire_reissner->EnableContact(true);
     tire_reissner->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     
     ChColormap::Type colormap_type = ChColormap::Type::JET;
 
-    // mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+    // mterrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
     // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
     mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
     mterrain.SetColormap(colormap_type);

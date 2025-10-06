@@ -306,7 +306,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     // define field of view angle of the driver +-10 deg
     const double ny = 10.0 * CH_DEG_TO_RAD;
     // which speed to choose?
-    // search intervalls for longitudinal controller
+    // search intervals for longitudinal controller
     double d_long = 0;
     bool i_restrict = false;
     bool j_restrict = false;

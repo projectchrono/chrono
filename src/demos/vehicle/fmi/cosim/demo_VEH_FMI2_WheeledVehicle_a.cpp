@@ -27,7 +27,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
@@ -90,7 +90,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
 
     // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
     std::string data_path = "../data/vehicle/";
-    std::string vehicle_JSON = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
+    std::string vehicle_JSON = GetVehicleDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
 
     vehicle_fmu.SetVariable("data_path", data_path);
     vehicle_fmu.SetVariable("vehicle_JSON", vehicle_JSON);
@@ -381,12 +381,12 @@ int main(int argc, char* argv[]) {
     // Create external subsystems (terrain, driver, powertrain, and tires)
     ChSystemSMC sys;
     FlatTerrain terrain_sys(0.0, 0.8f);
-    DriverSystem driver_sys(sys, vehicle::GetDataFile("paths/ISO_double_lane_change.txt"));
-    TireSystem tire_sys(sys, vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
-    ////PowertrainSystem powertrain_sys(sys, vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"),
-    ////                                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
-    PowertrainSystem powertrain_sys(sys, vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineSimpleMap.json"),
-                                    vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json"));
+    DriverSystem driver_sys(sys, GetVehicleDataFile("paths/ISO_double_lane_change.txt"));
+    TireSystem tire_sys(sys, GetVehicleDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
+    ////PowertrainSystem powertrain_sys(sys, GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"),
+    ////                                GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
+    PowertrainSystem powertrain_sys(sys, GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineSimpleMap.json"),
+                                    GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json"));
 
     driver_sys.SetTargetSpeed(12);
 

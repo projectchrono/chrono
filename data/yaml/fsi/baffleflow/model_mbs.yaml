@@ -1,0 +1,93 @@
+chrono-version: 9.0
+
+model:
+  name: Baffles
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
+  bodies:
+    - name: ground
+      location: [0, 0, 0]
+      fixed: true
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [1.6, 1.4, 0.02]
+            location: [0, 0, -0.02]
+            orientation: [0, 0, 0]
+            color: [0.75, 0.75, 0.75]
+    - name: baffle1
+      location: [0, 0.3, 0]
+      fixed: true
+      contact:
+        materials:
+          - name: contact_material
+            coefficient_of_friction: 0.2
+            coefficient_of_restitution: 0.05
+            properties:
+              Young_modulus: 1e8
+              Poisson_ratio: 0.3
+        shapes:
+          - type: BOX
+            material: contact_material
+            dimensions: [0.1, 0.1, 0.16]
+            location: [0, 0, 0.08]
+            orientation: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.1, 0.1, 0.16]
+            location: [0, 0, 0.08]
+            orientation: [0, 0, 0]
+            color: [0.8, 0.6, 0.6]
+    - name: baffle2
+      location: [0, -0.3, 0]
+      fixed: true
+      contact:
+        materials:
+          - name: contact_material
+            coefficient_of_friction: 0.2
+            coefficient_of_restitution: 0.05
+            properties:
+              Young_modulus: 1e8
+              Poisson_ratio: 0.3
+        shapes:
+          - type: BOX
+            material: contact_material
+            dimensions: [0.1, 0.1, 0.16]
+            location: [0, 0, 0.08]
+            orientation: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.1, 0.1, 0.16]
+            location: [0, 0, 0.08]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.8, 0.6]
+    - name: baffle3
+      location: [0.4, 0, 0]
+      fixed: true
+      contact:
+        materials:
+          - name: contact_material
+            coefficient_of_friction: 0.2
+            coefficient_of_restitution: 0.05
+            properties:
+              Young_modulus: 1e8
+              Poisson_ratio: 0.3
+        shapes:
+          - type: BOX
+            material: contact_material
+            dimensions: [0.1, 0.1, 0.16]
+            location: [0, 0, 0.08]
+            orientation: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.1, 0.1, 0.16]
+            location: [0, 0, 0.08]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.8]

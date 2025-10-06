@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Base class for continuous band track assembly using rigid tread.
-// Derived classes specify the actual template defintions, using different track
+// Derived classes specify the actual template definitions, using different track
 // shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
@@ -116,12 +116,11 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     // Vector to save the indices of the circles that form the boundaries of the belt wrap
     std::vector<int> CircleIndex(CirclePosAll.size());
 
-    // At most each circle is visted once.  Something went wrong if
+    // At most each circle is visited once.  Something went wrong if
     // the loop is not closed within this many passes through the algorithm
     int iter;
     for (iter = 0; iter < CirclePosAll.size(); iter++) {
-        // Step 2: Create an ordered list of the circles with repect to their
-        // distance from the starting circle
+        // Step 2: Create an ordered list of the circles with respect to their distance from the starting circle
 
         std::vector<double> Distances;
         std::vector<int> DistanceIndices;
@@ -186,7 +185,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
                 Angle2 += CH_2PI;
             }
 
-            // If this is the first point that is examined, then save that point as the inital comparison value.
+            // If this is the first point that is examined, then save that point as the initial comparison value.
             if (i == 0) {
                 minAngle = Angle1;
                 TangentPoints[iter].first = Tan1Pnt1;
@@ -249,7 +248,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     // Fit the track around the outermost wrapping.
     //
     // Start the iterations with the scale such that the belt length equals the
-    // outer wrapping circumferance(too small of a scale, but not by much).
+    // outer wrapping circumference (too small of a scale, but not by much).
     // After that, overshoot the extra length by a factor of 10 to make sure
     // that the scale is too large.
     // Then binary search tree on the scale to converge.
@@ -262,7 +261,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     double ScaleMax = 0;
 
     // Start by calculating the original tangent(constant) and arc lengths (variable)
-    // to determine the inital scale for sprocket/idler/road wheel circles
+    // to determine the initial scale for sprocket/idler/road wheel circles
 
     double CombineShoeLength = 0;
     for (int i = 0; i < connection_lengths.size(); i++) {
@@ -442,7 +441,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             }
 
             ExtraLength = 0;
-            // Check to see if I have wrapped past the inital point
+            // Check to see if I have wrapped past the initial point
             if ((!InitalSprocketWrap) && (CurrentFeature == 0)) {
                 CurrentAngle = std::atan2(Point.y() - CirclePos[0].y(), Point.x() - CirclePos[0].x());
                 while (CurrentAngle < Features(0, 3)) {

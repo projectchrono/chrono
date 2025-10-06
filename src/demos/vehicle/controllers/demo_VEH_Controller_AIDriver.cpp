@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/AIDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::SMC);
 
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     // Option 1: use concrete driver class
     Sedan_AIDriver driver(sedan.GetVehicle());
     // Option 2: use driuver specified through JSON file
-    ////AIDriver driver(sedan.GetVehicle(), vehicle::GetDataFile("sedan/driver/Sedan_AIDriver.json"));
+    ////AIDriver driver(sedan.GetVehicle(), GetVehicleDataFile("sedan/driver/Sedan_AIDriver.json"));
 
     driver.Initialize();
 

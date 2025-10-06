@@ -46,6 +46,12 @@ class CH_FSI_API ChFsiSystem {
     /// Destructor for the FSI system.
     virtual ~ChFsiSystem();
 
+    /// Attach a fluid system.
+    void AttachFluidSystem(ChFsiFluidSystem* sys);
+
+    /// Attach a MBS system.
+    void AttachMultibodySystem(ChSystem* sys);
+
     /// Access the associated fluid system.
     ChFsiFluidSystem& GetFluidSystem() const;
 
@@ -78,19 +84,23 @@ class CH_FSI_API ChFsiSystem {
 
     /// Add an FEA mesh to the FSI system.
     /// Any SegmentSet contact surfaces already defined for the FEA mesh are used to generate the interface between the
-    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA mesh.
+    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
+    /// mesh.
     std::shared_ptr<FsiMesh1D> AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
     /// Add an FEA mesh to the FSI system.
     /// Any TriMesh contact surfaces already defined for the FEA mesh are used to generate the interface between the
-    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA mesh.
+    /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
+    /// mesh.
     std::shared_ptr<FsiMesh2D> AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
-    /// Enable/disable use of node direction vectors for FSI flexible meshes.
-    /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
-    /// calculated from the FSI mesh position states and communicated to the fluid solver. The default is set by a
-    /// concrete ChFsiSystem and the associated FSI interface.
-    void UseNodeDirections(bool val);
+    /// Enable use and set method of obtaining FEA node directions.
+    /// If provided, node direction vectors can be used to provide a more accurate interpolation of positions between
+    /// nodes (piece-wise cubic as opposed to only piece-wise linear). Node directions can be provided by the FEA
+    /// elements and communicated to the fluid solver (NodeDirectionsMode::EXACT), or else approximated by averaging
+    /// direction over all elements incident to the node. The default is set by a concrete ChFsiSystem and the
+    /// associated FSI interface.
+    void UseNodeDirections(NodeDirectionsMode mode);
 
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.
@@ -148,10 +158,10 @@ class CH_FSI_API ChFsiSystem {
     void SetRtf(double rtf) { m_RTF = rtf; }
 
     /// Get current estimated RTF (real time factor) for the fluid system.
-    double GetRtfCFD() const { return m_sysCFD.GetRtf(); }
+    double GetRtfCFD() const;
 
     /// Get current estimated RTF (real time factor) for the multibody system.
-    double GetRtfMBD() const { return m_sysMBS.GetRTF(); }
+    double GetRtfMBD() const;
 
     /// Get ratio of simulation time spent in MBS integration.
     double GetRatioMBD() const { return m_ratio_MBD; }
@@ -190,10 +200,10 @@ class CH_FSI_API ChFsiSystem {
   protected:
     /// Construct an FSI system coupling the provided multibody and fluid systems.
     /// Derived classes must also construct and set the FSI interface (`m_fsi_interface`).
-    ChFsiSystem(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
+    ChFsiSystem(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD);
 
-    ChSystem& m_sysMBS;                               ///< multibody system
-    ChFsiFluidSystem& m_sysCFD;                       ///< FSI fluid solver
+    ChSystem* m_sysMBS;                               ///< multibody system
+    ChFsiFluidSystem* m_sysCFD;                       ///< FSI fluid solver
     std::shared_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system
 
     bool m_verbose;         ///< enable/disable m_verbose terminal output
@@ -209,12 +219,12 @@ class CH_FSI_API ChFsiSystem {
 
     std::shared_ptr<MBDCallback> m_MBD_callback;  ///< callback for MBS dynamics
 
-    ChTimer m_timer_step;   ///< timer for integration step
-    ChTimer m_timer_FSI;    ///< timer for FSI data exchange
-    double m_timer_CFD;     ///< timer for fluid dynamics integration
-    double m_timer_MBD;     ///< timer for multibody dynamics integration
-    double m_RTF;           ///< real-time factor (simulation time / simulated time)
-    double m_ratio_MBD;     ///< fraction of step simulation time for MBS integration
+    ChTimer m_timer_step;  ///< timer for integration step
+    ChTimer m_timer_FSI;   ///< timer for FSI data exchange
+    double m_timer_CFD;    ///< timer for fluid dynamics integration
+    double m_timer_MBD;    ///< timer for multibody dynamics integration
+    double m_RTF;          ///< real-time factor (simulation time / simulated time)
+    double m_ratio_MBD;    ///< fraction of step simulation time for MBS integration
 };
 
 /// @} fsi_base

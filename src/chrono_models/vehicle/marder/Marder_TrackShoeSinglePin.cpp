@@ -19,7 +19,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/marder/Marder_TrackShoeSinglePin.h"
 
@@ -131,7 +131,7 @@ Marder_TrackShoeSinglePin::Marder_TrackShoeSinglePin(const std::string& name) : 
     m_geometry.vis_cylinders.push_back(
         utils::ChBodyGeometry::CylinderShape(ChVector3d(-0.061, +0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("vehicle/M113/TrackShoe.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("vehicle/M113/TrackShoe.obj");
 }
 
 }  // namespace marder

@@ -23,7 +23,7 @@
 #include "chrono/utils/ChForceFunctors.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/chassis/ChassisConnectorHitch.h"
@@ -260,13 +260,13 @@ utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
             } else if (type.compare("HULL") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 geometry.coll_hulls.push_back(
-                    utils::ChBodyGeometry::ConvexHullsShape(vehicle::GetDataFile(filename), matID));
+                    utils::ChBodyGeometry::ConvexHullsShape(GetVehicleDataFile(filename), matID));
             } else if (type.compare("MESH") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Contact Radius"].GetDouble();
                 geometry.coll_meshes.push_back(
-                    utils::ChBodyGeometry::TrimeshShape(pos, QUNIT, vehicle::GetDataFile(filename), 1.0, radius, matID));
+                    utils::ChBodyGeometry::TrimeshShape(pos, QUNIT, GetVehicleDataFile(filename), 1.0, radius, matID));
             }
         }
     }
@@ -275,7 +275,7 @@ utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
             std::string filename = d["Visualization"]["Mesh"].GetString();
-            geometry.vis_model_file = vehicle::GetDataFile(filename);
+            geometry.vis_model_file = GetVehicleDataFile(filename);
         }
         if (d["Visualization"].HasMember("Primitives")) {
             assert(d["Visualization"]["Primitives"].IsArray());

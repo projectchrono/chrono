@@ -45,6 +45,8 @@ class CH_FSI_API ChFsiInterface {
 
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    void AttachMultibodySystem(ChSystem* sys);
+
     // ------------
 
     /// Add a rigid body.
@@ -111,8 +113,8 @@ class CH_FSI_API ChFsiInterface {
 
     // ------------
 
-    /// Enable calculation and communication of node directions for FSI meshes. Default: false.
-    void UseNodeDirections(bool val);
+    /// Enable use and set method of obtaining FEA node directions. Default: NodeDirectionsMode::NONE.
+    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
 
     /// Utility function to allocate state vectors.
     /// If use of node directions is enabled, also resize the vectors of node directions for FSI meshes.
@@ -163,13 +165,13 @@ class CH_FSI_API ChFsiInterface {
     virtual void ExchangeSolidForces() = 0;
 
   protected:
-    ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
+    ChFsiInterface(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD);
 
     bool m_verbose;
     bool m_initialized;
-    bool m_use_node_directions;
-    ChSystem& m_sysMBS;
-    ChFsiFluidSystem& m_sysCFD;
+    NodeDirectionsMode m_node_directions_mode;
+    ChSystem* m_sysMBS;
+    ChFsiFluidSystem* m_sysCFD;
 
     std::vector<std::shared_ptr<FsiBody>> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
     std::vector<std::shared_ptr<FsiMesh1D>> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
@@ -182,7 +184,7 @@ class CH_FSI_API ChFsiInterface {
 /// This implementation relies on copying data to intermediate buffers.
 class CH_FSI_API ChFsiInterfaceGeneric : public ChFsiInterface {
   public:
-    ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
+    ChFsiInterfaceGeneric(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD);
     ~ChFsiInterfaceGeneric();
 
     /// Initialize the generic FSI interface.

@@ -53,7 +53,7 @@ def main() :
     rig.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
     rig.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
     rig.SetSubchassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
-    rig.SetWheelVisualizationType(chrono.VisualizationType_NONE);
+    rig.SetWheelVisualizationType(chrono.VisualizationType_NONE)
     rig.SetTireVisualizationType(chrono.VisualizationType_MESH)
     
     # Create and attach an STR driver
@@ -81,7 +81,7 @@ def main() :
            print("Error creating output directory " )
     
     if output:
-        rig.SetOutput(chrono.ChOutput.Type_ASCII, out_dir, 'output', out_step_size)
+        rig.SetOutput(chrono.ChOutput.Type_ASCII, chrono.ChOutput.Mode_FRAMES, out_dir, 'output', out_step_size)
     if plot:
         rig.SetPlotOutput(out_step_size)
 
@@ -115,16 +115,16 @@ def main() :
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # JSON file for suspension test rig
-str_file = veh.GetDataFile('mtv/suspensionTest/MTV_ST_rear.json')
+str_file = veh.GetVehicleDataFile('mtv/suspensionTest/MTV_ST_rear.json')
 
 # JSON file for tire
-tire_file = veh.GetDataFile('mtv/tire/FMTV_TMeasyTire.json')
+tire_file = veh.GetVehicleDataFile('mtv/tire/FMTV_TMeasyTire.json')
 
 # Driver data file
-driver_file = veh.GetDataFile('mtv/suspensionTest/ST_inputs.dat')
+driver_file = veh.GetVehicleDataFile('mtv/suspensionTest/ST_inputs.dat')
 
 # Vehicle axles included in test rig
 test_axles = [1, 2]
@@ -132,10 +132,13 @@ test_axles = [1, 2]
 # Simulation step size
 step_size = 1e-3
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output collection
 output = True
 plot = True
-out_dir =  './SUSPENSION_TEST_RIG'
+out_dir =  chrono.GetChronoOutputPath() + "Suspension_Test_Rig/"
 out_step_size = 1e-2
 
 main()

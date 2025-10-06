@@ -41,7 +41,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
             
             // Simulation step size
             double step_size = 3e-3;
@@ -87,7 +87,7 @@ namespace ChronoDemo
             // Create the terrain
 #if USE_JSON
             // Create the terrain from JSON specification file
-            terrain = new RigidTerrain(hmmwv.GetSystem(), GetDataFile("terrain/RigidPatches.json"));
+            terrain = new RigidTerrain(hmmwv.GetSystem(), GetVehicleDataFile("terrain/RigidPatches.json"));
 #else
             terrain = new RigidTerrain(hmmwv.GetSystem());
                 if (true) {
@@ -96,29 +96,29 @@ namespace ChronoDemo
                     patch1_mat.SetRestitution(0.01f);
                     var patch1 = terrain.AddPatch(patch1_mat, new ChCoordsysD(new ChVector3d(-16, 0, 0), chrono.QUNIT), 32, 20);
                     patch1.SetColor(new ChColor(0.8f, 0.8f, 0.5f));
-                    patch1.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
+                    patch1.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
                     var patch2_mat = new ChMaterialSurfaceNSC();
                 patch2_mat.SetFriction(0.9f);
                     patch2_mat.SetRestitution(0.01f);
                     var patch2 = terrain.AddPatch(patch1_mat, new ChCoordsysD(new ChVector3d(16, 0, 0.08), chrono.QUNIT), 32, 20);
                     patch2.SetColor(new ChColor(1.0f, 0.5f, 0.5f));
-                    patch2.SetTexture(GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
+                    patch2.SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 20, 20);
 
                     var patch3_mat = new ChMaterialSurfaceNSC();
                     patch3_mat.SetFriction(0.9f);
                     patch3_mat.SetRestitution(0.01f);
                     var patch3 = terrain.AddPatch(patch3_mat, new ChCoordsysD(new ChVector3d(0, -42, 0), chrono.QUNIT),
-                                                GetDataFile("terrain/meshes/bump.obj"));
+                                                GetVehicleDataFile("terrain/meshes/bump.obj"));
                     patch3.SetColor(new ChColor(0.5f, 0.5f, 0.8f));
-                    patch3.SetTexture(GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
+                    patch3.SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
 
                     var patch4_mat = new ChMaterialSurfaceNSC();
                     patch4_mat.SetFriction(0.9f);
                     patch4_mat.SetRestitution(0.01f);
                     var patch4 = terrain.AddPatch(patch4_mat, new ChCoordsysD(new ChVector3d(0, 42, 0), chrono.QUNIT),
-                                                GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
-                    patch4.SetTexture(GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
+                                                GetVehicleDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
+                    patch4.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
                 }
 
                 if (false) {
@@ -126,7 +126,7 @@ namespace ChronoDemo
                     patch_mat.SetFriction(0.9f);
                     patch_mat.SetRestitution(0.01f);
                     var patch = terrain.AddPatch(patch_mat, new ChCoordsysD(new ChVector3d(0, 0, 10), chrono.QUNIT),
-                                                GetDataFile("terrain/multilayer/multilayer-terrain.obj"));
+                                                GetVehicleDataFile("terrain/multilayer/multilayer-terrain.obj"));
                 }
 #endif
             terrain.Initialize();

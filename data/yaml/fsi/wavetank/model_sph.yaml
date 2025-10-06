@@ -1,0 +1,40 @@
+chrono-version: 9.0
+
+model:
+  name: Wavetank
+  physics_problem: CFD
+  geometry_type: CARTESIAN
+
+  angle_degrees: true
+ 
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
+  fluid_properties:
+    density: 1000.0
+    viscosity: 1.0
+    characteristic_length: 1.0
+
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 1.2
+
+  wave_tank:
+    type: PISTON
+    tank_dimensions: [5.0, 0.4, 0.8]
+    tank_origin: [0.0, 0.0, 0.0]
+    water_depth: 0.4
+    end_wall: true
+    profile: [
+      [0.0, 0.0],
+      [2.5, 0.0],
+      [5.0, 0.5]
+    ]
+    actuation_function:
+      type: SINE
+      amplitude: 0.1
+      frequency: 1.0
+      phase: -90
+      shift: 0.1
+      delay: 0.25

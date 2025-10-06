@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Wei Hu
+// Author: Milad Rakhsha, Wei Hu, Luning Bakke
 // =============================================================================
 
 #include <cassert>
@@ -24,9 +24,10 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -60,63 +61,72 @@ float render_fps = 100;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    double initial_spacing = 0.01;
+
     // Create a physics system and an SPH system
     ChSystemSMC sysMBS;
-    ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
+    fsi.SetVerbose(true);
+    auto sysFSI = fsi.GetFsiSystemSPH();
+    auto sysSPH = fsi.GetFluidSystemSPH();
 
-    // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_I2SPH.json");
-    if (argc == 1) {
-        std::cout << "Use the default JSON file" << std::endl;
-    } else if (argc == 2) {
-        std::cout << "Use the specified JSON file" << std::endl;
-        std::string my_inputJson = std::string(argv[1]);
-        inputJson = my_inputJson;
-    } else {
-        std::cout << "usage: ./demo_FSI_Poiseuille_flow <json_file>" << std::endl;
-        return 1;
-    }
-    sysSPH.ReadParametersFromFile(inputJson);
+    double step_size = 2e-3;
+    double density = 1000;
+    double viscosity = 1.0;
+    ChVector3d body_force(0.01, 0, 0);  // body force to drive the flow
 
-    // Set the periodic boundary condition (in X and Y direction)
-    auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5 * initSpace0);
-    ChVector3d cMax(+bxDim / 2 + initSpace0 / 2, +byDim / 2 + initSpace0 / 2, bzDim + 5 * initSpace0);
-    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_ALL_PERIODIC);
+    sysSPH->SetBodyForce(body_force);
 
-    // Create Fluid region and discretize with SPH particles
-    ChVector3d boxCenter(0.0, 0.0, bzDim / 2);
-    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2 - initSpace0);
+    // Set gravitational acceleration
+    const ChVector3d gravity(0, 0, 0.0);
+    fsi.SetGravitationalAcceleration(gravity);
 
-    // Use a chrono sampler to create a bucket of points
-    chrono::utils::ChGridSampler<> sampler(initSpace0);
-    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    // Set integration step size
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
 
-    // Add fluid particles from the sampler points to the FSI system
-    size_t numPart = points.size();
-    for (int i = 0; i < numPart; i++) {
-        sysSPH.AddSPHParticle(points[i]);
-    }
+    // Set CFD fluid properties
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
+    fluid_props.density = density;
+    fluid_props.viscosity = viscosity;
+    fsi.SetCfdSPH(fluid_props);
 
-    // Create solid region and attach BCE SPH particles
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetFixed(true);
-    ground->EnableCollision(false);
-    sysMBS.AddBody(ground);
+    // Set SPH solution parameters
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.num_bce_layers = 3;
+    sph_params.initial_spacing = initial_spacing;
+    sph_params.d0_multiplier = 1;
+    sph_params.max_velocity = 0.1;
+    sph_params.shifting_method = ShiftingMethod::NONE;
+    sph_params.density_reinit_steps = 10000;
+    sph_params.viscosity_method = ViscosityMethod::LAMINAR;
+    sph_params.use_delta_sph = false;
+    sph_params.eos_type = EosType::ISOTHERMAL;
+    sph_params.use_consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity
+    sph_params.use_consistent_laplacian_discretization = true;
+    fsi.SetSPHParameters(sph_params);
 
-    auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {0, 0, 2});
-    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
+    ChVector3d fsize(bxDim, byDim, bzDim - 2 * initial_spacing);
+    fsi.Construct(fsize,                              // length x width x depth
+                  ChVector3d(0, 0, initial_spacing),  // position of bottom origin
+                  BoxSide::Z_NEG | BoxSide::Z_POS     // bottom and top boundaries
+    );
+
+    // Explicitly set computational domain
+    ChVector3d c_min(-bxDim / 2 - initial_spacing / 2, -byDim / 2 - initial_spacing / 2, -5 * initial_spacing);
+    ChVector3d c_max(+bxDim / 2 + initial_spacing / 2, +byDim / 2 + initial_spacing / 2, bzDim + 5 * initial_spacing);
+    fsi.SetComputationalDomain(ChAABB(c_min, c_max), BC_ALL_PERIODIC);
 
     // Complete construction of the fluid system
-    sysFSI.Initialize();
+    fsi.Initialize();
 
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphIntegrationSchemeString();
+    out_dir = out_dir + "/" + sysSPH->GetPhysicsProblemString() + "_" + sysSPH->GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -138,7 +148,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 0.04);
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);
@@ -163,7 +173,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Start the simulation
-    double dT = sysSPH.GetStepSize();
     double time = 0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -175,7 +184,7 @@ int main(int argc, char* argv[]) {
         // Save data of the simulation
         if (output && time >= out_frame / out_fps) {
             std::cout << " -- Output frame " << out_frame << " at t = " << time << std::endl;
-            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH->SaveParticleData(out_dir + "/particles");
 
             out_frame++;
         }
@@ -200,9 +209,9 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics(dT);
+        fsi.DoStepDynamics(step_size);
 
-        time += dT;
+        time += step_size;
         sim_frame++;
     }
     timer.stop();

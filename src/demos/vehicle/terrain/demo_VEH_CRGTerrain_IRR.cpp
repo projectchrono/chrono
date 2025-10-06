@@ -33,7 +33,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
@@ -164,7 +164,7 @@ class MyDriver {
 
                 // Driver model read from JSON file
                 ////auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
-                ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
+                ////    GetVehicleDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
                 ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
 
                 auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(vehicle, path, "my_path", road_width,
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
         return 1;
 
     driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
-    crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
+    crg_road_file = GetVehicleDataFile(cli.GetAsType<std::string>("roadfile"));
     yup = cli.GetAsType<bool>("yup");
 
     // ----------------

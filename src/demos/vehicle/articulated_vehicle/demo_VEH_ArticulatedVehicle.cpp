@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
-    // Create a collsion system and associate it with the underlying Chrono system
+    // Create a collision system and associate it with the underlying Chrono system
     vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     auto patch =
         terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.5f, 1));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
     // Create and initialize the powertrain subsystems

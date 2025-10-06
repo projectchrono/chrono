@@ -1,0 +1,51 @@
+chrono-version: 9.0
+
+model:
+  name: Soil flow
+  physics_problem: CRM
+  geometry_type: CARTESIAN
+  
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
+  soil_properties:
+    density: 1800.0
+    Young_modulus: 2e6
+    Poisson_ratio: 0.3
+    mu_I0: 0.03
+    mu_fric_s: 0.7
+    mu_fric_2: 0.7
+    average_diam: 0.0614
+    cohesion_coefficient: 0
+
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 0.14
+    initial_velocity: [1, 0, 0]
+
+  fluid_domain:
+    dimensions: [0.2, 0.8, 0.14]
+    box_origin: [-0.16, 0, 0]
+    box_walls: 
+      x: [false, false]   # negative, positive
+      y: [false, false]   # negative, positive
+      z: [false, false]   # negative, positive
+
+  container:
+    dimensions: [1.6, 1.4, 0.5]
+    box_origin: [0, 0, 0]
+    box_walls: 
+      x: [false, false]   # negative, positive
+      y: [false, false]   # negative, positive
+      z: [true, false]    # negative, positive
+
+  computational_domain:
+    aabb_min: [-0.8, -0.7, -0.1]
+    aabb_max: [0.8, 0.7, 0.6]
+    x_bc_type: NONE
+    y_bc_type: NONE
+    z_bc_type: NONE
+    

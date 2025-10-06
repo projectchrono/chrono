@@ -25,7 +25,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     double poisson_ratio = 0.3;
 
     CRMTerrain terrain(sysMBS, spacing);
-    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetFsiSystemSPH();
     terrain.SetVerbose(true);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
@@ -157,10 +157,10 @@ int main(int argc, char* argv[]) {
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = spacing;
     sph_params.d0_multiplier = 1;
-    sph_params.kernel_threshold = 0.8;
+    sph_params.free_surface_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.consistent_gradient_discretization = false;
-    sph_params.consistent_laplacian_discretization = false;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
     ////sph_params.num_proximity_search_steps = 1;
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
-    auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);

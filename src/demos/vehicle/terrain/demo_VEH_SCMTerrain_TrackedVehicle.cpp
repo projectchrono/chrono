@@ -19,7 +19,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/solver/ChSolverBB.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 
@@ -381,7 +381,7 @@ void AddFixedObstacles(ChSystem* system) {
 
     // Visualization
     auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
-    cyl_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
+    cyl_shape->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"));
     obstacle->AddVisualShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(terrain_length, 2 * length, 0.1);

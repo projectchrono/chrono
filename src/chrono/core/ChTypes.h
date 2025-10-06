@@ -39,7 +39,7 @@ class class_has_custom_new_operator {
 // -----------------------------------------------------------------------------
 
 /// Replacement for make_shared guaranteed to use `operator new` rather than `placement new` in order to avoid memory
-/// alignment issues (classes with members that are fixed-sized Eigen matrices have overriden operator new).
+/// alignment issues (classes with members that are fixed-sized Eigen matrices have overridden operator new).
 ///
 /// Dynamic objects of classes with fixed-size vectorizable Eigen object members\n
 /// - Many of the Chrono classes now have members that are fixed-size vectorizable Eigen types. These classes overload
@@ -67,7 +67,7 @@ inline std::shared_ptr<T> make_shared(Args&&... args) {
     return std::shared_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-/// For classes without members that are fixed-sized Eigen matrices (and hence do not have an overriden operator new),
+/// For classes without members that are fixed-sized Eigen matrices (and hence do not have an overridden operator new),
 /// it is safe to default to using `std::make_shared` (no alignment issues).
 
 ////C++11 version
@@ -87,7 +87,7 @@ inline std::shared_ptr<T> make_shared(Args&&... args) {
 // -----------------------------------------------------------------------------
 
 /// Replacement for make_unique guaranteed to use `operator new` rather than `placement new` in order to avoid memory
-/// alignment issues (classes with members that are fixed-sized Eigen matrices have overriden operator new).
+/// alignment issues (classes with members that are fixed-sized Eigen matrices have overridden operator new).
 
 //// Since std::make_unique was only introduced in C++14, the C++11 implementation of chrono_types::make_unique
 //// does not distinguish between classes with and without fixed-size Eigen members.
@@ -96,13 +96,13 @@ inline std::shared_ptr<T> make_shared(Args&&... args) {
 ////    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 ////}
 
-// C++14 version - make_unique for classes with overriden operator new.
+// C++14 version - make_unique for classes with overridden operator new.
 template <typename T, typename... Args, std::enable_if_t<class_has_custom_new_operator<T>::value, int> = 0>
 inline std::unique_ptr<T> make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-// C++14 version - make_unique for classes with no overriden operator new.
+// C++14 version - make_unique for classes with no overridden operator new.
 template <typename T, typename... Args, std::enable_if_t<!class_has_custom_new_operator<T>::value, int> = 0>
 inline std::unique_ptr<T> make_unique(Args&&... args) {
     return std::make_unique<T>(std::forward<Args>(args)...);

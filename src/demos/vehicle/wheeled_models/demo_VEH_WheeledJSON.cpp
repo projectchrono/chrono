@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     const auto& vehicle_model = models[which - 1].first;
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model->VehicleJSON()), contact_method);
+    WheeledVehicle vehicle(GetVehicleDataFile(vehicle_model->VehicleJSON()), contact_method);
     vehicle.Initialize(ChCoordsys<>(initLoc, QuatFromAngleZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
@@ -100,15 +100,15 @@ int main(int argc, char* argv[]) {
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(vehicle_model->EngineJSON()));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(vehicle_model->TransmissionJSON()));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(vehicle_model->EngineJSON()));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(vehicle_model->TransmissionJSON()));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
     for (unsigned int i = 0; i < vehicle.GetNumberAxles(); i++) {
         for (auto& wheel : vehicle.GetAxle(i)->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(vehicle_model->TireJSON(i)));
+            auto tire = ReadTireJSON(GetVehicleDataFile(vehicle_model->TireJSON(i)));
             vehicle.InitializeTire(tire, wheel, VisualizationType::MESH);
         }
     }
@@ -119,14 +119,14 @@ int main(int argc, char* argv[]) {
     // Create the trailer system (build into same ChSystem)
     std::shared_ptr<WheeledTrailer> trailer;
     if (add_trailer) {
-        trailer = chrono_types::make_shared<WheeledTrailer>(sys, vehicle::GetDataFile(trailer_model.TrailerJSON()));
+        trailer = chrono_types::make_shared<WheeledTrailer>(sys, GetVehicleDataFile(trailer_model.TrailerJSON()));
         trailer->Initialize(vehicle.GetChassis());
         trailer->SetChassisVisualizationType(VisualizationType::PRIMITIVES);
         trailer->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
         trailer->SetWheelVisualizationType(VisualizationType::NONE);
         for (auto& axle : trailer->GetAxles()) {
             for (auto& wheel : axle->GetWheels()) {
-                auto tire = ReadTireJSON(vehicle::GetDataFile(trailer_model.TireJSON()));
+                auto tire = ReadTireJSON(GetVehicleDataFile(trailer_model.TireJSON()));
                 trailer->InitializeTire(tire, wheel, VisualizationType::PRIMITIVES);
             }
         }
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(sys, vehicle::GetDataFile(rigidterrain_file));
+    RigidTerrain terrain(sys, GetVehicleDataFile(rigidterrain_file));
     terrain.Initialize();
 
     // Set solver and integrator

@@ -29,7 +29,7 @@ set(Chrono_core_SOURCES
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
     core/ChRandom.cpp
-    core/ChGlobal.cpp
+    core/ChDataPath.cpp
     )
 set(Chrono_core_HEADERS
     core/ChApiCE.h
@@ -57,7 +57,7 @@ set(Chrono_core_HEADERS
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
     core/ChCubicSpline.h
-    core/ChGlobal.h
+    core/ChDataPath.h
     core/ChTypes.h
     core/ChTensors.h
     )

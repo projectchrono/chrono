@@ -20,7 +20,7 @@
 #include <chrono>
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
@@ -32,7 +32,7 @@
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
 #include "chrono_synchrono/controller/driver/SynMultiPathDriver.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_SENSOR
@@ -178,10 +178,10 @@ int main(int argc, char* argv[]) {
 
     RigidTerrain terrain(vehicle.GetSystem());
     auto patch =
-        terrain.AddPatch(patch_mat, CSYSNORM, synchrono::GetDataFile("meshes/Highway_col.obj"), true, 0.01, false);
+        terrain.AddPatch(patch_mat, CSYSNORM, GetSynchronoDataFile("meshes/Highway_col.obj"), true, 0.01, false);
 
     auto vis_mesh =
-        ChTriangleMeshConnected::CreateFromWavefrontFile(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetSynchronoDataFile("meshes/Highway_vis.obj"), true, true);
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(vis_mesh);
     trimesh_shape->SetMutable(false);
@@ -397,50 +397,50 @@ ChCoordsys<> GetVehicleConfig(int node_id,
     ChQuaternion<> initRot;
     switch (node_id) {
         case 0:
-            vehicle = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-            engine = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/Sedan.json");
+            vehicle = GetVehicleDataFile("sedan/vehicle/Sedan_Vehicle.json");
+            engine = GetVehicleDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("sedan/tire/Sedan_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/Sedan.json");
             initLoc = ChVector3d(2.8, -70, 0.2);
             initRot = QuatFromAngleZ(90 * CH_DEG_TO_RAD);
             cam_distance = 6.0;
             break;
         case 1:
-            vehicle = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-            engine = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/Sedan.json");
+            vehicle = GetVehicleDataFile("sedan/vehicle/Sedan_Vehicle.json");
+            engine = GetVehicleDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("sedan/tire/Sedan_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/Sedan.json");
             initLoc = ChVector3d(2.8, -40, 0.2);
             initRot = QuatFromAngleZ(90 * CH_DEG_TO_RAD);
             cam_distance = 6.0;
             break;
         case 2:
-            vehicle = vehicle::GetDataFile("citybus/vehicle/CityBus_Vehicle.json");
-            engine = vehicle::GetDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/CityBus.json");
+            vehicle = GetVehicleDataFile("citybus/vehicle/CityBus_Vehicle.json");
+            engine = GetVehicleDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("citybus/tire/CityBus_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/CityBus.json");
             initLoc = ChVector3d(6.4, 0, 0.2);
             initRot = QuatFromAngleZ(90 * CH_DEG_TO_RAD);
             cam_distance = 14.0;
             break;
         default:
             if (node_id % 2 == 0) {
-                vehicle = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-                engine = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
-                transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
-                tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
-                zombie = synchrono::GetDataFile("vehicle/Sedan.json");
+                vehicle = GetVehicleDataFile("sedan/vehicle/Sedan_Vehicle.json");
+                engine = GetVehicleDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+                transmission = GetVehicleDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
+                tire = GetVehicleDataFile("sedan/tire/Sedan_TMeasyTire.json");
+                zombie = GetSynchronoDataFile("vehicle/Sedan.json");
                 initLoc = ChVector3d(-2.8, 70.0 - (node_id - 4.0) * 30, 0.2);
                 cam_distance = 6.0;
             } else {
-                vehicle = vehicle::GetDataFile("citybus/vehicle/CityBus_Vehicle.json");
-                engine = vehicle::GetDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
-                transmission = vehicle::GetDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
-                tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
-                zombie = synchrono::GetDataFile("vehicle/CityBus.json");
+                vehicle = GetVehicleDataFile("citybus/vehicle/CityBus_Vehicle.json");
+                engine = GetVehicleDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
+                transmission = GetVehicleDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
+                tire = GetVehicleDataFile("citybus/tire/CityBus_TMeasyTire.json");
+                zombie = GetSynchronoDataFile("vehicle/CityBus.json");
                 initLoc = ChVector3d(-6.4, 70.0 - (node_id - 4.0) * 30, 0.2);
                 cam_distance = 14.0;
             }

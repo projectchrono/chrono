@@ -16,7 +16,7 @@
 //  The obstacle is defined by three parameters
 //  - aa:        approach angle 180 deg = flat, aa < 180 deg = mound, aa > 180 deg = trench
 //  - length:    obstacle length for mound, base length for trench
-//  - obsheight: allways >= 0, obstacle height for mound, obstacle depth for trench
+//  - obsheight: always >= 0, obstacle height for mound, obstacle depth for trench
 //
 // =============================================================================
 

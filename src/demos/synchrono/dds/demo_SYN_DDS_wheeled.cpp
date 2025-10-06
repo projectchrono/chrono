@@ -20,7 +20,7 @@
 #include <chrono>
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -33,7 +33,7 @@
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     syn_manager.Initialize(vehicle.GetSystem());
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile("terrain/RigidPlane.json"));
 
     // Create the vehicle Irrlicht interface
     IrrAppWrapper app;
@@ -346,43 +346,43 @@ void GetVehicleModelFiles(VehicleType type,
                           double& cam_distance) {
     switch (type) {
         case VehicleType::SEDAN:
-            vehicle = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-            engine = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/Sedan.json");
+            vehicle = GetVehicleDataFile("sedan/vehicle/Sedan_Vehicle.json");
+            engine = GetVehicleDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("sedan/tire/Sedan_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/Sedan.json");
             cam_distance = 6.0;
             break;
         case VehicleType::HMMWV:
-            vehicle = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
-            engine = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
-            transmission = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
-            tire = vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/HMMWV.json");
+            vehicle = GetVehicleDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
+            engine = GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
+            transmission = GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
+            tire = GetVehicleDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/HMMWV.json");
             cam_distance = 6.0;
             break;
         case VehicleType::UAZ:
-            vehicle = vehicle::GetDataFile("uaz/vehicle/UAZBUS_SAEVehicle.json");
-            engine = vehicle::GetDataFile("uaz/powertrain/UAZBUS_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("uaz/powertrain/UAZBUS_AutomaticTransmissioniSimpleMap.json");
-            tire = vehicle::GetDataFile("uaz/tire/UAZBUS_TMeasyTireFront.json");
-            zombie = synchrono::GetDataFile("vehicle/UAZBUS.json");
+            vehicle = GetVehicleDataFile("uaz/vehicle/UAZBUS_SAEVehicle.json");
+            engine = GetVehicleDataFile("uaz/powertrain/UAZBUS_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("uaz/powertrain/UAZBUS_AutomaticTransmissioniSimpleMap.json");
+            tire = GetVehicleDataFile("uaz/tire/UAZBUS_TMeasyTireFront.json");
+            zombie = GetSynchronoDataFile("vehicle/UAZBUS.json");
             cam_distance = 6.0;
             break;
         case VehicleType::CITYBUS:
-            vehicle = vehicle::GetDataFile("citybus/vehicle/CityBus_Vehicle.json");
-            engine = vehicle::GetDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/CityBus.json");
+            vehicle = GetVehicleDataFile("citybus/vehicle/CityBus_Vehicle.json");
+            engine = GetVehicleDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("citybus/tire/CityBus_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/CityBus.json");
             cam_distance = 14.0;
             break;
         case VehicleType::MAN:
-            vehicle = vehicle::GetDataFile("MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json");
-            engine = vehicle::GetDataFile("MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("MAN_Kat1/tire/MAN_5t_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/MAN_8WD.json");
+            vehicle = GetVehicleDataFile("MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json");
+            engine = GetVehicleDataFile("MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("MAN_Kat1/tire/MAN_5t_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/MAN_8WD.json");
             cam_distance = 12.0;
             break;
     }

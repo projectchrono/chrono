@@ -24,7 +24,7 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -242,15 +242,15 @@ int main(int argc, char* argv[]) {
                 }
                 case PatchType::MESH: {
                     auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(),
-                                                         vehicle::GetDataFile("terrain/meshes/bump.obj"), true, 0.02);
-                    patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
+                                                         GetVehicleDataFile("terrain/meshes/bump.obj"), true, 0.02);
+                    patch->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
                     break;
                 }
                 case PatchType::HEIGHMAP: {
                     auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(),
-                                                         vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),
+                                                         GetVehicleDataFile("terrain/height_maps/bump64.bmp"),
                                                          patch_size.x(), patch_size.y(), 0.0, 1.0, true, 0.02);
-                    patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
+                    patch->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
                     break;
                 }
             }
@@ -289,10 +289,10 @@ int main(int argc, char* argv[]) {
                     terrain_scm->Initialize(patch_size.x(), patch_size.y(), delta);
                     break;
                 case PatchType::MESH:
-                    terrain_scm->Initialize(vehicle::GetDataFile("terrain/meshes/bump.obj"), delta);
+                    terrain_scm->Initialize(GetVehicleDataFile("terrain/meshes/bump.obj"), delta);
                     break;
                 case PatchType::HEIGHMAP:
-                    terrain_scm->Initialize(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(),
+                    terrain_scm->Initialize(GetVehicleDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(),
                                             patch_size.y(), 0.0, 1.0, delta);
                     break;
             }
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
             terrain_scm->GetMesh()->SetWireframe(render_wireframe);
 
             if (apply_texture)
-                terrain_scm->GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+                terrain_scm->GetMesh()->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"));
 
             if (render_sinkage) {
                 terrain_scm->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);

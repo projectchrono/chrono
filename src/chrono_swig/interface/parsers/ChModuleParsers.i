@@ -38,7 +38,7 @@
 %{
 /* Includes the header in the wrapper code */
 #include "chrono/core/ChFrame.h"
-#include "chrono_parsers/ChParserYAML.h"
+#include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #include "chrono_parsers/ChParserURDF.h"
 #include "chrono_parsers/ChRobotActuation.h"
 
@@ -91,7 +91,7 @@ using namespace chrono::parsers;
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/core/ChFrame.h"
-%include "../../../chrono_parsers/ChParserYAML.h"
+%include "../../../chrono_parsers/yaml/ChParserMbsYAML.h"
 %include "../../../chrono_parsers/ChParserURDF.h"
 // note: unignore these if tinyxml2/urdfdom can be wrapped
 %ignore chrono::parsers::ChParserURDF::CustomProcess;

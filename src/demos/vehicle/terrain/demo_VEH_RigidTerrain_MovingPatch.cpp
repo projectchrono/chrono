@@ -22,7 +22,7 @@
 //// TODO: currently not working properly with Chrono::VSG.
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
 
-    std::vector<std::string> textfiles = {vehicle::GetDataFile("terrain/textures/concrete.jpg"),
-                                          vehicle::GetDataFile("terrain/textures/dirt.jpg")};
+    std::vector<std::string> textfiles = {GetVehicleDataFile("terrain/textures/concrete.jpg"),
+                                          GetVehicleDataFile("terrain/textures/dirt.jpg")};
     std::vector<std::shared_ptr<RigidTerrain::Patch>> patches(2);
     double x_patch;
 

@@ -37,7 +37,7 @@
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -72,7 +72,7 @@ bool create_cylinder_post = true;
 bool create_cylinder_free = true;
 
 // Use nodal directions
-bool use_FEA_node_directions = false;
+NodeDirectionsMode FEA_node_directions_mode = NodeDirectionsMode::NONE;
 
 // Visibility flags
 bool show_rigid_bce = false;
@@ -99,7 +99,7 @@ bool GetProblemSpecs(int argc,
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
     virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
@@ -133,9 +133,9 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     double initial_spacing = (problem_type == PhysicsProblem::CFD) ? 0.02 : 0.01;
 
-    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetFsiSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.81);
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     // Enable/disable use of node directions for FSI flexible meshes
-    fsi.UseNodeDirections(use_FEA_node_directions);
+    fsi.UseNodeDirections(FEA_node_directions_mode);
 
     switch (problem_type) {
         case PhysicsProblem::CFD:
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
             sph_params.max_velocity = 10;
             sph_params.shifting_method = ShiftingMethod::XSPH;
             sph_params.shifting_xsph_eps = 0.5;
-            sph_params.kernel_threshold = 0.8;
+            sph_params.free_surface_threshold = 0.8;
             sph_params.artificial_viscosity = 0.02;
             sph_params.use_delta_sph = true;
             sph_params.delta_sph_coefficient = 0.1;
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
             sph_params.shifting_xsph_eps = 0.25;
             sph_params.shifting_ppst_pull = 1.0;
             sph_params.shifting_ppst_push = 3.0;
-            sph_params.kernel_threshold = 0.8;
+            sph_params.free_surface_threshold = 0.8;
             sph_params.artificial_viscosity = 0.5;
             sph_params.num_proximity_search_steps = ps_freq;
 
@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
@@ -537,9 +537,9 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         double length = 0.1;
         double radius = 0.05;
         double density = 200;
-        double volume = ChCylinder::GetVolume(radius, length);
+        double volume = ChCylinder::CalcVolume(radius, length);
         double mass = density * volume;
-        auto gyration = ChCylinder::GetGyration(radius, length).diagonal();
+        auto gyration = ChCylinder::CalcGyration(radius, length).diagonal();
 
         auto cylinder = chrono_types::make_shared<ChBody>();
         cylinder->SetName("CylinderFree");

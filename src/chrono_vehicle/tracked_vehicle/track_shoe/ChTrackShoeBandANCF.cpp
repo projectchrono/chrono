@@ -20,7 +20,7 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"

@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
-#include "chrono_fsi/sph/math/ExactLinearSolvers.cuh"
+#include "chrono_fsi/sph/math/SphExactLinearSolvers.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -29,7 +29,6 @@ void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared
     cudaCheckError();
     cudaMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     cudaCheckError();
-    cudaDeviceSynchronize();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

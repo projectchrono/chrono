@@ -49,7 +49,7 @@ class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    /// Create convex hull collsion shapes from the specified data file.
+    /// Create convex hull collision shapes from the specified data file.
     /// All shapes are assigned the same contact material.
     static std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> Read(std::shared_ptr<ChContactMaterial> material,
                                                                          const std::string& filename);

@@ -23,7 +23,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -215,16 +215,16 @@ int main(int argc, char* argv[]) {
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/height_maps/test64.bmp"), 128,
                                      128, 0, 4);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/meshes/test.obj"));
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
@@ -234,14 +234,14 @@ int main(int argc, char* argv[]) {
     auto ground_body = patch->GetGroundBody();
 
     auto vis_mat1 = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat1->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
+    vis_mat1->SetKdTexture(GetVehicleDataFile("terrain/textures/grass.jpg"));
     vis_mat1->SetWeightTexture(GetChronoDataFile("sensor/textures/weight1.png"));
     vis_mat1->SetSpecularColor({.0f, .0f, .0f});
     vis_mat1->SetRoughness(1.f);
     vis_mat1->SetUseSpecularWorkflow(false);
 
     auto vis_mat2 = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat2->SetKdTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+    vis_mat2->SetKdTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"));
     vis_mat2->SetWeightTexture(GetChronoDataFile("sensor/textures/weight2.png"));
     vis_mat2->SetSpecularColor({.0f, .0f, .0f});
     vis_mat2->SetRoughness(1.f);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
     // auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
     // //first blended material
     // auto vis_mat1 = chrono_types::make_shared<ChVisualMaterial>();
-    // vis_mat1->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
+    // vis_mat1->SetKdTexture(GetVehicleDataFile("terrain/textures/grass.jpg"));
     // vis_mat1->SetWeightTexture(GetChronoDataFile("sensor/textures/weight1.png"));
     // vis_mat1->SetSpecularColor({.0f, .0f, .0f});
     // vis_mat1->SetRoughness(1.f);
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
     // visual_asset->material_list.push_back(vis_mat1);
 
     // auto vis_mat2 = chrono_types::make_shared<ChVisualMaterial>();
-    // vis_mat2->SetKdTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+    // vis_mat2->SetKdTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"));
     // vis_mat2->SetWeightTexture(GetChronoDataFile("sensor/textures/weight2.png"));
     // vis_mat2->SetSpecularColor({.0f, .0f, .0f});
     // vis_mat2->SetRoughness(1.f);

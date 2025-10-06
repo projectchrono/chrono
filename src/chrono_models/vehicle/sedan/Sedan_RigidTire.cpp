@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 
 namespace chrono {
@@ -41,7 +41,7 @@ const std::string Sedan_RigidTire::m_meshFile = "sedan/sedan_tire.obj";
 // -----------------------------------------------------------------------------
 Sedan_RigidTire::Sedan_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("sedan/tire.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("sedan/tire.obj"), 0.005);
     }
 }
 

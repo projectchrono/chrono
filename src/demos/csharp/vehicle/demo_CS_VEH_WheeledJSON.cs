@@ -34,10 +34,10 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Create the vehicle system
-            WheeledVehicle vehicle = new WheeledVehicle(GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"), ChContactMethod.SMC);
+            WheeledVehicle vehicle = new WheeledVehicle(GetVehicleDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"), ChContactMethod.SMC);
             vehicle.Initialize(new ChCoordsysd(new ChVector3d(0, 0, 0.5), new ChQuaterniond(1, 0, 0, 0)));
             vehicle.GetChassis().SetFixed(false);
             vehicle.SetChassisVisualizationType(VisualizationType.MESH);
@@ -48,8 +48,8 @@ namespace ChronoDemo
             vehicle.SetWheelVisualizationType(VisualizationType.MESH);
 
             // Create and initialize the powertrain system
-            ChEngine engine = ReadEngineJSON(GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"));
-            ChTransmission transmission = ReadTransmissionJSON(GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
+            ChEngine engine = ReadEngineJSON(GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"));
+            ChTransmission transmission = ReadTransmissionJSON(GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
             ChPowertrainAssembly powertrain = new ChPowertrainAssembly(engine, transmission);
             vehicle.InitializePowertrain(powertrain);
 
@@ -58,7 +58,7 @@ namespace ChronoDemo
             {
                 foreach (ChWheel wheel in axle.GetWheels())
                 {
-                    ChTire tire = ReadTireJSON(GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
+                    ChTire tire = ReadTireJSON(GetVehicleDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
                     vehicle.InitializeTire(tire, wheel, VisualizationType.MESH);
                 }
             }
@@ -70,7 +70,7 @@ namespace ChronoDemo
             system.SetCollisionSystemType(ChCollisionSystem.Type.BULLET);
 
             // Create the terrain
-            RigidTerrain terrain = new RigidTerrain(system, GetDataFile("terrain/RigidPlane.json"));
+            RigidTerrain terrain = new RigidTerrain(system, GetVehicleDataFile("terrain/RigidPlane.json"));
             terrain.Initialize();
 
             // Create the interactive Irrlicht driver system

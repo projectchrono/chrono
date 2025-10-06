@@ -23,7 +23,7 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
