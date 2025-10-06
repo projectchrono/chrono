@@ -75,50 +75,51 @@ set(FSISPH_BASE_FILES
 source_group("" FILES ${FSISPH_BASE_FILES})
 
 set(FSISPH_PHYSICS_FILES
-    physics/MarkerType.cuh
-    physics/FsiDataManager.cuh
-    physics/FsiInterface.cuh
-    physics/BceManager.cuh
-    physics/FluidDynamics.cuh
-    physics/CollisionSystem.cuh
-    physics/FsiForce.cuh    
-    physics/FsiForceWCSPH.cuh
-    physics/FsiForceISPH.cuh
+    physics/SphBceManager.cuh
+    physics/SphCollisionSystem.cuh
+    physics/SphDataManager.cuh
+    physics/SphFluidDynamics.cuh
+    physics/SphForce.cuh    
+    physics/SphForceWCSPH.cuh
+    physics/SphForceISPH.cuh
+    physics/SphFsiInterface.cuh
     physics/SphGeneral.cuh
-    physics/FsiParticleRelocator.cuh
+    physics/SphMarkerType.cuh
+    physics/SphParticleRelocator.cuh
     #
-    physics/FsiDataManager.cu
-    physics/FsiInterface.cu
-    physics/BceManager.cu
-    physics/FluidDynamics.cu
-    physics/CollisionSystem.cu
-    physics/FsiForce.cu
-    physics/FsiForceWCSPH.cu
-    physics/FsiForceISPH.cu
+    physics/SphBceManager.cu
+    physics/SphCollisionSystem.cu
+    physics/SphDataManager.cu
+    physics/SphFluidDynamics.cu
+    physics/SphForce.cu
+    physics/SphForceWCSPH.cu
+    physics/SphForceISPH.cu
+    physics/SphFsiInterface.cu
     physics/SphGeneral.cu
-    physics/FsiParticleRelocator.cu
+    physics/SphParticleRelocator.cu
 )
 source_group("physics" FILES ${FSISPH_PHYSICS_FILES})
 
 set(FSISPH_MATH_FILES
-    math/LinearSolver.h
-    #math/LinearSolverBiCGStab.h
-    #math/LinearSolverGMRES.h
+    math/SphLinearSolver.h
+    #math/SphLinearSolverBiCGStab.h
+    #math/SphLinearSolverGMRES.h
 
-    math/CustomMath.cuh
-    math/ExactLinearSolvers.cuh
+    math/SphCustomMath.cuh
+    math/SphExactLinearSolvers.cuh
 
-    #math/LinearSolverBiCGStab.cpp
-    #math/LinearSolverGMRES.cpp
+    #math/SphLinearSolverBiCGStab.cpp
+    #math/SphLinearSolverGMRES.cpp
 )
 source_group("math" FILES ${FSISPH_MATH_FILES})
 
 set(FSISPH_UTILS_FILES
-    utils/UtilsDevice.cuh
-    utils/UtilsDevice.cu
-    utils/UtilsTypeConvert.cuh
-    utils/UtilsPrintSph.cuh
-    utils/UtilsPrintSph.cu
+    utils/SphUtilsDevice.cuh
+    utils/SphUtilsDevice.cu
+    utils/SphUtilsTypeConvert.cuh
+    utils/SphUtilsPrint.cuh
+    utils/SphUtilsPrint.cu
+    utils/SphUtilsLogging.cuh
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 
@@ -137,8 +138,8 @@ source_group("stb" FILES ${FSISPH_STB_FILES})
 
 if(CH_ENABLE_MODULE_VSG)
     set(FSISPH_VSG_FILES
-        visualization/ChFsiVisualizationVSG.h
-        visualization/ChFsiVisualizationVSG.cpp
+        visualization/ChSphVisualizationVSG.h
+        visualization/ChSphVisualizationVSG.cpp
     )
 else()
     set(FSISPH_VSG_FILES "")

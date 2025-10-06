@@ -32,7 +32,7 @@ throttle_value = 0.3
 
 # =============================================================================
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Create the HMMWV vehicle
 hmmwv = veh.HMMWV_Full()
@@ -64,7 +64,7 @@ patch_mat = minfo.CreateMaterial(hmmwv.GetSystem().GetContactMethod())
 terrain = veh.RigidTerrain(hmmwv.GetSystem())
 patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 200)
 patch.SetColor(chrono.ChColor(1, 1, 1))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
 
 # Left circle path

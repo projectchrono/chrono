@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/duro/Duro_RigidTire.h"
 
 namespace chrono {
@@ -41,7 +41,7 @@ const std::string Duro_RigidTire::m_meshFile = "duro/Duro_Tire.obj";
 // -----------------------------------------------------------------------------
 Duro_RigidTire::Duro_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("duro/Duro_Tire.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("duro/Duro_Tire.obj"), 0.005);
     }
 }
 

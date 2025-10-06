@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/mtv/LMTV_Vehicle.h"
 #include "chrono_models/vehicle/mtv/LMTV_ChassisRear.h"

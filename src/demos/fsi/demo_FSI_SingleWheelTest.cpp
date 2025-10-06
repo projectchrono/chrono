@@ -33,7 +33,7 @@
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -185,7 +185,8 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     wheel->SetPosDt(wheel_IniVel);                                        // set initial velocity
     wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));                     // set initial anular velocity
 
-    auto wheel_coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial, trimesh, false, false, 0.005);
+    auto wheel_coll_shape =
+        chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial, trimesh, false, false, 0.005);
     auto wheel_vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     wheel_vis_shape->SetMesh(trimesh);
     wheel_vis_shape->SetColor(ChColor(0.4f, 0.4f, 0.4f));
@@ -277,7 +278,7 @@ int main(int argc, char* argv[]) {
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
@@ -286,48 +287,47 @@ int main(int argc, char* argv[]) {
     sysSPH.SetGravitationalAcceleration(gravity);
 
     sysSPH.SetVerbose(verbose_fsi);
+    sysFSI.SetStepSizeCFD(dT);
+    sysFSI.SetStepsizeMBD(dT);
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SingleWheelTest.json");
-    if (argc == 3) {
-        inputJson = std::string(argv[1]);
-        wheel_slip = std::stod(argv[2]);
+    if (argc == 2) {
+        wheel_slip = std::stod(argv[1]);
     } else if (argc != 1) {
-        cout << "usage: ./demo_FSI_SingleWheelTest <json_file> <wheel_slip>" << endl;
+        cout << "usage: ./demo_FSI_SingleWheelTest <wheel_slip>" << endl;
         cout << "or to use default input parameters ./demo_FSI_SingleWheelTest " << endl;
         return 1;
     }
 
-    sysSPH.ReadParametersFromFile(inputJson);
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    mat_props.density = density;
+    mat_props.Young_modulus = 1e6;
+    mat_props.Poisson_ratio = 0.3;
+    mat_props.mu_I0 = 0.03;
+    mat_props.mu_fric_s = 0.7;
+    mat_props.mu_fric_2 = 0.7;
+    mat_props.average_diam = 0.005;
+    mat_props.cohesion_coeff = 1e2;
+    sysSPH.SetElasticSPH(mat_props);
 
-    // Set the initial particle spacing
-    sysSPH.SetInitialSpacing(initSpacing);
-
-    // Set the SPH kernel multiplier (h = kernelMultiplier * initSpacing)
-    sysSPH.SetKernelMultiplier(kernelMultiplier);
-
-    // Set the terrain density
-    sysSPH.SetDensity(density);
-
-    // Set the simulation stepsize
-    sysFSI.SetStepSizeCFD(dT);
-    sysFSI.SetStepsizeMBD(dT);
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.initial_spacing = initSpacing;
+    sph_params.d0_multiplier = kernelMultiplier;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.kernel_type = KernelType::CUBIC_SPLINE;
+    sph_params.num_proximity_search_steps = 1;
+    sph_params.artificial_viscosity = 0.5;
+    sph_params.use_variable_time_step = false;
+    sysSPH.SetSPHParameters(sph_params);
 
     // Set the terrain container size
     sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
-
-    // Set SPH discretization type, consistent or inconsistent
-    sysSPH.SetConsistentDerivativeDiscretization(false, false);
-
-    // Set cohsion of the granular material
-    sysSPH.SetCohesionForce(1.0e2);
-
-    // Setup the SPH method
-    sysSPH.SetIntegrationScheme(IntegrationScheme::RK2);
-
-    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
-    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
-    sysSPH.SetShiftingXSPHParameters(0.25);
 
     // Set up the periodic boundary condition in Y direction
     ChVector3d cMin(-10 * bxDim / 2, -byDim / 2 - initSpacing / 2, -bzDim * 10);
@@ -370,7 +370,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(true);

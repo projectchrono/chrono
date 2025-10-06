@@ -23,7 +23,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
@@ -75,7 +75,7 @@ HMMWV_Setup setup;
 ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     if (is_wheeled) {
         // Create the wheeled vehicle system
-        auto vehicle = new WheeledVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
+        auto vehicle = new WheeledVehicle(sys, GetVehicleDataFile(setup.VehicleJSON()));
         vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.75), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -84,15 +84,15 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
         // Create and initialize the powertrain system
-        auto engine = ReadEngineJSON(vehicle::GetDataFile(setup.EngineJSON()));
-        auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(setup.TransmissionJSON()));
+        auto engine = ReadEngineJSON(GetVehicleDataFile(setup.EngineJSON()));
+        auto transmission = ReadTransmissionJSON(GetVehicleDataFile(setup.TransmissionJSON()));
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         vehicle->InitializePowertrain(powertrain);
 
         // Create and initialize the tires
         for (auto& axle : vehicle->GetAxles()) {
             for (auto& wheel : axle->GetWheels()) {
-                auto tire = ReadTireJSON(vehicle::GetDataFile(setup.TireJSON()));
+                auto tire = ReadTireJSON(GetVehicleDataFile(setup.TireJSON()));
                 vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
             }
         }
@@ -100,7 +100,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         return vehicle;
     } else {
         // Create the tracked vehicle system
-        auto vehicle = new TrackedVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
+        auto vehicle = new TrackedVehicle(sys, GetVehicleDataFile(setup.VehicleJSON()));
         vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.85), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -112,8 +112,8 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetTrackShoeVisualizationType(VisualizationType::MESH);
 
         // Create and initialize the powertrain system
-        auto engine = ReadEngineJSON(vehicle::GetDataFile(setup.EngineJSON()));
-        auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(setup.TransmissionJSON()));
+        auto engine = ReadEngineJSON(GetVehicleDataFile(setup.EngineJSON()));
+        auto transmission = ReadTransmissionJSON(GetVehicleDataFile(setup.TransmissionJSON()));
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         vehicle->InitializePowertrain(powertrain);
 
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     // Peek in vehicle JSON file and infer type
     rapidjson::Document d;
-    ReadFileJSON(vehicle::GetDataFile(setup.VehicleJSON()), d);
+    ReadFileJSON(GetVehicleDataFile(setup.VehicleJSON()), d);
     assert(!d.IsNull());
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));

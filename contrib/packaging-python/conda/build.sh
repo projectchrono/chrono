@@ -15,10 +15,10 @@ else
     PY_LIB="libpython${PY_VER}.so"
 fi
 
-ROS_SETUP_SCRIPT="$HOME/Packages/ros_ws/install/setup.sh"
-if [ -f "$ROS_SETUP_SCRIPT" ]; then
-  source $ROS_SETUP_SCRIPT
-fi
+# ROS_SETUP_SCRIPT="$HOME/Packages/ros_ws/install/setup.sh"
+# if [ -f "$ROS_SETUP_SCRIPT" ]; then
+#   source $ROS_SETUP_SCRIPT
+# fi
 
 # set MKL vars
 export MKL_INTERFACE_LAYER=LP64
@@ -32,15 +32,16 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCH_CONDA_INSTALL=ON \
  -DCH_INSTALL_PYTHON_PACKAGE=$SP_DIR \
  -DCH_PYCHRONO_DATA_PATH=../../../../share/chrono/data \
- -DCH_PYCHRONO_SHADER_PATH=../../../../lib/sensor_ptx \
+ -DCH_PYCHRONO_SHADER_PATH=../../../../share/chrono/sensor_shaders/ \
  -DPython3_ROOT_DIR=$PREFIX \
  -DCMAKE_BUILD_TYPE=$CONFIGURATION \
+ -DCH_ENABLE_MODULE_FSI=ON \
  -DCH_ENABLE_MODULE_IRRLICHT=ON \
  -DCH_ENABLE_MODULE_POSTPROCESS=ON \
  -DCH_ENABLE_MODULE_VEHICLE=ON \
  -DCH_ENABLE_MODULE_PYTHON=ON \
  -DCH_ENABLE_MODULE_SENSOR=ON \
- -DCH_ENABLE_MODULE_ROS=ON \
+ -DCH_ENABLE_MODULE_ROS=OFF \
  -DCH_ENABLE_MODULE_PARSERS=ON \
  -DCH_USE_CUDA_NVRTC=OFF \
  -DCUDA_ARCH_NAME=Manual \

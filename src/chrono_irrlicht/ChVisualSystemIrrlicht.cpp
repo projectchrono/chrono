@@ -176,7 +176,7 @@ void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
         m_gui->Initialize(this);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
-        // This is a recursive call to accomodate any existing sub-assemblies.
+        // This is a recursive call to accommodate any existing sub-assemblies.
         BindAll();
     }
 }
@@ -236,7 +236,7 @@ void ChVisualSystemIrrlicht::Initialize() {
         m_gui->Initialize(this);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
-        // This is a recursive call to accomodate any existing sub-assemblies.
+        // This is a recursive call to accommodate any existing sub-assemblies.
         BindAll();
     }
 

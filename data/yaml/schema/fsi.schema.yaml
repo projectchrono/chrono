@@ -1,0 +1,156 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a YAML Chrono::FSI problem specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+#
+# =============================================================================
+
+required: [chrono-version, model, simulation]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML problem specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+
+# Specification of a ChVector3d
+vector3d: &VECTOR3D
+    type: array
+    items:
+        type: number
+    minItems: 3
+    maxItems: 3
+
+# Specification of a 3D rotation
+# A rotation can be provided as:
+# - an Euler angle sequence [yaw, pitch, roll], with angles assumed in radians or degrees, or
+# - a unit quaternion [e0, e1, e2, e3]
+orientation3d: &ORIENTATION3D
+    type: array
+    description: Frame orientation as Euler angles or as quaternion
+    items:
+      type: number
+    minItems: 3
+    maxItems: 4
+
+# Specification of geometric shapes for FSI interaction
+shape : &SHAPE
+    type: object
+    properties:
+        type:
+            description: Geometric shape type
+            type: string
+            enum: [SPHERE, BOX, CYLINDER, HULL, MESH]
+        location:
+            <<: *VECTOR3D
+            description: Shape location relative to body reference frame
+        orientation:
+            <<: *ORIENTATION3D
+            description: Shape orientation relative to body reference frame
+        dimensions:
+            <<: *VECTOR3D
+            description: Length, width, and height (required for BOX type)
+        radius:
+            description: Radius of the sphere (required for SPHERE or CYLINDER type)
+            type: number
+            minimum: 0.0
+        length:
+            description: Length (required for CYLINDER type)
+            type: number
+            minimum: 0.0
+        axis:
+            <<: *VECTOR3D
+            description: Axis direction expressed in body reference frame (required for CYLINDER type)
+        filename:
+            description: 3D data file name (required for MESH or HULL type)
+            type: string
+        scale:
+            description: Scale factor (for MESH type)
+            type: number
+            default: 1.0
+
+# -----------------------------------------------------------------------------
+# Definition of the FSI problem
+
+model:
+  description: |
+    Schema for FSI problem parameters.
+    This schema defines the multibody and fluid models, the simulation parameters for the two solvers, and the co-simulation metastep.
+  type: object
+  required: [multibody_model, multibody_simulation, fluid_model, fluid_simulation]
+  properties:
+    multibody_model:
+      description: YAML file for MBS model specification.
+      type: string
+    multibody_simulation:
+      description: YAML file for MBS simulation specification.
+      type: string
+    fluid_model:
+      description: YAML file for fluid model specification.
+      type: string
+    fluid_simulation:
+      description: YAML file for fluid simulation specification.
+      type: string
+    
+fsi_bodies:
+  description: names of FSI rigid bodies (bodies interacting with fluid).
+  type: array
+  items:
+    type: object
+    required: [name, shapes]
+    properties:
+      name:
+        description: Name of the body in the multibody system.
+        type: string
+      shapes:
+        description: FSI geometry.
+        type: array
+        items:
+          <<: *SHAPE
+
+simulation:
+  description: Definition of co-simulation metastep and simulation duration
+  type: object
+  required: [time_step]
+  properties:
+    time_step:
+      description: Co-simulation metastep (duration between inter-phase data communication).
+      type: number
+      minimum: 0
+    end_time:
+      description: Simulation duration.
+      type: number
+      minimum: 0
+
+visualization:
+  description: Visualization settings.
+  type: object
+  required: [render_fps]
+  properties:
+    render_fps:
+      description: Rendering frequency (in frames per second)
+      type: number
+      minimum: 0
+
+output:
+  description: Output settings.
+  type: object
+  required: [output_fps]
+  properties:
+    output_fps:
+      description: Output frequency (in frames per second)
+      type: number
+      minimum: 0
+
+
+  

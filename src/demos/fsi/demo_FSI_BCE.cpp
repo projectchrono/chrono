@@ -22,7 +22,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
     virtual bool get(unsigned int n) const override { return pos[n].y >= 0; }
@@ -91,7 +91,7 @@ class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVis
 std::shared_ptr<vsg3d::ChVisualSystemVSG> CreateVisulization(ChFsiSystemSPH& sysFSI,
                                                              ChSystem& sysMBS,
                                                              const std::string& title) {
-    auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(true);
@@ -122,7 +122,7 @@ void Box() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -229,7 +229,7 @@ void Sphere() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -340,7 +340,7 @@ void Cylinder1() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -457,7 +457,7 @@ void Cylinder2() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -576,7 +576,7 @@ void Cone() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);
@@ -663,7 +663,7 @@ void BoxContainer() {
 
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysSPH.SetInitialSpacing(spacing);
     sysSPH.SetKernelMultiplier(1.0);

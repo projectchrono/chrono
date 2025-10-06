@@ -128,20 +128,20 @@ def main() :
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # JSON files for vehicle model
-vehicle_file = veh.GetDataFile('sedan/vehicle/Sedan_Vehicle.json')
-vehicle_tire_file = veh.GetDataFile('sedan/tire/Sedan_TMeasyTire.json')
-vehicle_engine_file = veh.GetDataFile('sedan/powertrain/Sedan_EngineSimpleMap.json')
-vehicle_transmission_file = veh.GetDataFile('sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json')
+vehicle_file = veh.GetVehicleDataFile('sedan/vehicle/Sedan_Vehicle.json')
+vehicle_tire_file = veh.GetVehicleDataFile('sedan/tire/Sedan_TMeasyTire.json')
+vehicle_engine_file = veh.GetVehicleDataFile('sedan/powertrain/Sedan_EngineSimpleMap.json')
+vehicle_transmission_file = veh.GetVehicleDataFile('sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json')
 
 # JSON files for trailer model
-trailer_file = veh.GetDataFile('ultra_tow/UT_Trailer.json')
-trailer_tire_file = veh.GetDataFile('ultra_tow/UT_TMeasyTire.json')
+trailer_file = veh.GetVehicleDataFile('ultra_tow/UT_Trailer.json')
+trailer_tire_file = veh.GetVehicleDataFile('ultra_tow/UT_TMeasyTire.json')
 
 # JSON files for terrain
-rigidterrain_file = veh.GetDataFile('terrain/RigidPlane.json')
+rigidterrain_file = veh.GetVehicleDataFile('terrain/RigidPlane.json')
 
 # Initial vehicle position
 initLoc = chrono.ChVector3d(0, 0, 0.5)

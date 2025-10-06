@@ -27,7 +27,7 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -128,7 +128,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
     ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
-    chrono::utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
+    chrono::utils::LoadConvexMesh(GetVehicleDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
     // Assemble the tire contact from 15 segments, properly offset.
@@ -149,7 +149,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 
     // Visualization
     auto trimesh =
-        ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -164,7 +164,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Set terain patch size and initial vehicle location
+    // Set terrain patch size and initial vehicle location
     ChVector3d init_loc;
     ChVector2d patch_size;
     ChAABB patch_aabb;
@@ -289,10 +289,10 @@ int main(int argc, char* argv[]) {
             terrain.Initialize(patch_size.x(), patch_size.y(), delta);
             break;
         case PatchType::MESH:
-            terrain.Initialize(vehicle::GetDataFile("terrain/meshes/bump.obj"), delta);
+            terrain.Initialize(GetVehicleDataFile("terrain/meshes/bump.obj"), delta);
             break;
         case PatchType::HEIGHMAP:
-            terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(), patch_size.y(),
+            terrain.Initialize(GetVehicleDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(), patch_size.y(),
                                0.0, 1.0, delta);
             break;
     }
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     terrain.GetMesh()->SetWireframe(render_wireframe);
 
     if (apply_texture)
-        terrain.GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+        terrain.GetMesh()->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"));
 
     if (render_sinkage) {
         terrain.SetColormap(ChColormap::Type::FAST);

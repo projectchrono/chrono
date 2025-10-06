@@ -24,11 +24,12 @@ CH_FACTORY_REGISTER(ChFunctionSine)
 ChFunctionSine::ChFunctionSine(const ChFunctionSine& other) {
     m_ampl = other.m_ampl;
     m_phase = other.m_phase;
+    m_shift = other.m_shift;
     m_angular_rate = other.m_angular_rate;
 }
 
 double ChFunctionSine::GetVal(double x) const {
-    return m_ampl * std::sin(m_angular_rate * x + m_phase);
+    return m_ampl * std::sin(m_angular_rate * x + m_phase) + m_shift;
 }
 
 double ChFunctionSine::GetDer(double x) const {
@@ -51,6 +52,7 @@ void ChFunctionSine::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(m_ampl);
     archive_out << CHNVP(m_phase);
+    archive_out << CHNVP(m_shift);
     archive_out << CHNVP(m_angular_rate);
 }
 
@@ -62,6 +64,7 @@ void ChFunctionSine::ArchiveIn(ChArchiveIn& archive_in) {
     // stream in all member data:
     archive_in >> CHNVP(m_ampl);
     archive_in >> CHNVP(m_phase);
+    archive_in >> CHNVP(m_shift);
     archive_in >> CHNVP(m_angular_rate);
 }
 

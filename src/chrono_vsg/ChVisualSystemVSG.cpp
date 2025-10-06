@@ -1212,7 +1212,7 @@ void ChVisualSystemVSG::Initialize() {
         std::cout << "----------------------------------------------------" << std::endl;
     }
 
-    m_window->clearColor() = VkClearColorValue{{m_background_color.R, m_background_color.G, m_background_color.B, 1}};
+    m_window->clearColor() = vsg::vec4CH(m_background_color, 1.0f);
     m_viewer->addWindow(m_window);
 
     // set up the camera

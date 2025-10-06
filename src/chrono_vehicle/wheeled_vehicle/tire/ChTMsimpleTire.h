@@ -236,7 +236,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double sy;               // Contact Path - Side Slip State (Alpha)
         double gamma;            // Inclination Angle
         double muscale;          // Scaling factor for Tire/Road friction
-        double vta;              // absolut transport velocity
+        double vta;              // absolute transport velocity
         double vsx;              // Longitudinal slip velocity
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis, filtered by running avg,

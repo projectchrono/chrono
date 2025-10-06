@@ -20,7 +20,7 @@
 #include <chrono>
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -32,7 +32,7 @@
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -244,12 +244,12 @@ int main(int argc, char* argv[]) {
     initLoc.y() = node_id * 3;
 
     // Get the vehicle JSON filenames
-    const std::string vehicle_filename = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-    const std::string engine_filename = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+    const std::string vehicle_filename = GetVehicleDataFile("sedan/vehicle/Sedan_Vehicle.json");
+    const std::string engine_filename = GetVehicleDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
     const std::string transmission_filename =
-        vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
-    const std::string tire_filename = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
-    const std::string zombie_filename = synchrono::GetDataFile("vehicle/Sedan.json");
+       GetVehicleDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
+    const std::string tire_filename = GetVehicleDataFile("sedan/tire/Sedan_TMeasyTire.json");
+    const std::string zombie_filename = GetSynchronoDataFile("vehicle/Sedan.json");
 
     // Create the vehicle, set parameters, and initialize
     WheeledVehicle vehicle(vehicle_filename, contact_method);
@@ -283,7 +283,7 @@ int main(int argc, char* argv[]) {
     syn_manager.Initialize(vehicle.GetSystem());
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile("terrain/RigidPlane.json"));
 
     // Create the vehicle Irrlicht interface
 #ifdef CHRONO_IRRLICHT

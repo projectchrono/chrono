@@ -24,14 +24,14 @@ namespace chrono {
 /// @{
 
 /// Sine function
-/// `y = A * sin(2*PI*f * x + phi)`
+/// `y = A * sin(2*PI*f * x + phi) + B`
 class ChApi ChFunctionSine : public ChFunction {
   public:
-    ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_angular_rate(0.0) {}
+    ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_shift(0.0), m_angular_rate(0.0) {}
 
     /// Create sine function given amplitude, frequency [Hz] and phase.
-    ChFunctionSine(double ampl, double freq, double phase = 0)
-        : m_ampl(ampl), m_phase(phase), m_angular_rate(CH_2PI * freq) {}
+    ChFunctionSine(double ampl, double freq, double phase = 0, double shift = 0)
+        : m_ampl(ampl), m_phase(phase), m_shift(shift), m_angular_rate(CH_2PI * freq) {}
 
     ChFunctionSine(const ChFunctionSine& other);
 
@@ -72,6 +72,7 @@ class ChApi ChFunctionSine : public ChFunction {
   private:
     double m_ampl;
     double m_phase;
+    double m_shift;
     double m_angular_rate;  ///< internal value, w=2*PI*freq
 };
 

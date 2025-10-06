@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/citybus/CityBus_Wheel.h"
 #include "chrono_thirdparty/filesystem/path.h"
 

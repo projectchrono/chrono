@@ -21,7 +21,7 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/ChFsiSplashsurfSPH.h"
-#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -31,6 +31,7 @@ ChFsiSplashsurfSPH::ChFsiSplashsurfSPH(const ChFsiFluidSystemSPH& sysSPH)
     : m_sysSPH(sysSPH), m_radius(-1), m_cube_size(0.5), m_smoothing_length(1.5), m_surface_threshold(0.6) {}
 
 void ChFsiSplashsurfSPH::WriteParticleFileJSON(const std::string& filename) {
+    m_sysSPH.SynchronizeCopyStream();
     writeParticleFileJSON(filename, *m_sysSPH.m_data_mgr);
 }
 

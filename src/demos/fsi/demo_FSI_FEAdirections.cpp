@@ -35,7 +35,7 @@
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -59,7 +59,7 @@ enum class ElementType { ANCF_CABLE, ANCF_3243, ANCF_3333, EULER };
 
 ElementType element_type = ElementType::ANCF_CABLE;
 int num_elements = 4;
-bool use_FEA_node_directions = false;
+NodeDirectionsMode FEA_node_directions_mode = NodeDirectionsMode::AVERAGE;
 
 // -----------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ void CreateCables(ChFsiProblemSPH& fsi, std::shared_ptr<ChBody> ground);
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
     virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
@@ -93,9 +93,9 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     double initial_spacing = 0.01;
 
-    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(verbose);
-    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    auto sysFSI = fsi.GetFsiSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.81);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_xsph_eps = 0.25;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
-    sph_params.kernel_threshold = 0.8;
+    sph_params.free_surface_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
     sph_params.num_proximity_search_steps = 1;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     fsi.SetSPHParameters(sph_params);
 
     // Enable/disable use of node directions for FSI flexible meshes
-    fsi.UseNodeDirections(use_FEA_node_directions);
+    fsi.UseNodeDirections(FEA_node_directions_mode);
 
     // Dimension of computational domain and intial fluid domain
     ChVector3d csize(2.0, 0.15, 1.0);
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
         double vel_max = 2.5;
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(vel_min, vel_max);
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(false);

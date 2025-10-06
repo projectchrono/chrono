@@ -1,0 +1,44 @@
+chrono-version: 9.0
+
+model:
+  name: Cylinder
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
+  bodies:
+    - name: object
+      location: [0, 0, 1.38]
+      orientation: [0, 0, 0]
+      lin_vel: [0, 0, 0]
+      ang_vel: [0, 0, 0]
+      mass: 4.52
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia:
+        moments: [0.031, 0.031, 0.032]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: contact_material
+            coefficient_of_friction: 0.4
+        shapes:
+          - type: CYLINDER
+            material: contact_material
+            dimensions: [0.9, 0.9, 0.15]
+            location: [0, 0, 0]
+            axis: [1, 0, 0]
+            radius: 0.12
+            length: 0.20
+      visualization:
+        shapes:
+          - type: CYLINDER
+            dimensions: [0.9, 0.9, 0.15]
+            location: [0, 0, 0]
+            axis: [1, 0, 0]
+            radius: 0.12
+            length: 0.20
+            color: [0.6, 0.2, 0.2]

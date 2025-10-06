@@ -18,7 +18,7 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, ChContactMethod::SMC);
+        rig = new ChTrackTestRig(GetVehicleDataFile(filename), create_track, ChContactMethod::SMC);
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<ChTrackTestRigDriver> driver;
     if (use_data_driver) {
         // Driver with inputs from file
-        auto data_driver = new ChTrackTestRigDataDriver(vehicle::GetDataFile(driver_file));
+        auto data_driver = new ChTrackTestRigDataDriver(GetVehicleDataFile(driver_file));
         driver = std::unique_ptr<ChTrackTestRigDriver>(data_driver);
     } else {
         auto irr_driver = new ChTrackTestRigInteractiveDriver();

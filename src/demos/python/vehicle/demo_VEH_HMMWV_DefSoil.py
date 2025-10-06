@@ -140,7 +140,7 @@ def main():
 # is automatically set, relative to the default location of this demo.
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # SCM patch dimensions
 terrainHeight = 0

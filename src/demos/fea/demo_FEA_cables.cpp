@@ -20,6 +20,9 @@
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #include "FEAvisualization.h"
 #include "FEAcables.h"
@@ -27,10 +30,17 @@
 using namespace chrono;
 using namespace chrono::fea;
 
+// Select run-time visualization
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// Set integration step size
+double step = 1e-3;
 
 // Select solver type (SPARSE_QR, SPARSE_LU, or MINRES).
 ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
+
+// Create output file with node positions and directions
+bool output = false;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -75,6 +85,15 @@ int main(int argc, char* argv[]) {
     vis_beam_B->SetSymbolsScale(0.01);
     vis_beam_B->SetZbufferHide(false);
     mesh->AddVisualShapeFEA(vis_beam_B);
+
+    // Create output directory
+    std::string out_dir = GetChronoOutputPath() + "FEA_cables/";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    utils::ChWriterCSV csv(" ");
+    csv << mesh->GetNumNodes() << "\n" << std::endl;
 
     // Set solver and solver settings
     switch (solver_type) {
@@ -122,10 +141,25 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     while (vis->Run()) {
+        if (output) {
+            csv << sys.GetChTime() << std::endl;
+            for (const auto& node : mesh->GetNodes()) {
+                auto nodeD = std::dynamic_pointer_cast<ChNodeFEAxyzD>(node);
+                if (!nodeD)
+                    continue;
+                csv << nodeD->GetPos() << "    " << nodeD->GetSlope1() << std::endl;
+            }
+            csv << std::endl;
+        }
+
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-        sys.DoStepDynamics(0.01);
+        sys.DoStepDynamics(step);
+    }
+
+    if (output) {
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

@@ -405,7 +405,7 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
         contact_material = m_default_mat_data.CreateMaterial(m_sys->GetContactMethod());
 
     // Create collision shapes
-    // Note: a collision model is created for this body when the first collsion shape is added
+    // Note: a collision model is created for this body when the first collision shape is added
     for (const auto& collision : collision_array) {
         if (collision) {
             auto frame = ref_frame * toChFrame(collision->origin);

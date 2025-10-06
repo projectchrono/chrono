@@ -1,0 +1,32 @@
+chrono-version: 9.0
+
+model:
+  name: Wavetank
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
+
+  multibody_model:      "model_mbs.yaml"
+  multibody_simulation: "simulation_mbs.yaml"
+
+  fluid_model:          "model_sph.yaml"
+  fluid_simulation:     "simulation_sph.yaml"
+
+  fsi_bodies: 
+    - name: ball
+      shapes:
+        - type: SPHERE
+          location: [0, 0, 0]
+          radius: 0.12
+        
+simulation:
+  time_step: 1e-4
+  end_time: -1
+
+visualization:
+  render_fps: 100
+
+output:
+  output_fps: 100

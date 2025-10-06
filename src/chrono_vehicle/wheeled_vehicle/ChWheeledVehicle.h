@@ -195,7 +195,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// braking between 0 and 1). This version does not update any tires associated with the vehicle.
     virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
-    );
+    ) override;
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
@@ -204,7 +204,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void Synchronize(double time,                        ///< [in] current time
                              const DriverInputs& driver_inputs,  ///< [in] current driver inputs
                              const ChTerrain& terrain            ///< [in] reference to the terrain system
-    );
+    ) override;
 
     /// Advance the state of this vehicle by the specified time step.
     /// In addition to advancing the state of the multibody system (if the vehicle owns the underlying system), this

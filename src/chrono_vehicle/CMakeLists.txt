@@ -53,7 +53,7 @@ if(CH_ENABLE_OPENCRG)
     install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
 
   else()
-    message("WARNINIG: OpenCRG not found; disabling CRG support in Chrono::Vehicle")
+    message("WARNING: OpenCRG not found; disabling CRG support in Chrono::Vehicle")
 
     set(OpenCRG_INCLUDE_DIR "" CACHE PATH "Directory containing OpenCRG include files")
     set(OpenCRG_LIBRARY "" CACHE FILEPATH "OpenCRG library")
@@ -169,8 +169,8 @@ set(CV_BASE_FILES
     ChTerrain.cpp
     ChVehicle.h
     ChVehicle.cpp
-    ChVehicleModelData.h
-    ChVehicleModelData.cpp
+    ChVehicleDataPath.h
+    ChVehicleDataPath.cpp
     ChVehicleVisualSystem.h
     ChVehicleVisualSystem.cpp
     ChWorldFrame.cpp

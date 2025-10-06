@@ -71,7 +71,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     virtual double GetOutputDriveshaftTorque() const = 0;
 
     /// Return the transmission output speed of the motorshaft.
-    /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
+    /// This represents the output from the transmission subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const = 0;
 
     /// Return the reaction torque on the chassis body.

@@ -36,7 +36,7 @@
 #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -53,7 +53,7 @@ const double sphere_radius = 0.0125;
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
     virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
@@ -123,6 +123,8 @@ int main(int argc, char* argv[]) {
     double Hdrop = 0.5;
     bool render = true;
     double render_fps = 400;
+    double step_size = 5e-5;
+    double init_spacing = 0.0025;
     std::string boundary_method = "adami";
     std::string viscosity_method = "artificial_unilateral";
 
@@ -134,40 +136,54 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system
     ChSystemSMC sysMBS;
-
     // Create a fluid system
     ChFsiFluidSystemSPH sysSPH;
     // Create an FSI system
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
-
-    // Set boundary type
-    if (boundary_method == "holmes") {
-        sysSPH.SetBoundaryType(BoundaryMethod::HOLMES);
-    } else {
-        sysSPH.SetBoundaryType(BoundaryMethod::ADAMI);
-    }
-
-    // Set viscosity type
-    if (viscosity_method == "artificial_bilateral") {
-        sysSPH.SetViscosityType(ViscosityMethod::ARTIFICIAL_BILATERAL);
-    } else {
-        sysSPH.SetViscosityType(ViscosityMethod::ARTIFICIAL_UNILATERAL);
-    }
-
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Cratering_granular.json");
-    sysSPH.ReadParametersFromFile(inputJson);
-    auto init_spacing = sysSPH.GetInitialSpacing();
-
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
     double g = 9.81;
     sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, -g));
     sysMBS.SetGravitationalAcceleration(sysSPH.GetGravitationalAcceleration());
 
     sysFSI.SetVerbose(verbose);
-    sysSPH.SetNumProximitySearchSteps(ps_freq);
 
-    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
-    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
-    sysSPH.SetShiftingXSPHParameters(0.25);
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    mat_props.density = 1510;
+    mat_props.Young_modulus = 2e6;
+    mat_props.Poisson_ratio = 0.3;
+    mat_props.mu_I0 = 0.04;
+    mat_props.mu_fric_s = 0.3;
+    mat_props.mu_fric_2 = 0.48;
+    mat_props.average_diam = 0.002;
+    sysSPH.SetElasticSPH(mat_props);
+
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.initial_spacing = init_spacing;
+    sph_params.d0_multiplier = 1.3;
+    sph_params.artificial_viscosity = 0.01;
+    // Set boundary type
+    if (boundary_method == "holmes") {
+        sph_params.boundary_method = BoundaryMethod::HOLMES;
+    } else {
+        sph_params.boundary_method = BoundaryMethod::ADAMI;
+    }
+    // Set viscosity type
+    if (viscosity_method == "artificial_bilateral") {
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    } else {
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
+    }
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_xsph_eps = 0.5;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.free_surface_threshold = 0.8;
+    sph_params.num_proximity_search_steps = ps_freq;
+    sph_params.kernel_type = KernelType::CUBIC_SPLINE;
+    sph_params.use_variable_time_step = false;
+    sysSPH.SetSPHParameters(sph_params);
 
     // Dimension of the space domain
     double bxDim = 0.14;
@@ -221,9 +237,9 @@ int main(int argc, char* argv[]) {
     sysFSI.AddFsiBoundary(box_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT));
 
     // Create a falling sphere
-    double volume = ChSphere::GetVolume(sphere_radius);
+    double volume = ChSphere::CalcVolume(sphere_radius);
     double mass = sphere_density * volume;
-    ChMatrix33d inertia = mass * ChSphere::GetGyration(sphere_radius);
+    ChMatrix33d inertia = mass * ChSphere::CalcGyration(sphere_radius);
     double impact_vel = std::sqrt(2 * Hdrop * g);
 
     ////double sphere_z_pos = Hdrop + fzDim + sphere_radius + 0.5 * init_spacing;
@@ -301,7 +317,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, impact_vel / 2);
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);

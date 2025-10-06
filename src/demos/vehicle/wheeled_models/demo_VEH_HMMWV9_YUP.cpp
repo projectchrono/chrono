@@ -20,7 +20,7 @@
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
@@ -112,17 +112,17 @@ int main(int argc, char* argv[]) {
     auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, terrainHeight, 0), QuatFromAngleX(-CH_PI_2)),
                                   terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
 
     ////// "Mesh" patch (mesh assumed to be defined in a Y up frame)
-    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), vehicle::GetDataFile("terrain/meshes/bump_YUP.obj"),
+    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), GetVehicleDataFile("terrain/meshes/bump_YUP.obj"),
     ////                              "ground", 0.005);
-    ////patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    ////patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
 
     ////// "Height-field map" patch (extents are in the forward and lateral directions of the world frame)
-    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),
+    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), GetVehicleDataFile("terrain/height_maps/bump64.bmp"),
     ////                              "field_mesh", 64.0, 64.0, 0.0, 3.0);
-    ////patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
+    ////patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
 
     terrain.Initialize();
 

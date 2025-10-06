@@ -182,7 +182,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     );
 
     /// Update the state of this track assembly at the current time.
-    /// This version is called if co-simulating with an external terain system.
+    /// This version is called if co-simulating with an external terrain system.
     void Synchronize(double time,                      ///< [in] current time
                      double braking,                   ///< [in] braking driver input
                      const TerrainForces& shoe_forces  ///< [in] vector of tire force structures

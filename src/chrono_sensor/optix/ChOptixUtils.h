@@ -184,6 +184,8 @@ void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector3d b, ChV
 
 CH_SENSOR_API void SetSensorShaderDir(const std::string& path);
 
+CH_SENSOR_API const std::string& GetSensorShaderDir();
+
 /// @} sensor_optix
 
 }  // namespace sensor

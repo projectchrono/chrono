@@ -15,11 +15,11 @@
 // Demonstration of a user-defined PID controller in Chrono.
 //
 // The model consists of an inverted pendulum on a moving cart (which slides on
-// a horizontal prismatic joint). The SIMO controller applies a horizontal force
+// a horizontal prismatic joint). A PID controller applies a horizontal force
 // to the cart in order to maintain the pendulum vertical, while moving the cart
 // to a prescribed target location.  The target location switches periodically.
 //
-// The mechanical sys eveolves in the X-Y plane (Y up).
+// The mechanical sys evolves in the X-Y plane (Y up).
 //
 // =============================================================================
 
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // use_directLS = false: use default EULER_IMPLICIT_LINEARIZED timestepper with PSOR VI solver
-    // use_directLS = true:  use EULER_IMPLICIT timestepper with SparseQR solver 
+    // use_directLS = true:  use EULER_IMPLICIT timestepper with SparseQR solver
     bool use_directLS = false;
 
     // Create the Chrono physical sys
@@ -277,17 +277,14 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
             vis_irr->SetWindowSize(800, 600);
             vis_irr->SetWindowTitle("Inverted Pendulum");
             vis_irr->SetCameraVertical(CameraVerticalDir::Y);
             vis_irr->Initialize();
             vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, 0, 5));
-            vis_irr->AttachSystem(&sys);
-            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
-                             ChColor(0.1f, 0.1f, 0.1f));
 
             vis = vis_irr;
 #endif
@@ -334,14 +331,14 @@ int main(int argc, char* argv[]) {
     double time_step = 0.001;
 
     // Initialize cart location target switching
-    int target_id = 0;
+    double travel_dir = +1;
     double switch_time = 0;
 
     while (vis->Run()) {
         // At a switch time, flip target for cart location
         if (sys.GetChTime() > switch_time) {
-            controller.SetTargetCartLocation(travel_dist * (1 - 2 * target_id));
-            target_id = 1 - target_id;
+            controller.SetTargetCartLocation(travel_dist * travel_dir);
+            travel_dir *= -1;
             switch_time += switch_period;
         }
 
@@ -352,7 +349,9 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(time_step);
         controller.Advance(time_step);
 
+        vis->BeginScene();
         vis->Render();
+        vis->EndScene();
 
         realtime_timer.Spin(time_step);
     }

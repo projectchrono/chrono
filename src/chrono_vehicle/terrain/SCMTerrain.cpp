@@ -35,7 +35,7 @@
 #include "chrono/utils/ChConvexHull.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/stb/stb.h"

@@ -31,9 +31,11 @@ import os
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
 # If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 0.4)
@@ -66,7 +68,7 @@ tend = 15
 render_step_size = 1.0 / 50  # FPS = 50
 
 # Output directories
-out_dir = "./UAZBUS"
+out_dir = chrono.GetChronoOutputPath() + "UAZBUS/"
 
 
 # =============================================================================
@@ -126,7 +128,7 @@ patch = terrain.AddPatch(patch_mat,
                          chrono.CSYSNORM, 
                          200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
 
 # -------------------------------------

@@ -21,7 +21,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
@@ -112,11 +112,11 @@ int main(int argc, char* argv[]) {
     auto terrain_mat = minfo.CreateMaterial(hmmwv.GetSystem()->GetContactMethod());
 
     auto patch = terrain.AddPatch(terrain_mat, CSYSNORM, 100.0, 100.0);
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 20, 20);
 
     auto slope = QuatFromAngleY(-15 * CH_DEG_TO_RAD);
     auto ramp = terrain.AddPatch(terrain_mat, ChCoordsys<>(ChVector3d(20, 3, 0), slope), 20, 6);
-    ramp->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
+    ramp->SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 2, 2);
 
     terrain.Initialize();
 

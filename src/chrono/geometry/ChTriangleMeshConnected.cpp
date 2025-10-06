@@ -108,7 +108,7 @@ void ChTriangleMeshConnected::Clear() {
     m_properties_per_vertex.clear();
 }
 
-ChAABB ChTriangleMeshConnected::GetBoundingBox(std::vector<ChVector3d> vertices) {
+ChAABB ChTriangleMeshConnected::CalcBoundingBox(std::vector<ChVector3d> vertices) {
     ChAABB bbox;
     for (const auto& v : vertices) {
         bbox.min.x() = std::min(bbox.min.x(), v.x());
@@ -123,7 +123,7 @@ ChAABB ChTriangleMeshConnected::GetBoundingBox(std::vector<ChVector3d> vertices)
 }
 
 ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
-    return GetBoundingBox(m_vertices);
+    return CalcBoundingBox(m_vertices);
 }
 
 // Following function is a modified version of:

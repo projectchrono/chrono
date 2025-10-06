@@ -37,7 +37,7 @@ struct FsiDataManager;
 /// MBS that a generic FSI interface does, because it works directly with the data structures of ChFsiFluidSystemSPH.
 class ChFsiInterfaceSPH : public ChFsiInterface {
   public:
-    ChFsiInterfaceSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH);
+    ChFsiInterfaceSPH(ChSystem* sysMBS, ChFsiFluidSystemSPH* sysSPH);
     ~ChFsiInterfaceSPH();
 
     /// Exchange solid phase state information between the MBS and fluid system.

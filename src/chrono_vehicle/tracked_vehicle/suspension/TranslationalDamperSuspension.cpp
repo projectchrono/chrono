@@ -19,7 +19,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -113,7 +113,7 @@ void TranslationalDamperSuspension::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Road Wheel Input File"));
 
     std::string file_name = d["Road Wheel Input File"].GetString();
-    m_road_wheel = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
+    m_road_wheel = ReadTrackWheelJSON(GetVehicleDataFile(file_name));
 }
 
 }  // end namespace vehicle

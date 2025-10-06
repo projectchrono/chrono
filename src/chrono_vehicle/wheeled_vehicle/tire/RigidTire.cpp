@@ -19,7 +19,7 @@
 #include <algorithm>
 
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -61,7 +61,7 @@ void RigidTire::Create(const rapidjson::Document& d) {
     if (d.HasMember("Contact Mesh")) {
         std::string mesh_file = d["Contact Mesh"]["Mesh Filename"].GetString();
         double sweep_radius = d["Contact Mesh"]["Sweep Sphere Radius"].GetDouble();
-        SetMeshFilename(vehicle::GetDataFile(mesh_file), sweep_radius);
+        SetMeshFilename(GetVehicleDataFile(mesh_file), sweep_radius);
     }
 
     // Check how to visualize this tire.

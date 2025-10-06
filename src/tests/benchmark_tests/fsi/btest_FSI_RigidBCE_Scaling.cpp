@@ -31,7 +31,7 @@
 #include "chrono_fsi/ChFsiBenchmark.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -79,7 +79,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     m_boxes_per_layer = 100;
     m_sysMBS = std::make_unique<ChSystemSMC>();
     m_sysSPH = std::make_unique<ChFsiFluidSystemSPH>();
-    m_sysFSI = std::make_unique<ChFsiSystemSPH>(*m_sysMBS, *m_sysSPH);
+    m_sysFSI = std::make_unique<ChFsiSystemSPH>(m_sysMBS.get(), m_sysSPH.get());
 
     m_sysMBS->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_sysFSI->SetVerbose(false);
@@ -107,7 +107,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     sph_params.shifting_xsph_eps = 0.5;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
-    sph_params.kernel_threshold = 0.8;
+    sph_params.free_surface_threshold = 0.8;
     sph_params.max_velocity = 1.0;
     sph_params.num_proximity_search_steps = 1;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
@@ -200,8 +200,8 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         box->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(box_size), ChFrame<>());
         m_sysMBS->AddBody(box);
 
-        auto points = m_sysSPH->CreatePointsBoxInterior(box_size);
-        m_sysFSI->AddFsiBody(box, points, ChFrame<>(), false);
+        auto box_points = m_sysSPH->CreatePointsBoxInterior(box_size);
+        m_sysFSI->AddFsiBody(box, box_points, ChFrame<>(), false);
     }
 
     m_sysFSI->Initialize();
@@ -240,7 +240,7 @@ template <unsigned int num_boxes>
 void FsiRigidBceScalingTest<num_boxes>::SimulateVis() {
 #ifdef CHRONO_VSG
     // FSI plugin
-    auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&m_sysFSI->GetFluidSystemSPH());
+    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&m_sysFSI->GetFluidSystemSPH());
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);

@@ -30,8 +30,8 @@ namespace fsi {
 namespace sph {
 
 class ChFsiInterfaceSPH;
-class FluidDynamics;
-class BceManager;
+class SphFluidDynamics;
+class SphBceManager;
 struct FsiDataManager;
 
 /// @addtogroup fsisph
@@ -87,13 +87,14 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
         bool use_density_based_projection;         ///< (ISPH only, default: false)
-        bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
-        bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
+        bool use_consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
+        bool use_consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double artificial_viscosity;               ///< artificial viscosity coefficient (default: 0.02)
         bool use_delta_sph;                        ///< use delta SPH (default: true)
         double delta_sph_coefficient;              ///< delta SPH coefficient (default: 0.1)
-        double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
+        double free_surface_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
+        bool use_variable_time_step;               ///< use variable time step (default: false)
 
         SPHParameters();
     };
@@ -119,9 +120,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     ChFsiFluidSystemSPH();
     ~ChFsiFluidSystemSPH();
-
-    /// Read Chrono::FSI parameters from the specified JSON file.
-    void ReadParametersFromFile(const std::string& json_file);
 
     /// Enable/disable CUDA error checks (default: enabled).
     void EnableCudaErrorCheck(bool val) { m_check_errors = val; }
@@ -207,6 +205,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the number of steps between successive updates to neighbor lists (default: 4).
     void SetNumProximitySearchSteps(int steps);
 
+    /// Set use variable time step
+    void SetUseVariableTimeStep(bool use_variable_time_step);
+
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
 
@@ -282,6 +283,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Get the number of steps between successive updates to neighbor lists.
     int GetNumProximitySearchSteps() const;
+
+    /// Get use variable time step
+    bool GetUseVariableTimeStep() const;
 
     /// Return the current system parameters (debugging only).
     const ChFsiParamsSPH& GetParams() const { return *m_paramsH; }
@@ -472,6 +476,13 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::string GetPhysicsProblemString() const;
     std::string GetSphIntegrationSchemeString() const;
 
+    /// Print the FSI statistics
+    void PrintStats() const;
+
+    /// Print the three time step quantities and the final time step to a file
+    /// Only valid in variable time step mode
+    void PrintTimeSteps(const std::string& path) const;
+
   private:
     /// SPH specification of an FSI rigid solid.
     struct FsiSphBody {
@@ -595,6 +606,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Function to integrate the fluid system from `time` to `time + step`.
     virtual void OnDoStepDynamics(double time, double step) override;
 
+    /// Get the variable step size.
+    double GetVariableStepSize() override;
+
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnExchangeSolidForces() override;
 
@@ -603,12 +617,15 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------
 
+    /// Synchronize the async copy stream (used for the copySortedToOriginal function)
+    void SynchronizeCopyStream() const;
+
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters
     bool m_force_proximity_search;
 
     std::unique_ptr<FsiDataManager> m_data_mgr;       ///< FSI data manager
-    std::unique_ptr<FluidDynamics> m_fluid_dynamics;  ///< fluid system
-    std::unique_ptr<BceManager> m_bce_mgr;            ///< BCE manager
+    std::unique_ptr<SphFluidDynamics> m_fluid_dynamics;  ///< fluid system
+    std::unique_ptr<SphBceManager> m_bce_mgr;            ///< BCE manager
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
     unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)

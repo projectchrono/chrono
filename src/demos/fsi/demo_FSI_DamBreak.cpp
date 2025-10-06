@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Wei Hu
+// Author: Milad Rakhsha, Wei Hu, Luning Bakke
 // =============================================================================
 
 #include <assert.h>
@@ -25,7 +25,7 @@
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -40,7 +40,6 @@ using namespace chrono::fsi::sph;
 
 bool GetProblemSpecs(int argc,
                      char** argv,
-                     std::string& inputJSON,
                      double& t_end,
                      bool& verbose,
                      bool& output,
@@ -51,7 +50,6 @@ bool GetProblemSpecs(int argc,
                      int& ps_freq) {
     ChCLI cli(argv[0], "Dam Break FSI demo");
 
-    cli.AddOption<std::string>("Input", "inputJSON", "Problem specification file [JSON format]", inputJSON);
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
@@ -70,7 +68,6 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
-    inputJSON = cli.Get("inputJSON").as<std::string>();
     t_end = cli.GetAsType<double>("t_end");
 
     verbose = !cli.GetAsType<bool>("quiet");
@@ -88,8 +85,9 @@ bool GetProblemSpecs(int argc,
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
     double t_end = 10.0;
+    double initial_spacing = 0.1;
+    double step_size = 1e-4;
     bool verbose = true;
     bool output = false;
     double output_fps = 20;
@@ -97,10 +95,8 @@ int main(int argc, char* argv[]) {
     double render_fps = 100;
     bool snapshots = false;
     int ps_freq = 1;
-    if (!GetProblemSpecs(argc, argv, inputJson, t_end, verbose, output, output_fps, render, render_fps, snapshots,
-                         ps_freq)) {
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq))
         return 1;
-    }
 
     // Dimension of the space domain
     double bxDim = 12.0;
@@ -115,12 +111,43 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
     sysFSI.SetVerbose(verbose);
 
-    // Use the specified input JSON file
-    sysSPH.ReadParametersFromFile(inputJson);
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
+    fluid_props.density = 1000;
+    fluid_props.viscosity = 5;
+
+    sysSPH.SetCfdSPH(fluid_props);
+
+    // Set gravitational acceleration
+    const ChVector3d gravity(0, 0, -9.8);
+    sysFSI.SetGravitationalAcceleration(gravity);
+
+
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.initial_spacing = initial_spacing;
+    sph_params.d0_multiplier = 1;
+    sph_params.max_velocity = 10.0;
+    sph_params.shifting_method = ShiftingMethod::XSPH;
+    sph_params.shifting_xsph_eps = 0.5;
+    sph_params.artificial_viscosity = 0.03;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
+    sph_params.eos_type = EosType::TAIT;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
+    sph_params.num_proximity_search_steps = ps_freq;
+    sph_params.use_delta_sph = true;
+    sph_params.delta_sph_coefficient = 0.1;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+
+    sysSPH.SetSPHParameters(sph_params);
+
 
     // Set frequency of proximity search
     sysSPH.SetNumProximitySearchSteps(ps_freq);
@@ -200,7 +227,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 5.0);
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);

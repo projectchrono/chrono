@@ -23,7 +23,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/robot/viper/Viper.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"
@@ -37,7 +37,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -108,7 +108,9 @@ int main(int argc, char* argv[]) {
     // Create the CRM terrain system
     double initial_spacing = 0.03;
     CRMTerrain terrain(sys, initial_spacing);
-    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
+    auto sysFSI = terrain.GetFsiSystemSPH();
+    auto sysSPH = terrain.GetFluidSystemSPH();
+    sysSPH->EnableCudaErrorCheck(false);
     terrain.SetVerbose(verbose);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
@@ -128,12 +130,14 @@ int main(int argc, char* argv[]) {
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
-    sph_params.kernel_threshold = 0.8;
+    sph_params.free_surface_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.consistent_gradient_discretization = false;
-    sph_params.consistent_laplacian_discretization = false;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.use_variable_time_step = true;  // This makes the step size irrelevant - now we just make sure we are
+                                               // within the max of exchange_info (meta step)
     terrain.SetSPHParameters(sph_params);
 
     // Set output level from SPH simulation
@@ -166,8 +170,8 @@ int main(int argc, char* argv[]) {
             );
             break;
         case PatchType::HEIGHT_MAP:
-            // Create a patch from a heigh field map image
-            terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+            // Create a patch from a height field map image
+            terrain.Construct(GetVehicleDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                               terrain_length, terrain_width,                           // length (X) and width (Y)
                               {0.25, 0.55},                                            // height range
                               0.25,                                                    // depth
@@ -192,7 +196,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
@@ -216,7 +220,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
-
+    double exchange_info = 5 * step_size;
     while (time < tend) {
         rover->Update();
 
@@ -232,11 +236,19 @@ int main(int argc, char* argv[]) {
         }
 
         // Advance dynamics of multibody and fluid systems concurrently
-        terrain.DoStepDynamics(step_size);
+        terrain.DoStepDynamics(exchange_info);
 
-        time += step_size;
+        time += exchange_info;
         sim_frame++;
     }
+
+    terrain.PrintStats();
+    std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_CRM/";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    terrain.PrintTimeSteps(out_dir + "time_steps.txt");
 
     return 0;
 }

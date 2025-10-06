@@ -27,7 +27,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
@@ -90,9 +90,9 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
 
     // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
     std::string data_path = "../data/vehicle/";
-    std::string vehicle_JSON = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
-    std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
-    std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
+    std::string vehicle_JSON = GetVehicleDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
+    std::string engine_JSON = GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
+    std::string transmission_JSON = GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
 
     vehicle_fmu.SetVariable("data_path", data_path);
     vehicle_fmu.SetVariable("vehicle_JSON", vehicle_JSON);
@@ -303,8 +303,8 @@ int main(int argc, char* argv[]) {
     // Create external subsystems (terrain, tires, driver)
     ChSystemSMC sys;
     FlatTerrain terrain_sys(0.0, 0.8f);
-    TireSystem tire_sys(sys, vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
-    DriverSystem driver_sys(sys, vehicle::GetDataFile("paths/ISO_double_lane_change.txt"));
+    TireSystem tire_sys(sys, GetVehicleDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
+    DriverSystem driver_sys(sys, GetVehicleDataFile("paths/ISO_double_lane_change.txt"));
 
     driver_sys.SetTargetSpeed(12);
 

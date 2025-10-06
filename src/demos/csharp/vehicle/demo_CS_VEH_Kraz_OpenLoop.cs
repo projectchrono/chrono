@@ -34,7 +34,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Rigid terrain dimensions
             double terrainLength = 100.0;  // size in X direction
@@ -73,7 +73,7 @@ namespace ChronoDemo
 
             // Create the terrain
             // (not yet patch terrain)
-            //RigidTerrain terrain = new RigidTerrain(system, GetDataFile("terrain/RigidPlane.json"));
+            //RigidTerrain terrain = new RigidTerrain(system, GetVehicleDataFile("terrain/RigidPlane.json"));
             //terrain.Initialize();
 
             // Create the terrain
@@ -83,7 +83,7 @@ namespace ChronoDemo
             patch_mat.SetRestitution(0.01f);
             var patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, terrainLength, terrainWidth);
             patch.SetColor(new ChColor(0.5f, 0.5f, 1));
-            patch.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
             terrain.Initialize();
 
             // Create the interactive Irrlicht driver system

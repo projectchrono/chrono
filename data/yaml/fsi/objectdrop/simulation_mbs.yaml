@@ -1,0 +1,35 @@
+# ------------------------------------------------------------------------------
+# Basic rigid MBS simulation
+# ------------------------------------------------------------------------------
+
+chrono-version: 9.0
+
+simulation:
+  contact_method: SMC
+  
+  time_step: 1e-4
+  end_time: 100
+  enforce_realtime: true
+  
+  integrator:
+      type: Euler_implicit_linearized
+  
+  solver:
+      type: Barzilai_Borwein
+      max_iterations: 100
+      overrelaxation_factor: 1.0
+      sharpness_factor: 1.0
+  
+  output:
+      type: NONE
+      fps: 20
+      output_directory: "."
+
+  visualization:
+      type: Model_file
+      render_fps: 120
+      enable_shadows: false
+      camera:
+          vertical: Z
+          location: [2, 2, 1.8]
+          target: [0, 0, 0.6]

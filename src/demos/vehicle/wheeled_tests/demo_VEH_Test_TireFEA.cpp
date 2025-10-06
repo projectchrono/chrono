@@ -20,7 +20,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
@@ -42,7 +42,7 @@ using namespace chrono::irrlicht;
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
     #ifdef CHRONO_FSI
-        #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+        #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
     #endif
 using namespace chrono::vsg3d;
 #endif
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     wheel->SetVisualizationType(VisualizationType::NONE);
 
     // Create the tire
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
     auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire);
     if (!tire_def) {
         cerr << "ERROR: Incorrect tire specification JSON file" << endl;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
             auto terrain_rigid = chrono_types::make_shared<RigidTerrain>(&sys);
             auto patch = terrain_rigid->AddPatch(mat, ChCoordsys<>(ChVector3d(0, 0, -radius - 0.01), QUNIT), 4 * radius,
                                                  4 * radius);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 10, 5);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 10, 5);
             terrain_rigid->Initialize();
 
             terrain = terrain_rigid;
@@ -278,10 +278,10 @@ int main(int argc, char* argv[]) {
             sph_params.initial_spacing = spacing;
             sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
             sph_params.d0_multiplier = 1;
-            sph_params.kernel_threshold = 0.8;
+            sph_params.free_surface_threshold = 0.8;
             sph_params.artificial_viscosity = 0.5;
-            sph_params.consistent_gradient_discretization = false;
-            sph_params.consistent_laplacian_discretization = false;
+            sph_params.use_consistent_gradient_discretization = false;
+            sph_params.use_consistent_laplacian_discretization = false;
             sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
             sph_params.boundary_method = BoundaryMethod::ADAMI;
             terrain_crm->SetSPHParameters(sph_params);
@@ -330,8 +330,8 @@ int main(int argc, char* argv[]) {
 
     #ifdef CHRONO_FSI
             if (terrain_type == TerrainType::CRM) {
-                auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetSystemFSI();
-                auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetFsiSystemSPH();
+                auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
                 visFSI->EnableFluidMarkers(true);
                 visFSI->EnableBoundaryMarkers(false);
                 visFSI->EnableRigidBodyMarkers(false);

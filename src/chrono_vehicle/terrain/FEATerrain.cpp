@@ -26,7 +26,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/FEATerrain.h"
 

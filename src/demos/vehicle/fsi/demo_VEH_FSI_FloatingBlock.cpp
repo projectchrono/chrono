@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChBodyGeometry.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
@@ -35,7 +35,7 @@
 
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -55,9 +55,6 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    // Default json for fluid part of the system
-    std::string inputJson = GetChronoDataFile("vehicle/fsi/input_json/demo_VEH_FSI_FloatingBlock.json");
-
     double t_end = 3;
     bool verbose = true;
     bool output = false;
@@ -66,7 +63,8 @@ int main(int argc, char* argv[]) {
     double render_fps = 100;
     bool snapshots = false;
     int ps_freq = 1;
-
+    double init_space = 0.1;
+    double step_size = 0.0001;
     // Dimension of the fluid domain
     double fxDim = 4;
     double fyDim = 2.0;
@@ -80,23 +78,41 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    // Use the specified input JSON file
+    sysFSI.SetVerbose(verbose);
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
+    fluid_props.density = 1000;
+    fluid_props.viscosity = 5;
+    sysSPH.SetCfdSPH(fluid_props);
+
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.initial_spacing = init_space;
+    sph_params.d0_multiplier = 1.2;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
+    sph_params.artificial_viscosity = 0.03;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.eos_type = EosType::TAIT;
+    sph_params.use_delta_sph = true;
+    sph_params.delta_sph_coefficient = 0.1;
+    sph_params.shifting_method = ShiftingMethod::PPST;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.max_velocity = 10.0;
+    sph_params.num_proximity_search_steps = ps_freq;
+    sysSPH.SetSPHParameters(sph_params);
 
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
     cmaterial->SetFriction(0.9f);
     cmaterial->SetRestitution(0.4f);
-
-    // Use the specified input JSON file
-    sysSPH.ReadParametersFromFile(inputJson);
-    sysFSI.SetVerbose(verbose);
-
-    auto init_space = sysSPH.GetInitialSpacing();
-
-    // Set frequency of proximity search
-    sysSPH.SetNumProximitySearchSteps(ps_freq);
 
     // Set up the periodic boundary condition (only in Y direction)
     ChVector3d cMin(-bxDim / 2 - 5 * init_space, -byDim / 2 - init_space / 2, -5 * init_space);
@@ -266,7 +282,7 @@ int main(int argc, char* argv[]) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 5.0);
 
-        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(false);
@@ -377,7 +393,7 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
     std::string tire_json = "Polaris/Polaris_RigidTire.json";
 
     // Create and initialize the vehicle
-    auto vehicle = chrono_types::make_shared<WheeledVehicle>(&sys, vehicle::GetDataFile(vehicle_json));
+    auto vehicle = chrono_types::make_shared<WheeledVehicle>(&sys, GetVehicleDataFile(vehicle_json));
     vehicle->Initialize(init_pos);
     vehicle->GetChassis()->SetFixed(false);
     vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -386,15 +402,15 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
     vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(engine_json));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(transmission_json));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle->InitializePowertrain(powertrain);
 
     // Create and initialize the tires
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+            auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
             vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
         }
     }
@@ -403,7 +419,7 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
     cmaterial->SetYoungModulus(1e8);
     cmaterial->SetFriction(0.9f);
     cmaterial->SetRestitution(0.4f);
-    std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
+    std::string mesh_filename = GetVehicleDataFile("Polaris/meshes/Polaris_tire_collision.obj");
 
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     double scale_ratio = 1.0;
