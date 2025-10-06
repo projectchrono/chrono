@@ -325,10 +325,10 @@ source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
 get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(MULTI_CONFIG)
-    set(CH_SHADERS_DIR ${CMAKE_BINARY_DIR}/bin/sensor_shaders)
+    set(CH_SHADERS_DIR "${CMAKE_BINARY_DIR}/bin/sensor_shaders" CACHE INTERNAL "Path to shaders (multi-config)")
     message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
 else()
-    set(CH_SHADERS_DIR ${CMAKE_BINARY_DIR}/sensor_shaders)
+    set(CH_SHADERS_DIR "${CMAKE_BINARY_DIR}/sensor_shaders" CACHE INTERNAL "Path to shaders (single-config)")
     message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
 endif()
 

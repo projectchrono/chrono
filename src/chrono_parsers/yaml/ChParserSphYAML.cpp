@@ -1170,6 +1170,7 @@ ChColormap::Type ChParserSphYAML::ReadColorMapType(const YAML::Node& a) {
     return ChColormap::Type::JET;
 }
 
+#ifdef CHRONO_VSG
 fsi::sph::MarkerPlanesVisibilityCallback::Mode ChParserSphYAML::ReadVisibilityMode(const YAML::Node& a) {
     auto val = ToUpper(a.as<std::string>());
     if (val == "ANY")
@@ -1178,6 +1179,7 @@ fsi::sph::MarkerPlanesVisibilityCallback::Mode ChParserSphYAML::ReadVisibilityMo
         return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
     return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
 }
+#endif
 
 }  // namespace parsers
 }  // namespace chrono

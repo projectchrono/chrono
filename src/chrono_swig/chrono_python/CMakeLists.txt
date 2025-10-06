@@ -112,7 +112,7 @@ set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 if(CH_USE_CUDA_NVRTC)
   set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
 else()
-  set(PYC_SHADER_PATH "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
+  set(PYC_SHADER_PATH "${CH_SHADERS_DIR}")
 endif()
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
@@ -139,7 +139,7 @@ else()
   if(CH_USE_CUDA_NVRTC)
     set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
   else()
-    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/")
+    set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
   endif()
 
   # Generate the __init__.py file using substitution variables and place it in a temporary place
@@ -460,10 +460,6 @@ endif()
 
 if(CH_ENABLE_MODULE_FSI)
 
-  if (NOT CH_ENABLE_MODULE_VSG)
-    message(FATAL_ERROR "Chrono::FSI module's Python binding requires Chrono::VSG module. Please enable CH_ENABLE_MODULE_VSG.")
-  endif()
-
   message(STATUS "Add python FSI module")
 
   # Python module name
@@ -478,9 +474,19 @@ if(CH_ENABLE_MODULE_FSI)
   if(MSVC)
     set_source_files_properties(${CHPY_FSI_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
+  
+  # Make sure CHRONO_VSG is defined for the SWIG processor
+  if (CH_ENABLE_MODULE_VSG)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
+  endif()
 
   swig_add_library(${CHPY_FSI} LANGUAGE python SOURCES ${CHPY_FSI_MODULE_FILE})
-  target_link_libraries(${CHPY_FSI} PRIVATE Python3::Python Chrono_core Chrono_vsg Chrono_fsi Chrono_fsisph Chrono_fsisph_vsg)
+  target_link_libraries(${CHPY_FSI} PRIVATE Python3::Python Chrono_core  Chrono_fsi Chrono_fsisph)
+  
+  if (CH_ENABLE_MODULE_VSG)
+    target_link_libraries(${CHPY_FSI} PRIVATE Chrono_vsg Chrono_fsisph_vsg)
+  endif()
+
 
     # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -506,7 +512,9 @@ if(CH_ENABLE_MODULE_FSI)
   add_dependencies(${CHPY_FSI} Chrono_core)
   add_dependencies(${CHPY_FSI} Chrono_fsi)
   add_dependencies(${CHPY_FSI} Chrono_fsisph)
-  add_dependencies(${CHPY_FSI} Chrono_fsisph_vsg)
+  if (CH_ENABLE_MODULE_VSG)
+    add_dependencies(${CHPY_FSI} Chrono_fsisph_vsg)
+  endif()
 
   # Copy PY file in a package dir
   set(CHPY_FSI_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FSI}.py")
