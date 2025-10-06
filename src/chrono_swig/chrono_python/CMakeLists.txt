@@ -112,7 +112,7 @@ set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 if(CH_USE_CUDA_NVRTC)
   set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
 else()
-  set(PYC_SHADER_PATH "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
+  set(PYC_SHADER_PATH "${CH_SHADERS_DIR}")
 endif()
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
