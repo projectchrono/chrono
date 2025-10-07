@@ -163,7 +163,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     // Elastic SPH
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
-    m_paramsH->elastic_SPH = false;        // default: fluid dynamics
+    m_paramsH->elastic_SPH = false;                // default: fluid dynamics
     m_paramsH->artificial_viscosity = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
@@ -441,12 +441,17 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mu_fric_s(0.7),
       mu_fric_2(0.7),
       average_diam(0.005),
-      cohesion_coeff(0) {}
+      cohesion_coeff(0),
+      rheology_model(RheologyCRM::MU_OF_I),
+      mcc_M(0),
+      mcc_kappa(0),
+      mcc_lambda(0) {}
 
 void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
     m_paramsH->elastic_SPH = true;
 
     SetDensity(mat_props.density);
+    m_paramsH->rheology_model_crm = mat_props.rheology_model;
 
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
@@ -459,6 +464,20 @@ void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_pro
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
+
+    if (m_paramsH->rheology_model_crm == RheologyCRM::MCC) {
+        std::cout << "MCC rheology model is used, if you set mu_fric_s, mu_fric_2, ave_diam, Coh_coeff and mu_I0, they "
+                     "will be unused"
+                  << std::endl;
+        m_paramsH->mcc_M = Real(mat_props.mcc_M);
+        m_paramsH->mcc_kappa = Real(mat_props.mcc_kappa);
+        m_paramsH->mcc_lambda = Real(mat_props.mcc_lambda);
+
+        if (m_paramsH->mcc_M == 0 || m_paramsH->mcc_kappa == 0 || m_paramsH->mcc_lambda == 0) {
+            std::cout << "MCC rheology model is used, but mcc_M, mcc_kappa, and mcc_lambda are not set" << std::endl;
+            throw std::runtime_error("MCC rheology model is used, but mcc_M, mcc_kappa, and mcc_lambda are not set");
+        }
+    }
 }
 
 ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
@@ -790,7 +809,14 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             cout << "  Integration scheme: Implicit SPH" << endl;
             break;
     }
-
+    switch (params.rheology_model_crm) {
+        case RheologyCRM::MU_OF_I:
+            cout << "  Rheology model: MU_OF_I" << endl;
+            break;
+        case RheologyCRM::MCC:
+            cout << "  Rheology model: MCC" << endl;
+            break;
+    }
     cout << "  num_neighbors: " << params.num_neighbors << endl;
     cout << "  rho0: " << params.rho0 << endl;
     cout << "  invrho0: " << params.invrho0 << endl;
@@ -847,6 +873,9 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  mu_fric_2: " << params.mu_fric_2 << endl;
     cout << "  mu_I0: " << params.mu_I0 << endl;
     cout << "  mu_I_b: " << params.mu_I_b << endl;
+    cout << "  mcc_M: " << params.mcc_M << endl;
+    cout << "  mcc_kappa: " << params.mcc_kappa << endl;
+    cout << "  mcc_lambda: " << params.mcc_lambda << endl;
     cout << "  HB_k: " << params.HB_k << endl;
     cout << "  HB_n: " << params.HB_n << endl;
     cout << "  HB_tau0: " << params.HB_tau0 << endl;
@@ -1647,15 +1676,17 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          double mu,
                                          const ChVector3d& vel,
                                          const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz) {
-    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz));
+                                         const ChVector3d& tauXyXzYz,
+                                         const double pc) {
+    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
 }
 
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          const ChVector3d& vel,
                                          const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz) {
-    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
+                                         const ChVector3d& tauXyXzYz,
+                                         const double pc) {
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz, pc);
 }
 
 void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
@@ -1667,9 +1698,10 @@ void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
-                       ChVector3d(0),   // initial velocity
-                       ChVector3d(0),   // tauxxyyzz
-                       ChVector3d(0));  // tauxyxzyz
+                       ChVector3d(0),  // initial velocity
+                       ChVector3d(0),  // tauxxyyzz
+                       ChVector3d(0),  // tauxyxzyz
+                       0);             // pc
     }
 }
 

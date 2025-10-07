@@ -75,7 +75,8 @@ bool GetProblemSpecs(int argc,
                      double& Hdrop,
                      bool& render,
                      std::string& boundary_method,
-                     std::string& viscosity_method) {
+                     std::string& viscosity_method,
+                     std::string& rheology_model_crm) {
     ChCLI cli(argv[0], "FSI Cratering Demo");
 
     cli.AddOption<double>("Simulation", "t_end", "End time", std::to_string(t_end));
@@ -91,6 +92,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", "adami");
     cli.AddOption<std::string>("Physics", "viscosity_method",
                                "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
+    cli.AddOption<std::string>("Physics", "rheology_model_crm", "Rheology model (MU_OF_I/MCC)", "MU_OF_I");
 
     if (!cli.Parse(argc, argv))
         return false;
@@ -107,7 +109,7 @@ bool GetProblemSpecs(int argc,
 
     boundary_method = cli.GetAsType<std::string>("boundary_method");
     viscosity_method = cli.GetAsType<std::string>("viscosity_method");
-
+    rheology_model_crm = cli.GetAsType<std::string>("rheology_model_crm");
     return true;
 }
 
@@ -118,19 +120,20 @@ int main(int argc, char* argv[]) {
     bool output = true;
     double output_fps = 20;
     bool snapshots = false;
-    int ps_freq = 1;
+    int ps_freq = 10;
     double sphere_density = 700;
     double Hdrop = 0.5;
     bool render = true;
     double render_fps = 400;
-    double step_size = 5e-5;
-    double init_spacing = 0.0025;
+    double step_size = 1e-4;
+    double init_spacing = 0.005;
     std::string boundary_method = "adami";
     std::string viscosity_method = "artificial_unilateral";
+    std::string rheology_model_crm = "MU_OF_I";
 
     // Parse command-line arguments
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, sphere_density, Hdrop,
-                         render, boundary_method, viscosity_method)) {
+                         render, boundary_method, viscosity_method, rheology_model_crm)) {
         return 1;
     }
 
@@ -152,10 +155,20 @@ int main(int argc, char* argv[]) {
     mat_props.density = 1510;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
-    mat_props.mu_I0 = 0.04;
-    mat_props.mu_fric_s = 0.3;
-    mat_props.mu_fric_2 = 0.48;
-    mat_props.average_diam = 0.002;
+    if (rheology_model_crm == "MU_OF_I") {
+        mat_props.rheology_model = RheologyCRM::MU_OF_I;
+        mat_props.mu_I0 = 0.04;
+        mat_props.mu_fric_s = 0.3;
+        mat_props.mu_fric_2 = 0.48;
+        mat_props.average_diam = 0.002;
+    } else {
+        mat_props.rheology_model = RheologyCRM::MCC;
+        double angle_mus = std::atan(mat_props.mu_fric_s);
+        // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
+        mat_props.mcc_M = 1.02;
+        mat_props.mcc_kappa = 0.05;
+        mat_props.mcc_lambda = 0.2;
+    }
     sysSPH.SetElasticSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
@@ -208,8 +221,17 @@ int main(int argc, char* argv[]) {
     double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (const auto& p : points) {
         double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
-        double rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
-        sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0));
+        double depth_cm = (-p.z() + fzDim) * 100;
+        double b = 12.2;
+        double c = 18;
+        double fzDim_cm = fzDim * 100;
+        double g = (depth_cm + b) / (depth_cm + c);
+        double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
+        double density_mean_target = 1510;
+        double rho_ini = density_mean_target * g / gbar;
+        double preconsidation_pressure = 10000;
+        sysSPH.AddSPHParticle(p, rho_ini, 0, sysSPH.GetViscosity(), ChVector3d(0),
+                              ChVector3d(pre_ini, pre_ini, pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }
 
     // Create the solid domain
@@ -268,7 +290,7 @@ int main(int argc, char* argv[]) {
     // Output directories
     std::string out_dir;
     if (output || snapshots) {
-        out_dir = GetChronoOutputPath() + "FSI_Cratering/";
+        out_dir = GetChronoOutputPath() + "FSI_Cratering_" + rheology_model_crm + "/";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
@@ -356,6 +378,7 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
+        std::cout << "time: " << time << std::endl;
         if (output && time >= out_frame / output_fps) {
             sysSPH.SaveParticleData(out_dir + "/particles");
             sysSPH.SaveSolidData(out_dir + "/fsi", time);
