@@ -1229,9 +1229,6 @@ void ChParserMbsYAML::DoStepDynamics() {
 
     // Process motor controllers
     for (auto& motor_controller : m_motor_controllers) {
-        // Model instance
-        int model_instance = motor_controller.second.model_instance;
-
         motor_controller.second.controller->Synchronize(time);
         motor_controller.second.controller->Advance(time_step);
 
