@@ -1622,6 +1622,8 @@ void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
 }
 
 void ChVisualSystemVSG::SetCollisionVisibility(bool vis, int tag) {
+    m_show_collision = vis;
+    
     if (!m_initialized)
         return;
 
@@ -1641,6 +1643,8 @@ void ChVisualSystemVSG::SetCollisionColor(const ChColor& color) {
 }
 
 void ChVisualSystemVSG::SetContactNormalsVisibility(bool vis, int tag) {
+    m_show_contact_normals = vis;
+
     if (!m_initialized)
         return;
 
@@ -1664,6 +1668,8 @@ void ChVisualSystemVSG::SetContactNormalsScale(double length) {
 }
 
 void ChVisualSystemVSG::SetContactForcesVisibility(bool vis, int tag) {
+    m_show_contact_forces = vis;
+
     if (!m_initialized)
         return;
 
