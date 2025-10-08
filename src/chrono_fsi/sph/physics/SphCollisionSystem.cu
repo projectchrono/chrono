@@ -159,14 +159,14 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
                              Real4* __restrict__ sortedRhoPreMuD,
                              Real3* __restrict__ sortedTauXxYyZzD,
                              Real3* __restrict__ sortedTauXyXzYzD,
-                             Real* __restrict__ sortedPcD,
+                             Real3* __restrict__ sortedPcEvSvD,
                              int32_t* __restrict__ activityIdentifierSortedD,
                              const Real4* __restrict__ posRadD,
                              const Real3* __restrict__ velMasD,
                              const Real4* __restrict__ rhoPresMuD,
                              const Real3* __restrict__ tauXxYyZzD,
                              const Real3* __restrict__ tauXyXzYzD,
-                             const Real* __restrict__ pcD,
+                             const Real3* __restrict__ pcEvSvD,
                              const int32_t* __restrict__ activityIdentifierOriginalD,
                              uint numActive) {
     uint tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -195,7 +195,7 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
     if (paramsD.elastic_SPH) {
         Real3 tauXxYyZzVal = tauXxYyZzD[originalIndex];
         Real3 tauXyXzYzVal = tauXyXzYzD[originalIndex];
-        Real pcVal = pcD[originalIndex];
+        Real3 pcEvSvVal = pcEvSvD[originalIndex];
 
         if (!IsFinite(tauXxYyZzVal)) {
             printf("Error! reorderDataD_ActiveOnly: tauXxYyZz is NAN at original index %u\n", originalIndex);
@@ -203,7 +203,7 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
 
         sortedTauXxYyZzD[tid] = tauXxYyZzVal;
         sortedTauXyXzYzD[tid] = tauXyXzYzVal;
-        sortedPcD[tid] = pcVal;
+        sortedPcEvSvD[tid] = pcEvSvVal;
     }
 }
 
@@ -371,10 +371,10 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
     reorderDataD<<<numBlocks, numThreads>>>(
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(sortedSphMarkersD->posRadD),
         mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-        mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), R1CAST(sortedSphMarkersD->pcD),
-        INT_32CAST(m_data_mgr.activityIdentifierSortedD), mR4CAST(m_sphMarkersD->posRadD),
-        mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
-        mR3CAST(m_sphMarkersD->tauXyXzYzD), R1CAST(m_sphMarkersD->pcD),
+        mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
+        mR3CAST(sortedSphMarkersD->pcEvSvD), INT_32CAST(m_data_mgr.activityIdentifierSortedD),
+        mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
+        mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD), mR3CAST(m_sphMarkersD->pcEvSvD),
         INT_32CAST(m_data_mgr.activityIdentifierOriginalD), (uint)m_data_mgr.countersH->numExtendedParticles);
     cudaCheckError();
 

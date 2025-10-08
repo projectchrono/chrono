@@ -117,16 +117,16 @@ int main(int argc, char* argv[]) {
     // Default values
     double t_end = 2.0;
     bool verbose = true;
-    bool output = true;
-    double output_fps = 20;
+    bool output = false;
+    double output_fps = 1000;
     bool snapshots = false;
     int ps_freq = 10;
     double sphere_density = 700;
     double Hdrop = 0.5;
     bool render = true;
     double render_fps = 400;
-    double step_size = 1e-4;
-    double init_spacing = 0.005;
+    double step_size = 5e-5;
+    double init_spacing = 0.0025;
     std::string boundary_method = "adami";
     std::string viscosity_method = "artificial_unilateral";
     std::string rheology_model_crm = "MU_OF_I";
@@ -141,6 +141,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     // Create a fluid system
     ChFsiFluidSystemSPH sysSPH;
+    sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
     // Create an FSI system
     ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
     sysFSI.SetStepSizeCFD(step_size);
@@ -174,7 +175,7 @@ int main(int argc, char* argv[]) {
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = init_spacing;
-    sph_params.d0_multiplier = 1.3;
+    sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.01;
     // Set boundary type
     if (boundary_method == "holmes") {
@@ -194,7 +195,7 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_ppst_push = 3.0;
     sph_params.free_surface_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
-    sph_params.kernel_type = KernelType::CUBIC_SPLINE;
+    sph_params.kernel_type = KernelType::WENDLAND;
     sph_params.use_variable_time_step = false;
     sysSPH.SetSPHParameters(sph_params);
 
@@ -229,9 +230,9 @@ int main(int argc, char* argv[]) {
         double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
         double density_mean_target = 1510;
         double rho_ini = density_mean_target * g / gbar;
-        double preconsidation_pressure = 10000;
-        sysSPH.AddSPHParticle(p, rho_ini, 0, sysSPH.GetViscosity(), ChVector3d(0),
-                              ChVector3d(pre_ini, pre_ini, pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
+        double preconsidation_pressure = pre_ini + 10000;
+        sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
+                              ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }
 
     // Create the solid domain
@@ -404,9 +405,9 @@ int main(int argc, char* argv[]) {
 
         // Write penetration depth to file
         double d_pen = fzDim + sphere_radius + 0.5 * init_spacing - sphere->GetPos().z();
-        ofile << time << " " << d_pen << " " << sphere->GetPos().x() << " " << sphere->GetPos().y() << " "
-              << sphere->GetPos().z() << " " << sphere->GetPosDt().x() << " " << sphere->GetPosDt().y() << " "
-              << sphere->GetPosDt().z() << std::endl;
+        // ofile << time << " " << d_pen << " " << sphere->GetPos().x() << " " << sphere->GetPos().y() << " "
+        //       << sphere->GetPos().z() << " " << sphere->GetPosDt().x() << " " << sphere->GetPosDt().y() << " "
+        //       << sphere->GetPosDt().z() << std::endl;
         // Advance simulation for one timestep for all systems
         sysFSI.DoStepDynamics(dT);
         time += dT;

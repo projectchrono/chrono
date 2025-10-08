@@ -1678,6 +1678,7 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          const ChVector3d& tauXxYyZz,
                                          const ChVector3d& tauXyXzYz,
                                          const double pc) {
+                                            
     m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
 }
 

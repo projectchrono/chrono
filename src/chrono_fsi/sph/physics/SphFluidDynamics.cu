@@ -77,7 +77,7 @@ void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& 
     if (m_data_mgr.paramsH->elastic_SPH) {
         thrust::copy(in->tauXxYyZzD.begin(), in->tauXxYyZzD.end(), out->tauXxYyZzD.begin());
         thrust::copy(in->tauXyXzYzD.begin(), in->tauXyXzYzD.end(), out->tauXyXzYzD.begin());
-        thrust::copy(in->pcD.begin(), in->pcD.end(), out->pcD.begin());
+        thrust::copy(in->pcEvSvD.begin(), in->pcEvSvD.end(), out->pcEvSvD.begin());
     }
 }
 
@@ -336,7 +336,7 @@ __device__ void TauEulerStep(Real dT,
                              Real3& tau_diag,
                              Real3& tau_offdiag,
                              Real4& rho_p,
-                             Real& p_c,
+                             Real3& pcEvSv,
                              bool& error_occurred) {
     if (paramsD.rheology_model_crm == RheologyCRM::MU_OF_I) {
         Real3 new_tau_diag = tau_diag + dT * deriv_tau_diag;
@@ -416,7 +416,8 @@ __device__ void TauEulerStep(Real dT,
         tau_offdiag = new_tau_offdiag;
 
         rho_p.y = p_tr;
-        rho_p.x = rho_p.x + deriv_rho * dT;
+        // rho_p.x = rho_p.x + deriv_rho * dT;
+        rho_p.x = paramsD.rho0;
         // printf("p_c: %f, tau_diag: %f %f %f, tau_offdiag: %f %f %f\n", 0, tau_diag.x, tau_diag.y, tau_diag.z,
         //        tau_offdiag.x, tau_offdiag.y, tau_offdiag.z);
     } else {
@@ -425,23 +426,50 @@ __device__ void TauEulerStep(Real dT,
         Real mcc_M = paramsD.mcc_M;
         Real mcc_lambda = paramsD.mcc_lambda;
         Real mcc_kappa = paramsD.mcc_kappa;
+        Real p_c = pcEvSv.x;
 
-        Real sph_current_volume = paramsD.markerMass / rho_p.x;
-        Real sph_initial_volume = paramsD.markerMass / paramsD.rho0;
-        Real specific_volume_n = sph_current_volume / sph_initial_volume;
-        // printf("specific_volume_n: %f\n", specific_volume_n);
+        // Update specific volume based on the volumetric strain rate
+        // From - https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
+        pcEvSv.z *= (1 - pcEvSv.y * dT);
+        // Set min to prevent collapse of the specific volume
+        pcEvSv.z = max(0.5, pcEvSv.z);
+        Real specific_volume_n = pcEvSv.z;
+        // Real specific_volume_n = 1.0;
+        // printf("Volumetric strain rate: %f\n", pcEvSv.y);
+        // printf("Specific volume: %f\n", specific_volume_n);
 
-        // Compute local bulk modulus based on compaction index
+        // Compute local bulk/shear moduli per MCC (Itasca Eq. (15), (46))
+        // Use previous-state mean pressure with floors, clamp and under-relax for stability
         Real p_n = -CH_1_3 * (tau_diag.x + tau_diag.y + tau_diag.z);
-        // Real K_n = specific_volume_n * (p_n) / paramsD.mcc_kappa;
-        // Real G_n = 3 * K_n * (1 - 2 * paramsD.Nu_poisson) / (2 * (1 + paramsD.Nu_poisson));
-        Real K_n = paramsD.K_bulk;
-        Real G_n = paramsD.G_shear;
 
         // Trial stress using convention N = n + 1
         Real3 sig_diag_N_tr = tau_diag + dT * deriv_tau_diag;
         Real3 sig_offdiag_N_tr = tau_offdiag + dT * deriv_tau_offdiag;
         Real p_N_tr = -CH_1_3 * (sig_diag_N_tr.x + sig_diag_N_tr.y + sig_diag_N_tr.z);
+        // Pressure floor (Pa) to prevent K -> 0 near free surface
+        Real p_floor = Real(100.0);
+        Real p_eff = fmax(p_n, p_floor);
+        // Candidate bulk modulus from MCC
+        Real K_cand = specific_volume_n * (p_eff) / mcc_kappa;
+        // Clamp and under-relax around reference values
+        Real K_ref = paramsD.K_bulk;
+        Real K_low = Real(0.3) * K_ref;
+        Real K_high = Real(3.0) * K_ref;
+        Real K_clamped = fmin(fmax(K_cand, K_low), K_high);
+        Real alpha_mod = Real(0.2);
+        Real K_n = (Real(1.0) - alpha_mod) * K_ref + alpha_mod * K_clamped;
+        // Real K_n = paramsD.K_bulk;
+        // Shear modulus from ν, clamped/under-relaxed around reference
+        // Real nu = paramsD.Nu_poisson;
+        // Real G_cand = (3.0 * K_n * (1.0 - 2.0 * nu)) / (2.0 * (1.0 + nu));
+        // Real G_ref = paramsD.G_shear;
+        // Real G_low = Real(0.3) * G_ref;
+        // Real G_high = Real(3.0) * G_ref;
+        // Real G_clamped = fmin(fmax(G_cand, G_low), G_high);
+        // Real G_n = (Real(1.0) - alpha_mod) * G_ref + alpha_mod * G_clamped;
+        // Real G_n = paramsD.G_shear;
+        Real G_n = 250000000;
+
         // Deviatoric component of the trial stress
         Real3 dev_diag_N_tr = sig_diag_N_tr + mR3(p_N_tr);
         Real3 dev_offdiag_N_tr = sig_offdiag_N_tr;
@@ -459,51 +487,77 @@ __device__ void TauEulerStep(Real dT,
         Real p_N = p_N_tr;
         Real delta_lambda_N = 0.0;
         Real c_v = 0.0;
+        // Scale-aware tolerances
+        Real f_scale = square(q_N_tr) + square(mcc_M) * square(p_N_tr);
+        Real f_tol = fmax(Real(1e-12), Real(1e-6) * f_scale);
+        Real q_eps = fmax(Real(1e-9), Real(1e-6) * (fabs(p_N_tr) + q_N_tr));
 
         // No tension
-        if (p_N_tr < 1000) {
+        if (p_N_tr < 0) {
             tau_diag = mR3(0.0);
             tau_offdiag = mR3(0.0);
             rho_p.y = 0.0;
-            rho_p.x = rho_p.x + deriv_rho * dT;
+        } else if (p_N_tr > 0 && f_N <= f_tol) {
+            // Nearly on the surface: treat as elastic
+            tau_diag = sig_diag_N_tr;
+            tau_offdiag = sig_offdiag_N_tr;
+            rho_p.y = p_N_tr;
         } else if (p_N_tr > 0 && f_N > 0) {  // If we have yielded, find the new deviatoric stress
             c_v = square(mcc_M) * (2 * p_N_tr - p_c);
             Real c_q = 2 * q_N_tr;
+            // Quadratic coefficients for Δλ
             Real a = square(mcc_M * K_n * c_v) + square(3 * G_n * c_q);
             Real b = -K_n * square(c_v) - 3 * G_n * square(c_q);
             Real c = f_N;
-            // Finding root of quadratic equation
-            Real bsquare_4ac = square(b) - 4 * a * c;
-            if (bsquare_4ac < 0) {
-                // Something is wrong
-                error_occurred = true;
-                return;
+            // q -> 0 guard: pure volumetric correction
+            if (q_N_tr < q_eps) {
+                c_q = 0.0;
+                a = square(mcc_M * K_n * c_v);
+                b = -K_n * square(c_v);
             }
-            Real root1 = (-b + sqrt(bsquare_4ac)) / (2 * a);
-            Real root2 = (-b - sqrt(bsquare_4ac)) / (2 * a);
-            // Choose smaller root
-            delta_lambda_N = root1 < root2 ? root1 : root2;
+            // Solve quadratic robustly
+            if (a <= 0) {
+                delta_lambda_N = 0.0;
+            } else {
+                Real disc = square(b) - 4 * a * c;
+                disc = fmax(disc, Real(0.0));
+                Real sqrt_disc = sqrt(disc);
+                Real inv_2a = Real(0.5) / a;
+                Real r1 = (-b + sqrt_disc) * inv_2a;
+                Real r2 = (-b - sqrt_disc) * inv_2a;
+                // pick the smallest positive root (or 0 if none)
+                delta_lambda_N = Real(0.0);
+                if (r1 > 0 && r2 > 0)
+                    delta_lambda_N = (r1 < r2) ? r1 : r2;
+                else if (r1 > 0)
+                    delta_lambda_N = r1;
+                else if (r2 > 0)
+                    delta_lambda_N = r2;
+            }
 
             // Get the mapped stress
             p_N = p_N_tr - K_n * delta_lambda_N * c_v;
-            Real q_N = q_N_tr - 3 * G_n * delta_lambda_N * c_q;
-            s_diag_N = q_N * dev_diag_N_tr / q_N_tr;
-            s_offdiag_N = q_N * dev_offdiag_N_tr / q_N_tr;
+            Real q_N = (q_N_tr < q_eps) ? Real(0.0) : (q_N_tr - 3 * G_n * delta_lambda_N * c_q);
+            if (q_N_tr > q_eps) {
+                s_diag_N = q_N * dev_diag_N_tr / q_N_tr;
+                s_offdiag_N = q_N * dev_offdiag_N_tr / q_N_tr;
+            } else {
+                s_diag_N = mR3(0.0);
+                s_offdiag_N = mR3(0.0);
+            }
 
             // Get the new stress from the mapped deviatoric stress and pressure
             tau_diag = s_diag_N + mR3(p_N);
             tau_offdiag = s_offdiag_N;
             // Update the consolidation pressure
             Real plastic_volumentric_strain = delta_lambda_N * c_v;
-            p_c *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
+            pcEvSv.x *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
             rho_p.y = p_N;
-            rho_p.x = rho_p.x + deriv_rho * dT;
         } else if (p_N_tr > 0 && f_N <= 0) {
             // We have not yielded, set the stress to the trial stress
             tau_diag = sig_diag_N_tr;
             tau_offdiag = sig_offdiag_N_tr;
             rho_p.y = p_N_tr;
-            rho_p.x = rho_p.x + deriv_rho * dT;
         }
 
         // If we are close to free surface, set stress tensor to zero tensor
@@ -513,6 +567,8 @@ __device__ void TauEulerStep(Real dT,
             tau_offdiag = mR3(0.0);
             rho_p.y = 0.0;
         }
+        // rho_p.x = rho_p.x + deriv_rho * dT;
+        rho_p.x = paramsD.rho0;
         // printf("p_c: %f, tau_diag: %f %f %f, tau_offdiag: %f %f %f\n", p_c, tau_diag.x, tau_diag.y, tau_diag.z,
         //        tau_offdiag.x, tau_offdiag.y, tau_offdiag.z);
     }
@@ -532,7 +588,7 @@ __global__ void EulerStep_D(Real4* posRadD,
                             Real4* rhoPresMuD,
                             Real3* tauXxYyZzD,
                             Real3* tauXyXzYzD,
-                            Real* pcD,
+                            Real3* pcEvSvD,
                             const Real3* vel_XSPH_D,
                             const Real4* derivVelRhoD,
                             const Real3* derivTauXxYyZzD,
@@ -559,7 +615,7 @@ __global__ void EulerStep_D(Real4* posRadD,
     if (paramsD.elastic_SPH) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index],
-                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index], pcD[index], error_occurred);
+                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index], pcEvSvD[index], error_occurred);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -581,7 +637,7 @@ __global__ void MidpointStep_D(Real4* posRadD,
                                Real4* rhoPresMuD,
                                Real3* tauXxYyZzD,
                                Real3* tauXyXzYzD,
-                               Real* pcD,
+                               Real3* pcEvSvD,
                                const Real3* vel_XSPH_D,
                                const Real4* derivVelRhoD,
                                const Real3* derivTauXxYyZzD,
@@ -609,7 +665,7 @@ __global__ void MidpointStep_D(Real4* posRadD,
     if (paramsD.elastic_SPH) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index],
-                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index], pcD[index], error_occurred);
+                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index], pcEvSvD[index], error_occurred);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -629,7 +685,7 @@ void SphFluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
 
     EulerStep_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
-        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), R1CAST(sortedMarkers->pcD),
+        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD),
         mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
         mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD),
         INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
@@ -653,7 +709,7 @@ void SphFluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarker
     bool error_occurred = false;
     MidpointStep_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
-        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), R1CAST(sortedMarkers->pcD),
+        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD),
         mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
         mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD),
         INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
@@ -715,7 +771,7 @@ __global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
                                             const Real4* sortedRhoPresMu,
                                             const Real3* sortedTauXxYyZz,
                                             const Real3* sortedTauXyXXzYz,
-                                            const Real* sortedPc,
+                                            const Real3* sortedPcEvSv,
                                             const Real4* derivVelRho,
                                             const uint numActive,
                                             Real4* posRadOriginal,
@@ -723,7 +779,7 @@ __global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
                                             Real4* rhoPresMuOriginal,
                                             Real3* tauXxYyZzOriginal,
                                             Real3* tauXyXzYzOriginal,
-                                            Real* pcOriginal,
+                                            Real3* pcEvSvOriginal,
                                             Real4* derivVelRhoOriginal,
                                             uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -741,7 +797,7 @@ __global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
     derivVelRhoOriginal[index] = derivVelRho[id];
     tauXxYyZzOriginal[index] = sortedTauXxYyZz[id];
     tauXyXzYzOriginal[index] = sortedTauXyXXzYz[id];
-    pcOriginal[index] = sortedPc[id];
+    pcEvSvOriginal[index] = sortedPcEvSv[id];
 }
 
 void SphFluidDynamics::CopySortedToOriginal(MarkerGroup group,
@@ -763,10 +819,11 @@ void SphFluidDynamics::CopySortedToOriginal(MarkerGroup group,
         CopySortedToOriginalWCSPH_D<<<numBlocks, numThreads, 0, m_copy_stream>>>(
             group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-            mR3CAST(sortedSphMarkersD->tauXyXzYzD), R1CAST(sortedSphMarkersD->pcD), mR4CAST(m_data_mgr.derivVelRhoD),
-            numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
-            mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD), R1CAST(sphMarkersD->pcD),
-            mR4CAST(m_data_mgr.derivVelRhoOriginalD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
+            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(sortedSphMarkersD->pcEvSvD),
+            mR4CAST(m_data_mgr.derivVelRhoD), numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
+            mR4CAST(sphMarkersD->rhoPresMuD), mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
+            mR3CAST(sphMarkersD->pcEvSvD), mR4CAST(m_data_mgr.derivVelRhoOriginalD),
+            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     }
     if (m_check_errors) {
         cudaCheckError();
