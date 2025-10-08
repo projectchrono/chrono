@@ -37,10 +37,10 @@ namespace flow {
 /// Collection of mesh file loader utilities.
 class ChFlowApi ChMeshFileLoaderBeam {
   public:
-  /// Load mesh information imported from various software, for use as generic FEA 
-  /// or specific CBL flow elements (in the case of CBLMultiMat, with different materials for longitudinal and lateral elements).
+  /// Load mesh information imported from various software, for use as generic FEA mechanical or thermal tets,
+  /// or specific flow elements (in the case of CBLMultiMat, with different materials for longitudinal and lateral elements).
 
-    // Similar to FromAbaqusFile but for FreeCAD exported .inp files
+    // Similar to FromAbaqusFile but for FreeCAD exported .inp files for single material meshes, imports fea, or flow pipes
     static void FromFreeCADFile( 
         std::shared_ptr<ChMesh> mesh,                      /// destination mesh
         const char* filename,                              /// input file name
@@ -52,7 +52,7 @@ class ChFlowApi ChMeshFileLoaderBeam {
         bool discard_unused_nodes =
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
     );
-    // Imports for use in flow elements, with different materials for longitudinal and lateral elements based on FreeCAD export
+    // Imports pipes for use in CBL flow elements, with different materials for longitudinal and lateral elements based on FreeCAD export
     static void FromFreeCADFileCBLMultiMat(
         std::shared_ptr<ChMesh> mesh,                       /// destination mesh
         const char* filename,                               /// input file name
