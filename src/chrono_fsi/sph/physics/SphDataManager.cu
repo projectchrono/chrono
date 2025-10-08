@@ -231,7 +231,6 @@ void FsiDataManager::AddSphParticle(Real3 pos,
     //// TODO: Make sure that the parameter is set (creates dependency on when AddSphParticle is called)
     Real v_lambda = 3.32;
     Real confining_stress = pres;
-    // Real confining_stress = 5000;
     Real Sv = v_lambda - paramsH->mcc_lambda * std::log(pc) + paramsH->mcc_kappa * std::log(pc / confining_stress);
     sphMarkers_H->pcEvSvH.push_back(mR3(pc, 0.0, Sv));
 }

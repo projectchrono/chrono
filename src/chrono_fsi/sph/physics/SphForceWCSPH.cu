@@ -1315,6 +1315,7 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 
     // TODO(Huzaifa): Make sure that this use of volume0 here is correct
     Real sum_w_i = W3h(kernelType, 0, ooh) * paramsD.volume0;
+    Real nabla_r = 0;
     Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
     Real max_vel_diff = 0;
 
@@ -1338,6 +1339,10 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
         // Correct the kernel function gradient
         Real w_AB = W3h(kernelType, d, ooh);
         Real3 gradW = GradW3h(kernelType, dist3, ooh);
+
+        // Accumulate support metric (nabla_r) as in diffusion-based shifting
+        // Uses neighbor volume approximation markerMass / rho_j
+        nabla_r += paramsD.markerMass / paramsD.rho0 * dot(-dist3, gradW);
 
         // Calculate dv/dt
         // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
@@ -1392,9 +1397,10 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
         }
     }
 
-    // Check particles who have not enough neighbor particles (only CRM for now)
-    //// TODO: extract and make common to both CFD and CRM
-    if (sum_w_i < paramsD.free_surface_threshold) {
+    // Identify free-surface particles using implicit metric (nabla_r) and AFST threshold
+    // Consistent with diffusion-based shifting logic
+    // if(sum_w_i  < paramsD.free_surface_threshold) {
+    if (nabla_r < paramsD.shifting_diffusion_AFST) {
         sortedFreeSurfaceIdD[index] = 1;
     } else {
         sortedFreeSurfaceIdD[index] = 0;

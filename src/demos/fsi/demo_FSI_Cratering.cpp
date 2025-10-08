@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = init_spacing;
     sph_params.d0_multiplier = 1.2;
-    sph_params.artificial_viscosity = 0.01;
+    sph_params.artificial_viscosity = 0.1;
     // Set boundary type
     if (boundary_method == "holmes") {
         sph_params.boundary_method = BoundaryMethod::HOLMES;
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
         double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
         double density_mean_target = 1510;
         double rho_ini = density_mean_target * g / gbar;
-        double preconsidation_pressure = pre_ini + 10000;
+        double preconsidation_pressure = pre_ini + 40000;
         sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
                               ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }

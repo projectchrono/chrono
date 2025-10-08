@@ -460,15 +460,16 @@ __device__ void TauEulerStep(Real dT,
         Real K_n = (Real(1.0) - alpha_mod) * K_ref + alpha_mod * K_clamped;
         // Real K_n = paramsD.K_bulk;
         // Shear modulus from ν, clamped/under-relaxed around reference
-        // Real nu = paramsD.Nu_poisson;
-        // Real G_cand = (3.0 * K_n * (1.0 - 2.0 * nu)) / (2.0 * (1.0 + nu));
-        // Real G_ref = paramsD.G_shear;
-        // Real G_low = Real(0.3) * G_ref;
-        // Real G_high = Real(3.0) * G_ref;
-        // Real G_clamped = fmin(fmax(G_cand, G_low), G_high);
-        // Real G_n = (Real(1.0) - alpha_mod) * G_ref + alpha_mod * G_clamped;
+        Real nu = paramsD.Nu_poisson;
+        Real G_cand = (3.0 * K_n * (1.0 - 2.0 * nu)) / (2.0 * (1.0 + nu));
+        Real G_ref = paramsD.G_shear;
+        Real G_low = Real(0.3) * G_ref;
+        Real G_high = Real(3.0) * G_ref;
+        Real G_clamped = fmin(fmax(G_cand, G_low), G_high);
+        Real G_n = (Real(1.0) - alpha_mod) * G_ref + alpha_mod * G_clamped;
+        // printf("G_n: %f, K_n: %f\n", G_n, K_n);
         // Real G_n = paramsD.G_shear;
-        Real G_n = 250000000;
+        // Real G_n = 250000000;
 
         // Deviatoric component of the trial stress
         Real3 dev_diag_N_tr = sig_diag_N_tr + mR3(p_N_tr);
