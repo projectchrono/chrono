@@ -79,29 +79,6 @@ class ChFlowApi ChMeshFileLoaderBeam {
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
     );
 
-    static void ANCFShellFromGMFFile(
-        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
-        const char* filename,                              ///< complete filename
-        std::shared_ptr<ChMaterialShellANCF> my_material,  ///< material to be given to the shell
-        std::vector<double>& node_ave_area,                ///< output the average area of the nodes
-        std::vector<int>& BC_nodes,                        ///< material to be given to the shell
-        ChVector3d pos_transform = VNULL,                  ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1),      ///< optional rotation/scaling of imported mesh
-        double scaleFactor = 1,                            ///< import scale factor
-        bool printNodes = false,                           ///< display the imported nodes
-        bool printElements = false                         ///< display the imported elements
-    );
-
-    /// Load a triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements of
-    /// ChElementShellBST type.
-    static void BSTShellFromObjFile(
-        std::shared_ptr<ChMesh> mesh,                           ///< destination mesh
-        const char* filename,                                   ///< .obj mesh complete filename
-        std::shared_ptr<ChMaterialShellKirchhoff> my_material,  ///< material to be given to the shell elements
-        double my_thickness,                                    ///< thickness to be given to shell elements
-        ChVector3d pos_transform = VNULL,                       ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1)            ///< optional rotation/scaling of imported mesh
-    );
 };
 
 /// @} fea_utils
