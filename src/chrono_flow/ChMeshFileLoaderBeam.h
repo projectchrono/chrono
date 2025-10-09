@@ -37,28 +37,31 @@ namespace flow {
 /// Collection of mesh file loader utilities.
 class ChFlowApi ChMeshFileLoaderBeam {
   public:
-    /// Load tetrahedrons from .node and .ele files as saved by TetGen.
-    /// The file format for .node (with point# starting from 1) is:
-    ///   [# of points] [dimension (only 3)] [# of attributes (only 0)] [markers (only 0)]
-    ///   [node #] [x] [y] [z]
-    ///   [node #] [x] [y] [z]   etc.
-    /// The file format for .ele (with tet# starting from 1) is:
-    ///   [# of tetrahedrons] [dimension (only 4 supported)] [# of attributes (only 0)]
-    ///   [tet #] [node #] [node #] [node #] [node #]
-    ///   [tet #] [node #] [node #] [node #] [node #]   etc.
-    /// If you pass a material inherited by ChContinuumElastic, nodes with 3D motion are used, and corotational
-    /// elements.
-    /// If you pass a material inherited by ChContinuumPoisson3D, nodes with scalar field are used (ex. thermal,
-    /// electrostatics, etc)
-    /// Load tetrahedrons, if any, saved in a .inp file for Abaqus.
-    static void FromFreeCADFile(
-        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
-        const char* filename,                              ///< input file name
-        std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
+  /// Load mesh information imported from various software, for use as generic FEA mechanical or thermal tets,
+  /// or specific flow elements (in the case of CBLMultiMat, with different materials for longitudinal and lateral elements).
+
+    // Similar to FromAbaqusFile but for FreeCAD exported .inp files for single material meshes, imports fea, or flow pipes
+    static void FromFreeCADFile( 
+        std::shared_ptr<ChMesh> mesh,                      /// destination mesh
+        const char* filename,                              /// input file name
+        std::shared_ptr<ChContinuumMaterial> my_material,  /// material for the created tetahedrons
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > >&
-            node_sets,                                 ///< vect of vectors of 'marked'nodes
-        ChVector3d pos_transform = VNULL,              ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
+            node_sets,                                     /// vect of vectors of 'marked'nodes
+        ChVector3d pos_transform = VNULL,                  /// optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1),      /// optional rotation/scaling of imported mesh
+        bool discard_unused_nodes =
+            true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
+    );
+    // Imports pipes for use in CBL flow elements, with different materials for longitudinal and lateral elements based on FreeCAD export
+    static void FromFreeCADFileCBLMultiMat(
+        std::shared_ptr<ChMesh> mesh,                       /// destination mesh
+        const char* filename,                               /// input file name
+        std::shared_ptr<ChContinuumMaterial> matLong,       /// material for longitudinal elements
+        std::shared_ptr<ChContinuumMaterial> matTrans,        /// material for lateral elements
+        std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > >&
+            node_sets,                                      /// vect of vectors of 'marked'nodes
+        ChVector3d pos_transform = VNULL,                   /// optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1),       /// optional rotation/scaling of imported mesh
         bool discard_unused_nodes =
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
     );
@@ -76,29 +79,6 @@ class ChFlowApi ChMeshFileLoaderBeam {
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
     );
 
-    static void ANCFShellFromGMFFile(
-        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
-        const char* filename,                              ///< complete filename
-        std::shared_ptr<ChMaterialShellANCF> my_material,  ///< material to be given to the shell
-        std::vector<double>& node_ave_area,                ///< output the average area of the nodes
-        std::vector<int>& BC_nodes,                        ///< material to be given to the shell
-        ChVector3d pos_transform = VNULL,                  ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1),      ///< optional rotation/scaling of imported mesh
-        double scaleFactor = 1,                            ///< import scale factor
-        bool printNodes = false,                           ///< display the imported nodes
-        bool printElements = false                         ///< display the imported elements
-    );
-
-    /// Load a triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements of
-    /// ChElementShellBST type.
-    static void BSTShellFromObjFile(
-        std::shared_ptr<ChMesh> mesh,                           ///< destination mesh
-        const char* filename,                                   ///< .obj mesh complete filename
-        std::shared_ptr<ChMaterialShellKirchhoff> my_material,  ///< material to be given to the shell elements
-        double my_thickness,                                    ///< thickness to be given to shell elements
-        ChVector3d pos_transform = VNULL,                       ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1)            ///< optional rotation/scaling of imported mesh
-    );
 };
 
 /// @} fea_utils

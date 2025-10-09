@@ -193,12 +193,16 @@ int main(int argc, char** argv) {
     ground->SetFixed(true);
     sys.Add(ground);
 
-    // Prepare output diectory and file name 
+    // Prepare output diectory and file name
+    std::string mesh_name = "spruce1_0mm_cube1";
+
     std::filesystem::path path_to_this_file(__FILE__);
     std::string current_dir = path_to_this_file.remove_filename().string();
-    std::string out_dir = current_dir + "/out/";
-    std::string history_filename = "hist.dat";
+    std::string out_dir = current_dir + "/" + mesh_name + "_out/";
+    std::string history_filename = "hist.csv";
     std::string mesh_dir = current_dir;
+    mesh_dir += mesh_name + "/";
+    std::string mesh_string = mesh_dir + mesh_name + "-flowMesh.inp";
 
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -206,26 +210,29 @@ int main(int argc, char** argv) {
         return 1;
     }   
    
-    // Create a material, that must be assigned to each element and set its parameters
-    auto mmaterial = chrono_types::make_shared<ChFlow3D>();
-    mmaterial->SetSpecificHeatCapacity(1100);
-    mmaterial->SetDiffusivityConstants(2.5, 2.5, 2.5);
-    mmaterial->SetDensity(2400);
+    // Create a material for longitudinal flow elements
+    auto matLong = chrono_types::make_shared<ChFlow3D>();
+    matLong->SetSpecificHeatCapacity(1100);
+    matLong->SetDiffusivityConstants(2.5, 2e4, 0); // temp, rh, n/a
+    matLong->SetDensity(2400);
+
+    // Create a material for latreral flow elements
+    auto matTrans = chrono_types::make_shared<ChFlow3D>();
+    matTrans->SetSpecificHeatCapacity(2200);
+    matTrans->SetDiffusivityConstants(5, 1e3, 0);  // temp, rh, n/a
+    matTrans->SetDensity(2400);
 
     // Create mesh
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Load an Abaqus .INP beam mesh file from disk, defining a complicate beam mesh.
     std::cout << "Parsing FreeCAD file!" << std::endl;
-    std::string Mesh_Folder_Name = "spruce0_05mm_cube4_flowSmall";
-    mesh_dir += Mesh_Folder_Name + "/";
-    std::string MyString = mesh_dir+"spruce0_05mm_cube4-flowMesh.mesh";
 
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
     try {
-        ChMeshFileLoaderBeam::FromFreeCADFile(my_mesh, MyString.c_str(), mmaterial,
-                                            node_sets);
-    } catch (std::exception myerr) {
+        ChMeshFileLoaderBeam::FromFreeCADFileCBLMultiMat(my_mesh, mesh_string.c_str(), matLong, matTrans, node_sets);
+    } 
+    catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
         return 1;
     }
@@ -233,53 +240,76 @@ int main(int argc, char** argv) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
+    /// Set initial conditions for all nodes
+    ChVector3d InitialConditions(10.0, 0.25, 0.0); // temp [K], rh [-], n/a
+    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++)
+    {
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i));
+        node->SetFieldVal(InitialConditions); 
+    }
+
     /// Select the nodes on the top surface of the mesh
-    ChVector3d RightBC(0.0, 0.0, 0.0);
+    ChVector3d topBC(10.0, 0.25, 0.0); // temp [K], rh [-], n/a
     std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> top_nodes;	    
-    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
+    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) 
+    {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
         auto cz=node->GetPos().z();
-        if (cz>0.04) {
+        if (cz>0.99) {
         	top_nodes.push_back(node);  
             node->SetFixed(true);   
-            node->SetFieldVal(RightBC);  // field: temperature [K]  	     	
+            node->SetFieldVal(topBC);    	     	
         }       
     }
     
     /// Select the nodes on the bottom surface of the mesh
-    ChVector3d LeftBC(100.0, 1.0, 100.0);
+    ChVector3d botBC(20.0, 0.75, 100.0); // temp [K], rh [-], n/a
     std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> bottom_nodes;
-    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
+    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) 
+    {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
         auto cz=node->GetPos().z();
         if (cz<0.01) {
         	bottom_nodes.push_back(node);    
             node->SetFixed(true);    
-            node->SetFieldVal(LeftBC);  // field: temperature [K]  	   	
+            node->SetFieldVal(botBC);    	   	
         }       
     }
-       
+
+    /// Select the nodes on the left surface of the mesh
+    ChVector3d leftBC(10.0, 0.25, 0.0); // temp [K], rh [-], n/a
+    std::vector<std::shared_ptr<ChNodeFEAxyzPPP>> left_nodes;
+    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++)
+    {
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i));
+        auto cx = node->GetPos().x();
+        if (cx > 16.249)
+        {
+            left_nodes.push_back(node);
+            node->SetFixed(true);
+            node->SetFieldVal(leftBC);
+        }
+    }
+    // std::cout << "left_nodes: " << left_nodes.size() << std::endl;
+
+    /// Select the nodes on the right surface of the mesh
+    ChVector3d rightBC(20.0, 0.75, 100.0); // temp [K], rh [-], n/a
+    std::vector<std::shared_ptr<ChNodeFEAxyzPPP>> right_nodes;
+    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++)
+    {
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i));
+        auto cx = node->GetPos().x();
+        if (cx < 15.251)
+        {
+            right_nodes.push_back(node);
+            node->SetFixed(true);
+            node->SetFieldVal(rightBC);
+        }
+    }
+    // std::cout << "right_nodes: " << right_nodes.size() << std::endl;
+
     // We do not want gravity effect on FEA elements in this demo
     my_mesh->SetAutomaticGravity(false);
-
-    // auto mvisualize = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    // mvisualize->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
-    // mvisualize->SetSymbolsThickness(5);
-    // mvisualize->SetColorscaleMinMax(-1., 12.);
-    // mvisualize->SetShrinkElements(false, 0.85);
-    // mvisualize->SetWireframe(true);
-    // my_mesh->AddVisualShapeFEA(mvisualize);
-
-    // Create the Irrlicht visualization system
-    // auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    // vis->SetWindowSize(1200, 600);
-    // vis->SetWindowTitle("Truss FEA test: use ChElementSpring and ChElementBar");
-    // vis->Initialize();
-    // vis->AddLogo();
-    // vis->AddSkyBox();
-    // vis->AddLight(ChVector3d(20, 20, 20), 90, ChColor(0.5, 0.5, 0.5));
-    // vis->AddCamera(ChVector3d(-1.0, -1.0, -1.0));
-    // vis->AttachSystem(&sys);
 
     /// Create a Chrono solver and set solver settings
     // Use MINRES solver to handle stiffness matrices.
@@ -294,12 +324,12 @@ int main(int argc, char** argv) {
 	
     std::ofstream histfile;
     histfile.open(out_dir+history_filename, std::ios::out);   
-    histfile  << "time" << " " << "node" << " " << "temp" << " " << "humidity" << "\n";
+    histfile  << "time" << ", " << "node" << ", " << "temp" << ", " << "humidity" << "\n";
     // print temperature at the nodes along x axis and y=0
     for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(inode))) {
             if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6) {
-                histfile  << "0.0" << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " " << mnode->GetFieldVal().y() << "\n";
+                histfile  << "0.0" << ", " << mnode->GetPos().z() << ", " << mnode->GetFieldVal().x() << ", " << mnode->GetFieldVal().y() << "\n";
             }
         }
     }
@@ -312,7 +342,7 @@ int main(int argc, char** argv) {
     std::cout << "DYNAMIC ANALYSIS STARTED! \n\n";
 
     double timestep = 3600.0; // seconds
-    double simtime = 100 * 60 * 60; // seconds
+    double simtime = 100 * 3600; // seconds
     int stepnum=0;
     int VTKint=10;
     int HISTint=1;
@@ -341,11 +371,12 @@ int main(int argc, char** argv) {
         }	
 
         // print temperature at the nodes along z axis and x=y=50.0
-        if(stepnum%VTKint==0) {
+        if(stepnum%HISTint==0) {
             for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(inode))) {
-                    if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6) {
-                        histfile  << sim_time << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " " << mnode->GetFieldVal().y() << "\n";
+                    if (15.749 < abs(mnode->GetPos().x()) < 15.751  && abs(mnode->GetPos().y()) < 0.0005) {
+                        histfile << sim_time << ", " << mnode->GetPos().z() << ", " << mnode->GetFieldVal().x() << ", " << mnode->GetFieldVal().y() << "\n";
+                        histfile.flush();
                     }
                 }
             }
