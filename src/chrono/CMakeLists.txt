@@ -469,7 +469,7 @@ set(Chrono_fea_materials_HEADERS
 source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_materials_HEADERS})
 
 set(Chrono_fea_multiphysics_SOURCES
-    fea/ChNodeFEAmultiXYZ.cpp
+    fea/ChNodeFEAfieldXYZ.cpp
     fea/ChFieldElement.cpp
     fea/ChFieldElementTetrahedron_4.cpp
     fea/ChFieldElementHexahedron_8.cpp
@@ -488,7 +488,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChDomainThermoElastic.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
-    fea/ChNodeFEAmultiXYZ.h
+    fea/ChNodeFEAfieldXYZ.h
     fea/ChFieldElement.h
     fea/ChFieldElementTetrahedron_4.h
     fea/ChFieldElementHexahedron_8.h

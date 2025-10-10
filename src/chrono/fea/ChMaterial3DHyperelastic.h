@@ -38,7 +38,11 @@ public:
     virtual ~ChMaterial3DHyperelastic() {}
 
     /// Implement interface to lower level stress material
-    virtual void ComputeStress(ChStressTensor<>& P_stress, const ChMatrix33d& F) override {
+    virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
+                                const ChMatrix33d& F,               ///< current deformation gradient tensor
+                                T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                T_per_element* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element point
+    ) override {
 
         // Green Lagrange    E = 1/2( F*F' - I)
         ChMatrix33d E_strain33 = 0.5 * (F * F.transpose() - ChMatrix33d(1));
@@ -48,11 +52,15 @@ public:
         E_strain.XY() *= 2; E_strain.XZ() *= 2; E_strain.YZ() *= 2;
         
         // Use the hyperelastic stress computation
-        ComputeElasticStress(P_stress, E_strain);
+        ComputeElasticStress(S_stress, E_strain);
     };
 
     /// Implement interface to lower level stress material
-    virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, const ChMatrix33d& F) override {
+    virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, ///< output C tangent modulus, dP=C*dE
+                                        const ChMatrix33d& F,                   ///< current deformation gradient tensor
+                                        T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                        T_per_element* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element point
+    ) override {
         
         // Green Lagrange    E = 1/2( F*F' - I)
         ChMatrix33d E_strain33 = 0.5 * (F * F.transpose() - ChMatrix33d(1));

@@ -21,6 +21,7 @@
 namespace chrono {
 namespace fea {
 
+
 /// @addtogroup chrono_fea
 /// @{
 
@@ -31,12 +32,19 @@ namespace fea {
 /// Material properties are defined via a material from the ChMaterial3DStress subclasses
 /// (the simplest of these materials is the ChMaterial3DStressStVenant, that corresponds to 
 /// conventional linear elasticity for small strains). 
-
+template<class T_material>
 class ChDomainElastic : public ChDomainImpl<
     std::tuple<ChFieldDisplacement3D>, // per each node
-    ChFieldDataNONE,   // per each GP
-    ChFeaPerElementDataKRM> { // per each element
+    typename T_material::T_per_materialpoint,   // per each GP
+    typename T_material::T_per_element> { // per each element
 public:
+    static_assert(std::is_base_of<ChMaterial3DStress, T_material>::value,  "ChDomainElastic: T_material template parameter must inherit from ChMaterial3DStress");
+    using DataPerElement = typename ChDomainImpl<
+        std::tuple<ChFieldDisplacement3D>,
+        typename T_material::T_per_materialpoint,
+        typename T_material::T_per_element
+    >::DataPerElement;
+
     ChDomainElastic(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : ChDomainImpl( melasticfield )
     {
@@ -45,7 +53,7 @@ public:
     }
 
     /// Elastic properties of this domain 
-    std::shared_ptr<ChMaterial3DStress>  material;
+    std::shared_ptr<T_material>  material;
 
     // INTERFACES
 
@@ -82,7 +90,10 @@ public:
 
         // Compute  2nd Piola-Kirchhoff tensor in Voigt notation using the constitutive relation of material
         ChStressTensor<> S_stress; 
-        material->ComputeStress(S_stress, F);
+        material->ComputeStress(S_stress, 
+                                F,
+                                data.matpoints_data.size() ? &data.matpoints_data[i_point] : nullptr,
+                                &data.element_data);
 
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
         this->ComputeB(B, dNdX, F);
@@ -130,7 +141,10 @@ public:
 
         // Compute tangent modulus (assumed: dP=[C]dE with P  2nd Piola-Kirchhoff, E Green-Lagrange)
         ChMatrix66<double> C;
-        this->material->ComputeTangentModulus(C, F);
+        this->material->ComputeTangentModulus(C, 
+                                            F,
+                                            data.matpoints_data.size() ? &data.matpoints_data[i_point] : nullptr,
+                                            & data.element_data);
 
         // K  matrix 
         // K = sum (B' * k * B  * w * |J|)  
