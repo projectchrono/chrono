@@ -20,8 +20,10 @@
 #ifndef CH_CLI_H
 #define CH_CLI_H
 
-#include "chrono_thirdparty/cxxopts/cxxopts.hpp"
+#include <cstdint>
 #include <algorithm>
+
+#include "chrono_thirdparty/cxxopts/cxxopts.hpp"
 
 namespace chrono {
 
