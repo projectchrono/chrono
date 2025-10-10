@@ -70,6 +70,7 @@ bool GetProblemSpecs(int argc,
                      bool& output,
                      double& output_fps,
                      bool& snapshots,
+                     double& pre_pressure_scale,
                      int& ps_freq,
                      double& sphere_density,
                      double& Hdrop,
@@ -84,6 +85,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Output", "output", "Enable output", std::to_string(output));
     cli.AddOption<double>("Output", "output_fps", "Output FPS", std::to_string(output_fps));
     cli.AddOption<bool>("Output", "snapshots", "Enable snapshots", std::to_string(snapshots));
+    cli.AddOption<double>("Output", "pre_pressure_scale", "Pre-pressure scale", std::to_string(pre_pressure_scale));
     cli.AddOption<int>("Simulation", "ps_freq", "Proximity search frequency", std::to_string(ps_freq));
     cli.AddOption<double>("Geometry", "sphere_density", "Sphere density", std::to_string(sphere_density));
     cli.AddOption<double>("Geometry", "Hdrop", "Drop height", std::to_string(Hdrop));
@@ -102,6 +104,7 @@ bool GetProblemSpecs(int argc,
     output = cli.GetAsType<bool>("output");
     output_fps = cli.GetAsType<double>("output_fps");
     snapshots = cli.GetAsType<bool>("snapshots");
+    pre_pressure_scale = cli.GetAsType<double>("pre_pressure_scale");
     ps_freq = cli.GetAsType<int>("ps_freq");
     sphere_density = cli.GetAsType<double>("sphere_density");
     Hdrop = cli.GetAsType<double>("Hdrop");
@@ -118,8 +121,9 @@ int main(int argc, char* argv[]) {
     double t_end = 2.0;
     bool verbose = true;
     bool output = false;
-    double output_fps = 1000;
-    bool snapshots = false;
+    double output_fps = 100;
+    bool snapshots = true;
+    double pre_pressure_scale = 5000;
     int ps_freq = 10;
     double sphere_density = 700;
     double Hdrop = 0.5;
@@ -132,8 +136,8 @@ int main(int argc, char* argv[]) {
     std::string rheology_model_crm = "MU_OF_I";
 
     // Parse command-line arguments
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, sphere_density, Hdrop,
-                         render, boundary_method, viscosity_method, rheology_model_crm)) {
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, pre_pressure_scale, ps_freq,
+                         sphere_density, Hdrop, render, boundary_method, viscosity_method, rheology_model_crm)) {
         return 1;
     }
 
@@ -230,7 +234,7 @@ int main(int argc, char* argv[]) {
         double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
         double density_mean_target = 1510;
         double rho_ini = density_mean_target * g / gbar;
-        double preconsidation_pressure = pre_ini + 40000;
+        double preconsidation_pressure = pre_ini + pre_pressure_scale;
         sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
                               ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }
@@ -325,8 +329,10 @@ int main(int argc, char* argv[]) {
         }
 
         if (snapshots) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
+            if (!filesystem::create_directory(
+                    filesystem::path(out_dir + "/snapshots_" + std::to_string(pre_pressure_scale)))) {
+                std::cerr << "Error creating directory " << out_dir + "/snapshots_" + std::to_string(pre_pressure_scale)
+                          << std::endl;
                 return 1;
             }
         }
@@ -353,9 +359,9 @@ int main(int argc, char* argv[]) {
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
         visVSG->SetWindowTitle("Cratering");
-        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowSize(1920, 1080);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
+        visVSG->AddCamera(ChVector3d(0, -4 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
@@ -395,7 +401,8 @@ int main(int argc, char* argv[]) {
             if (snapshots) {
                 std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/" << std::setw(5) << std::setfill('0') << render_frame << ".jpg";
+                filename << out_dir << "/snapshots_" + std::to_string(pre_pressure_scale) << "/" << std::setw(5)
+                         << std::setfill('0') << render_frame << ".png";
                 vis->WriteImageToFile(filename.str());
             }
 

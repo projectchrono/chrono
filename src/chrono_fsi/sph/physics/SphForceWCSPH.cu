@@ -1161,20 +1161,20 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
 
     // Artifical pressure to handle tensile instability issue.
     // A complete artifical stress should be implemented in the future.
-    /*if (paramsD.Coh_coeff > 1e-5) {
-        Real Pa = -1.0 / 3.0 * (tauXxYyZz_A.x + tauXxYyZz_A.y + tauXxYyZz_A.z);
-        if (Pa < 0) {
-            Real Pb = -1.0 / 3.0 * (tauXxYyZz_B.x + tauXxYyZz_B.y + tauXxYyZz_B.z);
-            Real epsi = 0.5;
-            Real Ra = Pa * epsi * paramsD.invrho0 * paramsD.invrho0;
-            Real Rb = Pb * epsi * paramsD.invrho0 * paramsD.invrho0;
-            Real fAB = W_AB * W_ini_inv;
-            Real small_F = Mass * pow(fAB, 3.0) * (Ra + Rb);
-            derivVx += small_F * gradW.x;
-            derivVy += small_F * gradW.y;
-            derivVz += small_F * gradW.z;
-        }
-    }*/
+    // if (paramsD.Coh_coeff > 1e-5) {
+    Real Pa = -0.333333333f * (tauXxYyZz_A.x + tauXxYyZz_A.y + tauXxYyZz_A.z);
+    if (Pa < 0) {
+        Real Pb = -0.333333333f * (tauXxYyZz_B.x + tauXxYyZz_B.y + tauXxYyZz_B.z);
+        Real epsi = 0.5;
+        Real Ra = Pa * epsi * paramsD.invrho0 * paramsD.invrho0;
+        Real Rb = Pb * epsi * paramsD.invrho0 * paramsD.invrho0;
+        Real fAB = W_AB * W_ini_inv;
+        Real small_F = Mass * pow(fAB, 3.0) * (Ra + Rb);
+        derivVx += small_F * gradW.x;
+        derivVy += small_F * gradW.y;
+        derivVz += small_F * gradW.z;
+    }
+    // }
 
     // TODO: Damping force
     // if (1 == 0) {
