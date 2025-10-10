@@ -70,7 +70,7 @@ public:
     /// Assuming strain is Green-Lagrange tensor E, in Voigt notation. For small strains it coincides with espilon tensor.
     /// Assuming stress if Piola-Kirchhoff tensor S, in Voigt notation. 
     /// Children materials MUST implement this.
-    virtual void ComputeElasticStress(ChStressTensor<>& P_stress, const ChStrainTensor<>& E_strain) = 0;
+    virtual void ComputeElasticStress(ChStressTensor<>& S_stress, const ChStrainTensor<>& E_strain) = 0;
 
     /// Computes the tangent modulus for a given strain. For linear elasticity it is the constant E matrix.
     /// Assuming strain is Green-Lagrange tensor, in Voigt notation. For small strains it coincides with espilon tensor.

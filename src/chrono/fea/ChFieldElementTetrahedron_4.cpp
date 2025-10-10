@@ -15,7 +15,7 @@
 #include <cmath>
 
 #include "chrono/fea/ChFieldElementTetrahedron_4.h"
-#include "chrono/fea/ChNodeFEAmultiXYZ.h"
+#include "chrono/fea/ChNodeFEAfieldXYZ.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +27,7 @@ namespace fea {
 
     /// Set the nodes used by this tetrahedron.
 
-    void ChFieldElementTetrahedron_4::SetNodes(std::shared_ptr<ChNodeFEAmultiXYZ> nodeA, std::shared_ptr<ChNodeFEAmultiXYZ> nodeB, std::shared_ptr<ChNodeFEAmultiXYZ> nodeC, std::shared_ptr<ChNodeFEAmultiXYZ> nodeD) {
+    void ChFieldElementTetrahedron_4::SetNodes(std::shared_ptr<ChNodeFEAfieldXYZ> nodeA, std::shared_ptr<ChNodeFEAfieldXYZ> nodeB, std::shared_ptr<ChNodeFEAfieldXYZ> nodeC, std::shared_ptr<ChNodeFEAfieldXYZ> nodeD) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
         nodes[2] = nodeC;

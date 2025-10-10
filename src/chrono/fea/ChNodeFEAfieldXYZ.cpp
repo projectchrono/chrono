@@ -14,7 +14,7 @@
 
 #include <cmath>
 
-#include "chrono/fea/ChNodeFEAmultiXYZ.h"
+#include "chrono/fea/ChNodeFEAfieldXYZ.h"
 
 namespace chrono {
 namespace fea {

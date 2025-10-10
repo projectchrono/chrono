@@ -31,7 +31,7 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
-#include "chrono/fea/ChNodeFEAmultiXYZ.h"
+#include "chrono/fea/ChNodeFEAfieldXYZ.h"
 #include "chrono/fea/ChDomainElastic.h"
 #include "chrono/fea/ChDomainThermal.h"
 #include "chrono/fea/ChDomainThermoelastic.h"
@@ -81,7 +81,7 @@ protected:
         auto mcolor = this->GetColor();
         unsigned int i = 0;
         for (auto& anode : mfield->GetNodeDataMap()) {
-            if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAmultiXYZ>(anode.first)) {
+            if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(anode.first)) {
                 this->SetGlyphPoint(i, anode.second.GetPos(), mcolor);
                 //this->SetGlyphPoint(i, *nodexyz, mcolor);
                 //T_property->data[i] = anode.second.GetPos();
@@ -101,10 +101,10 @@ int main(int argc, char* argv[]) {
 
     if (false) 
     {
-        auto mnode1 = chrono_types::make_shared<ChNodeFEAmultiXYZ>();
-        auto mnode2 = chrono_types::make_shared<ChNodeFEAmultiXYZ>();
-        auto mnode3 = chrono_types::make_shared<ChNodeFEAmultiXYZ>();
-        auto mnode4 = chrono_types::make_shared<ChNodeFEAmultiXYZ>();
+        auto mnode1 = chrono_types::make_shared<ChNodeFEAfieldXYZ>();
+        auto mnode2 = chrono_types::make_shared<ChNodeFEAfieldXYZ>();
+        auto mnode3 = chrono_types::make_shared<ChNodeFEAfieldXYZ>();
+        auto mnode4 = chrono_types::make_shared<ChNodeFEAfieldXYZ>();
 
         mnode1->Set(0, 0, 0);
         mnode2->Set(0, 0, 1);
@@ -231,10 +231,10 @@ int main(int argc, char* argv[]) {
         class Ch3DArrayOfNodes {
             size_t n, m, k;
         public:
-            std::vector<std::shared_ptr<ChNodeFEAmultiXYZ>> data;
+            std::vector<std::shared_ptr<ChNodeFEAfieldXYZ>> data;
             Ch3DArrayOfNodes(size_t n_, size_t m_, size_t k_)
                 : n(n_), m(m_), k(k_), data(n_* m_* k_) {}
-            std::shared_ptr<ChNodeFEAmultiXYZ>& at(size_t i, size_t j, size_t l) {
+            std::shared_ptr<ChNodeFEAfieldXYZ>& at(size_t i, size_t j, size_t l) {
                 return data[i * m * k + j * k + l];
             }
         };
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
             for (int i_y = 0; i_y <= nlayers_y; ++i_y) {
                 for (int i_x = 0; i_x <= nlayers_x; ++i_x) {
                     ChVector3d mypos((W_x / nlayers_x) * i_x, (W_y / nlayers_y) * i_y, (W_z / nlayers_z) * i_z);
-                    auto mnode = chrono_types::make_shared<ChNodeFEAmultiXYZ>();
+                    auto mnode = chrono_types::make_shared<ChNodeFEAfieldXYZ>();
                     mnode->Set(mypos);
                     displacement_field->AddNode(mnode);
                     displacement_field->NodeData(mnode).SetPos(mypos); // initial position = ref position

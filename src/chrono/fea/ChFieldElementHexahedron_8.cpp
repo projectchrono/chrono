@@ -15,7 +15,7 @@
 #include <cmath>
 
 #include "chrono/fea/ChFieldElementHexahedron_8.h"
-#include "chrono/fea/ChNodeFEAmultiXYZ.h"
+#include "chrono/fea/ChNodeFEAfieldXYZ.h"
 
 
 namespace chrono {
@@ -84,7 +84,7 @@ namespace fea {
     double ChFieldElementHexahedron_8::ComputeJ(const ChVector3d eta, ChMatrix33d& J) {
         ChMatrixNM<double, 3, 8> Xhat;
         for (int i = 0; i < 8; ++i)
-            Xhat.block<3, 1>(0, i) = std::static_pointer_cast<ChNodeFEAmultiXYZ>(this->GetNode(i))->eigen();
+            Xhat.block<3, 1>(0, i) = std::static_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(i))->eigen();
         // J = Xhat * dNde^T
         ChMatrixDynamic<double> dNde(3, 8);
         ComputedNde(eta, dNde);

@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHNODEFEAMULTIXYZ_H
-#define CHNODEFEAMULTIXYZ_H
+#ifndef CHNODEFEAFIELDXYZ_H
+#define CHNODEFEADIELDXYZ_H
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
@@ -31,13 +31,13 @@ namespace fea {
 /// This is the typical node that can be used for tetrahedrons, etc.
 /// Note: this type of multiphysics node do not carry any ChVariable with it,
 /// because attaching ChVariables is up to some ChFeaField. See also ChFeaDomain.
-class ChNodeFEAmultiXYZ : public ChNodeFEAbase, public ChVector3d {
+class ChNodeFEAfieldXYZ : public ChNodeFEAbase, public ChVector3d {
 public:
-    ChNodeFEAmultiXYZ(ChVector3d reference_pos = VNULL) : ChNodeFEAbase(), ChVector3d(reference_pos) {};
-    ChNodeFEAmultiXYZ(const ChNodeFEAmultiXYZ& other) {};
-    virtual ~ChNodeFEAmultiXYZ() {}
+    ChNodeFEAfieldXYZ(ChVector3d reference_pos = VNULL) : ChNodeFEAbase(), ChVector3d(reference_pos) {};
+    ChNodeFEAfieldXYZ(const ChNodeFEAfieldXYZ& other) {};
+    virtual ~ChNodeFEAfieldXYZ() {}
 
-    //ChNodeFEAmultiXYZ& operator=(const ChNodeFEAmultiXYZ& other);
+    //ChNodeFEAfieldXYZ& operator=(const ChNodeFEAfieldXYZ& other);
 
     void SetReferencePos(const ChVector3d ref_pos) { this->Set(ref_pos); }
     ChVector3d GetReferencePos() { return *this; }
@@ -70,7 +70,7 @@ protected:
 }  // end namespace fea
 
 
-//CH_CLASS_VERSION(fea::ChNodeFEAmultiXYZ, 0)
+//CH_CLASS_VERSION(fea::ChNodeFEAfieldXYZ, 0)
 
 
 }  // end namespace chrono

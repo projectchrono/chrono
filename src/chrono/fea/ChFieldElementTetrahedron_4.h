@@ -26,7 +26,7 @@ namespace fea {
 /// @{
 
 // Forward:
-class ChNodeFEAmultiXYZ;
+class ChNodeFEAfieldXYZ;
 
 
 /// Linear tetrahedron for generic constitutive laws. Can be used for multiphysics.
@@ -43,13 +43,13 @@ public:
     // 
 
     /// Return the specified tetrahedron node (0 <= n <= 3).
-    virtual std::shared_ptr<ChNodeFEAmultiXYZ> GetTetrahedronNode(unsigned int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAfieldXYZ> GetTetrahedronNode(unsigned int n) { return nodes[n]; }
 
     /// Set the nodes used by this tetrahedron.
-    virtual void SetNodes(std::shared_ptr<ChNodeFEAmultiXYZ> nodeA,
-        std::shared_ptr<ChNodeFEAmultiXYZ> nodeB,
-        std::shared_ptr<ChNodeFEAmultiXYZ> nodeC,
-        std::shared_ptr<ChNodeFEAmultiXYZ> nodeD);
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAfieldXYZ> nodeA,
+        std::shared_ptr<ChNodeFEAfieldXYZ> nodeB,
+        std::shared_ptr<ChNodeFEAfieldXYZ> nodeC,
+        std::shared_ptr<ChNodeFEAfieldXYZ> nodeD);
 
     //
     // Interface
@@ -109,7 +109,7 @@ private:
     /// each element, if any, the mass, etc.
     virtual void SetupInitial(ChSystem* system) {}
 
-    std::array<std::shared_ptr<ChNodeFEAmultiXYZ>, 4> nodes;
+    std::array<std::shared_ptr<ChNodeFEAfieldXYZ>, 4> nodes;
 };
 
 
