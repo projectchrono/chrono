@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHDOMAINELASTIC_H
-#define CHDOMAINELASTIC_H
+#ifndef CHDOMAINDEFORMATION_H
+#define CHDOMAINDEFORMATION_H
 
 #include "chrono/fea/ChDomain.h"
 #include "chrono/fea/ChMaterial3DStressStVenant.h"
@@ -26,14 +26,14 @@ namespace fea {
 /// @{
 
 
-/// Domain for FEA nonlinear finite strain analysis. It is based on a vector field,
+/// Domain for FEA large deformations (nonlinear finite strain theory). It is based on a vector field,
 /// ChFieldDisplacement3D, that is used to store x, the absolute spatial position of nodes (NOT
 /// the displacement from the material reference position, d=x-X, as in some software).
 /// Material properties are defined via a material from the ChMaterial3DStress subclasses
 /// (the simplest of these materials is the ChMaterial3DStressStVenant, that corresponds to 
 /// conventional linear elasticity for small strains). 
 template<class T_material>
-class ChDomainElastic : public ChDomainImpl<
+class ChDomainDeformation : public ChDomainImpl<
     std::tuple<ChFieldDisplacement3D>, // per each node
     typename T_material::T_per_materialpoint,   // per each GP
     typename T_material::T_per_element> { // per each element
@@ -45,7 +45,7 @@ public:
         typename T_material::T_per_element
     >::DataPerElement;
 
-    ChDomainElastic(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
+    ChDomainDeformation(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : ChDomainImpl( melasticfield )
     {
         // attach  default materials to simplify user side

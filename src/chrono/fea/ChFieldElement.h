@@ -44,7 +44,7 @@ class ChNodeFEAbase;
 /// from ChElementBase and ChElementGeneric, because the element here does not provide any
 /// constitutive law or material: it only provides shape function interpolation, 
 /// shape function derivatives, jacobian, list of nodes and quadrature schemes, and
-/// few ingredients that later one can take advantage of, say in a ChDomainElastic 
+/// few ingredients that later one can take advantage of, say in a ChDomainDeformation 
 /// or ChDomainThermal, if some proper ChField is attached to the nodes.
 
 class ChApi ChFieldElement {

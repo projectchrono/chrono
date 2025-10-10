@@ -484,7 +484,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChMaterial3DStressStVenant.cpp
     fea/ChDomain.cpp
     fea/ChDomainThermal.cpp
-    fea/ChDomainElastic.cpp
+    fea/ChDomainDeformation.cpp
     fea/ChDomainThermoElastic.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
@@ -503,7 +503,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChMaterial3DStressStVenant.h
     fea/ChDomain.h
     fea/ChDomainThermal.h
-    fea/ChDomainElastic.h
+    fea/ChDomainDeformation.h
     fea/ChDomainThermoElastic.h
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})

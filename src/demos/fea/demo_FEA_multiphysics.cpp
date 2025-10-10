@@ -32,7 +32,7 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChNodeFEAfieldXYZ.h"
-#include "chrono/fea/ChDomainElastic.h"
+#include "chrono/fea/ChDomainDeformation.h"
 #include "chrono/fea/ChDomainThermal.h"
 #include "chrono/fea/ChDomainThermoelastic.h"
 #include "chrono/fea/ChFieldElementHexahedron_8.h"
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         //--------------------------------------
 
 
-        auto elastic_domain = chrono_types::make_shared <ChDomainElastic<ChMaterial3DStressStVenant>>(displacement_field);
+        auto elastic_domain = chrono_types::make_shared <ChDomainDeformation<ChMaterial3DStressStVenant>>(displacement_field);
         elastic_domain->AddElement(tetrahedron1);
 
         // Needed to setup all data and pointers
@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-        auto elastic_domain = chrono_types::make_shared <ChDomainElastic<ChMaterial3DStressStVenant>>(displacement_field);
+        auto elastic_domain = chrono_types::make_shared <ChDomainDeformation<ChMaterial3DStressStVenant>>(displacement_field);
         for (auto& created_element : melements.data)
             elastic_domain->AddElement(created_element);
 
