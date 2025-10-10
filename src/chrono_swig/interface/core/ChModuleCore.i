@@ -323,6 +323,8 @@ inline const char* ChUtils_GetFilename() {
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 
+%include "ChMassProperties.i" // needed by ChTriangleMeshConnected in ChGeometry.i
+
 // geometry/   classes
 %include "ChGeometry.i"
 
