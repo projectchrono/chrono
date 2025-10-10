@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHDOMAINTHERMOELASTIC_H
-#define CHDOMAINTHERMOELASTIC_H
+#ifndef CHDOMAINTHERMODEFORMATION_H
+#define CHDOMAINTHERMODEFORMATION_H
 
 #include "chrono/fea/ChDomain.h"
 #include "chrono/fea/ChMaterial3DThermal.h"
@@ -31,14 +31,15 @@ namespace fea {
 /// the displacement from the material reference position, d=x-X, as in some software) and
 /// a ChFieldTemperature. It solves the transient Poisson thermal equation together with 
 /// structural dynamics. 
-/// ***TODO***
+/// ***TODO*** implement
+/// ***TODO*** make templated as in ChDomainDeformation
 
-class ChDomainThermoElastic : public ChDomainImpl<
+class ChDomainThermoDeformation : public ChDomainImpl<
     std::tuple<ChFieldTemperature, ChFieldDisplacement3D>, 
     ChFieldDataNONE,
     ChFeaPerElementDataKRM> {
 public:
-    ChDomainThermoElastic(std::shared_ptr<ChFieldTemperature> mthermalfield, std::shared_ptr<ChFieldDisplacement3D> melasticfield)
+    ChDomainThermoDeformation(std::shared_ptr<ChFieldTemperature> mthermalfield, std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : ChDomainImpl({ mthermalfield, melasticfield })
     {
         // attach  default materials to simplify user side
@@ -76,6 +77,16 @@ public:
         double Kpfactor,
         double Rpfactor = 0,
         double Mpfactor = 0
+    ) override {
+            assert(false); //***TODO*** to be implemented
+    }
+
+    /// Invoked at the end of each time step. If the material has some 
+    /// custom handling of auxiliary data (states etc.) it will manage this in ComputeUpdateEndStep()
+    virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point, 
+        const double time
     ) override {
             assert(false); //***TODO*** to be implemented
     }

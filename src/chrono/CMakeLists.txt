@@ -485,7 +485,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChDomain.cpp
     fea/ChDomainThermal.cpp
     fea/ChDomainDeformation.cpp
-    fea/ChDomainThermoElastic.cpp
+    fea/ChDomainThermoDeformation.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
     fea/ChNodeFEAfieldXYZ.h
@@ -504,7 +504,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChDomain.h
     fea/ChDomainThermal.h
     fea/ChDomainDeformation.h
-    fea/ChDomainThermoElastic.h
+    fea/ChDomainThermoDeformation.h
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 
