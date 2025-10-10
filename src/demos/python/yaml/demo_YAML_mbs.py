@@ -108,11 +108,6 @@ def main():
 
 # =============================================================================
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 # Set YAML model and simulation files
 model_yaml_filename = chrono.GetChronoDataFile("yaml/mbs/slider_crank.yaml")
 sim_yaml_filename = chrono.GetChronoDataFile("yaml/mbs/simulation_mbs.yaml")

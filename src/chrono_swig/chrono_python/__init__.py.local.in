@@ -27,6 +27,7 @@ if sys.platform == 'win32':
 try:
     from . import core
     from . import fea
+    core.SetChronoDataPath('@PYC_DATA_PATH@')
 except:
     pass
 try:
@@ -48,6 +49,7 @@ except:
     pass
 try:
     from . import vehicle
+    vehicle.SetVehicleDataPath('@PYC_DATA_PATH@' + 'vehicle/')
 except:
     pass
 try:
@@ -83,5 +85,3 @@ except:
 # instead of 
 #   import pychrono.core	
 from .core import *
-
-SetChronoDataPath('@PYC_DATA_PATH@')

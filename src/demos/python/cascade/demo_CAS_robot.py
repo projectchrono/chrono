@@ -18,11 +18,6 @@ import pychrono.irrlicht as chronoirr
 import pychrono.cascade as cascade
 from OCC.Core import TopoDS
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 # Create the simulation system and add items
 sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)

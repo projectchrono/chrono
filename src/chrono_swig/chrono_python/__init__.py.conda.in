@@ -12,6 +12,9 @@ idir = pathlib.Path(__file__).parent.resolve()
 try:
     from . import core
     from . import fea
+    ddir = os.path.join(idir, '@PYC_DATA_PATH@')
+    ddir = os.path.join(os.path.realpath(ddir), '')
+    core.SetChronoDataPath(ddir)
 except:
     pass
 try:
@@ -32,6 +35,9 @@ except:
     pass
 try:
     from . import vehicle
+    ddir = os.path.join(idir, '@PYC_DATA_PATH@')
+    ddir = os.path.join(os.path.realpath(ddir), '')
+    vehicle.SetVehicleDataPath(ddir + "/vehicle/")
 except:
     pass
 try:
@@ -69,7 +75,3 @@ except:
 #   import pychrono.core	
 from .core import *
 
-# Infer path to Chrono data/ directory from path of __init__.py
-ddir = os.path.join(idir, '@PYC_DATA_PATH@')
-ddir = os.path.join(os.path.realpath(ddir), '')
-SetChronoDataPath(ddir)

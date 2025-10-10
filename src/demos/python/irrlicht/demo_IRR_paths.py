@@ -16,11 +16,6 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: create a sys and visualize it in realtime 3D");
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 # ---------------------------------------------------------------------
 #
 #  Create the simulation sys and add items

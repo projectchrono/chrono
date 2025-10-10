@@ -58,7 +58,6 @@ def CreateFSIWheels(vehicle, terrain):
 # Set output root directory
 chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
-veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 # Problem settings (mirroring the C++ demo)
 target_speed = 7.0
 tend = 30.0

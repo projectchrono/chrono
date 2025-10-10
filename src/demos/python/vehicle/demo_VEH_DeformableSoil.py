@@ -20,11 +20,6 @@ import pychrono.vehicle as veh
 
 import math
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 # If true, use provided callback to change soil properties based on location
 var_params = True
 

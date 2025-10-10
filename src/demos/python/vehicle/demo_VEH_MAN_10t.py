@@ -24,13 +24,6 @@ import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
 import math
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 0.7)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)
