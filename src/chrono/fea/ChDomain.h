@@ -110,7 +110,7 @@ public:
     virtual bool IsElementAdded(std::shared_ptr<ChFieldElement> melement) = 0;
 
     // This rewires all pointers and correctly set up the element_datamap
-    virtual bool InitialSetup() = 0;
+    virtual bool InitialSetup() = 0;  //***TODO*** check if better merge into ChPhysicsItem::SetupInitial() 
 
     // Get the total coordinates per each node (summing the dofs per each field) 
     virtual int GetNumPerNodeCoordsPosLevel() = 0;
@@ -127,6 +127,8 @@ public:
     /// If the dSdt vector size is not the proper size, it will be resized.
     virtual void GetStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt) = 0;
 
+    /// Invoke the ComputeUpdateEndStep() per each material point, if some plasticity etc must be done
+    virtual void UpdateEndStep(double t) = 0;
 
 protected:
     unsigned int n_dofs;    ///< total degrees of freedom of element materialpoint states (ex plasticity)
@@ -305,7 +307,18 @@ public:
         Md_i = diag_vals * scale_factor;
     }
 
-
+    /// For a given finite element, computes updates at the end of a time step. This may happen less
+    /// frequently than a full Update. 
+    /// It falls back to calling PointUpdateEndStep per each material point.
+    virtual void ElementUpdateEndStep(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, double time
+    ) {
+        int quadorder = melement->GetMinQuadratureOrder();
+        int numpoints = melement->GetNumQuadraturePoints(quadorder);
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            PointUpdateEndStep(melement,
+                data, i_point, time);
+        }
+    }
 
     // MATERIAL CONSTITUTIVE LAWS MUST IMPLEMENT THE FOLLOWING
 
@@ -339,6 +352,10 @@ public:
                                             double Rpfactor = 0,
                                             double Mpfactor = 0) = 0;
 
+    virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point, 
+        const double time) = 0;
 
 
     // INTERFACE to ChPhysicsItem
@@ -380,6 +397,17 @@ public:
             mel.first->Update();
         }
     }
+
+    // TODO: maybe this could be part of the ChPhysicsItem interface? 
+    // Better, unify into a single ChPhysicsItem::Update(SOME_FLAGS) for all ChPhysicsItem where the flag could be END_STEP etc.
+    virtual void UpdateEndStep(double time) {
+
+        for (auto& mel : this->element_datamap) {
+            ElementUpdateEndStep(mel.first, mel.second, time);
+        }
+    }
+
+
 
     /// Set zero speed (and zero accelerations) in state without changing the position.
     virtual void ForceToRest() override {}

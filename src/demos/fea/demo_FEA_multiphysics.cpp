@@ -34,7 +34,7 @@
 #include "chrono/fea/ChNodeFEAfieldXYZ.h"
 #include "chrono/fea/ChDomainDeformation.h"
 #include "chrono/fea/ChDomainThermal.h"
-#include "chrono/fea/ChDomainThermoelastic.h"
+#include "chrono/fea/ChDomainThermoDeformation.h"
 #include "chrono/fea/ChFieldElementHexahedron_8.h"
 #include "chrono/fea/ChFieldElementTetrahedron_4.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
 
         // ---------------
 
-        auto thermoelastic_domain = chrono_types::make_shared <ChDomainThermoElastic>(temperature_field, displacement_field);
+        auto thermoelastic_domain = chrono_types::make_shared <ChDomainThermoDeformation>(temperature_field, displacement_field);
         thermoelastic_domain->AddElement(tetrahedron1);
         thermoelastic_domain->InitialSetup();
 

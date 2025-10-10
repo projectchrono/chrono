@@ -100,6 +100,18 @@ public:
             H += (Rpfactor * this->material->GetSpecificHeatCapacity() * this->material->GetDensity()) * (N.transpose() * N);
         }
     }
+
+    /// Invoked at the end of each time step. If the material has some 
+    /// custom handling of auxiliary data (states etc.) it will manage this in ComputeUpdateEndStep()
+    virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        const double time
+    ) override {
+        // DO NOTHING because we assume that thermal materials never implement some  material->ComputeUpdateEndStep(...) 
+    }
+
+
 };
 
 

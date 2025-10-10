@@ -178,6 +178,20 @@ public:
         }
     }
 
+    /// Invoked at the end of each time step. If the material has some 
+    /// custom handling of auxiliary data (states etc.) it will manage this in ComputeUpdateEndStep()
+    virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point, 
+        const double time
+    ) {
+        material->ComputeUpdateEndStep(
+            data.matpoints_data.size() ? &data.matpoints_data[i_point] : nullptr,
+            &data.element_data, 
+            time);
+    }
+
+
 private:
     /// Utility: Compute  B as in  dE = B dx  where dE is variation in Green Lagrange strain (Voigt notation)
     /// and dx is the variation in spatial node coordinates (also works as  dE = B du  with du variation in displacements)

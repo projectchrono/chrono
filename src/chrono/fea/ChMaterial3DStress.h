@@ -39,7 +39,6 @@ class ChFeaPerElementDataKRM;
 
 class ChMaterial3DStress : public ChMaterial3DDensity {
 public:
-    //using T_per_node = std::tuple<ChFieldDisplacement3D>;
     using T_per_materialpoint = ChFieldDataNONE;
     using T_per_element = ChFeaPerElementDataKRM;
 
@@ -67,6 +66,15 @@ public:
                                 T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
                                 T_per_element* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element point
     ) = 0;
+
+    /// Update your own auxiliary data, if any, at the end of time step (ex for plasticity).
+    /// This is called at the end of every time step (or nl static step)
+    virtual void ComputeUpdateEndStep(T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                      T_per_element* data_per_element,    ///< pointer to auxiliary data (ex states), if any, per element point
+                                      const double time
+    ) {
+         // default: do nothing. 
+    }
 
     //virtual void ArchiveOut(ChArchiveOut& archive_out) override;  TODO
     //virtual void ArchiveIn(ChArchiveIn& archive_in) override; 
