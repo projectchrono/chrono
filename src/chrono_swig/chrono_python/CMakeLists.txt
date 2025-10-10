@@ -107,8 +107,8 @@ endif()
 # ---------- Pychrono in BUILD tree
 
 # Path to Chrono data directory and Chrono::Sensor shaders (in BUILD tree)
-set(PYC_DATA_PATH "${CMAKE_BINARY_DIR}/bin/data/")
-set(PYC_SHADER_PATH "${CH_BUILD_SENSOR_SHADERS}")
+set(PYC_DATA_PATH "${CH_BUILD_DATA}/")
+set(PYC_SHADER_PATH "${CH_BUILD_SENSOR_SHADERS}/")
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.local.in
@@ -128,7 +128,7 @@ if (CH_CONDA_INSTALL)
 else()
   # Path to Chrono data directory and Chrono::Sensor shaders (in local INSTALL tree)
   set(PYC_DATA_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
-  set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
+  set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}/")
   
   # Generate the __init__.py file using substitution variables and place it in a temporary place
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.local.in
