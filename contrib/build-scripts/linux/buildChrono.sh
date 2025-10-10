@@ -48,7 +48,7 @@ BUILDSYSTEM="Ninja Multi-Config"
 
 # ------------------------------------------------------------------------
 
-cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
+cmake -G "${BUILDSYSTEM}" -B "${BUILD_DIR}" -S "${SOURCE_DIR}" \
       -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DIR} \
       -DCH_ENABLE_MODULE_IRRLICHT:BOOL=ON \
       -DCH_ENABLE_MODULE_VSG:BOOL=OFF \
@@ -77,7 +77,7 @@ cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DIrrlicht_ROOT:PATH=${IRRLICHT_ROOT} \
       -DBlaze_ROOT:PATH=${BLAZE_ROOT} \
       -DOptiX_INSTALL_DIR:PATH=${OPTIX_INSTALL_DIR} \
-      -FastDDS_ROOT:PATH=${FASTDDS_INSTALL_DIR} \
+      -DFastDDS_ROOT:PATH=${FASTDDS_INSTALL_DIR} \
       -DGLEW_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glew \
       -Dglfw3_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glfw3 \
       -DGLM_INCLUDE_DIR:PATH=${GL_INSTALL_DIR}/include \
