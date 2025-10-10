@@ -529,7 +529,7 @@ void ChSAEToeBarLeafspringAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaClamp(getClampInertia());
     ChMatrix33<> inertiaShackle(getShackleInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 

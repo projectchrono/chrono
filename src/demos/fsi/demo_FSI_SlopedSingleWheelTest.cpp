@@ -26,7 +26,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsGeometry.h"

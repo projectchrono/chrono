@@ -549,7 +549,7 @@ void ChGenericWheeledSuspension::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
 
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);

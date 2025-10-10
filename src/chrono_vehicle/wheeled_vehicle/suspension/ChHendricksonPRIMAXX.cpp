@@ -370,7 +370,7 @@ void ChHendricksonPRIMAXX::UpdateInertiaProperties() {
     ChMatrix33<> inertiaTorqueRod(getTorquerodInertia());
     ChMatrix33<> inertiaLowerbeam(getLowerbeamInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 

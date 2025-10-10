@@ -18,12 +18,12 @@
 #include <vector>
 #include <string>
 #include <sstream>
-#include <cmath>
+#include <cmath>B
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsGeometry.h"

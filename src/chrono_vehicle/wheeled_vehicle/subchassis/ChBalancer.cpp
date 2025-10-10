@@ -116,7 +116,7 @@ void ChBalancer::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_beam[LEFT]->GetFrameCOMToAbs(), m_beam[LEFT]->GetMass(), m_beam[LEFT]->GetInertia());
     composite.AddComponent(m_beam[RIGHT]->GetFrameCOMToAbs(), m_beam[RIGHT]->GetMass(), m_beam[RIGHT]->GetInertia());
 

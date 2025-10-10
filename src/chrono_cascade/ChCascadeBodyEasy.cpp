@@ -126,7 +126,7 @@ void ChCascadeBodyEasyProfile::ClearProfiles() {
 }
 
 void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
-    chrono::utils::CompositeInertia inertia_composer;
+    CompositeInertia inertia_composer;
 
     TopoDS_Compound mcompound;
     TopoDS_Builder builder;

@@ -98,7 +98,7 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
     m_xform = m_shoe->GetFrameRefToAbs();
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         composite.AddComponent(m_web_segments[is]->GetFrameCOMToAbs(), m_web_segments[is]->GetMass(),

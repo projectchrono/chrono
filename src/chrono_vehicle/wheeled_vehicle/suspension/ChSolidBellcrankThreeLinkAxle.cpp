@@ -402,7 +402,7 @@ void ChSolidBellcrankThreeLinkAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaLink(getLinkInertia());
     ChMatrix33<> inertiaTierod(getTierodInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 

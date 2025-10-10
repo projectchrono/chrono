@@ -20,6 +20,7 @@
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChElementBase.h"
@@ -167,12 +168,16 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Tell if this mesh will add automatically a gravity load to all contained elements.
     bool GetAutomaticGravity() { return automatic_gravity_load; }
 
-    /// Get ChMesh mass properties. The inertia tensor is solved with respect to the absolute frame,
-    /// and also aligned with the absolute frame, NOT at the center of mass.
+    /// Calculate and load ChMesh mass properties.
+    /// The inertia tensor is calculated with respect to the absolute frame and also aligned with the absolute frame.
     void ComputeMassProperties(double& mass,          ///< ChMesh object mass
                                ChVector3d& com,       ///< ChMesh center of gravity
                                ChMatrix33<>& inertia  ///< ChMesh inertia tensor
     );
+
+    /// Calculate and return ChMesh mass properties.
+    /// The inertia tensor is calculated with respect to the absolute frame and also aligned with the absolute frame.
+    ChMassProperties ComputeMassProperties();
 
     // STATE FUNCTIONS
 

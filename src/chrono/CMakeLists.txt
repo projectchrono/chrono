@@ -108,6 +108,7 @@ set(Chrono_physics_SOURCES
     physics/ChExternalDynamicsODE.cpp
     physics/ChExternalDynamicsDAE.cpp
     physics/ChAssembly.cpp
+    physics/ChMassProperties.cpp
     )
 set(Chrono_physics_HEADERS
     physics/ChBodyFrame.h
@@ -132,7 +133,7 @@ set(Chrono_physics_HEADERS
     physics/ChExternalDynamicsODE.h
     physics/ChExternalDynamicsDAE.h
     physics/ChAssembly.h
-    physics/ChInertiaUtils.h
+    physics/ChMassProperties.h
     )
 source_group(physics FILES ${Chrono_physics_SOURCES} ${Chrono_physics_HEADERS})
 
@@ -1091,7 +1092,6 @@ set(Chrono_utils_SOURCES
     utils/ChProfiler.cpp
     utils/ChControllers.cpp
     utils/ChFilters.cpp
-    utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
     utils/ChForceFunctors.cpp
@@ -1112,7 +1112,6 @@ set(Chrono_utils_HEADERS
     utils/ChProfiler.h
     utils/ChControllers.h
     utils/ChFilters.h
-    utils/ChCompositeInertia.h
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
     utils/ChForceFunctors.h

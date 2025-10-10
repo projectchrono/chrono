@@ -23,7 +23,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChLineArc.h"
-#include "chrono/utils/ChCompositeInertia.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include <TopExp_Explorer.hxx>
 #include <TopoDS_Wire.hxx>

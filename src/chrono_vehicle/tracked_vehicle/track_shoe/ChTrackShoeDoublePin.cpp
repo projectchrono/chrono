@@ -188,7 +188,7 @@ void ChTrackShoeDoublePin::UpdateInertiaProperties() {
     m_xform = m_shoe->GetFrameRefToAbs();
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:

@@ -131,7 +131,7 @@ void ChRotationalDamperSuspension::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
     composite.AddComponent(m_road_wheel->GetBody()->GetFrameCOMToAbs(), m_road_wheel->GetBody()->GetMass(),
                            m_road_wheel->GetBody()->GetInertia());

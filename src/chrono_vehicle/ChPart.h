@@ -34,7 +34,7 @@
 #include "chrono/physics/ChContactMaterialSMC.h"
 
 #include "chrono/utils/ChBodyGeometry.h"
-#include "chrono/utils/ChCompositeInertia.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono/output/ChOutput.h"
 
