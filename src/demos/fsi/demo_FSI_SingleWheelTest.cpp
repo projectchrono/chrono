@@ -18,7 +18,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
-#include <cmath>B
+#include <cmath>
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
