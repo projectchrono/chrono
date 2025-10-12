@@ -70,20 +70,8 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Default: 0.5.
     void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
 
-    /// Enable/disable modified Newton.
-    /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once
-    /// per step or if the Newton iteration does not converge with an out-of-date matrix.
-    /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
-    /// Default: true.
-    void SetModifiedNewton(bool enable) { modified_Newton = enable; }
-
     /// Perform an integration timestep, by advancing the state by the specified time step.
-    virtual void Advance(const double dt) override;
-
-    /// Get the last estimated convergence rate for the internal Newton solver.
-    /// Note that an estimate can only be calculated after the 3rd iteration. For the first 2 iterations, the
-    /// convergence rate estimate is set to 1.
-    double GetEstimatedConvergenceRate() const { return convergence_rate; }
+    virtual void Advance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -94,27 +82,17 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
   private:
     void Prepare(ChIntegrableIIorder* integrable2);
     void Increment(ChIntegrableIIorder* integrable2);
-    bool CheckConvergence(int it);
-    void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 
   private:
     double alpha;  ///< HHT method parameter:  -1/3 <= alpha <= 0
     double gamma;  ///< HHT method parameter:   gamma = 1/2 - alpha
     double beta;   ///< HHT method parameter:   beta = (1 - alpha)^2 / 4
 
-    ChStateDelta Da;         ///< state update
-    ChVectorDynamic<> Dl;    ///< Lagrange multiplier update
     ChState Xnew;            ///< current estimate of new positions
     ChStateDelta Vnew;       ///< current estimate of new velocities
     ChStateDelta Anew;       ///< current estimate of new accelerations
     ChVectorDynamic<> Lnew;  ///< current estimate of Lagrange multipliers
-    ChVectorDynamic<> R;     ///< residual of nonlinear system (dynamics portion)
     ChVectorDynamic<> Rold;  ///< residual terms depending on previous state
-    ChVectorDynamic<> Qc;    ///< residual of nonlinear system (constranints portion)
-
-    std::array<double, 3> Da_nrm_hist;  ///< last 3 update norms
-    std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
-    double convergence_rate;            ///< estimated Newton rate of convergence
 
     bool step_control;                  ///< step size control enabled?
     unsigned int maxiters_success;      ///< maximum number of NR iterations to declare a step successful
@@ -124,13 +102,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double h_min;                       ///< minimum allowable stepsize
     double h;                           ///< internal stepsize
     unsigned int num_successful_steps;  ///< number of successful steps
-
-    bool modified_Newton;    ///< use modified Newton?
-    bool matrix_is_current;  ///< is the Newton matrix up-to-date?
-    bool call_setup;         ///< should the solver's Setup function be called?
-
-    ChVectorDynamic<> ewtS;  ///< vector of error weights (states)
-    ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
 };
 
 /// @} chrono_timestepper

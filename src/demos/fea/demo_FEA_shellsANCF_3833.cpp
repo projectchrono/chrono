@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxIters(50);
     mystepper->SetAbsTolerances(1e-4, 1e2);
     mystepper->SetStepControl(false);
-    mystepper->SetModifiedNewton(true);
+    mystepper->SetJacobianUpdateMethod(ChImplicitIterativeTimestepper::JacobianUpdate::EVERY_STEP);
 
     while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";

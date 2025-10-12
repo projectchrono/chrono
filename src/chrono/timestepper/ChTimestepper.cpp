@@ -22,8 +22,6 @@ CH_UPCASTING(ChTimestepperIorder, ChTimestepper)
 CH_UPCASTING(ChTimestepperIIorder, ChTimestepper)
 CH_UPCASTING(ChImplicitIterativeTimestepper, ChImplicitTimestepper)
 
-// -----------------------------------------------------------------------------
-
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'ChTimestepper_Type_enum_mapper', just to avoid avoiding cluttering of the parent class.
 class ChTimestepper_Type_enum_mapper : public ChTimestepper {
@@ -43,6 +41,8 @@ class ChTimestepper_Type_enum_mapper : public ChTimestepper {
     CH_ENUM_VAL(Type::CUSTOM);
     CH_ENUM_MAPPER_END(Type);
 };
+
+// -----------------------------------------------------------------------------
 
 void ChTimestepper::ArchiveOut(ChArchiveOut& archive) {
     // version number
@@ -99,6 +99,98 @@ std::string ChTimestepper::GetTypeAsString(Type type) {
 
 // -----------------------------------------------------------------------------
 
+ChImplicitIterativeTimestepper::ChImplicitIterativeTimestepper()
+    : jacobian_update_method(JacobianUpdate::EVERY_STEP),
+      call_setup(true),
+      maxiters(6),
+      reltol(1e-4),
+      abstolS(1e-10),
+      abstolL(1e-10),
+      numiters(0),
+      numsetups(0),
+      numsolves(0) {}
+
+void ChImplicitIterativeTimestepper::SetJacobianUpdateMethod(JacobianUpdate method) {
+    // If switching to JacobianUpdate::NEVER from a different strategy, force a Jacobian update
+    if (method == JacobianUpdate::NEVER && jacobian_update_method != JacobianUpdate::NEVER)
+        call_setup = true;
+
+    jacobian_update_method = method;
+}
+
+bool ChImplicitIterativeTimestepper::CheckJacobianUpdateRequired(int iteration, bool previous_converged) {
+    bool setup;
+    switch (jacobian_update_method) {
+        default:
+        case JacobianUpdate::EVERY_STEP:
+            // Update at first Newton iteration or on a stepsize change after a non-converged Newton.
+            setup = (iteration == 0 && !previous_converged);
+            break;
+        case JacobianUpdate::EVERY_ITERATION:
+            setup = true;
+            break;
+        case JacobianUpdate::NEVER:
+            // Note that call_setup is always reset to false after an integration step, so the only times it can be true
+            // if at the very first step or after a call to SetJacobianUpdateMethod() with JacobianUpdate::NEVER
+            setup = call_setup;
+            break;
+        case JacobianUpdate::AUTOMATIC:
+            //// TODO
+            setup = true;
+            break;
+    }
+    return setup;
+}
+
+bool ChImplicitIterativeTimestepper::CheckConvergence(int it, bool verbose) {
+    bool converged = false;
+
+    // Declare convergence when either the residual is below the absolute tolerance or
+    // the WRMS update norm is less than 1 (relative + absolute tolerance test)
+    //    |R|_2 < atol
+    // or |D|_WRMS < 1
+    // Both states and Lagrange multipliers must converge.
+    double R_nrm = R.norm();
+    double Qc_nrm = Qc.norm();
+    double Ds_nrm = Ds.wrmsNorm(ewtS);
+    double Dl_nrm = Dl.wrmsNorm(ewtL);
+
+    // Estimate convergence rate
+    Ds_nrm_hist[it % 3] = Ds.norm();
+    Dl_nrm_hist[it % 3] = Dl.norm();
+    if (it < 2)
+        convergence_rate = 1;
+    else {
+        double r21 = Ds_nrm_hist[it % 3] / Ds_nrm_hist[(it - 1) % 3];
+        double r10 = Ds_nrm_hist[(it - 1) % 3] / Ds_nrm_hist[(it - 2) % 3];
+        convergence_rate = std::log(r21) / std::log(r10);
+    }
+
+    if (verbose) {
+        std::cout << "  Newton iteration=" << numiters;
+        std::cout << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Ds|=" << Ds_nrm << "  |Dl|=" << Dl_nrm;
+        if (it >= 2)
+            std::cout << "  Conv. rate = " << convergence_rate;
+        std::cout << std::endl;
+    }
+
+    if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Ds_nrm < 1 && Dl_nrm < 1))
+        converged = true;
+
+    return converged;
+}
+
+// Calculate the error weight vector corresponding to the specified solution vector x,
+// using the given relative and absolute tolerances.
+void ChImplicitIterativeTimestepper::CalcErrorWeights(const ChVectorDynamic<>& x,
+                                                      double rtol,
+                                                      double atol,
+                                                      ChVectorDynamic<>& ewt) {
+    ewt = (rtol * x.cwiseAbs() + atol).cwiseInverse();
+}
+
+// -----------------------------------------------------------------------------
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerExpl)
 CH_UPCASTING(ChTimestepperEulerExpl, ChTimestepperIorder)
@@ -106,7 +198,7 @@ CH_UPCASTING(ChTimestepperEulerExpl, ChExplicitTimestepper)
 
 // Euler explicit timestepper.
 // This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
-void ChTimestepperEulerExpl::Advance(const double dt) {
+void ChTimestepperEulerExpl::Advance(double dt) {
     // setup main vectors
     GetIntegrable()->StateSetup(Y, dYdt);
 
@@ -159,7 +251,7 @@ CH_UPCASTING(ChTimestepperEulerExplIIorder, ChExplicitTimestepper)
 //    x_new = x + v * dt
 //    v_new = v + a * dt
 // integration with Euler formula.
-void ChTimestepperEulerExplIIorder::Advance(const double dt) {
+void ChTimestepperEulerExplIIorder::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -214,7 +306,7 @@ CH_UPCASTING(ChTimestepperEulerSemiImplicit, ChExplicitTimestepper)
 //    v_new = v + a * dt
 //    x_new = x + v_new * dt
 // integration with Euler semi-implicit formula.
-void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
+void ChTimestepperEulerSemiImplicit::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -265,7 +357,7 @@ CH_UPCASTING(ChTimestepperRungeKuttaExpl, ChTimestepperIorder)
 CH_UPCASTING(ChTimestepperRungeKuttaExpl, ChExplicitTimestepper)
 
 // Performs a step of a 4th order explicit Runge-Kutta integration scheme.
-void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
+void ChTimestepperRungeKuttaExpl::Advance(double dt) {
     // setup main vectors
     GetIntegrable()->StateSetup(Y, dYdt);
 
@@ -298,7 +390,7 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
     GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true, lumping_parameters);
 
     Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * CH_1_6 * dt;  // integrable.StateIncrement(...);
-    dYdt = Dydt4;                                                          // to check
+    dYdt = Dydt4;                                                       // to check
     T += dt;
 
     GetIntegrable()->StateScatter(Y, T, true);      // state -> system
@@ -329,7 +421,7 @@ CH_UPCASTING(ChTimestepperHeun, ChTimestepperIorder)
 CH_UPCASTING(ChTimestepperHeun, ChExplicitTimestepper)
 
 // Performs a step of a Heun explicit integrator. It is like a 2nd Runge Kutta.
-void ChTimestepperHeun::Advance(const double dt) {
+void ChTimestepperHeun::Advance(double dt) {
     // setup main vectors
     GetIntegrable()->StateSetup(Y, dYdt);
 
@@ -390,7 +482,7 @@ CH_UPCASTING(ChTimestepperLeapfrog, ChExplicitTimestepper)
 // the numbering of DOFs will invalidate it.
 // Suggestion: use the ChTimestepperEulerSemiImplicit, it gives
 // the same accuracy with a bit of faster performance.
-void ChTimestepperLeapfrog::Advance(const double dt) {
+void ChTimestepperLeapfrog::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -444,7 +536,7 @@ CH_UPCASTING(ChTimestepperEulerImplicit, ChTimestepperIIorder)
 CH_UPCASTING(ChTimestepperEulerImplicit, ChImplicitIterativeTimestepper)
 
 // Performs a step of Euler implicit for II order systems
-void ChTimestepperEulerImplicit::Advance(const double dt) {
+void ChTimestepperEulerImplicit::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -452,7 +544,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
+    Ds.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
     Dl.setZero(mintegrable->GetNumConstraints());
     Xnew.setZero(mintegrable->GetNumCoordsPosLevel(), mintegrable);
     Vnew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
@@ -467,16 +559,17 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     Xnew = X + V * dt;
     Vnew = V;  //+ A()*dt;
 
-    // use Newton Raphson iteration to solve implicit Euler for v_new
+    // Use Newton iteration to solve for v_new
     //
-    // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
+    // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Ds     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
     // [ Cq                           0   ] [ -dt*Dl ] = [ -C/dt  ]
-
+    //
     numiters = 0;
     numsetups = 0;
     numsolves = 0;
 
-    for (int i = 0; i < this->GetMaxIters(); ++i) {
+    unsigned int iteration;
+    for (iteration = 0; iteration < maxiters; iteration++) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R.setZero();
         Qc.setZero();
@@ -487,14 +580,14 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
                                       Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection)
 
         if (verbose)
-            std::cout << " Euler iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+            std::cout << " Euler iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
                       << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(  //
-            Dv, Dl, R, Qc,                  //
+            Ds, Dl, R, Qc,                  //
             1.0,                            // factor for  M
             -dt,                            // factor for  dF/dv
             -dt * dt,                       // factor for  dF/dx
@@ -511,7 +604,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
         Dl *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
         L += Dl;
 
-        Vnew += Dv;
+        Vnew += Ds;
 
         Xnew = X + Vnew * dt;
     }
@@ -556,7 +649,7 @@ CH_UPCASTING(ChTimestepperEulerImplicitLinearized, ChImplicitTimestepper)
 // the first NR corrector iteration.
 // If the solver in StateSolveCorrection is a CCP complementarity
 // solver, this is the typical Anitescu stabilized timestepper for DVIs.
-void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
+void ChTimestepperEulerImplicitLinearized::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -645,7 +738,7 @@ CH_UPCASTING(ChTimestepperEulerImplicitProjected, ChImplicitTimestepper)
 // keeps constraint drifting 'closed' by using a projection.
 // If the solver in StateSolveCorrection is a CCP complementarity
 // solver, this is the Tasora stabilized timestepper for DVIs.
-void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
+void ChTimestepperEulerImplicitProjected::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -756,7 +849,7 @@ CH_UPCASTING(ChTimestepperTrapezoidal, ChImplicitIterativeTimestepper)
 // reactions in constraints, so this is a modified version that is first
 // order in constraint reactions. Use damped HHT or damped Newmark for
 // more advanced options.
-void ChTimestepperTrapezoidal::Advance(const double dt) {
+void ChTimestepperTrapezoidal::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -764,7 +857,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
+    Ds.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
     Dl.setZero(mintegrable->GetNumConstraints());
     Xnew.setZero(mintegrable->GetNumCoordsPosLevel(), mintegrable);
     Vnew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
@@ -781,11 +874,11 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
     Xnew = X + V * dt;
     Vnew = V;  // +A()*dt;
 
-    // use Newton Raphson iteration to solve implicit trapezoidal for v_new
+    // Use Newton iteration to solve for v_new
     //
-    // [M-dt/2*dF/dv-dt^2/4*dF/dx  Cq'] [Dv      ] = [M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
+    // [M-dt/2*dF/dv-dt^2/4*dF/dx  Cq'] [Ds      ] = [M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
     // [Cq                          0 ] [-dt/2*Dl] = [-C/dt                                                         ]
-
+    //
     mintegrable->LoadResidual_F(Rold, dt * 0.5);  // dt/2*f_old
     mintegrable->LoadResidual_Mv(Rold, V, 1.0);   // M*v_old
     // mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old   assume L_old = 0
@@ -794,7 +887,8 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
     numsetups = 0;
     numsolves = 0;
 
-    for (int i = 0; i < this->GetMaxIters(); ++i) {
+    unsigned int iteration;
+    for (iteration = 0; iteration < maxiters; iteration) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R = Rold;
         Qc.setZero();
@@ -805,14 +899,14 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
                                       Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
 
         if (verbose)
-            std::cout << " Trapezoidal iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+            std::cout << " Trapezoidal iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
                       << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(  //
-            Dv, Dl, R, Qc,                  //
+            Ds, Dl, R, Qc,                  //
             1.0,                            // factor for  M
             -dt * 0.5,                      // factor for  dF/dv
             -dt * dt * 0.25,                // factor for  dF/dx
@@ -829,7 +923,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
         Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
         L += Dl;
 
-        Vnew += Dv;
+        Vnew += Ds;
 
         Xnew = X + ((Vnew + V) * (dt * 0.5));  // Xnew = Xold + h/2(Vnew+Vold)
     }
@@ -870,7 +964,7 @@ CH_UPCASTING(ChTimestepperTrapezoidalLinearized, ChTimestepperIIorder)
 CH_UPCASTING(ChTimestepperTrapezoidalLinearized, ChImplicitIterativeTimestepper)
 
 // Performs a step of trapezoidal implicit linearized for II order systems
-void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
+void ChTimestepperTrapezoidalLinearized::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -878,7 +972,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
+    Ds.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
     Dl.setZero(mintegrable->GetNumConstraints());
     Xnew.setZero(mintegrable->GetNumCoordsPosLevel(), mintegrable);
     Vnew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
@@ -895,9 +989,9 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     Xnew = X + V * dt;
     Vnew = V;
 
-    // solve implicit trapezoidal for v_new
+    // Use Newton to solve for v_new
     //
-    // [M-dt/2*dF/dv-dt^2/4*dF/dx  Cq'] [Dv      ] = [M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
+    // [M-dt/2*dF/dv-dt^2/4*dF/dx  Cq'] [Ds      ] = [M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
     // [Cq                          0 ] [-dt/2*Dl] = [-C/dt                                                         ]
 
     mintegrable->LoadResidual_F(Rold, dt * 0.5);  // dt/2*f_old
@@ -914,7 +1008,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
                                   Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
 
     mintegrable->StateSolveCorrection(  //
-        Dv, Dl, R, Qc,                  //
+        Ds, Dl, R, Qc,                  //
         1.0,                            // factor for  M
         -dt * 0.5,                      // factor for  dF/dv
         -dt * dt * 0.25,                // factor for  dF/dx
@@ -931,7 +1025,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
     L += Dl;
 
-    Vnew += Dv;
+    Vnew += Ds;
 
     Xnew = X + ((Vnew + V) * (dt * 0.5));  // Xnew = Xold + h/2(Vnew+Vold)
 
@@ -940,7 +1034,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     T += dt;
 
     mintegrable->StateScatter(X, V, T, true);                 // state -> system
-    mintegrable->StateScatterAcceleration((Dv *= (1 / dt)));  // -> system auxiliary data (i.e acceleration as measure)
+    mintegrable->StateScatterAcceleration((Ds *= (1 / dt)));  // -> system auxiliary data (i.e acceleration as measure)
     mintegrable->StateScatterReactions(L *= 0.5);             // -> system auxiliary data (*=0.5 because use l_old = 0)
 }
 
@@ -955,97 +1049,6 @@ void ChTimestepperTrapezoidalLinearized::ArchiveOut(ChArchiveOut& archive) {
 void ChTimestepperTrapezoidalLinearized::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version =*/archive.VersionRead<ChTimestepperTrapezoidalLinearized>();
-    // deserialize parent class:
-    ChTimestepperIIorder::ArchiveIn(archive);
-    ChImplicitIterativeTimestepper::ArchiveIn(archive);
-}
-
-// -----------------------------------------------------------------------------
-
-// Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChTimestepperTrapezoidalLinearized2)
-CH_UPCASTING(ChTimestepperTrapezoidalLinearized2, ChTimestepperIIorder)
-CH_UPCASTING(ChTimestepperTrapezoidalLinearized2, ChImplicitIterativeTimestepper)
-
-// Performs a step of trapezoidal implicit linearized for II order systems
-/// SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
-void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
-    // downcast
-    ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
-
-    // setup main vectors
-    mintegrable->StateSetup(X, V, A);
-
-    // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
-    Xnew.setZero(mintegrable->GetNumCoordsPosLevel(), mintegrable);
-    Vnew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
-    L.setZero(mintegrable->GetNumConstraints());
-    R.setZero(mintegrable->GetNumCoordsVelLevel());
-    Qc.setZero(mintegrable->GetNumConstraints());
-
-    mintegrable->StateGather(X, V, T);  // state <- system
-
-    // extrapolate a prediction as a warm start
-
-    Xnew = X + V * dt;
-    Vnew = V;
-
-    // use Newton Raphson iteration to solve implicit trapezoidal for v_new
-    //
-    // [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ v_new    ] = [ M*(v_old) + dt/2(f_old + f_new)]
-    // [ Cq                               0   ] [ -dt/2*L ] m= [ -C/dt                          ]
-
-    mintegrable->LoadResidual_F(R, dt * 0.5);  // dt/2*f_old
-    mintegrable->LoadResidual_Mv(R, V, 1.0);   // M*v_old
-
-    mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
-    Qc.setZero();
-    mintegrable->LoadResidual_F(R, dt * 0.5);  // + dt/2*f_new
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp,
-                                  Qc_clamping);  // Qc = C/dt  (sign will be flipped later in StateSolveCorrection)
-
-    mintegrable->StateSolveCorrection(  //
-        Vnew, L, R, Qc,                 //
-        1.0,                            // factor for  M
-        -dt * 0.5,                      // factor for  dF/dv
-        -dt * dt * 0.25,                // factor for  dF/dx
-        Xnew, Vnew, T + dt,             // not used here (scatter = false)
-        false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
-        false,                          // full update? (not used, since no scatter)
-        true                            // force a call to the solver's Setup() function
-    );
-
-    numiters = 1;
-    numsetups = 1;
-    numsolves = 1;
-
-    L *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
-
-    X += ((Vnew + V) * (dt * 0.5));  // Xnew = Xold + h/2(Vnew+Vold)
-
-    mintegrable->StateScatterAcceleration(
-        (Vnew - V) * (1 / dt));  // -> system auxiliary data (i.e acceleration as measure, fits DVI/MDI)
-
-    V = Vnew;
-
-    T += dt;
-
-    mintegrable->StateScatter(X, V, T, true);  // state -> system
-    mintegrable->StateScatterReactions(L);     // -> system auxiliary data
-}
-
-void ChTimestepperTrapezoidalLinearized2::ArchiveOut(ChArchiveOut& archive) {
-    // version number
-    archive.VersionWrite<ChTimestepperTrapezoidalLinearized2>();
-    // serialize parent class:
-    ChTimestepperIIorder::ArchiveOut(archive);
-    ChImplicitIterativeTimestepper::ArchiveOut(archive);
-}
-
-void ChTimestepperTrapezoidalLinearized2::ArchiveIn(ChArchiveIn& archive) {
-    // version number
-    /*int version =*/archive.VersionRead<ChTimestepperTrapezoidalLinearized2>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIn(archive);
     ChImplicitIterativeTimestepper::ArchiveIn(archive);
@@ -1073,7 +1076,7 @@ void ChTimestepperNewmark::SetGammaBeta(double mgamma, double mbeta) {
 }
 
 // Performs a step of Newmark constrained implicit for II order DAE systems
-void ChTimestepperNewmark::Advance(const double dt) {
+void ChTimestepperNewmark::Advance(double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
@@ -1081,7 +1084,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Da.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
+    Ds.setZero(mintegrable->GetNumCoordsVelLevel(), GetIntegrable());
     Dl.setZero(mintegrable->GetNumConstraints());
     Xnew.setZero(mintegrable->GetNumCoordsPosLevel(), mintegrable);
     Vnew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
@@ -1099,18 +1102,17 @@ void ChTimestepperNewmark::Advance(const double dt) {
     Vnew = V;
     Xnew = X + Vnew * dt;
 
-    // use Newton Raphson iteration to solve implicit Newmark for a_new
-
+    // Use Newton to solve for a_new
     //
-    // [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da   ] = [ -M*(a_new) + f_new + Cq*l_new ]
+    // [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Ds   ] = [ -M*(a_new) + f_new + Cq*l_new ]
     // [ Cq                                      0   ] [ -Dl  ] = [ -1/(beta*dt^2)*C              ]
-
+    //
     numiters = 0;
     numsetups = 0;
     numsolves = 0;
-    bool call_setup = true;
+    call_setup = true;
 
-    for (int i = 0; i < this->GetMaxIters(); ++i) {
+    for (int i = 0; i < maxiters; ++i) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
 
         R.setZero(mintegrable->GetNumCoordsVelLevel());
@@ -1138,7 +1140,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
             std::cout << " Newmark call Setup." << std::endl;
 
         mintegrable->StateSolveCorrection(  //
-            Da, Dl, R, Qc,                  //
+            Ds, Dl, R, Qc,                  //
             1.0,                            // factor for  M
             -dt * gamma,                    // factor for  dF/dv
             -dt * dt * beta,                // factor for  dF/dx
@@ -1158,7 +1160,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
         call_setup = !modified_Newton;
 
         L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
-        Anew += Da;
+        Anew += Ds;
 
         Xnew = X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
 
