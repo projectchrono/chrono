@@ -60,9 +60,11 @@ class ChApi ChTimestepperExplicit : public ChTimestepper {
 
 /// Euler explicit timestepper.
 /// This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
-class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder, public ChTimestepperExplicit {
+class ChApi ChTimestepperEulerExplicitIorder : public ChTimestepperIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperEulerExpl(ChIntegrable* intgr = nullptr);
+    ChTimestepperEulerExplicitIorder(ChIntegrable* intgr = nullptr);
+
+    virtual Type GetType() const override { return Type::EULER_EXPLICIT_I; }
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
@@ -75,16 +77,16 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder, public ChTimest
 };
 
 /// Euler explicit timestepper customized for II order.
-/// (It gives the same results of ChTimestepperEulerExpl, but performs a bit faster because it
+/// (It gives the same results of ChTimestepperEulerExplicitIorder, but performs a bit faster because it
 /// can exploit the special structure of ChIntegrableIIorder)
 /// This integrator implements the typical Euler scheme:
 ///    x_new = x + v * dt
 ///    v_new = v + a * dt
-class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder, public ChTimestepperExplicit {
+class ChApi ChTimestepperEulerExplicitIIorder : public ChTimestepperIIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperEulerExplIIorder(ChIntegrableIIorder* intgr = nullptr);
+    ChTimestepperEulerExplicitIIorder(ChIntegrableIIorder* intgr = nullptr);
 
-    virtual Type GetType() const override { return Type::EULER_EXPLICIT; }
+    virtual Type GetType() const override { return Type::EULER_EXPLICIT_II; }
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
@@ -108,6 +110,8 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder, public
   public:
     ChTimestepperEulerSemiImplicit(ChIntegrableIIorder* intgr = nullptr);
 
+    virtual Type GetType() const override { return Type::EULER_SEMI_IMPLICIT; }
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
 
@@ -119,11 +123,11 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder, public
 };
 
 /// Runke-Kutta 4th order explicit integrator.
-class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder, public ChTimestepperExplicit {
+class ChApi ChTimestepperRungeKutta : public ChTimestepperIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperRungeKuttaExpl(ChIntegrable* intgr = nullptr);
+    ChTimestepperRungeKutta(ChIntegrable* intgr = nullptr);
 
-    virtual Type GetType() const override { return Type::RUNGEKUTTA45; }
+    virtual Type GetType() const override { return Type::RUNGE_KUTTA; }
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;

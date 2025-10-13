@@ -23,17 +23,19 @@ namespace chrono {
 class ChTimestepper_Type_enum_mapper : public ChTimestepper {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
+    CH_ENUM_VAL(Type::EULER_EXPLICIT_I);
+    CH_ENUM_VAL(Type::EULER_EXPLICIT_II);
+    CH_ENUM_VAL(Type::EULER_SEMI_IMPLICIT);
+    CH_ENUM_VAL(Type::RUNGE_KUTTA);
+    CH_ENUM_VAL(Type::HEUN);
+    CH_ENUM_VAL(Type::LEAPFROG);
     CH_ENUM_VAL(Type::EULER_IMPLICIT);
     CH_ENUM_VAL(Type::EULER_IMPLICIT_LINEARIZED);
     CH_ENUM_VAL(Type::EULER_IMPLICIT_PROJECTED);
     CH_ENUM_VAL(Type::TRAPEZOIDAL);
     CH_ENUM_VAL(Type::TRAPEZOIDAL_LINEARIZED);
-    CH_ENUM_VAL(Type::HHT);
-    CH_ENUM_VAL(Type::HEUN);
-    CH_ENUM_VAL(Type::RUNGEKUTTA45);
-    CH_ENUM_VAL(Type::EULER_EXPLICIT);
-    CH_ENUM_VAL(Type::LEAPFROG);
     CH_ENUM_VAL(Type::NEWMARK);
+    CH_ENUM_VAL(Type::HHT);
     CH_ENUM_VAL(Type::CUSTOM);
     CH_ENUM_MAPPER_END(Type);
 };
@@ -66,28 +68,34 @@ void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
 
 std::string ChTimestepper::GetTypeAsString(Type type) {
     switch (type) {
+        case Type::EULER_EXPLICIT_I:
+            return "EULER_EXPLICIT_I";
+        case Type::EULER_EXPLICIT_II:
+            return "EULER_EXPLICIT_II";
+        case Type::EULER_SEMI_IMPLICIT:
+            return "EULER_SEMI_IMPLICIT";
+        case Type::RUNGE_KUTTA:
+            return "RUNGE_KUTTA";
+        case Type::HEUN:
+            return "HEUN";
+        case Type::LEAPFROG:
+            return "LEAPFROG";
+
+        case Type::EULER_IMPLICIT:
+            return "EULER_IMPLICIT";
         case Type::EULER_IMPLICIT_LINEARIZED:
             return "EULER_IMPLICIT_LINEARIZED";
         case Type::EULER_IMPLICIT_PROJECTED:
             return "EULER_IMPLICIT_PROJECTED";
-        case Type::EULER_IMPLICIT:
-            return "EULER_IMPLICIT";
         case Type::TRAPEZOIDAL:
             return "TRAPEZOIDAL";
         case Type::TRAPEZOIDAL_LINEARIZED:
             return "TRAPEZOIDAL_LINEARIZED";
-        case Type::HHT:
-            return "HHT";
-        case Type::HEUN:
-            return "HEUN";
-        case Type::RUNGEKUTTA45:
-            return "RUNGEKUTTA45";
-        case Type::EULER_EXPLICIT:
-            return "EULER_EXPLICIT";
-        case Type::LEAPFROG:
-            return "LEAPFROG";
         case Type::NEWMARK:
             return "NEWMARK";
+        case Type::HHT:
+            return "HHT";
+
         case Type::CUSTOM:
             return "CUSTOM";
     }

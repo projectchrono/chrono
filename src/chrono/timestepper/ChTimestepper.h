@@ -33,17 +33,19 @@ class ChApi ChTimestepper {
   public:
     /// Methods for time integration.
     enum class Type {
+        EULER_EXPLICIT_I,
+        EULER_EXPLICIT_II,
+        EULER_SEMI_IMPLICIT,
+        RUNGE_KUTTA,
+        HEUN,
+        LEAPFROG,
+        EULER_IMPLICIT,
         EULER_IMPLICIT_LINEARIZED,
         EULER_IMPLICIT_PROJECTED,
-        EULER_IMPLICIT,
         TRAPEZOIDAL,
         TRAPEZOIDAL_LINEARIZED,
-        HHT,
-        HEUN,
-        RUNGEKUTTA45,
-        EULER_EXPLICIT,
-        LEAPFROG,
         NEWMARK,
+        HHT,
         CUSTOM
     };
 
@@ -51,7 +53,7 @@ class ChApi ChTimestepper {
 
     /// Return type of the integration method.
     /// Default is CUSTOM. Derived classes should override this function.
-    virtual Type GetType() const { return Type::CUSTOM; }
+    virtual Type GetType() const = 0;
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) = 0;

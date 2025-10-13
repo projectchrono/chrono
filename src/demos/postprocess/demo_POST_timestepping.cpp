@@ -73,7 +73,7 @@ void example1(const std::string& out_dir) {
     MyIntegrable mintegrable;
 
     // Create a time-integrator, class: Euler explicit
-    ChTimestepperEulerExpl mystepper(&mintegrable);
+    ChTimestepperEulerExplicitIorder mystepper(&mintegrable);
 
     // Execute the time integration
     while (mystepper.GetTime() < 4) {
@@ -176,14 +176,14 @@ void example2(const std::string& out_dir) {
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable;
     // Create a time-integrator:
-    ChTimestepperEulerExpl mystepper(&mintegrable);
+    ChTimestepperEulerExplicitIorder mystepper(&mintegrable);
 
     // Try integrator Runge Kutta 4st  explicit
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable_rk;
     // Create a time-integrator, class: Runge Kutta 4 explicit
-    ChTimestepperRungeKuttaExpl mystepper_rk(&mintegrable_rk);
+    ChTimestepperRungeKutta mystepper_rk(&mintegrable_rk);
 
     // Execute the time integration
     while (mystepper.GetTime() < 1) {
@@ -294,8 +294,8 @@ void example3(const std::string& out_dir) {
     MyIntegrable mintegrable3;
 
     // Create few time-integrators to be compared:
-    ChTimestepperRungeKuttaExpl mystepper1(&mintegrable1);
-    ChTimestepperEulerExplIIorder mystepper2(&mintegrable2);
+    ChTimestepperRungeKutta mystepper1(&mintegrable1);
+    ChTimestepperEulerExplicitIIorder mystepper2(&mintegrable2);
     ChTimestepperEulerSemiImplicit mystepper3(&mintegrable3);
 
     // Execute the time integration
@@ -479,7 +479,7 @@ void example4(const std::string& out_dir) {
     // Create few time-integrators to be compared:
     ChTimestepperEulerImplicit mystepper1(&mintegrable1);
     ChTimestepperTrapezoidal mystepper2(&mintegrable2);
-    ChTimestepperEulerExplIIorder mystepper3(&mintegrable3);
+    ChTimestepperEulerExplicitIIorder mystepper3(&mintegrable3);
     ChTimestepperHHT mystepper4(&mintegrable4);
     mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
     ChTimestepperHHT mystepper5(&mintegrable5);
@@ -746,8 +746,8 @@ void example5(const std::string& out_dir) {
         0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
     // mystepper6.SetVerbose(true);
 
-    // ChTimestepperEulerExplIIorder mystepper7(&mintegrable7);
-    ChTimestepperRungeKuttaExpl mystepper7(&mintegrable7);
+    // ChTimestepperEulerExplicitIIorder mystepper7(&mintegrable7);
+    ChTimestepperRungeKutta mystepper7(&mintegrable7);
     mystepper7.SetDiagonalLumpingON(20000);  // this avoids calling the linear solver completely, even with constraints.
 
     // B) - same pendulum, but multibody:

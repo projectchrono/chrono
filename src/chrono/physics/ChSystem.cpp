@@ -457,24 +457,24 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
             timestepper = chrono_types::make_shared<ChTimestepperTrapezoidalLinearized>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxIters(4);
             break;
+        case ChTimestepper::Type::NEWMARK:
+            timestepper = chrono_types::make_shared<ChTimestepperNewmark>(this);
+            break;
         case ChTimestepper::Type::HHT:
             timestepper = chrono_types::make_shared<ChTimestepperHHT>(this);
             std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxIters(4);
             break;
+        case ChTimestepper::Type::EULER_EXPLICIT_II:
+            timestepper = chrono_types::make_shared<ChTimestepperEulerExplicitIIorder>(this);
+            break;
+        case ChTimestepper::Type::RUNGE_KUTTA:
+            timestepper = chrono_types::make_shared<ChTimestepperRungeKutta>(this);
+            break;
         case ChTimestepper::Type::HEUN:
             timestepper = chrono_types::make_shared<ChTimestepperHeun>(this);
             break;
-        case ChTimestepper::Type::RUNGEKUTTA45:
-            timestepper = chrono_types::make_shared<ChTimestepperRungeKuttaExpl>(this);
-            break;
-        case ChTimestepper::Type::EULER_EXPLICIT:
-            timestepper = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(this);
-            break;
         case ChTimestepper::Type::LEAPFROG:
             timestepper = chrono_types::make_shared<ChTimestepperLeapfrog>(this);
-            break;
-        case ChTimestepper::Type::NEWMARK:
-            timestepper = chrono_types::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
             throw std::invalid_argument("SetTimestepperType: timestepper not supported");

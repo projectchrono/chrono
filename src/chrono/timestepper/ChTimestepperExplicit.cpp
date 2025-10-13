@@ -67,13 +67,13 @@ void ChTimestepperExplicit::ArchiveIn(ChArchiveIn& archive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChTimestepperEulerExpl)
-CH_UPCASTING(ChTimestepperEulerExpl, ChTimestepperIorder)
-CH_UPCASTING(ChTimestepperEulerExpl, ChTimestepperExplicit)
+CH_FACTORY_REGISTER(ChTimestepperEulerExplicitIorder)
+CH_UPCASTING(ChTimestepperEulerExplicitIorder, ChTimestepperIorder)
+CH_UPCASTING(ChTimestepperEulerExplicitIorder, ChTimestepperExplicit)
 
-ChTimestepperEulerExpl::ChTimestepperEulerExpl(ChIntegrable* intgr) : ChTimestepperIorder(intgr) {}
+ChTimestepperEulerExplicitIorder::ChTimestepperEulerExplicitIorder(ChIntegrable* intgr) : ChTimestepperIorder(intgr) {}
 
-void ChTimestepperEulerExpl::Advance(double dt) {
+void ChTimestepperEulerExplicitIorder::Advance(double dt) {
     // setup main vectors
     integrable->StateSetup(Y, dYdt);
 
@@ -96,15 +96,15 @@ void ChTimestepperEulerExpl::Advance(double dt) {
     integrable->StateScatterReactions(L);      // -> system auxiliary data
 }
 
-void ChTimestepperEulerExpl::ArchiveOut(ChArchiveOut& archive) {
+void ChTimestepperEulerExplicitIorder::ArchiveOut(ChArchiveOut& archive) {
     // version number
-    archive.VersionWrite<ChTimestepperEulerExpl>();
+    archive.VersionWrite<ChTimestepperEulerExplicitIorder>();
 
     ChTimestepperExplicit::ArchiveOut(archive);
 }
-void ChTimestepperEulerExpl::ArchiveIn(ChArchiveIn& archive) {
+void ChTimestepperEulerExplicitIorder::ArchiveIn(ChArchiveIn& archive) {
     // version number
-    /*int version =*/archive.VersionRead<ChTimestepperEulerExpl>();
+    /*int version =*/archive.VersionRead<ChTimestepperEulerExplicitIorder>();
 
     ChTimestepperExplicit::ArchiveIn(archive);
 }
@@ -112,22 +112,22 @@ void ChTimestepperEulerExpl::ArchiveIn(ChArchiveIn& archive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChTimestepperEulerExplIIorder)
-CH_UPCASTING(ChTimestepperEulerExplIIorder, ChTimestepperIIorder)
-CH_UPCASTING(ChTimestepperEulerExplIIorder, ChTimestepperExplicit)
+CH_FACTORY_REGISTER(ChTimestepperEulerExplicitIIorder)
+CH_UPCASTING(ChTimestepperEulerExplicitIIorder, ChTimestepperIIorder)
+CH_UPCASTING(ChTimestepperEulerExplicitIIorder, ChTimestepperExplicit)
 
-ChTimestepperEulerExplIIorder::ChTimestepperEulerExplIIorder(ChIntegrableIIorder* intgr)
+ChTimestepperEulerExplicitIIorder::ChTimestepperEulerExplicitIIorder(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr) {}
 
 // Euler explicit timestepper customized for II order.
-// (It gives the same results of ChTimestepperEulerExpl,
+// (It gives the same results of ChTimestepperEulerExplicitIorder,
 // but this performs a bit faster because it can exploit
 // the special structure of ChIntegrableIIorder)
 // This performs the typical
 //    x_new = x + v * dt
 //    v_new = v + a * dt
 // integration with Euler formula.
-void ChTimestepperEulerExplIIorder::Advance(double dt) {
+void ChTimestepperEulerExplicitIIorder::Advance(double dt) {
     // setup main vectors
     integrable->StateSetup(X, V, A);
 
@@ -152,15 +152,15 @@ void ChTimestepperEulerExplIIorder::Advance(double dt) {
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
-void ChTimestepperEulerExplIIorder::ArchiveOut(ChArchiveOut& archive) {
+void ChTimestepperEulerExplicitIIorder::ArchiveOut(ChArchiveOut& archive) {
     // version number
-    archive.VersionWrite<ChTimestepperEulerExplIIorder>();
+    archive.VersionWrite<ChTimestepperEulerExplicitIIorder>();
 
     ChTimestepperExplicit::ArchiveOut(archive);
 }
-void ChTimestepperEulerExplIIorder::ArchiveIn(ChArchiveIn& archive) {
+void ChTimestepperEulerExplicitIIorder::ArchiveIn(ChArchiveIn& archive) {
     // version number
-    /*int version =*/archive.VersionRead<ChTimestepperEulerExplIIorder>();
+    /*int version =*/archive.VersionRead<ChTimestepperEulerExplicitIIorder>();
 
     ChTimestepperExplicit::ArchiveIn(archive);
 }
@@ -221,13 +221,13 @@ void ChTimestepperEulerSemiImplicit::ArchiveIn(ChArchiveIn& archive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChTimestepperRungeKuttaExpl)
-CH_UPCASTING(ChTimestepperRungeKuttaExpl, ChTimestepperIorder)
-CH_UPCASTING(ChTimestepperRungeKuttaExpl, ChTimestepperExplicit)
+CH_FACTORY_REGISTER(ChTimestepperRungeKutta)
+CH_UPCASTING(ChTimestepperRungeKutta, ChTimestepperIorder)
+CH_UPCASTING(ChTimestepperRungeKutta, ChTimestepperExplicit)
 
-ChTimestepperRungeKuttaExpl::ChTimestepperRungeKuttaExpl(ChIntegrable* intgr) : ChTimestepperIorder(intgr) {}
+ChTimestepperRungeKutta::ChTimestepperRungeKutta(ChIntegrable* intgr) : ChTimestepperIorder(intgr) {}
 
-void ChTimestepperRungeKuttaExpl::Advance(double dt) {
+void ChTimestepperRungeKutta::Advance(double dt) {
     // setup main vectors
     integrable->StateSetup(Y, dYdt);
 
@@ -268,15 +268,15 @@ void ChTimestepperRungeKuttaExpl::Advance(double dt) {
     integrable->StateScatterReactions(L);      // -> system auxiliary data
 }
 
-void ChTimestepperRungeKuttaExpl::ArchiveOut(ChArchiveOut& archive) {
+void ChTimestepperRungeKutta::ArchiveOut(ChArchiveOut& archive) {
     // version number
-    archive.VersionWrite<ChTimestepperRungeKuttaExpl>();
+    archive.VersionWrite<ChTimestepperRungeKutta>();
 
     ChTimestepperExplicit::ArchiveOut(archive);
 }
-void ChTimestepperRungeKuttaExpl::ArchiveIn(ChArchiveIn& archive) {
+void ChTimestepperRungeKutta::ArchiveIn(ChArchiveIn& archive) {
     // version number
-    /*int version =*/archive.VersionRead<ChTimestepperRungeKuttaExpl>();
+    /*int version =*/archive.VersionRead<ChTimestepperRungeKutta>();
 
     ChTimestepperExplicit::ArchiveIn(archive);
 }
