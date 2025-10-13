@@ -24,16 +24,13 @@ namespace chrono {
 /// @addtogroup chrono_timestepper
 /// @{
 
-/// Base class for implicit solvers (double inheritance)
-class ChApi ChTimestepperImplicit{};
-
-/// Base properties for implicit solvers.
+/// Base class for implicit integrators.
 /// Such integrators require solution of a nonlinear problem, solved using an iterative Newton process which requires
 /// the solution of a linear system at each iteration. A full Newton method uses a current matrix (based on the system
 /// Jacobian), updated and factorized at each iteration. Modified Newton methods use possibly out-of-date Jacobian
 /// information; the Jacobian can be evaluated at the beginning of the step only, kept constant for the duration of the
 /// entire simulation, or a Jacobian re-evaluation can be triggered automatically and adaptively, as necessary.
-class ChApi ChTimestepperImplicitIterative : public ChTimestepperImplicit {
+class ChApi ChTimestepperImplicit : public ChTimestepper {
   public:
     /// Newton Jacobian update strategies.
     enum class JacobianUpdate {
@@ -43,7 +40,7 @@ class ChApi ChTimestepperImplicitIterative : public ChTimestepperImplicit {
         AUTOMATIC         ///< Automatic Jacobian update
     };
 
-    virtual ~ChTimestepperImplicitIterative() {}
+    virtual ~ChTimestepperImplicit() {}
 
     /// Set the max number of iterations using the Newton Raphson procedure.
     void SetMaxIters(int iters) { maxiters = iters; }
@@ -117,7 +114,7 @@ class ChApi ChTimestepperImplicitIterative : public ChTimestepperImplicit {
     }
 
   protected:
-    ChTimestepperImplicitIterative();
+    ChTimestepperImplicit();
 
     /// Monitor flags controlling whether or not the Jacobian must be updated.
     /// If using JacobianUpdate::EVERY_ITERATION, a matrix update occurs:
@@ -133,7 +130,7 @@ class ChApi ChTimestepperImplicitIterative : public ChTimestepperImplicit {
     bool CheckJacobianUpdateRequired(int iteration, bool previous_substep_converged);
 
     /// Check convergence of Newton process.
-    bool CheckConvergence(int iteration, bool verbose);
+    bool CheckConvergence(int iteration);
 
     /// Calculate error weights based on the given state and tolerances.
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
@@ -164,11 +161,10 @@ class ChApi ChTimestepperImplicitIterative : public ChTimestepperImplicit {
     ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
 };
 
-/// Performs a step of Euler implicit for II order systems.
-class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChTimestepperImplicitIterative {
+/// Euler implicit for II order systems.
+class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
-    ChTimestepperEulerImplicit(ChIntegrableIIorder* intgr = nullptr)
-        : ChTimestepperIIorder(intgr), ChTimestepperImplicitIterative() {}
+    ChTimestepperEulerImplicit(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::EULER_IMPLICIT; }
 
@@ -186,15 +182,12 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChT
     ChStateDelta Vnew;
 };
 
-/// Performs a step of Euler implicit for II order systems using the Anitescu/Stewart/Trinkle
-/// single-iteration method, that is a bit like an implicit Euler where one performs only the
-/// first Newton corrector iteration.
-/// If using an underlying CCP complementarity solver, this is the typical Anitescu stabilized
-/// timestepper for DVIs.
+/// Euler implicit for II order systems using the Anitescu/Stewart/Trinkle single-iteration method.
+/// This is similar to an implicit Euler where one performs only the first Newton corrector iteration.
+/// If using an underlying CCP complementarity solver, this is the typical Anitescu stabilized timestepper for DVIs.
 class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
-    ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* intgr = nullptr)
-        : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {}
+    ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::EULER_IMPLICIT_LINEARIZED; }
 
@@ -214,15 +207,13 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
     ChVectorDynamic<> Qc;
 };
 
-/// Performs a step of Euler implicit for II order systems using a semi implicit Euler without
-/// constraint stabilization, followed by a projection. That is: a speed problem followed by a
-/// position problem that keeps constraint drifting 'closed' by using a projection.
-/// If using an underlying CCP complementarity solver, this is the typical Tasora stabilized
-/// timestepper for DVIs.
+/// Euler implicit for II order systems, with projection.
+/// This method uses a semi-implicit Euler scheme without constraint stabilization, followed by a projection. In other
+/// words, a speed problem followed by a position problem that keeps constraint drifting 'closed' by using a projection.
+/// If using an underlying CCP complementarity solver, this is the typical Tasora stabilized timestepper for DVIs.
 class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
-    ChTimestepperEulerImplicitProjected(ChIntegrableIIorder* intgr = nullptr)
-        : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {}
+    ChTimestepperEulerImplicitProjected(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::EULER_IMPLICIT_PROJECTED; }
 
@@ -242,14 +233,13 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
     ChVectorDynamic<> Qc;
 };
 
-/// Performs a step of trapezoidal implicit for II order systems.
-/// NOTE this is a modified version of the trapezoidal for DAE: the original derivation would lead
-/// to a scheme that produces oscillatory reactions in constraints, so this is a modified version
-/// that is first order in constraint reactions. Use damped HHT or damped Newmark for more advanced options.
-class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChTimestepperImplicitIterative {
+/// Trapezoidal implicit for II order systems.
+/// NOTE: this is a modified version of the trapezoidal for DAE: the original derivation would lead to a scheme that
+/// produces oscillatory reactions in constraints, so this is a modified version that is first order in constraint
+/// reactions. Use damped HHT or damped Newmark for more advanced options.
+class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
-    ChTimestepperTrapezoidal(ChIntegrableIIorder* intgr = nullptr)
-        : ChTimestepperIIorder(intgr), ChTimestepperImplicitIterative() {}
+    ChTimestepperTrapezoidal(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::TRAPEZOIDAL; }
 
@@ -268,11 +258,10 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChTim
     ChVectorDynamic<> Rold;
 };
 
-/// Performs a step of trapezoidal implicit linearized for II order systems.
-class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, public ChTimestepperImplicitIterative {
+/// Trapezoidal implicit linearized for II order systems.
+class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
-    ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder* intgr = nullptr)
-        : ChTimestepperIIorder(intgr), ChTimestepperImplicitIterative() {}
+    ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::TRAPEZOIDAL_LINEARIZED; }
 
@@ -291,30 +280,26 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
     ChVectorDynamic<> Rold;
 };
 
-/// Performs a step of Newmark constrained implicit for II order DAE systems.
-class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimestepperImplicitIterative {
+/// Newmark constrained implicit for II order DAE systems.
+class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
-    ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr)
-        : ChTimestepperIIorder(intgr), ChTimestepperImplicitIterative() {
-        SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
-        modified_Newton = true;  // default use modified Newton with jacobian factorization only at beginning
-    }
+    ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::NEWMARK; }
 
     /// Set the numerical damping parameter gamma and the beta parameter.
-    /// Gamma: in the [1/2, 1] interval.
-    /// For gamma = 1/2, no numerical damping
-    /// For gamma > 1/2, more damping
-    /// Beta: in the [0, 1] interval.
-    /// For beta = 1/4, gamma = 1/2 -> constant acceleration method
-    /// For beta = 1/6, gamma = 1/2 -> linear acceleration method
-    /// Method is second order accurate only for gamma = 1/2
+    /// - gamma: in the [1/2, 1] interval.
+    ///     gamma = 1/2, no numerical damping
+    ///     gamma > 1/2, more damping
+    /// - beta: in the [0, 1] interval.
+    ///     beta = 1/4, gamma = 1/2 -> constant acceleration method
+    ///    beta = 1/6, gamma = 1/2 -> linear acceleration method
+    /// Method is second order accurate only for gamma = 1/2.
     void SetGammaBeta(double mgamma, double mbeta);
 
-    double GetGamma() { return gamma; }
+    double GetGamma() const { return gamma; }
 
-    double GetBeta() { return beta; }
+    double GetBeta() const { return beta; }
 
     /// Enable/disable modified Newton.
     /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once per step.
@@ -332,13 +317,15 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimeste
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
+    bool modified_Newton;
+
     double gamma;
     double beta;
+
     ChState Xnew;
     ChStateDelta Vnew;
     ChStateDelta Anew;
     ChVectorDynamic<> Rold;
-    bool modified_Newton;
 };
 
 /// @} chrono_timestepper

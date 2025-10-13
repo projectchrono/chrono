@@ -145,7 +145,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
             integrator->SetJacobianUpdateMethod(
-                chrono::ChTimestepperImplicitIterative::JacobianUpdate::EVERY_ITERATION);
+                chrono::ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
             break;
         }
         case chrono::ChTimestepper::Type::EULER_IMPLICIT: {

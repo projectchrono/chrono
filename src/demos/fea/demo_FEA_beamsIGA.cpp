@@ -591,7 +591,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         mystepper->SetStepControl(false);
-        mystepper->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_ITERATION);
+        mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     }
 
     sys.DoStaticLinear();

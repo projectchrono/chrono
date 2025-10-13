@@ -29,7 +29,6 @@ namespace chrono {
 /// @{
 
 /// Base class for timesteppers, i.e., time integrators that can advance a system state.
-/// It operates on systems inherited from ChIntegrable.
 class ChApi ChTimestepper {
   public:
     /// Methods for time integration.
@@ -48,9 +47,6 @@ class ChApi ChTimestepper {
         CUSTOM
     };
 
-    ChTimestepper(ChIntegrable* intgr = nullptr)
-        : integrable(intgr), T(0), verbose(false), Qc_do_clamp(false), Qc_clamping(0) {}
-
     virtual ~ChTimestepper() {}
 
     /// Return type of the integration method.
@@ -62,12 +58,6 @@ class ChApi ChTimestepper {
 
     /// Access the Lagrange multipliers, if any.
     virtual ChVectorDynamic<>& GetLagrangeMultipliers() { return L; }
-
-    /// Set the integrable object.
-    virtual void SetIntegrable(ChIntegrable* intgr) { integrable = intgr; }
-
-    /// Get the integrable object.
-    ChIntegrable* GetIntegrable() { return integrable; }
 
     /// Get the current time.
     virtual double GetTime() const { return T; }
@@ -88,13 +78,11 @@ class ChApi ChTimestepper {
     static std::string GetTypeAsString(Type type);
 
   protected:
-    ChIntegrable* integrable;
-    double T;
-
-    ChVectorDynamic<> L;
+    ChTimestepper(ChIntegrable* intgr = nullptr);
 
     bool verbose;
-
+    double T;
+    ChVectorDynamic<> L;
     bool Qc_do_clamp;
     double Qc_clamping;
 
@@ -102,10 +90,8 @@ class ChApi ChTimestepper {
 };
 
 /// Base class for 1st order timesteppers, that is a time integrator for a ChIntegrable.
-class ChApi ChTimestepperIorder : public ChTimestepper {
+class ChApi ChTimestepperIorder {
   public:
-    ChTimestepperIorder(ChIntegrable* intgr = nullptr) : ChTimestepper(intgr) { SetIntegrable(intgr); }
-
     virtual ~ChTimestepperIorder() {}
 
     /// Access the state at current time
@@ -115,24 +101,24 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
     virtual ChStateDelta& GetStateDt() { return dYdt; }
 
     /// Set the integrable object
-    virtual void SetIntegrable(ChIntegrable* intgr) {
-        ChTimestepper::SetIntegrable(intgr);
-        Y.setZero(1, intgr);
-        dYdt.setZero(1, intgr);
-    }
+    virtual void SetIntegrable(ChIntegrable* intgr);
+
+    /// Get the integrable object.
+    ChIntegrable* GetIntegrable() { return integrable; }
 
   protected:
+    ChTimestepperIorder(ChIntegrable* intgr = nullptr);
+
+    ChIntegrable* integrable;
     ChState Y;
     ChStateDelta dYdt;
 };
 
 /// Base class for 2nd order timesteppers, i.e., a time integrator for a ChIntegrableIIorder.
-/// A ChIntegrableIIorder is a special subclass of integrable objects that have a state comprised
-/// of position and velocity y={x,v}, and state derivative dy/dt={v,a}, where a=acceleration.
-class ChApi ChTimestepperIIorder : public ChTimestepper {
+/// A ChIntegrableIIorder is a special subclass of integrable objects that have a state comprised of position and
+/// velocity y={x,v}, and state derivative dy/dt={v,a}, where a=acceleration.
+class ChApi ChTimestepperIIorder {
   public:
-    ChTimestepperIIorder(ChIntegrableIIorder* intgr = nullptr) : ChTimestepper(intgr) { SetIntegrable(intgr); }
-
     virtual ~ChTimestepperIIorder() {}
 
     /// Access the state, position part, at current time
@@ -145,20 +131,18 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
     virtual ChStateDelta& GetStateAcc() { return A; }
 
     /// Set the integrable object
-    virtual void SetIntegrable(ChIntegrableIIorder* intgr) {
-        ChTimestepper::SetIntegrable(intgr);
-        X.setZero(1, intgr);
-        V.setZero(1, intgr);
-        A.setZero(1, intgr);
-    }
+    virtual void SetIntegrable(ChIntegrableIIorder* intgr);
+
+    /// Get the integrable object.
+    ChIntegrable* GetIntegrable() { return integrable; }
 
   protected:
+    ChTimestepperIIorder(ChIntegrableIIorder* intgr = nullptr);
+
+    ChIntegrableIIorder* integrable;
     ChState X;
     ChStateDelta V;
     ChStateDelta A;
-
-  private:
-    using ChTimestepper::SetIntegrable;
 };
 
 /// @} chrono_timestepper

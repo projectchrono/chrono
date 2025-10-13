@@ -442,7 +442,7 @@ int main(int argc, char* argv[]) {
     // sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
 
-    if (auto mint = std::dynamic_pointer_cast<ChTimestepperImplicitIterative>(sys.GetTimestepper())) {
+    if (auto mint = std::dynamic_pointer_cast<ChTimestepperImplicit>(sys.GetTimestepper())) {
         mint->SetMaxIters(5);
         mint->SetAbsTolerances(1e-12, 1e-12);
     }

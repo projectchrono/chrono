@@ -22,22 +22,19 @@ namespace chrono {
 /// @addtogroup chrono_timestepper
 /// @{
 
-/// Base class for explicit solvers.
-/// Such integrators might require solution of a nonlinear problem if constraints
-/// are added, otherwise they can use penalty in constraints and lumped masses to avoid the linear system.
-/// Diagonal lumping is off by default.
-/// Note that if you apply this
-class ChApi ChTimestepperExplicit {
+/// Base class for explicit integrators.
+/// Such integrators might require solution of a nonlinear problem if constraints are added, otherwise they can use
+/// penalty in constraints and lumped masses to avoid the linear system. Diagonal lumping is off by default.
+class ChApi ChTimestepperExplicit : public ChTimestepper {
   public:
-    ChTimestepperExplicit();
     virtual ~ChTimestepperExplicit();
 
-    /// Turn on the diagonal lumping. This can achieve a large speedup because no linear system is needeed
-    /// to compute the derivative (i.e. acceleration in II order systems), but not all Chintegrable might
-    /// support the diagonal lumping.
-    /// If lumping not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception.
-    /// If lumping introduces some approximation, you'll get nonzero in GetLumpingError().
-    /// Optionally paramters: the stiffness penalty for constraints, and damping penalty for constraints.
+    /// Turn on the diagonal lumping.
+    /// This can achieve a large speedup because no linear system is needeed to compute the derivative (i.e.
+    /// acceleration in II order systems), but not all Chintegrable might support the diagonal lumping.
+    /// - If lumping is not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception.
+    /// - If lumping introduces some approximation, you'll get nonzero in GetLumpingError().
+    /// Optionally parameters: the stiffness penalty for constraints, and damping penalty for constraints.
     void SetDiagonalLumpingON(double Ck = 1000, double Cr = 0);
 
     /// Turn off the diagonal lumping (default is off)
@@ -56,6 +53,8 @@ class ChApi ChTimestepperExplicit {
     virtual void ArchiveIn(ChArchiveIn& archive);
 
   protected:
+    ChTimestepperExplicit();
+
     ChLumpingParms* lumping_parameters;
 };
 
@@ -63,7 +62,7 @@ class ChApi ChTimestepperExplicit {
 /// This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
 class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperEulerExpl(ChIntegrable* intgr = nullptr) : ChTimestepperIorder(intgr) {}
+    ChTimestepperEulerExpl(ChIntegrable* intgr = nullptr);
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
@@ -83,7 +82,7 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder, public ChTimest
 ///    v_new = v + a * dt
 class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperEulerExplIIorder(ChIntegrableIIorder* intgr = nullptr) : ChTimestepperIIorder(intgr) {}
+    ChTimestepperEulerExplIIorder(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::EULER_EXPLICIT; }
 
@@ -107,7 +106,7 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder, public 
 /// integration with Euler semi-implicit formula.
 class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperEulerSemiImplicit(ChIntegrableIIorder* intgr = nullptr) : ChTimestepperIIorder(intgr) {}
+    ChTimestepperEulerSemiImplicit(ChIntegrableIIorder* intgr = nullptr);
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
@@ -122,7 +121,7 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder, public
 /// Runke-Kutta 4th order explicit integrator.
 class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperRungeKuttaExpl(ChIntegrable* intgr = nullptr) : ChTimestepperIorder(intgr) {}
+    ChTimestepperRungeKuttaExpl(ChIntegrable* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::RUNGEKUTTA45; }
 
@@ -147,7 +146,7 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder, public ChT
 /// This scheme is similar to a 2nd order Runge Kutta.
 class ChApi ChTimestepperHeun : public ChTimestepperIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperHeun(ChIntegrable* intgr = nullptr) : ChTimestepperIorder(intgr) {}
+    ChTimestepperHeun(ChIntegrable* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::HEUN; }
 
@@ -172,7 +171,7 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder, public ChTimestepper
 /// Suggestion: use the ChTimestepperEulerSemiImplicit, it gives the same accuracy with better performance.
 class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder, public ChTimestepperExplicit {
   public:
-    ChTimestepperLeapfrog(ChIntegrableIIorder* intgr = nullptr) : ChTimestepperIIorder(intgr) {}
+    ChTimestepperLeapfrog(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::LEAPFROG; }
 

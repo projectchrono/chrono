@@ -353,7 +353,7 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxIters(8);
         integrator->SetAbsTolerances(1e-1, 10);
-        integrator->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_STEP);
+        integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
         integrator->SetVerbose(true);
     */
     /*

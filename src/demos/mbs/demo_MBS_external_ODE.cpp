@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxIters(100);
         mystepper->SetAbsTolerances(1e-5);
-        mystepper->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_ITERATION);
+        mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
         mystepper->SetVerbose(false);
 
         double t_end = 300;

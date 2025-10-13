@@ -72,7 +72,7 @@ ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const 
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-04, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_ITERATION);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     integrator->SetVerbose(false);
     m_system->SetTimestepper(integrator);
 

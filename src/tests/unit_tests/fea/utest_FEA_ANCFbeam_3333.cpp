@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxIters(10);
     mystepper->SetAbsTolerances(1e-10);
     mystepper->SetVerbose(true);
-    mystepper->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_ITERATION);
+    mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
 
     // Simulation loop
     unsigned int num_steps = 50;

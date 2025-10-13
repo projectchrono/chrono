@@ -21,11 +21,11 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperHHT)
 CH_UPCASTING(ChTimestepperHHT, ChTimestepperIIorder)
-CH_UPCASTING(ChTimestepperHHT, ChTimestepperImplicitIterative)
+CH_UPCASTING(ChTimestepperHHT, ChTimestepperImplicit)
 
 ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr),
-      ChTimestepperImplicitIterative(),
+      ChTimestepperImplicit(),
       step_control(true),
       maxiters_success(3),
       req_successful_steps(5),
@@ -49,28 +49,25 @@ void ChTimestepperHHT::SetAlpha(double val) {
 
 // Performs a step of HHT (generalized alpha) implicit for II order systems
 void ChTimestepperHHT::Advance(double dt) {
-    // Downcast
-    ChIntegrableIIorder* integrable2 = (ChIntegrableIIorder*)this->integrable;
-
     // Setup main vectors
-    integrable2->StateSetup(X, V, A);
+    integrable->StateSetup(X, V, A);
 
     // Setup auxiliary vectors
-    Ds.setZero(integrable2->GetNumCoordsVelLevel(), integrable2);
-    Dl.setZero(integrable2->GetNumConstraints());
-    Xnew.setZero(integrable2->GetNumCoordsPosLevel(), integrable2);
-    Vnew.setZero(integrable2->GetNumCoordsVelLevel(), integrable2);
-    Anew.setZero(integrable2->GetNumCoordsVelLevel(), integrable2);
-    R.setZero(integrable2->GetNumCoordsVelLevel());
-    Rold.setZero(integrable2->GetNumCoordsVelLevel());
-    Qc.setZero(integrable2->GetNumConstraints());
-    L.setZero(integrable2->GetNumConstraints());
-    Lnew.setZero(integrable2->GetNumConstraints());
+    Ds.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    Dl.setZero(integrable->GetNumConstraints());
+    Xnew.setZero(integrable->GetNumCoordsPosLevel(), integrable);
+    Vnew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    Anew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    R.setZero(integrable->GetNumCoordsVelLevel());
+    Rold.setZero(integrable->GetNumCoordsVelLevel());
+    Qc.setZero(integrable->GetNumConstraints());
+    L.setZero(integrable->GetNumConstraints());
+    Lnew.setZero(integrable->GetNumConstraints());
 
     // State at current time T
-    integrable2->StateGather(X, V, T);        // state <- system
-    integrable2->StateGatherAcceleration(A);  // <- system
-    integrable2->StateGatherReactions(L);     // <- system
+    integrable->StateGather(X, V, T);        // state <- system
+    integrable->StateGatherAcceleration(A);  // <- system
+    integrable->StateGatherReactions(L);     // <- system
 
     // Advance solution to time T+dt, possibly taking multiple steps
     double tfinal = T + dt;  // target final time
@@ -101,7 +98,7 @@ void ChTimestepperHHT::Advance(double dt) {
     bool converged = false;
 
     while (true) {
-        Prepare(integrable2);
+        Prepare();
 
         // Perform Newton iterations to solve for state at T+h
         Ds_nrm_hist.fill(0.0);
@@ -110,12 +107,12 @@ void ChTimestepperHHT::Advance(double dt) {
         for (iteration = 0; iteration < maxiters; iteration++) {
             // Check if a Jacobian update is required
             call_setup = CheckJacobianUpdateRequired(iteration, converged);
-            
+
             if (verbose && (jacobian_update_method != JacobianUpdate::EVERY_ITERATION) && call_setup)
                 std::cout << " HHT call Setup." << std::endl;
 
             // Solve linear system and increment state
-            Increment(integrable2);
+            Increment();
 
             // If the Jacobian was updated at this iteration, mark it as up-to-date
             jacobian_is_current = call_setup;
@@ -127,7 +124,7 @@ void ChTimestepperHHT::Advance(double dt) {
                 numsetups++;
 
             // Check convergence
-            converged = CheckConvergence(iteration, verbose);
+            converged = CheckConvergence(iteration);
             if (converged)
                 break;
         }
@@ -219,17 +216,17 @@ void ChTimestepperHHT::Advance(double dt) {
 
         // Go back in the loop: scatter state and reset temporary vector
         // Scatter state -> system
-        integrable2->StateScatter(X, V, T, false);
+        integrable->StateScatter(X, V, T, false);
         Rold.setZero();
-        Anew.setZero(integrable2->GetNumCoordsVelLevel(), integrable2);
+        Anew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
     }
 
     // Scatter state -> system doing a full update
-    integrable2->StateScatter(X, V, T, true);
+    integrable->StateScatter(X, V, T, true);
 
     // Scatter auxiliary data (A and L) -> system
-    integrable2->StateScatterAcceleration(A);
-    integrable2->StateScatterReactions(L);
+    integrable->StateScatterAcceleration(A);
+    integrable->StateScatterReactions(L);
 
     // Reset call_setup to false, in case it is modified from outside the integrator
     call_setup = false;
@@ -241,13 +238,13 @@ void ChTimestepperHHT::Advance(double dt) {
 // - For ACCELERATION mode, if not using step size control, start with zero acceleration
 //   guess (previous step not guaranteed to have converged)
 // - Set the error weight vectors (using solution at current time)
-void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable2) {
+void ChTimestepperHHT::Prepare() {
     if (step_control)
         Anew = A;
     Vnew = V + Anew * h;
     Xnew = X + Vnew * h + Anew * (h * h);
-    integrable2->LoadResidual_F(Rold, -alpha / (1.0 + alpha));      // -alpha/(1.0+alpha) * f_old
-    integrable2->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
+    integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
+    integrable->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
     CalcErrorWeights(A, reltol, abstolS, ewtS);
 
     Lnew = L;
@@ -268,31 +265,32 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable2) {
 //                [ -1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
 //                [  1/(beta*h^2)*C                                                                ]
 //
-void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable2) {
+void ChTimestepperHHT::Increment() {
     // Scatter the current estimate of state at time T+h
-    integrable2->StateScatter(Xnew, Vnew, T + h, false);
+    integrable->StateScatter(Xnew, Vnew, T + h, false);
 
     // Initialize the two segments of the RHS
     R = Rold;      // terms related to state at time T
     Qc.setZero();  // zero
 
     // Set up linear system
-    integrable2->LoadResidual_F(R, 1.0);                     //  f_new
-    integrable2->LoadResidual_CqL(R, Lnew, 1.0);             //  Cq'*l_new
-    integrable2->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));  // -1/(1+alpha)*M*a_new
-    integrable2->LoadConstraint_C(
+    integrable->LoadResidual_F(R, 1.0);                      //  f_new
+    integrable->LoadResidual_CqL(R, Lnew, 1.0);              //  Cq'*l_new
+    integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));  // -1/(1+alpha)*M*a_new
+    integrable->LoadConstraint_C(
         Qc, 1 / (beta * h * h), Qc_do_clamp,
         Qc_clamping);  //  Qc= 1/(beta*h^2)*C  (sign will be flipped later in StateSolveCorrection)
 
     // Solve linear system
-    integrable2->StateSolveCorrection(Ds, Dl, R, Qc,
-                                      1 / (1 + alpha),    // factor for  M (note: it is 1 in Negrut paper but it was a typo)
-                                      -h * gamma,         // factor for  dF/dv
-                                      -h * h * beta,      // factor for  dF/dx
-                                      Xnew, Vnew, T + h,  // not used here (force_scatter = false)
-                                      false,              // do not scatter states
-                                      false,              // full update? (not used, since no scatter)
-                                      call_setup          // call Setup?
+    integrable->StateSolveCorrection(
+        Ds, Dl, R, Qc,
+        1 / (1 + alpha),    // factor for  M (note: it is 1 in Negrut paper but it was a typo)
+        -h * gamma,         // factor for  dF/dv
+        -h * h * beta,      // factor for  dF/dx
+        Xnew, Vnew, T + h,  // not used here (force_scatter = false)
+        false,              // do not scatter states
+        false,              // full update? (not used, since no scatter)
+        call_setup          // call Setup?
     );
 
     // Update estimate of state at t+h
@@ -305,9 +303,9 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable2) {
 void ChTimestepperHHT::ArchiveOut(ChArchiveOut& archive) {
     // version number
     archive.VersionWrite<ChTimestepperHHT>();
-    // serialize parent class:
-    ChTimestepperIIorder::ArchiveOut(archive);
-    ChTimestepperImplicitIterative::ArchiveOut(archive);
+
+    ChTimestepperImplicit::ArchiveOut(archive);
+
     // serialize all member data:
     archive << CHNVP(alpha);
     archive << CHNVP(beta);
@@ -317,9 +315,9 @@ void ChTimestepperHHT::ArchiveOut(ChArchiveOut& archive) {
 void ChTimestepperHHT::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version =*/archive.VersionRead<ChTimestepperHHT>();
-    // deserialize parent class:
-    ChTimestepperIIorder::ArchiveIn(archive);
-    ChTimestepperImplicitIterative::ArchiveIn(archive);
+
+    ChTimestepperImplicit::ArchiveIn(archive);
+
     // stream in all member data:
     archive >> CHNVP(alpha);
     archive >> CHNVP(beta);

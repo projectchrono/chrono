@@ -18,9 +18,6 @@
 
 namespace chrono {
 
-CH_UPCASTING(ChTimestepperIorder, ChTimestepper)
-CH_UPCASTING(ChTimestepperIIorder, ChTimestepper)
-
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'ChTimestepper_Type_enum_mapper', just to avoid avoiding cluttering of the parent class.
 class ChTimestepper_Type_enum_mapper : public ChTimestepper {
@@ -42,6 +39,8 @@ class ChTimestepper_Type_enum_mapper : public ChTimestepper {
 };
 
 // -----------------------------------------------------------------------------
+
+ChTimestepper::ChTimestepper(ChIntegrable* intgr) : T(0), verbose(false), Qc_do_clamp(false), Qc_clamping(0) {}
 
 void ChTimestepper::ArchiveOut(ChArchiveOut& archive) {
     // version number
@@ -94,6 +93,27 @@ std::string ChTimestepper::GetTypeAsString(Type type) {
     }
 
     return "UNKNOWN";
+}
+
+// -----------------------------------------------------------------------------
+
+ChTimestepperIorder::ChTimestepperIorder(ChIntegrable* intgr) : integrable(intgr) {}
+
+void ChTimestepperIorder::SetIntegrable(ChIntegrable* intgr) {
+    integrable = intgr;
+    Y.setZero(1, intgr);
+    dYdt.setZero(1, intgr);
+}
+
+// -----------------------------------------------------------------------------
+
+ChTimestepperIIorder::ChTimestepperIIorder(ChIntegrableIIorder* intgr) : integrable(intgr) {}
+
+void ChTimestepperIIorder::SetIntegrable(ChIntegrableIIorder* intgr) {
+    integrable = intgr;
+    X.setZero(1, intgr);
+    V.setZero(1, intgr);
+    A.setZero(1, intgr);
 }
 
 }  // end namespace chrono

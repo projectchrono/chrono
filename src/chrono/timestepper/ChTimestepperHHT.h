@@ -25,12 +25,12 @@ namespace chrono {
 /// Implementation of the HHT implicit integrator for II order systems.
 /// This timestepper allows use of an adaptive time-step, as well as optional use of a modified
 /// Newton scheme for the solution of the resulting nonlinear problem.
-class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepperImplicitIterative {
+class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperHHT(ChIntegrableIIorder* intgr = nullptr);
 
     /// Return type of the integration method.
-    virtual Type GetType() const override { return Type::HHT; }
+    virtual ChTimestepper::Type GetType() const override { return ChTimestepper::Type::HHT; }
 
     /// Set the numerical damping parameter (in the [-1/3, 0] range).
     /// The closer to -1/3, the more damping.
@@ -78,8 +78,8 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepper
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
-    void Prepare(ChIntegrableIIorder* integrable2);
-    void Increment(ChIntegrableIIorder* integrable2);
+    void Prepare();
+    void Increment();
 
     double alpha;  ///< HHT method parameter:  -1/3 <= alpha <= 0
     double gamma;  ///< HHT method parameter:   gamma = 1/2 - alpha

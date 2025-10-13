@@ -89,7 +89,6 @@ using namespace chrono;
 %shared_ptr(chrono::ChTimestepperTrapezoidal)
 %shared_ptr(chrono::ChTimestepperNewmark)
 %shared_ptr(chrono::ChTimestepperHHT)
-%shared_ptr(chrono::ChTimestepperImplicitIterative)
 %shared_ptr(chrono::ChTimestepperImplicit)
 %shared_ptr(chrono::ChTimestepperExplicit)  
 %shared_ptr(chrono::ChAssemblyAnalysis)  
