@@ -225,7 +225,9 @@ CH_UPCASTING(ChTimestepperEulerImplicitLinearized, ChTimestepperIIorder)
 CH_UPCASTING(ChTimestepperEulerImplicitLinearized, ChTimestepperImplicit)
 
 ChTimestepperEulerImplicitLinearized::ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* intgr)
-    : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {}
+    : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {
+//
+}
 
 // Performs a step of Euler implicit for II order systems using the Anitescu/Stewart/Trinkle single-iteration method,
 // that is a bit like an implicit Euler where one performs only the first NR corrector iteration. If the solver in

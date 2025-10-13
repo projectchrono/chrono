@@ -105,7 +105,10 @@ std::string ChTimestepper::GetTypeAsString(Type type) {
 
 // -----------------------------------------------------------------------------
 
-ChTimestepperIorder::ChTimestepperIorder(ChIntegrable* intgr) : integrable(intgr) {}
+ChTimestepperIorder::ChTimestepperIorder(ChIntegrable* intgr) : integrable(intgr) {
+    Y.setZero(1, intgr);
+    dYdt.setZero(1, intgr);
+}
 
 void ChTimestepperIorder::SetIntegrable(ChIntegrable* intgr) {
     integrable = intgr;
@@ -115,7 +118,11 @@ void ChTimestepperIorder::SetIntegrable(ChIntegrable* intgr) {
 
 // -----------------------------------------------------------------------------
 
-ChTimestepperIIorder::ChTimestepperIIorder(ChIntegrableIIorder* intgr) : integrable(intgr) {}
+ChTimestepperIIorder::ChTimestepperIIorder(ChIntegrableIIorder* intgr) : integrable(intgr) {
+    X.setZero(1, intgr);
+    V.setZero(1, intgr);
+    A.setZero(1, intgr);
+}
 
 void ChTimestepperIIorder::SetIntegrable(ChIntegrableIIorder* intgr) {
     integrable = intgr;

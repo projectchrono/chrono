@@ -66,6 +66,9 @@ class ChApi ChTimestepperEulerExplicitIorder : public ChTimestepperIorder, publi
 
     virtual Type GetType() const override { return Type::EULER_EXPLICIT_I; }
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
 
@@ -87,6 +90,9 @@ class ChApi ChTimestepperEulerExplicitIIorder : public ChTimestepperIIorder, pub
     ChTimestepperEulerExplicitIIorder(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::EULER_EXPLICIT_II; }
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
@@ -112,6 +118,9 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder, public
 
     virtual Type GetType() const override { return Type::EULER_SEMI_IMPLICIT; }
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
 
@@ -128,6 +137,9 @@ class ChApi ChTimestepperRungeKutta : public ChTimestepperIorder, public ChTimes
     ChTimestepperRungeKutta(ChIntegrable* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::RUNGE_KUTTA; }
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
@@ -151,6 +163,9 @@ class ChApi ChTimestepperRungeKutta : public ChTimestepperIorder, public ChTimes
 class ChApi ChTimestepperHeun : public ChTimestepperIorder, public ChTimestepperExplicit {
   public:
     ChTimestepperHeun(ChIntegrable* intgr = nullptr);
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
     virtual Type GetType() const override { return Type::HEUN; }
 
@@ -178,6 +193,9 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder, public ChTimest
     ChTimestepperLeapfrog(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::LEAPFROG; }
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;

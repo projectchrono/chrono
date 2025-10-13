@@ -32,6 +32,9 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepper
     /// Return type of the integration method.
     virtual ChTimestepper::Type GetType() const override { return ChTimestepper::Type::HHT; }
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
     /// Set the numerical damping parameter (in the [-1/3, 0] range).
     /// The closer to -1/3, the more damping.
     /// The closer to 0, the less damping (for 0, it is the trapezoidal method).

@@ -55,6 +55,9 @@ class ChApi ChTimestepper {
     /// Default is CUSTOM. Derived classes should override this function.
     virtual Type GetType() const = 0;
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const = 0;
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) = 0;
 
@@ -106,7 +109,7 @@ class ChApi ChTimestepperIorder {
     virtual void SetIntegrable(ChIntegrable* intgr);
 
     /// Get the integrable object.
-    ChIntegrable* GetIntegrable() { return integrable; }
+    ChIntegrable* GetIntegrableIorder() const { return integrable; }
 
   protected:
     ChTimestepperIorder(ChIntegrable* intgr = nullptr);
@@ -136,7 +139,7 @@ class ChApi ChTimestepperIIorder {
     virtual void SetIntegrable(ChIntegrableIIorder* intgr);
 
     /// Get the integrable object.
-    ChIntegrable* GetIntegrable() { return integrable; }
+    ChIntegrableIIorder* GetIntegrableIIorder() const { return integrable; }
 
   protected:
     ChTimestepperIIorder(ChIntegrableIIorder* intgr = nullptr);

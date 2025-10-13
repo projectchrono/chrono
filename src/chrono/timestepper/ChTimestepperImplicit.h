@@ -168,6 +168,9 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChT
 
     virtual Type GetType() const override { return Type::EULER_IMPLICIT; }
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
 
@@ -190,6 +193,9 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
     ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::EULER_IMPLICIT_LINEARIZED; }
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
@@ -217,6 +223,9 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 
     virtual Type GetType() const override { return Type::EULER_IMPLICIT_PROJECTED; }
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
 
@@ -243,6 +252,9 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChTim
 
     virtual Type GetType() const override { return Type::TRAPEZOIDAL; }
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
 
@@ -265,6 +277,9 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 
     virtual Type GetType() const override { return Type::TRAPEZOIDAL_LINEARIZED; }
 
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
     /// Performs an integration timestep.
     virtual void Advance(double dt) override;
 
@@ -286,6 +301,9 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimeste
     ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr);
 
     virtual Type GetType() const override { return Type::NEWMARK; }
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
     /// Set the numerical damping parameter gamma and the beta parameter.
     /// - gamma: in the [1/2, 1] interval.
