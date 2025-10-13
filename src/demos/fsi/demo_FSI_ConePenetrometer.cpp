@@ -114,6 +114,8 @@ struct SimParams {
     double density;
     double y_modulus;
     std::string integration_scheme;
+    std::string rheology_model_crm;
+    double pre_pressure_scale;
 };
 void SimulateMaterial(int i, const SimParams& params, const ConeProperties& coneProp);
 
@@ -461,6 +463,10 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     cli.AddOption<double>("Physics", "y_modulus", "Young's modulus", std::to_string(params.y_modulus));
     cli.AddOption<std::string>("Physics", "integration_scheme", "Integration scheme (euler/rk2)",
                                params.integration_scheme);
+    cli.AddOption<std::string>("Physics", "rheology_model_crm", "Rheology model (MU_OF_I/MCC)",
+                               params.rheology_model_crm);
+    cli.AddOption<double>("Physics", "pre_pressure_scale", "Pre-pressure scale",
+                          std::to_string(params.pre_pressure_scale));
     if (!cli.Parse(argc, argv))
         return false;
 
@@ -480,6 +486,8 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     params.density = cli.GetAsType<double>("density");
     params.y_modulus = cli.GetAsType<double>("y_modulus");
     params.integration_scheme = cli.GetAsType<std::string>("integration_scheme");
+    params.rheology_model_crm = cli.GetAsType<std::string>("rheology_model_crm");
+    params.pre_pressure_scale = cli.GetAsType<double>("pre_pressure_scale");
     return true;
 }
 
@@ -499,7 +507,7 @@ int main(int argc, char* argv[]) {
                         /*verbose*/ true,
                         /*output*/ true,
                         /*output_fps*/ 60,
-                        /*snapshots*/ false,
+                        /*snapshots*/ true,
                         /*render*/ true,
                         /*render_fps*/ 60,
                         /*write_marker_files*/ false,
@@ -508,7 +516,9 @@ int main(int argc, char* argv[]) {
                         /*cohesions*/ 0,
                         /*densities*/ 1600,
                         /*y_modulus*/ 1e6,
-                        /*integration_scheme*/ "rk2"};
+                        /*integration_scheme*/ "rk2",
+                        /*rheology_model_crm*/ "MU_OF_I",
+                        /*pre_pressure_scale*/ 5000};
 
     if (!GetProblemSpecs(argc, argv, params)) {
         return 1;
@@ -532,6 +542,8 @@ int main(int argc, char* argv[]) {
     std::cout << "density: " << params.density << std::endl;
     std::cout << "y_modulus: " << params.y_modulus << std::endl;
     std::cout << "integration_scheme: " << params.integration_scheme << std::endl;
+    std::cout << "rheology_model_crm: " << params.rheology_model_crm << std::endl;
+    std::cout << "pre_pressure_scale: " << params.pre_pressure_scale << std::endl;
 
     int num_materials = 1;
     for (int i = 0; i < num_materials; i++) {
@@ -544,7 +556,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     double t_end = params.penetration_depth / penetration_velocity;
     std::cout << "t_end: " << t_end << std::endl;
 
-    double container_diameter = 0.30;                   // container diameter (m)
+    double container_diameter = 0.05;                   // container diameter (m)
     double container_height = params.container_height;  // configurable via CLI
     double cyl_length = 0.2;
 
@@ -571,11 +583,21 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     mat_props.density = params.density;
     mat_props.Young_modulus = params.y_modulus;
     mat_props.Poisson_ratio = nu_poisson;
-    mat_props.mu_I0 = 0.04;
-    mat_props.mu_fric_s = params.mu_s;
-    mat_props.mu_fric_2 = params.mu_2;
-    mat_props.average_diam = 0.0002;
-    mat_props.cohesion_coeff = params.cohesion;
+    if (params.rheology_model_crm == "MU_OF_I") {
+        mat_props.rheology_model = RheologyCRM::MU_OF_I;
+        mat_props.mu_I0 = 0.04;
+        mat_props.mu_fric_s = params.mu_s;
+        mat_props.mu_fric_2 = params.mu_2;
+        mat_props.average_diam = 0.0002;
+        mat_props.cohesion_coeff = params.cohesion;
+    } else {
+        mat_props.rheology_model = RheologyCRM::MCC;
+        double angle_mus = std::atan(params.mu_s);
+        // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
+        mat_props.mcc_M = 1.5;
+        mat_props.mcc_kappa = 0.05;
+        mat_props.mcc_lambda = 0.5;
+    }
 
     sysSPH.SetElasticSPH(mat_props);
     if (params.integration_scheme == "euler") {
@@ -584,6 +606,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
         sph_params.integration_scheme = IntegrationScheme::RK2;
     }
     sph_params.initial_spacing = params.initial_spacing;
+    sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = params.d0_multiplier;
     sph_params.artificial_viscosity = params.artificial_viscosity;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
@@ -646,7 +669,6 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
 
     double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (const auto& p : points) {
-        double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
         double depth_cm = (-p.z() + fzDim) * 100;
         double b = 12.2;
         double c = 18;
@@ -655,8 +677,11 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
         double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
         double density_mean_target = params.density;
         double rho_ini = density_mean_target * g / gbar;
-        sysSPH.AddSPHParticle(p, rho_ini, 0, sysSPH.GetViscosity(), ChVector3d(0),
-                              ChVector3d(pre_ini, pre_ini, pre_ini), ChVector3d(0, 0, 0));
+        double pre_ini = rho_ini * gz * (-p.z() + fzDim);
+        // auto rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
+        double preconsidation_pressure = pre_ini + params.pre_pressure_scale;
+        sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
+                              ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }
 
     solid_material solid_mat;
@@ -701,7 +726,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     sysMBS.AddBody(cone);
 
     chrono::utils::AddConeGeometry(cone.get(), cmaterial, coneProp.diameter / 2., coneProp.length,
-                                   ChVector3d(0, 0, coneProp.length / 2), QUNIT, true, vis_material);
+                                   ChVector3d(0, 0, coneProp.length / 2), QUNIT, false, vis_material);
     cone->GetCollisionModel()->SetSafeMargin(params.initial_spacing);
 
     // Register cone as FSI body with explicit BCE points
@@ -722,7 +747,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     cyl->SetRot(ChQuaternion<>(1, 0, 0, 0));
     double cyl_volume = CH_PI * cyl_radius * cyl_radius * cyl_length;
     double cyl_mass = coneProp.density * cyl_volume;
-    cyl->SetMass(cyl_mass * 10);  // *10 because we fake the length compared to DEM
+    cyl->SetMass(cone_mass);  // *10 because we fake the length compared to DEM
     ChMatrix33<> cyl_inertia = cyl_mass * ChCylinder::GetGyration(cyl_radius, cyl_length);
     cyl->SetInertia(cyl_inertia);
     sysMBS.AddBody(cyl);
@@ -748,18 +773,22 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
             oss << std::fixed << std::setprecision(1) << (params.container_height * 100.0) << "cm";
             return oss.str();
         }();
-        base_dir = GetChronoOutputPath() + "FSI_ConePenetrometer_GRC1_" + heightCmStr + "/";
-        if (!filesystem::create_directory(filesystem::path(base_dir))) {
-            std::cerr << "Error creating directory " << base_dir << std::endl;
-            return;
-        }
-
         // Helper lambda to convert a value to a string using an ostringstream.
         auto toString = [](auto value) -> std::string {
             std::ostringstream oss;
             oss << value;
             return oss.str();
         };
+
+        // Convert new parameters to strings
+        const std::string rheologyModelStr = params.rheology_model_crm;
+        const std::string prePressureScaleStr = toString(params.pre_pressure_scale);
+        base_dir = GetChronoOutputPath() + "FSI_ConePenetrometer_GRC1_" + heightCmStr + "_" + rheologyModelStr + "_" +
+                   prePressureScaleStr + "/";
+        if (!filesystem::create_directory(filesystem::path(base_dir))) {
+            std::cerr << "Error creating directory " << base_dir << std::endl;
+            return;
+        }
 
         // Format the penetration depth with fixed precision.
         const std::string penetrationDepthStr = [&]() {

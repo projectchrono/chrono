@@ -677,7 +677,8 @@ __global__ void CrmAdamiBC(const uint* numNeighborsPerPart,
                            Real4* sortedRhoPresMuD,
                            Real3* sortedVelMasD,
                            Real3* sortedTauXxYyZz,
-                           Real3* sortedTauXyXzYz) {
+                           Real3* sortedTauXyXzYz,
+                           Real3* sortedPcEvSv) {
     //// TODO: The sortedRhoPresMuD array is only used for obtaining marker type - seems wasteful
 
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -720,7 +721,8 @@ __global__ void CrmAdamiBC(const uint* numNeighborsPerPart,
     if (sum_w > EPSILON) {
         Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0);
         sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
-        sortedTauXxYyZz[index] = (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedTauXxYyZz[index] =
+            (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w - sortedPcEvSv[index].x;
         sortedTauXyXzYz[index] = sum_tauO / sum_w;
     } else {
         sortedVelMasD[index] = mR3(0);
@@ -837,7 +839,8 @@ __global__ void CrmHolmesBC(const uint* numNeighborsPerPart,
                             Real4* sortedRhoPresMuD,
                             Real3* sortedVelMasD,
                             Real3* sortedTauXxYyZz,
-                            Real3* sortedTauXyXzYz) {
+                            Real3* sortedTauXyXzYz,
+                            Real3* sortedPcEvSv) {
     //// TODO: The sortedRhoPresMuD array is only used for obtaining marker type - seems wasteful
 
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -902,7 +905,8 @@ __global__ void CrmHolmesBC(const uint* numNeighborsPerPart,
 
     sortedVelMasD[index] = velMasB_new;
     if (sum_w > EPSILON) {
-        sortedTauXxYyZz[index] = (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedTauXxYyZz[index] =
+            (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w - sortedPcEvSv[index].x;
         sortedTauXyXzYz[index] = sum_tauO / sum_w;
     } else {
         sortedTauXxYyZz[index] = mR3(0);
@@ -997,7 +1001,8 @@ void SphForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
             mR4CAST(sortedSphMarkersD->posRadD), numActive, mR3CAST(m_data_mgr.bceAcc),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
+            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
+            mR3CAST(sortedSphMarkersD->pcEvSvD));
     } else {
         thrust::device_vector<Real2> sortedKernelSupport(numActive);
         // Calculate the kernel support of each particle
@@ -1009,7 +1014,8 @@ void SphForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
             mR4CAST(sortedSphMarkersD->posRadD), mR2CAST(sortedKernelSupport), numActive, mR3CAST(m_data_mgr.bceAcc),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
+            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
+            mR3CAST(sortedSphMarkersD->pcEvSvD));
     }
     if (m_check_errors) {
         cudaCheckError();

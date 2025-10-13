@@ -271,11 +271,11 @@ int main(int argc, char* argv[]) {
                         /*container_height*/ 0.024,  // 2.4 cm
                         /*verbose*/ true,
                         /*output*/ true,
-                        /*output_fps*/ 50,
-                        /*snapshots*/ false,
-                        /*render*/ false,
+                        /*output_fps*/ 20,
+                        /*snapshots*/ true,
+                        /*render*/ true,
                         /*render_fps*/ 100,
-                        /*write_marker_files*/ false,
+                        /*write_marker_files*/ true,
                         /*mu_s*/ 0.6593,
                         /*mu_2*/ 0.6593,
                         /*cohesions*/ 0,
@@ -323,7 +323,7 @@ void SimulateMaterial(int i, const SimParams& params) {
     std::cout << "t_end: " << t_end << std::endl;
 
     // double container_diameter = params.plate_diameter * 1.5;  // Plate is 20 cm in diameter
-    double container_diameter = 0.30;                   // Plate is 10 cm in diameter
+    double container_diameter = 0.15;                   // Plate is 10 cm in diameter
     double container_height = params.container_height;  // configurable via CLI
     double cyl_length = 0.018;                          // To prevent effect of sand falling on top of the plate
 
@@ -361,9 +361,9 @@ void SimulateMaterial(int i, const SimParams& params) {
         mat_props.rheology_model = RheologyCRM::MCC;
         double angle_mus = std::atan(params.mu_s);
         // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
-        mat_props.mcc_M = 1.02;
-        mat_props.mcc_kappa = 0.05;
-        mat_props.mcc_lambda = 0.2;
+        mat_props.mcc_M = 2.0;
+        mat_props.mcc_kappa = 0.01;
+        mat_props.mcc_lambda = 0.1;
     }
 
     sysSPH.SetElasticSPH(mat_props);
@@ -536,7 +536,7 @@ void SimulateMaterial(int i, const SimParams& params) {
         // Convert new parameters to strings
         const std::string rheologyModelStr = params.rheology_model_crm;
         const std::string prePressureScaleStr = toString(params.pre_pressure_scale);
-        base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_" + heightCmStr + "/" + rheologyModelStr + "_" +
+        base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_" + heightCmStr + "_" + rheologyModelStr + "_" +
                    prePressureScaleStr + "/";
         if (!filesystem::create_directory(filesystem::path(base_dir))) {
             std::cerr << "Error creating directory " << base_dir << std::endl;
@@ -610,7 +610,7 @@ void SimulateMaterial(int i, const SimParams& params) {
     std::shared_ptr<ChVisualSystem> vis;
     // Create a run-time visualizer
 #ifdef CHRONO_VSG
-    auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2);
+    auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(0, 30000, false);
     if (params.render) {
         auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);

@@ -454,7 +454,7 @@ __device__ void TauEulerStep(Real dT,
         // Clamp and under-relax around reference values
         Real K_ref = paramsD.K_bulk;
         Real K_low = Real(0.3) * K_ref;
-        Real K_high = Real(3.0) * K_ref;
+        Real K_high = Real(10.0) * K_ref;
         Real K_clamped = fmin(fmax(K_cand, K_low), K_high);
         Real alpha_mod = Real(0.2);
         Real K_n = (Real(1.0) - alpha_mod) * K_ref + alpha_mod * K_clamped;
@@ -464,7 +464,7 @@ __device__ void TauEulerStep(Real dT,
         Real G_cand = (3.0 * K_n * (1.0 - 2.0 * nu)) / (2.0 * (1.0 + nu));
         Real G_ref = paramsD.G_shear;
         Real G_low = Real(0.3) * G_ref;
-        Real G_high = Real(3.0) * G_ref;
+        Real G_high = Real(10.0) * G_ref;
         Real G_clamped = fmin(fmax(G_cand, G_low), G_high);
         Real G_n = (Real(1.0) - alpha_mod) * G_ref + alpha_mod * G_clamped;
         // printf("G_n: %f, K_n: %f\n", G_n, K_n);

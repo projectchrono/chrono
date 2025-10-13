@@ -229,7 +229,7 @@ void FsiDataManager::AddSphParticle(Real3 pos,
     // Equation for this initial condition from -
     // https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
     //// TODO: Make sure that the parameter is set (creates dependency on when AddSphParticle is called)
-    Real v_lambda = 3.32;
+    Real v_lambda = 2.0;
     Real confining_stress = pres;
     Real Sv = v_lambda - paramsH->mcc_lambda * std::log(pc) + paramsH->mcc_kappa * std::log(pc / confining_stress);
     sphMarkers_H->pcEvSvH.push_back(mR3(pc, 0.0, Sv));
