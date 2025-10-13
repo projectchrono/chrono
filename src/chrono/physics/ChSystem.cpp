@@ -21,6 +21,7 @@
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -35,7 +36,6 @@
 #include "chrono/solver/ChSolverPSSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
 
 namespace chrono {

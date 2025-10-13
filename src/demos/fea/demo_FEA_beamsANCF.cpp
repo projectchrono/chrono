@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetJacobianUpdateMethod(ChImplicitIterativeTimestepper::JacobianUpdate::EVERY_STEP);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_STEP);
     sys.SetTimestepper(integrator);
 
     // Mesh properties

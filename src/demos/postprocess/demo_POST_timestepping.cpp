@@ -19,8 +19,6 @@
 #include <cmath>
 
 #include "chrono/core/ChDataPath.h"
-#include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 

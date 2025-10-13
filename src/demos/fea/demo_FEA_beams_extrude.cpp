@@ -21,7 +21,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 

@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_thirdparty/filesystem/path.h"

@@ -21,11 +21,11 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperHHT)
 CH_UPCASTING(ChTimestepperHHT, ChTimestepperIIorder)
-CH_UPCASTING(ChTimestepperHHT, ChImplicitIterativeTimestepper)
+CH_UPCASTING(ChTimestepperHHT, ChTimestepperImplicitIterative)
 
 ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr),
-      ChImplicitIterativeTimestepper(),
+      ChTimestepperImplicitIterative(),
       step_control(true),
       maxiters_success(3),
       req_successful_steps(5),
@@ -307,7 +307,7 @@ void ChTimestepperHHT::ArchiveOut(ChArchiveOut& archive) {
     archive.VersionWrite<ChTimestepperHHT>();
     // serialize parent class:
     ChTimestepperIIorder::ArchiveOut(archive);
-    ChImplicitIterativeTimestepper::ArchiveOut(archive);
+    ChTimestepperImplicitIterative::ArchiveOut(archive);
     // serialize all member data:
     archive << CHNVP(alpha);
     archive << CHNVP(beta);
@@ -319,7 +319,7 @@ void ChTimestepperHHT::ArchiveIn(ChArchiveIn& archive) {
     /*int version =*/archive.VersionRead<ChTimestepperHHT>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIn(archive);
-    ChImplicitIterativeTimestepper::ArchiveIn(archive);
+    ChTimestepperImplicitIterative::ArchiveIn(archive);
     // stream in all member data:
     archive >> CHNVP(alpha);
     archive >> CHNVP(beta);

@@ -21,8 +21,6 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/timestepper/ChTimestepper.h"
-
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono/solver/ChDirectSolverLS.h"
@@ -147,7 +145,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
             integrator->SetJacobianUpdateMethod(
-                chrono::ChImplicitIterativeTimestepper::JacobianUpdate::EVERY_ITERATION);
+                chrono::ChTimestepperImplicitIterative::JacobianUpdate::EVERY_ITERATION);
             break;
         }
         case chrono::ChTimestepper::Type::EULER_IMPLICIT: {

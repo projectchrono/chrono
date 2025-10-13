@@ -12,12 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHTIMESTEPPER_HHT_H
-#define CHTIMESTEPPER_HHT_H
+#ifndef CH_TIMESTEPPER_HHT_H
+#define CH_TIMESTEPPER_HHT_H
 
-#include <array>
-
-#include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperImplicit.h"
 
 namespace chrono {
 
@@ -27,7 +25,7 @@ namespace chrono {
 /// Implementation of the HHT implicit integrator for II order systems.
 /// This timestepper allows use of an adaptive time-step, as well as optional use of a modified
 /// Newton scheme for the solution of the resulting nonlinear problem.
-class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepperImplicitIterative {
   public:
     ChTimestepperHHT(ChIntegrableIIorder* intgr = nullptr);
 
@@ -83,7 +81,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     void Prepare(ChIntegrableIIorder* integrable2);
     void Increment(ChIntegrableIIorder* integrable2);
 
-  private:
     double alpha;  ///< HHT method parameter:  -1/3 <= alpha <= 0
     double gamma;  ///< HHT method parameter:   gamma = 1/2 - alpha
     double beta;   ///< HHT method parameter:   beta = (1 - alpha)^2 / 4

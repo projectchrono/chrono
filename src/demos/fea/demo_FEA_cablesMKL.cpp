@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "FEAvisualization.h"

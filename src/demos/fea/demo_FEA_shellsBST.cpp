@@ -21,7 +21,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono/fea/ChElementShellBST.h"

@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
         hht->SetAlpha(-0.2);
         hht->SetMaxIters(5);
         hht->SetAbsTolerances(1e-2);
-        hht->SetModifiedNewton(true);
+        hht->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_STEP);
         hht->SetStepControl(false);
         hht->SetMinStepSize(1e-4);
         ////hht->SetVerbose(true);

@@ -164,7 +164,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicitIterative::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     double f = 5.0;

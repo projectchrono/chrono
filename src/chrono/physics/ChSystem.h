@@ -36,6 +36,8 @@
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperExplicit.h"
+#include "chrono/timestepper/ChTimestepperImplicit.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/output/ChOutput.h"

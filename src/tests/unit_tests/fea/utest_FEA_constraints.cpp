@@ -25,7 +25,6 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "gtest/gtest.h"
