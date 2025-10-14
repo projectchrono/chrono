@@ -395,10 +395,29 @@ endif()
 #-------------------------------------------------------------------------------
 
 # Swig generated files
-install(DIRECTORY ${CMAKE_SWIG_OUTDIR}/
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/core/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
 
+if(CH_ENABLE_MODULE_POSTPROCESS)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/postprocess/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+if(CH_ENABLE_MODULE_IRRLICHT)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/irrlicht/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/vehicle/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+# Template project
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_csharp/ DESTINATION "template_project_csharp")
 else()
