@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include <optional>
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -48,27 +49,170 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 using namespace chrono;
 using namespace chrono::fea;
 
+class ChVisualFieldDataExtractor {
+    virtual bool IsDataCompatible(ChFieldData* field) = 0;
+};
 
-class ChVisualFeaFetch {};
-class ChVisualFeaFetchScalar : public ChVisualFeaFetch { public: virtual double operator()() = 0; };
-class ChVisualFeaFetchVector : public ChVisualFeaFetch { public: virtual ChVector3d operator()() = 0; };
-class ChVisualFeaFetchTensor : public ChVisualFeaFetch { public: virtual ChMatrix33d operator()() = 0; };
+template <class T_field_data>
+class ChVisualFieldDataExtractorImpl : public ChVisualFieldDataExtractor {
+    virtual bool IsDataCompatible(ChFieldData* fdata) override {
+        if (auto mfdata = dynamic_cast<T_field_data*>(fdata))
+            return true;
+        else
+            return false;
+    }
+};
+
+class ChVisualFieldDataExtractorScalarBase {
+public:
+    std::optional<double> virtual operator()(ChFieldData* data) const = 0;
+};
+
+class ChVisualFieldDataExtractorVectorBase {
+public:
+    std::optional<ChVector3d> virtual operator()(ChFieldData* data) const = 0;
+};
+
+class ChVisualFieldDataExtractorTensorBase {
+public:
+    std::optional<ChMatrix33d> virtual operator()(ChFieldData* data) const = 0;
+};
+
+class ChVisualFieldDataExtractorQuaternionBase {
+public:
+    std::optional<ChQuaternion<double>> virtual operator()(ChFieldData* data) const = 0;
+};
+
+
+template <class T_field_data>
+class ChVisualFieldDataExtractorScalar : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorScalarBase {
+public: 
+    std::optional<double> operator()(ChFieldData* data) const override {
+        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
+            return this->Extract(typed_data);
+        }
+        return std::nullopt;
+    }
+    virtual double Extract(const T_field_data* fdata) const = 0;
+};
+
+template <class T_field_data>
+class ChVisualFieldDataExtractorVector : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorVectorBase {
+public: 
+    std::optional<ChVector3d> operator()(ChFieldData* data) const override {
+        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
+            return this->Extract(typed_data);
+        }
+        return std::nullopt;
+    }
+    virtual ChVector3d Extract(const T_field_data* fdata) const = 0;
+};
+
+template <class T_field_data>
+class ChVisualFieldDataExtractorTensor : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorTensorBase {
+public:
+    std::optional<ChMatrix33d> operator()(ChFieldData* data) const override {
+        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
+            return this->Extract(typed_data);
+        }
+        return std::nullopt;
+    }
+    virtual ChMatrix33d Extract(const T_field_data* fdata) const = 0;
+};
+
+template <class T_field_data>
+class ChVisualFieldDataExtractorQuaternion : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorQuaternionBase {
+public:
+    std::optional<ChQuaternion<double>> operator()(ChFieldData* data) const override {
+        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
+            return this->Extract(typed_data);
+        }
+        return std::nullopt;
+    }
+    virtual ChQuaternion<double> Extract(const T_field_data* fdata) const = 0;
+};
+
+class ChVisualFieldDataExtractorVectorComponent : public ChVisualFieldDataExtractorScalarBase {
+public:
+    ChVisualFieldDataExtractorVectorComponent(std::shared_ptr<ChVisualFieldDataExtractorVectorBase> mvector_extractor, int n_component) : 
+        vector_extractor(mvector_extractor), 
+        id_component(n_component)
+    {};
+    std::optional<double> operator()(ChFieldData* data) const override {
+        if (auto retv = vector_extractor->operator()(data)) {
+            if (id_component ==0)
+                return retv.value().x();
+            if (id_component == 1)
+                return retv.value().y();
+            if (id_component == 2)
+                return retv.value().z();
+        }
+        return std::nullopt;
+    }
+    int id_component; // 0=x, 1=y, 2=z;
+    std::shared_ptr<ChVisualFieldDataExtractorVectorBase> vector_extractor;
+};
+
+
+
+
+class ChVisualFieldDataExtractorPos : public ChVisualFieldDataExtractorVector<ChFieldDataPos3D> {
+    virtual ChVector3d Extract(const ChFieldDataPos3D* fdata)  const override {
+        return fdata->GetPos();
+    }
+};
+class ChVisualFieldDataExtractorPosDt : public ChVisualFieldDataExtractorVector<ChFieldDataPos3D> {
+    virtual ChVector3d Extract(const ChFieldDataPos3D* fdata)  const override {
+        return fdata->GetPosDt();
+    }
+};
+class ChVisualFieldDataExtractorPosDtDt : public ChVisualFieldDataExtractorVector<ChFieldDataPos3D> {
+    virtual ChVector3d Extract(const ChFieldDataPos3D* fdata)  const override {
+        return fdata->GetPosDt2();
+    }
+};
+class ChVisualFieldDataExtractorTemperature : public ChVisualFieldDataExtractorScalar<ChFieldDataTemperature> {
+    virtual double Extract(const ChFieldDataTemperature* fdata)  const override {
+        return const_cast<ChFieldDataTemperature*>(fdata)->T();
+    }
+};
+class ChVisualFieldDataExtractorTemperatureDt : public ChVisualFieldDataExtractorScalar<ChFieldDataTemperature> {
+    virtual double Extract(const ChFieldDataTemperature* fdata)  const override {
+        return const_cast<ChFieldDataTemperature*>(fdata)->T_dt();
+    }
+};
 
 class ChVisualFea : public ChGlyphs {
 public:
     ChVisualFea(std::shared_ptr<ChFieldDisplacement3D> afield) : mfield(afield) {
-        is_mutable = true;
+        is_mutable = true;     
     }
-
     virtual ~ChVisualFea() {}
+    
 
-    // Attach T property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
-    void AttachTemp(double min = 0, double max = 1, std::string mname = "Vect") {
-        T_property = new ChPropertyVector;
+    // Attach property extractor. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
+    void AddPropertyExtractor(std::shared_ptr<ChVisualFieldDataExtractorScalarBase> mextractor, double min = 0, double max = 1, std::string mname = "Scalar") {
+        auto T_property = new ChPropertyScalar;
         T_property->min = min;
         T_property->max = max;
         T_property->name = mname;
+        this->extractors_scalar_properties.push_back( {mextractor, T_property} ) ;
         this->m_properties.push_back(T_property);
+    }
+    // Attach property extractor. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
+    void AddPropertyExtractor(std::shared_ptr<ChVisualFieldDataExtractorVectorBase> mextractor, double min = 0, double max = 1, std::string mname = "Vect") {
+        auto T_property = new ChPropertyVector;
+        T_property->min = min;
+        T_property->max = max;
+        T_property->name = mname;
+        this->extractors_vector_properties.push_back({ mextractor, T_property });
+        this->m_properties.push_back(T_property);
+    }
+    // Set the extractor that gets the 3D position where to draw the glyph (ex. node spatial coords, 
+    // for nonlinear deformation analysis). If not set, by default the drawing system will fall 
+    // back to the 3D position of the node (material space reference coords). 
+    void AddPositionExtractor(std::shared_ptr<ChVisualFieldDataExtractorVectorBase> mextractor) {
+        extractor_position = mextractor;
     }
 
 protected:
@@ -82,17 +226,36 @@ protected:
         unsigned int i = 0;
         for (auto& anode : mfield->GetNodeDataMap()) {
             if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(anode.first)) {
-                this->SetGlyphPoint(i, anode.second.GetPos(), mcolor);
-                //this->SetGlyphPoint(i, *nodexyz, mcolor);
-                //T_property->data[i] = anode.second.GetPos();
+                ChVector3d mpos = *nodexyz; // default node pos: the reference pos
+                if (extractor_position)
+                    if (auto fetched_pos = (*extractor_position)(&anode.second))
+                        mpos = fetched_pos.value();
+                for (auto& mfetch_s : extractors_scalar_properties)
+                    if (auto fetched_s = (*mfetch_s.first)(&anode.second))
+                        mfetch_s.second->data[i] = fetched_s.value();
+                for (auto& mfetch_v : extractors_vector_properties)
+                    if (auto fetched_v = (*mfetch_v.first)(&anode.second))
+                        mfetch_v.second->data[i] = fetched_v.value();
+
+                if (extractors_scalar_properties.size()) {
+                    mcolor = colormap.Get(extractors_scalar_properties[0].second->data[i], extractors_scalar_properties[0].second->min, extractors_scalar_properties[0].second->max);
+                }
+                else if (extractors_vector_properties.size()) {
+                    mcolor = colormap.Get(extractors_vector_properties[0].second->data[i].Length(), extractors_vector_properties[0].second->min, extractors_vector_properties[0].second->max);
+                }
+                this->SetGlyphPoint(i, mpos, mcolor);
             }
             ++i;
         }
     }
 
-    ChPropertyVector* T_property = 0;
+    std::shared_ptr<ChVisualFieldDataExtractorVectorBase> extractor_position;
+    std::vector<std::pair<std::shared_ptr<ChVisualFieldDataExtractorScalarBase>, ChPropertyScalar*> > extractors_scalar_properties;
+    std::vector<std::pair<std::shared_ptr<ChVisualFieldDataExtractorVectorBase>, ChPropertyVector*> > extractors_vector_properties;
 
     std::shared_ptr<ChFieldDisplacement3D> mfield;
+
+    ChColormap colormap;
 };
 
 
@@ -301,6 +464,9 @@ int main(int argc, char* argv[]) {
 
         auto visual_nodes = chrono_types::make_shared<ChVisualFea>(displacement_field);
         visual_nodes->SetGlyphsSize(0.1);
+        visual_nodes->AddPositionExtractor(chrono_types::make_shared<ChVisualFieldDataExtractorPos>());
+        visual_nodes->AddPropertyExtractor(chrono_types::make_shared<ChVisualFieldDataExtractorPosDt>());
+        visual_nodes->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         floor->AddVisualShape(visual_nodes);
 
 
@@ -309,7 +475,7 @@ int main(int argc, char* argv[]) {
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
         vis->AttachSystem(&sys);
         vis->SetWindowSize(800, 600);
-        vis->SetWindowTitle("Paths");
+        vis->SetWindowTitle("Test FEA");
         vis->Initialize();
         vis->AddLogo();
         vis->AddSkyBox();
