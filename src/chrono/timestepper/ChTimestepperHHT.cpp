@@ -48,8 +48,8 @@ void ChTimestepperHHT::SetAlpha(double val) {
 }
 
 // Performs a step of HHT (generalized alpha) implicit for II order systems
-void ChTimestepperHHT::Advance(double dt) {
-    // Setup main vectors
+void ChTimestepperHHT::OnAdvance(double dt) {
+    // Setup state vectors
     integrable->StateSetup(X, V, A);
 
     // Setup auxiliary vectors
@@ -71,7 +71,7 @@ void ChTimestepperHHT::Advance(double dt) {
 
     // Advance solution to time T+dt, possibly taking multiple steps
     double tfinal = T + dt;  // target final time
-    numiters = 0;            // total number of NR iterations for this step
+    numiters = 0;            // total number of Newton iterations for this step
     numsetups = 0;
     numsolves = 0;
 
@@ -130,59 +130,59 @@ void ChTimestepperHHT::Advance(double dt) {
         }
 
         if (converged) {
-            // ------ NR converged
+            // ------ Newton converged
 
-            // if the number of iterations was low enough, increase the count of successive
-            // successful steps (for possible step increase)
+            // if the number of iterations was low enough, increase the count of successive successful steps
+            // (for possible step increase)
             if (iteration < maxiters_success)
                 num_successful_steps++;
             else
                 num_successful_steps = 0;
 
             if (verbose) {
-                std::cout << " HHT NR converged (" << num_successful_steps << ").";
-                std::cout << "  T = " << T + h << "  h = " << h << std::endl;
+                std::cout << " HHT Newton converged in " << iteration << " iterations.";
+                std::cout << "   Number successful steps: " << num_successful_steps;
+                std::cout << "   T = " << T + h << "  h = " << h << std::endl;
             }
 
-            // Advance time (clamp to tfinal if close enough)
+            // advance time (clamp to tfinal if close enough)
             T += h;
             if (std::abs(T - tfinal) < std::min(h_min, 1e-6)) {
                 T = tfinal;
             }
 
-            // Set the state
+            // set the state
             X = Xnew;
             V = Vnew;
             A = Anew;
             L = Lnew;
 
-            /*
-            } else if (!jacobian_is_current) {
-                // ------ NR did not converge but the matrix was out-of-date
+        ////} else if (!jacobian_is_current) {
+        ////    // ------ Newton did not converge, but Jacobian is out-of-date
 
-                // reset the count of successive successful steps
-                num_successful_steps = 0;
+        ////    // reset the count of successive successful steps
+        ////    num_successful_steps = 0;
 
-                // re-attempt step with updated matrix
-                if (verbose) {
-                    std::cout << " HHT re-attempt step with updated matrix." << std::endl;
-                }
+        ////    // re-attempt step with updated Jacobian
+        ////    if (verbose) {
+        ////        std::cout << " HHT re-attempt step with updated matrix." << std::endl;
+        ////    }
 
-                call_setup = true;
-            */
+        ////    call_setup = true;  //// TODO -- this must be a FORCE setup
 
         } else if (!step_control) {
-            // ------ NR did not converge and we do not control stepsize
+            // ------ Newton did not converge and we do not control stepsize
 
             // reset the count of successive successful steps
             num_successful_steps = 0;
 
             // accept solution as is and complete step
             if (verbose) {
-                std::cout << " HHT NR terminated.";
-                std::cout << "  T = " << T + h << "  h = " << h << std::endl;
+                std::cout << " HHT Newton terminated.";
+                std::cout << "   T = " << T + h << "  h = " << h << std::endl;
             }
 
+            // set the state
             T += h;
             X = Xnew;
             V = Vnew;
@@ -190,7 +190,7 @@ void ChTimestepperHHT::Advance(double dt) {
             L = Lnew;
 
         } else {
-            // ------ NR did not converge
+            // ------ Newton did not converge, but we can reduce stepsize
 
             // reset the count of successive successful steps
             num_successful_steps = 0;
@@ -209,13 +209,11 @@ void ChTimestepperHHT::Advance(double dt) {
             }
         }
 
-        // If successfully reaching end of step ((this can only happen if Newton converged))
-        if (T >= tfinal) {
+        // If successfully reaching end of step (this can only happen if Newton converged), break out of loop
+        if (T >= tfinal)
             break;
-        }
 
-        // Go back in the loop: scatter state and reset temporary vector
-        // Scatter state -> system
+        // Otherwise, scatter state, reset auxiliary vectors, and go back in the loop
         integrable->StateScatter(X, V, T, false);
         Rold.setZero();
         Anew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
@@ -227,14 +225,11 @@ void ChTimestepperHHT::Advance(double dt) {
     // Scatter auxiliary data (A and L) -> system
     integrable->StateScatterAcceleration(A);
     integrable->StateScatterReactions(L);
-
-    // Reset call_setup to false, in case it is modified from outside the integrator
-    call_setup = false;
 }
 
 // Prepare attempting a step of size h (assuming a converged state at the current time t):
 // - Initialize residual vector with terms at current time
-// - Obtain a prediction at T+h for NR using extrapolation from solution at current time.
+// - Obtain a prediction at T+h for Newton using extrapolation from solution at current time.
 // - For ACCELERATION mode, if not using step size control, start with zero acceleration
 //   guess (previous step not guaranteed to have converged)
 // - Set the error weight vectors (using solution at current time)
@@ -262,8 +257,8 @@ void ChTimestepperHHT::Prepare() {
 //
 // [ M - h*gamma*dF/dv - h^2*beta*dF/dx    Cq' ] [ Ds ] =
 // [ Cq                                    0   ] [-Dl ]
-//                [ -1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
-//                [  1/(beta*h^2)*C                                                                ]
+//                [ -1/(1+alpha)*M*(a_new) + (f_new + Cq'*l_new) - (alpha/(1+alpha))(f_old + Cq'*l_old)]
+//                [  1/(beta*h^2)*C                                                                    ]
 //
 void ChTimestepperHHT::Increment() {
     // Scatter the current estimate of state at time T+h
@@ -282,18 +277,17 @@ void ChTimestepperHHT::Increment() {
         Qc_clamping);  //  Qc= 1/(beta*h^2)*C  (sign will be flipped later in StateSolveCorrection)
 
     // Solve linear system
-    integrable->StateSolveCorrection(
-        Ds, Dl, R, Qc,
-        1 / (1 + alpha),    // factor for  M (note: it is 1 in Negrut paper but it was a typo)
-        -h * gamma,         // factor for  dF/dv
-        -h * h * beta,      // factor for  dF/dx
-        Xnew, Vnew, T + h,  // not used here (force_scatter = false)
-        false,              // do not scatter states
-        false,              // full update? (not used, since no scatter)
-        call_setup          // call Setup?
+    integrable->StateSolveCorrection(Ds, Dl, R, Qc,
+                                     1 / (1 + alpha),    // factor for  M
+                                     -h * gamma,         // factor for  dF/dv
+                                     -h * h * beta,      // factor for  dF/dx
+                                     Xnew, Vnew, T + h,  // not used here (force_scatter = false)
+                                     false,              // do not scatter states
+                                     false,              // full update? (not used, since no scatter)
+                                     call_setup          // call the solver's Setup() function?
     );
 
-    // Update estimate of state at t+h
+    // Update estimate of state at T+h
     Lnew += Dl;  // not -= Dl because we assume StateSolveCorrection flips sign of Dl
     Anew += Ds;
     Xnew = X + V * h + A * (h * h * (0.5 - beta)) + Anew * (h * h * beta);

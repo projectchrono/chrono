@@ -91,7 +91,7 @@ bool ChTimestepperImplicit::CheckConvergence(int it) {
 
     if (verbose) {
         std::cout << "  Newton iteration=" << numiters;
-        std::cout << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Ds|=" << Ds_nrm << "  |Dl|=" << Dl_nrm;
+        std::cout << "  |R| = " << R_nrm << "  |Qc| =" << Qc_nrm << "  |Ds| =" << Ds_nrm << "  |Dl| =" << Dl_nrm;
         if (it >= 2)
             std::cout << "  Conv. rate = " << convergence_rate;
         std::cout << std::endl;
@@ -112,6 +112,18 @@ void ChTimestepperImplicit::CalcErrorWeights(const ChVectorDynamic<>& x,
     ewt = (rtol * x.cwiseAbs() + atol).cwiseInverse();
 }
 
+void ChTimestepperImplicit::Advance(double dt) {
+    // On entry, call_setup is true only:
+    // - at the first iteration on the first step
+    // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
+
+    // Call the integrator-specific advance method
+    OnAdvance(dt);
+
+    // Reset call_setup to false, in case it is modified from outside the integrator
+    call_setup = false;
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -122,12 +134,12 @@ CH_UPCASTING(ChTimestepperEulerImplicit, ChTimestepperImplicit)
 ChTimestepperEulerImplicit::ChTimestepperEulerImplicit(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {}
 
-void ChTimestepperEulerImplicit::Advance(double dt) {
+void ChTimestepperEulerImplicit::OnAdvance(double dt) {
     // setup main vectors
     integrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Ds.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+    Ds.setZero(integrable->GetNumCoordsVelLevel(), integrable);
     Dl.setZero(integrable->GetNumConstraints());
     Xnew.setZero(integrable->GetNumCoordsPosLevel(), integrable);
     Vnew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
@@ -225,14 +237,12 @@ CH_UPCASTING(ChTimestepperEulerImplicitLinearized, ChTimestepperIIorder)
 CH_UPCASTING(ChTimestepperEulerImplicitLinearized, ChTimestepperImplicit)
 
 ChTimestepperEulerImplicitLinearized::ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* intgr)
-    : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {
-//
-}
+    : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {}
 
 // Performs a step of Euler implicit for II order systems using the Anitescu/Stewart/Trinkle single-iteration method,
-// that is a bit like an implicit Euler where one performs only the first NR corrector iteration. If the solver in
+// that is a bit like an implicit Euler where one performs only the first Newton corrector iteration. If the solver in
 // StateSolveCorrection is a CCP complementarity solver, this is the typical Anitescu stabilized timestepper for DVIs.
-void ChTimestepperEulerImplicitLinearized::Advance(double dt) {
+void ChTimestepperEulerImplicitLinearized::OnAdvance(double dt) {
     // setup main vectors
     integrable->StateSetup(X, V, A);
 
@@ -249,7 +259,7 @@ void ChTimestepperEulerImplicitLinearized::Advance(double dt) {
 
     Vold = V;
 
-    // solve only 1st NR step, using v_new = 0, so  Dv = v_new , therefore
+    // solve only 1st Newton step, using v_new = 0, so  Dv = v_new , therefore
     //
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f]
     // [ Cq                           0   ] [ -dt*Dl ] = [ -C/dt - Ct ]
@@ -317,7 +327,7 @@ ChTimestepperEulerImplicitProjected::ChTimestepperEulerImplicitProjected(ChInteg
 // followed by a projection. That is: a speed problem followed by a position problem that keeps constraint drifting
 // 'closed' by using a projection. If the solver in StateSolveCorrection is a CCP complementarity solver, this is the
 // Tasora stabilized timestepper for DVIs.
-void ChTimestepperEulerImplicitProjected::Advance(double dt) {
+void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
     // setup main vectors
     integrable->StateSetup(X, V, A);
 
@@ -366,13 +376,13 @@ void ChTimestepperEulerImplicitProjected::Advance(double dt) {
     integrable->StateScatterReactions(L);      // -> system auxiliary data
 
     // 2
-    // Do the position stabilization (single NR step on constraints, with mass matrix as metric)
+    // Do the position stabilization (single Newton step on constraints, with mass matrix as metric)
 
     Dl.setZero(integrable->GetNumConstraints());
     R.setZero(integrable->GetNumCoordsVelLevel());
     Qc.setZero(integrable->GetNumConstraints());
     L.setZero(integrable->GetNumConstraints());
-    Vold.setZero(integrable->GetNumCoordsVelLevel(), V.GetIntegrable());
+    Vold.setZero(integrable->GetNumCoordsVelLevel(), integrable);
 
     //
     // [ M       Cq' ] [ dpos ] = [  0 ]
@@ -424,12 +434,12 @@ ChTimestepperTrapezoidal::ChTimestepperTrapezoidal(ChIntegrableIIorder* intgr)
 // NOTE this is a modified version of the trapezoidal for DAE: the original derivation would lead to a scheme that
 // produces oscillatory reactions in constraints, so this is a modified version that is first order in constraint
 // reactions. Use damped HHT or damped Newmark for more advanced options.
-void ChTimestepperTrapezoidal::Advance(double dt) {
+void ChTimestepperTrapezoidal::OnAdvance(double dt) {
     // setup main vectors
     integrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Ds.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+    Ds.setZero(integrable->GetNumCoordsVelLevel(), integrable);
     Dl.setZero(integrable->GetNumConstraints());
     Xnew.setZero(integrable->GetNumCoordsPosLevel(), integrable);
     Vnew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
@@ -536,12 +546,12 @@ CH_UPCASTING(ChTimestepperTrapezoidalLinearized, ChTimestepperImplicit)
 ChTimestepperTrapezoidalLinearized::ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {}
 
-void ChTimestepperTrapezoidalLinearized::Advance(double dt) {
+void ChTimestepperTrapezoidalLinearized::OnAdvance(double dt) {
     // setup main vectors
     integrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Ds.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+    Ds.setZero(integrable->GetNumCoordsVelLevel(), integrable);
     Dl.setZero(integrable->GetNumConstraints());
     Xnew.setZero(integrable->GetNumCoordsPosLevel(), integrable);
     Vnew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
@@ -630,24 +640,24 @@ CH_UPCASTING(ChTimestepperNewmark, ChTimestepperImplicit)
 
 ChTimestepperNewmark::ChTimestepperNewmark(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {
-    SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
-    modified_Newton = true;  // default use modified Newton with jacobian factorization only at beginning
+    // Default method parameters with some damping that also work with DAE constraints
+    SetGammaBeta(0.6, 0.3);
 }
 
-void ChTimestepperNewmark::SetGammaBeta(double mgamma, double mbeta) {
-    gamma = mgamma;
+void ChTimestepperNewmark::SetGammaBeta(double gamma_val, double beta_val) {
+    gamma = gamma_val;
     if (gamma < 0.5)
         gamma = 0.5;
     if (gamma > 1)
         gamma = 1;
-    beta = mbeta;
+    beta = beta_val;
     if (beta < 0)
         beta = 0;
     if (beta > 1)
         beta = 1;
 }
 
-void ChTimestepperNewmark::Advance(double dt) {
+void ChTimestepperNewmark::OnAdvance(double dt) {
     // setup main vectors
     integrable->StateSetup(X, V, A);
 
@@ -705,7 +715,7 @@ void ChTimestepperNewmark::Advance(double dt) {
             break;
         }
 
-        if (verbose && modified_Newton && call_setup)
+        if (verbose && jacobian_update_method != JacobianUpdate::EVERY_ITERATION && call_setup)
             std::cout << " Newmark call Setup." << std::endl;
 
         integrable->StateSolveCorrection(  //
@@ -726,7 +736,7 @@ void ChTimestepperNewmark::Advance(double dt) {
         }
 
         // If using modified Newton, do not call Setup again
-        call_setup = !modified_Newton;
+        call_setup = (jacobian_update_method == JacobianUpdate::EVERY_ITERATION);
 
         L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
         Anew += Ds;

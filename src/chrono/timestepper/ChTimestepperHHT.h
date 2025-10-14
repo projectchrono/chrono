@@ -71,8 +71,8 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepper
     /// Default: 0.5.
     void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
 
-    /// Perform an integration timestep, by advancing the state by the specified time step.
-    virtual void Advance(double dt) override;
+    /// Perform an integration step.
+    virtual void OnAdvance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;

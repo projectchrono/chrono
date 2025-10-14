@@ -91,6 +91,13 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     /// convergence rate estimate is set to 1.
     double GetEstimatedConvergenceRate() const { return convergence_rate; }
 
+    /// Implementation of integratopr-specific time advance.
+    virtual void OnAdvance(double dt) = 0;
+
+    /// Perform an integration step.
+    /// This base class function invokesd OnAdvance(), after which it resets the `call_setup` flag to false.
+    virtual void Advance(double dt) override final;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) {
         // version number
@@ -171,8 +178,8 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChT
     /// Return the associated integrable object.
     virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
-    /// Performs an integration timestep.
-    virtual void Advance(double dt) override;
+    /// Perform an integration step.
+    virtual void OnAdvance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -197,8 +204,8 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
     /// Return the associated integrable object.
     virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
-    /// Performs an integration timestep.
-    virtual void Advance(double dt) override;
+    /// Perform an integration step.
+    virtual void OnAdvance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -226,8 +233,8 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
     /// Return the associated integrable object.
     virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
-    /// Performs an integration timestep.
-    virtual void Advance(double dt) override;
+    /// Perform an integration step.
+    virtual void OnAdvance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -255,8 +262,8 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChTim
     /// Return the associated integrable object.
     virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
-    /// Performs an integration timestep.
-    virtual void Advance(double dt) override;
+    /// Perform an integration step.
+    virtual void OnAdvance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -280,8 +287,8 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
     /// Return the associated integrable object.
     virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
-    /// Performs an integration timestep.
-    virtual void Advance(double dt) override;
+    /// Perform an integration step.
+    virtual void OnAdvance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -311,22 +318,16 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimeste
     ///     gamma > 1/2, more damping
     /// - beta: in the [0, 1] interval.
     ///     beta = 1/4, gamma = 1/2 -> constant acceleration method
-    ///    beta = 1/6, gamma = 1/2 -> linear acceleration method
+    ///     beta = 1/6, gamma = 1/2 -> linear acceleration method
     /// Method is second order accurate only for gamma = 1/2.
-    void SetGammaBeta(double mgamma, double mbeta);
+    void SetGammaBeta(double gamma_val, double beta_val);
 
     double GetGamma() const { return gamma; }
 
     double GetBeta() const { return beta; }
 
-    /// Enable/disable modified Newton.
-    /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once per step.
-    /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
-    /// Modified Newton iteration is enabled by default.
-    void SetModifiedNewton(bool val) { modified_Newton = val; }
-
-    /// Performs an integration timestep.
-    virtual void Advance(double dt) override;
+    /// Perform an integration step.
+    virtual void OnAdvance(double dt) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -335,14 +336,13 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimeste
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
-    bool modified_Newton;
-
-    double gamma;
-    double beta;
+    double gamma;  ///< Newmark method parameter  0.5 <= gamma <= 1.0
+    double beta;   ///< Newmark method parameter  0.0 <= beta  <= 1.0
 
     ChState Xnew;
     ChStateDelta Vnew;
     ChStateDelta Anew;
+    ChVectorDynamic<> Lnew;
     ChVectorDynamic<> Rold;
 };
 
