@@ -376,11 +376,13 @@ class ChFieldDataScalar : public ChFieldDataGeneric<1> {};
 class ChFieldDataVector : public ChFieldDataGeneric<3> {};
 
 class ChFieldDataTemperature : public ChFieldDataScalar {
+public:
     double& T() { return State()[0]; }
     double& T_dt() { return StateDt()[0]; }
 };
 
 class ChFieldDataElectricPotential : public ChFieldDataScalar {
+public:
     double& V() { return State()[0]; }
     double& V_dt() { return StateDt()[0]; }
 };
