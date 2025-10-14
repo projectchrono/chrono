@@ -28,11 +28,11 @@ using chrono::dem::CHDEM_FRICTION_MODE;
 using chrono::dem::CHDEM_ROLLING_MODE;
 
 // Print a user-given error message and crash
-#define ABORTABORTABORT(...) \
-    {                        \
-        printf(__VA_ARGS__); \
-        __threadfence();     \
-        cub::ThreadTrap();   \
+#define ABORTABORTABORT(...)      \
+    {                             \
+        printf(__VA_ARGS__);      \
+        __threadfence();          \
+        cuda::std::terminate();   \
     }
 
 #define CHDEM_DEBUG_PRINTF(...) printf(__VA_ARGS__)
