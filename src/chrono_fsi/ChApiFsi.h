@@ -53,6 +53,7 @@
           @defgroup fsisph_utils Utilities
           @defgroup fsisph_visualization Visualization
         @}
+        @defgroup fsitdpf TDPF-based FSI module
     @}
 */
 
@@ -66,6 +67,9 @@ namespace fsi {
 
 /// Namespace with internal classes for the SPH-based FSI submodule.
 namespace sph {}
+
+/// Namespace with internal classes for the TDPF-based FSI submodule.
+namespace tdpf {}
 
 }  // namespace fsi
 
