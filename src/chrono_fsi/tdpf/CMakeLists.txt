@@ -4,6 +4,13 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
+cmake_dependent_option(CH_ENABLE_MODULE_FSI_TDPF "Enable the Chrono::TDPF FSI module" ON
+                       "CH_ENABLE_MODULE_FSI" ON)
+
+if(NOT CH_ENABLE_MODULE_FSI_TDPF)
+  return()
+endif()
+
 message(STATUS "TDPF-based Chrono::FSI submodule")
 
 # Return now if Eigen version < 3.3.6
@@ -45,6 +52,18 @@ set(DEPENDENCIES_FSI "")
 set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
+# Generate and install configuration file
+#-----------------------------------------------------------------------------
+
+set(FSITDPF_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_fsi/tdpf/ChFsiConfigTDPF.h)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigTDPF.h.in ${FSITDPF_CONFIG_FILE} @ONLY)
+
+source_group("" FILES ${FSITDPF_CONFIG_FILE})
+
+install(FILES ${FSITDPF_CONFIG_FILE} DESTINATION include/chrono_fsi/tdpf)
+
+#-----------------------------------------------------------------------------
 # Create the Chrono_fsitdpf library
 #-----------------------------------------------------------------------------
 
@@ -52,6 +71,7 @@ message(STATUS "  Add Chrono_fsitdpf library")
 
 add_library(Chrono_fsitdpf
     ${FSITDPF_BASE_FILES}
+    ${FSITDPF_CONFIG_FILE}
 )
 add_library(Chrono::fsitdpf ALIAS Chrono_fsitdpf)
 
@@ -91,13 +111,3 @@ install(TARGETS Chrono_fsitdpf
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
-
-#-----------------------------------------------------------------------------
-# Generate and install configuration file
-#-----------------------------------------------------------------------------
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigTDPF.h.in
-               ${PROJECT_BINARY_DIR}/chrono_fsi/tdpf/ChFsiConfigTDPF.h)
-
-install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/tdpf/ChFsiConfigTDPF.h"
-        DESTINATION include/chrono_fsi/tdpf)

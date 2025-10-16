@@ -1,8 +1,18 @@
 #=============================================================================
-# CMake configuration file for Chrono FSI module
+# CMake configuration file for the Chrono::SPH FSI module
 #
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
+
+cmake_dependent_option(CH_ENABLE_MODULE_FSI_SPH "Enable the Chrono::SPH FSI module" ON
+                       "CH_ENABLE_MODULE_FSI" ON)
+                 
+if(NOT CH_ENABLE_MODULE_FSI_SPH)
+  mark_as_advanced(FORCE CH_USE_SPH_DOUBLE)
+  return()
+else()
+  mark_as_advanced(CLEAR CH_USE_SPH_DOUBLE)
+endif()
 
 message(STATUS "SPH-based Chrono::FSI submodule")
 
@@ -25,12 +35,12 @@ message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 #-----------------------------------------------------------------------------
 
 # Additional options for this module
-option(CH_USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" OFF)
-if(CH_USE_FSI_DOUBLE)
-  set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
+option(CH_USE_SPH_DOUBLE "Compile Chrono::SPH with double precision math" OFF)
+if(CH_USE_SPH_DOUBLE)
+  set(CHRONO_SPH_USE_DOUBLE "#define CHRONO_SPH_USE_DOUBLE")
 endif()
 
-message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
+message(STATUS "  Use double precision? ${CH_USE_SPH_DOUBLE}")
 
 #-----------------------------------------------------------------------------
 
@@ -158,6 +168,18 @@ endif()
 set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
+# Generate and install configuration file
+#-----------------------------------------------------------------------------
+
+set(FSISPH_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigSPH.h.in ${FSISPH_CONFIG_FILE} @ONLY)
+
+source_group("" FILES ${FSISPH_CONFIG_FILE})
+
+install(FILES ${FSISPH_CONFIG_FILE} DESTINATION include/chrono_fsi/sph)
+
+#-----------------------------------------------------------------------------
 # Create the Chrono_fsisph library
 #-----------------------------------------------------------------------------
 
@@ -169,6 +191,7 @@ add_library(Chrono_fsisph
     ${FSISPH_MATH_FILES}
     ${FSISPH_UTILS_FILES}
     ${FSISPH_STB_FILES}
+    ${FSISPH_CONFIG_FILE}
 )
 add_library(Chrono::fsisph ALIAS Chrono_fsisph)
 
@@ -208,16 +231,6 @@ install(TARGETS Chrono_fsisph
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
-
-#-----------------------------------------------------------------------------
-# Generate and install configuration file
-#-----------------------------------------------------------------------------
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigSPH.h.in
-               ${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h)
-
-install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h"
-        DESTINATION include/chrono_fsi/sph)
 
 #-------------------------------------------------------------------------------
 # Add the Chrono_fsisph_vsg library
