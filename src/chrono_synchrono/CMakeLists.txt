@@ -229,11 +229,11 @@ target_link_libraries(Chrono_synchrono PUBLIC MPI::MPI_CXX) # needs PUBLIC
 
 message(STATUS "Synchrono configured with MPI backend")
 
-option(CH_USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
+option(CH_USE_SYNCHRONO_FASTDDS "Enable the FastDDS interface for the SynChrono Module" OFF)
 
 set(FASTDDS_FOUND FALSE)
 
-if (CH_USE_FAST_DDS)
+if (CH_USE_SYNCHRONO_FASTDDS)
 	set(FastDDS_ROOT "" CACHE PATH "Path to FastDDS install directory")
 
 	if (FastDDS_ROOT STREQUAL "")
@@ -280,12 +280,12 @@ if (CH_USE_FAST_DDS)
 	)
 	source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
 	target_sources(Chrono_synchrono PRIVATE ${SYN_COMMUNICATION_FILES})
-	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
+	set(CHRONO_SYNCHRONO_USE_FASTDDS "#define CHRONO_SYNCHRONO_USE_FASTDDS")
 
     message(STATUS "Synchrono configured with FastDDS backend")
 
 else()
-	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
+	set(CHRONO_SYNCHRONO_USE_FASTDDS "#undef CHRONO_SYNCHRONO_USE_FASTDDS")
 	message(STATUS "Synchrono configured without FastDDS backend")
 endif()
 
