@@ -327,6 +327,30 @@ message(STATUS "Shader directory in BUILD tree: ${CH_BUILD_SENSOR_SHADERS}")
 file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
 file(COPY ${Chrono_sensor_RT_HEADERS} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
 
+# ----------------------------------------------------------------------------
+# Generate and install configuration files
+# ----------------------------------------------------------------------------
+
+message(STATUS "Create Chrono::Sensor configuration file")
+
+# For the build tree
+set(Chrono_sensor_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h)
+set(SHADER_DIR ${CH_BUILD_SENSOR_SHADERS})
+message(STATUS "   build tree:   SHADER_DIR = ${SHADER_DIR}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in ${Chrono_sensor_CONFIG_FILE} @ONLY)
+source_group("" FILES ${Chrono_sensor_CONFIG_FILE})
+
+# For the install tree
+set(SHADER_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
+message(STATUS "   install tree: SHADER_DIR = ${SHADER_DIR}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
+    ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h @ONLY)
+
+# Install configuration file
+install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h"
+        RENAME "ChConfigSensor.h"
+        DESTINATION include/chrono_sensor)
+
 #-----------------------------------------------------------------------------
 # Create the Chrono_sensor library
 #-----------------------------------------------------------------------------
@@ -352,8 +376,9 @@ if(CH_USE_TENSOR_RT)
     list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_TENSORRT_HEADERS})
 endif()
 
-add_library(Chrono_sensor ${ALL_CH_SENSOR_FILES}
-                                ${Chrono_sensor_CUDA_SOURCES})
+list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_CONFIG_FILE})
+
+add_library(Chrono_sensor ${ALL_CH_SENSOR_FILES} ${Chrono_sensor_CUDA_SOURCES})
 add_library(Chrono::sensor ALIAS Chrono_sensor)
 
 set_target_properties(Chrono_sensor PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
@@ -504,29 +529,6 @@ endif()
 
 # Install the shaders directory
 install(DIRECTORY ${CH_BUILD_SENSOR_SHADERS}/ DESTINATION ${CH_INSTALL_SENSOR_SHADERS})
-
-# ----------------------------------------------------------------------------
-# Generate and install configuration file
-# ----------------------------------------------------------------------------
-
-message(STATUS "Create Chrono::Sensor configuration file")
-
-# For the build tree
-set(SHADER_DIR ${CH_BUILD_SENSOR_SHADERS})
-message(STATUS "   build tree:   SHADER_DIR = ${SHADER_DIR}")
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
-    ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h)
-
-# For the install tree
-set(SHADER_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
-message(STATUS "   install tree: SHADER_DIR = ${SHADER_DIR}")
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
-    ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h)
-
-# Install configuration file
-install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h"
-        RENAME "ChConfigSensor.h"
-        DESTINATION include/chrono_sensor)
 
 # ------------------------------------------------------------------------------
 # Find optional GL support
