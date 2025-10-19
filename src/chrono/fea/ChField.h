@@ -50,6 +50,17 @@ public:
     virtual unsigned int GetNumFieldCoordsPosLevel() const = 0;
     virtual unsigned int GetNumFieldCoordsVelLevel() const = 0;
 
+    /// Iterator for iterating on ChField nodes (virtual iterator, to be preferred to GetNodeDataPointer() 
+    /// because the latter will be slower if iterating on all nodes, passing through hash map)
+    class IteratorOnNodes {
+    public:
+        virtual ~IteratorOnNodes() = default;
+        virtual std::pair<std::shared_ptr<ChNodeFEAbase>,ChFieldData&> get() = 0;
+        virtual void next() = 0;
+        virtual bool is_end() const = 0;
+    };
+    virtual std::unique_ptr<IteratorOnNodes> CreateIteratorOnNodes() = 0;
+
     unsigned int n_dofs;    ///< total degrees of freedom
     unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 };
@@ -88,6 +99,34 @@ public:
     virtual unsigned int GetNumFieldCoordsPosLevel() const { return T_data_per_node::StaticGetNumCoordsPosLevel(); }
     virtual unsigned int GetNumFieldCoordsVelLevel() const { return T_data_per_node::StaticGetNumCoordsVelLevel(); }
 
+    /// Iterator for iterating on ChField nodes (virtual iterator, to be preferred to GetNodeDataPointer() 
+    /// because the latter will be slower if iterating on all nodes, passing through hash map)
+    class IteratorOnNodes : public ChFieldBase::IteratorOnNodes {
+        using InternalIterator = typename std::unordered_map<std::shared_ptr<ChNodeFEAbase>, T_data_per_node>::iterator;
+        InternalIterator it_;
+        InternalIterator end_;
+    public:
+        IteratorOnNodes(InternalIterator begin, InternalIterator end)
+            : it_(begin), end_(end) {}
+
+        std::pair<std::shared_ptr<ChNodeFEAbase>, ChFieldData&> get() override {
+            ChFieldData& mdata = it_->second;
+            std::shared_ptr<ChNodeFEAbase> mnode = it_->first;
+            return std::pair<std::shared_ptr<ChNodeFEAbase>, ChFieldData&>(mnode, mdata);
+        }
+        void next() override {
+            if (it_ != end_) ++it_;
+        }
+        bool is_end() const override {
+            return it_ == end_;
+        }
+    };
+    std::unique_ptr<ChFieldBase::IteratorOnNodes> CreateIteratorOnNodes() override {
+        return std::make_unique<IteratorOnNodes>(node_data.begin(), node_data.end());
+    }
+
+
+    // Fast, but only if type of ChField<...> is known
 
     T_data_per_node& NodeData(std::shared_ptr<ChNodeFEAbase> node) {
         return node_data[node];
@@ -341,10 +380,15 @@ protected:
 
 
 class ChFieldNONE : public ChField<ChFieldDataNONE> {};
+
 class ChFieldScalar : public ChField<ChFieldDataScalar> {};
+
 class ChFieldVector : public ChField<ChFieldDataVector> {};
+
 class ChFieldTemperature : public ChField<ChFieldDataTemperature> {};
-class ChFieldElectricPotential : public ChFieldScalar {};
+
+class ChFieldElectricPotential : public ChField<ChFieldDataElectricPotential> {};
+
 class ChFieldDisplacement3D : public ChField<ChFieldDataPos3D> {};
 
 
