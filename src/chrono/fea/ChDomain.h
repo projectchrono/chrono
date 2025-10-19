@@ -200,6 +200,40 @@ public:
     virtual int GetNumPerNodeCoordsVelLevel() override { return per_node_coords_vel; }
     virtual int GetNumNodes() override { return num_nodes; }
 
+    virtual int GetNumFields() override { return (int)fields.size(); }
+    virtual std::shared_ptr<ChFieldBase> GetField(int nfield) override { return fields[nfield]; }
+
+    class IteratorOnElements : public ChDomain::IteratorOnElements {
+        using InternalIterator = typename std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement>::iterator;
+        InternalIterator it_;
+        InternalIterator end_;
+    public:
+        IteratorOnElements(InternalIterator begin, InternalIterator end)
+            : it_(begin), end_(end) {}
+
+        std::shared_ptr<ChFieldElement> get_element() override {
+            return it_->first;
+        }
+        ChFeaPerElementDataNONE& get_data_per_element() override {
+            return it_->second.element_data;
+        }
+        ChFieldData& get_data_per_matpoint(unsigned int i_matpoint) override {
+            return it_->second.matpoints_data[i_matpoint];
+        }     
+        ChFieldData& get_data_per_node(unsigned int i_node, unsigned int i_field) override {
+            return *it_->second.nodes_data[i_node][i_field];
+        }
+        void next() override {
+            if (it_ != end_) ++it_;
+        }
+        bool is_end() const override {
+            return it_ == end_;
+        }
+    };
+    std::unique_ptr<ChDomain::IteratorOnElements> CreateIteratorOnElements() override {
+        return std::make_unique<IteratorOnElements>(element_datamap.begin(), element_datamap.end());
+    }
+
     virtual void GetStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S) override {
         auto& elementdata = this->ElementData(melement);
         S.resize(this->GetNumPerNodeCoordsPosLevel()*melement->GetNumNodes());
