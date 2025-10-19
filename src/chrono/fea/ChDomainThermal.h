@@ -17,14 +17,22 @@
 
 #include "chrono/fea/ChDomain.h"
 #include "chrono/fea/ChMaterial3DThermal.h"
+#include "chrono/fea/ChVisualDataExtractor.h"
 
 namespace chrono {
 namespace fea {
 
+
 /// @addtogroup chrono_fea
 /// @{
 
-
+/// Auxiliary data stored per each material point during the ChDomainThermal
+/// computation. This can be plotted in postprocessing, etc. 
+template <typename Base>
+class ChAuxiliaryDataMatpointThermal : public Base {
+public:
+    ChVector3d q_flux;  /// heat flux 
+};
 
 /// Domain for FEA thermal analysis. It is based on a scalar temperature field,
 /// that is ChFieldTemperature.
@@ -33,11 +41,19 @@ namespace fea {
 
 class ChDomainThermal : public ChDomainImpl<
     std::tuple<ChFieldTemperature>,
-    ChFieldDataNONE,
+    ChAuxiliaryDataMatpointThermal<ChFieldDataNONE>,
     ChFeaPerElementDataKRM> {
 public:
+
+    using Base = ChDomainImpl<
+        std::tuple<ChFieldTemperature>,
+        ChAuxiliaryDataMatpointThermal<ChFieldDataNONE>,
+        ChFeaPerElementDataKRM
+    >;
+    using DataPerElement = typename Base::DataPerElement;
+
     ChDomainThermal(std::shared_ptr<ChFieldTemperature> mfield) 
-        : ChDomainImpl(mfield)
+        : Base(mfield)
     {
         // attach a default material to simplify user side
         material = chrono_types::make_shared<ChMaterial3DThermal>();
@@ -49,7 +65,7 @@ public:
     
     // INTERFACES
 
-    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting, 
+    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting "...* w * |J|", 
     /// and *ADD* the s-scaled result to Fi vector.
     virtual void PointComputeInternalLoads( std::shared_ptr<ChFieldElement> melement, 
                                             DataPerElement& data, 
@@ -64,12 +80,24 @@ public:
         ChRowVectorDynamic<> N;
         melement->ComputedNdX(eta, dNdX);
         melement->ComputeN(eta, N);
-        // B = dNdX // in the lucky case of thermal problem, no need to build B because B is simply dNdX
+        // B = dNdX // lucky case of thermal problem: no need to build B in \nabla_x T(x) = B * T_h because B is simply dNdX
 
-        // We have:  Fi = - K * T;
-        // where      K = sum (dNdX' * k * dNdX * w * |J|)
-        // so we compute  Fi += -(dNdX' * k * dNdX * T) * s
-        Fi += -(dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX) * T * s;
+        // We have:  Fi_tot = sum (dNdX' * q_flux * w * |J|) * s 
+        //    with   q_flux = - k * \nabla_x T(x)  
+        //                  = - k * dNdX * T
+        //    also   Fi_tot = - K * T * s;
+        //    with        K = sum (dNdX' * k * dNdX * w * |J|)
+        // We need to return   Fi in   Fi_tot = sum (Fi * w * |J|) 
+        // 
+        // so we compute  Fi += -(dNdX' * k * dNdX * T) * s    
+        //           or   Fi += dNdX' * q_flux * s
+        
+        ChVector3d q_flux = -this->material->GetConductivityMatrix() * dNdX * T;  //  = - k * \nabla_x T(x)  
+        
+        Fi += dNdX.transpose() * q_flux.eigen() * s;   // += dNdX' * q_flux * s
+
+        // Store auxiliary data in material point data (ex. for postprocessing)
+        data.matpoints_data[i_point].q_flux = q_flux;
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
@@ -112,7 +140,18 @@ public:
     }
 
 
+    /// Extractors for drawing stuff in postprocessors/visualization:
+
+    using T_matpoint = typename ChAuxiliaryDataMatpointThermal<ChFieldDataNONE>;
+
+    class ChVisualDataExtractorHeatFlux : public ChVisualDataExtractorVector<T_matpoint> {
+        virtual ChVector3d ExtractImpl(const T_matpoint* fdata)  const override {
+            return const_cast<T_matpoint*>(fdata)->q_flux;
+        }
+    };
+    
 };
+
 
 
 /// @} chrono_fea
