@@ -109,15 +109,38 @@ public:
     virtual void RemoveElement(std::shared_ptr<ChFieldElement> melement) = 0;
     virtual bool IsElementAdded(std::shared_ptr<ChFieldElement> melement) = 0;
 
-    // This rewires all pointers and correctly set up the element_datamap
+    /// This rewires all pointers and correctly set up the element_datamap
     virtual bool InitialSetup() = 0;  //***TODO*** check if better merge into ChPhysicsItem::SetupInitial() 
 
-    // Get the total coordinates per each node (summing the dofs per each field) 
+    /// Get the total coordinates per each node (summing the dofs per each field) 
     virtual int GetNumPerNodeCoordsPosLevel() = 0;
-    // Get the total coordinates per each node (summing the dofs per each field) 
+    /// Get the total coordinates per each node (summing the dofs per each field) 
     virtual int GetNumPerNodeCoordsVelLevel() { return GetNumPerNodeCoordsPosLevel(); }
-    // Get the total number of nodes affected by this domain (some could be shared with other domains)
+    /// Get the total number of nodes affected by this domain (some could be shared with other domains)
     virtual int GetNumNodes() = 0;
+
+    /// Get the number of fields used by this domain
+    virtual int GetNumFields() = 0;
+    /// Get the n-th field
+    virtual std::shared_ptr<ChFieldBase> GetField(int nfield) = 0;
+
+    /// Iterator for iterating on ChDomain finite elements (virtual iterator). Also, as a bonus,
+    /// it can return reference to the per-element data, per-materialpoint data, and shortcut
+    /// references to per-node data for the referenced nodes; all those data retrieved as base classes, 
+    /// so you may need downcasting. This data can be also obtained through the 
+    /// ElementData(std::shared_ptr<ChFieldElement> melement) function, that does not require downcasting, 
+    /// but such function is not available here in ChDomain base class. 
+    class IteratorOnElements {
+    public:
+        virtual ~IteratorOnElements() = default;
+        virtual std::shared_ptr<ChFieldElement> get_element() = 0;
+        virtual ChFeaPerElementDataNONE& get_data_per_element() = 0;
+        virtual ChFieldData& get_data_per_matpoint(unsigned int i_matpoint) = 0;
+        virtual ChFieldData& get_data_per_node(unsigned int i_node, unsigned int i_field) = 0;
+        virtual void next() = 0;
+        virtual bool is_end() const = 0;
+    };
+    virtual std::unique_ptr<IteratorOnElements> CreateIteratorOnElements() = 0;
 
     /// Fills the S vector with the current field states S_i at the nodes of the element, with proper ordering.
     /// If the S vector size is not the proper size, it will be resized.
@@ -177,6 +200,7 @@ public:
     DataPerElement& ElementData(std::shared_ptr<ChFieldElement> melement) {
         return element_datamap[melement];
     }
+
 
     // INTERFACE to ChDomain
     //
@@ -267,8 +291,8 @@ public:
                                             DataPerElement& data, 
                                             ChVectorDynamic<>& Fi
     ) {
-        int quadorder = melement->GetMinQuadratureOrder();
-        int numpoints = melement->GetNumQuadraturePoints(quadorder);
+        int quadorder = melement->GetQuadratureOrder();
+        int numpoints = melement->GetNumQuadraturePoints();
         int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
         Fi.setZero(numelcoords);
         ChMatrix33<> J;
@@ -291,8 +315,8 @@ public:
                                             double Rfactor = 0,
                                             double Mfactor = 0
     ) {
-        int quadorder = melement->GetMinQuadratureOrder();
-        int numpoints = melement->GetNumQuadraturePoints(quadorder);
+        int quadorder = melement->GetQuadratureOrder();
+        int numpoints = melement->GetNumQuadraturePoints();
         H.setZero(); // should be already of proper size
         ChMatrix33<> J;
         ChVector3d eta;
@@ -346,8 +370,7 @@ public:
     /// It falls back to calling PointUpdateEndStep per each material point.
     virtual void ElementUpdateEndStep(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, double time
     ) {
-        int quadorder = melement->GetMinQuadratureOrder();
-        int numpoints = melement->GetNumQuadraturePoints(quadorder);
+        int numpoints = melement->GetNumQuadraturePoints();
         for (int i_point = 0; i_point < numpoints; ++i_point) {
             PointUpdateEndStep(melement,
                 data, i_point, time);
@@ -781,7 +804,7 @@ public:
 
 private:
     void AddElement_impl(std::shared_ptr<ChFieldElement> melement) {
-        element_datamap.insert(std::make_pair(melement, DataPerElement(melement->GetMinQuadratureOrder(), melement->GetNumNodes())));
+        element_datamap.insert(std::make_pair(melement, DataPerElement(melement->GetNumQuadraturePoints(), melement->GetNumNodes())));
     }
 
     void RemoveElement_impl(std::shared_ptr<ChFieldElement> melement) {
@@ -814,7 +837,7 @@ private:
                 mel.second.matpoints_data.resize(0); // optimization to avoid wasting memory if domain falls back to ChFieldNONE
             }
             else {
-                mel.second.matpoints_data.resize(mel.first->GetMinQuadratureOrder());
+                mel.second.matpoints_data.resize(mel.first->GetNumQuadraturePoints());
             }
              
 
