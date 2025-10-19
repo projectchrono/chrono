@@ -14,7 +14,7 @@
 
 #include <cmath>
 
-#include "chrono/fea/ChFieldElementTetrahedron_4.h"
+#include "chrono/fea/ChFieldElementTetrahedron4.h"
 #include "chrono/fea/ChNodeFEAfieldXYZ.h"
 
 namespace chrono {
@@ -27,7 +27,7 @@ namespace fea {
 
     /// Set the nodes used by this tetrahedron.
 
-    void ChFieldElementTetrahedron_4::SetNodes(std::shared_ptr<ChNodeFEAfieldXYZ> nodeA, std::shared_ptr<ChNodeFEAfieldXYZ> nodeB, std::shared_ptr<ChNodeFEAfieldXYZ> nodeC, std::shared_ptr<ChNodeFEAfieldXYZ> nodeD) {
+    void ChFieldElementTetrahedron4::SetNodes(std::shared_ptr<ChNodeFEAfieldXYZ> nodeA, std::shared_ptr<ChNodeFEAfieldXYZ> nodeB, std::shared_ptr<ChNodeFEAfieldXYZ> nodeC, std::shared_ptr<ChNodeFEAfieldXYZ> nodeD) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
         nodes[2] = nodeC;
@@ -39,11 +39,11 @@ namespace fea {
 
     /// Access the nth node.
 
-    inline std::shared_ptr<ChNodeFEAbase> ChFieldElementTetrahedron_4::GetNode(unsigned int n) {
+    inline std::shared_ptr<ChNodeFEAbase> ChFieldElementTetrahedron4::GetNode(unsigned int n) {
         return nodes[n];
     }
 
-    inline void ChFieldElementTetrahedron_4::ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) {
+    inline void ChFieldElementTetrahedron4::ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) {
         N.resize(GetNumNodes());
         N[0] = eta[0];
         N[1] = eta[1];
@@ -54,7 +54,7 @@ namespace fea {
     // Compute shape function material derivatives dN/d\eta at eta parametric coordinates.
     // Write shape functions dN_j(\eta)/d\eta_i in dNde, a matrix with 4 columns, and 3 rows. 
 
-    inline void ChFieldElementTetrahedron_4::ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) {
+    inline void ChFieldElementTetrahedron4::ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) {
         dNde.setZero(GetManifoldDimensions(), GetNumNodes());
         dNde(0, 0) = 1.0;
         dNde(1, 1) = 1.0;
@@ -68,7 +68,7 @@ namespace fea {
     // Write shape functions dN_j(eta)/dX_i in dNdX, a matrix with 4 columns, and 3 rows.
     // Instead of falling back to default dNdX = J^{-T} * dNde; for lin tetrahedron we know the ad-hoc expression:
 
-    inline void ChFieldElementTetrahedron_4::ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) {
+    inline void ChFieldElementTetrahedron4::ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) {
         dNdX.resize(3, 4);
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
@@ -88,7 +88,7 @@ namespace fea {
 
     // Compute Jacobian J, and returns its determinant. J is square 3x3
 
-    double ChFieldElementTetrahedron_4::ComputeJ(const ChVector3d eta, ChMatrix33d& J) {
+    double ChFieldElementTetrahedron4::ComputeJ(const ChVector3d eta, ChMatrix33d& J) {
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
         ChVector3d x34 = *this->nodes[2] - *this->nodes[3];
@@ -100,7 +100,7 @@ namespace fea {
 
     // Compute Jacobian Jinv, and returns its determinant. Jinv is square 3x3
 
-    double ChFieldElementTetrahedron_4::ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) {
+    double ChFieldElementTetrahedron4::ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) {
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
         ChVector3d x34 = *this->nodes[2] - *this->nodes[3];
@@ -114,14 +114,14 @@ namespace fea {
 
     // Tell how many Gauss points are needed for integration
 
-    inline int ChFieldElementTetrahedron_4::GetNumQuadraturePoints(const int order) const {
+    inline int ChFieldElementTetrahedron4::GetNumQuadraturePointsForOrder(const int order) const {
         if (order == 1)
             return 1; // shortcut
         ChQuadratureTablesTetrahedron* mtables = ChQuadrature::GetStaticTablesTetrahedron();
         return (int)(mtables->Weight[order - 1].size());
     }
 
-    inline void ChFieldElementTetrahedron_4::GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const {
+    inline void ChFieldElementTetrahedron4::GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const {
         if (order == 1) {
             coords.Set(0.25);
             weight = CH_1_6;
