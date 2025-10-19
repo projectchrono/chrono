@@ -16,11 +16,11 @@
 //
 // =============================================================================
 
-#include <optional>
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChElementTetraCorot_10.h"
@@ -36,8 +36,10 @@
 #include "chrono/fea/ChDomainDeformation.h"
 #include "chrono/fea/ChDomainThermal.h"
 #include "chrono/fea/ChDomainThermoDeformation.h"
-#include "chrono/fea/ChFieldElementHexahedron_8.h"
-#include "chrono/fea/ChFieldElementTetrahedron_4.h"
+#include "chrono/fea/ChVisualDataExtractor.h"
+#include "chrono/fea/ChFieldElementHexahedron8.h"
+#include "chrono/fea/ChFieldElementHexahedron8Loaders.h"
+#include "chrono/fea/ChFieldElementTetrahedron4.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkLockTrajectory.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -49,213 +51,73 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 using namespace chrono;
 using namespace chrono::fea;
 
-class ChVisualFieldDataExtractor {
-    virtual bool IsDataCompatible(ChFieldData* field) = 0;
-};
+/// Heat flux, per unit of surface.
+/// Use this for applying a heat flux load on the surface of finite elements, as a
+/// per-volume scalar flux for thermal analysis.
 
-template <class T_field_data>
-class ChVisualFieldDataExtractorImpl : public ChVisualFieldDataExtractor {
-    virtual bool IsDataCompatible(ChFieldData* fdata) override {
-        if (auto mfdata = dynamic_cast<T_field_data*>(fdata))
-            return true;
-        else
-            return false;
-    }
-};
-
-class ChVisualFieldDataExtractorScalarBase {
+class ChLoaderHeatFlux : public ChLoaderUVdistributed {
 public:
-    std::optional<double> virtual operator()(ChFieldData* data) const = 0;
-};
+    ChLoaderHeatFlux(std::shared_ptr<ChLoadableUV> mloadable)
+        : ChLoaderUVdistributed(mloadable), m_heat_flux(0), num_integration_points(1) {}
 
-class ChVisualFieldDataExtractorVectorBase {
-public:
-    std::optional<ChVector3d> virtual operator()(ChFieldData* data) const = 0;
-};
-
-class ChVisualFieldDataExtractorTensorBase {
-public:
-    std::optional<ChMatrix33d> virtual operator()(ChFieldData* data) const = 0;
-};
-
-class ChVisualFieldDataExtractorQuaternionBase {
-public:
-    std::optional<ChQuaternion<double>> virtual operator()(ChFieldData* data) const = 0;
-};
-
-
-template <class T_field_data>
-class ChVisualFieldDataExtractorScalar : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorScalarBase {
-public: 
-    std::optional<double> operator()(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->Extract(typed_data);
-        }
-        return std::nullopt;
+    virtual void ComputeF(double U,              ///< parametric coordinate in surface
+        double V,              ///< parametric coordinate in surface
+        ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+        ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
+        ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
+    ) override {
+        F(0) = m_heat_flux;
     }
-    virtual double Extract(const T_field_data* fdata) const = 0;
-};
 
-template <class T_field_data>
-class ChVisualFieldDataExtractorVector : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorVectorBase {
-public: 
-    std::optional<ChVector3d> operator()(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->Extract(typed_data);
-        }
-        return std::nullopt;
-    }
-    virtual ChVector3d Extract(const T_field_data* fdata) const = 0;
-};
-
-template <class T_field_data>
-class ChVisualFieldDataExtractorTensor : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorTensorBase {
-public:
-    std::optional<ChMatrix33d> operator()(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->Extract(typed_data);
-        }
-        return std::nullopt;
-    }
-    virtual ChMatrix33d Extract(const T_field_data* fdata) const = 0;
-};
-
-template <class T_field_data>
-class ChVisualFieldDataExtractorQuaternion : public ChVisualFieldDataExtractorImpl<T_field_data>, public ChVisualFieldDataExtractorQuaternionBase {
-public:
-    std::optional<ChQuaternion<double>> operator()(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->Extract(typed_data);
-        }
-        return std::nullopt;
-    }
-    virtual ChQuaternion<double> Extract(const T_field_data* fdata) const = 0;
-};
-
-class ChVisualFieldDataExtractorVectorComponent : public ChVisualFieldDataExtractorScalarBase {
-public:
-    ChVisualFieldDataExtractorVectorComponent(std::shared_ptr<ChVisualFieldDataExtractorVectorBase> mvector_extractor, int n_component) : 
-        vector_extractor(mvector_extractor), 
-        id_component(n_component)
-    {};
-    std::optional<double> operator()(ChFieldData* data) const override {
-        if (auto retv = vector_extractor->operator()(data)) {
-            if (id_component ==0)
-                return retv.value().x();
-            if (id_component == 1)
-                return retv.value().y();
-            if (id_component == 2)
-                return retv.value().z();
-        }
-        return std::nullopt;
-    }
-    int id_component; // 0=x, 1=y, 2=z;
-    std::shared_ptr<ChVisualFieldDataExtractorVectorBase> vector_extractor;
-};
-
-
-
-
-class ChVisualFieldDataExtractorPos : public ChVisualFieldDataExtractorVector<ChFieldDataPos3D> {
-    virtual ChVector3d Extract(const ChFieldDataPos3D* fdata)  const override {
-        return fdata->GetPos();
-    }
-};
-class ChVisualFieldDataExtractorPosDt : public ChVisualFieldDataExtractorVector<ChFieldDataPos3D> {
-    virtual ChVector3d Extract(const ChFieldDataPos3D* fdata)  const override {
-        return fdata->GetPosDt();
-    }
-};
-class ChVisualFieldDataExtractorPosDtDt : public ChVisualFieldDataExtractorVector<ChFieldDataPos3D> {
-    virtual ChVector3d Extract(const ChFieldDataPos3D* fdata)  const override {
-        return fdata->GetPosDt2();
-    }
-};
-class ChVisualFieldDataExtractorTemperature : public ChVisualFieldDataExtractorScalar<ChFieldDataTemperature> {
-    virtual double Extract(const ChFieldDataTemperature* fdata)  const override {
-        return const_cast<ChFieldDataTemperature*>(fdata)->T();
-    }
-};
-class ChVisualFieldDataExtractorTemperatureDt : public ChVisualFieldDataExtractorScalar<ChFieldDataTemperature> {
-    virtual double Extract(const ChFieldDataTemperature* fdata)  const override {
-        return const_cast<ChFieldDataTemperature*>(fdata)->T_dt();
-    }
-};
-
-class ChVisualFea : public ChGlyphs {
-public:
-    ChVisualFea(std::shared_ptr<ChFieldDisplacement3D> afield) : mfield(afield) {
-        is_mutable = true;     
-    }
-    virtual ~ChVisualFea() {}
+    /// Set the heat flux applied to UV surface, as [W/m^2]
+    void SetSurfaceHeatFlux(double heat_flux) { m_heat_flux = heat_flux; }
     
+    /// Get the heat flux applied to UV surface, as [W/m^2]
+    double GetSurfaceHeatFlux() { return m_heat_flux; }
 
-    // Attach property extractor. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
-    void AddPropertyExtractor(std::shared_ptr<ChVisualFieldDataExtractorScalarBase> mextractor, double min = 0, double max = 1, std::string mname = "Scalar") {
-        auto T_property = new ChPropertyScalar;
-        T_property->min = min;
-        T_property->max = max;
-        T_property->name = mname;
-        this->extractors_scalar_properties.push_back( {mextractor, T_property} ) ;
-        this->m_properties.push_back(T_property);
-    }
-    // Attach property extractor. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
-    void AddPropertyExtractor(std::shared_ptr<ChVisualFieldDataExtractorVectorBase> mextractor, double min = 0, double max = 1, std::string mname = "Vect") {
-        auto T_property = new ChPropertyVector;
-        T_property->min = min;
-        T_property->max = max;
-        T_property->name = mname;
-        this->extractors_vector_properties.push_back({ mextractor, T_property });
-        this->m_properties.push_back(T_property);
-    }
-    // Set the extractor that gets the 3D position where to draw the glyph (ex. node spatial coords, 
-    // for nonlinear deformation analysis). If not set, by default the drawing system will fall 
-    // back to the 3D position of the node (material space reference coords). 
-    void AddPositionExtractor(std::shared_ptr<ChVisualFieldDataExtractorVectorBase> mextractor) {
-        extractor_position = mextractor;
-    }
+    void SetIntegrationPoints(int val) { num_integration_points = val; }
+    virtual int GetIntegrationPointsU() override { return num_integration_points; }
+    virtual int GetIntegrationPointsV() override { return num_integration_points; }
 
-protected:
-    
-    virtual void Update(ChObj* updater, const ChFrame<>& frame) override {
-        if (!mfield)
-            return;
-        this->Reserve(mfield->GetNumNodes());
+private:
+    double m_heat_flux;
+    int num_integration_points;
+};
 
-        auto mcolor = this->GetColor();
-        unsigned int i = 0;
-        for (auto& anode : mfield->GetNodeDataMap()) {
-            if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(anode.first)) {
-                ChVector3d mpos = *nodexyz; // default node pos: the reference pos
-                if (extractor_position)
-                    if (auto fetched_pos = (*extractor_position)(&anode.second))
-                        mpos = fetched_pos.value();
-                for (auto& mfetch_s : extractors_scalar_properties)
-                    if (auto fetched_s = (*mfetch_s.first)(&anode.second))
-                        mfetch_s.second->data[i] = fetched_s.value();
-                for (auto& mfetch_v : extractors_vector_properties)
-                    if (auto fetched_v = (*mfetch_v.first)(&anode.second))
-                        mfetch_v.second->data[i] = fetched_v.value();
 
-                if (extractors_scalar_properties.size()) {
-                    mcolor = colormap.Get(extractors_scalar_properties[0].second->data[i], extractors_scalar_properties[0].second->min, extractors_scalar_properties[0].second->max);
-                }
-                else if (extractors_vector_properties.size()) {
-                    mcolor = colormap.Get(extractors_vector_properties[0].second->data[i].Length(), extractors_vector_properties[0].second->min, extractors_vector_properties[0].second->max);
-                }
-                this->SetGlyphPoint(i, mpos, mcolor);
-            }
-            ++i;
-        }
+/// Heat flux, per unit of volume. 
+/// Use this for applying a heat flux load on the surface of finite elements, as a
+/// per-volume scalar flux for thermal analysis.
+
+class ChLoaderHeatVolumetric : public ChLoaderUVWdistributed {
+public:
+    ChLoaderHeatVolumetric(std::shared_ptr<ChLoadableUVW> mloadable)
+        : ChLoaderUVWdistributed(mloadable), m_heat_flux(0), num_integration_points(1) {}
+
+    virtual void ComputeF(double U,              ///< parametric coordinate in surface
+        double V,              ///< parametric coordinate in surface
+        double W,              ///< parametric coordinate in surface
+        ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+        ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
+        ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
+    ) override {
+        F(0) = m_heat_flux;
     }
 
-    std::shared_ptr<ChVisualFieldDataExtractorVectorBase> extractor_position;
-    std::vector<std::pair<std::shared_ptr<ChVisualFieldDataExtractorScalarBase>, ChPropertyScalar*> > extractors_scalar_properties;
-    std::vector<std::pair<std::shared_ptr<ChVisualFieldDataExtractorVectorBase>, ChPropertyVector*> > extractors_vector_properties;
+    /// Set the heat flux applied to UVW volume, as [W/m^3]
+    void SetVolumeHeatFlux(double heat_flux) { m_heat_flux = heat_flux; }
 
-    std::shared_ptr<ChFieldDisplacement3D> mfield;
+    /// Get the heat flux applied to UVW volume, as [W/m^3]
+    double GetVolumeHeatFlux() { return m_heat_flux; }
 
-    ChColormap colormap;
+    void SetIntegrationPoints(int val) { num_integration_points = val; }
+    virtual int GetIntegrationPointsU() override { return num_integration_points; }
+    virtual int GetIntegrationPointsV() override { return num_integration_points; }
+    virtual int GetIntegrationPointsW() override { return num_integration_points; }
+
+private:
+    double m_heat_flux;
+    int num_integration_points;
 };
 
 
@@ -298,7 +160,7 @@ int main(int argc, char* argv[]) {
 
 
 
-        auto tetrahedron1 = chrono_types::make_shared <ChFieldElementTetrahedron_4>();
+        auto tetrahedron1 = chrono_types::make_shared <ChFieldElementTetrahedron4>();
         tetrahedron1->SetNodes(mnode1, mnode2, mnode3, mnode4);
 
 
@@ -376,7 +238,7 @@ int main(int argc, char* argv[]) {
     //  thermal_domain->ElementData(tetrahedron1).nodes_data.size(); // ..  this would fail if no InitialSetup(
 
 
-    if (true) {
+    if (false) {
 
         // Create a Chrono physical system
         ChSystemNSC sys;
@@ -404,10 +266,10 @@ int main(int argc, char* argv[]) {
         class Ch3DArrayOfHexa {
             size_t n, m, k;
         public:
-            std::vector<std::shared_ptr<ChFieldElementHexahedron_8>> data;
+            std::vector<std::shared_ptr<ChFieldElementHexahedron8>> data;
             Ch3DArrayOfHexa(size_t n_, size_t m_, size_t k_)
                 : n(n_), m(m_), k(k_), data(n_* m_* k_) {}
-            std::shared_ptr<ChFieldElementHexahedron_8>& at(size_t i, size_t j, size_t l) {
+            std::shared_ptr<ChFieldElementHexahedron8>& at(size_t i, size_t j, size_t l) {
                 return data[i * m * k + j * k + l];
             }
         };
@@ -434,7 +296,7 @@ int main(int argc, char* argv[]) {
                     displacement_field->NodeData(mnode).SetPos(mypos); // initial position = ref position
                     mnodes.at(i_x, i_y, i_z) = mnode;
                     if (i_x > 0 && i_y > 0 && i_z > 0) {
-                        auto hexa = chrono_types::make_shared <ChFieldElementHexahedron_8>();
+                        auto hexa = chrono_types::make_shared <ChFieldElementHexahedron8>();
                         hexa->SetNodes({ mnodes.at(i_x - 1, i_y - 1, i_z - 1),
                                          mnodes.at(i_x  , i_y - 1, i_z - 1),
                                          mnodes.at(i_x  , i_y  , i_z - 1),
@@ -462,14 +324,208 @@ int main(int argc, char* argv[]) {
         // Needed to setup all data and pointers
         elastic_domain->InitialSetup();
 
-        auto visual_nodes = chrono_types::make_shared<ChVisualFea>(displacement_field);
+        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(elastic_domain);
         visual_nodes->SetGlyphsSize(0.1);
-        visual_nodes->AddPositionExtractor(chrono_types::make_shared<ChVisualFieldDataExtractorPos>());
-        visual_nodes->AddPropertyExtractor(chrono_types::make_shared<ChVisualFieldDataExtractorPosDt>());
-        visual_nodes->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+        visual_nodes->AddPositionExtractor(chrono_types::make_shared<ChVisualDataExtractorPos>());
+        visual_nodes->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorPosDt>(), 0.0, 2.0, "Vel");
+        visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
         floor->AddVisualShape(visual_nodes);
 
+        auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(elastic_domain);
+        visual_mesh->AddPositionExtractor(chrono_types::make_shared<ChVisualDataExtractorPos>());
+        visual_mesh->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorPosDt>(), 0.0, 2.0, "Vel");
+        visual_mesh->SetColormap(ChColor(0, 1, 0));
+        //visual_mesh->SetWireframe(true);
+        floor->AddVisualShape(visual_mesh);
 
+        // Create the Irrlicht visualization system
+        auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+        vis->AttachSystem(&sys);
+        vis->SetWindowSize(800, 600);
+        vis->SetWindowTitle("Test FEA");
+        vis->Initialize();
+        vis->AddLogo();
+        vis->AddSkyBox();
+        vis->AddCamera(ChVector3d(0, 4, -6));
+        vis->AddTypicalLights();
+        
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+        mkl_solver->LockSparsityPattern(true);
+        sys.SetSolver(mkl_solver);
+
+        displacement_field->NodeData(mnodes.at(0, 0, 0)).SetFixed(true);
+        displacement_field->NodeData(mnodes.at(0, 1, 0)).SetFixed(true);
+        displacement_field->NodeData(mnodes.at(0, 0, 1)).SetFixed(true);
+        displacement_field->NodeData(mnodes.at(0, 1, 1)).SetFixed(true);
+
+        displacement_field->NodeData(mnodes.at(4, 0, 0)).SetLoad(ChVector3d(0,1000,0));
+        displacement_field->NodeData(mnodes.at(1, 1, 0)).SetPos(displacement_field->NodeData(mnodes.at(1, 1, 0)).GetPos() + ChVector3d(0, 0.1, 0));
+        displacement_field->NodeData(mnodes.at(1, 1, 1)).SetPos(displacement_field->NodeData(mnodes.at(1, 1, 1)).GetPos() + ChVector3d(0, 0, 0));
+
+        //displacement_field->NodeData(mnodes.at(0, 0, 0)).SetPos(displacement_field->NodeData(mnodes.at(0, 0, 0)).GetPos() + ChVector3d(0.05, 0, 0));
+        //displacement_field->NodeData(mnodes.at(0, 0, 1)).SetPos(displacement_field->NodeData(mnodes.at(0, 0, 1)).GetPos() + ChVector3d(0.05, 0, 0));
+
+        sys.Add(elastic_domain);
+        sys.Add(displacement_field);
+
+        // Simulation loop
+        double timestep = 0.01;
+
+        while (vis->Run()) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+
+            sys.DoStepDynamics(timestep);
+        }
+
+    }
+
+
+    if (true) {
+
+        // Create a Chrono physical system
+        ChSystemNSC sys;
+
+        auto floor = chrono_types::make_shared<ChBody>();
+        floor->SetFixed(true);
+        sys.Add(floor);
+
+        class Ch3DArrayOfNodes {
+            size_t n, m, k;
+        public:
+            std::vector<std::shared_ptr<ChNodeFEAfieldXYZ>> data;
+            Ch3DArrayOfNodes(size_t n_, size_t m_, size_t k_)
+                : n(n_), m(m_), k(k_), data(n_* m_* k_) {}
+            std::shared_ptr<ChNodeFEAfieldXYZ>& at(size_t i, size_t j, size_t l) {
+                return data[i * m * k + j * k + l];
+            }
+        };
+        class Ch3DArrayOfHexa {
+            size_t n, m, k;
+        public:
+            std::vector<std::shared_ptr<ChFieldElementHexahedron8>> data;
+            Ch3DArrayOfHexa(size_t n_, size_t m_, size_t k_)
+                : n(n_), m(m_), k(k_), data(n_* m_* k_) {}
+            std::shared_ptr<ChFieldElementHexahedron8>& at(size_t i, size_t j, size_t l) {
+                return data[i * m * k + j * k + l];
+            }
+        };
+
+        int nlayers_x = 5;
+        int nlayers_y = 1;
+        int nlayers_z = 5;
+        double W_x = 3;
+        double W_y = 0.5;
+        double W_z = 3;
+
+        Ch3DArrayOfNodes mnodes(nlayers_x + 1, nlayers_y + 1, nlayers_z + 1);
+        Ch3DArrayOfHexa  melements(nlayers_x, nlayers_y, nlayers_z);
+
+        auto temperature_field = chrono_types::make_shared <ChFieldTemperature>();
+
+        for (int i_z = 0; i_z <= nlayers_z; ++i_z) {
+            for (int i_y = 0; i_y <= nlayers_y; ++i_y) {
+                for (int i_x = 0; i_x <= nlayers_x; ++i_x) {
+                    ChVector3d mypos((W_x / nlayers_x) * i_x, (W_y / nlayers_y) * i_y, (W_z / nlayers_z) * i_z);
+                    auto mnode = chrono_types::make_shared<ChNodeFEAfieldXYZ>();
+                    mnode->Set(mypos);
+                    temperature_field->AddNode(mnode);
+                    mnodes.at(i_x, i_y, i_z) = mnode;
+                    if (i_x > 0 && i_y > 0 && i_z > 0) {
+                        auto hexa = chrono_types::make_shared <ChFieldElementHexahedron8>();
+                        hexa->SetNodes({ mnodes.at(i_x - 1, i_y - 1, i_z - 1),
+                                         mnodes.at(i_x  , i_y - 1, i_z - 1),
+                                         mnodes.at(i_x  , i_y  , i_z - 1),
+                                         mnodes.at(i_x - 1, i_y  , i_z - 1),
+                                         mnodes.at(i_x - 1, i_y - 1, i_z),
+                                         mnodes.at(i_x  , i_y - 1, i_z),
+                                         mnodes.at(i_x  , i_y  , i_z),
+                                         mnodes.at(i_x - 1, i_y  , i_z)
+                            });
+                        melements.at(i_x - 1, i_y - 1, i_z - 1) = hexa;
+                    }
+                }
+            }
+        }
+        auto thermal_domain = chrono_types::make_shared <ChDomainThermal>(temperature_field);
+        for (auto& created_element : melements.data)
+            thermal_domain->AddElement(created_element);
+
+        auto thermal_material = chrono_types::make_shared<ChMaterial3DThermal>();
+        thermal_domain->material = thermal_material;
+        thermal_material->SetDensity(1000);
+        thermal_material->SetSpecificHeatCapacity(1.11);
+        thermal_material->SetThermalConductivity(0.16);
+
+ 
+
+        // EXAMPLE INITIAL CONDITIONS (initial temperature of some nodes)
+
+        temperature_field->NodeData(mnodes.at(0, 0, 4)).T() = 100;
+        temperature_field->NodeData(mnodes.at(0, 1, 4)).T() = 100;
+
+        // EXAMPLE DIRICHLET CONDITIONS (fixed temperature of some nodes)
+
+        temperature_field->NodeData(mnodes.at(0, 0, 0)).SetFixed(true);
+        temperature_field->NodeData(mnodes.at(0, 0, 0)).T() = 30;
+        temperature_field->NodeData(mnodes.at(0, 1, 0)).SetFixed(true);
+        temperature_field->NodeData(mnodes.at(0, 1, 0)).T() = 20;
+        temperature_field->NodeData(mnodes.at(0, 0, 1)).SetFixed(true);
+        temperature_field->NodeData(mnodes.at(0, 0, 1)).T() = 30;
+        temperature_field->NodeData(mnodes.at(0, 1, 1)).SetFixed(true);
+        temperature_field->NodeData(mnodes.at(0, 1, 1)).T() = 30;        
+        
+        // APPLY SOME LOADS
+
+        // First: loads must be added to "load containers",
+        // and load containers must be added to your system
+        auto load_container = chrono_types::make_shared<ChLoadContainer>();
+        sys.Add(load_container);
+
+        // - IMPOSED HEAT FLUX ON SURFACE
+        // Create a face wrapper, an auxiliary object that references a face of an
+        // element as a ChLoadableUV so that can receive a surface load affecting a field 
+        auto exa_face = chrono_types::make_shared<ChFieldHexahedronFace>(melements.at(2,0,3), temperature_field, 3); // 3rd face of hexa is y up
+
+        auto heat_flux = chrono_types::make_shared<ChLoaderHeatFlux>(exa_face);
+        heat_flux->SetSurfaceHeatFlux(0); // the surface flux: heat in W/m^2
+        load_container->Add(heat_flux);
+
+        // - IMPOSED HEAT SOURCE ON VOLUME
+        // Create a volume wrapper, an auxiliary object that references a volume of an
+        // element as a ChLoadableUVW so that it can receive a volume load affecting a field 
+        auto exa_volume = chrono_types::make_shared<ChFieldHexahedronVolume>(melements.at(4, 0, 4), temperature_field);
+
+        auto heat_source = chrono_types::make_shared<ChLoaderHeatVolumetric>(exa_volume);
+        heat_source->SetVolumeHeatFlux(500); // the volumetric source flux: heat in W/m^3
+        load_container->Add(heat_source);
+
+
+        // Needed to setup all data and pointers
+        thermal_domain->InitialSetup();
+
+
+        // POSTPROCESSING & VISUALIZATION (optional)
+
+        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(thermal_domain);
+        visual_nodes->SetGlyphsSize(0.05);
+        visual_nodes->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorTemperature>(), 0.0, 100, "Temp");
+        visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
+        floor->AddVisualShape(visual_nodes);
+
+        auto visual_matpoints = chrono_types::make_shared<ChVisualDomainGlyphs>(thermal_domain);
+        visual_matpoints->SetGlyphsSize(0.1);
+        visual_matpoints->glyph_scalelenght = 0.01;
+        visual_matpoints->AddPropertyExtractor(chrono_types::make_shared<ChDomainThermal::ChVisualDataExtractorHeatFlux>(), 0.0, 50, "q flux");
+        visual_matpoints->SetColormap(ChColormap(ChColormap::Type::JET));
+        floor->AddVisualShape(visual_matpoints);
+
+        auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(thermal_domain);
+        visual_mesh->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorTemperature>(), 0.0, 100, "Temp");
+        visual_mesh->SetColormap(ChColormap(ChColormap::Type::JET));
+        visual_mesh->SetWireframe(true);
+        //floor->AddVisualShape(visual_mesh);
 
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -483,32 +539,18 @@ int main(int argc, char* argv[]) {
         vis->AddTypicalLights();
 
 
-        
+        // SOLVER SETTINGS
+
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         sys.SetSolver(mkl_solver);
-        /*
-        auto gmres_solver = chrono_types::make_shared<ChSolverGMRES>();
-        gmres_solver->SetMaxIterations(150);
-        sys.SetSolver(gmres_solver);
-        */
 
-        displacement_field->NodeData(mnodes.at(0, 0, 0)).SetFixed(true);
-        displacement_field->NodeData(mnodes.at(0, 1, 0)).SetFixed(true);
-        displacement_field->NodeData(mnodes.at(0, 0, 1)).SetFixed(true);
-        displacement_field->NodeData(mnodes.at(0, 1, 1)).SetFixed(true);
 
-        //displacement_field->NodeData(mnodes.at(4, 0, 0)).SetLoad(ChVector3d(0,1000,0));
-        displacement_field->NodeData(mnodes.at(1, 1, 0)).SetPos(displacement_field->NodeData(mnodes.at(1, 1, 0)).GetPos() + ChVector3d(0, 0.1, 0));
-        displacement_field->NodeData(mnodes.at(1, 1, 1)).SetPos(displacement_field->NodeData(mnodes.at(1, 1, 1)).GetPos() + ChVector3d(0, 0, 0));
-
-        //elastic_domain->ElementData(tetrahedron1).element_data ...;
-
-        sys.Add(elastic_domain);
-        sys.Add(displacement_field);
+        sys.Add(thermal_domain);
+        sys.Add(temperature_field);
 
         // Simulation loop
-        double timestep = 0.001;
+        double timestep = 50;
 
         while (vis->Run()) {
             vis->BeginScene();
@@ -518,8 +560,8 @@ int main(int argc, char* argv[]) {
             sys.DoStepDynamics(timestep);
         }
 
-
     }
+
 
     return 0;
 
