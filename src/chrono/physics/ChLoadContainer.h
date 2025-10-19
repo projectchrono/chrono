@@ -35,6 +35,10 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
     /// Add a load to the container list of loads
     void Add(std::shared_ptr<ChLoadBase> newload);
 
+    /// Add a loader to the container list of loads. This is a shortcut that automatically create 
+    /// a ChLoad(loader) that manages the loader. 
+    void Add(std::shared_ptr<ChLoader> loader);
+
     /// Direct access to the load vector.
     std::vector<std::shared_ptr<ChLoadBase> >& GetLoadList() { return loadlist; }
 
