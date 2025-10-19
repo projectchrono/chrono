@@ -550,7 +550,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         int itri = 0;
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
             ChVector3d t1 = glyphs->points[ig];
-            ChVector3d t2 = (*glyphs->vectors)[ig] + t1;
+            ChVector3d t2 = (*glyphs->vectors)[ig] * glyphs->glyph_scalelenght + t1;
             ChColor mcol = (*glyphs->colors)[ig];
             video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
 
