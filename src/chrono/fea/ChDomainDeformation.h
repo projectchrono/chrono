@@ -17,6 +17,7 @@
 
 #include "chrono/fea/ChDomain.h"
 #include "chrono/fea/ChMaterial3DStressStVenant.h"
+#include "chrono/fea/ChVisualDataExtractor.h"
 
 namespace chrono {
 namespace fea {
@@ -39,14 +40,16 @@ class ChDomainDeformation : public ChDomainImpl<
     typename T_material::T_per_element> { // per each element
 public:
     static_assert(std::is_base_of<ChMaterial3DStress, T_material>::value,  "ChDomainElastic: T_material template parameter must inherit from ChMaterial3DStress");
-    using DataPerElement = typename ChDomainImpl<
+
+    using Base = ChDomainImpl<
         std::tuple<ChFieldDisplacement3D>,
         typename T_material::T_per_materialpoint,
         typename T_material::T_per_element
-    >::DataPerElement;
+    >;
+    using DataPerElement = typename Base::DataPerElement;
 
     ChDomainDeformation(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
-        : ChDomainImpl( melasticfield )
+        : Base( melasticfield )
     {
         // attach  default materials to simplify user side
         material = chrono_types::make_shared<ChMaterial3DStressStVenant>();

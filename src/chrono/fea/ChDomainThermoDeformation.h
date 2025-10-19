@@ -18,6 +18,7 @@
 #include "chrono/fea/ChDomain.h"
 #include "chrono/fea/ChMaterial3DThermal.h"
 #include "chrono/fea/ChMaterial3DStressStVenant.h"
+#include "chrono/fea/ChVisualDataExtractor.h"
 
 namespace chrono {
 namespace fea {

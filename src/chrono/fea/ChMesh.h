@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <set>
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChIndexedNodes.h"
@@ -25,10 +26,13 @@
 #include "chrono/fea/ChElementBase.h"
 #include "chrono/fea/ChMeshSurface.h"
 #include "chrono/fea/ChNodeFEAbase.h"
+//#include "chrono/fea/ChFeaMaterial.h"
 
 namespace chrono {
 
 class ChAssembly;
+class ChFeaFieldBase;
+class ChFeaDomain;
 
 namespace fea {
 
@@ -77,6 +81,15 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Get the number of elements in the mesh.
     unsigned int GetNumElements() const { return (unsigned int)velements.size(); }
+
+    //--- Multiphysics stuff:
+
+    /// Add domain to the mesh.
+    void AddDomain(std::shared_ptr<ChFeaDomain> mdom) {  this->domains.insert(mdom); }
+
+    /// Add field to the mesh.
+    void AddField(std::shared_ptr<ChFeaFieldBase> mfield) { this->fields.insert(mfield); }
+
 
     virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
     virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }
@@ -284,6 +297,11 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     std::vector<std::shared_ptr<ChContactSurface>> vcontactsurfaces;  ///<  contact surfaces
     std::vector<std::shared_ptr<ChMeshSurface>> vmeshsurfaces;        ///<  mesh surfaces, ex.for loads
+
+    // New generic multiphysics system:
+    std::set<std::shared_ptr<ChFeaFieldBase>> fields; ///< Set of fields for multiphysics. Each can reference some nodes.
+    std::set<std::shared_ptr<ChFeaDomain>> domains; ///< Set of domains for multiphysics. Each can reference some fields and some ChFeaElement.
+
 
     bool automatic_gravity_load;
     int num_points_gravity;

@@ -471,8 +471,10 @@ source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_m
 set(Chrono_fea_multiphysics_SOURCES
     fea/ChNodeFEAfieldXYZ.cpp
     fea/ChFieldElement.cpp
-    fea/ChFieldElementTetrahedron_4.cpp
-    fea/ChFieldElementHexahedron_8.cpp
+    fea/ChFieldElementTetrahedron4.cpp
+    fea/ChFieldElementTetrahedron4Loaders.cpp
+    fea/ChFieldElementHexahedron8.cpp
+    fea/ChFieldElementHexahedron8Loaders.cpp
     fea/ChFieldData.cpp
     fea/ChField.cpp
     fea/ChMaterial.cpp
@@ -486,12 +488,15 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChDomainThermal.cpp
     fea/ChDomainDeformation.cpp
     fea/ChDomainThermoDeformation.cpp
+    fea/ChVisualDataExtractor.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
     fea/ChNodeFEAfieldXYZ.h
     fea/ChFieldElement.h
-    fea/ChFieldElementTetrahedron_4.h
-    fea/ChFieldElementHexahedron_8.h
+    fea/ChFieldElementTetrahedron4.h
+    fea/ChFieldElementTetrahedron4Loaders.h
+    fea/ChFieldElementHexahedron8.h
+    fea/ChFieldElementHexahedron8Loaders.h
     fea/ChFieldData.h
     fea/ChField.h
     fea/ChMaterial.h
@@ -505,6 +510,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChDomainThermal.h
     fea/ChDomainDeformation.h
     fea/ChDomainThermoDeformation.h
+    fea/ChVisualDataExtractor.h 
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 
