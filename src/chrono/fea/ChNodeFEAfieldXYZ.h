@@ -13,7 +13,7 @@
 // =============================================================================
 
 #ifndef CHNODEFEAFIELDXYZ_H
-#define CHNODEFEADIELDXYZ_H
+#define CHNODEFEAFIELDXYZ_H
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
