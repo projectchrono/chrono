@@ -22,7 +22,7 @@
 namespace chrono {
 
 // Forward declarations:
-class ChSystem;
+    class ChSystem;
 
 namespace fea {
 
@@ -49,7 +49,9 @@ class ChNodeFEAbase;
 
 class ChApi ChFieldElement {
 public:
-    ChFieldElement() {}
+    ChFieldElement() {
+        quadrature_order = 1; // default order
+    }
     virtual ~ChFieldElement() {}
 
     /// Get the number of nodes used by this element.
@@ -101,10 +103,16 @@ public:
     virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) = 0;
 
     // Tell the minimum required quadrature order when integrating over the element
-    virtual int GetMinQuadratureOrder() const = 0;
+    virtual int GetQuadratureOrder() const {  return quadrature_order; }
 
-    // Tell how many Gauss points are needed for quadrature
-    virtual int GetNumQuadraturePoints(const int order) const = 0;
+    // Sets the quadrature order when integrating over the element
+    virtual void SetQuadratureOrder(const int morder) {  quadrature_order = morder;  }
+
+    // Tell actual number of quadrature points
+    virtual int GetNumQuadraturePoints() const { return GetNumQuadraturePointsForOrder(this->quadrature_order); };
+
+    // Tell how many Gauss points are needed for quadrature of some order
+    virtual int GetNumQuadraturePointsForOrder(const int order) const = 0;
 
     // Get i-th Gauss point weight and parametric coordinates
     virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const = 0;
@@ -122,8 +130,9 @@ public:
     /// each element, if any, the mass, etc.
     virtual void SetupInitial(ChSystem* system) {}
 
-private:
+protected:
 
+    int quadrature_order = 1;
 };
 
 

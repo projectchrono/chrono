@@ -20,5 +20,7 @@ namespace fea {
 
 
 
-}  // end namespace fea
+    // Sets the quadrature order when integrating over the element
+
+    }  // end namespace fea
 }  // end namespace chrono
