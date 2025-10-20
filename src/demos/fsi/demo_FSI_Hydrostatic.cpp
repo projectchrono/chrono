@@ -11,9 +11,9 @@
 // =============================================================================
 // Author: Huzaifa Mustafa Unjhawala
 // =============================================================================
-// Normal Bevameter Validation Problem involving immersing a bevameter at a specified velocity
-// and measureing the force on the bevameter tip
-// Comparing against GRC-1 paper - https://www.sciencedirect.com/science/article/pii/S0022489810000388
+// Hydrostatic Test for constitutive model validation
+// This demo tests the constitutive model under hydrostatic conditions
+// without any penetrating objects
 // =============================================================================
 
 #include <cassert>
@@ -27,7 +27,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/physics/ChLinkMotorLinearForce.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
@@ -37,10 +36,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-
-#ifdef CHRONO_POSTPROCESS
-    #include "chrono_postprocess/ChGnuPlot.h"
-#endif
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -56,107 +51,11 @@ class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVis
 };
 #endif
 
-//------------------------------------------------------------------
-// Function to generate a cylinder mesh and save to VTK file
-//------------------------------------------------------------------
-void WriteCylinderVTK(const std::string& filename,
-                      std::shared_ptr<ChBody> body,
-                      double radius,
-                      double height,
-                      int resolution = 32) {
-    // Generate a cylinder mesh
-    ChTriangleMeshConnected mesh;
-    std::vector<ChVector3d>& vertices = mesh.GetCoordsVertices();
-    std::vector<ChVector3i>& indices = mesh.GetIndicesVertexes();
-
-    // Create vertices for top and bottom circular caps
-    ChVector3d top_center(0, 0, height / 2);
-    ChVector3d bottom_center(0, 0, -height / 2);
-    vertices.push_back(top_center);     // Vertex 0 (top center)
-    vertices.push_back(bottom_center);  // Vertex 1 (bottom center)
-
-    int top_center_idx = 0;
-    int bottom_center_idx = 1;
-
-    // Create vertices for top and bottom circles and side walls
-    for (int i = 0; i < resolution; i++) {
-        double theta = 2 * CH_PI * i / resolution;
-        double x = radius * cos(theta);
-        double y = radius * sin(theta);
-
-        // Top circle vertex
-        vertices.push_back(ChVector3d(x, y, height / 2));
-
-        // Bottom circle vertex
-        vertices.push_back(ChVector3d(x, y, -height / 2));
-    }
-
-    // Create triangular faces for top cap
-    for (int i = 0; i < resolution; i++) {
-        int next_i = (i + 1) % resolution;
-        int top_idx = 2 + i * 2;
-        int next_top_idx = 2 + next_i * 2;
-
-        // Top cap triangle
-        indices.push_back(ChVector3i(top_center_idx, top_idx, next_top_idx));
-    }
-
-    // Create triangular faces for bottom cap
-    for (int i = 0; i < resolution; i++) {
-        int next_i = (i + 1) % resolution;
-        int bottom_idx = 3 + i * 2;
-        int next_bottom_idx = 3 + next_i * 2;
-
-        // Bottom cap triangle (note reverse winding order for outward normal)
-        indices.push_back(ChVector3i(bottom_center_idx, next_bottom_idx, bottom_idx));
-    }
-
-    // Create triangular faces for side walls
-    for (int i = 0; i < resolution; i++) {
-        int next_i = (i + 1) % resolution;
-        int top_idx = 2 + i * 2;
-        int bottom_idx = 3 + i * 2;
-        int next_top_idx = 2 + next_i * 2;
-        int next_bottom_idx = 3 + next_i * 2;
-
-        // Each rectangular face split into two triangles
-        indices.push_back(ChVector3i(top_idx, bottom_idx, next_bottom_idx));
-        indices.push_back(ChVector3i(top_idx, next_bottom_idx, next_top_idx));
-    }
-
-    // Now write the mesh to VTK file, transforming it to the body's position
-    std::ofstream outf(filename);
-    outf << "# vtk DataFile Version 2.0" << std::endl;
-    outf << "Cylinder VTK from simulation" << std::endl;
-    outf << "ASCII" << std::endl;
-    outf << "DATASET UNSTRUCTURED_GRID" << std::endl;
-
-    // Write vertices transformed by body frame
-    ChFrame<> frame = body->GetFrameRefToAbs();
-    outf << "POINTS " << vertices.size() << " float" << std::endl;
-    for (const auto& v : vertices) {
-        auto w = frame.TransformPointLocalToParent(v);
-        outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
-    }
-
-    // Write triangular cells
-    int nf = static_cast<int>(indices.size());
-    outf << "CELLS " << nf << " " << 4 * nf << std::endl;
-    for (const auto& f : indices) {
-        outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
-    }
-
-    // Write cell types (5 = VTK_TRIANGLE)
-    outf << "CELL_TYPES " << nf << std::endl;
-    for (int i = 0; i < nf; i++) {
-        outf << "5" << std::endl;
-    }
-    outf.close();
-}
-
+// -----------------------------------------------------------------------------
+// Material properties
 double nu_poisson = 0.3;
 
-// Plate material - Steel
+// Container material
 struct solid_material {
     double youngs_modulus = 193e9;
     double friction_coefficient = 0.7;
@@ -179,9 +78,8 @@ struct SimParams {
 
     // Physics parameters
     double artificial_viscosity;
-    double max_pressure;
-    double plate_diameter;
     double container_height;
+    double test_duration;
 
     // Output/rendering parameters
     bool verbose;
@@ -191,7 +89,8 @@ struct SimParams {
     bool render;
     double render_fps;
     bool write_marker_files;
-    // Need to play around with these too
+
+    // Material properties
     double mu_s;
     double mu_2;
     double cohesion;
@@ -201,10 +100,12 @@ struct SimParams {
     std::string rheology_model_crm;
     double pre_pressure_scale;
 };
+
 void SimulateMaterial(int i, const SimParams& params);
+
 // Function to handle CLI arguments
 bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
-    ChCLI cli(argv[0], "FSI Normal Bevameter Validation Problem");
+    ChCLI cli(argv[0], "FSI Hydrostatic Test Demo");
 
     cli.AddOption<int>("Simulation", "ps_freq", "Proximity search frequency", std::to_string(params.ps_freq));
     cli.AddOption<double>("Simulation", "initial_spacing", "Initial spacing", std::to_string(params.initial_spacing));
@@ -218,9 +119,8 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
 
     cli.AddOption<double>("Physics", "artificial_viscosity", "Artificial viscosity",
                           std::to_string(params.artificial_viscosity));
-    cli.AddOption<double>("Physics", "max_pressure", "Max pressure", std::to_string(params.max_pressure));
-    cli.AddOption<double>("Physics", "plate_diameter", "Plate diameter", std::to_string(params.plate_diameter));
     cli.AddOption<double>("Physics", "container_height", "Container height", std::to_string(params.container_height));
+    cli.AddOption<double>("Physics", "test_duration", "Test duration", std::to_string(params.test_duration));
     cli.AddOption<double>("Physics", "mu_s", "Friction coefficient", std::to_string(params.mu_s));
     cli.AddOption<double>("Physics", "mu_2", "Friction coefficient", std::to_string(params.mu_2));
     cli.AddOption<double>("Physics", "cohesion", "Cohesion", std::to_string(params.cohesion));
@@ -243,9 +143,8 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     params.viscosity_type = cli.GetAsType<std::string>("viscosity_type");
     params.kernel_type = cli.GetAsType<std::string>("kernel_type");
     params.artificial_viscosity = cli.GetAsType<double>("artificial_viscosity");
-    params.max_pressure = cli.GetAsType<double>("max_pressure");
-    params.plate_diameter = cli.GetAsType<double>("plate_diameter");
     params.container_height = cli.GetAsType<double>("container_height");
+    params.test_duration = cli.GetAsType<double>("test_duration");
     params.mu_s = cli.GetAsType<double>("mu_s");
     params.mu_2 = cli.GetAsType<double>("mu_2");
     params.cohesion = cli.GetAsType<double>("cohesion");
@@ -266,20 +165,19 @@ int main(int argc, char* argv[]) {
                         /*viscosity_type*/ "artificial_bilateral",
                         /*kernel_type*/ "wendland",
                         /*artificial_viscosity*/ 0.2,
-                        /*max_pressure*/ 30 * 1000,  // 30 kPa
-                        /*plate_diameter*/ 0.102,    // 19 cm
-                        /*container_height*/ 0.024,  // 2.4 cm
+                        /*container_height*/ 0.24,
+                        /*test_duration*/ 4.0,  // 4 seconds test duration
                         /*verbose*/ true,
                         /*output*/ true,
                         /*output_fps*/ 20,
                         /*snapshots*/ true,
                         /*render*/ true,
-                        /*render_fps*/ 100,
-                        /*write_marker_files*/ false,
-                        /*mu_s*/ 0.6593,
-                        /*mu_2*/ 0.6593,
-                        /*cohesions*/ 30000,
-                        /*densities*/ 1670,
+                        /*render_fps*/ 200,
+                        /*write_marker_files*/ true,
+                        /*mu_s*/ 0.67,
+                        /*mu_2*/ 0.67,
+                        /*cohesion*/ 0,
+                        /*density*/ 1600,
                         /*y_modulus*/ 1e6,
                         /*integration_scheme*/ "rk2",
                         /*rheology_model_crm*/ "MU_OF_I",
@@ -290,7 +188,6 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Problem Specs:" << std::endl;
-
     std::cout << "ps_freq: " << params.ps_freq << std::endl;
     std::cout << "initial_spacing: " << params.initial_spacing << std::endl;
     std::cout << "d0_multiplier: " << params.d0_multiplier << std::endl;
@@ -299,9 +196,8 @@ int main(int argc, char* argv[]) {
     std::cout << "viscosity_type: " << params.viscosity_type << std::endl;
     std::cout << "kernel_type: " << params.kernel_type << std::endl;
     std::cout << "artificial_viscosity: " << params.artificial_viscosity << std::endl;
-    std::cout << "max_pressure: " << params.max_pressure << std::endl;
-    std::cout << "plate_diameter: " << params.plate_diameter << std::endl;
     std::cout << "container_height: " << params.container_height << std::endl;
+    std::cout << "test_duration: " << params.test_duration << std::endl;
     std::cout << "mu_s: " << params.mu_s << std::endl;
     std::cout << "mu_2: " << params.mu_2 << std::endl;
     std::cout << "cohesion: " << params.cohesion << std::endl;
@@ -318,14 +214,11 @@ int main(int argc, char* argv[]) {
 }
 
 void SimulateMaterial(int i, const SimParams& params) {
-    double t_end = 3.5;
-    double max_pressure_time = 3;
-    std::cout << "t_end: " << t_end << std::endl;
+    double t_end = params.test_duration;
+    std::cout << "Test duration: " << t_end << " seconds" << std::endl;
 
-    // double container_diameter = params.plate_diameter * 1.5;  // Plate is 20 cm in diameter
-    double container_diameter = 0.15;                   // Plate is 10 cm in diameter
+    double container_diameter = 0.05;                   // container diameter (m)
     double container_height = params.container_height;  // configurable via CLI
-    double cyl_length = 0.018;                          // To prevent effect of sand falling on top of the plate
 
     // Create a physics system
     ChSystemSMC sysMBS;
@@ -341,6 +234,8 @@ void SimulateMaterial(int i, const SimParams& params) {
 
     sysFSI.SetStepSizeCFD(params.time_step);
     sysFSI.SetStepsizeMBD(params.time_step);
+
+    sysSPH.SetVerbose(true);
 
     // -------------------------------------------------------------------------
     // Material and SPH parameters
@@ -360,24 +255,23 @@ void SimulateMaterial(int i, const SimParams& params) {
     } else {
         mat_props.rheology_model = RheologyCRM::MCC;
         double angle_mus = std::atan(params.mu_s);
-        // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
-        mat_props.mcc_M = 2.0;
+        mat_props.mcc_M = 1.3;
         mat_props.mcc_kappa = 0.01;
         mat_props.mcc_lambda = 0.1;
     }
 
     sysSPH.SetElasticSPH(mat_props);
-
     if (params.integration_scheme == "euler") {
         sph_params.integration_scheme = IntegrationScheme::EULER;
     } else if (params.integration_scheme == "rk2") {
         sph_params.integration_scheme = IntegrationScheme::RK2;
     }
     sph_params.initial_spacing = params.initial_spacing;
+    sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = params.d0_multiplier;
     sph_params.artificial_viscosity = params.artificial_viscosity;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
-    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_xsph_eps = 0.5;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
     sph_params.free_surface_threshold = 0.8;
@@ -400,8 +294,7 @@ void SimulateMaterial(int i, const SimParams& params) {
     } else {
         sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     }
-    sph_params.use_delta_sph = true;
-    sysFSI.SetVerbose(params.verbose);
+
     sysSPH.SetSPHParameters(sph_params);
     // -------------------------------------------------------------------------
 
@@ -409,7 +302,6 @@ void SimulateMaterial(int i, const SimParams& params) {
     // Create container and granular material
     // ==============================
     // Create a container
-    // sand clearance
     double clearance = 0.2 * container_height;
     double bxDim = container_diameter;
     double byDim = container_diameter;
@@ -418,7 +310,7 @@ void SimulateMaterial(int i, const SimParams& params) {
 
     // Set the periodic boundary condition
     ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -bzDim * 1.2);
-    ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + std::max(bzDim * 1.2, cyl_length)));
+    ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, bzDim * 1.2);
     sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_NONE);
 
     auto box = chrono_types::make_shared<ChBody>();
@@ -437,7 +329,6 @@ void SimulateMaterial(int i, const SimParams& params) {
 
     double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (const auto& p : points) {
-        double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
         double depth_cm = (-p.z() + fzDim) * 100;
         double b = 12.2;
         double c = 18;
@@ -446,6 +337,7 @@ void SimulateMaterial(int i, const SimParams& params) {
         double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
         double density_mean_target = params.density;
         double rho_ini = density_mean_target * g / gbar;
+        double pre_ini = rho_ini * gz * (-p.z() + fzDim);
         double preconsidation_pressure = pre_ini + params.pre_pressure_scale;
         sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
                               ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
@@ -453,6 +345,7 @@ void SimulateMaterial(int i, const SimParams& params) {
 
     solid_material solid_mat;
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
+    auto vis_material = chrono_types::make_shared<ChVisualMaterial>();
     cmaterial->SetYoungModulus(solid_mat.youngs_modulus);
     cmaterial->SetFriction(solid_mat.friction_coefficient);
     cmaterial->SetRestitution(solid_mat.restitution);
@@ -465,46 +358,24 @@ void SimulateMaterial(int i, const SimParams& params) {
                                    ChVector3i(2, 2, -1),                           //
                                    false);
     box->EnableCollision(false);
+    // Add BCE particles attached on the walls into FSI system (new API)
     auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), ChVector3i(2, 2, -1));
     sysFSI.AddFsiBoundary(box_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT));
 
-    // Create plate
-    auto plate = chrono_types::make_shared<ChBody>();
-    double plate_z_pos = fzDim + cyl_length / 2 + params.initial_spacing;
-    plate->SetPos(ChVector3d(0, 0, plate_z_pos));
-    plate->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    plate->SetFixed(false);
-
-    double plate_area = CH_PI * params.plate_diameter * params.plate_diameter / 4;
-    double plate_mass = params.density * plate_area * cyl_length;
-    std::cout << "plate_mass: " << plate_mass << std::endl;
-    plate->SetMass(plate_mass);
-    ChMatrix33<> plate_inertia = plate_mass * ChCylinder::GetGyration(params.plate_diameter / 2, cyl_length);
-    plate->SetInertia(plate_inertia);
-    sysMBS.AddBody(plate);
-
-    auto plate_bce = sysSPH.CreatePointsCylinderInterior(params.plate_diameter / 2, cyl_length, true);
-    sysFSI.AddFsiBody(plate, plate_bce, ChFrame<>(VNULL, QUNIT), false);
     sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
     sysFSI.Initialize();
-
-    // Add motor to push the plate at a force that increases the pressure to max pressure in t_end
-    auto motor = chrono_types::make_shared<ChLinkMotorLinearForce>();
-    double max_force = params.max_pressure * plate_area;
-
-    ChFunctionSequence seq;
-    auto f_ramp = chrono_types::make_shared<ChFunctionRamp>(0, -max_force / max_pressure_time);
-    auto f_const = chrono_types::make_shared<ChFunctionConst>(-max_force);
-    seq.InsertFunct(f_ramp, max_pressure_time);
-    seq.InsertFunct(f_const, t_end - max_pressure_time);
-    seq.Setup();
-    motor->SetForceFunction(chrono_types::make_shared<ChFunctionSequence>(seq));
-    motor->Initialize(plate, box, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
-    sysMBS.AddLink(motor);
 
     // Output directories
     std::string out_dir;
     if (params.output || params.snapshots) {
+        // Base output directory for hydrostatic test
+        std::string base_dir;
+        const std::string heightCmStr = [&]() {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(1) << (params.container_height * 100.0) << "cm";
+            return oss.str();
+        }();
+
         // Helper lambda to convert a value to a string using an ostringstream.
         auto toString = [](auto value) -> std::string {
             std::ostringstream oss;
@@ -512,31 +383,10 @@ void SimulateMaterial(int i, const SimParams& params) {
             return oss.str();
         };
 
-        // Format the max pressure with fixed precision in kPa
-        const std::string maxPressureStr = [&]() {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2) << (params.max_pressure / 1000.0);  // Convert to kPa
-            return oss.str();
-        }();
-
-        // Format plate diameter in cm
-        const std::string plateDiameterStr = [&]() {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2) << (params.plate_diameter * 100.0);  // Convert to cm
-            return oss.str();
-        }();
-        // Base output directory
-        std::string base_dir;
-        // Height string in cm with 1 decimal place
-        const std::string heightCmStr = [&]() {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(1) << (params.container_height * 100.0) << "cm";
-            return oss.str();
-        }();
         // Convert new parameters to strings
         const std::string rheologyModelStr = params.rheology_model_crm;
         const std::string prePressureScaleStr = toString(params.pre_pressure_scale);
-        base_dir = GetChronoOutputPath() + "FSI_NormalBevameter_GRC1_" + heightCmStr + "_" + rheologyModelStr + "_" +
+        base_dir = GetChronoOutputPath() + "FSI_Hydrostatic_" + heightCmStr + "_" + rheologyModelStr + "_" +
                    prePressureScaleStr + "/";
         if (!filesystem::create_directory(filesystem::path(base_dir))) {
             std::cerr << "Error creating directory " << base_dir << std::endl;
@@ -551,9 +401,7 @@ void SimulateMaterial(int i, const SimParams& params) {
         const std::string cohesionStr = toString(params.cohesion);
 
         // Build the vector of subdirectory names.
-        std::vector<std::string> subdirs = {"maxPressure_" + maxPressureStr,
-                                            "plateDiameter_" + plateDiameterStr,
-                                            "youngsModulus_" + youngsModulusStr,
+        std::vector<std::string> subdirs = {"youngsModulus_" + youngsModulusStr,
                                             "density_" + densityStr,
                                             "mu_s_" + muSStr,
                                             "mu_2_" + mu2Str,
@@ -593,10 +441,6 @@ void SimulateMaterial(int i, const SimParams& params) {
                 std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
                 return;
             }
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-                std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
-                return;
-            }
         }
 
         if (params.snapshots) {
@@ -606,9 +450,9 @@ void SimulateMaterial(int i, const SimParams& params) {
             }
         }
     }
+
     // Create a run-time visualizer
     std::shared_ptr<ChVisualSystem> vis;
-    // Create a run-time visualizer
 #ifdef CHRONO_VSG
     auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(0, 30000, false);
     if (params.render) {
@@ -623,10 +467,10 @@ void SimulateMaterial(int i, const SimParams& params) {
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
-        visVSG->SetWindowTitle("FSI Normal Bevameter");
+        visVSG->SetWindowTitle("FSI Hydrostatic Test");
         visVSG->SetWindowSize(1280, 720);
-        visVSG->AddCamera(ChVector3d(0, -3 * container_height, 0.75 * container_height),
-                          ChVector3d(0, 0, 0.75 * container_height));
+        visVSG->AddCamera(ChVector3d(0, -2 * container_height, 0.75 * container_height),
+                          ChVector3d(0, 0, 0.55 * container_height));
         visVSG->SetLightIntensity(0.9);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
@@ -639,37 +483,37 @@ void SimulateMaterial(int i, const SimParams& params) {
     double time = 0.0;
     int sim_frame = 0;
     int out_frame = 0;
-    int pres_out_frame = 0;
     int render_frame = 0;
     double dT = sysFSI.GetStepSizeCFD();
-    double pres_out_fps = 100;
 
-    std::string out_file = out_dir + "/force_vs_time.txt";
-    std::ofstream ofile(out_file, std::ios::trunc);
+    // Calculate hydrostatic pressure statistics
+    double avg_pressure = 0.0;
+    double avg_density = 0.0;
+    double max_pressure = 0.0;
+    double min_pressure = std::numeric_limits<double>::max();
 
-    // Add comma-separated header to the output file
-    ofile << "Time,Force-x,Force-y,Force-z,position-x,position-y,penetration-depth,plate-vel-z,plate-NetPressure,plate-"
-             "ExternalLoadPressure"
-          << std::endl;
+    avg_pressure = params.density * 9.81 * container_height / 2.0;  // Hydrostatic pressure at mid-height
+    avg_density = params.density;
+    max_pressure = params.density * 9.81 * container_height;  // Pressure at bottom
+    min_pressure = 0.0;                                       // Pressure at top
+
+    std::cout << "Avg Pressure: " << avg_pressure << std::endl;
+    std::cout << "Avg Density: " << avg_density << std::endl;
+    std::cout << "Max Pressure: " << max_pressure << std::endl;
+    std::cout << "Min Pressure: " << min_pressure << std::endl;
 
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        // Calculate current penetration depth
-        double current_depth = plate->GetPos().z() - fzDim - cyl_length / 2 - params.initial_spacing;
-
         if (params.output && time >= out_frame / params.output_fps) {
             if (params.write_marker_files) {
                 sysSPH.SaveParticleData(out_dir + "/particles");
                 sysSPH.SaveSolidData(out_dir + "/fsi", time);
-
-                // Write VTK file for the plate
-                std::ostringstream vtk_filename;
-                vtk_filename << out_dir << "/vtk/plate_" << std::setw(5) << std::setfill('0') << out_frame << ".vtk";
-                WriteCylinderVTK(vtk_filename.str(), plate, params.plate_diameter / 2, cyl_length);
             }
+            std::cout << "Time: " << time << " seconds" << std::endl;
             out_frame++;
         }
+
 #ifdef CHRONO_VSG
         if (params.render && time >= render_frame / params.render_fps) {
             if (!vis->Run())
@@ -686,17 +530,6 @@ void SimulateMaterial(int i, const SimParams& params) {
             render_frame++;
         }
 #endif
-        if (time >= pres_out_frame / pres_out_fps) {
-            double plate_NetPressure = abs(plate->GetAppliedForce().z() / plate_area);
-            double plate_ExternalLoadPressure = motor->GetMotorForce() / plate_area;
-            ofile << time << "," << plate->GetAppliedForce().x() << "," << plate->GetAppliedForce().y() << ","
-                  << plate->GetAppliedForce().z() << "," << plate->GetPos().x() << "," << plate->GetPos().y() << ","
-                  << current_depth << "," << plate->GetPosDt().z() << "," << plate_NetPressure << ","
-                  << plate_ExternalLoadPressure << std::endl;
-            pres_out_frame++;
-            std::cout << "time: " << time << std::endl;
-            std::cout << "current_depth: " << current_depth << std::endl;
-        }
 
         // Advance simulation for one timestep for all systems
         sysFSI.DoStepDynamics(dT);
@@ -706,17 +539,4 @@ void SimulateMaterial(int i, const SimParams& params) {
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
-
-#ifdef CHRONO_POSTPROCESS
-    ofile.close();
-    std::ostringstream plot_filename;
-    plot_filename << out_dir << "/results_depth_h_" << std::fixed << std::setprecision(3) << container_height
-                  << "m.gpl";
-    postprocess::ChGnuPlot gplot(plot_filename.str());
-    gplot.SetGrid();
-    gplot.SetTitle("Penetration depth vs time");
-    gplot.SetLabelX("time (s)");
-    gplot.SetLabelY("penetration depth (m)");
-    gplot.Plot(out_file, 1, 7, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
-#endif
 }

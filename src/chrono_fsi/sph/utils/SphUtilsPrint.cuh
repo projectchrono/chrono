@@ -62,6 +62,7 @@ void saveParticleDataCRM(const std::string& dir,
                          const thrust::device_vector<Real4>& rhoPresMuD,
                          const thrust::device_vector<Real3>& tauXxYyZzD,
                          const thrust::device_vector<Real3>& tauXyXzYzD,
+                         const thrust::device_vector<Real3>& pcEvSvD,
                          const thrust::host_vector<int4>& referenceArray,
                          const thrust::host_vector<int4>& referenceArrayFEA);
 

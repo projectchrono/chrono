@@ -427,50 +427,30 @@ __device__ void TauEulerStep(Real dT,
         Real mcc_lambda = paramsD.mcc_lambda;
         Real mcc_kappa = paramsD.mcc_kappa;
         Real p_c = pcEvSv.x;
-
-        // Update specific volume based on the volumetric strain rate
-        // From - https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
-        pcEvSv.z *= (1 - pcEvSv.y * dT);
-        // Set min to prevent collapse of the specific volume
-        pcEvSv.z = max(0.5, pcEvSv.z);
+        // Use the previous time steps specific volume
         Real specific_volume_n = pcEvSv.z;
-        // Real specific_volume_n = 1.0;
         // printf("Volumetric strain rate: %f\n", pcEvSv.y);
         // printf("Specific volume: %f\n", specific_volume_n);
 
         // Compute local bulk/shear moduli per MCC (Itasca Eq. (15), (46))
         // Use previous-state mean pressure with floors, clamp and under-relax for stability
+        // Recomputing for now instead of storing for each particle to avoid memory usage (compute once in crmRHS)
         Real p_n = -CH_1_3 * (tau_diag.x + tau_diag.y + tau_diag.z);
+        // Floor Pressure (Pa) to prevent K -> 0 near free surface
+        Real p_eff = fmax(p_n, Real(1000.0));
+        // Bulk
+        // Candidate bulk modulus from MCC
+        Real K_cand = specific_volume_n * (p_eff) / paramsD.mcc_kappa;
+        // Clamp K to prevent collapse of the bulk modulus
+        Real K_n = fmin(fmax(K_cand, Real(0.3) * paramsD.K_bulk), Real(1000.0) * paramsD.K_bulk);
+        // Shear
+        Real G_cand = (3.0 * K_n * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
+        Real G_n = fmin(fmax(G_cand, Real(0.3) * paramsD.G_shear), Real(1000.0) * paramsD.G_shear);
 
         // Trial stress using convention N = n + 1
         Real3 sig_diag_N_tr = tau_diag + dT * deriv_tau_diag;
         Real3 sig_offdiag_N_tr = tau_offdiag + dT * deriv_tau_offdiag;
         Real p_N_tr = -CH_1_3 * (sig_diag_N_tr.x + sig_diag_N_tr.y + sig_diag_N_tr.z);
-        // Pressure floor (Pa) to prevent K -> 0 near free surface
-        Real p_floor = Real(100.0);
-        Real p_eff = fmax(p_n, p_floor);
-        // Candidate bulk modulus from MCC
-        Real K_cand = specific_volume_n * (p_eff) / mcc_kappa;
-        // Clamp and under-relax around reference values
-        Real K_ref = paramsD.K_bulk;
-        Real K_low = Real(0.3) * K_ref;
-        Real K_high = Real(10.0) * K_ref;
-        Real K_clamped = fmin(fmax(K_cand, K_low), K_high);
-        Real alpha_mod = Real(0.2);
-        Real K_n = (Real(1.0) - alpha_mod) * K_ref + alpha_mod * K_clamped;
-        // Real K_n = paramsD.K_bulk;
-        // Shear modulus from ν, clamped/under-relaxed around reference
-        Real nu = paramsD.Nu_poisson;
-        Real G_cand = (3.0 * K_n * (1.0 - 2.0 * nu)) / (2.0 * (1.0 + nu));
-        Real G_ref = paramsD.G_shear;
-        Real G_low = Real(0.3) * G_ref;
-        Real G_high = Real(10.0) * G_ref;
-        Real G_clamped = fmin(fmax(G_cand, G_low), G_high);
-        Real G_n = (Real(1.0) - alpha_mod) * G_ref + alpha_mod * G_clamped;
-        // printf("G_n: %f, K_n: %f\n", G_n, K_n);
-        // Real G_n = paramsD.G_shear;
-        // Real G_n = 250000000;
-
         // Deviatoric component of the trial stress
         Real3 dev_diag_N_tr = sig_diag_N_tr + mR3(p_N_tr);
         Real3 dev_offdiag_N_tr = sig_offdiag_N_tr;
@@ -538,27 +518,21 @@ __device__ void TauEulerStep(Real dT,
 
             // Get the mapped stress
             p_N = p_N_tr - K_n * delta_lambda_N * c_v;
-            Real q_N = (q_N_tr < q_eps) ? Real(0.0) : (q_N_tr - 3 * G_n * delta_lambda_N * c_q);
-            if (q_N_tr > q_eps) {
-                s_diag_N = q_N * dev_diag_N_tr / q_N_tr;
-                s_offdiag_N = q_N * dev_offdiag_N_tr / q_N_tr;
-            } else {
-                s_diag_N = mR3(0.0);
-                s_offdiag_N = mR3(0.0);
-            }
+            Real q_N = (q_N_tr - 3 * G_n * delta_lambda_N * c_q);
+            s_diag_N = q_N * dev_diag_N_tr / (q_N_tr + q_eps);
+            s_offdiag_N = q_N * dev_offdiag_N_tr / (q_N_tr + q_eps);
 
             // Get the new stress from the mapped deviatoric stress and pressure
-            tau_diag = s_diag_N + mR3(p_N);
+            tau_diag = s_diag_N - mR3(p_N);
             tau_offdiag = s_offdiag_N;
             // Update the consolidation pressure
             Real plastic_volumentric_strain = delta_lambda_N * c_v;
-            pcEvSv.x *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
+            // Only update the consolidation pressure if we are not close to the free surface
+            if (!close_to_surface) {
+                pcEvSv.x *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
+                pcEvSv.x = fmax(Real(100.0), pcEvSv.x);
+            }
             rho_p.y = p_N;
-        } else if (p_N_tr > 0 && f_N <= 0) {
-            // We have not yielded, set the stress to the trial stress
-            tau_diag = sig_diag_N_tr;
-            tau_offdiag = sig_offdiag_N_tr;
-            rho_p.y = p_N_tr;
         }
 
         // If we are close to free surface, set stress tensor to zero tensor
@@ -568,8 +542,13 @@ __device__ void TauEulerStep(Real dT,
             tau_offdiag = mR3(0.0);
             rho_p.y = 0.0;
         }
-        // rho_p.x = rho_p.x + deriv_rho * dT;
-        rho_p.x = paramsD.rho0;
+        rho_p.x = rho_p.x + deriv_rho * dT;
+        // rho_p.x = paramsD.rho0;
+        // Update specific volume based on the volumetric strain rate
+        // From - https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
+        pcEvSv.z *= (1 - pcEvSv.y * dT);
+        // Set min to prevent collapse of the specific volume
+        pcEvSv.z = fmax(Real(1.0), pcEvSv.z);
         // printf("p_c: %f, tau_diag: %f %f %f, tau_offdiag: %f %f %f\n", p_c, tau_diag.x, tau_diag.y, tau_diag.z,
         //        tau_offdiag.x, tau_offdiag.y, tau_offdiag.z);
     }

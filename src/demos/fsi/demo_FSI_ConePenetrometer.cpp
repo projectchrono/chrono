@@ -506,10 +506,10 @@ int main(int argc, char* argv[]) {
                         /*container_height*/ 0.24,
                         /*verbose*/ true,
                         /*output*/ true,
-                        /*output_fps*/ 60,
+                        /*output_fps*/ 20,
                         /*snapshots*/ true,
                         /*render*/ true,
-                        /*render_fps*/ 60,
+                        /*render_fps*/ 200,
                         /*write_marker_files*/ false,
                         /*mu_s*/ 0.67,
                         /*mu_2*/ 0.67,
@@ -575,6 +575,8 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     sysFSI.SetStepSizeCFD(params.time_step);
     sysFSI.SetStepsizeMBD(params.time_step);
 
+    sysSPH.SetVerbose(true);
+
     // -------------------------------------------------------------------------
     // Material and SPH parameters
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
@@ -594,9 +596,9 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
         mat_props.rheology_model = RheologyCRM::MCC;
         double angle_mus = std::atan(params.mu_s);
         // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
-        mat_props.mcc_M = 1.5;
-        mat_props.mcc_kappa = 0.05;
-        mat_props.mcc_lambda = 0.5;
+        mat_props.mcc_M = 1.3;
+        mat_props.mcc_kappa = 0.01;
+        mat_props.mcc_lambda = 0.1;
     }
 
     sysSPH.SetElasticSPH(mat_props);
@@ -718,7 +720,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     double volume = ChCone::GetVolume(coneProp.diameter / 2, coneProp.length);
     double cone_mass = coneProp.density * volume;
     std::cout << "cone_mass: " << cone_mass << std::endl;
-    cone->SetMass(cone_mass);
+    cone->SetMass(cone_mass / 2);
     // Mass/2 because we also have a cylinder that takes up half the mass
     ChMatrix33<> inertia = cone_mass / 2 * ChCone::GetGyration(coneProp.diameter / 2, coneProp.length);
     cone->SetInertia(inertia);
@@ -747,11 +749,12 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     cyl->SetRot(ChQuaternion<>(1, 0, 0, 0));
     double cyl_volume = CH_PI * cyl_radius * cyl_radius * cyl_length;
     double cyl_mass = coneProp.density * cyl_volume;
-    cyl->SetMass(cone_mass);  // *10 because we fake the length compared to DEM
+    cyl->SetMass(cone_mass / 2);  // *10 because we fake the length compared to DEM
     ChMatrix33<> cyl_inertia = cyl_mass * ChCylinder::GetGyration(cyl_radius, cyl_length);
     cyl->SetInertia(cyl_inertia);
     sysMBS.AddBody(cyl);
-    chrono::utils::AddCylinderGeometry(cyl.get(), cmaterial, cyl_radius, cyl_length);
+    chrono::utils::AddCylinderGeometry(cyl.get(), cmaterial, cyl_radius, cyl_length, ChVector3d(0, 0, 0), QUNIT, false,
+                                       vis_material);
     cyl->GetCollisionModel()->SetSafeMargin(params.initial_spacing);
     // Register cylinder with explicit BCE points. Shorten to avoid overlap with cone
     auto cyl_bce = sysSPH.CreatePointsCylinderInterior(cyl_radius, cyl_length - 2 * params.initial_spacing, true);
@@ -869,7 +872,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     std::shared_ptr<ChVisualSystem> vis;
     // Create a run-time visualizer
 #ifdef CHRONO_VSG
-    auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2);
+    auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(0, 30000, false);
     if (params.render) {
         auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
@@ -884,8 +887,8 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
         visVSG->AttachSystem(&sysMBS);
         visVSG->SetWindowTitle("FSI Cone Penetrometer");
         visVSG->SetWindowSize(1280, 720);
-        visVSG->AddCamera(ChVector3d(0, -3 * container_height, 0.75 * container_height),
-                          ChVector3d(0, 0, 0.75 * container_height));
+        visVSG->AddCamera(ChVector3d(0, -2 * container_height, 0.75 * container_height),
+                          ChVector3d(0, 0, 0.55 * container_height));
         visVSG->SetLightIntensity(0.9);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
@@ -940,8 +943,10 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
                                  << ".vtk";
                 WriteCylinderVTK(cyl_vtk_filename.str(), cyl, cyl_radius, cyl_length);
             }
-            std::cout << "Time: " << time << std::endl;
+            // std::cout << "Time: " << time << std::endl;
             std::cout << "Current Depth: " << current_depth << std::endl;
+            double cone_pressure = abs(cone->GetAppliedForce().z() / (CH_PI * pow(coneProp.diameter / 2, 2)));
+            std::cout << "Cone Pressure: " << cone_pressure << std::endl;
             out_frame++;
         }
 #ifdef CHRONO_VSG

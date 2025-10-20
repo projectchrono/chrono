@@ -17,6 +17,7 @@
 #include <thrust/sort.h>
 #include <thrust/fill.h>
 
+#include "chrono/utils/ChConstants.h"
 #include "chrono_fsi/sph/physics/SphForceWCSPH.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
 #include "chrono_fsi/sph/math/SphExactLinearSolvers.cuh"
@@ -689,6 +690,8 @@ __global__ void CrmAdamiBC(const uint* numNeighborsPerPart,
     if (IsFluidParticle(sortedRhoPresMuD[index].w)) {
         return;
     }
+    bool isSolid = IsBceSolidMarker(sortedRhoPresMuD[index].w);
+    bool isMCC = paramsD.rheology_model_crm == RheologyCRM::MCC;
 
     Real3 posRadA = mR3(sortedPosRadD[index]);
     uint NLStart = numNeighborsPerPart[index];
@@ -713,16 +716,24 @@ __global__ void CrmAdamiBC(const uint* numNeighborsPerPart,
         Real W3 = W3h(paramsD.kernel_type, d, paramsD.ooh);
         sum_w += W3;
         sum_vw += sortedVelMasD[j] * W3;
-        sum_rhorw += paramsD.rho0 * rij * W3;  // Since density is constant in CRM
-        sum_tauD += sortedTauXxYyZz[j] * W3;
+        // sum_rhorw += paramsD.rho0 * rij * W3;  // Since density is constant in CRM
+        sum_rhorw += sortedRhoPresMuD[j].x * rij * W3;
+        if (isSolid && isMCC) {
+            // Real mean_pressure = -CH_1_3 * (sortedTauXxYyZz[j].x + sortedTauXxYyZz[j].y + sortedTauXxYyZz[j].z);
+            // sum_tauD += (sortedTauXxYyZz[j] - mean_pressure) * W3;
+            // sum_tauD += (sortedTauXxYyZz[j] - sortedPcEvSv[j].x) * W3;
+            sum_tauD += sortedTauXxYyZz[j] * W3;
+
+        } else {
+            sum_tauD += sortedTauXxYyZz[j] * W3;
+        }
         sum_tauO += sortedTauXyXzYz[j] * W3;
     }
 
     if (sum_w > EPSILON) {
         Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0);
         sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
-        sortedTauXxYyZz[index] =
-            (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w - sortedPcEvSv[index].x;
+        sortedTauXxYyZz[index] = (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
         sortedTauXyXzYz[index] = sum_tauO / sum_w;
     } else {
         sortedVelMasD[index] = mR3(0);
@@ -885,7 +896,8 @@ __global__ void CrmHolmesBC(const uint* numNeighborsPerPart,
         Real W3 = W3h(paramsD.kernel_type, d, paramsD.ooh);
         sum_w += W3;
         sum_vw += sortedVelMasD[j] * W3;
-        sum_rhorw += paramsD.rho0 * rij * W3;  // Since density is constant in CRM
+        // sum_rhorw += paramsD.rho0 * rij * W3;  // Since density is constant in CRM
+        sum_rhorw += sortedRhoPresMuD[j].x * rij * W3;
         sum_tauD += sortedTauXxYyZz[j] * W3;
         sum_tauO += sortedTauXyXzYz[j] * W3;
 
@@ -905,8 +917,7 @@ __global__ void CrmHolmesBC(const uint* numNeighborsPerPart,
 
     sortedVelMasD[index] = velMasB_new;
     if (sum_w > EPSILON) {
-        sortedTauXxYyZz[index] =
-            (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w - sortedPcEvSv[index].x;
+        sortedTauXxYyZz[index] = (sum_tauD - dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
         sortedTauXyXzYz[index] = sum_tauO / sum_w;
     } else {
         sortedTauXxYyZz[index] = mR3(0);
@@ -1094,30 +1105,29 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     }*/
 
     Real Mass = paramsD.markerMass;
-    Real MassOverRho = Mass * paramsD.invrho0 * paramsD.invrho0;
-    Real3 MA_gradW = gradW * MassOverRho;
 
-    Real derivVx = (tauXxYyZz_A.x + tauXxYyZz_B.x) * MA_gradW.x + (tauXyXzYz_A.x + tauXyXzYz_B.x) * MA_gradW.y +
-                   (tauXyXzYz_A.y + tauXyXzYz_B.y) * MA_gradW.z;
-    Real derivVy = (tauXyXzYz_A.x + tauXyXzYz_B.x) * MA_gradW.x + (tauXxYyZz_A.y + tauXxYyZz_B.y) * MA_gradW.y +
-                   (tauXyXzYz_A.z + tauXyXzYz_B.z) * MA_gradW.z;
-    Real derivVz = (tauXyXzYz_A.y + tauXyXzYz_B.y) * MA_gradW.x + (tauXyXzYz_A.z + tauXyXzYz_B.z) * MA_gradW.y +
-                   (tauXxYyZz_A.z + tauXxYyZz_B.z) * MA_gradW.z;
+    // Real MassOverRho = Mass * paramsD.invrho0 * paramsD.invrho0;
+    // Real3 MA_gradW = gradW * MassOverRho;
 
-    // // Real invRhoASq = 1 / (rhoPresMuA.x * rhoPresMuA.x);
-    // Real invRhoASq = 1 / (paramsD.rho0 * paramsD.rho0);
-    // // Real invRhoBSq = 1 / (rhoPresMuB.x * rhoPresMuB.x);
-    // Real invRhoBSq = 1 / (paramsD.rho0 * paramsD.rho0);
-    // Real3 MA_gradW = gradW * Mass;
-    // Real derivVx = (tauXxYyZz_A.x * invRhoASq + tauXxYyZz_B.x * invRhoBSq) * MA_gradW.x +
-    //                (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.y +
-    //                (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.z;
-    // Real derivVy = (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.x +
-    //                (tauXxYyZz_A.y * invRhoASq + tauXxYyZz_B.y * invRhoBSq) * MA_gradW.y +
-    //                (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.z;
-    // Real derivVz = (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.x +
-    //                (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.y +
-    //                (tauXxYyZz_A.z * invRhoASq + tauXxYyZz_B.z * invRhoBSq) * MA_gradW.z;
+    // Real derivVx = (tauXxYyZz_A.x + tauXxYyZz_B.x) * MA_gradW.x + (tauXyXzYz_A.x + tauXyXzYz_B.x) * MA_gradW.y +
+    //                (tauXyXzYz_A.y + tauXyXzYz_B.y) * MA_gradW.z;
+    // Real derivVy = (tauXyXzYz_A.x + tauXyXzYz_B.x) * MA_gradW.x + (tauXxYyZz_A.y + tauXxYyZz_B.y) * MA_gradW.y +
+    //                (tauXyXzYz_A.z + tauXyXzYz_B.z) * MA_gradW.z;
+    // Real derivVz = (tauXyXzYz_A.y + tauXyXzYz_B.y) * MA_gradW.x + (tauXyXzYz_A.z + tauXyXzYz_B.z) * MA_gradW.y +
+    //                (tauXxYyZz_A.z + tauXxYyZz_B.z) * MA_gradW.z;
+
+    Real invRhoASq = 1 / (rhoPresMuA.x * rhoPresMuA.x);
+    Real invRhoBSq = 1 / (rhoPresMuB.x * rhoPresMuB.x);
+    Real3 MA_gradW = gradW * Mass;
+    Real derivVx = (tauXxYyZz_A.x * invRhoASq + tauXxYyZz_B.x * invRhoBSq) * MA_gradW.x +
+                   (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.y +
+                   (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.z;
+    Real derivVy = (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.x +
+                   (tauXxYyZz_A.y * invRhoASq + tauXxYyZz_B.y * invRhoBSq) * MA_gradW.y +
+                   (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.z;
+    Real derivVz = (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.x +
+                   (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.y +
+                   (tauXxYyZz_A.z * invRhoASq + tauXxYyZz_B.z * invRhoBSq) * MA_gradW.z;
     // TODO: Visco-plastic model
     // Real vel = length(velMasA);
     // if(vel > 0.3){
@@ -1142,9 +1152,8 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
             // Artificial Viscosity from Monaghan 1997
             // This has no viscous forces in the seperation phase - used in SPH codes simulating fluids
             if (vAB_rAB < 0) {
-                // Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * 2. / (rhoPresMuA.x +
-                // rhoPresMuB.x);
-                Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
+                Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x);
+                // Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
                 derivM1 = -Mass * (nu * intermediate);
             }
 
@@ -1153,8 +1162,8 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
         case ViscosityMethod::ARTIFICIAL_BILATERAL: {
             // Artificial viscosity treatment from J J Monaghan (2005) "Smoothed particle hydrodynamics"
             // Here there is viscous force added even during the seperation phase - makes the simulation more stable
-            // Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x);
-            Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
+            Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x);
+            // Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
             derivM1 = -Mass * (nu * intermediate);
             break;
         }
@@ -1172,8 +1181,10 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     if (Pa < 0) {
         Real Pb = -0.333333333f * (tauXxYyZz_B.x + tauXxYyZz_B.y + tauXxYyZz_B.z);
         Real epsi = 0.5;
-        Real Ra = Pa * epsi * paramsD.invrho0 * paramsD.invrho0;
-        Real Rb = Pb * epsi * paramsD.invrho0 * paramsD.invrho0;
+        // Real Ra = Pa * epsi * paramsD.invrho0 * paramsD.invrho0;
+        // Real Rb = Pb * epsi * paramsD.invrho0 * paramsD.invrho0;
+        Real Ra = Pa * epsi * invRhoASq;
+        Real Rb = Pb * epsi * invRhoBSq;
         Real fAB = W_AB * W_ini_inv;
         Real small_F = Mass * pow(fAB, 3.0) * (Ra + Rb);
         derivVx += small_F * gradW.x;
@@ -1194,7 +1205,8 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     // }
 
     // Real derivRho = Mass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
-    return mR4(derivVx, derivVy, derivVz, 0);
+    // return mR4(derivVx, derivVy, derivVz, 0);
+    return mR4(derivVx, derivVy, derivVz, derivRho);
 }
 
 __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
@@ -1430,10 +1442,196 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
     sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
 }
 
+__global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
+                              const Real3* sortedVelMas,
+                              const Real4* __restrict__ sortedRhoPreMu,
+                              const Real3* __restrict__ sortedTauXxYyZz,
+                              const Real3* __restrict__ sortedTauXyXzYz,
+                              const uint* __restrict__ numNeighborsPerPart,
+                              const uint* __restrict__ neighborList,
+                              const uint numActive,
+                              Real4* __restrict__ sortedDerivVelRho,
+                              Real3* __restrict__ sortedDerivTauXxYyZz,
+                              Real3* __restrict__ sortedDerivTauXyXzYz,
+                              Real3* __restrict__ sortedPcEvSv,
+                              uint* __restrict__ sortedFreeSurfaceIdD,
+                              Real* __restrict__ courantViscousTimeStepD,
+                              Real* __restrict__ accelerationTimeStepD) {
+    uint id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (id >= numActive)
+        return;
+
+    uint index = id;
+
+    if (IsBceWallMarker(sortedRhoPreMu[index].w))
+        return;
+
+    Real3 posRadA = mR3(sortedPosRad[index]);
+    Real3 velMasA = sortedVelMas[index];
+    Real4 rhoPresMuA = sortedRhoPreMu[index];
+    Real3 TauXxYyZzA = sortedTauXxYyZz[index];
+    Real3 TauXyXzYzA = sortedTauXyXzYz[index];
+    Real4 derivVelRho = mR4(0);
+    Real3 deltaV = mR3(0);
+
+    Real tauxx = sortedTauXxYyZz[index].x;
+    Real tauyy = sortedTauXxYyZz[index].y;
+    Real tauzz = sortedTauXxYyZz[index].z;
+    Real tauxy = sortedTauXyXzYz[index].x;
+    Real tauxz = sortedTauXyXzYz[index].y;
+    Real tauyz = sortedTauXyXzYz[index].z;
+    Real Lxx = 0, Lxy = 0, Lxz = 0;  // velocity-gradient entries L = grad v
+    Real Lyx = 0, Lyy = 0, Lyz = 0;
+    Real Lzx = 0, Lzy = 0, Lzz = 0;
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
+
+    // Cache constant parameters in registers
+    const KernelType kernelType = paramsD.kernel_type;
+    const Real ooh = paramsD.ooh;
+    const Real d0 = paramsD.d0;
+
+    // TODO(Huzaifa): Make sure that this use of volume0 here is correct
+    Real sum_w_i = W3h(kernelType, 0, ooh) * paramsD.volume0;
+    // Real sum_w_i = W3h(kernelType, 0, ooh) * paramsD.markerMass / rhoPresMuA.x;
+    Real nabla_r = 0;
+    Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
+    Real max_vel_diff = 0;
+    const bool isFluid = IsFluidParticle(rhoPresMuA.w);
+
+    // Get the interaction from neighbor particles
+    // NLStart + 1 because the first element in neighbor list is the particle itself
+    for (int n = NLStart + 1; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        Real4 rhoPresMuB = sortedRhoPreMu[j];
+        Real volumej = paramsD.markerMass / rhoPresMuB.x;
+        if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
+            continue;  // No BCE-BCE interaction
+
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 dist3 = Distance(posRadA, posRadB);
+        Real d = length(dist3);
+        Real invd = 1 / d;
+        Real3 velMasB = sortedVelMas[j];
+        Real3 TauXxYyZzB = sortedTauXxYyZz[j];
+        Real3 TauXyXzYzB = sortedTauXyXzYz[j];
+
+        // Correct the kernel function gradient
+        Real w_AB = W3h(kernelType, d, ooh);
+        Real3 gradW = GradW3h(kernelType, dist3, ooh);
+
+        // Accumulate support metric (nabla_r) as in diffusion-based shifting
+        // Uses neighbor volume approximation markerMass / rho_j
+        // nabla_r += paramsD.markerMass / paramsD.rho0 * dot(-dist3, gradW);
+        nabla_r += volumej * dot(-dist3, gradW);
+
+        // Calculate dv/dt
+        // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
+        derivVelRho +=
+            crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB,
+                    rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
+        if (isFluid) {
+            Real3 vBA = velMasB - velMasA;
+            // Real Vj = paramsD.volume0;
+            Real Vj = volumej;
+
+            // accumulate velocity gradient
+            Lxx += Vj * vBA.x * gradW.x;
+            Lxy += Vj * vBA.x * gradW.y;
+            Lxz += Vj * vBA.x * gradW.z;
+            Lyx += Vj * vBA.y * gradW.x;
+            Lyy += Vj * vBA.y * gradW.y;
+            Lyz += Vj * vBA.y * gradW.z;
+            Lzx += Vj * vBA.z * gradW.x;
+            Lzy += Vj * vBA.z * gradW.y;
+            Lzz += Vj * vBA.z * gradW.z;
+        }
+
+        if (d > paramsD.h * 1.0e-9f) {
+            Real Wab = W3h(kernelType, d, ooh);
+            // Integration of the kernel function
+            // TODO(Huzaifa): Make sure that this use of volume0 here is correct
+            sum_w_i += Wab * paramsD.volume0;
+        }
+    }
+    // Split into D and W
+    Real Dxx = Lxx;
+    Real Dyy = Lyy;
+    Real Dzz = Lzz;  // diagonals
+    Real Dxy = 0.5 * (Lxy + Lyx);
+    Real Dxz = 0.5 * (Lxz + Lzx);
+    Real Dyz = 0.5 * (Lyz + Lzy);
+    Real Wxy = 0.5 * (Lxy - Lyx);
+    Real Wxz = 0.5 * (Lxz - Lzx);
+    Real Wyz = 0.5 * (Lyz - Lzy);
+
+    Real trD = Dxx + Dyy + Dzz;
+    Real edia = 1.0f / 3.0f * trD;
+    // Save the volumetric strain to use in constitutive model
+    sortedPcEvSv[index].y = -trD;
+    Real twoG = 0;
+    Real threeK = 0;
+    if (paramsD.rheology_model_crm == RheologyCRM::MCC) {
+        Real p_n = -CH_1_3 * (tauxx + tauyy + tauzz);
+        // Floor Pressure (Pa) to prevent K -> 0 near free surface
+        Real p_eff = fmax(p_n, Real(1000.0));
+        // Bulk
+        // Candidate bulk modulus from MCC
+        Real K_cand = sortedPcEvSv[index].z * (p_eff) / paramsD.mcc_kappa;
+        // Clamp K to prevent collapse of the bulk modulus
+        Real K_clamped = fmin(fmax(K_cand, Real(0.3) * paramsD.K_bulk), Real(1000.0) * paramsD.K_bulk);
+
+        // Shear
+        Real G_cand = (3.0 * K_clamped * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
+        Real G_clamped = fmin(fmax(G_cand, Real(0.3) * paramsD.G_shear), Real(1000.0) * paramsD.G_shear);
+
+        twoG = 2 * G_clamped;
+        threeK = 3 * K_clamped;
+    } else {
+        twoG = 2 * paramsD.G_shear;
+        threeK = 3 * paramsD.K_bulk;
+    }
+
+    // Final stress rate using isotropic elasticity
+    Real dTauxx = twoG * (Dxx - edia) + 2.0 * (tauxy * Wxy + tauxz * Wxz) + threeK * edia;
+    Real dTauyy = twoG * (Dyy - edia) - 2.0 * (tauxy * Wxy - tauyz * Wyz) + threeK * edia;
+    Real dTauzz = twoG * (Dzz - edia) - 2.0 * (tauxz * Wxz + tauyz * Wyz) + threeK * edia;
+
+    // off-diagonals
+    Real dTauxy = twoG * Dxy - (tauxx * Wxy - tauxz * Wyz) + (Wxy * tauyy + Wxz * tauyz);
+    Real dTauxz = twoG * Dxz - (tauxx * Wxz + tauxy * Wyz) + (Wxy * tauyz + Wxz * tauzz);
+    Real dTauyz = twoG * Dyz - (tauxy * Wxz + tauyy * Wyz) - (Wxy * tauxz - Wyz * tauzz);
+    // Identify free-surface particles using implicit metric (nabla_r) and AFST threshold
+    // Consistent with diffusion-based shifting logic
+    // if(sum_w_i  < paramsD.free_surface_threshold) {
+    if (nabla_r < paramsD.shifting_diffusion_AFST) {
+        sortedFreeSurfaceIdD[index] = 1;
+    } else {
+        sortedFreeSurfaceIdD[index] = 0;
+    }
+
+    // Add gravity and other body force to fluid markers
+    if (IsSphParticle(rhoPresMuA.w)) {
+        Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
+        derivVelRho += mR4(totalFluidBodyForce3, 0);
+    }
+
+    if (IsFluidParticle(rhoPresMuA.w)) {
+        courantViscousTimeStepD[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
+        Real intermediate =
+            sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
+        Real accT = sqrtf(paramsD.h / intermediate);
+        accelerationTimeStepD[index] = accT;
+    }
+    sortedDerivVelRho[index] = derivVelRho;
+    sortedDerivTauXxYyZz[index] = mR3(dTauxx, dTauyy, dTauzz);
+    sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
+}
+
 void SphForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
-    CrmRHS<<<numBlocks, numThreads>>>(
+    CrmRHSRewrite<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
