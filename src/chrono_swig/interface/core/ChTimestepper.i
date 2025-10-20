@@ -10,6 +10,9 @@
 %csmethodmodifiers chrono::ChTimestepperHHT::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetAbsTolerances "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumStepIterations "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumStepSetupCalls "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumStepSolveCalls "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumIterations "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSolveCalls "public"
@@ -17,6 +20,9 @@
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetAbsTolerances "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumStepIterations "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumStepSetupCalls "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumStepSolveCalls "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumIterations "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSolveCalls "public"
@@ -32,6 +38,9 @@
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
+    int GetNumStepIterations() const {return $self->GetNumStepIterations();}
+    int GetNumStepSetupCalls() const {return $self->GetNumStepSetupCalls();}
+    int GetNumStepSolveCalls() const {return $self->GetNumStepSolveCalls();}
     int GetNumIterations() const {return $self->GetNumIterations();}
     int GetNumSetupCalls() const {return $self->GetNumSetupCalls();}
     int GetNumSolveCalls() const {return $self->GetNumSolveCalls();}
@@ -43,6 +52,9 @@
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
+    int GetNumStepIterations() const {return $self->GetNumStepIterations();}
+    int GetNumStepSetupCalls() const {return $self->GetNumStepSetupCalls();}
+    int GetNumStepSolveCalls() const {return $self->GetNumStepSolveCalls();}
     int GetNumIterations() const {return $self->GetNumIterations();}
     int GetNumSetupCalls() const {return $self->GetNumSetupCalls();}
     int GetNumSolveCalls() const {return $self->GetNumSolveCalls();}

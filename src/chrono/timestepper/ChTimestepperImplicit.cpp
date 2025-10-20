@@ -16,6 +16,10 @@
 
 #include "chrono/timestepper/ChTimestepperImplicit.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 namespace chrono {
 
 // -----------------------------------------------------------------------------
@@ -25,13 +29,28 @@ CH_UPCASTING(ChTimestepperImplicit, ChTimestepper)
 ChTimestepperImplicit::ChTimestepperImplicit()
     : jacobian_update_method(JacobianUpdate::EVERY_STEP),
       call_setup(true),
-      maxiters(6),
+      jacobian_is_current(false),
+      max_iters(6),
       reltol(1e-4),
       abstolS(1e-10),
       abstolL(1e-10),
-      numiters(0),
-      numsetups(0),
-      numsolves(0) {}
+      convergence_rate(0),
+      accept_terminated(true),
+      step_control(true),
+      maxiters_success(3),
+      req_successful_steps(5),
+      step_increase_factor(2),
+      step_decrease_factor(0.5),
+      h_min(1e-10),
+      h(1e6),
+      num_successful_steps(0),
+      num_step_iters(0),
+      num_step_setups(0),
+      num_step_solves(0),
+      num_iters(0),
+      num_setups(0),
+      num_solves(0),
+      num_terminated(0) {}
 
 void ChTimestepperImplicit::SetJacobianUpdateMethod(JacobianUpdate method) {
     // If switching to JacobianUpdate::NEVER from a different strategy, force a Jacobian update
@@ -41,32 +60,220 @@ void ChTimestepperImplicit::SetJacobianUpdateMethod(JacobianUpdate method) {
     jacobian_update_method = method;
 }
 
-bool ChTimestepperImplicit::CheckJacobianUpdateRequired(int iteration, bool previous_converged) {
-    bool setup;
-    switch (jacobian_update_method) {
-        default:
-        case JacobianUpdate::EVERY_STEP:
-            // Update at first Newton iteration or on a stepsize change after a non-converged Newton.
-            setup = (iteration == 0 && !previous_converged);
-            break;
-        case JacobianUpdate::EVERY_ITERATION:
-            setup = true;
-            break;
-        case JacobianUpdate::NEVER:
-            // Note that call_setup is always reset to false after an integration step, so the only times it can be true
-            // if at the very first step or after a call to SetJacobianUpdateMethod() with JacobianUpdate::NEVER
-            setup = call_setup;
-            break;
-        case JacobianUpdate::AUTOMATIC:
-            //// TODO
-            setup = true;
-            break;
+void ChTimestepperImplicit::Advance(double dt) {
+    // Initialize step counters
+    num_step_iters = 0;
+    num_step_setups = 0;
+    num_step_solves = 0;
+
+    // Call the integrator-specific advance method
+    try {
+        OnAdvance(dt);
+    } catch (const std::exception&) {
+        throw;
     }
-    return setup;
+
+    // Update cumulative counters
+    num_iters += num_step_iters;
+    num_setups += num_step_setups;
+    num_solves += num_step_solves;
 }
 
+// Time advance for an implicit integrator with support for adaptive, error controlled time step.
+// Monitor flags controlling whether or not the Jacobian must be updated.
+// If using JacobianUpdate::EVERY_ITERATION, a matrix update occurs:
+//   - at every iteration
+// If using JacobianUpdate::EVERY_STEP, a matrix update occurs:
+//   - at the beginning of a step
+//   - on a stepsize decrease
+//   - if the Newton iteration does not converge with an out-of-date matrix
+// If using JacobianUpdate::NEVER, a matrix update occurs:
+//   - only at the beginning of the very first step
+// If using JacobianUpdate::AUTOMATIC, a matrix update occurs:
+//   - on a convergence failure with out of date Jacobian
+//
+void ChTimestepperImplicit::OnAdvance(double dt) {
+    // On entry, call_setup is true only:
+    // - at the first iteration on the first step
+    // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
+
+    // Let the concrete integrator initialze step
+    InitializeStep();
+
+    // Set time at step end
+    // Solution will be advanced to tfinal, possibly taking multiple steps
+    double tfinal = T + dt;
+
+    // If we had a streak of successful steps, consider a stepsize increase.
+    // Note that we never attempt a step larger than the specified dt value.
+    // If step size control is disabled, always use h = dt.
+    if (!step_control) {
+        h = dt;
+        num_successful_steps = 0;
+    } else if (num_successful_steps >= req_successful_steps) {
+        double new_h = std::min(h * step_increase_factor, dt);
+        if (new_h > h + h_min) {
+            h = new_h;
+            num_successful_steps = 0;
+            if (verbose)
+                cout << " +++HHT increase stepsize to " << h << endl;
+        }
+    } else {
+        h = std::min(h, dt);
+    }
+
+    // Loop until reaching final time
+    while (true) {
+        PrepareStep();
+
+        // Perform Newton iterations to solve for state at T+h
+        Ds_nrm_hist.fill(0.0);
+        Dl_nrm_hist.fill(0.0);
+        bool converged = false;
+        jacobian_is_current = false;
+
+        unsigned int iteration;
+        for (iteration = 0; iteration < max_iters; iteration++) {
+            // Check if a Jacobian update is required
+            if (jacobian_update_method == JacobianUpdate::EVERY_STEP && iteration == 0)
+                call_setup = true;
+            if (jacobian_update_method == JacobianUpdate::EVERY_ITERATION)
+                call_setup = true;
+
+            if (verbose && (jacobian_update_method != JacobianUpdate::EVERY_ITERATION) && call_setup)
+                cout << " Call Setup." << endl;
+
+            // Solve linear system and increment state
+            Increment();
+
+            // If the Jacobian was updated at this iteration, mark it as up-to-date
+            if (call_setup)
+                jacobian_is_current = true;
+
+            // Increment counters
+            num_step_iters++;
+            num_step_solves++;
+            if (call_setup)
+                num_step_setups++;
+
+            // Set call_setup to 'false' (for JacobianUpdate::NEVER)
+            call_setup = false;
+
+            // Check convergence
+            bool pass = CheckConvergence(iteration);
+            if (pass) {
+                converged = true;
+                break;
+            }
+        }
+
+        if (converged) {
+            // ------ Newton converged
+
+            // if the number of iterations was low enough, increase the count of successive successful steps
+            // (for possible step increase)
+            if (iteration < maxiters_success)
+                num_successful_steps++;
+            else
+                num_successful_steps = 0;
+
+            if (verbose) {
+                cout << " Newton converged in " << iteration << " iterations.";
+                cout << "   Number successful steps: " << num_successful_steps;
+                cout << "   T = " << T + h << "  h = " << h << endl;
+            }
+
+            // advance time (clamp to tfinal if close enough)
+            T += h;
+            if (std::abs(T - tfinal) < std::min(h_min, 1e-6)) {
+                T = tfinal;
+            }
+
+            // accept step
+            AcceptStep();
+
+        } else if (!jacobian_is_current && jacobian_update_method != JacobianUpdate::NEVER) {
+            // ------ Newton did not converge,
+            //        but Jacobian is out-of-date and we can re-evaluate it
+
+            // reset the count of successive successful steps
+            num_successful_steps = 0;
+
+            // re-attempt step with updated Jacobian
+            if (verbose)
+                cout << " Re-attempt step with updated matrix." << endl;
+
+            // Force a Jacobian update for JacobianUpdate::AUTOMATIC
+            call_setup = true;
+
+        } else if (step_control) {
+            // ------ Newton did not converge,
+            //        but we can reduce stepsize
+
+            // reset the count of successive successful steps
+            num_successful_steps = 0;
+
+            // decrease stepsize
+            h *= step_decrease_factor;
+
+            // re-attempt step with smaller step-size
+            if (verbose)
+                cout << " Reduce stepsize to " << h << endl;
+
+            // bail out if stepsize reaches minimum allowable
+            if (h < h_min) {
+                cerr << " [ERROR] Integrator at minimum stepsize. Exiting." << endl;
+                throw std::runtime_error("Reached minimum allowable step size.");
+            }
+
+            call_setup = true;
+
+        } else {
+            // ------ Newton did not converge,
+            //        Jacobian is current or we are not allowed to update it, and we do not control stepsize
+
+            if (!accept_terminated) {
+                cerr << " [ERROR] Newton did not converge with up-to-date or non-modifiable Jacobian. Exiting." << endl;
+                throw std::runtime_error("Newton did not converge with up-to-date Jacobian.");
+            }
+
+            // reset the count of successive successful steps
+            num_successful_steps = 0;
+
+            // accept solution as-is and complete step
+            if (verbose)
+                cout << " Newton terminated; advance T = " << T + h << endl;
+
+            num_terminated++;
+
+            // advance time (clamp to tfinal if close enough)
+            T += h;
+            if (std::abs(T - tfinal) < std::min(h_min, 1e-6)) {
+                T = tfinal;
+            }
+
+            // accept step
+            AcceptStep();
+        }
+
+        // If successfully reaching end of step (this can only happen if Newton converged or was terminated),
+        // break out of loop
+        if (T >= tfinal)
+            break;
+
+        // Reset step and go back in the loop
+        ResetStep();
+    }
+
+    FinalizeStep();
+
+    // Reset call_setup to false, in case it is modified from outside the integrator
+    call_setup = false;
+}
+
+// Check convergence of Newton process.
 bool ChTimestepperImplicit::CheckConvergence(int it) {
-    bool converged = false;
+    bool pass = false;
 
     // Declare convergence when either the residual is below the absolute tolerance or
     // the WRMS update norm is less than 1 (relative + absolute tolerance test)
@@ -90,21 +297,21 @@ bool ChTimestepperImplicit::CheckConvergence(int it) {
     }
 
     if (verbose) {
-        std::cout << "  Newton iteration=" << numiters;
-        std::cout << "  |R| = " << R_nrm << "  |Qc| =" << Qc_nrm << "  |Ds| =" << Ds_nrm << "  |Dl| =" << Dl_nrm;
+        cout << "  Newton iteration =" << num_step_iters;
+        cout << "  |R| = " << R_nrm << "  |Qc| =" << Qc_nrm << "  |Ds| =" << Ds_nrm << "  |Dl| =" << Dl_nrm;
         if (it >= 2)
-            std::cout << "  Conv. rate = " << convergence_rate;
-        std::cout << std::endl;
+            cout << "  Conv. rate = " << convergence_rate;
+        cout << endl;
     }
 
     if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Ds_nrm < 1 && Dl_nrm < 1))
-        converged = true;
+        pass = true;
 
-    return converged;
+    return pass;
 }
 
 // Calculate the error weight vector corresponding to the specified solution vector x,
-// using the given relative and absolute tolerances.
+// using the given relative and absolute tolerances
 void ChTimestepperImplicit::CalcErrorWeights(const ChVectorDynamic<>& x,
                                              double rtol,
                                              double atol,
@@ -112,16 +319,18 @@ void ChTimestepperImplicit::CalcErrorWeights(const ChVectorDynamic<>& x,
     ewt = (rtol * x.cwiseAbs() + atol).cwiseInverse();
 }
 
-void ChTimestepperImplicit::Advance(double dt) {
-    // On entry, call_setup is true only:
-    // - at the first iteration on the first step
-    // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
-
-    // Call the integrator-specific advance method
-    OnAdvance(dt);
-
-    // Reset call_setup to false, in case it is modified from outside the integrator
-    call_setup = false;
+std::string ChTimestepperImplicit::GetJacobianUpdateMethodAsString(JacobianUpdate jacobian_update) {
+    switch (jacobian_update) {
+        case JacobianUpdate::EVERY_ITERATION:
+            return "EVERY_ITERATION";
+        case JacobianUpdate::EVERY_STEP:
+            return "EVERY_STEP";
+        case JacobianUpdate::NEVER:
+            return "NEVER";
+        case JacobianUpdate::AUTOMATIC:
+            return "AUTOMATIC";
+    }
+    return "unknown";
 }
 
 // -----------------------------------------------------------------------------
@@ -159,12 +368,8 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Ds     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
     // [ Cq                           0   ] [ -dt*Dl ] = [ -C/dt  ]
     //
-    numiters = 0;
-    numsetups = 0;
-    numsolves = 0;
-
     unsigned int iteration;
-    for (iteration = 0; iteration < maxiters; iteration++) {
+    for (iteration = 0; iteration < max_iters; iteration++) {
         integrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R.setZero();
         Qc.setZero();
@@ -175,8 +380,8 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
                                      Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection)
 
         if (verbose)
-            std::cout << " Euler iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                      << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
+            cout << " Euler iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                      << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
@@ -192,9 +397,9 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
             true                           // always call the solver's Setup
         );
 
-        numiters++;
-        numsetups++;
-        numsolves++;
+        num_step_iters++;
+        num_step_setups++;
+        num_step_solves++;
 
         Dl *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
         L += Dl;
@@ -465,12 +670,8 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
     integrable->LoadResidual_Mv(Rold, V, 1.0);   // M*v_old
     // integrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old   assume L_old = 0
 
-    numiters = 0;
-    numsetups = 0;
-    numsolves = 0;
-
     unsigned int iteration;
-    for (iteration = 0; iteration < maxiters; iteration) {
+    for (iteration = 0; iteration < max_iters; iteration) {
         integrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R = Rold;
         Qc.setZero();
@@ -481,8 +682,8 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
                                      Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
 
         if (verbose)
-            std::cout << " Trapezoidal iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                      << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
+            cout << " Trapezoidal iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                      << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
@@ -498,9 +699,9 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
             true                           // always force a call to the solver's Setup() function
         );
 
-        numiters++;
-        numsetups++;
-        numsolves++;
+        num_step_iters++;
+        num_step_setups++;
+        num_step_solves++;
 
         Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
         L += Dl;
@@ -597,9 +798,9 @@ void ChTimestepperTrapezoidalLinearized::OnAdvance(double dt) {
         true                           // force a call to the solver's Setup() function
     );
 
-    numiters = 1;
-    numsetups = 1;
-    numsolves = 1;
+    num_step_iters = 1;
+    num_step_setups = 1;
+    num_step_solves = 1;
 
     Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
     L += Dl;
@@ -685,13 +886,10 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
     // [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Ds   ] = [ -M*(a_new) + f_new + Cq*l_new ]
     // [ Cq                                      0   ] [ -Dl  ] = [ -1/(beta*dt^2)*C              ]
     //
-    numiters = 0;
-    numsetups = 0;
-    numsolves = 0;
     call_setup = true;
 
     unsigned int iteration;
-    for (iteration = 0; iteration < maxiters; ++iteration) {
+    for (iteration = 0; iteration < max_iters; ++iteration) {
         integrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
 
         R.setZero(integrable->GetNumCoordsVelLevel());
@@ -704,19 +902,19 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
             Qc_clamping);  //  Qc = 1/(beta*dt^2)*C  (sign will be flipped later in StateSolveCorrection)
 
         if (verbose)
-            std::cout << " Newmark iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                      << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
+            cout << " Newmark iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                      << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL)) {
             if (verbose) {
-                std::cout << " Newmark NR converged (" << iteration << ")."
-                          << "  T = " << T + dt << "  h = " << dt << std::endl;
+                cout << " Newmark NR converged (" << iteration << ")."
+                          << "  T = " << T + dt << "  h = " << dt << endl;
             }
             break;
         }
 
         if (verbose && jacobian_update_method != JacobianUpdate::EVERY_ITERATION && call_setup)
-            std::cout << " Newmark call Setup." << std::endl;
+            cout << " Newmark call Setup." << endl;
 
         integrable->StateSolveCorrection(  //
             Ds, Dl, R, Qc,                 //
@@ -729,11 +927,10 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
             call_setup                     // force a call to the solver's Setup() function
         );
 
-        numiters++;
-        numsolves++;
-        if (call_setup) {
-            numsetups++;
-        }
+        num_step_iters++;
+        num_step_solves++;
+        if (call_setup)
+            num_step_setups++;
 
         // If using modified Newton, do not call Setup again
         call_setup = (jacobian_update_method == JacobianUpdate::EVERY_ITERATION);

@@ -45,35 +45,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepper
     /// Return the current value of the method parameter alpha.
     double GetAlpha() { return alpha; }
 
-    /// Turn on/off the internal step size control.
-    /// Default: true.
-    void SetStepControl(bool enable) { step_control = enable; }
-
-    /// Set the minimum step size.
-    /// An exception is thrown if the internal step size decreases below this limit.
-    /// Default: 1e-10.
-    void SetMinStepSize(double step) { h_min = step; }
-
-    /// Set the maximum allowable number of iterations for counting a step towards a stepsize increase.
-    /// Default: 3.
-    void SetMaxItersSuccess(int iters) { maxiters_success = iters; }
-
-    /// Set the minimum number of (internal) steps that use at most maxiters_success
-    /// before considering a stepsize increase.
-    /// Default: 5.
-    void SetRequiredSuccessfulSteps(int num_steps) { req_successful_steps = num_steps; }
-
-    /// Set the multiplicative factor for a stepsize increase (must be larger than 1).
-    /// Default: 2.
-    void SetStepIncreaseFactor(double factor) { step_increase_factor = factor; }
-
-    /// Set the multiplicative factor for a stepsize decrease (must be smaller than 1).
-    /// Default: 0.5.
-    void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
-
-    /// Perform an integration step.
-    virtual void OnAdvance(double dt) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
 
@@ -81,8 +52,41 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepper
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
-    void Prepare();
-    void Increment();
+    // Implementation of virtual methods for an adaptive, error controlled HHT integrator
+
+    /// Initialize integrator at beginning of a new step.
+    /// - Set up state vectors
+    /// - Set up auxiliary vectors
+    /// - Gather state (position and velocity) and auxiliary data (acceleration and multipliers) at beginning of step
+    virtual void InitializeStep() override;
+
+    /// Prepare attempting a step of size h (assuming a converged state at the current time t):
+    /// - Initialize residual vector with terms at current time
+    /// - Obtain a prediction at T+h for Newton using extrapolation from solution at current time.
+    /// - If no step size control, start with zero acceleration guess (previous step not guaranteed to have converged)
+    /// - Set the error weight vectors (using solution at current time)
+    virtual void PrepareStep() override;
+
+    /// Calculate new state increment for a Newton iteration.
+    /// - Scatter the current estimate of the new state (the state at time T+h)
+    /// - Set up and solve linear system
+    /// - Calculate solution increment
+    /// - Update the estimate of the new state (the state at time T+h)
+    virtual void Increment() override;
+
+    /// Reset step data for re-attempting step (with new Jacobian or reduced step size).
+    /// - Scatter state
+    /// - Reset auxiliary data (acceleratrion and residual)
+    virtual void ResetStep() override;
+
+    /// Accept attempted step (if Newton converged or was terminated).
+    /// Set states and auxiliary data at the end of an intermediate step.
+    virtual void AcceptStep() override;
+
+    /// Finalize step and update solution at end of step.
+    /// - Scatter state doing a full update.
+    /// - Scatter auxiliary data (accelerations and Lagrange multipliers)
+    virtual void FinalizeStep() override;
 
     double alpha;  ///< HHT method parameter:  -1/3 <= alpha <= 0
     double gamma;  ///< HHT method parameter:   gamma = 1/2 - alpha
@@ -93,15 +97,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepper
     ChStateDelta Anew;       ///< current estimate of new accelerations
     ChVectorDynamic<> Lnew;  ///< current estimate of Lagrange multipliers
     ChVectorDynamic<> Rold;  ///< residual terms depending on previous state
-
-    bool step_control;                  ///< step size control enabled?
-    unsigned int maxiters_success;      ///< maximum number of NR iterations to declare a step successful
-    unsigned int req_successful_steps;  ///< required number of successive successful steps for a stepsize increase
-    double step_increase_factor;        ///< factor used in increasing stepsize (>1)
-    double step_decrease_factor;        ///< factor used in decreasing stepsize (<1)
-    double h_min;                       ///< minimum allowable stepsize
-    double h;                           ///< internal stepsize
-    unsigned int num_successful_steps;  ///< number of successful steps
 };
 
 /// @} chrono_timestepper

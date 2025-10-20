@@ -23,18 +23,9 @@ CH_FACTORY_REGISTER(ChTimestepperHHT)
 CH_UPCASTING(ChTimestepperHHT, ChTimestepperIIorder)
 CH_UPCASTING(ChTimestepperHHT, ChTimestepperImplicit)
 
-ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
-    : ChTimestepperIIorder(intgr),
-      ChTimestepperImplicit(),
-      step_control(true),
-      maxiters_success(3),
-      req_successful_steps(5),
-      step_increase_factor(2),
-      step_decrease_factor(0.5),
-      h_min(1e-10),
-      h(1e6),
-      num_successful_steps(0) {
-    SetAlpha(-0.2);  // default: some dissipation
+ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr) : ChTimestepperIIorder(intgr), ChTimestepperImplicit() {
+    // Initialize method parameters with some numerical dissipation
+    SetAlpha(-0.2);
 }
 
 void ChTimestepperHHT::SetAlpha(double val) {
@@ -47,6 +38,29 @@ void ChTimestepperHHT::SetAlpha(double val) {
     beta = std::pow((1.0 - alpha), 2) / 4.0;
 }
 
+void ChTimestepperHHT::InitializeStep() {
+    // Setup state vectors
+    integrable->StateSetup(X, V, A);
+
+    // Setup auxiliary vectors
+    Ds.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    Dl.setZero(integrable->GetNumConstraints());
+    Xnew.setZero(integrable->GetNumCoordsPosLevel(), integrable);
+    Vnew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    Anew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    R.setZero(integrable->GetNumCoordsVelLevel());
+    Rold.setZero(integrable->GetNumCoordsVelLevel());
+    Qc.setZero(integrable->GetNumConstraints());
+    L.setZero(integrable->GetNumConstraints());
+    Lnew.setZero(integrable->GetNumConstraints());
+
+    // State at current time T
+    integrable->StateGather(X, V, T);        // state <- system
+    integrable->StateGatherAcceleration(A);  // <- system
+    integrable->StateGatherReactions(L);     // <- system
+}
+
+/*
 // Performs a step of HHT (generalized alpha) implicit for II order systems
 void ChTimestepperHHT::OnAdvance(double dt) {
     // Setup state vectors
@@ -71,9 +85,6 @@ void ChTimestepperHHT::OnAdvance(double dt) {
 
     // Advance solution to time T+dt, possibly taking multiple steps
     double tfinal = T + dt;  // target final time
-    numiters = 0;            // total number of Newton iterations for this step
-    numsetups = 0;
-    numsolves = 0;
 
     // If we had a streak of successful steps, consider a stepsize increase.
     // Note that we never attempt a step larger than the specified dt value.
@@ -94,19 +105,23 @@ void ChTimestepperHHT::OnAdvance(double dt) {
     }
 
     // Loop until reaching final time
-    bool jacobian_is_current = false;
-    bool converged = false;
-
     while (true) {
         Prepare();
 
         // Perform Newton iterations to solve for state at T+h
         Ds_nrm_hist.fill(0.0);
         Dl_nrm_hist.fill(0.0);
+        bool converged = false;
+        jacobian_is_current = false;
+
         unsigned int iteration;
-        for (iteration = 0; iteration < maxiters; iteration++) {
+        for (iteration = 0; iteration < max_iters; iteration++) {
             // Check if a Jacobian update is required
-            call_setup = CheckJacobianUpdateRequired(iteration, converged);
+            if (jacobian_update_method == JacobianUpdate::EVERY_STEP && iteration == 0)
+                call_setup = true;
+            if (jacobian_update_method == JacobianUpdate::EVERY_ITERATION)
+                call_setup = true;
+            ////call_setup = CheckJacobianUpdateRequired(iteration, converged);
 
             if (verbose && (jacobian_update_method != JacobianUpdate::EVERY_ITERATION) && call_setup)
                 std::cout << " HHT call Setup." << std::endl;
@@ -115,18 +130,24 @@ void ChTimestepperHHT::OnAdvance(double dt) {
             Increment();
 
             // If the Jacobian was updated at this iteration, mark it as up-to-date
-            jacobian_is_current = call_setup;
+            if (call_setup)
+                jacobian_is_current = true;
 
             // Increment counters
-            numiters++;
-            numsolves++;
+            num_step_iters++;
+            num_step_solves++;
             if (call_setup)
-                numsetups++;
+                num_step_setups++;
+
+            // Set call_setup to 'false' (for JacobianUpdate::NEVER)
+            call_setup = false;
 
             // Check convergence
-            converged = CheckConvergence(iteration);
-            if (converged)
+            bool pass = CheckConvergence(iteration);
+            if (pass) {
+                converged = true;
                 break;
+            }
         }
 
         if (converged) {
@@ -157,40 +178,23 @@ void ChTimestepperHHT::OnAdvance(double dt) {
             A = Anew;
             L = Lnew;
 
-        ////} else if (!jacobian_is_current) {
-        ////    // ------ Newton did not converge, but Jacobian is out-of-date
-
-        ////    // reset the count of successive successful steps
-        ////    num_successful_steps = 0;
-
-        ////    // re-attempt step with updated Jacobian
-        ////    if (verbose) {
-        ////        std::cout << " HHT re-attempt step with updated matrix." << std::endl;
-        ////    }
-
-        ////    call_setup = true;  //// TODO -- this must be a FORCE setup
-
-        } else if (!step_control) {
-            // ------ Newton did not converge and we do not control stepsize
+        } else if (!jacobian_is_current && jacobian_update_method != JacobianUpdate::NEVER) {
+            // ------ Newton did not converge,
+            //        but Jacobian is out-of-date and we can re-evaluate it
 
             // reset the count of successive successful steps
             num_successful_steps = 0;
 
-            // accept solution as is and complete step
-            if (verbose) {
-                std::cout << " HHT Newton terminated.";
-                std::cout << "   T = " << T + h << "  h = " << h << std::endl;
-            }
+            // re-attempt step with updated Jacobian
+            if (verbose)
+                std::cout << " HHT re-attempt step with updated matrix." << std::endl;
 
-            // set the state
-            T += h;
-            X = Xnew;
-            V = Vnew;
-            A = Anew;
-            L = Lnew;
+            // Force a Jacobian update for JacobianUpdate::AUTOMATIC
+            call_setup = true;
 
-        } else {
-            // ------ Newton did not converge, but we can reduce stepsize
+        } else if (step_control) {
+            // ------ Newton did not converge,
+            //        but we can reduce stepsize
 
             // reset the count of successive successful steps
             num_successful_steps = 0;
@@ -198,8 +202,9 @@ void ChTimestepperHHT::OnAdvance(double dt) {
             // decrease stepsize
             h *= step_decrease_factor;
 
+            // re-attempt step with smaller step-size
             if (verbose)
-                std::cout << " ---HHT reduce stepsize to " << h << std::endl;
+                std::cout << " HHT reduce stepsize to " << h << std::endl;
 
             // bail out if stepsize reaches minimum allowable
             if (h < h_min) {
@@ -207,6 +212,28 @@ void ChTimestepperHHT::OnAdvance(double dt) {
                     std::cerr << " HHT at minimum stepsize. Exiting..." << std::endl;
                 throw std::runtime_error("HHT: Reached minimum allowable step size.");
             }
+
+            call_setup = true;
+
+        } else {
+            // ------ Newton did not converge,
+            //        Jacobian is current or we are not allowed to update it, and we do not control stepsize
+
+            // reset the count of successive successful steps
+            num_successful_steps = 0;
+
+            // accept solution as is and complete step
+            if (verbose)
+                std::cout << " HHT Newton terminated; advance T = " << T + h << std::endl;
+
+            num_terminated++;
+
+            // set the state
+            T += h;
+            X = Xnew;
+            V = Vnew;
+            A = Anew;
+            L = Lnew;
         }
 
         // If successfully reaching end of step (this can only happen if Newton converged), break out of loop
@@ -226,14 +253,37 @@ void ChTimestepperHHT::OnAdvance(double dt) {
     integrable->StateScatterAcceleration(A);
     integrable->StateScatterReactions(L);
 }
+*/
+
+void ChTimestepperHHT::ResetStep() {
+    // Scatter state and reset auxiliary vectors
+    integrable->StateScatter(X, V, T, false);
+    Rold.setZero();
+    Anew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+}
+
+void ChTimestepperHHT::AcceptStep() {
+    X = Xnew;
+    V = Vnew;
+    A = Anew;
+    L = Lnew;
+}
+
+void ChTimestepperHHT::FinalizeStep() {
+    // Scatter state -> system doing a full update
+    integrable->StateScatter(X, V, T, true);
+
+    // Scatter auxiliary data (A and L) -> system
+    integrable->StateScatterAcceleration(A);
+    integrable->StateScatterReactions(L);
+}
 
 // Prepare attempting a step of size h (assuming a converged state at the current time t):
 // - Initialize residual vector with terms at current time
 // - Obtain a prediction at T+h for Newton using extrapolation from solution at current time.
-// - For ACCELERATION mode, if not using step size control, start with zero acceleration
-//   guess (previous step not guaranteed to have converged)
+// - If no step size control, start with zero acceleration guess (previous step not guaranteed to have converged)
 // - Set the error weight vectors (using solution at current time)
-void ChTimestepperHHT::Prepare() {
+void ChTimestepperHHT::PrepareStep() {
     if (step_control)
         Anew = A;
     Vnew = V + Anew * h;

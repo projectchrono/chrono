@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(time_step);
         std::cout << "Time t = " << sys.GetChTime() << "s \n";
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
-        // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
+        // std::cout << "mystepper->GetNumStepIterations()= " << mystepper->GetNumStepIterations() << "\n";
         // Check vertical displacement of the shell tip
         double AbsVal = std::abs(nodetip->pos.z() - FileInputMat(it, 1));
         if (AbsVal > precision) {

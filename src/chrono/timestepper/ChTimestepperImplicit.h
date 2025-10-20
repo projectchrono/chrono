@@ -42,27 +42,24 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 
     virtual ~ChTimestepperImplicit() {}
 
-    /// Set the max number of iterations using the Newton Raphson procedure.
-    void SetMaxIters(int iters) { maxiters = iters; }
+    /// Set the max number of Newton iterations.
+    void SetMaxIters(int iters) { max_iters = iters; }
 
     /// Set the relative tolerance.
-    /// This tolerance is optionally used by derived classes in the Newton-Raphson
-    /// convergence test.
+    /// This tolerance is used in the Newton convergence test (optionally used by derived integrator classes).
     void SetRelTolerance(double rel_tol) { reltol = rel_tol; }
 
     /// Set the absolute tolerances.
-    /// These tolerances are optionally used by derived classes in the Newton-Raphson
-    /// convergence test.  This version sets separate absolute tolerances for states
-    /// and Lagrange multipliers.
+    /// These tolerances are used in the Newton convergence test (optionally used by derived integrator classes).
+    /// This version sets separate absolute tolerances for states and Lagrange multipliers.
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {
         abstolS = abs_tolS;
         abstolL = abs_tolL;
     }
 
     /// Set the absolute tolerances.
-    /// These tolerances are optionally used by derived classes in the Newton-Raphson
-    /// convergence test.  This version sets equal absolute tolerances for states and
-    /// Lagrange multipliers.
+    /// These tolerances are used in the Newton convergence test (optionally used by derived integrator classes).
+    ///  This version sets equal absolute tolerances for states and Lagrange multipliers.
     void SetAbsTolerances(double abs_tol) {
         abstolS = abs_tol;
         abstolL = abs_tol;
@@ -72,38 +69,90 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     void SetJacobianUpdateMethod(JacobianUpdate method);
 
     /// Get the max number of iterations using the Newton Raphson procedure.
-    double GetMaxIters() const { return maxiters; }
+    double GetMaxIters() const { return max_iters; }
 
     /// Get the current Jacobian update startegy.
     JacobianUpdate GetJacobianUpdateMethod() const { return jacobian_update_method; }
 
-    /// Return the number of iterations.
-    unsigned int GetNumIterations() const { return numiters; }
+    /// Return Jacobian update method as a string.
+    static std::string GetJacobianUpdateMethodAsString(JacobianUpdate jacobian_update);
 
-    /// Return the number of calls to the solver's Setup function.
-    unsigned int GetNumSetupCalls() const { return numsetups; }
+    /// Return the number of Newton iterations over the last step.
+    unsigned int GetNumStepIterations() const { return num_step_iters; }
 
-    /// Return the number of calls to the solver's Solve function.
-    unsigned int GetNumSolveCalls() const { return numsolves; }
+    /// Return the number of calls to the solver's Setup function made during the last step.
+    unsigned int GetNumStepSetupCalls() const { return num_step_setups; }
+
+    /// Return the number of calls to the solver's Solve function made over the last step.
+    unsigned int GetNumStepSolveCalls() const { return num_step_solves; }
 
     /// Get the last estimated convergence rate for the internal Newton solver.
     /// Note that an estimate can only be calculated after the 3rd iteration. For the first 2 iterations, the
     /// convergence rate estimate is set to 1.
     double GetEstimatedConvergenceRate() const { return convergence_rate; }
 
-    /// Implementation of integratopr-specific time advance.
-    virtual void OnAdvance(double dt) = 0;
+    /// Return the cumulative number of Newton iterations.
+    unsigned int GetNumIterations() const { return num_iters; }
 
+    /// Return the cummulative number of calls to the solver's Setup function.
+    unsigned int GetNumSetupCalls() const { return num_setups; }
+
+    /// Return the cumulative number of calls to the solver's Solve function.
+    unsigned int GetNumSolveCalls() const { return num_solves; }
+
+    /// Accept step after a non-converged Newton solve (default: true).
+    /// If 'true', the solution at the end of a step is accepted as-is, even if the Newton nonlinear solve did not converge (even with an up-to-date Jacobian).
+    /// If 'false', an exception is thrown if the Newton iterations do not converge after the allowed maximum number of iterations.
+    void AcceptTerminatedStep(bool accept) { accept_terminated = accept; }
+
+    /// Return the number of terminated Newton solves.
+    /// These are Newton solves that were terminated after the maximum number of iterations, without achieving
+    /// convergence. The Jacobian is either up-to-date or cannot be re-evaluated (because the Jacobian update strategy
+    /// is set to JacobianUpdate::NEVER) and step size cannot be reduced (because step-size control is disabled).
+    /// The nonlinear system solution is accepted as-is.
+    unsigned int GetNumTerminated() const { return num_terminated; }
+
+  public:
+    // Functions for adaptive step size control
+
+    /// Turn on/off the internal step size control.
+    /// Default: true.
+    void SetStepControl(bool enable) { step_control = enable; }
+
+    /// Set the minimum step size.
+    /// An exception is thrown if the internal step size decreases below this limit.
+    /// Default: 1e-10.
+    void SetMinStepSize(double step) { h_min = step; }
+
+    /// Set the maximum allowable number of iterations for counting a step towards a stepsize increase.
+    /// Default: 3.
+    void SetMaxItersSuccess(int iters) { maxiters_success = iters; }
+
+    /// Set the minimum number of (internal) steps that use at most maxiters_success
+    /// before considering a stepsize increase.
+    /// Default: 5.
+    void SetRequiredSuccessfulSteps(int num_steps) { req_successful_steps = num_steps; }
+
+    /// Set the multiplicative factor for a stepsize increase (must be larger than 1).
+    /// Default: 2.
+    void SetStepIncreaseFactor(double factor) { step_increase_factor = factor; }
+
+    /// Set the multiplicative factor for a stepsize decrease (must be smaller than 1).
+    /// Default: 0.5.
+    void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
+
+  public:
     /// Perform an integration step.
-    /// This base class function invokesd OnAdvance(), after which it resets the `call_setup` flag to false.
+    /// This base class manages the Newton iteration counters and defers the integrator implementation to OnAdvance.
     virtual void Advance(double dt) override final;
 
+  public:
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) {
         // version number
         archive.VersionWrite(1);
         // serialize all member data:
-        archive << CHNVP(maxiters);
+        archive << CHNVP(max_iters);
         archive << CHNVP(reltol);
         archive << CHNVP(abstolS);
         archive << CHNVP(abstolL);
@@ -114,7 +163,7 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
         // version number
         /*int version =*/archive.VersionRead();
         // stream in all member data:
-        archive >> CHNVP(maxiters);
+        archive >> CHNVP(max_iters);
         archive >> CHNVP(reltol);
         archive >> CHNVP(abstolS);
         archive >> CHNVP(abstolL);
@@ -123,18 +172,34 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
   protected:
     ChTimestepperImplicit();
 
-    /// Monitor flags controlling whether or not the Jacobian must be updated.
-    /// If using JacobianUpdate::EVERY_ITERATION, a matrix update occurs:
-    ///   - at every iteration
-    /// If using JacobianUpdate::EVERY_STEP, a matrix update occurs:
-    ///   - at the beginning of a step
-    ///   - on a stepsize decrease
-    ///   - if the Newton iteration does not converge with an out-of-date matrix
-    /// If using JacobianUpdate::NEVER, a matrix update occurs:
-    ///   - only at the beginning of the very first step
-    /// If using JacobianUpdate::AUTOMATIC, a matrix update occurs:
-    ///   - when appropriate. TODO: implement
-    bool CheckJacobianUpdateRequired(int iteration, bool previous_substep_converged);
+    /// Implementation of integrator-specific time advance.
+    /// This base class implementation provides support for an adaptive time-step, error-controlled integrator.
+    /// A derived class using these features, must implement the functions . Otherwise, it must override OnAdvance.
+    virtual void OnAdvance(double dt);
+
+    /// Initialize integrator at beginning of a new step.
+    /// Used only if no override of OnAdvance is provided.
+    virtual void InitializeStep() {}
+
+    /// Prepare integrator for attempting a new step.
+    /// Used only if no override of OnAdvance is provided.
+    virtual void PrepareStep() {}
+
+    /// Calculate new state increment for a Newton iteration.
+    /// Used only if no override of OnAdvance is provided.
+    virtual void Increment() {}
+
+    /// Reset step data for re-attempting step (with new Jacobian or reduced step size).
+    /// Used only if no override of OnAdvance is provided.
+    virtual void ResetStep() {}
+
+    /// Accept attempted step (if Newton converged or was terminated).
+    /// Used only if no override of OnAdvance is provided.
+    virtual void AcceptStep() {}
+
+    /// Finalize step and update solution at end of step.
+    /// Used only if no override of OnAdvance is provided.
+    virtual void FinalizeStep() {}
 
     /// Check convergence of Newton process.
     bool CheckConvergence(int iteration);
@@ -144,28 +209,46 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 
     JacobianUpdate jacobian_update_method;  ///< Jacobian update strategy
     bool call_setup;                        ///< should the solver's Setup function be called?
+    bool jacobian_is_current;               ///< was the Jacobian evaluated at current Newton iteration?
 
-    unsigned int maxiters;  ///< maximum number of iterations
-    double reltol;          ///< relative tolerance
-    double abstolS;         ///< absolute tolerance (states)
-    double abstolL;         ///< absolute tolerance (Lagrange multipliers)
+    unsigned int max_iters;  ///< maximum number of iterations
+    double reltol;           ///< relative tolerance
+    double abstolS;          ///< absolute tolerance (states)
+    double abstolL;          ///< absolute tolerance (Lagrange multipliers)
 
-    unsigned int numiters;   ///< number of iterations
-    unsigned int numsetups;  ///< number of calls to the solver's Setup function
-    unsigned int numsolves;  ///< number of calls to the solver's Solve function
+    unsigned int num_step_iters;   ///< number of iterations during last step
+    unsigned int num_step_setups;  ///< number of calls to the solver Setup() function during last step
+    unsigned int num_step_solves;  ///< number of calls to the solver Solve() function during last step
+
+    unsigned int num_iters;   ///< current cumulative number of Newton iterations
+    unsigned int num_setups;  ///< current cumulative number of Setup() calls
+    unsigned int num_solves;  ///< current cummulative number of Solve() calls
+
+    unsigned int num_terminated;  ///< number of terminated NEwton iterations
 
     double convergence_rate;  ///< estimated Newton rate of convergence
 
     ChStateDelta Ds;       ///< state update
     ChVectorDynamic<> Dl;  ///< Lagrange multiplier update
     ChVectorDynamic<> R;   ///< residual of nonlinear system (dynamics portion)
-    ChVectorDynamic<> Qc;  ///< residual of nonlinear system (constranints portion)
+    ChVectorDynamic<> Qc;  ///< residual of nonlinear system (constraints portion)
 
     std::array<double, 3> Ds_nrm_hist;  ///< last 3 update norms
     std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
 
     ChVectorDynamic<> ewtS;  ///< vector of error weights (states)
     ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
+
+    bool accept_terminated;  ///< accept or reject steps after a non-converged Newton solve
+
+    bool step_control;                  ///< step size control enabled?
+    unsigned int maxiters_success;      ///< maximum number of NR iterations to declare a step successful
+    unsigned int req_successful_steps;  ///< required number of successive successful steps for a stepsize increase
+    double step_increase_factor;        ///< factor used in increasing stepsize (>1)
+    double step_decrease_factor;        ///< factor used in decreasing stepsize (<1)
+    double h_min;                       ///< minimum allowable stepsize
+    double h;                           ///< internal stepsize
+    unsigned int num_successful_steps;  ///< number of successful steps
 };
 
 /// Euler implicit for II order systems.

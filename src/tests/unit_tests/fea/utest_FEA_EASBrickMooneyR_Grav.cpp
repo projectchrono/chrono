@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
         } else {
             COORDFlex(i, 1) = 0.0;
         };
-        COORDFlex(i, 2) = (i) / ((N_x)*2) * dz;
+        COORDFlex(i, 2) = (i) / ((N_x) * 2) * dz;
 
         // Velocities
         VELCYFlex(i, 0) = 0;
@@ -247,20 +247,17 @@ int main(int argc, char* argv[]) {
         utils::ChWriterCSV out("\t");
         out.Stream().setf(std::ios::scientific | std::ios::showpos);
         out.Stream().precision(7);
-        int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
         while (sys.GetChTime() < sim_time) {
             sys.DoStepDynamics(step_size);
-            Iterations += mystepper->GetNumIterations();
             out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
             std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
-                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
+                      << nodetip->GetForce().z() << "\t" << mystepper->GetNumStepIterations() << "\n";
         }
         // Write results to output file.
         out.WriteToFile("../TEST_Brick/UT_EASBrickMR_Grav.txt");
     } else {
         // Initialize total number of iterations and timer.
-        int Iterations = 0;
         double start = std::clock();
         int stepNo = 0;
         double AbsVal = 0.0;
@@ -274,11 +271,11 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             stepNo++;
-            Iterations += mystepper->GetNumIterations();
         }
         // Report run time and total number of iterations.
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        std::cout << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
+        std::cout << "Computation Time: " << duration << "   Number of iterations: " << mystepper->GetNumIterations()
+                  << "\n";
         std::cout << "Unit test check succeeded \n";
     }
 

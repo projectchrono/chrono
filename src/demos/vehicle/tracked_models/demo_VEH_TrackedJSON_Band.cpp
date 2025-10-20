@@ -457,7 +457,6 @@ int main(int argc, char* argv[]) {
 
         cout << "Step: " << step_number;
         cout << "   Time: " << time;
-        cout << "   Number of Iterations: " << integrator->GetNumIterations();
         cout << "   Step Time: " << step_timing;
         cout << "   Total Time: " << total_timing;
         cout << endl;
