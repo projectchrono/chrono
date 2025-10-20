@@ -5,12 +5,22 @@ set(TESTS
     btest_CH_mixerNSC
     )
 
+if(CH_ENABLE_MODULE_PARDISO_MKL)
+  set(TESTS ${TESTS}
+      btest_CH_HHT
+      )
+endif()
+
 # ------------------------------------------------------------------------------
 
 list(APPEND LIBS Chrono_core)
 
 if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "Chrono_irrlicht")
+endif()
+
+if(CH_ENABLE_MODULE_PARDISO_MKL)
+  list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 # ------------------------------------------------------------------------------
