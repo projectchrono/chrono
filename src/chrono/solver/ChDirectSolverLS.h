@@ -116,15 +116,19 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
 
     /// Get cumulative time for assembly operations in Solve phase.
     double GetTimeSolve_Assembly() const { return m_timer_solve_assembly(); }
+
     /// Get cumulative time for Pardiso calls in Solve phase.
     double GetTimeSolve_SolverCall() const { return m_timer_solve_solvercall(); }
+
     /// Get cumulative time for assembly operations in Setup phase.
     double GetTimeSetup_Assembly() const { return m_timer_setup_assembly(); }
+
     /// Get cumulative time for Pardiso calls in Setup phase.
     double GetTimeSetup_SolverCall() const { return m_timer_setup_solvercall(); }
 
     /// Return the number of calls to the solver's Setup function.
     unsigned int GetNumSetupCalls() const { return m_setup_call; }
+
     /// Return the number of calls to the solver's Setup function.
     unsigned int GetNumSolveCalls() const { return m_solve_call; }
 

@@ -499,24 +499,32 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }
+
     /// Return the time (in seconds) for time integration, within the time step.
     virtual double GetTimerAdvance() const { return timer_advance(); }
+
     /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
     virtual double GetTimerLSsolve() const { return timer_ls_solve(); }
+
     /// Return the time (in seconds) for the solver Setup phase, within the time step.
     virtual double GetTimerLSsetup() const { return timer_ls_setup(); }
+
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const { return timer_jacobian(); }
+
     /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
+
     /// Return the time (in seconds) for system setup, within the time step.
     virtual double GetTimerSetup() const { return timer_setup(); }
+
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const { return timer_update(); }
 
     /// Return the time (in seconds) for broadphase collision detection, within the time step.
     double GetTimerCollisionBroad() const;
+
     /// Return the time (in seconds) for narrowphase collision detection, within the time step.
     double GetTimerCollisionNarrow() const;
 

@@ -18,6 +18,9 @@
 
 #include "chrono/solver/ChDirectSolverLS.h"
 
+using std::cout;
+using std::endl;
+
 #define SPM_DEF_SPARSITY 0.9  ///< default predicted sparsity (in [0,1])
 
 namespace chrono {
@@ -60,15 +63,6 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
     // (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
     bool call_reserve = !m_use_learner && (m_setup_call == 0 || !m_lock);
 
-    if (verbose) {
-        std::cout << "Solver setup" << std::endl;
-        std::cout << "  call number:    " << m_setup_call << std::endl;
-        std::cout << "  use learner?    " << m_use_learner << std::endl;
-        std::cout << "  pattern locked? " << m_lock << std::endl;
-        std::cout << "  CALL learner:   " << call_learner << std::endl;
-        std::cout << "  CALL reserve:   " << call_reserve << std::endl;
-    }
-
     if (call_learner) {
         ChSparsityPatternLearner sparsity_pattern(m_dim, m_dim);
         sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
@@ -100,18 +94,20 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
         WriteMatrix("LS_" + frame_id + "_F.dat", m_mat);
 
     if (verbose) {
-        std::cout << " Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
-                  << std::endl;
-        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << "s\n"
-                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s"
-                  << std::endl;
+        cout << "  Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << endl;
+        cout << "     use learner?    " << m_use_learner << endl;
+        cout << "     pattern locked? " << m_lock << endl;
+        cout << "     call learner?   " << call_learner << endl;
+        cout << "     call reserve?   " << call_reserve << endl;
+        cout << "     timer assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << " s" << endl;
+        cout << "     timer analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s" << endl;
     }
 
     m_setup_call++;
 
     if (!result) {
         // If the factorization failed, let the concrete solver display an error message.
-        std::cerr << "Solver setup failed" << std::endl;
+        std::cerr << "Solver setup failed" << endl;
         PrintErrorMessage();
     }
 
@@ -143,16 +139,16 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
 
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
-        std::cout << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << std::endl << std::endl;
-        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << "s\n"
-                  << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << std::endl;
+        cout << "  Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << endl;
+        ////cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << " s" << endl;
+        ////cout << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << " s" << endl;
     }
 
     m_solve_call++;
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
-        std::cerr << "Solver solve failed" << std::endl;
+        std::cerr << "Solver solve failed" << endl;
         PrintErrorMessage();
     }
 
@@ -173,18 +169,16 @@ bool ChDirectSolverLS::SetupCurrent() {
     m_timer_setup_solvercall.stop();
 
     if (verbose) {
-        std::cout << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim
-                  << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
-        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << "s\n"
-                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s"
-                  << std::endl;
+        cout << "  Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << endl;
+        ////cout << "   timer assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << " s" << endl;
+        ////cout << "   timer analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s" << endl;
     }
 
     m_setup_call++;
 
     if (!result) {
         // If the factorization failed, let the concrete solver display an error message.
-        std::cerr << "Solver SetupCurrent() failed" << std::endl;
+        std::cerr << "Solver SetupCurrent() failed" << endl;
         PrintErrorMessage();
     }
 
@@ -203,17 +197,16 @@ double ChDirectSolverLS::SolveCurrent() {
 
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
-        std::cout << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << std::endl
-                  << std::endl;
-        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << "s\n"
-                  << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << std::endl;
+        cout << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << endl;
+        ////cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << " s" << endl;
+        ////cout << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << " s" << endl;
     }
 
     m_solve_call++;
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
-        std::cerr << "Solver SolveCurrent() failed" << std::endl;
+        std::cerr << "Solver SolveCurrent() failed" << endl;
         PrintErrorMessage();
     }
 
@@ -229,7 +222,7 @@ void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMa
         for (int j = 0; j < M.cols(); j++) {
             double elVal = M.coeff(i, j);
             if (elVal || (i == M.rows() - 1 && j == M.cols() - 1)) {
-                file << i + 1 << " " << j + 1 << " " << elVal << std::endl;
+                file << i + 1 << " " << j + 1 << " " << elVal << endl;
             }
         }
     }
@@ -239,7 +232,7 @@ void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDy
     std::ofstream file(filename);
     file << std::setprecision(12) << std::scientific;
     for (int i = 0; i < v.size(); i++)
-        file << v(i) << std::endl;
+        file << v(i) << endl;
 }
 
 // ---------------------------------------------------------------------------
@@ -288,13 +281,13 @@ void ChSolverSparseLU::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            std::cout << "computation was successful" << std::endl;
+            cout << "computation was successful" << endl;
             break;
         case Eigen::NumericalIssue:
-            std::cout << "LU factorization reported a problem, zero diagonal for instance" << std::endl;
+            cout << "LU factorization reported a problem, zero diagonal for instance" << endl;
             break;
         case Eigen::InvalidInput:
-            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
+            cout << "inputs are invalid, or the algorithm has been improperly called" << endl;
             break;
         default:
             break;
@@ -317,13 +310,13 @@ void ChSolverSparseQR::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            std::cout << "computation was successful" << std::endl;
+            cout << "computation was successful" << endl;
             break;
         case Eigen::NumericalIssue:
-            std::cout << "QR factorization reported a problem" << std::endl;
+            cout << "QR factorization reported a problem" << endl;
             break;
         case Eigen::InvalidInput:
-            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
+            cout << "inputs are invalid, or the algorithm has been improperly called" << endl;
             break;
         default:
             break;

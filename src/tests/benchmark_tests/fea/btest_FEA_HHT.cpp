@@ -82,7 +82,6 @@ bool SolveHHT(ChTimestepperImplicit::JacobianUpdate jacobian_update, const std::
     // Set up integrator
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&sys);
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetJacobianUpdateMethod(jacobian_update);
