@@ -518,13 +518,22 @@ __device__ void TauEulerStep(Real dT,
 
             // Get the mapped stress
             p_N = p_N_tr - K_n * delta_lambda_N * c_v;
+            // Make sure p_N does not go tensile
+            // p_N = fmax(p_N, Real(0.0));
             Real q_N = (q_N_tr - 3 * G_n * delta_lambda_N * c_q);
             s_diag_N = q_N * dev_diag_N_tr / (q_N_tr + q_eps);
             s_offdiag_N = q_N * dev_offdiag_N_tr / (q_N_tr + q_eps);
 
             // Get the new stress from the mapped deviatoric stress and pressure
-            tau_diag = s_diag_N - mR3(p_N);
-            tau_offdiag = s_offdiag_N;
+            if (p_N < 0) {
+                tau_diag = mR3(0.0);
+                tau_offdiag = mR3(0.0);
+                rho_p.y = 0.0;
+            } else {
+                tau_diag = s_diag_N - mR3(p_N);
+                tau_offdiag = s_offdiag_N;
+                rho_p.y = p_N;
+            }
             // Update the consolidation pressure
             Real plastic_volumentric_strain = delta_lambda_N * c_v;
             // Only update the consolidation pressure if we are not close to the free surface
@@ -532,7 +541,6 @@ __device__ void TauEulerStep(Real dT,
                 pcEvSv.x *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
                 pcEvSv.x = fmax(Real(100.0), pcEvSv.x);
             }
-            rho_p.y = p_N;
         }
 
         // If we are close to free surface, set stress tensor to zero tensor
