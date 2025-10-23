@@ -60,7 +60,7 @@ linux:doxygen:deploy:
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
-    - job: macos-apple:monterey:test
+    - job: macos-apple:sonoma:test
       artifacts: false
     - job: windows:vs2022:test
       artifacts: false
@@ -433,14 +433,14 @@ windows:vs2022:deploy-installer:
   # VSG
   - sh $CI_PROJECT_DIR/contrib/build-scripts/macos/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
 
-.macos-monterey:
+.macos-sonoma:
   extends: .macos
   tags:
-    - monterey
+    - sonoma
 
-.macos-monterey-build:
+.macos-sonoma-build:
   stage: build
-  extends: .macos-monterey
+  extends: .macos-sonoma
   script:
   # Configuring chrono
   - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_macos" --preset=macosci
@@ -453,9 +453,9 @@ windows:vs2022:deploy-installer:
     paths:
     - build/
 
-.macos-monterey-test:
+.macos-sonoma-test:
   stage: test
-  extends: .macos-monterey
+  extends: .macos-sonoma
   script:
   - cd build
   # Copying files to correct directory for CI because of Ninja Multi-Config
@@ -466,21 +466,21 @@ windows:vs2022:deploy-installer:
   - ninja test
 
 
-macos-apple:monterey:build:
-  extends: .macos-monterey-build
+macos-apple:sonoma:build:
+  extends: .macos-sonoma-build
   tags:
     - macos
-    - monterey
+    - sonoma
     - apple
 
-macos-apple:monterey:test:
-  extends: .macos-monterey-test
+macos-apple:sonoma:test:
+  extends: .macos-sonoma-test
   tags:
     - macos
-    - monterey
+    - sonoma
     - apple
-  needs: ["macos-apple:monterey:build"]
-  dependencies: ["macos-apple:monterey:build"]
+  needs: ["macos-apple:sonoma:build"]
+  dependencies: ["macos-apple:sonoma:build"]
 
 # macOS Conda Deployment
 
@@ -534,7 +534,7 @@ macos-apple:macos-deploy-python3.12:
   when: manual
   tags:
     - macos
-    - monterey
+    - sonoma
     - apple
 
 macos-apple:macos-deploy-python3.13:
@@ -549,7 +549,7 @@ macos-apple:macos-deploy-python3.13:
   when: manual
   tags:
     - macos
-    - monterey
+    - sonoma
     - apple
 
 
