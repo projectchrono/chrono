@@ -31,8 +31,10 @@ if(DEFINED CH_CONDA_INSTALL)
     message(FATAL_ERROR "Relative path to Chrono data/ directory not specified. Set CH_PYCHRONO_DATA_PATH")
   endif()
 
-  if (NOT DEFINED CH_PYCHRONO_SHADER_PATH and CH_ENABLE_MODULE_SENSOR)
-    message(FATAL_ERROR "Relative path to Chrono::Sensor shaders/ directory not specified. Set CH_PYCHRONO_SHADER_PATH")
+  if (CH_ENABLE_MODULE_SENSOR)
+    if (NOT DEFINED CH_PYCHRONO_SHADER_PATH)
+      message(FATAL_ERROR "Relative path to Chrono::Sensor shaders/ directory not specified. Set CH_PYCHRONO_SHADER_PATH")
+    endif()
   endif()
 
 endif()
