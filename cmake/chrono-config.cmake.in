@@ -1317,6 +1317,12 @@ function(add_CHRONO_DLLS_copy_command)
       endif()
     endforeach()
     unset(onedll CACHE)
+    
+    # Append PDB files to list of debug DLLs
+    foreach (dll ${DLLS_DEBUG})
+       string(REGEX REPLACE "[.]dll$" ".pdb" pdb ${dll})
+       list(APPEND DLLS_DEBUG "${pdb}")
+    endforeach ()
 
     # Create custom target for copying DLLs; add it to the default build target
     add_custom_target(COPY_CHRONO_DLLS ALL)
