@@ -28,6 +28,51 @@ endif("${isSystemDir}" STREQUAL "-1")
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include)
 
 #--------------------------------------------------------------
+
+# Convenience function to build and install unit tests from a list
+function(build_utests ADD_TESTS TESTS LIBS)
+
+    # Get optional list of additional files
+    if(${ARGC} GREATER 3)
+      set(EXTRA_FILES ${ARGV3})
+    else()
+      set(EXTRA_FILES "")
+    endif()
+
+    # A hack to set the working directory in which to execute the CTest runs.
+    # This is needed for tests that need to access the Chrono data directory (since we use a relative path to it)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
+    else()
+        set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
+    endif()
+
+    # Build all tests in the list TESTS, linking to LIBS
+    foreach(PROGRAM ${TESTS})
+        add_executable(${PROGRAM} ${PROGRAM}.cpp ${EXTRA_FILES})
+        source_group(""  FILES ${PROGRAM}.cpp ${EXTRA_FILES})
+    
+        set_target_properties(${PROGRAM} PROPERTIES FOLDER tests)
+        if(APPLE)
+          set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+        endif()
+        if(MSVC)
+          set_target_properties(${PROGRAM} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+          set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+        endif()
+
+        target_link_libraries(${PROGRAM} ${LIBS} gtest_main)
+        
+        install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+        if(${ADD_TESTS})
+           add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+           set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
+        endif()
+    endforeach()
+
+endfunction()
+
+#--------------------------------------------------------------
 # Propagate to subdirectories
 
 option(BUILD_TESTING_BASE "Build unit tests for base Chrono module" TRUE)
