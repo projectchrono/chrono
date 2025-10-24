@@ -306,7 +306,7 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
 }
 
 struct sphTypeCompEqual {
-    __device__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
+    __host__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
 };
 
 void FsiDataManager::ConstructReferenceArray() {
@@ -316,7 +316,7 @@ void FsiDataManager::ConstructReferenceArray() {
     thrust::fill(numComponentMarkers.begin(), numComponentMarkers.end(), 1);
     thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkers_H->rhoPresMuH;
 
-    auto new_end = thrust::reduce_by_key(thrust::device,                                  // execution policy
+    auto new_end = thrust::reduce_by_key(thrust::host,                                    // execution policy
                                          dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(),  // keys first, last
                                          numComponentMarkers.begin(),                     // values first
                                          dummyRhoPresMuH.begin(),                         // keys out
@@ -384,7 +384,8 @@ void FsiDataManager::ResetData() {
     //// TODO: elasticSPH only
     thrust::fill(derivTauXxYyZzD.begin(), derivTauXxYyZzD.end(), zero3);
     thrust::fill(derivTauXyXzYzD.begin(), derivTauXyXzYzD.end(), zero3);
-        //// Time step vectors
+
+    //// Time step vectors
     thrust::fill(courantViscousTimeStepD.begin(), courantViscousTimeStepD.end(), std::numeric_limits<Real>::max());
     thrust::fill(accelerationTimeStepD.begin(), accelerationTimeStepD.end(), std::numeric_limits<Real>::max());
 }
@@ -545,7 +546,7 @@ struct extract_functor {
 
 struct scale_functor {
     scale_functor(Real a) : m_a(a) {}
-    __host__ Real3 operator()(Real3& x) const { return m_a * x; }
+    Real3 operator()(Real3& x) const { return m_a * x; }
     const Real m_a;
 };
 
