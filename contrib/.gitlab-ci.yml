@@ -428,8 +428,6 @@ windows:vs2022:deploy-installer:
   - git submodule update
   - mkdir -p build
   - export HOMEBREW_PREFIX=/opt/homebrew
-  - export BREW_PY_MAJOR=$(python3 --version | awk '{print $2;}' | cut -d. -f1,2)
-  - export BREW_PY_VER=$(find $HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR -depth 1 | cut -d/ -f6)
   - echo $CI_PROJECT_DIR
   # VSG
   - sh $CI_PROJECT_DIR/contrib/build-scripts/macos/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
