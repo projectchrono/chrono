@@ -160,12 +160,12 @@ source_group("" FILES ${FSISPH_VSG_FILES})
 # Set dependencies on other Chrono modules
 # ------------------------------------------------------------------------------
 
-set(DEPENDENCIES_FSI "")
+set(DEPENDENCIES_FSI_SPH "FSI")
 if(CH_ENABLE_MODULE_VSG)
-  list (APPEND DEPENDENCIES_FSI "VSG")
+  list (APPEND DEPENDENCIES_FSI_SPH "VSG")
 endif()
 
-set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
+set(DEPENDENCIES_FSI_SPH ${DEPENDENCIES_FSI_SPH} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
 # Generate and install configuration file

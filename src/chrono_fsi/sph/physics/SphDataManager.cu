@@ -306,7 +306,7 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
 }
 
 struct sphTypeCompEqual {
-    __host__ __device__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
+    __device__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
 };
 
 void FsiDataManager::ConstructReferenceArray() {
@@ -316,7 +316,8 @@ void FsiDataManager::ConstructReferenceArray() {
     thrust::fill(numComponentMarkers.begin(), numComponentMarkers.end(), 1);
     thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkers_H->rhoPresMuH;
 
-    auto new_end = thrust::reduce_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(),  // keys first, last
+    auto new_end = thrust::reduce_by_key(thrust::device,                                  // execution policy
+                                         dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(),  // keys first, last
                                          numComponentMarkers.begin(),                     // values first
                                          dummyRhoPresMuH.begin(),                         // keys out
                                          numComponentMarkers.begin(),                     // values out
@@ -539,12 +540,12 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
 
 struct extract_functor {
     extract_functor() {}
-    __host__ __device__ Real3 operator()(Real4& x) const { return mR3(x); }
+    __device__ Real3 operator()(Real4& x) const { return mR3(x); }
 };
 
 struct scale_functor {
     scale_functor(Real a) : m_a(a) {}
-    __host__ __device__ Real3 operator()(Real3& x) const { return m_a * x; }
+    __host__ Real3 operator()(Real3& x) const { return m_a * x; }
     const Real m_a;
 };
 
@@ -553,7 +554,8 @@ std::vector<Real3> FsiDataManager::GetPositions() {
 
     // Extract positions only (drop radius)
     thrust::device_vector<Real3> pos_D(pos4_D.size());
-    thrust::transform(pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
+    thrust::transform(thrust::device,  // execution policy
+                      pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
 
     // Copy to output
     std::vector<Real3> pos_H(pos_D.size());

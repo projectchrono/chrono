@@ -47,9 +47,9 @@ source_group("stb" FILES ${FSITDPF_STB_FILES})
 # Set dependencies on other Chrono modules
 # ------------------------------------------------------------------------------
 
-set(DEPENDENCIES_FSI "")
+set(DEPENDENCIES_FSI_TDPF "FSI")
 
-set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
+set(DEPENDENCIES_FSI_TDPF ${DEPENDENCIES_FSI_TDPF} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
 # Generate and install configuration file
