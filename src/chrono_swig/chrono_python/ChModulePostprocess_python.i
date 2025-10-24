@@ -4,5 +4,5 @@
 #pragma SWIG nowarn=401
 #pragma SWIG nowarn=402
 
-%module(directors="1") postprocess
+%module(directors="1",threads="1") postprocess
 %include "chrono_swig/interface/postprocess/ChModulePostprocess.i"

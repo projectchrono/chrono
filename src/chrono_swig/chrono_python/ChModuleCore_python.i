@@ -11,5 +11,5 @@
 #pragma SWIG nowarn=520
 #pragma SWIG nowarn=842
 
-%module(directors="1") core
+%module(directors="1",threads="1") core
 %include "chrono_swig/interface/core/ChModuleCore.i"

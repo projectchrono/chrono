@@ -29,7 +29,7 @@ except ImportError as e:
 "
 %enddef
 
-%module(directors="1") ros
+%module(directors="1",threads="1") ros
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

@@ -14,7 +14,7 @@
 //  'import pychrono.pardisomkl'
 
 
-%module(directors="1") pardisomkl
+%module(directors="1",threads="1") pardisomkl
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

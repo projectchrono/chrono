@@ -11,5 +11,5 @@
 #pragma SWIG nowarn=520
 #pragma SWIG nowarn=842
 
-%module(directors="1") vsg3d
+%module(directors="1",threads="1") vsg3d
 %include "chrono_swig/interface/vsg/ChModuleVsg.i"
