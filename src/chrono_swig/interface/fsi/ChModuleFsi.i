@@ -14,7 +14,7 @@
 //  'import pychrono.fsi'
 
 
-%module(directors="1",threads="1") fsi
+%module(directors="1") fsi
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

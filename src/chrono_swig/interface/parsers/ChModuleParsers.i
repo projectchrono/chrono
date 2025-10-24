@@ -11,7 +11,7 @@
 // Define the module to be used in Python when typing
 //  'import pychrono.parsers'
 
-%module(directors="1",threads="1") parsers
+%module(directors="1") parsers
 
 // Turn on the documentation of members, for more intuitive IDE typing
 

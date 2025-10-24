@@ -14,7 +14,7 @@
 //  'import pychrono.fea'
 
 
-%module(directors="1",threads="1") fea
+%module(directors="1") fea
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
