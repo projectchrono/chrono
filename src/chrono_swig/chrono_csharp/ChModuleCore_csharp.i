@@ -8,5 +8,5 @@
 #pragma SWIG nowarn=833
 #pragma SWIG nowarn=842
 
-%module(directors="1") chrono
+%module(directors="1",threads="1") chrono
 %include "chrono_swig/interface/core/ChModuleCore.i"

@@ -11,5 +11,5 @@
 #pragma SWIG nowarn=520
 #pragma SWIG nowarn=842
 
-%module(directors="1") fea
+%module(directors="1",threads="1") fea
 %include "chrono_swig/interface/fea/ChModuleFea.i"

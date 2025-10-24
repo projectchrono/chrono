@@ -14,7 +14,7 @@
 //  'import pychrono.cascade'
 
 
-%module(directors="1") cascade
+%module(directors="1",threads="1") cascade
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
