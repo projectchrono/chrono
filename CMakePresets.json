@@ -1,11 +1,11 @@
 {
-	"version": 1,
+	"version": 3,
 	"vendor": {
 		"projectchrono.org/chrono/9.0.1": {}
 	},
 	"cmakeMinimumRequired": {
 		"major": 3,
-		"minor": 19,
+		"minor": 21,
 		"patch": 0
 	},
 	"configurePresets": [
