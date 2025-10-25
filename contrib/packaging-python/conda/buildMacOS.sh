@@ -31,7 +31,6 @@ if [ `uname -m` == x86_64 ]; then
     MKL_LIB_DIR=`cd $HOME/miniconda/pkgs/mkl-2020*/; pwd`
 fi
 
-# OpenMP is causing issues in macOS 
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCMAKE_C_COMPILER=$(which clang) \
@@ -50,7 +49,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_DEMOS=OFF \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
- -DCH_ENABLE_OPENMP=OFF  \
  -DCH_ENABLE_MODULE_CASCADE=OFF \
  -DCH_ENABLE_MODULE_PARDISO_MKL=$PARDISO_MKL_ENABLE \
  -DMKL_INCLUDE_DIR=$MKL_INCLUDE_DIR/include \
