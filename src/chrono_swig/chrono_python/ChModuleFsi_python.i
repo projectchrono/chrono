@@ -11,5 +11,5 @@
 #pragma SWIG nowarn=520
 #pragma SWIG nowarn=842
 
-%module(directors="1",threads="1") fsi
+%module(directors="1") fsi
 %include "chrono_swig/interface/fsi/ChModuleFsi.i"

@@ -14,7 +14,7 @@
 //  'import pychrono.robot'
 
 
-%module(directors="1",threads="1") robot
+%module(directors="1") robot
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

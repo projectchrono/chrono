@@ -14,7 +14,7 @@
 //  'import pychrono.sensor'
 
 
-%module(directors="1",threads="1") sensor
+%module(directors="1") sensor
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

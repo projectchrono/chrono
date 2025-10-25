@@ -6,5 +6,5 @@
 #pragma SWIG nowarn=520
 #pragma SWIG nowarn=833
 
-%module(directors="1",threads="1") chrono_irrlicht
+%module(directors="1") chrono_irrlicht
 %include "chrono_swig/interface/irrlicht/ChModuleIrrlicht.i"
