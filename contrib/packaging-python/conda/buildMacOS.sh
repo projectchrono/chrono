@@ -55,7 +55,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DIrrlicht_ROOT=$PREFIX/include/irrlicht \
  -DMKL_RT_LIBRARY=$MKL_LIB_DIR/lib/libmkl_rt.dylib \
  -DEIGEN3_INCLUDE_DIR=$PREFIX/include/eigen3 \
- -DCH_PYCHRONO_DATA_PATH=../../../../../../share/chrono/data/ \
+ -DCH_PYCHRONO_DATA_PATH=../../../../share/chrono/data \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
