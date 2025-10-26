@@ -259,7 +259,7 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
 
 int main(int argc, char* argv[]) {
     SimParams params = {/*ps_freq*/ 1,
-                        /*initial_spacing*/ 0.001,
+                        /*initial_spacing*/ 0.002,
                         /*d0_multiplier*/ 1.3,
                         /*time_step*/ 2e-5,
                         /*boundary_type*/ "adami",
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
                         /*container_height*/ 0.024,  // 2.4 cm
                         /*verbose*/ true,
                         /*output*/ true,
-                        /*output_fps*/ 20,
+                        /*output_fps*/ 10,
                         /*snapshots*/ true,
                         /*render*/ true,
                         /*render_fps*/ 100,
@@ -361,9 +361,9 @@ void SimulateMaterial(int i, const SimParams& params) {
         mat_props.rheology_model = RheologyCRM::MCC;
         double angle_mus = std::atan(params.mu_s);
         // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
-        mat_props.mcc_M = 2.0;
+        mat_props.mcc_M = 1.34;
         mat_props.mcc_kappa = 0.01;
-        mat_props.mcc_lambda = 0.1;
+        mat_props.mcc_lambda = 0.02;
     }
 
     sysSPH.SetElasticSPH(mat_props);
@@ -372,11 +372,15 @@ void SimulateMaterial(int i, const SimParams& params) {
         sph_params.integration_scheme = IntegrationScheme::EULER;
     } else if (params.integration_scheme == "rk2") {
         sph_params.integration_scheme = IntegrationScheme::RK2;
+    } else if (params.integration_scheme == "verlet") {
+        sph_params.integration_scheme = IntegrationScheme::VERLET;
+    } else if (params.integration_scheme == "symplectic") {
+        sph_params.integration_scheme = IntegrationScheme::SYMPLECTIC;
     }
     sph_params.initial_spacing = params.initial_spacing;
     sph_params.d0_multiplier = params.d0_multiplier;
     sph_params.artificial_viscosity = params.artificial_viscosity;
-    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_method = ShiftingMethod::NONE;
     sph_params.shifting_xsph_eps = 0.25;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
@@ -437,16 +441,18 @@ void SimulateMaterial(int i, const SimParams& params) {
 
     double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (const auto& p : points) {
-        double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
-        double depth_cm = (-p.z() + fzDim) * 100;
-        double b = 12.2;
-        double c = 18;
-        double fzDim_cm = fzDim * 100;
-        double g = (depth_cm + b) / (depth_cm + c);
-        double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
-        double density_mean_target = params.density;
-        double rho_ini = density_mean_target * g / gbar;
-        double preconsidation_pressure = pre_ini + params.pre_pressure_scale;
+        double rho_ini = params.density;
+        double pre_ini = rho_ini * gz * (-p.z() + fzDim);
+        // double depth_cm = (-p.z() + fzDim) * 100;
+        // double b = 12.2;
+        // double c = 18;
+        // double fzDim_cm = fzDim * 100;
+        // double g = (depth_cm + b) / (depth_cm + c);
+        // double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
+        // double density_mean_target = params.density;
+        // double rho_ini = density_mean_target * g / gbar;
+        // double preconsidation_pressure = pre_ini + params.pre_pressure_scale;
+        double preconsidation_pressure = pre_ini * params.pre_pressure_scale;
         sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
                               ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }

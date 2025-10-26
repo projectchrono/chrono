@@ -1180,13 +1180,13 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     Real Pa = -0.333333333f * (tauXxYyZz_A.x + tauXxYyZz_A.y + tauXxYyZz_A.z);
     if (Pa < 0) {
         Real Pb = -0.333333333f * (tauXxYyZz_B.x + tauXxYyZz_B.y + tauXxYyZz_B.z);
-        Real epsi = 0.5;
+        Real epsi = 0.9;
         // Real Ra = Pa * epsi * paramsD.invrho0 * paramsD.invrho0;
         // Real Rb = Pb * epsi * paramsD.invrho0 * paramsD.invrho0;
         Real Ra = Pa * epsi * invRhoASq;
         Real Rb = Pb * epsi * invRhoBSq;
         Real fAB = W_AB * W_ini_inv;
-        Real small_F = Mass * pow(fAB, 3.0) * (Ra + Rb);
+        Real small_F = Mass * pow(fAB, 2.55) * (Ra + Rb);
         derivVx += small_F * gradW.x;
         derivVy += small_F * gradW.y;
         derivVz += small_F * gradW.z;
@@ -1574,16 +1574,17 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
     if (paramsD.rheology_model_crm == RheologyCRM::MCC) {
         Real p_n = -CH_1_3 * (tauxx + tauyy + tauzz);
         // Floor Pressure (Pa) to prevent K -> 0 near free surface
-        Real p_eff = fmax(p_n, Real(1000.0));
+        // Real p_eff = fmax(p_n, Real(1000.0));
+        Real p_eff = p_n;
         // Bulk
         // Candidate bulk modulus from MCC
         Real K_cand = sortedPcEvSv[index].z * (p_eff) / paramsD.mcc_kappa;
         // Clamp K to prevent collapse of the bulk modulus
-        Real K_clamped = fmin(fmax(K_cand, Real(0.3) * paramsD.K_bulk), Real(1000.0) * paramsD.K_bulk);
+        Real K_clamped = fmin(fmax(K_cand, Real(0.1) * paramsD.K_bulk), Real(10.0) * paramsD.K_bulk);
 
         // Shear
         Real G_cand = (3.0 * K_clamped * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
-        Real G_clamped = fmin(fmax(G_cand, Real(0.3) * paramsD.G_shear), Real(1000.0) * paramsD.G_shear);
+        Real G_clamped = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(10.0) * paramsD.G_shear);
 
         twoG = 2 * G_clamped;
         threeK = 3 * K_clamped;

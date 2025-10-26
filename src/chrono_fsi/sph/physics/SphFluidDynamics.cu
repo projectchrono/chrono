@@ -437,15 +437,16 @@ __device__ void TauEulerStep(Real dT,
         // Recomputing for now instead of storing for each particle to avoid memory usage (compute once in crmRHS)
         Real p_n = -CH_1_3 * (tau_diag.x + tau_diag.y + tau_diag.z);
         // Floor Pressure (Pa) to prevent K -> 0 near free surface
-        Real p_eff = fmax(p_n, Real(1000.0));
+        // Real p_eff = fmax(p_n, Real(1000.0));
+        Real p_eff = p_n;
         // Bulk
         // Candidate bulk modulus from MCC
         Real K_cand = specific_volume_n * (p_eff) / paramsD.mcc_kappa;
         // Clamp K to prevent collapse of the bulk modulus
-        Real K_n = fmin(fmax(K_cand, Real(0.3) * paramsD.K_bulk), Real(1000.0) * paramsD.K_bulk);
+        Real K_n = fmin(fmax(K_cand, Real(0.1) * paramsD.K_bulk), Real(10.0) * paramsD.K_bulk);
         // Shear
         Real G_cand = (3.0 * K_n * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
-        Real G_n = fmin(fmax(G_cand, Real(0.3) * paramsD.G_shear), Real(1000.0) * paramsD.G_shear);
+        Real G_n = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(10.0) * paramsD.G_shear);
 
         // Trial stress using convention N = n + 1
         Real3 sig_diag_N_tr = tau_diag + dT * deriv_tau_diag;

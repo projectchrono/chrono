@@ -1678,7 +1678,6 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          const ChVector3d& tauXxYyZz,
                                          const ChVector3d& tauXyXzYz,
                                          const double pc) {
-                                            
     m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
 }
 
@@ -2276,7 +2275,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
             }
         }
 
-        bce.push_back({0.0, 0.0, height});
+        // bce.push_back({0.0, 0.0, height});
 
         //// TODO: add cap
 
