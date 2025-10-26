@@ -115,6 +115,9 @@ endif()
 if(CH_ENABLE_MODULE_VEHICLE)
   list (APPEND DEPENDENCIES_PARSERS "VEHICLE")
 endif()
+if(CH_ENABLE_MODULE_VSG)
+  list (APPEND DEPENDENCIES_PARSERS "VSG")
+endif()
 
 set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
 
@@ -144,9 +147,11 @@ target_compile_definitions(Chrono_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_A
 
 target_link_libraries(Chrono_parsers PRIVATE Chrono_core)
 target_link_libraries(Chrono_parsers PUBLIC yaml-cpp::yaml-cpp)
+
 if(CH_ENABLE_MODULE_PARDISO_MKL)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_pardisomkl)
 endif()
+
 if(CH_ENABLE_MODULE_MUMPS)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_mumps)
 endif()
@@ -168,6 +173,10 @@ endif()
 
 if(CH_ENABLE_MODULE_VEHICLE)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_vehicle)
+endif()
+
+if(CH_ENABLE_MODULE_VSG)
+  target_link_libraries(Chrono_parsers PRIVATE Chrono_vsg)
 endif()
 
 # Include URDF parser if found --------------------------------------------
