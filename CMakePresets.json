@@ -1,11 +1,11 @@
 {
-	"version": 1,
+	"version": 3,
 	"vendor": {
 		"projectchrono.org/chrono/9.0.1": {}
 	},
 	"cmakeMinimumRequired": {
 		"major": 3,
-		"minor": 19,
+		"minor": 21,
 		"patch": 0
 	},
 	"configurePresets": [
@@ -130,26 +130,17 @@
 				"CH_ENABLE_MODULE_PYTHON": "ON",
 				"CH_ENABLE_MODULE_CSHARP": "OFF",
 				"CMAKE_INSTALL_PREFIX": "$env{HOME}/install/chrono",
-				"OpenMP_CXX_FLAGS": "-Xclang -fopenmp -I $env{HOMEBREW_PREFIX}/Cellar/libomp/16.0.3/include",
-				"OpenMP_C_FLAGS": "-Xclang -fopenmp",
-				"OpenMP_C_INCLUDE_DIR": "-L $env{HOMEBREW_PREFIX}/opt/libomp/lib",
-				"OpenMP_CXX_INCLUDE_DIR": "$env{HOMEBREW_PREFIX}/include",
-				"OpenMP_C_LIB_NAMES": "libomp",
-				"OpenMP_CXX_LIB_NAMES": "libomp",
-				"OpenMP_libomp_LIBRARY": "$env{HOMEBREW_PREFIX}/opt/libomp/lib/libomp.dylib",
 				"THRUST_INCLUDE_DIR": "$env{HOME}/dependencies/thrust",
 				"blaze_INCLUDE_DIR": "$env{HOME}/dependencies/blaze-3.8",
 				"Irrlicht_ROOT": "$env{HOMEBREW_PREFIX}/include/irrlicht",
 				"OpenCRG_INCLUDE_DIR": "$env{HOME}/dependencies/OpenCRG/include",
 				"OpenCRG_LIBRARY": "$env{HOME}/dependencies/OpenCRG/lib/libOpenCRG.a",
-				"OpenCASCADE_DIR": "/usr/local/include/opencascade/lib/cmake/opencascade",
-				"spectra_INCLUDE_DIR": "/usr/local/include",
+				"OpenCASCADE_DIR": "$env{HOME}/dependencies/OCCT/lib/cmake/opencascade",
+				"OpenMP_ROOT": "$env{HOMEBREW_PREFIX}/opt/libomp",
+				"spectra_INCLUDE_DIR": "$env{HOME}/dependencies/spectra/include",
 				"vsg_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/vsg",
 				"vsgImGui_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/vsgImGui",
-				"vsgXchange_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/vsgXchange",
-				"PYTHON_EXECUTABLE": "$env{HOMEBREW_PREFIX}/bin",
-				"PYTHON_INCLUDE_DIR": "$env{HOMEBREW_PREFIX}/Cellar/python@$env{BREW_PY_MAJOR}/$env{BREW_PY_VER}/Frameworks/Python.framework/Versions/$env{BREW_PY_MAJOR}/include/python$env{BREW_PY_MAJOR}",
-				"PYTHON_LIBRARY": "$env{HOMEBREW_PREFIX}/Cellar/python@$env{BREW_PY_MAJOR}/$env{BREW_PY_VER}/Frameworks/Python.framework/Versions/$env{BREW_PY_MAJOR}/lib/python$env{BREW_PY_MAJOR}/config-$env{BREW_PY_MAJOR}-darwin/libpython$env{BREW_PY_MAJOR}.dylib"
+				"vsgXchange_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/vsgXchange"
 			}
 		},
 		{

@@ -31,8 +31,10 @@ if(DEFINED CH_CONDA_INSTALL)
     message(FATAL_ERROR "Relative path to Chrono data/ directory not specified. Set CH_PYCHRONO_DATA_PATH")
   endif()
 
-  if (NOT DEFINED CH_PYCHRONO_SHADER_PATH)
-    message(FATAL_ERROR "Relative path to Chrono::Sensor shaders/ directory not specified. Set CH_PYCHRONO_SHADER_PATH")
+  if (CH_ENABLE_MODULE_SENSOR)
+    if (NOT DEFINED CH_PYCHRONO_SHADER_PATH)
+      message(FATAL_ERROR "Relative path to Chrono::Sensor shaders/ directory not specified. Set CH_PYCHRONO_SHADER_PATH")
+    endif()
   endif()
 
 endif()
@@ -187,6 +189,12 @@ else()
    target_compile_options(${CHPY_CORE} PRIVATE "-Wno-unused-variable")
 endif()
 
+if(APPLE)
+  # See https://github.com/swig/swig/issues/3278
+  target_link_options(${CHPY_CORE} PRIVATE -flat_namespace -undefined suppress)
+endif()
+
+
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(${CHPY_CORE} PROPERTIES
                       PROJECT_LABEL "Chrono_python_core"
@@ -250,6 +258,11 @@ elseif(MSVC)
   target_compile_options(${CHPY_FEA} PRIVATE "/wd4706")  # assignment within conditional expression
 else()
   target_compile_options(${CHPY_FEA} PRIVATE "-Wno-unused-variable")
+endif()
+
+if(APPLE)
+  # See https://github.com/swig/swig/issues/3278
+  target_link_options(${CHPY_FEA} PRIVATE -flat_namespace -undefined suppress)
 endif()
 
 # Ensure that the PYD library file is generated in the bin/ directory.
@@ -337,6 +350,11 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
     target_compile_options(${CHPY_POSTPROCESS} PRIVATE "-Wno-unused-variable")
   endif()
 
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_POSTPROCESS} PRIVATE -flat_namespace -undefined suppress)
+  endif()
+
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${CHPY_POSTPROCESS} PROPERTIES
                         PROJECT_LABEL "Chrono_python_postprocess"
@@ -405,6 +423,11 @@ if(CH_ENABLE_MODULE_VSG)
     target_compile_options(${CHPY_VSG} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
     target_compile_options(${CHPY_VSG} PRIVATE "-Wno-unused-variable")
+  endif()
+
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_VSG} PRIVATE -flat_namespace -undefined suppress)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -488,6 +511,11 @@ if(CH_ENABLE_MODULE_FSI)
     target_compile_options(${CHPY_FSI} PRIVATE "-Wno-unused-variable")
   endif()
 
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_FSI} PRIVATE -flat_namespace -undefined suppress)
+  endif()
+
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${CHPY_FSI} PROPERTIES
                         PROJECT_LABEL "Chrono_python_fsi"
@@ -565,6 +593,11 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     target_compile_options(${CHPY_IRRLICHT} PRIVATE "-Wno-unused-variable")
   endif()
 
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_IRRLICHT} PRIVATE -flat_namespace -undefined suppress)
+  endif()
+
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${CHPY_IRRLICHT} PROPERTIES
                         PROJECT_LABEL "Chrono_python_irrlicht"
@@ -635,6 +668,11 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
     target_compile_options(${CHPY_MKL} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
     target_compile_options(${CHPY_MKL} PRIVATE "-Wno-unused-variable")
+  endif()
+
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_MKL} PRIVATE -flat_namespace -undefined suppress)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -709,6 +747,11 @@ if(CH_ENABLE_MODULE_CASCADE)
     target_compile_options(cascade PRIVATE "/wd4706")  # assignment within conditional expression
   else()
     target_compile_options(cascade PRIVATE "-Wno-unused-variable")
+  endif()
+
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(cascade PRIVATE -flat_namespace -undefined suppress)
   endif()
 
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -817,6 +860,12 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     target_compile_options(${CHPY_VEHICLE} PRIVATE "-Wno-unused-variable")
   endif()
 
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_VEHICLE} PRIVATE -flat_namespace -undefined suppress)
+  endif()
+
+
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   #  set_target_properties(${CHPY_VEHICLE} PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
   #endif()
@@ -890,6 +939,11 @@ if(CH_ENABLE_MODULE_SENSOR)
       target_compile_options(sensor PRIVATE "/wd4706")  # assignment within conditional expression
     else()
       target_compile_options(sensor PRIVATE "-Wno-unused-variable")
+    endif()
+
+    if(APPLE)
+      # See https://github.com/swig/swig/issues/3278
+      target_link_options(sensor PRIVATE -flat_namespace -undefined suppress)
     endif()
 
     # Ensure that the PYD library file is generated in the bin/ directory.
@@ -967,6 +1021,11 @@ endif()
     target_compile_options(${CHPY_RS} PRIVATE "-Wno-unused-variable")
   endif()
 
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_RS} PRIVATE -flat_namespace -undefined suppress)
+  endif()
+
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   #  set_target_properties(${CHPY_RS} PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
   #endif()
@@ -1033,6 +1092,11 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
     target_compile_options(parsers PRIVATE "/wd4706")  # assignment within conditional expression
   else()
     target_compile_options(parsers PRIVATE "-Wno-unused-variable")
+  endif()
+
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(parsers PRIVATE -flat_namespace -undefined suppress)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -1122,6 +1186,11 @@ if(CH_ENABLE_MODULE_ROS)
     target_compile_options(ros PRIVATE "/wd4706")  # assignment within conditional expression
   else()
     target_compile_options(ros PRIVATE "-Wno-unused-variable")
+  endif()
+
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(ros PRIVATE -flat_namespace -undefined suppress)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.

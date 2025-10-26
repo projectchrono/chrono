@@ -21,7 +21,7 @@ requirements:
     - cmake >=4
     - ninja   # [linux or osx]
     - jinja2  # [linux]
-    - swig ==4.0.2
+    - swig ==4.2.1
     - git
     - openmpi
     - intel-openmp ==2025.2.0 # [win]
