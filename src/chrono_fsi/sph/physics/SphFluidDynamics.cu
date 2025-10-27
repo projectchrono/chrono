@@ -445,9 +445,9 @@ __device__ void TauEulerStep(Real dT,
         // Clamp K to prevent collapse of the bulk modulus
         Real K_n = fmin(fmax(K_cand, Real(0.1) * paramsD.K_bulk), Real(10.0) * paramsD.K_bulk);
         // Shear
-        Real G_cand = (3.0 * K_n * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
-        Real G_n = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(10.0) * paramsD.G_shear);
-
+        // Real G_cand = (3.0 * K_n * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
+        // Real G_n = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(10.0) * paramsD.G_shear);
+        Real G_n = 200000;  // 250 Kpa
         // Trial stress using convention N = n + 1
         Real3 sig_diag_N_tr = tau_diag + dT * deriv_tau_diag;
         Real3 sig_offdiag_N_tr = tau_offdiag + dT * deriv_tau_offdiag;
@@ -540,6 +540,7 @@ __device__ void TauEulerStep(Real dT,
             // Only update the consolidation pressure if we are not close to the free surface
             if (!close_to_surface) {
                 pcEvSv.x *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
+                // pcEvSv.x *= exp(plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
                 pcEvSv.x = fmax(Real(100.0), pcEvSv.x);
             }
         }
@@ -558,6 +559,7 @@ __device__ void TauEulerStep(Real dT,
         pcEvSv.z *= (1 - pcEvSv.y * dT);
         // Set min to prevent collapse of the specific volume
         pcEvSv.z = fmax(Real(1.0), pcEvSv.z);
+        // pcEvSv.z = fmin(fmax(Real(1.0), pcEvSv.z), Real(5.0));
         // printf("p_c: %f, tau_diag: %f %f %f, tau_offdiag: %f %f %f\n", p_c, tau_diag.x, tau_diag.y, tau_diag.z,
         //        tau_offdiag.x, tau_offdiag.y, tau_offdiag.z);
     }
