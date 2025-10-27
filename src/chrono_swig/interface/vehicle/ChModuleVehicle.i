@@ -77,6 +77,8 @@
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
+// moved up the file order to ensure this is included in this group - otherwise a build without irrlicht/vsg fails (i.e. Chrono Unity)
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 
 // Wheeled vehicle
@@ -165,7 +167,9 @@ using namespace chrono::vehicle::m113;
 %include "std_string.i"
 %include "std_vector.i"
 %include "typemaps.i"
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
+#endif             // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
@@ -394,6 +398,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// Mark override methods to avoid CS0114 warnings in Unity and instruct SWIG how to generate the correct overrides of virtual
+%csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize(double, const DriverInputs&) "public override"
+%csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize(double, const DriverInputs&, const ChTerrain&) "public override"
+%csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize(double, const DriverInputs&) "public override"
+%csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize(double, const DriverInputs&, const ChTerrain&) "public override"
+#endif             // --------------------------------------------------------------------- CSHARP
+
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
@@ -410,8 +422,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "chrono_swig/interface/models/VehicleModels.i"
 
 %include "vehicleUtils.i"
-
-%include "../../../chrono_vehicle/ChVehicleVisualSystem.h" 
 
 #ifdef CHRONO_IRRLICHT
   #define ChApiIrr 

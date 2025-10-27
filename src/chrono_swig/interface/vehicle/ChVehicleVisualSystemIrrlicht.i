@@ -57,9 +57,11 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     // Extending the missing functions is a workaround
     //
 
-    // Visual Systems, in SWIG order, 1- ChVehicleVisualSystem, 2- ChVehicleVisualSystemIrrlicht, 3 - ChVisualSystemIrrlicht
+    // Visual Systems, in SWIG order, 1- ChVehicleVisualSystem, 2- ChVisualSystemIrrlicht, 3 - ChVehicleVisualSystemIrrlicht
+    // Ensure both base classes are fully defined before the derived MI class to avoid incomplete base warnings in C#.
+    %include "../../../chrono_vehicle/ChVehicleVisualSystem.h"
+    %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
-    %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"    
 
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
