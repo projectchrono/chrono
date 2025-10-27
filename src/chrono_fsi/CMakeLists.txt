@@ -7,16 +7,13 @@
 option(CH_ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 
 if(NOT CH_ENABLE_MODULE_FSI)
-  mark_as_advanced(FORCE CH_USE_FSI_DOUBLE)
   return()
-else()
-  mark_as_advanced(CLEAR CH_USE_FSI_DOUBLE)
 endif()
 
 message(STATUS "\n==== Chrono FSI module ====\n")
 
 #-------------------------------------------------------------------------------
-# Create the generic FSI interface library
+# List files in the generic FSI interface library
 #-------------------------------------------------------------------------------
 
 message(STATUS "Generic Chrono::FSI interface library")
@@ -33,6 +30,15 @@ set(FSI_FILES
     ChFsiBenchmark.h
 )
 source_group("" FILES ${FSI_FILES})
+
+# The generic FSI library has no dependencies on other Chrono modules
+set(DEPENDENCIES_FSI "")
+
+set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
+
+#-----------------------------------------------------------------------------
+# Create the Chrono_fsi library
+#-----------------------------------------------------------------------------
 
 message(STATUS "  Add Chrono_fsi library")
 
@@ -69,6 +75,10 @@ install(TARGETS Chrono_fsi
 #-------------------------------------------------------------------------------
 
 add_subdirectory(sph)
+add_subdirectory(tdpf)
+
+set(DEPENDENCIES_FSI_SPH  ${DEPENDENCIES_FSI_SPH}  PARENT_SCOPE)
+set(DEPENDENCIES_FSI_TDPF ${DEPENDENCIES_FSI_TDPF} PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Install files

@@ -36,7 +36,7 @@ namespace sph {
 /// @{
 
 /// Real type used in the SPH Chrono::FSI module (float or double).
-#ifdef CHRONO_FSI_USE_DOUBLE
+#ifdef CHRONO_SPH_USE_DOUBLE
 typedef double Real;
 #else
 typedef float Real;
