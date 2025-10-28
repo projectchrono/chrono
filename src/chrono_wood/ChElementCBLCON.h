@@ -133,6 +133,9 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     /// Compute large rotation of element for corotational approach
     /// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
     virtual void UpdateRotation() override;
+
+    /// Compute the vectors connecting the nodes to the centroid of the section
+    void ComputeBranchVectors(ChVector3d& xi_xc, ChVector3d& xj_xc);
     //
     // The default implementation in ChElementBase is ok, but inefficient because it passes
     // through the computation of the M mass matrix via ComputeKRMmatricesGlobal(H,0,0,M).

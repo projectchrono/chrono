@@ -83,6 +83,9 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     // Setter & Getter for centroid of facet
     ChVector3d Get_center() const { return m_center; }
     void Set_center( ChVector3d center) { m_center=center; }
+    // Setter & Getter for initial (reference configuration) centroid of facet
+    ChVector3d Get_center_ref() const { return m_center_ref; }
+    void Set_center_ref( ChVector3d center) { m_center_ref=center; }
     //
     ChMatrix33<double> Get_facetFrame() const { return m_facetFrame; }
     void Set_facetFrame( ChMatrix33<double> facetFrame) { m_facetFrame=facetFrame; }
@@ -116,6 +119,7 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
   protected:
     std::shared_ptr<ChWoodMaterialVECT> m_material;
     ChVector3d m_center;
+    ChVector3d m_center_ref;
     ChMatrix33<double> m_facetFrame;
 	ChVector3d  m_nonMechanicStrain;
     double mcon_width=1.0;  

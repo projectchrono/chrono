@@ -365,7 +365,7 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
 		msection->SetWidth(connector.width);
 		msection->SetHeight(connector.height);
 		msection->Set_area(area);
-		msection->Set_center(facetC);
+		msection->Set_center_ref(facetC);
 		if (connector.conType==4 & mvec.Length()!=0){
 			msection->Set_facetFrame(nmL);
 		}else{
@@ -572,7 +572,7 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
 		msection->SetWidth(connector.width);
 		msection->SetHeight(connector.height);
 		msection->Set_area(area);
-		msection->Set_center(facetC);
+		msection->Set_center_ref(facetC);
 		msection->SetRandomField(connector.randomField);
 		if (connector.conType==4 & mvec.Length()!=0){
 			//std::cout<<"Longuitidonal connector\n";

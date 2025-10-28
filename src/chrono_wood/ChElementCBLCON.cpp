@@ -122,12 +122,6 @@ void ChElementCBLCON::Update() {
     } else { // JBC: This might not be necessary since the value of 0.0 in SetupInitial() should remain if macro_strain is nullptr
         this->section->Set_nonMechanicStrain(ChVector3d(0.0, 0.0, 0.0));
     }
-    // get displacement increment between current step and previous step
-    // update total displacement increment
-    //ChVectorDynamic<> displ(12);
-    //this->GetStateBlock(displ);
-    //dofs_increment=displ-dofs_old;
-    //dofs_old=displ;
 }
 
 void ChElementCBLCON::UpdateRotation() {
@@ -146,17 +140,44 @@ void ChElementCBLCON::UpdateRotation() {
     q_element_abs_rot = Aabs.GetQuaternion();
     */
 
-    // TODO JBC: I think the code below does not work for large displacement.
-    // the Y axis of the nodes are not necessarily aligned (even on average) with the y axis of the beam
-    // This approach may rotate the L and M directions of the facet by the wrong amount,
-    // causing the strain increment not to be added in the correct direction
-    // I believe the commented code above for beams should be used instead
+    // TODO JBC: This looks fragile and relies on assumptions and current behavior of other parts of the code
+    //           - If the Y-axes are aligned with the node-to-node direction, or cancel out, Gram-Schmidt will fail and use an arbitrary direction
+    //              This arbitrary direction is repeatable, that is the only thing that guarantee this works, otherwise, the initial quaternion determined in SetupInitial() might be different
+    //              Any change to the fallback behavior of ChMatrix33::SetFromAxisX() will break this code !
+    //           - I believe the commented code above for beams should be used instead, together with the initial quaternion being aligned with nmL matrix, similar to the beam element
     ChVector3d mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
     ChVector3d mYele =
     (nodes[0]->Frame().GetRotMat().GetAxisY() + nodes[1]->Frame().GetRotMat().GetAxisY()).GetNormalized();
     Aabs.SetFromAxisX(mXele, mYele);
     q_element_abs_rot = Aabs.GetQuaternion();
     this->A.SetFromQuaternion(q_element_ref_rot.GetConjugate() * q_element_abs_rot);
+
+    // New center position
+    // 1. Projection `P` of center `C` on the edge should remain in the same relative position along the edge
+    ChVector3d edge0 = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
+    double length0sq = edge0.Length2();
+    ChVector3d xi_xc0 = section->Get_center_ref() - nodes[0]->GetX0().GetPos();
+    double relpos_xi_xp = xi_xc0.Dot(edge0) / length0sq;
+    // 2. Vector `PC` keeps the same length but rotates with the edge
+    ChQuaternion<> q_delta = q_element_abs_rot * q_element_ref_rot.GetConjugate();
+    ChVector3d xi_xp0 = relpos_xi_xp * edge0;
+    ChVector3d xp_xc0 = xi_xc0 - xi_xp0;
+    ChVector3d edge = nodes[1]->GetPos() - nodes[0]->GetPos();
+    ChVector3d center = nodes[0]->GetPos() + relpos_xi_xp * edge + q_delta.Rotate(xp_xc0);
+    section->Set_center(center);
+}
+
+
+void ChElementCBLCON::ComputeBranchVectors(ChVector3d& xi_xc, ChVector3d& xj_xc) {
+    if (!ChElementCBLCON::LargeDeflection) {
+        // For small deflection, use the initial position of the nodes and facet centers
+        xi_xc = section->Get_center_ref() - nodes[0]->GetX0().GetPos();
+        xj_xc = section->Get_center_ref() - nodes[1]->GetX0().GetPos();
+    } else {
+        // For large deflection, use the current position of the nodes and facet centers
+        xi_xc = section->Get_center() - nodes[0]->GetPos();
+        xj_xc = section->Get_center() - nodes[1]->GetPos();
+    }
 }
 
 
@@ -195,19 +216,8 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& dofs_increme
     ChVector3d dri = dofs_increment.segment(3,3);
     ChVector3d duj = dofs_increment.segment(6,3);
     ChVector3d drj = dofs_increment.segment(9,3);
-    ChVector3d xc_xi;
-    ChVector3d xc_xj;
+
     double linv = 1.0 / this->length;
-    // For small deflection, use the initial position of the nodes and facet centers
-    // to determine the displacement induced by the node rotation
-    if (!LargeDeflection) {
-        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
-        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
-    }
-    else { // TODO: Find out how to evolve position of the center for large displacement
-        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
-        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
-    }
 
     ChMatrix33<double> nmL=this->section->Get_facetFrame();
     if(ChElementCBLCON::LargeDeflection){	// TODO JBC: If the facet orientation is made to coincide with the quaternion, we could save a lot and move this to Update()
@@ -217,8 +227,11 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& dofs_increme
         }
     }
 
+    ChVector3d xi_xc, xj_xc;
+    ComputeBranchVectors(xi_xc, xj_xc);
+
     // Strain
-    strain_increment = nmL * (duj + drj.Cross(xc_xj) - (dui + dri.Cross(xc_xi))) * linv;
+    strain_increment = nmL * (duj + drj.Cross(xj_xc) - (dui + dri.Cross(xi_xc))) * linv;
 
     // Curvature
     if (ChElementCBLCON::EnableCoupleForces){
@@ -240,14 +253,12 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
     if (!ChElementCBLCON::LargeDeflection) {
         pNA = this->GetNodeA()->GetX0().GetPos();
         pNB = this->GetNodeB()->GetX0().GetPos();
-        pC = this->section->Get_center();
+        pC = this->section->Get_center_ref();
     } else {
-        // TODO JBC: Technically, if the connector is stretched, at constant mass, the moment of inertia changes
-        // Decide whether or not we want to take this into account in the calculation of the length or ignored it. error ~ 2*max_strain
-        // Currently use the same length for simplicity
-        pNA = this->GetNodeA()->GetX0().GetPos(); // TEMPORARY
-        pNB = this->GetNodeB()->GetX0().GetPos(); // TEMPORARY
-        pC = this->section->Get_center(); // TEMPORARY
+        // JBC: Technically, if the connector is stretched, at constant mass, the moment of inertia changes
+        pNA = this->GetNodeA()->GetPos();
+        pNB = this->GetNodeB()->GetPos();
+        pC = this->section->Get_center();
     }
     double LA=(pC-pNA).Length();
     double LB=(pC-pNB).Length(); // TODO JBC: This could be length - LA, but will likely change when we refactor the center from a Vector into a scalar along the line
@@ -346,26 +357,19 @@ void ChElementCBLCON::ComputeStiffnessMatrixGlobal(ChMatrixRef Km) {
         ChMatrix33<double> nmL_tr = nmL.transpose();
         ChMatrix33<> K_local = nmL_tr * K_diag * nmL;
 
-        // For small deflection, use the initial position of the nodes and facet centers
-        // to determine the displacement induced by the node rotation
-        ChVector3d xc_xi;
-        ChVector3d xc_xj;
-        if (!LargeDeflection) {
-            xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
-            xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
-        }
-        else { // TODO: Find out how to evolve position of the center for large displacement
-            xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
-            xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
-        }
-        ChMatrix33<> Ai_cross; // 3x3 right sub-block of Ai matrix for skew-symmetric cross-product vector
-        ChMatrix33<> Aj_cross; // 3x3 right sub-block of Aj matrix for skew-symmetric cross-product vector
-        Ai_cross << 0.0      ,  xc_xi[2], -xc_xi[1],
-                    -xc_xi[2],  0.0     ,  xc_xi[0],
-                     xc_xi[1], -xc_xi[0],  0.0     ;
-        Aj_cross << 0.0      ,  xc_xj[2], -xc_xj[1],
-                    -xc_xj[2],  0.0     ,  xc_xj[0],
-                     xc_xj[1], -xc_xj[0],  0.0     ;
+
+        ChVector3d xi_xc, xj_xc;
+        ComputeBranchVectors(xi_xc, xj_xc);
+        // 3x3 right sub-block of Ai matrix for skew-symmetric cross-product vector
+        ChMatrix33<> Ai_cross(0.0);
+        Ai_cross(0,1) =  xi_xc[2]; Ai_cross(1,0) = -xi_xc[2];
+        Ai_cross(0,2) = -xi_xc[1]; Ai_cross(2,0) =  xi_xc[1];
+        Ai_cross(1,2) =  xi_xc[0]; Ai_cross(2,1) = -xi_xc[0];
+        // 3x3 right sub-block of Aj matrix for skew-symmetric cross-product vector
+        ChMatrix33<> Aj_cross(0.0);
+        Aj_cross(0,1) =  xj_xc[2]; Aj_cross(1,0) = -xj_xc[2];
+        Aj_cross(0,2) = -xj_xc[1]; Aj_cross(2,0) =  xj_xc[1];
+        Aj_cross(1,2) =  xj_xc[0]; Aj_cross(2,1) = -xj_xc[0];
 
         ChMatrix33<> K_local_Id_Ai = K_local * Ai_cross;
         ChMatrix33<> K_local_Ai_Id = K_local_Id_Ai.transpose();
@@ -443,10 +447,9 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
         (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
     A0.SetFromAxisX(mXele, myele);
     q_element_ref_rot = A0.GetQuaternion();
-    //
-    // WARNNING: Check updating rotation here is a good idea
-    //
-    this->UpdateRotation();
+    q_element_abs_rot = q_element_ref_rot; // Initialize the current quaternion as the reference quaternion
+
+    section->Set_center(section->Get_center_ref());
     //
     // Initiliaze state variables:
     //
@@ -592,25 +595,15 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector3d mstress, mcouple;
     section->Get_material()->ComputeStress(strain_increment, curvature_increment, nonMechanicalStrain, length, statevar_old, statevar, area, width, height, random_field, mstress, mcouple);
 
-
     ChVector3d force = area * (nmL_tr * mstress);
-    ChVector3d xc_xi;
-    ChVector3d xc_xj;
-    // For small deflection, use the initial position of the nodes and facet centers
-    // to determine the displacement induced by the node rotation
-    if (!LargeDeflection) {
-        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
-        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
-    }
-    else { // TODO: Find out how to evolve position of the center for large displacement
-        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
-        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
-    }
+
+    ChVector3d xi_xc, xj_xc;
+    ComputeBranchVectors(xi_xc, xj_xc);
 
     Fi.segment(0,3) =  force.eigen();
-    Fi.segment(3,3) =  xc_xi.Cross(force).eigen();
+    Fi.segment(3,3) =  xi_xc.Cross(force).eigen();
     Fi.segment(6,3) = -force.eigen();
-    Fi.segment(9,3) = -xc_xj.Cross(force).eigen();
+    Fi.segment(9,3) = -xj_xc.Cross(force).eigen();
 
     if(ChElementCBLCON::EnableCoupleForces){
         ChVector3d couple_global = area * (nmL_tr * mcouple);
@@ -653,34 +646,25 @@ void ChElementCBLCON::EvaluateSectionDisplacement(const double eta, ChVector3d& 
     ChVector3d uj = nodes[1]->GetPos() - nodes[1]->GetX0().GetPos();
     (nodes[1]->GetRot() * nodes[1]->GetX0().GetRot().GetConjugate()).GetAngleAxis(angle, axis);
     ChVector3d rj = axis*angle;
-    ChVector3d xc_xi;
-    ChVector3d xc_xj;
-    // For small deflection, use the initial position of the nodes and facet centers
-    // to determine the displacement induced by the node rotation
-    if (!LargeDeflection) {
-        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
-        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
-    }
-    else { // TODO: Find out how to evolve position of the center for large displacement
-        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
-        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
-    }
+
+    ChVector3d xi_xc, xj_xc;
+    ComputeBranchVectors(xi_xc, xj_xc);
 
     // TODO JBC: This assumes small displacements
     // If the connector is broken and stretched, length will be very large eta_center poorly estimated
     // If we want to display the broken connector, I think a much bigger refactor would be needed because it does not really make sense
     // to call this function over normalized eta, and for many points uniformly distributed along the beam at a given resolution.
     // We should instead call over the actual distance, and evaluate only at the ends and facet discontinuities. Dispaly it as 2 elements, not one.
-    double eta_center = -1.0 + 2.0 * xc_xi.Length() / this->length;
+    double eta_center = -1.0 + 2.0 * xi_xc.Length() / this->length;
 
     // TODO JBC: I think using the rotation matrix rather, than the cross product, would give the true displacement for large displacement without other changes necessary
     if (eta <= eta_center) {
         double factor = (eta + 1.0) / (eta_center + 1.0);
-        u_displ = ui + ri.Cross(xc_xi) * factor;
+        u_displ = ui + ri.Cross(xi_xc) * factor;
         u_rotaz = ri;
     } else {
         double factor = (1.0 - eta) / (1.0 - eta_center);
-        u_displ = uj + rj.Cross(xc_xj) * factor;
+        u_displ = uj + rj.Cross(xj_xc) * factor;
         u_rotaz = rj;
     }
 }
