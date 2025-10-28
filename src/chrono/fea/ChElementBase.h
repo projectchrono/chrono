@@ -143,6 +143,13 @@ class ChApi ChElementBase {
     /// WILL BE DEPRECATED
     virtual void VariablesFbIncrementMq() {}
 
+    /// Get the number of state variables used by this element.
+    /// Number of quadrature (Gauss) points, multiplied by number of state variables of constitutive model
+    virtual unsigned int GetNumStateVar() {return 0;}
+
+    /// Update the state variables of the constitutive model at the end of the step
+    virtual void EleUpdateStateVar() {}
+
   private:
     /// Initial setup (called once before start of simulation).
     /// This is used mostly to precompute matrices that do not change during the simulation, i.e. the local stiffness of

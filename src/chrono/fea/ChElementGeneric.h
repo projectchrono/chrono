@@ -91,8 +91,13 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// Add M*q (internal masses multiplied current 'qb').
     virtual void VariablesFbIncrementMq() override;
 
+    /// Update the state variables of the constitutive model at the end of the step
+    virtual void EleUpdateStateVar() override;
+
   protected:
     ChKRMBlock Kmatr;
+    ChVectorDynamic<> statevar_old;
+    ChVectorDynamic<> statevar;
 };
 
 /// @} fea_elements

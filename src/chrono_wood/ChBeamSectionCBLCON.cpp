@@ -34,15 +34,9 @@ ChBeamSectionCBLCON::ChBeamSectionCBLCON( std::shared_ptr<ChWoodMaterialVECT> ma
                                     ChVector3d center,    // Center point of the facet area      
                                     ChMatrix33<double> facetFrame    /// local system of frame of facet 
                                        )
-    : m_material{material}, m_area{area}, m_center{center}, m_facetFrame{facetFrame} {
-        m_state.setZero();
-        m_state_new.setZero();
-}
+    : m_material{material}, m_area{area}, m_center{center}, m_facetFrame{facetFrame} {}
 
-ChBeamSectionCBLCON::ChBeamSectionCBLCON() {
-	m_state.setZero();
-    m_state_new.setZero();
-};
+ChBeamSectionCBLCON::ChBeamSectionCBLCON() {};
 
 ChBeamSectionCBLCON::~ChBeamSectionCBLCON() {};
 

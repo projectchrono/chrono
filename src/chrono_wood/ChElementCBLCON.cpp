@@ -484,8 +484,8 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     //
     // Initiliaze state variables:
     //
-    // All state variables initialized at zero, which is the value in the Section constructor
-    // Nothing to do here
+    statevar_old.setZero(GetNumStateVar());
+    statevar.setZero(GetNumStateVar());
 
     //
     if(this->macro_strain){
@@ -612,30 +612,8 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     double height=mysection->GetHeight()/2;
     double random_field =mysection->GetRandomField();
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
-    StateVarVector statev_old = mysection->Get_StateVar();
-    StateVarVector statev_new;
-    mysection->Get_material()->ComputeStress(mstrain, curvature, nonMechanicalStrain, length, statev_old, statev_new, area, width, height, random_field, mstress, mcouple);
+    mysection->Get_material()->ComputeStress(mstrain, curvature, nonMechanicalStrain, length, statevar_old, statevar, area, width, height, random_field, mstress, mcouple);
 
-    mysection->Set_StateVarNew(statev_new);
-
-    // Code below replicates current behavior: updates state variables at every call to ComputeInternalForces, which is incorrect!
-    // TODO: to update at every step, we will need to call the function below (or equivalent, at the end of every step).
-    //       The Element has no idea how the timestepper operates, so we would have to do this outside of this Class.
-    //       and requires modifications to the base parent classes for the elements, and Chrono timestepper behavior.
-    //
-    //       A quick and dirty way to do this for now is to manually update the state variables inside the "run step" loop in the `main()` function of our compiled demos, e.g.:
-    // 
-    //          while (sys.GetChTime() < duration) {
-    //              sys.DoStepDynamics(timestep);
-    //              for (auto& element : my_mesh->GetElements()) {
-    //                  if (auto connector = std::dynamic_pointer_cast<ChElementCBLCON>(element)) {
-    //                      connector->GetSection()->UpdateStateVariables();
-    //                  }
-    //              }
-    //          }
-    // 
-    // Comment line below and add code above to your CBL demo to implement update at end of step only
-    mysection->Set_StateVar(statev_new);
 
     ChVector3d force = area * (nmL_tr * mstress);
     ChVector3d xc_xi;
@@ -833,8 +811,7 @@ double ChElementCBLCON::GetDensity() {
 ChMatrixNM<double, 1, 9> ChElementCBLCON::ComputeMacroStressContribution(){
     ChMatrixNM<double, 1, 9> macro_stress;
     double area =this->section->Get_area();
-    auto statev= this->section->Get_StateVar();
-    macro_stress =(this->section->GetProjectionMatrix()).transpose()*statev.segment(3,3)*area*this->length;
+    macro_stress =(this->section->GetProjectionMatrix()).transpose()*statevar.segment(3,3)*area*this->length;
 
     return macro_stress;
 }
