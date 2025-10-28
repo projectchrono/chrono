@@ -160,48 +160,15 @@ void ChElementCBLCON::UpdateRotation() {
 }
 
 
-
-
-
-void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.resize(12);
-
-    // Node displacement
-    // If large deflection disabled, return displacement in global frame
-    // TODO: Go back to this function when we decide how to enable and formulate large deflection
-    auto getDisplacement = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
-        ChVector3d global_disp;
-        if (!LargeDeflection)
-            global_disp = node->Frame().GetPos() - node->GetX0().GetPos();
-        else
-            global_disp = node->Frame().GetPos() - node->GetX0().GetPos(); // TODO: temporary
-        return global_disp;
-    };
-
-    // Node rotations
-    // If Large deflection disabled, return rotation in global frame
-    // TODO: Go back to this function when we decide how to enable and formulate large deflection
-    auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
-        ChQuaternion<> global_dq = node->Frame().GetRot() * node->GetX0().GetRot().GetConjugate();
-        ChVector3d delta_rot_dir;
-        double delta_rot_angle;
-
-        if (!LargeDeflection)
-            global_dq.GetAngleAxis(delta_rot_angle, delta_rot_dir);
-        else
-            global_dq.GetAngleAxis(delta_rot_angle, delta_rot_dir); // TODO: temporary
-        // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
-        // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
-        // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
-        // TODO: Consider changing GetRotVec() to return within [-PI .. PI]
-        return delta_rot_angle * delta_rot_dir;
-    };
-
-    mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
-    mD.segment(3, 3) = getRotation(nodes[0]).eigen();
-
-    mD.segment(6, 3) = getDisplacement(nodes[1]).eigen();
-    mD.segment(9, 3) = getRotation(nodes[1]).eigen();
+void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& statev) {
+    // Copy paste of ChElementLDPM::LoadableGetStateBlockPosLevel because this function
+    // takes ChVectorDynamic as an argument, not a ChState
+    unsigned index_start = GetDOFOffset();
+    statev.segment(index_start + 0, 3) = nodes[0]->GetPos().eigen();
+    statev.segment(index_start + 3, 4) = nodes[0]->GetRot().eigen();
+    //
+    statev.segment(index_start + 7, 3) = nodes[1]->GetPos().eigen();
+    statev.segment(index_start + 10, 4) = nodes[1]->GetRot().eigen();
 }
 
 
@@ -222,12 +189,12 @@ void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
 }
 
 
-void ChElementCBLCON::ComputeStrain(ChVectorN<double, 12>& displ, ChVector3d& mstrain, ChVector3d& curvature) {
+void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& dofs_increment, ChVector3d& strain_increment, ChVector3d& curvature_increment) {
     //
-    ChVector3d ui = displ.segment(0,3);
-    ChVector3d ri = displ.segment(3,3);
-    ChVector3d uj = displ.segment(6,3);
-    ChVector3d rj = displ.segment(9,3);
+    ChVector3d dui = dofs_increment.segment(0,3);
+    ChVector3d dri = dofs_increment.segment(3,3);
+    ChVector3d duj = dofs_increment.segment(6,3);
+    ChVector3d drj = dofs_increment.segment(9,3);
     ChVector3d xc_xi;
     ChVector3d xc_xj;
     double linv = 1.0 / this->length;
@@ -251,12 +218,11 @@ void ChElementCBLCON::ComputeStrain(ChVectorN<double, 12>& displ, ChVector3d& ms
     }
 
     // Strain
-    ChVector3d strain_increment = (uj + rj.Cross(xc_xj) - (ui + ri.Cross(xc_xi))) * linv;
-    mstrain = nmL * strain_increment;
+    strain_increment = nmL * (duj + drj.Cross(xc_xj) - (dui + dri.Cross(xc_xi))) * linv;
 
     // Curvature
     if (ChElementCBLCON::EnableCoupleForces){
-        curvature = nmL * (rj - ri) * linv;
+        curvature_increment = nmL * (drj - dri) * linv;
     }
 }
 
@@ -485,8 +451,8 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     // Initiliaze state variables:
     //
     statevar_old.setZero(GetNumStateVar());
-    statevar.setZero(GetNumStateVar());
-
+    GetStateBlock(statevar_old); // Store DOFs at the end of state variables vector (temporary, to do updated Lagrangian until these are stored at the nodes in Tasora's new design)
+    statevar = statevar_old;
     //
     if(this->macro_strain){
             this->section->ComputeProjectionMatrix();
@@ -583,10 +549,25 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
     assert(section);
 
-    // Displacement and rotation of nodes:
-    ChVectorDynamic<> displ(12);
-    this->GetStateBlock(displ); // TODO: bad Chrono design, there is no reason for that function to exist in higher-level parent with dynamic vector since it is never used outside of element. Each element should decide how to handle their DOFS
-    ChVectorN<double, 12> dofs = displ;
+    // Compute increment of DOFs in global frame
+    this->GetStateBlock(statevar); // Store current DOFs at the end of state variables vector (temporary, to do updated Lagrangian until these are stored at the nodes in Tasora's new design)
+    ChVectorN<double, 12> dofs_increment;
+    for (int inode = 0 ; inode < 2 ; inode++) {
+        unsigned int index_start = GetDOFOffset();
+        // Displacement in global frame
+        dofs_increment.segment(inode*6,3) = statevar.segment(index_start + inode*7,3) - statevar_old.segment(index_start + inode*7,3);
+
+        // Rotation in global frame
+        ChQuaterniond q_curr(statevar.segment(index_start + inode*7 + 3,4));
+        ChQuaterniond q_prev(statevar_old.segment(index_start + inode*7 + 3,4));
+        ChQuaterniond dq = q_curr * q_prev.GetConjugate();
+        ChVector3d delta_rot_dir;
+        double delta_rot_angle;
+        dq.GetAngleAxis(delta_rot_angle, delta_rot_dir);
+        // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
+        // TODO: Consider changing GetRotVec() to return within [-PI .. PI]
+        dofs_increment.segment(inode*6+3, 3) = (delta_rot_angle * delta_rot_dir).eigen();
+    }
 
     //
     // Get facet area and length of beam
@@ -601,18 +582,15 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     }
     ChMatrix33<double> nmL_tr = nmL.transpose();
 
-    auto mysection=this->section;
-    ChVector3d mstress;
-    ChVector3d mstrain;
-    ChVector3d mcouple;
-    ChVector3d curvature;
+    ChVector3d strain_increment, curvature_increment;
+    ComputeStrainIncrement(dofs_increment, strain_increment, curvature_increment);
 
-    this->ComputeStrain(dofs, mstrain, curvature);
-    double width=mysection->GetWidth()/2;
-    double height=mysection->GetHeight()/2;
-    double random_field =mysection->GetRandomField();
-    auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
-    mysection->Get_material()->ComputeStress(mstrain, curvature, nonMechanicalStrain, length, statevar_old, statevar, area, width, height, random_field, mstress, mcouple);
+    double width=section->GetWidth()/2;
+    double height=section->GetHeight()/2;
+    double random_field =section->GetRandomField();
+    auto nonMechanicalStrain=section->Get_nonMechanicStrain();
+    ChVector3d mstress, mcouple;
+    section->Get_material()->ComputeStress(strain_increment, curvature_increment, nonMechanicalStrain, length, statevar_old, statevar, area, width, height, random_field, mstress, mcouple);
 
 
     ChVector3d force = area * (nmL_tr * mstress);
@@ -665,12 +643,16 @@ void ChElementCBLCON::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector
 
 
 void ChElementCBLCON::EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) {
-    ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
-    this->GetStateBlock(displ);
-    ChVector3d ui = displ.segment(0,3);
-    ChVector3d ri = displ.segment(3,3);
-    ChVector3d uj = displ.segment(6,3);
-    ChVector3d rj = displ.segment(9,3);
+    // TODO JBC: had to do the hack below after redefining GetStateBlock()
+    //           Not sure what this function does, it's called by ChVisualShapeWood.
+    double angle;
+    ChVector3d axis;
+    ChVector3d ui = nodes[0]->GetPos() - nodes[0]->GetX0().GetPos();
+    (nodes[0]->GetRot() * nodes[0]->GetX0().GetRot().GetConjugate()).GetAngleAxis(angle, axis);
+    ChVector3d ri = axis * angle;
+    ChVector3d uj = nodes[1]->GetPos() - nodes[1]->GetX0().GetPos();
+    (nodes[1]->GetRot() * nodes[1]->GetX0().GetRot().GetConjugate()).GetAngleAxis(angle, axis);
+    ChVector3d rj = axis*angle;
     ChVector3d xc_xi;
     ChVector3d xc_xj;
     // For small deflection, use the initial position of the nodes and facet centers
