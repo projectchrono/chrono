@@ -30,15 +30,13 @@
 #include <BRep_Tool.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
-#include <BRep_Builder.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopLoc_Location.hxx>
 #include <TopoDS_Iterator.hxx>
-#include <TopExp_Explorer.hxx>
 #include <Bnd_Box.hxx>
 #include <gp_Pnt.hxx>
 #include <Prs3d_ShapeTool.hxx>
-#include <BRepAdaptor_HSurface.hxx>
+#include <BRepAdaptor_Surface.hxx>
 #include <BRepAdaptor_Curve.hxx>
 #include <BRepBndLib.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
@@ -98,7 +96,7 @@ static bool recurse_CascadeDoc(TDF_Label label,
     Standard_PCharacter mchastr = mstring;
 
     // access name
-    Handle_TDataStd_Name N;
+    Handle(TDataStd_Name) N;
     if (label.FindAttribute(TDataStd_Name::GetID(), N)) {
         N->Get().ToUTF8CString(mchastr);
     }

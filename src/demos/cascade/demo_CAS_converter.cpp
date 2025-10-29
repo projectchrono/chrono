@@ -41,11 +41,9 @@
 #include <TopExp_Explorer.hxx>
 #include <TopLoc_Location.hxx>
 #include <TopoDS_Iterator.hxx>
-#include <TopExp_Explorer.hxx>
 #include <Bnd_Box.hxx>
 #include <gp_Pnt.hxx>
 #include <Prs3d_ShapeTool.hxx>
-#include <BRepAdaptor_HSurface.hxx>
 #include <BRepAdaptor_Curve.hxx>
 #include <BRepBndLib.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
@@ -70,7 +68,6 @@
 #include <TDF_Label.hxx>
 #include <TDF_ChildIterator.hxx>
 #include <TDF_LabelSequence.hxx>
-#include <TDF_ChildIterator.hxx>
 #include <TDF_Tool.hxx>
 #include <TObj_TObject.hxx>
 #include <TObj_TReference.hxx>

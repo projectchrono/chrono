@@ -34,7 +34,7 @@
 #include <TopExp_Explorer.hxx>
 #include <TopLoc_Location.hxx>
 #include <TopoDS_Iterator.hxx>
-#include <BRepAdaptor_HSurface.hxx>
+#include <BRepAdaptor_Surface.hxx>
 #include <Poly.hxx>
 #include <Poly_Connect.hxx>
 #include <Poly_Triangle.hxx>
@@ -57,7 +57,7 @@ class ChCascadeIrrMeshTools {
                                                 const TopoDS_Face& F,
                                                 irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255)) {
         BRepAdaptor_Surface BS(F, Standard_False);
-        Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
+        Handle(BRepAdaptor_Surface) gFace = new BRepAdaptor_Surface(BS);
 
         Handle(Poly_Triangulation) T;
         TopLoc_Location theLocation;
@@ -69,19 +69,19 @@ class ChCascadeIrrMeshTools {
             buffer->Vertices.set_used(T->NbNodes());
             buffer->Indices.set_used(T->NbTriangles() * 3);
 
-            const TColgp_Array1OfPnt& mNodes = T->Nodes();
+            const Poly_ArrayOfNodes& mNodes = T->InternalNodes();
 
             Poly::ComputeNormals(T);
-            const TShort_Array1OfShortReal& mNormals = T->Normals();
+            const auto& mNormals = T->InternalNormals();
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
                 gp_Pnt p;
                 gp_Dir pn;
-                p = mNodes(j).Transformed(theLocation.Transformation());
+                p = mNodes.Value(j).Transformed(theLocation.Transformation());
 
                 chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector3d nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
+                chrono::ChVector3d nor(mNormals.Value(j).x(), mNormals.Value(j).y(), mNormals.Value(j).z());
                 if (F.Orientation() == TopAbs_REVERSED)
                     nor *= -1;
 
