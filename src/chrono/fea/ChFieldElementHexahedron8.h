@@ -32,7 +32,7 @@ class ChNodeFEAfieldXYZ;
 /// Linear hexahedron for generic constitutive laws. Can be used for multiphysics.
 /// It uses 8 nodes.
 
-class ChApi ChFieldElementHexahedron8 : public ChFieldElement {
+class ChApi ChFieldElementHexahedron8 : public ChFieldElementVolume {
 public:
     ChFieldElementHexahedron8() {
         this->quadrature_order = 2;
@@ -63,9 +63,6 @@ public:
 
     // Return dimension of embedding space X
     virtual int GetSpatialDimensions() const override { return 3; };
-
-    // Return dimension of represented manifold in space
-    virtual int GetManifoldDimensions() const override { return 3; };
 
     // Compute the 8 shape functions N at eta parametric coordinates. 
     virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) override;;

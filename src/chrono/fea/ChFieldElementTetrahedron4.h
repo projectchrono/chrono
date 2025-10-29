@@ -33,7 +33,7 @@ class ChNodeFEAfieldXYZ;
 /// Because of linear interpolation, some closed form ad-hoc expressions are used here 
 /// for J, dNdX, etc., aiming at higher performance.
 
-class ChApi ChFieldElementTetrahedron4 : public ChFieldElement {
+class ChApi ChFieldElementTetrahedron4 : public ChFieldElementVolume {
 public:
     ChFieldElementTetrahedron4() {
         this->quadrature_order = 1; 
@@ -65,9 +65,6 @@ public:
 
     // Return dimension of embedding space X
     virtual int GetSpatialDimensions() const override { return 3; };
-
-    // Return dimension of represented manifold in space
-    virtual int GetManifoldDimensions() const override { return 3; };
 
     // Compute the 4 shape functions N at eta parametric coordinates. 
     virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) override;;
