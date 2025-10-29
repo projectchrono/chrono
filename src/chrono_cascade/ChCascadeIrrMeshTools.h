@@ -20,28 +20,13 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 
-#include <TopoDS_Shape.hxx>
-#include <TopoDS.hxx>
-#include <TopoDS_HShape.hxx>
-#include <TopoDS_Edge.hxx>
-#include <TopoDS_Face.hxx>
-#include <TopoDS_Compound.hxx>
-#include <BRep_Builder.hxx>
-#include <BRepTools.hxx>
-#include <BRep_Tool.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeVertex.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopLoc_Location.hxx>
-#include <TopoDS_Iterator.hxx>
 #include <BRepAdaptor_Surface.hxx>
+#include <BRep_Tool.hxx>
+#include <BRepTools.hxx>
 #include <Poly.hxx>
-#include <Poly_Connect.hxx>
-#include <Poly_Triangle.hxx>
-#include <Poly_Triangulation.hxx>
-#include <TColgp_Array1OfDir.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
-#include <TShort_Array1OfShortReal.hxx>
 
 namespace chrono {
 namespace cascade {

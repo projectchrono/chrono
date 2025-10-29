@@ -14,8 +14,6 @@
 
 #include "chrono_cascade/ChVisualShapeCascade.h"
 
-#include <TopoDS_Shape.hxx>
-
 namespace chrono {
 namespace cascade {
 

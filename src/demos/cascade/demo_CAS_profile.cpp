@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector3d(0.2, 0.2, -2.3));
+            vis_irr->AddCamera(ChVector3d(0.2, 0.2, -4.3));
             vis_irr->AddTypicalLights();
 
             vis = vis_irr;

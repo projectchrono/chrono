@@ -12,6 +12,14 @@
 
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 
+ #include <BRepBuilderAPI_MakeWire.hxx>
+ #include <BRepBuilderAPI_MakeEdge.hxx>
+ #include <BRepBuilderAPI_MakeFace.hxx>
+ #include <BRepPrimAPI_MakePrism.hxx>
+ #include <GC_MakeArcOfCircle.hxx>
+ #include <GC_MakeSegment.hxx>
+ #include <gp_Circ.hxx>
+
 namespace chrono {
 namespace cascade {
 

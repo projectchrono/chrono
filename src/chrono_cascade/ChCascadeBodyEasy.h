@@ -25,17 +25,7 @@
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/physics/ChMassProperties.h"
 
-#include <TopExp_Explorer.hxx>
 #include <TopoDS_Wire.hxx>
-#include <TopoDS_Builder.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
-#include <BRepPrimAPI_MakePrism.hxx>
-#include <Geom_TrimmedCurve.hxx>
-#include <GC_MakeArcOfCircle.hxx>
-#include <GC_MakeSegment.hxx>
-#include <gp_Circ.hxx>
 
 namespace chrono {
 namespace cascade {
