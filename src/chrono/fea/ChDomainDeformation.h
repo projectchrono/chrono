@@ -18,6 +18,8 @@
 #include "chrono/fea/ChDomain.h"
 #include "chrono/fea/ChMaterial3DStressStVenant.h"
 #include "chrono/fea/ChVisualDataExtractor.h"
+#include "chrono/fea/ChLoaderGravity.h"
+#include "chrono/fea/ChFieldElementLoadableVolume.h"
 
 namespace chrono {
 namespace fea {
@@ -27,47 +29,61 @@ namespace fea {
 /// @{
 
 
+/// Auxiliary data stored per each material point during the ChDomainDeformation
+/// computation. This can be plotted in postprocessing, etc.
+/// If you need to append additional data per each matpoint, do not modify this, just 
+/// define your class with custom data and use it in my_material_class::T_per_materialpoint
+
+class ChFieldDataAuxiliaryDeformation : public ChFieldDataNONE {
+public:
+    ChMatrix33d F;  /// deformation gradient tensor - can be used to plot Green-Lagrange etc. 
+};
+
+
 /// Domain for FEA large deformations (nonlinear finite strain theory). It is based on a vector field,
 /// ChFieldDisplacement3D, that is used to store x, the absolute spatial position of nodes (NOT
 /// the displacement from the material reference position, d=x-X, as in some software).
 /// Material properties are defined via a material from the ChMaterial3DStress subclasses
 /// (the simplest of these materials is the ChMaterial3DStressStVenant, that corresponds to 
 /// conventional linear elasticity for small strains). 
-template<class T_material>
+
 class ChDomainDeformation : public ChDomainImpl<
     std::tuple<ChFieldDisplacement3D>, // per each node
-    typename T_material::T_per_materialpoint,   // per each GP
-    typename T_material::T_per_element> { // per each element
+    ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by domain algos - materials can add other data too.
+    ChElementDataKRM> {                // auxiliary data per each element (defaults to jacobian matrices K, R, M)
 public:
-    static_assert(std::is_base_of<ChMaterial3DStress, T_material>::value,  "ChDomainElastic: T_material template parameter must inherit from ChMaterial3DStress");
 
     using Base = ChDomainImpl<
-        std::tuple<ChFieldDisplacement3D>,
-        typename T_material::T_per_materialpoint,
-        typename T_material::T_per_element
+        std::tuple<ChFieldDisplacement3D>, // per each node
+        ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by domain algos - materials can add other data too.
+        ChElementDataKRM
     >;
     using DataPerElement = typename Base::DataPerElement;
 
     ChDomainDeformation(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
-        : Base( melasticfield )
+        : Base(melasticfield)
     {
         // attach  default materials to simplify user side
         material = chrono_types::make_shared<ChMaterial3DStressStVenant>();
+
+        automatic_gravity_load = false;
+        num_points_gravity = 1;
+        gravity_G_acceleration.Set(0, -9.81, 0);
     }
 
     /// Elastic properties of this domain 
-    std::shared_ptr<T_material>  material;
+    std::shared_ptr<ChMaterial3DStress>  material;
 
     // INTERFACES
 
     /// Computes the internal loads Fi for one quadrature point, except quadrature weighting, 
     /// and *ADD* the s-scaled result to Fi vector.
     virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
-                                        DataPerElement& data,
-                                        const int i_point,
-                                        ChVector3d& eta,
-                                        const double s,
-                                        ChVectorDynamic<>& Fi
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        const double s,
+        ChVectorDynamic<>& Fi
     ) override {
         ChVectorDynamic<> T;
         this->GetStateBlock(melement, T);
@@ -89,34 +105,51 @@ public:
         ChMatrix33d J_X_inv;
         melement->ComputeJinv(eta, J_X_inv);
 
-        ChMatrix33d F = Xhat * dNde.transpose() * J_X_inv;  
+        ChMatrix33d J_x = Xhat * dNde.transpose();
+
+        ChMatrix33d F = J_x * J_X_inv;
+
+        ChMatrix33d l;
+        ChMatrix33d* a_l = nullptr;
+        if (material->IsSpatialVelocityGradientNeeded()) {
+            ChMatrixDynamic<> dot_Xhat(3, melement->GetNumNodes());
+            for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
+                dot_Xhat.block(0, i, 3, 1) = ((ChFieldDataPos3D*)(data.nodes_data[i][0]))->GetPosDt().eigen();
+            }
+            l = dot_Xhat * dNde.transpose() * J_x.inverse();
+        }
 
         // Compute  2nd Piola-Kirchhoff tensor in Voigt notation using the constitutive relation of material
-        ChStressTensor<> S_stress; 
-        material->ComputeStress(S_stress, 
-                                F,
-                                data.matpoints_data.size() ? &data.matpoints_data[i_point] : nullptr,
-                                &data.element_data);
+        ChStressTensor<> S_stress;
+        material->ComputeStress(S_stress,
+            F,
+            a_l,
+            data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
+            &data.element_data);
 
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
         this->ComputeB(B, dNdX, F);
-        
+
         // We have:             Fi = - sum (B' * S * w * |J|)
         // so here we compute  Fi += - B' * S * s
         Fi += -(B.transpose() * S_stress) * s;
+
+        // Store auxiliary data in material point data (ex. for postprocessing). This is 
+        // the F tensor in ChFieldDataAuxiliaryDeformation, the auxiliary data per each quadrature point required by domain.
+        data.matpoints_data_aux[i_point].F = F;
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
     /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
     /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
     virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
-                                        DataPerElement& data,
-                                        const int i_point,
-                                        ChVector3d& eta,
-                                        ChMatrixRef H,
-                                        double Kpfactor,
-                                        double Rpfactor = 0,
-                                        double Mpfactor = 0
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        ChMatrixRef H,
+        double Kpfactor,
+        double Rpfactor = 0,
+        double Mpfactor = 0
     ) override {
         ChMatrixDynamic<> dNdX;
         ChRowVectorDynamic<> N;
@@ -137,17 +170,30 @@ public:
         ChMatrix33d J_X_inv;
         melement->ComputeJinv(eta, J_X_inv);
 
-        ChMatrix33d F = Xhat * dNde.transpose() * J_X_inv;
+        ChMatrix33d J_x = Xhat * dNde.transpose();
 
-        ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
-        this->ComputeB(B, dNdX, F);
+        ChMatrix33d F = J_x * J_X_inv;
+
+        ChMatrix33d l;
+        ChMatrix33d* a_l = nullptr;
+        if (material->IsSpatialVelocityGradientNeeded()) {
+            ChMatrixDynamic<> dot_Xhat(3, melement->GetNumNodes());
+            for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
+                dot_Xhat.block(0, i, 3, 1) = ((ChFieldDataPos3D*)(data.nodes_data[i][0]))->GetPosDt().eigen();
+            }
+            l = dot_Xhat * dNde.transpose() * J_x.inverse();
+        }
 
         // Compute tangent modulus (assumed: dP=[C]dE with P  2nd Piola-Kirchhoff, E Green-Lagrange)
         ChMatrix66<double> C;
-        this->material->ComputeTangentModulus(C, 
-                                            F,
-                                            data.matpoints_data.size() ? &data.matpoints_data[i_point] : nullptr,
-                                            & data.element_data);
+        this->material->ComputeTangentModulus(C,
+            F,
+            a_l,
+            data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
+            &data.element_data);
+
+        ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
+        this->ComputeB(B, dNdX, F);
 
         // K  matrix 
         // K = sum (B' * k * B  * w * |J|)  
@@ -171,7 +217,7 @@ public:
                     double scalar_entry = scalar_factor * N(i) * N(j);
                     int row_start = i * 3;
                     int col_start = j * 3;
-                    H(row_start, col_start)         += scalar_entry; // xx
+                    H(row_start, col_start) += scalar_entry; // xx
                     H(row_start + 1, col_start + 1) += scalar_entry; // yy  
                     H(row_start + 2, col_start + 2) += scalar_entry; // zz
                 }
@@ -185,12 +231,12 @@ public:
     /// custom handling of auxiliary data (states etc.) it will manage this in ComputeUpdateEndStep()
     virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
         DataPerElement& data,
-        const int i_point, 
+        const int i_point,
         const double time
     ) {
         material->ComputeUpdateEndStep(
-            data.matpoints_data.size() ? &data.matpoints_data[i_point] : nullptr,
-            &data.element_data, 
+            data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
+            &data.element_data,
             time);
     }
 
@@ -360,8 +406,11 @@ private:
         }
     }
 
-};
+    bool automatic_gravity_load;
+    int num_points_gravity;
+    ChVector3d gravity_G_acceleration;
 
+};
 
 
 

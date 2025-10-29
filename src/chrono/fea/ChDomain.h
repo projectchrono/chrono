@@ -22,6 +22,7 @@
 #include "chrono/fea/ChFieldElement.h"
 #include "chrono/fea/ChFieldData.h"
 #include "chrono/fea/ChField.h"
+#include "chrono/fea/ChMaterial.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChVariablesGeneric.h"
@@ -100,6 +101,7 @@ auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
 // -----------------------------------------------------------------------------
 
 
+
 /// Base class for domains subject to a material model. Domains define (sub) regions of 
 /// the mesh where the material has effect. That is, they operate on a set of finite elements.
 /// A ChDomain has these components:
@@ -164,6 +166,10 @@ protected:
     unsigned int n_dofs;    ///< total degrees of freedom of element materialpoint states (ex plasticity)
     unsigned int n_dofs_w;  ///< total degrees of freedom of element materialpoint states (ex plasticity), derivative (Lie algebra)
 };
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /// Class for domains subject to a material model. Domains define (sub) regions of 
@@ -291,7 +297,7 @@ public:
     virtual int GetNumNodes() override { return num_nodes; }
 
     virtual int GetNumFields() override { return (int)fields.size(); }
-    virtual std::shared_ptr<ChFieldBase> GetField(int nfield) override { return fields[nfield]; }
+    virtual std::shared_ptr<ChFieldBase> GetField(int nfield)  { return fields[nfield]; }
 
     class IteratorOnElements : public ChDomain::IteratorOnElements {
         using InternalIterator = typename std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement>::iterator;
@@ -335,7 +341,7 @@ public:
 
     virtual void GetStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S) override {
         auto& elementdata = this->ElementData(melement);
-        S.resize(this->GetNumPerNodeCoordsPosLevel()*melement->GetNumNodes());
+        S.resize(this->GetNumPerNodeCoordsPosLevel() * melement->GetNumNodes());
         int off = 0;
         for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
             for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
@@ -351,7 +357,7 @@ public:
         int off = 0;
         for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
             for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                int ifieldsize = elementdata.nodes_data[i_node][i_field]->State().size();
+                int ifieldsize = elementdata.nodes_data[i_node][i_field]->StateDt().size();
                 dSdt.segment(off, ifieldsize) = elementdata.nodes_data[i_node][i_field]->StateDt();
                 off += ifieldsize;
             }
@@ -362,9 +368,9 @@ public:
 
     /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
     /// It operates quadrature on the element, calling PointComputeInternalLoads(...) at each quadrature point.
-    virtual void ElementComputeInternalLoads(std::shared_ptr<ChFieldElement> melement, 
-                                            DataPerElement& data, 
-                                            ChVectorDynamic<>& Fi
+    virtual void ElementComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        ChVectorDynamic<>& Fi
     ) {
         int quadorder = melement->GetQuadratureOrder();
         int numpoints = melement->GetNumQuadraturePoints();
@@ -386,9 +392,9 @@ public:
     /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
     /// It operates quadrature on the element, calling PointComputeKRMmatrices(...) at each quadrature point.
     virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, ChMatrixRef H,
-                                            double Kfactor,
-                                            double Rfactor = 0,
-                                            double Mfactor = 0
+        double Kfactor,
+        double Rfactor = 0,
+        double Mfactor = 0
     ) {
         int quadorder = melement->GetQuadratureOrder();
         int numpoints = melement->GetNumQuadraturePoints();
@@ -400,11 +406,11 @@ public:
             melement->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
             double det_J = melement->ComputeJ(eta, J);
             double s = weight * det_J;
-            PointComputeKRMmatrices(melement, 
-                data, i_point, 
-                eta, H, 
-                Kfactor * s, 
-                Rfactor * s, 
+            PointComputeKRMmatrices(melement,
+                data, i_point,
+                eta, H,
+                Kfactor * s,
+                Rfactor * s,
                 Mfactor * s);
         }
     }
@@ -413,9 +419,9 @@ public:
     /// This falls back to the generic "Diagonal Scaling with Mass Preservation" approach, that 
     /// takes the full consistent mass matrix and reduces it to a diagonal by scaling the total mass.
     /// It works for all elements, 2D, 3D etc. It is not very efficient because it must compute the consitent mass matrix before.
-    virtual void ElementIntLoadLumpedMass_Md(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, 
-                                            ChVectorDynamic<>& Md_i,
-                                            double& error
+    virtual void ElementIntLoadLumpedMass_Md(std::shared_ptr<ChFieldElement> melement, DataPerElement& data,
+        ChVectorDynamic<>& Md_i,
+        double& error
     ) {
         int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
         Md_i.setZero(numelcoords);
@@ -461,12 +467,12 @@ public:
     /// here you must compute  
     ///    Fi += (Foo*B')*s
     /// If the default quadrature is not good for you, then override ElementComputeInternalLoads() directly.
-    virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement, 
-                                            DataPerElement& data, 
-                                            const int i_point, 
-                                            ChVector3d& eta, 
-                                            const double s, 
-                                            ChVectorDynamic<>& Fi) = 0;
+    virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        const double s,
+        ChVectorDynamic<>& Fi) = 0;
 
     /// Computes tangent matrix H for one quadrature point, except quadrature weighting, 
     /// and *ADD* the scaled result to H matrix.
@@ -475,18 +481,18 @@ public:
     /// and since we assume H = Mfactor*K + Kfactor*K + Rfactor*R, then here you must compute  
     ///    H  += Mpfactor*(rho*N*N') + Kpfactor*(B*E*B') + Rpfactor*...
     /// If the default quadrature is not good for you, then override ElementComputeKRMmatrices() directly.
-    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement, 
-                                            DataPerElement& data,
-                                            const int i_point, 
-                                            ChVector3d& eta, 
-                                            ChMatrixRef H,
-                                            double Kpfactor,
-                                            double Rpfactor = 0,
-                                            double Mpfactor = 0) = 0;
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        ChMatrixRef H,
+        double Kpfactor,
+        double Rpfactor = 0,
+        double Mpfactor = 0) = 0;
 
     virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
         DataPerElement& data,
-        const int i_point, 
+        const int i_point,
         const double time) = 0;
 
 
@@ -883,9 +889,9 @@ public:
 
                 //****COMPUTATIONAL OVERHEAD - compute all the tangent matrices here
                 ElementComputeKRMmatrices(mel.first,
-                                        mel.second,
-                                        mel.second.element_data.GetKRM()->GetMatrix(),
-                                        Kfactor, Rfactor, Mfactor);
+                    mel.second,
+                    mel.second.element_data.GetKRM()->GetMatrix(),
+                    Kfactor, Rfactor, Mfactor);
             }
 
         }
@@ -898,75 +904,18 @@ public:
         }
     }
 
-    // UTILITY FUNCTIONS
+protected:
 
+    // Children classes must implement this. 
+    // The material is needed here to build the auxiliary per-material data.
+    virtual std::shared_ptr<ChMaterial> GetMaterial() = 0;
 
-
-
-private:
-    void AddElement_impl(std::shared_ptr<ChFieldElement> melement) {
-        element_datamap.insert(std::make_pair(melement, DataPerElement(melement->GetNumQuadraturePoints(), melement->GetNumNodes())));
-    }
-
-    void RemoveElement_impl(std::shared_ptr<ChFieldElement> melement) {
-        element_datamap.erase(melement);
-    }
-
-    bool IsElementAdded_impl(std::shared_ptr<ChFieldElement> melement) {
-        return (element_datamap.find(melement) != element_datamap.end());
-    }
-
-    // This rewires all pointers and correctly set up the element_datamap
-    bool InitialSetup_impl() {
-        num_nodes = 0;
-        per_node_coords_pos = 0;
-        per_node_coords_vel = 0;
-
-        for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
-            this->fields[i_field]->Setup();
-            per_node_coords_pos += this->fields[i_field]->GetNumFieldCoordsPosLevel();  
-            per_node_coords_vel += this->fields[i_field]->GetNumFieldCoordsVelLevel();
-        }
-
-        for (auto& mel : this->element_datamap) {
-
-            auto KRMblock = mel.second.element_data.GetKRM();
-            std::vector<ChVariables*> mvars;
-
-            // setup array of quadrature data
-            if constexpr (std::is_same_v<T_per_matpoint, ChFieldDataNONE>) {
-                mel.second.matpoints_data.resize(0); // optimization to avoid wasting memory if domain falls back to ChFieldNONE
-            }
-            else {
-                mel.second.matpoints_data.resize(mel.first->GetNumQuadraturePoints());
-            }
-             
-
-            // setup array of pointers to node field data 
-            // (this array is here only for efficiency, otherwise each element should lookup the ChField maps every time
-            // calling GetNodeDataPointer(mel.first->GetNode(i))
-            mel.second.nodes_data.resize(mel.first->GetNumNodes());  
-            for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
-                for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                    mel.second.nodes_data[i][i_field] = fields[i_field]->GetNodeDataPointer(mel.first->GetNode(i));
-                    mvars.push_back(&(mel.second.nodes_data[i][i_field]->GetVariable()));
-                }
-            }
-            if (KRMblock)
-                KRMblock->SetVariables(mvars);
-
-            num_nodes += mel.first->GetNumNodes();
-        }
-
-
-
-        return true;
-    };
 private:
     int per_node_coords_pos = 0;
     int per_node_coords_vel = 0;
     int num_nodes = 0;
 };
+
 
 
 

@@ -42,7 +42,7 @@ public:
 
     virtual bool IsNodeAdded(std::shared_ptr<ChNodeFEAbase> node) = 0;
 
-    virtual ChFieldData* GetNodeDataPointer(std::shared_ptr<ChNodeFEAbase> node) = 0;
+    virtual ChFieldDataState* GetNodeDataPointer(std::shared_ptr<ChNodeFEAbase> node) = 0;
 
     virtual unsigned int GetNumNodes() = 0;
 
@@ -55,7 +55,7 @@ public:
     class IteratorOnNodes {
     public:
         virtual ~IteratorOnNodes() = default;
-        virtual std::pair<std::shared_ptr<ChNodeFEAbase>,ChFieldData&> get() = 0;
+        virtual std::pair<std::shared_ptr<ChNodeFEAbase>, ChFieldDataState&> get() = 0;
         virtual void next() = 0;
         virtual bool is_end() const = 0;
     };
@@ -88,7 +88,7 @@ public:
         return (node_data.find(node) != node_data.end());
     }
 
-    virtual ChFieldData* GetNodeDataPointer(std::shared_ptr<ChNodeFEAbase> node) override {
+    virtual ChFieldDataState* GetNodeDataPointer(std::shared_ptr<ChNodeFEAbase> node) override {
         return &node_data[node];
     }
 
@@ -109,10 +109,10 @@ public:
         IteratorOnNodes(InternalIterator begin, InternalIterator end)
             : it_(begin), end_(end) {}
 
-        std::pair<std::shared_ptr<ChNodeFEAbase>, ChFieldData&> get() override {
-            ChFieldData& mdata = it_->second;
+        std::pair<std::shared_ptr<ChNodeFEAbase>, ChFieldDataState&> get() override {
+            ChFieldDataState& mdata = it_->second;
             std::shared_ptr<ChNodeFEAbase> mnode = it_->first;
-            return std::pair<std::shared_ptr<ChNodeFEAbase>, ChFieldData&>(mnode, mdata);
+            return std::pair<std::shared_ptr<ChNodeFEAbase>, ChFieldDataState&>(mnode, mdata);
         }
         void next() override {
             if (it_ != end_) ++it_;
@@ -379,7 +379,6 @@ protected:
 
 
 
-class ChFieldNONE : public ChField<ChFieldDataNONE> {};
 
 class ChFieldScalar : public ChField<ChFieldDataScalar> {};
 

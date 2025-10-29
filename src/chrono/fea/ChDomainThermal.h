@@ -26,13 +26,16 @@ namespace fea {
 /// @addtogroup chrono_fea
 /// @{
 
+
 /// Auxiliary data stored per each material point during the ChDomainThermal
 /// computation. This can be plotted in postprocessing, etc. 
-template <typename Base>
-class ChAuxiliaryDataMatpointThermal : public Base {
+/// If you need to append additional data per each matpoint, do not modify this, just 
+/// define your class with custom data and use it in my_material_class::T_per_materialpoint
+class ChFieldDataAuxiliaryThermal : public ChFieldDataNONE {
 public:
     ChVector3d q_flux;  /// heat flux 
 };
+
 
 /// Domain for FEA thermal analysis. It is based on a scalar temperature field,
 /// that is ChFieldTemperature.
@@ -41,38 +44,42 @@ public:
 
 class ChDomainThermal : public ChDomainImpl<
     std::tuple<ChFieldTemperature>,
-    ChAuxiliaryDataMatpointThermal<ChFieldDataNONE>,
-    ChFeaPerElementDataKRM> {
+    ChFieldDataAuxiliaryThermal,
+    ChElementDataKRM> {
 public:
 
     using Base = ChDomainImpl<
         std::tuple<ChFieldTemperature>,
-        ChAuxiliaryDataMatpointThermal<ChFieldDataNONE>,
-        ChFeaPerElementDataKRM
+        ChFieldDataAuxiliaryThermal,
+        ChElementDataKRM
     >;
     using DataPerElement = typename Base::DataPerElement;
 
-    ChDomainThermal(std::shared_ptr<ChFieldTemperature> mfield) 
+    ChDomainThermal(std::shared_ptr<ChFieldTemperature> mfield)
         : Base(mfield)
     {
         // attach a default material to simplify user side
         material = chrono_types::make_shared<ChMaterial3DThermal>();
     }
 
+    
+
     /// Thermal properties of this domain (conductivity, 
     /// heat capacity constants etc.) 
     std::shared_ptr<ChMaterial3DThermal> material;
-    
+
+    //
     // INTERFACES
+    //
 
     /// Computes the internal loads Fi for one quadrature point, except quadrature weighting "...* w * |J|", 
     /// and *ADD* the s-scaled result to Fi vector.
-    virtual void PointComputeInternalLoads( std::shared_ptr<ChFieldElement> melement, 
-                                            DataPerElement& data, 
-                                            const int i_point, 
-                                            ChVector3d& eta, 
-                                            const double s, 
-                                            ChVectorDynamic<>& Fi
+    virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        const double s,
+        ChVectorDynamic<>& Fi
     ) override {
         ChVectorDynamic<> T;
         this->GetStateBlock(melement, T);
@@ -91,26 +98,26 @@ public:
         // 
         // so we compute  Fi += -(dNdX' * k * dNdX * T) * s    
         //           or   Fi += dNdX' * q_flux * s
-        
+
         ChVector3d q_flux = -this->material->GetConductivityMatrix() * dNdX * T;  //  = - k * \nabla_x T(x)  
-        
+
         Fi += dNdX.transpose() * q_flux.eigen() * s;   // += dNdX' * q_flux * s
 
         // Store auxiliary data in material point data (ex. for postprocessing)
-        data.matpoints_data[i_point].q_flux = q_flux;
+        data.matpoints_data_aux[i_point].q_flux = q_flux;
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
     /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
     /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
-    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement, 
-                                            DataPerElement& data, 
-                                            const int i_point, 
-                                            ChVector3d& eta, 
-                                            ChMatrixRef H,
-                                            double Kpfactor,
-                                            double Rpfactor = 0,
-                                            double Mpfactor = 0
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        ChMatrixRef H,
+        double Kpfactor,
+        double Rpfactor = 0,
+        double Mpfactor = 0
     ) override {
         ChMatrixDynamic<> dNdX;
         ChRowVectorDynamic<> N;
@@ -120,7 +127,7 @@ public:
 
         // K  matrix (jacobian d/dT of:    c dT/dt + div [C] grad T = f )  
         // K = sum (dNdX' * k * dNdX * w * |J|)
-        H += Kpfactor * (dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX) ;
+        H += Kpfactor * (dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX);
 
         // R  matrix : (jacobian d / d\dot(T) of:    c dT / dt + div[C] grad T = f)
         // R = sum (N' * c*rho * N * w * |J|)
@@ -139,18 +146,30 @@ public:
         // DO NOTHING because we assume that thermal materials never implement some  material->ComputeUpdateEndStep(...) 
     }
 
+protected:
+    /// Get the material of the domain.
+    virtual std::shared_ptr<ChMaterial> GetMaterial() override {
+        return material;
+    };
 
-    /// Extractors for drawing stuff in postprocessors/visualization:
 
-    using T_matpoint = typename ChAuxiliaryDataMatpointThermal<ChFieldDataNONE>;
+public:
 
-    class ChVisualDataExtractorHeatFlux : public ChVisualDataExtractorVector<T_matpoint> {
-        virtual ChVector3d ExtractImpl(const T_matpoint* fdata)  const override {
-            return const_cast<T_matpoint*>(fdata)->q_flux;
+    //
+    // EXTRACTORS for drawing stuff in postprocessors/visualization:
+    //
+
+    class ChVisualDataExtractorHeatFlux : public ChVisualDataExtractorVector<ChFieldDataAuxiliaryThermal, DataAtMaterialpoint > {
+        virtual ChVector3d ExtractImpl(const ChFieldDataAuxiliaryThermal* fdata)  const override {
+            return const_cast<ChFieldDataAuxiliaryThermal*>(fdata)->q_flux;
         }
     };
-    
+
+
 };
+
+
+
 
 
 

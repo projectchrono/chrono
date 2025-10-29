@@ -16,7 +16,7 @@
 #define CHMATERIAL_H
 
 #include "chrono/core/ChApiCE.h"
-
+#include "chrono/fea/ChFieldData.h"
 
 namespace chrono {
 namespace fea {
@@ -35,6 +35,13 @@ class ChMaterial {
 public:
     ChMaterial() {}
     virtual ~ChMaterial() {}
+
+    /// Implement this if the material needs custom data per material point,
+    /// returning a std::make_unique<ChFieldDataCustom>()  where ChFieldDataCustom is 
+    /// your custom class with aditional states/properties per-point.
+    virtual std::unique_ptr<ChFieldData> CreateMaterialPointData() const {
+        return nullptr;
+    }
 };
 
 
