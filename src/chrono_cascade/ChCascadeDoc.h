@@ -23,9 +23,7 @@
 
 #include <TDocStd_Document.hxx>
 
-class TopoDS_Face;
 class TopoDS_Shape;
-class TDocStd_Document;
 class TopLoc_Location;
 class TDF_Label;
 
@@ -44,15 +42,14 @@ class ChApiCASCADE ChCascadeDoc {
 
     /// Populate the document with all shapes that are contained in
     /// the STEP file, saved from some CAD. If load was ok, return true.
-    bool Load_STEP(const char* filename);
+    bool LoadSTEP(const std::string& filename);
 
-    /// Show shape hierarchy, writing on mstream
-    /// to print in default console log)
-    void Dump(std::ostream& mstream);
+    /// Show shape hierarchy, writing on stream to print in default console log.
+    void Dump(std::ostream& stream);
 
-    /// Get the root shape. Note that there could be more than one root,
-    /// if so, use 'num' to select the one that you need.
-    bool GetRootShape(TopoDS_Shape& mshape, const int num = 1);
+    /// Get the root shape. 
+    /// Note that there could be more than one root: if so, use 'num' to select the one that you need.
+    bool GetRootShape(TopoDS_Shape& shape, const int num = 1);
 
     /// Get a sub-shape with a given name, returned in 'mshape'.
     /// Since the document can contain assembles, subassemblies etc, the name
@@ -68,15 +65,15 @@ class ChApiCASCADE ChCascadeDoc {
     /// it will give its position relative to the assembly where it is a sub-shape.
     /// If the 'get_multiple' = true, if there are multiple parts satisfying the search string,
     /// they are all returned in a single shape of compound type (with null location).
-    bool GetNamedShape(TopoDS_Shape& mshape,
-                       const char* name,
+    bool GetNamedShape(TopoDS_Shape& shape,
+                       const std::string& name,
                        bool set_location_to_root = true,
                        bool get_multiple = false);
 
     /// Get the volume properties (center of mass, inertia moments, volume)
     /// of a given shape.
     static bool GetVolumeProperties(
-        const TopoDS_Shape& mshape,   ///< pass the shape here
+        const TopoDS_Shape& shape,    ///< pass the shape here
         const double density,         ///< pass the density here
         ChVector3d& center_position,  ///< get the COG position center, respect to shape pos.
         ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
@@ -90,11 +87,7 @@ class ChApiCASCADE ChCascadeDoc {
       public:
         /// Callback function to be executed for each scanned Cascade shape.
         /// If this function returns 'false', processing of children shapes is skipped.
-        virtual bool ForShape(TopoDS_Shape& mshape,
-                              TopLoc_Location& mloc,
-                              char* mname,
-                              int mlevel,
-                              TDF_Label& mlabel) = 0;
+        virtual bool ForShape(TopoDS_Shape& shape, TopLoc_Location& loc, const std::string& name, int level, TDF_Label& label) = 0;
     };
 
     /// Scan all Cascade shapes and execute the provided callback for each one.
@@ -107,9 +100,9 @@ class ChApiCASCADE ChCascadeDoc {
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
 
   private:
-    // cascade OCAF doc handle; ***note that if using simply the Handle(TDocStd_Document) doc; ie with no pointer to
-    // handle, it crashes.
-    Handle(TDocStd_Document) * doc;
+    /// Cascade OCAF doc handle.
+    /// NOTE: if simply using 'Handle(TDocStd_Document) doc' (ie. with no pointer to handle), it crashes.
+    opencascade::handle<TDocStd_Document>* doc;
 };
 
 /// @} cascade_module

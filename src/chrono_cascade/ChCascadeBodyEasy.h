@@ -127,7 +127,7 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
     /// overestimated (i.e. each extruded profile is considered separately).
     void AddProfile(std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,  ///< profile of face, in XY plane
                     std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,  ///< profiles of holes, in XY plane
-                    double mhickness,                                          ///< thickness in Z direction
+                    double thickness,                                          ///< thickness in Z direction
                     double density,                                            ///< density
                     std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
                     bool create_collision = false,  ///< create 2D collision shape using the face outer profile

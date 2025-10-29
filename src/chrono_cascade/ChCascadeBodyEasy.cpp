@@ -75,7 +75,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     // Add a visualization asset if needed
     if (vis_params) {
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
+        ChCascadeMeshTools::FillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -159,7 +159,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         // Add a visualization asset if needed
         if (face.visualization) {
             auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-            ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
+            ChCascadeMeshTools::FillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
 
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
@@ -260,7 +260,7 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(std::sha
 
             gp_Pnt aPntA(msegment->pA.x(), msegment->pA.y(), msegment->pA.z());
             gp_Pnt aPntB(msegment->pB.x(), msegment->pB.y(), msegment->pB.z());
-            Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(aPntA, aPntB);
+            opencascade::handle<Geom_TrimmedCurve> aSegment1 = GC_MakeSegment(aPntA, aPntB);
 
             TopoDS_Edge aEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
 
@@ -277,7 +277,7 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(std::sha
 
             // note the reversal of angle2 angle1 respect to chrono ChLineArc: in OCC proceeds as gpCirc Y axis in
             // twist direction. In OCC sense=true means starts from 1st angle parameter,
-            Handle(Geom_TrimmedCurve) aArcOfCircle;
+            opencascade::handle<Geom_TrimmedCurve> aArcOfCircle;
             if (!marc->counterclockwise) {
                 aArcOfCircle = GC_MakeArcOfCircle(aCirc, marc->angle2, marc->angle1, false);
             } else {

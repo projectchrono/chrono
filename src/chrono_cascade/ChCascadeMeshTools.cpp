@@ -68,14 +68,13 @@
 using namespace chrono;
 using namespace cascade;
 
-void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
+void ChCascadeMeshTools::FillTriangleMeshFromCascadeFace(
     ChTriangleMeshConnected& chmesh,  // Mesh that will be filled with triangles
     const TopoDS_Face& F) {
     BRepAdaptor_Surface BS(F, Standard_False);
-    Handle(BRepAdaptor_Surface) gFace = new BRepAdaptor_Surface(BS);
-    ////GeomAbs_SurfaceType thetype = BS.GetType();
+    opencascade::handle<BRepAdaptor_Surface> gFace = new BRepAdaptor_Surface(BS);
 
-    Handle(Poly_Triangulation) T;
+    opencascade::handle<Poly_Triangulation> T;
     TopLoc_Location theLocation;
     T = BRep_Tool::Triangulation(F, theLocation);
 
@@ -185,7 +184,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
 }
 */
 
-void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& mesh,
+void ChCascadeMeshTools::FillTriangleMeshFromCascade(ChTriangleMeshConnected& mesh,
                                                      const TopoDS_Shape& shape,
                                                      const ChCascadeTriangulate& tolerances) {
     BRepTools::Clean(shape);
@@ -199,11 +198,11 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& me
     TopExp_Explorer ex;
     for (ex.Init(shape, TopAbs_FACE); ex.More(); ex.Next()) {
         const TopoDS_Face& F = TopoDS::Face(ex.Current());
-        fillTriangleMeshFromCascadeFace(mesh, F);
+        FillTriangleMeshFromCascadeFace(mesh, F);
     }
 }
 
-void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
+void ChCascadeMeshTools::FillObjFileFromCascade(std::ofstream& objfile,
                                                 const TopoDS_Shape& shape,
                                                 const ChCascadeTriangulate& tolerances) {
     BRepTools::Clean(shape);
@@ -224,9 +223,9 @@ void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
         const TopoDS_Face& F = TopoDS::Face(ex.Current());
 
         BRepAdaptor_Surface BS(F, Standard_False);
-        Handle(BRepAdaptor_Surface) gFace = new BRepAdaptor_Surface(BS);
+        opencascade::handle<BRepAdaptor_Surface> gFace = new BRepAdaptor_Surface(BS);
 
-        Handle(Poly_Triangulation) T;
+        opencascade::handle<Poly_Triangulation> T;
         TopLoc_Location theLocation;
         T = BRep_Tool::Triangulation(F, theLocation);
 

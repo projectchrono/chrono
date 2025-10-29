@@ -53,13 +53,13 @@ namespace cascade {
 class ChCascadeIrrMeshTools {
   public:
     /// Function to convert an OpenCASCADE face into a Irrlicht mesh for visualization.
-    static void fillIrrlichtMeshFromCascadeFace(irr::scene::IMesh* pMesh,
+    static void FillIrrlichtMeshFromCascadeFace(irr::scene::IMesh* pMesh,
                                                 const TopoDS_Face& F,
                                                 irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255)) {
         BRepAdaptor_Surface BS(F, Standard_False);
-        Handle(BRepAdaptor_Surface) gFace = new BRepAdaptor_Surface(BS);
+        opencascade::handle<BRepAdaptor_Surface> gFace = new BRepAdaptor_Surface(BS);
 
-        Handle(Poly_Triangulation) T;
+        opencascade::handle<Poly_Triangulation> T;
         TopLoc_Location theLocation;
         T = BRep_Tool::Triangulation(F, theLocation);
 
@@ -116,7 +116,7 @@ class ChCascadeIrrMeshTools {
     }
 
     /// Function to convert an OpenCASCADE shape into a Irrlicht mesh, for visualization.
-    static void fillIrrlichtMeshFromCascade(irr::scene::IMesh* pMesh,
+    static void FillIrrlichtMeshFromCascade(irr::scene::IMesh* pMesh,
                                             const TopoDS_Shape& mshape,
                                             double deflection = 1,
                                             bool relative_deflection = false,
@@ -130,7 +130,7 @@ class ChCascadeIrrMeshTools {
         TopExp_Explorer ex;
         for (ex.Init(mshape, TopAbs_FACE); ex.More(); ex.Next()) {
             const TopoDS_Face& F = TopoDS::Face(ex.Current());
-            fillIrrlichtMeshFromCascadeFace(pMesh, F, clr);
+            FillIrrlichtMeshFromCascadeFace(pMesh, F, clr);
         }
     }
 };

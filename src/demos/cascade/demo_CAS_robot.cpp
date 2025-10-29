@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     ChCascadeDoc mydoc;
 
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp").c_str());
+    bool load_ok = mydoc.LoadSTEP(GetChronoDataFile("/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp").c_str());
 
     // print the contained shapes
     mydoc.Dump(std::cout);

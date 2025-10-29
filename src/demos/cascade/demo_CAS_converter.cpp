@@ -131,7 +131,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
     std::cout << std::endl << std::endl << "0-LOADING THE STEP MODEL..." << std::endl;
 
     ChCascadeDoc mydoc;
-    bool aRes = mydoc.Load_STEP(filename);
+    bool aRes = mydoc.LoadSTEP(filename);
 
     if (aRes) {
         // ---Print hierarchy on screen
@@ -147,7 +147,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
             scene::SMesh* mmesh = new scene::SMesh();
             video::SColor clr(255, 100, 120, 125);
 
-            ChCascadeIrrMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
+            ChCascadeIrrMeshTools::FillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
             // ..also show in Irrlicht view
             scene::SAnimatedMesh* Amesh = new scene::SAnimatedMesh();
             Amesh->addMesh(mmesh);
@@ -158,7 +158,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
 
             std::ofstream mobjfile("triangulated_step_model_root.obj");
             // afinder.res_shape.Location(TopLoc_Location()); // to reset CAD reference as center of obj.
-            ChCascadeMeshTools::fillObjFileFromCascade(mobjfile, mshape, 0.5);
+            ChCascadeMeshTools::FillObjFileFromCascade(mobjfile, mshape, 0.5);
             std::cout << " ... done!" << std::endl;
         }
 
