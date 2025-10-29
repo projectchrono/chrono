@@ -145,6 +145,8 @@ void ChElementCBLCON::UpdateRotation() {
     //              This arbitrary direction is repeatable, that is the only thing that guarantee this works, otherwise, the initial quaternion determined in SetupInitial() might be different
     //              Any change to the fallback behavior of ChMatrix33::SetFromAxisX() will break this code !
     //           - I believe the commented code above for beams should be used instead, together with the initial quaternion being aligned with nmL matrix, similar to the beam element
+    // TODO JBC: This quaternion update actually does not work under large displacement
+    //           If I only comment line 154 (i.e., not update old quaternion), everything runs fine
     ChVector3d mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
     ChVector3d mYele =
     (nodes[0]->Frame().GetRotMat().GetAxisY() + nodes[1]->Frame().GetRotMat().GetAxisY()).GetNormalized();
@@ -153,17 +155,23 @@ void ChElementCBLCON::UpdateRotation() {
     this->A.SetFromQuaternion(q_element_ref_rot.GetConjugate() * q_element_abs_rot);
 
     // New center position
+
     // 1. Projection `P` of center `C` on the edge should remain in the same relative position along the edge
-    ChVector3d edge0 = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    double length0sq = edge0.Length2();
-    ChVector3d xi_xc0 = section->Get_center_ref() - nodes[0]->GetX0().GetPos();
-    double relpos_xi_xp = xi_xc0.Dot(edge0) / length0sq;
+    //    For CBL, the relative position is currently always 1/2
+    ChVector3d center = 0.5 * (nodes[0]->GetPos() + nodes[1]->GetPos());
     // 2. Vector `PC` keeps the same length but rotates with the edge
-    ChQuaternion<> q_delta = q_element_abs_rot * q_element_ref_rot.GetConjugate();
-    ChVector3d xi_xp0 = relpos_xi_xp * edge0;
-    ChVector3d xp_xc0 = xi_xc0 - xi_xp0;
-    ChVector3d edge = nodes[1]->GetPos() - nodes[0]->GetPos();
-    ChVector3d center = nodes[0]->GetPos() + relpos_xi_xp * edge + q_delta.Rotate(xp_xc0);
+    //    The centroid is aligned with the nodes for several connector types:
+    //       - ConSectionType::transverse_regular_bot
+    //       - ConSectionType::transverse_regular_gen
+    //       - ConSectionType::transverse_regular_top
+    //       - TODO: test the other connectors / ask Wisdom about the geometry
+    //    For those, rotation is unnecessary
+    if (section->GetSectionType() == ChBeamSectionCBLCON::ConSectionType::longitudinal) { // TODO JBC: why is this not aligned?
+        ChQuaternion<> q_delta = q_element_abs_rot * q_element_ref_rot.GetConjugate();
+        ChVector3d xp_xc0 = section->Get_center_ref() - 0.5 * (nodes[0]->GetX0().GetPos() + nodes[1]->GetX0().GetPos());
+        center += q_delta.Rotate(xp_xc0);
+    }
+
     section->Set_center(center);
 }
 
