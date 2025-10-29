@@ -33,6 +33,7 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadsBeam.h"
+#include "chrono/fea/ChLoaderGravity.h"
 #include "chrono/fea/ChMesh.h"
 
 // Remember to use the namespace 'chrono' because all classes
@@ -116,7 +117,7 @@ int main(int argc, char* argv[]) {
     // Example 3:
 
     // Add gravity (constant volumetric load)
-    auto gravity_loader = chrono_types::make_shared<ChLoaderGravity>(elementA);
+    auto gravity_loader = chrono_types::make_shared<fea::ChLoaderGravity>(elementA);
     auto gravity_load = chrono_types::make_shared<ChLoad>(gravity_loader);
     load_container->Add(gravity_load);
 

@@ -27,6 +27,7 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChLoadsBeam.h"
+#include "chrono/fea/ChLoaderGravity.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
@@ -148,7 +149,7 @@ int main(int argc, char* argv[]) {
             // Add gravity (constant volumetric load)
             std::cout << "   Gravity load (constant volumetric load).\n" << std::endl;
 
-            auto gravity_loader = chrono_types::make_shared<ChLoaderGravity>(elementA);
+            auto gravity_loader = chrono_types::make_shared<fea::ChLoaderGravity>(elementA);
             auto gravity_load = chrono_types::make_shared<ChLoad>(gravity_loader);
             load_container->Add(gravity_load);
 
