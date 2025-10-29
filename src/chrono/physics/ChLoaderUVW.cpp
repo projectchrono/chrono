@@ -125,20 +125,5 @@ void ChLoaderUVWatomic::SetApplication(double u, double v, double w) {
     Pw = w;
 }
 
-//--------------------------------------------------------------------------------
-
-void ChLoaderGravity::ComputeF(double U,
-                               double V,
-                               double W,
-                               ChVectorDynamic<>& F,
-                               ChVectorDynamic<>* state_x,
-                               ChVectorDynamic<>* state_w) {
-    if ((F.size() == 3) || (F.size() == 6) || (F.size() == 9)) {
-        // only for force or wrench fields
-        F(0) = G_acc.x() * loadable->GetDensity();
-        F(1) = G_acc.y() * loadable->GetDensity();
-        F(2) = G_acc.z() * loadable->GetDensity();
-    }
-}
 
 }  // end namespace chrono
