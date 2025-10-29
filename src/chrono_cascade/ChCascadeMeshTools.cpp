@@ -64,12 +64,12 @@ void ChCascadeMeshTools::FillTriangleMeshFromCascadeFace(
         }
 
         int itri = 0;
-        for (int j = T->Triangles().Lower(); j <= T->Triangles().Upper(); j++) {
+        for (int j = 1; j <= T->NbTriangles(); ++j) { // NB: opencascade indexing is [1, last]
             Standard_Integer n[3];
             if (F.Orientation() == TopAbs_REVERSED)
-                T->Triangles()(j).Get(n[0], n[2], n[1]);
+                T->Triangle(j).Get(n[0], n[2], n[1]);
             else
-                T->Triangles()(j).Get(n[0], n[1], n[2]);
+                T->Triangle(j).Get(n[0], n[1], n[2]);
             int ia = v_offset + (n[0]) - 1;
             int ib = v_offset + (n[1]) - 1;
             int ic = v_offset + (n[2]) - 1;
@@ -214,11 +214,11 @@ void ChCascadeMeshTools::FillObjFileFromCascade(std::ofstream& objfile,
                 ivert++;
             }
             int itri = 0;
-            for (int j = T->Triangles().Lower(); j <= T->Triangles().Upper(); j++) {
+            for (int j = 1; j <= T->NbTriangles(); ++j) {  // NB: opencascade indexing is [1, last]
                 if (F.Orientation() == TopAbs_REVERSED)
-                    T->Triangles()(itri + 1).Get(n[0], n[2], n[1]);
+                    T->Triangle(itri + 1).Get(n[0], n[2], n[1]);
                 else
-                    T->Triangles()(itri + 1).Get(n[0], n[1], n[2]);
+                    T->Triangle(itri + 1).Get(n[0], n[1], n[2]);
                 int ia = (n[0]) - 1;
                 int ib = (n[1]) - 1;
                 int ic = (n[2]) - 1;

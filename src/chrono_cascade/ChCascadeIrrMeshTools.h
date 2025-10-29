@@ -77,12 +77,12 @@ class ChCascadeIrrMeshTools {
             }
 
             int itri = 0;
-            for (int j = T->Triangles().Lower(); j <= T->Triangles().Upper(); j++) {
+            for (int j = 1; j <= T->NbTriangles(); ++j) {  // NB: opencascade indexing is [1, last]
                 Standard_Integer n[3];
                 if (F.Orientation() == TopAbs_REVERSED)
-                    T->Triangles()(j).Get(n[0], n[2], n[1]);
+                    T->Triangle(j).Get(n[0], n[2], n[1]);
                 else
-                    T->Triangles()(j).Get(n[0], n[1], n[2]);
+                    T->Triangle(j).Get(n[0], n[1], n[2]);
                 int ia = (n[0]) - 1;
                 int ib = (n[1]) - 1;
                 int ic = (n[2]) - 1;

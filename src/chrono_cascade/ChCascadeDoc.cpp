@@ -95,7 +95,7 @@ static bool RecurseCascadeDoc(TDF_Label label,
     return true;
 }
 
-int static WildcardCompare(const char* wildcard, const char* string) {
+static int WildcardCompare(const char* wildcard, const char* string) {
     const char *cp = 0, *mp = 0;
 
     while ((*string) && (*wildcard != '*')) {

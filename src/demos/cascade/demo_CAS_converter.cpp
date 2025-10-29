@@ -204,7 +204,7 @@ class MyEventReceiver : public IEventReceiver {
         vis->GetDevice()->setEventReceiver(this);
 
         // create menu
-        gui::IGUIContextMenu* menu = vis->GetGUIEnvironment()->addMenu();
+        menu = vis->GetGUIEnvironment()->addMenu();
         menu->addItem(L"File", -1, true, true);
         menu->addItem(L"View", -1, true, true);
 
@@ -287,7 +287,7 @@ class MyEventReceiver : public IEventReceiver {
                 case gui::EGET_MENU_ITEM_SELECTED: {
                     // a menu item was clicked
 
-                    gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
+                    menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
                     id = menu->getItemCommandId(menu->getSelectedItem());
 
                     switch (id) {
