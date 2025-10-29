@@ -13,7 +13,7 @@
 // =============================================================================
 
 
-#include "chrono/fea/ChFieldElementTetrahedron4Loaders.h"
+#include "chrono/fea/ChFieldElementTetrahedron4Face.h"
 
 namespace chrono {
 namespace fea {

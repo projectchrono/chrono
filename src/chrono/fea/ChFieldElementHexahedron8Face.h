@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHFIELDELEMENTHEXAHEDRON8LOADERS_H
-#define CHFIELDELEMENTHEXAHEDRON8LOADERS_H
+#ifndef CHFIELDELEMENTHEXAHEDRON8FACE_H
+#define CHFIELDELEMENTHEXAHEDRON8FACE_H
 
 #include "chrono/fea/ChFieldElementHexahedron8.h"
 #include "chrono/fea/ChField.h"
@@ -34,7 +34,7 @@ namespace fea {
 /// if referencing the ChDomainDeformation, or Neumann boundary in general like imposed heat flow, etc.
 /// Corner nodes, obtainable with GetNode(), are in counterclockwise order seen from the outside.
 
-class ChApi ChFieldHexahedronFace : public ChLoadableUV {
+class ChApi ChFieldHexahedron8Face : public ChLoadableUV , public ChFieldElementSurface {
 public:
     /// Construct the specified face (0 <= id <= 5) on the given hexahedral element.
     /// Assuming the U,V,W parametrization of the hexahedron, the face id is: 
@@ -44,13 +44,17 @@ public:
     /// id = 3 for face at V=+1,
     /// id = 4 for face at W=-1, 
     /// id = 5 for face at W=+1,
-    ChFieldHexahedronFace(std::shared_ptr<ChFieldElementHexahedron8> element, std::shared_ptr<ChFieldBase> field, char id) : m_face_id(id), m_element(element), m_field(field) {}
+    ChFieldHexahedron8Face(std::shared_ptr<ChFieldElementHexahedron8> element, std::shared_ptr<ChFieldBase> field, char id) : m_face_id(id), m_element(element), m_field(field) {}
 
-    ~ChFieldHexahedronFace() {}
+    ~ChFieldHexahedron8Face() {}
 
-    // Get the specified face node (0 <= i <= 3).
+    //
+    // INTERFACE to  ChFieldElement 
+    //
 
-    std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int i) const {
+    virtual unsigned int GetNumNodes() override { return 4; }
+
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int i) override {
         static int iface0[] = { 0, 5, 7, 3 }; 
         static int iface1[] = { 1, 5, 6, 2 };
         static int iface2[] = { 0, 1, 5, 4 };
@@ -75,18 +79,29 @@ public:
         return nullptr;
     }
 
-    /// Fills the N shape function vector (size 4).
-    void ShapeFunctions(ChVectorN<double, 4>& N, double x, double y) {
-        N(0) = 0.25 * (1 - x) * (1 - y);
-        N(1) = 0.25 * (1 + x) * (1 - y);
-        N(2) = 0.25 * (1 + x) * (1 + y);
-        N(3) = 0.25 * (1 - x) * (1 + y);
+    virtual int GetSpatialDimensions() const override { return 3; }
+
+    virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) override {
+        N(0) = 0.25 * (1 - eta.x()) * (1 - eta.y());
+        N(1) = 0.25 * (1 + eta.x()) * (1 - eta.y());
+        N(2) = 0.25 * (1 + eta.x()) * (1 + eta.y());
+        N(3) = 0.25 * (1 - eta.x()) * (1 + eta.y());
         // Btw one could also compute the 8 shape functions from the element  
         //  m_element->ComputeN(..) 
         // and discard the ones not used on face at U or V or W. But here simplify.
     }
+    virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override { throw std::exception("Not implemented, not needed."); }
+    virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J)  override { throw std::exception("Not implemented, not needed."); }
+    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv)  override { throw std::exception("Not implemented, not needed."); }
+    virtual int GetNumQuadraturePointsForOrder(const int order) const  override { throw std::exception("Not implemented, not needed."); }
+    virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const  override { throw std::exception("Not implemented, not needed."); }
 
-    // Functions for ChLoadable interface
+    // The following needed only if element is wrapped as a component of a ChLoaderUV.
+    virtual bool IsTriangleIntegrationCompatible() const override { return false; }
+
+    //
+    // INTERFACE to  ChLoadable 
+    //
 
     /// Get the number of DOFs affected by this element (position part).
     virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 4 * m_field->GetNumFieldCoordsPosLevel(); }
@@ -138,7 +153,7 @@ public:
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return m_field->GetNumFieldCoordsVelLevel(); }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_field->GetNodeDataPointer(GetNode(nblock))->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_field->GetNodeDataPointer(const_cast<ChFieldHexahedron8Face*>(this)->GetNode(nblock))->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
@@ -157,8 +172,8 @@ public:
         ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
     ) override {
-        ChVectorN<double, 4> N;
-        ShapeFunctions(N, U, V);
+        ChRowVectorDynamic<double> N(4);
+        this->ComputeN(ChVector3d(U,V,0),N);
 
         // TODO throw exception if the 4 nodes are not from ChNodeFEAfieldXYZ? the jacobian would not be computable anyway..
         ChVector3d p0 = *(std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(0)));
@@ -200,10 +215,8 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Loadable volume of an hexahedron, with reference to some interpolated field. 
-/// This is used to apply UVW loads of ChLoaderUVWdistributed type, for example ChLoaderPressure
-/// if referencing the ChDomainDeformation, or Neumann boundary in general like imposed heat flow, etc.
-/// Corner nodes, obtainable with GetNode(), are in counterclockwise order seen from the outside.
-
+/// This is used to apply UVW loads of ChLoaderUVWdistributed type, like gravity
+/*
 class ChApi ChFieldHexahedronVolume : public ChLoadableUVW {
 public:
     /// Construct a loadable volume the given hexahedral element and a field.
@@ -233,7 +246,7 @@ public:
     /// Get all the DOFs packed in a single vector (speed part).
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
         unsigned int ncoords_per_node = m_field->GetNumFieldCoordsVelLevel();
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 8; ++i) {
             mD.segment(block_offset, ncoords_per_node) = m_field->GetNodeDataPointer(m_element->GetNode(i))->StateDt();
             block_offset += ncoords_per_node;
         }
@@ -245,7 +258,7 @@ public:
         const ChState& x,
         const unsigned int off_v,
         const ChStateDelta& Dv) override {
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 8; ++i) {
             m_field->GetNodeDataPointer(m_element->GetNode(i))->DataIntStateIncrement(off_x + i * m_field->GetNumFieldCoordsPosLevel(), x_new, x, off_v + i * m_field->GetNumFieldCoordsPosLevel(), Dv);
         }
     }
@@ -254,7 +267,7 @@ public:
     virtual unsigned int GetNumFieldCoords() override { return m_field->GetNumFieldCoordsVelLevel(); }
 
     /// Get the number of DOFs sub-blocks.
-    virtual unsigned int GetNumSubBlocks() override { return 4; }
+    virtual unsigned int GetNumSubBlocks() override { return 8; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
@@ -269,7 +282,7 @@ public:
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 8; ++i)
             mvars.push_back(&m_field->GetNodeDataPointer(m_element->GetNode(i))->GetVariable());
     };
 
@@ -295,7 +308,7 @@ public:
         detJ = m_element->ComputeJ(eta, J);
 
         int ncoords_node = m_field->GetNumFieldCoordsVelLevel();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 8; i++) {
             Qi.segment(ncoords_node * i, ncoords_node) = N(i) * F.segment(0, ncoords_node);
         }
     }
@@ -311,7 +324,7 @@ private:
     std::shared_ptr<ChFieldBase> m_field;  ///< associated field
 };
 
-
+*/
 
 
 
@@ -319,8 +332,6 @@ private:
 /// @} chrono_fea
 
 }  // end namespace fea
-
-//CH_CLASS_VERSION(fea::ChFieldElementHexahedron8, 0)
 
 
 }  // end namespace chrono

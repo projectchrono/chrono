@@ -13,7 +13,7 @@
 // =============================================================================
 
 
-#include "chrono/fea/ChFieldElementHexahedron8Loaders.h"
+#include "chrono/fea/ChFieldElementHexahedron8Face.h"
 
 namespace chrono {
 namespace fea {

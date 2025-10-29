@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHFIELDELEMENTTETRAHEDRON8LOADERS_H
-#define CHFIELDELEMENTTETRAHEDRON8LOADERS_H
+#ifndef CHFIELDELEMENTTETRAHEDRON4FACE_H
+#define CHFIELDELEMENTTETRAHEDRON4FACE_H
 
 #include "chrono/fea/ChFieldElementTetrahedron4.h"
 #include "chrono/fea/ChField.h"
@@ -34,7 +34,7 @@ namespace fea {
 /// if referencing the ChDomainDeformation, or Neumann boundary in general like imposed heat flow, etc.
 /// Corner nodes, obtainable with GetNode(), are in counterclockwise order seen from the outside.
 
-class ChApi ChFieldTetrahedronFace : public ChLoadableUV {
+class ChApi ChFieldTetrahedron4Face : public ChLoadableUV , public ChFieldElementSurface {
 public:
     /// Construct the specified face (0 <= id <= 3) on the given hexahedral element.
     /// The face id is: 
@@ -42,19 +42,23 @@ public:
     /// id = 1 for face opposed to vertex 1 
     /// id = 2 for face opposed to vertex 2 
     /// id = 3 for face opposed to vertex 3
-    ChFieldTetrahedronFace(std::shared_ptr<ChFieldElementTetrahedron4> element, std::shared_ptr<ChFieldBase> field, char id) : m_face_id(id), m_element(element), m_field(field) {}
+    ChFieldTetrahedron4Face(std::shared_ptr<ChFieldElementTetrahedron4> element, std::shared_ptr<ChFieldBase> field, char id) : m_face_id(id), m_element(element), m_field(field) {}
 
-    ~ChFieldTetrahedronFace() {}
+    ~ChFieldTetrahedron4Face() {}
 
-    // Get the specified face node (0 <= i <= 3).
+    //
+    // INTERFACE to  ChFieldElement 
+    //
 
-    std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int i) const {
-        static int iface0[] = { 1, 3, 2 }; 
+    virtual unsigned int GetNumNodes() override { return 3; }
+
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int i) override {
+        static int iface0[] = { 1, 3, 2 };
         static int iface1[] = { 0, 2, 3 };
         static int iface2[] = { 0, 3, 1 };
         static int iface3[] = { 0, 1, 2 };
 
-        switch (m_face_id) {
+        switch (i) {
         case 0:
             return (m_element->GetNode(iface0[i]));
         case 1:
@@ -67,12 +71,24 @@ public:
         return nullptr;
     }
 
-    /// Fills the N shape function vector (size 4).
-    void ShapeFunctions(ChVectorN<double, 3>& N, double r, double s) {
-        N(0) = 1.0 - r - s;
-        N(1) = r;
-        N(2) = s;
+    virtual int GetSpatialDimensions() const override { return 3; }
+
+    virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) override {
+        N(0) = 1.0 - eta.x() - eta.y();
+        N(1) = eta.x();
+        N(2) = eta.y();
+        // Btw one could also compute the shape functions from the element  
+        //  m_element->ComputeN(..) 
+        // and discard the ones not used on face at U or V or W. But here simplify.
     }
+    virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override { throw std::exception("Not implemented, not needed."); }
+    virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J)  override { throw std::exception("Not implemented, not needed."); }
+    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv)  override { throw std::exception("Not implemented, not needed."); }
+    virtual int GetNumQuadraturePointsForOrder(const int order) const  override { throw std::exception("Not implemented, not needed."); }
+    virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const  override { throw std::exception("Not implemented, not needed."); }
+
+    // The following needed only if element is wrapped as a component of a ChLoaderUV.
+    virtual bool IsTriangleIntegrationCompatible() const override { return true; }
 
     // Functions for ChLoadable interface
 
@@ -126,7 +142,7 @@ public:
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return m_field->GetNumFieldCoordsVelLevel(); }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_field->GetNodeDataPointer(GetNode(nblock))->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_field->GetNodeDataPointer(const_cast<ChFieldTetrahedron4Face*>(this)->GetNode(nblock))->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
@@ -145,10 +161,10 @@ public:
         ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
     ) override {
-        ChVectorN<double, 3> N;
-        ShapeFunctions(N, U, V);
+        ChRowVectorDynamic<double> N(3);
+        ComputeN(ChVector3d(U, V,0), N);
 
-        // TODO throw exception if the 4 nodes are not from ChNodeFEAfieldXYZ? the jacobian would not be computable anyway..
+        // TODO throw exception if the 3 nodes are not from ChNodeFEAfieldXYZ? the jacobian would not be computable anyway..
         ChVector3d p0 = *(std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(0)));
         ChVector3d p1 = *(std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(1)));
         ChVector3d p2 = *(std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(2)));
@@ -184,10 +200,8 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Loadable volume of a tetrahedron, with reference to some interpolated field. 
-/// This is used to apply UVW loads of ChLoaderUVWdistributed type, for example ChLoaderPressure
-/// if referencing the ChDomainDeformation, or Neumann boundary in general like imposed heat flow, etc.
-/// Corner nodes, obtainable with GetNode(), are in counterclockwise order seen from the outside.
-
+/// This is used to apply UVW loads of ChLoaderUVWdistributed type, like gravity
+/*
 class ChApi ChFieldTetrahedronVolume : public ChLoadableUVW {
 public:
     /// Construct a loadable volume the given tetrahedron element and a field.
@@ -200,15 +214,15 @@ public:
     // Functions for ChLoadable interface
 
     /// Get the number of DOFs affected by this element (position part).
-    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 8 * m_field->GetNumFieldCoordsPosLevel(); }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 4 * m_field->GetNumFieldCoordsPosLevel(); }
 
     /// Get the number of DOFs affected by this element (speed part).
-    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 8 * m_field->GetNumFieldCoordsVelLevel(); }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 4 * m_field->GetNumFieldCoordsVelLevel(); }
 
     /// Get all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override {
         unsigned int ncoords_per_node = m_field->GetNumFieldCoordsPosLevel();
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < 4; ++i) {
             mD.segment(block_offset, ncoords_per_node) = m_field->GetNodeDataPointer(m_element->GetNode(i))->State();
             block_offset += ncoords_per_node;
         }
@@ -269,11 +283,11 @@ public:
         ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
     ) override {
-        ChRowVectorDynamic<double> N(8);
+        ChRowVectorDynamic<double> N(4);
         ChVector3d eta(U, V, W);
         m_element->ComputeN(eta, N);
 
-        ChMatrixNM<double, 3, 8> Xhh;
+        ChMatrixNM<double, 3, 4> Xhh;
         ChMatrix33<double> J;
 
         detJ = m_element->ComputeJ(eta, J);
@@ -296,15 +310,13 @@ private:
 };
 
 
-
+*/
 
 
 
 /// @} chrono_fea
 
 }  // end namespace fea
-
-
 
 }  // end namespace chrono
 

@@ -33,10 +33,6 @@ namespace fea {
 class ChNodeFEAbase;
 
 
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-
-
 
 /// Base class for finite elements over generic fields (scalrar, vectorial, etc), 
 /// to be used in the new PDE multiphysics system that uses ChField and ChDomain managers.
@@ -137,6 +133,31 @@ protected:
 
 
 
+////////////////////////////////////////////////////////////////////////////
+
+
+class ChApi ChFieldElementVolume : public ChFieldElement {
+public:
+    virtual int GetManifoldDimensions() const override { return 3; }
+
+    // The following needed only if element is wrapped as component of a ChLoaderUVW.
+    virtual bool IsTetrahedronIntegrationCompatible() const = 0;
+    virtual bool IsTrianglePrismIntegrationCompatible() const = 0;
+};
+
+class ChApi ChFieldElementSurface : public ChFieldElement {
+public:
+    virtual int GetManifoldDimensions() const override { return 2; }
+
+    // The following needed only if element is wrapped as a component of a ChLoaderUV.
+    virtual bool IsTriangleIntegrationCompatible() const = 0;
+};
+
+class ChApi ChFieldElementLine : public ChFieldElement {
+public:
+    virtual int GetManifoldDimensions() const override { return 1; }
+
+};
 
 /// @} chrono_fea
 
