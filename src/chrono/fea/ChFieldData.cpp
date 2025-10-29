@@ -20,8 +20,8 @@ namespace chrono {
 namespace fea {
 
 // Static data used only as placeholders for return references in ChFieldDataNONE - never used anyway
-ChVariablesGeneric ChFieldDataNONE::dumb_variables;
-ChVectorN<double, 0> ChFieldDataNONE::dumb_state;
+//ChVariablesGeneric ChFieldDataNONE::dumb_variables;
+//ChVectorN<double, 0> ChFieldDataNONE::dumb_state;
 
 }  // end namespace fea
 }  // end namespace chrono

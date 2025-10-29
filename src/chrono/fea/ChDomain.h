@@ -43,24 +43,30 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 
-/// Base class for the per-element properties of some material.
+/// Base class for auxiliary per-element properties.
 /// Inherit from this if you want to attach some property such as "float price; string name;" etc.
-/// Note: better inherit from ChFeaPerElementDataKRM if you want that your elements have 
+/// Note: better inherit from ChElementDataKRM if you want that your elements have 
 /// tangent stiffness and tangent damping, that are used in implicit integration.
 
-class ChFeaPerElementDataNONE {
+class ChElementData {
 public:
     ChKRMBlock* GetKRM() { return nullptr; }
 };
 
-/// Class for the per-element properties of some material.
+/// Class of empty element data
+
+class ChElementDataNONE : public ChElementData {
+public:
+};
+
+/// Class for auxiliary per-element properties.
 /// Inherit from this if you want to attach some property such as "float price; string name;", 
 /// as well as for storing often-used data structures that persist together with the element and
 /// that could be updated at each Update() of the element in order to speedup other computations later.
 /// This contains the ChKRMBlock object, for automatic handling of tangent stiffness and tangent 
 /// damping matrices that are used in implicit integration.
 
-class ChFeaPerElementDataKRM : public ChFeaPerElementDataNONE {
+class ChElementDataKRM : public ChElementData {
 public:
     ChKRMBlock* GetKRM() { return &Kmatr; }
 private:
@@ -134,9 +140,10 @@ public:
     public:
         virtual ~IteratorOnElements() = default;
         virtual std::shared_ptr<ChFieldElement> get_element() = 0;
-        virtual ChFeaPerElementDataNONE& get_data_per_element() = 0;
-        virtual ChFieldData& get_data_per_matpoint(unsigned int i_matpoint) = 0;
-        virtual ChFieldData& get_data_per_node(unsigned int i_node, unsigned int i_field) = 0;
+        virtual ChElementData& get_data_per_element() = 0;
+        virtual ChFieldData* get_data_per_matpoint(unsigned int i_matpoint) = 0;
+        virtual ChFieldData* get_data_per_matpoint_aux(unsigned int i_matpoint) = 0;
+        virtual ChFieldDataState* get_data_per_node(unsigned int i_node, unsigned int i_field) = 0;
         virtual void next() = 0;
         virtual bool is_end() const = 0;
     };
@@ -173,9 +180,9 @@ protected:
 /// or per-integration point data to instance.
 
 template <
-    typename T_per_node = std::tuple<ChFieldScalar>, 
-    typename T_per_matpoint = ChFieldDataNONE,
-    typename T_per_element = ChFeaPerElementDataNONE
+    typename T_per_node = std::tuple<ChFieldScalar>,
+    typename T_per_matpoint_aux = ChFieldDataNONE,
+    typename T_per_element = ChElementDataNONE
 >
 class ChDomainImpl : public ChDomain {
 public:
@@ -183,13 +190,17 @@ public:
     class DataPerElement {
     public:
         DataPerElement(int n_matpoints = 0, int n_nodes = 0) :
-            matpoints_data(n_matpoints), 
+            matpoints_data(n_matpoints),
+            matpoints_data_aux(n_matpoints),
             nodes_data(n_nodes)
         {}
         T_per_element element_data;
-        std::vector<T_per_matpoint> matpoints_data;
-        std::vector<std::array<ChFieldData*, std::tuple_size_v<T_per_node> > > nodes_data;
+        std::vector<std::unique_ptr<ChFieldData>> matpoints_data;
+        std::vector<T_per_matpoint_aux>           matpoints_data_aux;
+        std::vector<std::array<ChFieldDataState*, std::tuple_size_v<T_per_node> > > nodes_data;
     };
+
+    
 
     std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement> element_datamap;
 
@@ -204,20 +215,75 @@ public:
 
     // INTERFACE to ChDomain
     //
-    
+
     virtual void AddElement(std::shared_ptr<ChFieldElement> melement) override {
-        return AddElement_impl(melement);
+        auto data_el = DataPerElement(melement->GetNumQuadraturePoints(), melement->GetNumNodes());
+        //...TO DO as done in InitialSetup
+        element_datamap.insert(std::make_pair(melement, std::move(data_el)));
     }
     virtual void RemoveElement(std::shared_ptr<ChFieldElement> melement) override {
-        return RemoveElement_impl(melement);
+        element_datamap.erase(melement);
     }
     virtual bool IsElementAdded(std::shared_ptr<ChFieldElement> melement) override {
-        return IsElementAdded_impl(melement);
+        return (element_datamap.find(melement) != element_datamap.end());
     };
 
     // This rewires all pointers and correctly set up the element_datamap
     virtual bool InitialSetup() override {
-        return InitialSetup_impl();
+        num_nodes = 0;
+        per_node_coords_pos = 0;
+        per_node_coords_vel = 0;
+
+        for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            this->fields[i_field]->Setup();
+            per_node_coords_pos += this->fields[i_field]->GetNumFieldCoordsPosLevel();
+            per_node_coords_vel += this->fields[i_field]->GetNumFieldCoordsVelLevel();
+        }
+
+        for (auto& mel : this->element_datamap) {
+
+            // setup array of quadrature data
+            if (!this->GetMaterial()->CreateMaterialPointData()) {
+                mel.second.matpoints_data.resize(0); // optimization to avoid wasting memory if NO material-specific data at point 
+            }
+            else {
+                mel.second.matpoints_data.resize(mel.first->GetNumQuadraturePoints());
+
+                size_t numQuadPoints = mel.first->GetNumQuadraturePoints();
+                for (size_t i = 0; i < numQuadPoints; ++i) {
+                    auto mp_data = this->GetMaterial()->CreateMaterialPointData();
+                    mel.second.matpoints_data[i] = (std::move(mp_data));
+                }
+            }
+
+            if constexpr (std::is_same_v<T_per_matpoint_aux, ChFieldDataNONE>) {
+                mel.second.matpoints_data_aux.resize(0); // optimization to avoid wasting memory if NO domain-specific data at point
+            }
+            else {
+                mel.second.matpoints_data_aux.resize(mel.first->GetNumQuadraturePoints());
+            }
+
+            // setup array of pointers to node field data 
+            // (this array is here only for efficiency, otherwise each element should lookup the ChField maps every time
+            // calling GetNodeDataPointer(mel.first->GetNode(i))
+            
+            std::vector<ChVariables*> mvars;
+            
+            mel.second.nodes_data.resize(mel.first->GetNumNodes());
+            for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
+                for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                    mel.second.nodes_data[i][i_field] = fields[i_field]->GetNodeDataPointer(mel.first->GetNode(i));
+                    mvars.push_back(&(mel.second.nodes_data[i][i_field]->GetVariable()));
+                }
+            }
+
+            auto KRMblock = mel.second.element_data.GetKRM();
+            if (KRMblock)
+                KRMblock->SetVariables(mvars);
+
+            num_nodes += mel.first->GetNumNodes();
+        }
+        return true;
     }
 
     virtual int GetNumPerNodeCoordsPosLevel() override { return per_node_coords_pos; }
@@ -238,14 +304,23 @@ public:
         std::shared_ptr<ChFieldElement> get_element() override {
             return it_->first;
         }
-        ChFeaPerElementDataNONE& get_data_per_element() override {
+        ChElementData& get_data_per_element() override {
             return it_->second.element_data;
         }
-        ChFieldData& get_data_per_matpoint(unsigned int i_matpoint) override {
-            return it_->second.matpoints_data[i_matpoint];
-        }     
-        ChFieldData& get_data_per_node(unsigned int i_node, unsigned int i_field) override {
-            return *it_->second.nodes_data[i_node][i_field];
+        ChFieldData* get_data_per_matpoint(unsigned int i_matpoint) override {
+            if (it_->second.matpoints_data.size())
+                return it_->second.matpoints_data[i_matpoint].get();
+            else
+                return nullptr;
+        }
+        ChFieldData* get_data_per_matpoint_aux(unsigned int i_matpoint) override {
+            if (it_->second.matpoints_data_aux.size())
+                return &(it_->second.matpoints_data_aux[i_matpoint]);
+            else 
+                return nullptr;
+        }
+        ChFieldDataState* get_data_per_node(unsigned int i_node, unsigned int i_field) override {
+            return it_->second.nodes_data[i_node][i_field];
         }
         void next() override {
             if (it_ != end_) ++it_;
@@ -427,14 +502,16 @@ public:
 
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                // Set node offsets in state vectors (based on the offsets of the containing mesh)
-                matpoint.DataSetOffsetPosLevel(GetOffset_x() + n_dofs);
-                matpoint.DataSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    // Set node offsets in state vectors (based on the offsets of the containing mesh)
+                    mpointstate->DataSetOffsetPosLevel(GetOffset_x() + n_dofs);
+                    mpointstate->DataSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
 
-                // Count the actual degrees of freedom (consider only nodes that are not fixed)
-                if (!matpoint.IsFixed()) {
-                    n_dofs += matpoint.GetNumCoordsPosLevel();
-                    n_dofs_w += matpoint.GetNumCoordsVelLevel();
+                    // Count the actual degrees of freedom (consider only nodes that are not fixed)
+                        if (!mpointstate->IsFixed()) {
+                            n_dofs += mpointstate->GetNumCoordsPosLevel();
+                            n_dofs_w += mpointstate->GetNumCoordsVelLevel();
+                        }
                 }
             }
         }
@@ -482,10 +559,12 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                    local_off_x += matpoint.GetNumCoordsPosLevel();
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                        local_off_x += mpointstate->GetNumCoordsPosLevel();
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -504,10 +583,12 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                    local_off_x += matpoint.GetNumCoordsPosLevel();
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                        local_off_x += mpointstate->GetNumCoordsPosLevel();
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -521,9 +602,11 @@ public:
         unsigned int local_off_a = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntStateGatherAcceleration(off_a + local_off_a, a);
-                    local_off_a += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntStateGatherAcceleration(off_a + local_off_a, a);
+                        local_off_a += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -536,9 +619,11 @@ public:
         unsigned int local_off_a = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntStateScatterAcceleration(off_a + local_off_a, a);
-                    local_off_a += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntStateScatterAcceleration(off_a + local_off_a, a);
+                        local_off_a += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -557,10 +642,12 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                    local_off_x += matpoint.GetNumCoordsPosLevel();
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                        local_off_x += mpointstate->GetNumCoordsPosLevel();
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -579,10 +666,12 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                    local_off_x += matpoint.GetNumCoordsPosLevel();
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                        local_off_x += mpointstate->GetNumCoordsPosLevel();
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -598,9 +687,11 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntLoadResidual_F(off + local_off_v, R, c);
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntLoadResidual_F(off + local_off_v, R, c);
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -616,7 +707,7 @@ public:
             unsigned int stride = 0;
             for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                 for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                    ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
                     int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * Fi.segment(stride, nfield_coords);
@@ -640,9 +731,11 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntLoadResidual_Mv(off + local_off_v, R, w, c);
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntLoadResidual_Mv(off + local_off_v, R, w, c);
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -655,14 +748,14 @@ public:
             // Possible computational inefficiency: compute the consistent M matrix 
             ChMatrixDynamic<> M_i(numelcoords, numelcoords);
             ElementComputeKRMmatrices(mel.first, mel.second, M_i, 0, 0, 1);
-            
+
             ChVectorDynamic<> W_i(numelcoords);
             W_i.setZero();
             // sparse w to contiguous W_i
             unsigned int stride = 0;
             for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                 for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                    ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
                     int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         W_i.segment(stride, nfield_coords) = w.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords);
@@ -675,7 +768,7 @@ public:
             stride = 0;
             for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                 for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                    ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
                     int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * M_i.middleRows(stride, nfield_coords) * W_i;
@@ -700,9 +793,11 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -717,7 +812,7 @@ public:
             unsigned int stride = 0;
             for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                 for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                    ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
                     int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         Md.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * Md_i.segment(stride, nfield_coords);
@@ -741,9 +836,11 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntToDescriptor(off_v + local_off_v, v, R);
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntToDescriptor(off_v + local_off_v, v, R);
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -759,9 +856,11 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (!matpoint.IsFixed()) {
-                    matpoint.DataIntFromDescriptor(off_v + local_off_v, v);
-                    local_off_v += matpoint.GetNumCoordsVelLevel();
+                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    if (!mpointstate->IsFixed()) {
+                        mpointstate->DataIntFromDescriptor(off_v + local_off_v, v);
+                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                    }
                 }
             }
         }
@@ -770,7 +869,9 @@ public:
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override {
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                matpoint.InjectVariables(descriptor);
+                if (ChFieldDataState* mfielddata = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
+                    mfielddata->InjectVariables(descriptor);
+                }
             }
         }
     }

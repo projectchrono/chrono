@@ -30,17 +30,49 @@ namespace fea {
 /// @addtogroup chrono_fea
 /// @{
 
-
-
-/// Base interface for the per-node and per-materialpoint properties of some material,
-/// for example it can contain some type of ChVariable for integrable state. 
+/// Base interface for the per-node and per-materialpoint properties of some material.
 /// Used, among others, in ChField and ChDomain.
 /// Suggestion: if you want to inherit from this, rather consider to inherit from 
-/// these ready-to-use helping subclasses: ChFieldDataNONE (if you just want to attach some 
+/// these ready-to-use helping subclasses: ChFieldDataStateless (if you just want to attach some 
 /// generic data structures) or ChFieldDataGeneric<int n> (if you want a n-dimensional 
 /// state, with its ChVariable, with automatic bookkeeping etc.)
 
 class ChFieldData {
+public:
+    virtual ~ChFieldData() {};
+};
+
+//------------------------------------------------------------------------------------------
+
+
+/// Class for data structures for the per-node and per-materialpoint properties
+/// that do NOT contain an integrable state. Inherit from this if you need
+/// to attach some data like "price", "wage", etc. 
+/// It has minimal memory cost because it does not contain State, StateDt etc.
+
+class ChApi ChFieldDataStateless : public ChFieldData {
+public:
+};
+
+//------------------------------------------------------------------------------------------
+
+
+/// Placeholder to use in templates if no data is needed.
+
+class ChApi ChFieldDataNONE : public ChFieldDataStateless {
+public:
+};
+
+
+//------------------------------------------------------------------------------------------
+
+
+/// Class for data structures for the per-node and per-materialpoint properties of some material,
+/// that contain some type of ChVariable that should be automatically integrated. A child class of
+/// this type inherit an automatic bookkeeping of its ChVariable (ex. scattering and gathering
+/// for mapping to global vectors used by timesteppers is automatic).
+
+class ChFieldDataState : public ChFieldData {
 public:
     // Access state at node
     virtual ChVectorRef State() = 0;
@@ -119,27 +151,6 @@ private:
 };
 
 
-//------------------------------------------------------------------------------------------
-
-
-/// Class for data structures for the per-node and per-materialpoint properties
-/// that do NOT have an integrable state. Inherit from this if you need
-/// to attach some data like "price", "wage", etc. 
-/// It has minimal memory cost because it does not contain State, StateDt etc.
-/// Used, among others, in ChField and ChDomain.
-
-class ChApi ChFieldDataNONE : public ChFieldData {
-private: 
-    static ChVariablesGeneric  dumb_variables;
-    static ChVectorN<double, 0> dumb_state;
-public:
-    virtual ChVectorRef State() { assert(false); return dumb_state; }
-    virtual ChVectorRef StateDt() { assert(false); return dumb_state; }
-    virtual ChVectorRef Load() { assert(false); return dumb_state; }
-    virtual ChVariables& GetVariable() { assert(false); return dumb_variables; };
-    virtual void SetFixed(bool fixed) { assert(false); }
-    virtual bool IsFixed() const { return true; }
-};
 
 
 //------------------------------------------------------------------------------------------
@@ -148,10 +159,9 @@ public:
 /// Class for data structures for per-node and per-materialpoint properties
 /// that that contain an integrable state vector, of size T_nstates. 
 /// It contains a ChVariableGeneric of size size_T.
-/// Used, among others, in ChField and ChDomain.
 
 template <int T_nstates>
-class ChFieldDataGeneric : public ChFieldData {
+class ChFieldDataGeneric : public ChFieldDataState {
 public:
     ChFieldDataGeneric() :
         mvariables(T_nstates) {
@@ -251,9 +261,8 @@ private:
 /// Class for data structure for per-node and per-materialpoint properties
 /// that contain an integrable vector state, namely position in 3D space. 
 /// It contains a ChVariableGeneric of size size_T.
-/// Used, among others, in ChField and ChDomain.
 
-class ChFieldDataPos3D : public ChFieldData {
+class ChFieldDataPos3D : public ChFieldDataState {
 public:
     ChFieldDataPos3D()  {
         pos.setZero();
