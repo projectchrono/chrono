@@ -1,3 +1,8 @@
+if(NOT CH_ENABLE_MODULE_IRRLICHT)
+  message(STATUS "Warning: the MBS C# projects reuire Chrono::Irrlicht")
+  return()
+endif()
+
 set(DEMOS
     demo_CS_MBS_ballSMC
     demo_CS_MBS_earthquake
@@ -8,9 +13,7 @@ set(DEMOS
 
 set(MODULE_LIST)
 list(APPEND MODULE_LIST "core")
-if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND MODULE_LIST "irrlicht")
-endif()
+list(APPEND MODULE_LIST "irrlicht")
 
 CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
 
