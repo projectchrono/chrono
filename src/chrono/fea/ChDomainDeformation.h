@@ -194,6 +194,148 @@ public:
             time);
     }
 
+    //
+    // INTERFACE to ChPhysicsItem 
+    //
+
+    /// Usually not necessary to override ChPhysicsItem because the parent ChDomainImpl does all needed.
+    /// However, HERE WE OVERLOAD THE PARENT IMPLEMENTATION BECAUSE WE MAY ADD AUTOMATIC GRAVITY
+    /// PER EACH ELEMENT.
+    /// Takes the F force term, scale and adds to R at given offset:
+    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+        ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+        const double c           ///< a scaling factor
+    ) override {
+        // Do usual stuff with computation of R loads
+        this->Base::IntLoadResidual_F(off, R, c);
+
+        // Do also gravity, automatic per each element:
+        // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
+        if (this->automatic_gravity_load) {
+            /*
+            for (auto& mel : this->element_datamap) {
+                int quadorder = mel.first->GetQuadratureOrder();
+                int numpoints = mel.first->GetNumQuadraturePoints();
+                ChMatrix33<> J;
+                ChVector3d eta;
+                double weight;
+                for (int i_point = 0; i_point < numpoints; ++i_point) {
+                    mel.first->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
+                    double det_J = mel.first->ComputeJ(eta, J);
+                    double s = weight * det_J;
+                    ChRowVectorDynamic<> N(mel.first->GetNumNodes());
+                    mel.first->ComputeN(eta, N);
+
+                    unsigned int stride = 0;
+                    unsigned int i_field = 0;
+                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                    for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                        ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                        if (!mfielddata->IsFixed()) {
+                            R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += (c * s * N(i_node) * this->material->GetDensity() * this->gravity_G_acceleration).eigen();
+                        }
+                        stride += nfield_coords;
+                    }
+                }
+            }
+            */
+
+            // Alternative method ...
+            fea::ChLoaderGravity mygravity_loader(nullptr, this->material->GetDensity());
+            mygravity_loader.SetGravitationalAcceleration(this->gravity_G_acceleration);
+            mygravity_loader.SetNumIntPoints(this->num_points_gravity);
+
+            for (auto& mel : this->element_datamap) {
+                if (auto melement_volume = std::dynamic_pointer_cast<ChFieldElementVolume>(mel.first)) {
+                    ChVectorDynamic<> Fg(this->fields[0]->GetNumFieldCoordsVelLevel() * mel.first->GetNumNodes());
+                    auto mloadable_uvw = chrono_types::make_shared<ChFieldElementLoadableVolume>(melement_volume, this->fields[0]);
+                    mygravity_loader.SetLoadable(mloadable_uvw);
+                    mygravity_loader.ComputeQ(nullptr, nullptr);
+
+                    // Q is contiguous, so must store sparsely in R, per each node 
+                    unsigned int stride = 0;
+                    unsigned int i_field = 0;
+                    for (unsigned int i_node = 0; i_node < melement_volume->GetNumNodes(); i_node++) {
+                        if (ChFieldDataState* mfielddata = dynamic_cast<ChFieldDataState*>(mel.second.nodes_data[i_node][i_field])) {
+                            int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                            if (!mfielddata->IsFixed()) {
+                                R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * mygravity_loader.Q.segment(stride, nfield_coords);
+                            }
+                            stride += nfield_coords;
+                        }
+                    }
+                }
+            }
+
+        } // end automatic gravity
+
+
+
+
+    }
+
+    /// If true, as by default, this mesh will add automatically a gravity load
+    /// to all contained elements (that support gravity) using the G value from the ChSystem.
+    /// So this saves you from adding many ChLoad<fea::ChLoaderGravity> to all elements.
+    void SetAutomaticGravity(bool mg, const ChVector3d G_acc = ChVector3d(0, -9.81, 0), int num_points = 1) {
+        automatic_gravity_load = mg;
+        num_points_gravity = num_points;
+        gravity_G_acceleration = G_acc;
+    }
+    /// Tell if this mesh will add automatically a gravity load to all contained elements.
+    bool GetAutomaticGravity() { return automatic_gravity_load; }
+
+
+    //
+    // EXTRACTORS for drawing stuff in postprocessors/visualization:
+    //
+
+    /// Extract the unsymmetric F deformation gradient tensor
+    class ChVisualDataExtractorDeformationGradientF : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+        virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
+            return const_cast<ChFieldDataAuxiliaryDeformation*>(fdata)->F;
+        }
+    };
+
+    /// Extract the  C=F^T*F  right Cauchy-Green deformation tensor (should be plotted on material undeformed space)
+    class ChVisualDataExtractorRightCauchyGreenC : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+        virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
+            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
+            return matp->F.transpose() * matp->F;
+        }
+    };
+
+    /// Extract the  B=F*F^T left Cauchy-Green deformation tensor (should be plotted on spatial deformed space)
+    class ChVisualDataExtractorLeftCauchyGreenB : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+        virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
+            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
+            return matp->F * matp->F.transpose();
+        }
+    };
+
+    /// Extract the E=1/2(F^T*F - I)  Green-Lagrange strain tensor (should be plotted on material undeformed space)
+    class ChVisualDataExtractorGreenLagrangeStrain : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+        virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
+            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
+            return 0.5 * (matp->F.transpose() * matp->F - ChMatrix33d(1));
+        }
+    };
+
+    /// Extract the e=1/2(I- (F*F^T)^-1)  Euler-Almansi strain tensor (should be plotted on spatial deformed space)
+    class ChVisualDataExtractorEulerAlmansiStrain : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+        virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
+            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
+            return 0.5 * (ChMatrix33d(1) - (matp->F * matp->F.transpose()).inverse());
+        }
+    };
+
+
+protected:
+    /// Get the material of the domain.
+    virtual std::shared_ptr<ChMaterial> GetMaterial() override {
+        return material;
+    };
+
 
 private:
     /// Utility: Compute  B as in  dE = B dx  where dE is variation in Green Lagrange strain (Voigt notation)
