@@ -119,6 +119,8 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
 
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
+
 // Vehicle models
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
@@ -422,6 +424,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "chrono_swig/interface/models/VehicleModels.i"
 
 %include "vehicleUtils.i"
+
+%include "../../../chrono_vehicle/ChVehicleVisualSystem.h" 
 
 #ifdef CHRONO_IRRLICHT
   #define ChApiIrr 
