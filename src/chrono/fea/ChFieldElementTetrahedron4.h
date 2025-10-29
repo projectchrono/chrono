@@ -99,6 +99,9 @@ public:
     /// this should be implemented in this function.
     virtual void Update() {}
 
+    // The following needed only if element is wrapped as component of a ChLoaderUVW.
+    virtual bool IsTetrahedronIntegrationCompatible() const { return true; }
+    virtual bool IsTrianglePrismIntegrationCompatible() const { return false; }
 
 private:
     /// Initial setup (called once before start of simulation).
