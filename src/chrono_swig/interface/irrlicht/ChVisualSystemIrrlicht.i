@@ -9,8 +9,6 @@
 ////#endif // --------------------------------------------------------------------- CSHARP
 
 %{
-#include "chrono/assets/ChVisualSystem.h"
-
 #include "chrono_irrlicht/ChIrrNodeShape.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"

@@ -12,6 +12,9 @@ using namespace chrono::vsg3d;
 %shared_ptr(chrono::vsg3d::ChVisualSystemVSG)
 %shared_ptr(chrono::vsg3d::ChVisualSystemVSGPlugin)
 
+// Import base class ChVisualSystem (same pattern as in ChVisualSystemIrrlicht.i)
+%import(module="pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
+
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_vsg/ChVisualSystemVSG.h"    
 
