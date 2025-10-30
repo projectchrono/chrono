@@ -16,7 +16,7 @@
 #define CHDOMAINTHERMODEFORMATION_H
 
 #include "chrono/fea/ChDomain.h"
-#include "chrono/fea/ChMaterial3DThermal.h"
+#include "chrono/fea/ChMaterial3DThermalStress.h"
 #include "chrono/fea/ChMaterial3DStressStVenant.h"
 #include "chrono/fea/ChVisualDataExtractor.h"
 
@@ -27,31 +27,48 @@ namespace fea {
 /// @{
 
 
+
+/// Auxiliary scratch data stored per each material point during the ChDomainThermoDeformation
+/// computation. This can be plotted in postprocessing, etc.
+
+class ChFieldDataAuxiliaryThermoDeformation : public ChFieldDataNONE {
+public:
+    ChMatrix33d F;      /// deformation gradient tensor - can be used to plot Green-Lagrange etc. 
+    ChMatrix33d F_t;    /// thermal deformation gradient tensor
+    ChMatrix33d F_e;    /// elastic deformation gradient tensor
+    ChVector3d  q_flux; /// heat flux
+    
+    // by the way this could have been also: 
+    // ChFieldDataAuxiliaryThermal aux_thermal;      // with q_flux
+    // ChFieldDataAuxiliaryDeformation aux_thermal;  // with F
+    // ChMatrix33d F_t; 
+    // ChMatrix33d F_e;
+};
+
 /// Domain for FEA nonlinear finite strain with thermal coupling. It is based on a vector field,
 /// (ChFieldDisplacement3D, that is used to store x, the absolute spatial position of nodes, NOT
 /// the displacement from the material reference position, d=x-X, as in some software) and
 /// a ChFieldTemperature. It solves the transient Poisson thermal equation together with 
 /// structural dynamics. 
 /// ***TODO*** implement
-/// ***TODO*** make templated as in ChDomainDeformation
 
 class ChDomainThermoDeformation : public ChDomainImpl<
     std::tuple<ChFieldTemperature, ChFieldDisplacement3D>, 
-    ChFieldDataNONE,
-    ChFeaPerElementDataKRM> {
+    ChFieldDataAuxiliaryThermoDeformation,
+    ChElementDataKRM> {
 public:
     ChDomainThermoDeformation(std::shared_ptr<ChFieldTemperature> mthermalfield, std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : ChDomainImpl({ mthermalfield, melasticfield })
     {
         // attach  default materials to simplify user side
-        material_thermal = chrono_types::make_shared<ChMaterial3DThermal>();
-        material_elasticity = chrono_types::make_shared<ChMaterial3DStressStVenant>();
+        material_thermalstress = chrono_types::make_shared<ChMaterial3DThermalStress>();
+        material_thermalstress->material_stress  = chrono_types::make_shared<ChMaterial3DStressStVenant>();
+        material_thermalstress->material_thermal = chrono_types::make_shared<ChMaterial3DThermal>();
     }
 
     /// Thermal properties of this domain (conductivity, 
     /// heat capacity constants etc.) 
-    std::shared_ptr<ChMaterial3DThermal> material_thermal;
-    std::shared_ptr<ChMaterial3DStress>  material_elasticity;
+    std::shared_ptr<ChMaterial3DThermalStress> material_thermalstress;
 
     // INTERFACES
 
@@ -91,6 +108,15 @@ public:
     ) override {
             assert(false); //***TODO*** to be implemented
     }
+
+
+
+protected:
+    /// Get the material of the domain. Called when creating auxiliary data per material point.
+    virtual std::shared_ptr<ChMaterial> GetMaterial() override {
+        return material_thermalstress;
+    };
+
 
 };
 
