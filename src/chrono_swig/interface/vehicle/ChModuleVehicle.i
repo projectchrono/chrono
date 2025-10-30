@@ -119,8 +119,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
 
-#include "chrono_vehicle/ChVehicleVisualSystem.h"
-
 // Vehicle models
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
@@ -424,6 +422,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "chrono_swig/interface/models/VehicleModels.i"
 
 %include "vehicleUtils.i"
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// Import ChVisualSystem base class unconditionally (ChVehicleVisualSystem inherits from it)
+// Python gets this via module imports from pychrono.irrlicht or pychrono.vsg3d into appropriate module
+// but C# Unity with no visualisation module but with this vehicle module needs an unconditional
+// for SWIG to understand the inheritance
+%import "chrono_swig/interface/core/ChVisualSystem.i"
+#endif             // --------------------------------------------------------------------- CSHARP
 
 %include "../../../chrono_vehicle/ChVehicleVisualSystem.h" 
 

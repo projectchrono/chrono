@@ -132,6 +132,7 @@ using namespace gui;
 %import(module="pychrono.core") "chrono_swig/interface/core/ChFrame.i"
 // %import(module="pychrono.core") "../../../chrono/functions/ChFunction.h"
 // %import(module="pychrono.core") "chrono_swig/interface/core/ChFunction.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChObject.i" // ChObject should be imported before ChPhysicsItem
 %import(module="pychrono.core") "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualMaterial.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualShape.i"
