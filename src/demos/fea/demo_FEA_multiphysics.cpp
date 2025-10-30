@@ -38,8 +38,15 @@
 #include "chrono/fea/ChDomainThermoDeformation.h"
 #include "chrono/fea/ChVisualDataExtractor.h"
 #include "chrono/fea/ChFieldElementHexahedron8.h"
-#include "chrono/fea/ChFieldElementHexahedron8Loaders.h"
+#include "chrono/fea/ChFieldElementHexahedron8Face.h"
 #include "chrono/fea/ChFieldElementTetrahedron4.h"
+#include "chrono/fea/ChFieldElementTetrahedron4Face.h"
+#include "chrono/fea/ChFieldElementLoadableVolume.h"
+#include "chrono/fea/ChLoaderHeatFlux.h"
+#include "chrono/fea/ChLoaderHeatRadiation.h"
+#include "chrono/fea/ChLoaderHeatVolumetricSource.h"
+#include "chrono/fea/ChLoaderHeatConvection.h"
+#include "chrono/fea/ChLoaderPressure.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkLockTrajectory.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -51,74 +58,8 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 using namespace chrono;
 using namespace chrono::fea;
 
-/// Heat flux, per unit of surface.
-/// Use this for applying a heat flux load on the surface of finite elements, as a
-/// per-volume scalar flux for thermal analysis.
-
-class ChLoaderHeatFlux : public ChLoaderUVdistributed {
-public:
-    ChLoaderHeatFlux(std::shared_ptr<ChLoadableUV> mloadable)
-        : ChLoaderUVdistributed(mloadable), m_heat_flux(0), num_integration_points(1) {}
-
-    virtual void ComputeF(double U,              ///< parametric coordinate in surface
-        double V,              ///< parametric coordinate in surface
-        ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
-        ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-        ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-    ) override {
-        F(0) = m_heat_flux;
-    }
-
-    /// Set the heat flux applied to UV surface, as [W/m^2]
-    void SetSurfaceHeatFlux(double heat_flux) { m_heat_flux = heat_flux; }
-    
-    /// Get the heat flux applied to UV surface, as [W/m^2]
-    double GetSurfaceHeatFlux() { return m_heat_flux; }
-
-    void SetIntegrationPoints(int val) { num_integration_points = val; }
-    virtual int GetIntegrationPointsU() override { return num_integration_points; }
-    virtual int GetIntegrationPointsV() override { return num_integration_points; }
-
-private:
-    double m_heat_flux;
-    int num_integration_points;
-};
 
 
-/// Heat flux, per unit of volume. 
-/// Use this for applying a heat flux load on the surface of finite elements, as a
-/// per-volume scalar flux for thermal analysis.
-
-class ChLoaderHeatVolumetric : public ChLoaderUVWdistributed {
-public:
-    ChLoaderHeatVolumetric(std::shared_ptr<ChLoadableUVW> mloadable)
-        : ChLoaderUVWdistributed(mloadable), m_heat_flux(0), num_integration_points(1) {}
-
-    virtual void ComputeF(double U,              ///< parametric coordinate in surface
-        double V,              ///< parametric coordinate in surface
-        double W,              ///< parametric coordinate in surface
-        ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
-        ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-        ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-    ) override {
-        F(0) = m_heat_flux;
-    }
-
-    /// Set the heat flux applied to UVW volume, as [W/m^3]
-    void SetVolumeHeatFlux(double heat_flux) { m_heat_flux = heat_flux; }
-
-    /// Get the heat flux applied to UVW volume, as [W/m^3]
-    double GetVolumeHeatFlux() { return m_heat_flux; }
-
-    void SetIntegrationPoints(int val) { num_integration_points = val; }
-    virtual int GetIntegrationPointsU() override { return num_integration_points; }
-    virtual int GetIntegrationPointsV() override { return num_integration_points; }
-    virtual int GetIntegrationPointsW() override { return num_integration_points; }
-
-private:
-    double m_heat_flux;
-    int num_integration_points;
-};
 
 
 int main(int argc, char* argv[]) {
@@ -194,7 +135,7 @@ int main(int argc, char* argv[]) {
         //--------------------------------------
 
 
-        auto elastic_domain = chrono_types::make_shared <ChDomainDeformation<ChMaterial3DStressStVenant>>(displacement_field);
+        auto elastic_domain = chrono_types::make_shared <ChDomainDeformation>(displacement_field);
         elastic_domain->AddElement(tetrahedron1);
 
         // Needed to setup all data and pointers
@@ -238,7 +179,7 @@ int main(int argc, char* argv[]) {
     //  thermal_domain->ElementData(tetrahedron1).nodes_data.size(); // ..  this would fail if no InitialSetup(
 
 
-    if (false) {
+    if (true) {
 
         // Create a Chrono physical system
         ChSystemNSC sys;
@@ -246,11 +187,6 @@ int main(int argc, char* argv[]) {
         auto floor = chrono_types::make_shared<ChBody>();
         floor->SetFixed(true);
         sys.Add(floor);
-
-        auto test_glyph = chrono_types::make_shared<ChGlyphs>();
-        test_glyph->SetGlyphPoint(0, ChVector3d(0, 0.3, 0));
-        test_glyph->SetGlyphsSize(0.1);
-        floor->AddVisualShape(test_glyph);
 
 
         class Ch3DArrayOfNodes {
@@ -274,9 +210,9 @@ int main(int argc, char* argv[]) {
             }
         };
 
-        int nlayers_x = 5;
-        int nlayers_y = 1;
-        int nlayers_z = 1;
+        int nlayers_x = 6;
+        int nlayers_y = 2;
+        int nlayers_z = 2;
         double W_x = 3;
         double W_y = 0.5;
         double W_z = 0.5;
@@ -311,18 +247,19 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-        auto elastic_domain = chrono_types::make_shared <ChDomainDeformation<ChMaterial3DStressStVenant>>(displacement_field);
+        auto elastic_domain = chrono_types::make_shared <ChDomainDeformation>(displacement_field);
         for (auto& created_element : melements.data)
             elastic_domain->AddElement(created_element);
 
         auto elastic_material = chrono_types::make_shared<ChMaterial3DStressStVenant>();
         elastic_domain->material = elastic_material;
         elastic_material->SetDensity(1000);
-        elastic_material->SetYoungModulus(2e6);
+        elastic_material->SetYoungModulus(3e6);
         elastic_material->SetPoissonRatio(0.3);
 
         // Needed to setup all data and pointers
         elastic_domain->InitialSetup();
+        elastic_domain->SetAutomaticGravity(true);
 
         auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(elastic_domain);
         visual_nodes->SetGlyphsSize(0.1);
@@ -331,11 +268,19 @@ int main(int argc, char* argv[]) {
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
         floor->AddVisualShape(visual_nodes);
 
+        auto visual_stress = chrono_types::make_shared<ChVisualDomainGlyphs>(elastic_domain);
+        visual_stress->SetGlyphsSize(2.2);
+        visual_stress->AddPositionExtractor(chrono_types::make_shared<ChVisualDataExtractorPos>());
+        visual_stress->AddPropertyExtractor(chrono_types::make_shared<ChDomainDeformation::ChVisualDataExtractorEulerAlmansiStrain>(), 0.0, 2.0, "e");
+        visual_stress->SetColormap(ChColormap(ChColormap::Type::JET));
+        floor->AddVisualShape(visual_stress);
+
         auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(elastic_domain);
         visual_mesh->AddPositionExtractor(chrono_types::make_shared<ChVisualDataExtractorPos>());
         visual_mesh->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorPosDt>(), 0.0, 2.0, "Vel");
         visual_mesh->SetColormap(ChColor(0, 1, 0));
-        //visual_mesh->SetWireframe(true);
+        visual_mesh->SetWireframe(true);
+        visual_mesh->SetShrinkElements(true, 0.8);
         floor->AddVisualShape(visual_mesh);
 
         // Create the Irrlicht visualization system
@@ -353,17 +298,23 @@ int main(int argc, char* argv[]) {
         mkl_solver->LockSparsityPattern(true);
         sys.SetSolver(mkl_solver);
 
+        for (auto mnode : mnodes.data) {
+            if (mnode->x() <=0)
+                displacement_field->NodeData(mnode).SetFixed(true);
+        }
+        /*
         displacement_field->NodeData(mnodes.at(0, 0, 0)).SetFixed(true);
         displacement_field->NodeData(mnodes.at(0, 1, 0)).SetFixed(true);
         displacement_field->NodeData(mnodes.at(0, 0, 1)).SetFixed(true);
         displacement_field->NodeData(mnodes.at(0, 1, 1)).SetFixed(true);
-
+        */
         displacement_field->NodeData(mnodes.at(4, 0, 0)).SetLoad(ChVector3d(0,1000,0));
         displacement_field->NodeData(mnodes.at(1, 1, 0)).SetPos(displacement_field->NodeData(mnodes.at(1, 1, 0)).GetPos() + ChVector3d(0, 0.1, 0));
         displacement_field->NodeData(mnodes.at(1, 1, 1)).SetPos(displacement_field->NodeData(mnodes.at(1, 1, 1)).GetPos() + ChVector3d(0, 0, 0));
-
-        //displacement_field->NodeData(mnodes.at(0, 0, 0)).SetPos(displacement_field->NodeData(mnodes.at(0, 0, 0)).GetPos() + ChVector3d(0.05, 0, 0));
-        //displacement_field->NodeData(mnodes.at(0, 0, 1)).SetPos(displacement_field->NodeData(mnodes.at(0, 0, 1)).GetPos() + ChVector3d(0.05, 0, 0));
+        /*
+        displacement_field->NodeData(mnodes.at(0, 0, 0)).SetPos(displacement_field->NodeData(mnodes.at(0, 0, 0)).GetPos() + ChVector3d(0.05, 0, 0));
+        displacement_field->NodeData(mnodes.at(0, 0, 1)).SetPos(displacement_field->NodeData(mnodes.at(0, 0, 1)).GetPos() + ChVector3d(0.05, 0, 0));
+        */
 
         sys.Add(elastic_domain);
         sys.Add(displacement_field);
@@ -382,7 +333,7 @@ int main(int argc, char* argv[]) {
     }
 
 
-    if (true) {
+    if (false) {
 
         // Create a Chrono physical system
         ChSystemNSC sys;
@@ -462,19 +413,19 @@ int main(int argc, char* argv[]) {
 
         // EXAMPLE INITIAL CONDITIONS (initial temperature of some nodes)
 
-        temperature_field->NodeData(mnodes.at(0, 0, 4)).T() = 100;
-        temperature_field->NodeData(mnodes.at(0, 1, 4)).T() = 100;
+        temperature_field->NodeData(mnodes.at(0, 0, 4)).T() = 400;
+        temperature_field->NodeData(mnodes.at(0, 1, 4)).T() = 400;
 
         // EXAMPLE DIRICHLET CONDITIONS (fixed temperature of some nodes)
 
         temperature_field->NodeData(mnodes.at(0, 0, 0)).SetFixed(true);
-        temperature_field->NodeData(mnodes.at(0, 0, 0)).T() = 30;
+        temperature_field->NodeData(mnodes.at(0, 0, 0)).T() = 100;
         temperature_field->NodeData(mnodes.at(0, 1, 0)).SetFixed(true);
-        temperature_field->NodeData(mnodes.at(0, 1, 0)).T() = 20;
+        temperature_field->NodeData(mnodes.at(0, 1, 0)).T() = 100;
         temperature_field->NodeData(mnodes.at(0, 0, 1)).SetFixed(true);
-        temperature_field->NodeData(mnodes.at(0, 0, 1)).T() = 30;
+        temperature_field->NodeData(mnodes.at(0, 0, 1)).T() = 100;
         temperature_field->NodeData(mnodes.at(0, 1, 1)).SetFixed(true);
-        temperature_field->NodeData(mnodes.at(0, 1, 1)).T() = 30;        
+        temperature_field->NodeData(mnodes.at(0, 1, 1)).T() = 100;
         
         // APPLY SOME LOADS
 
@@ -486,21 +437,37 @@ int main(int argc, char* argv[]) {
         // - IMPOSED HEAT FLUX ON SURFACE
         // Create a face wrapper, an auxiliary object that references a face of an
         // element as a ChLoadableUV so that can receive a surface load affecting a field 
-        auto exa_face = chrono_types::make_shared<ChFieldHexahedronFace>(melements.at(2,0,3), temperature_field, 3); // 3rd face of hexa is y up
+        auto exa_face = chrono_types::make_shared<ChFieldHexahedron8Face>(melements.at(2,0,3), temperature_field, 3); // 3rd face of hexa is y up
 
         auto heat_flux = chrono_types::make_shared<ChLoaderHeatFlux>(exa_face);
-        heat_flux->SetSurfaceHeatFlux(0); // the surface flux: heat in W/m^2
+        heat_flux->SetSurfaceHeatFlux(10); // the surface flux: heat in W/m^2
         load_container->Add(heat_flux);
 
         // - IMPOSED HEAT SOURCE ON VOLUME
         // Create a volume wrapper, an auxiliary object that references a volume of an
         // element as a ChLoadableUVW so that it can receive a volume load affecting a field 
-        auto exa_volume = chrono_types::make_shared<ChFieldHexahedronVolume>(melements.at(4, 0, 4), temperature_field);
+        auto exa_volume = chrono_types::make_shared<ChFieldElementLoadableVolume>(melements.at(4, 0, 4), temperature_field);
 
-        auto heat_source = chrono_types::make_shared<ChLoaderHeatVolumetric>(exa_volume);
-        heat_source->SetVolumeHeatFlux(500); // the volumetric source flux: heat in W/m^3
+        auto heat_source = chrono_types::make_shared<ChLoaderHeatVolumetricSource>(exa_volume);
+        heat_source->SetVolumeHeatFlux(300); // the volumetric source flux: heat in W/m^3
         load_container->Add(heat_source);
 
+        // - THERMAL RADIATION (Stefan-Boltzmann boundary condition)
+        // Create a volume wrapper, an auxiliary object that references a volume of an
+        // element as a ChLoadableUVW so that it can receive a volume load affecting a field 
+        auto exa_face2 = chrono_types::make_shared<ChFieldHexahedron8Face>(melements.at(4, 0, 0), temperature_field, 3); // 3rd face of hexa is y up
+
+        auto heat_radiate = chrono_types::make_shared<ChLoaderHeatRadiation>(exa_face2, temperature_field);
+        heat_radiate->SetEnvironmentTemperature(0); // the surface flux: heat in W/m^2
+        load_container->Add(heat_radiate);
+
+        // - THERMAL CONVECTION 
+        auto exa_face3 = chrono_types::make_shared<ChFieldHexahedron8Face>(melements.at(4, 0, 0), temperature_field, 3); // 3rd face of hexa is y down
+
+        auto heat_convection = chrono_types::make_shared<ChLoaderHeatConvection>(exa_face3, temperature_field);
+        heat_convection->SetSurfaceConvectionCoeff(10000);
+        heat_convection->SetFluidTemperature(400);
+        load_container->Add(heat_convection);
 
         // Needed to setup all data and pointers
         thermal_domain->InitialSetup();
@@ -510,7 +477,7 @@ int main(int argc, char* argv[]) {
 
         auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(thermal_domain);
         visual_nodes->SetGlyphsSize(0.05);
-        visual_nodes->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorTemperature>(), 0.0, 100, "Temp");
+        visual_nodes->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorTemperature>(), 0.0, 500, "Temp");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
         floor->AddVisualShape(visual_nodes);
 
@@ -522,7 +489,7 @@ int main(int argc, char* argv[]) {
         floor->AddVisualShape(visual_matpoints);
 
         auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(thermal_domain);
-        visual_mesh->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorTemperature>(), 0.0, 100, "Temp");
+        visual_mesh->AddPropertyExtractor(chrono_types::make_shared<ChVisualDataExtractorTemperature>(), 0.0, 500, "Temp");
         visual_mesh->SetColormap(ChColormap(ChColormap::Type::JET));
         visual_mesh->SetWireframe(true);
         //floor->AddVisualShape(visual_mesh);
