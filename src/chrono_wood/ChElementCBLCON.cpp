@@ -32,6 +32,7 @@
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono_wood/ChBeamSectionCBLCON.h"
 
 namespace chrono {
 namespace wood {
@@ -125,37 +126,35 @@ void ChElementCBLCON::Update() {
 }
 
 void ChElementCBLCON::UpdateRotation() {
+    // WARNING: this code for the orientation is fragile and is only expected to work under the following conditions:
+    //  - the longitudinal direction of the CBL sample (the beams) is along the global Z direction
+    //  - the longitudinal connectors of the CBL sample are aligned in the global Z direction
+    //  - the transverse connectors of the CBL sample are located in the global XY plane
+    //  - the nodes rotational DOFs are initialized with unit quaternion, i.e., aligned with principal directions
+    // These conditions are currently met as a result of how the CAD is generated, and the `read_CBL_info` function is implemented
+    // but it is by no means general, and it might be challenged when knots in the wood are introduced and this alignment is slightly different.
+    //
+    // Under these conditions:
+    //  - the X-, or Y-axess associated to the end nodes (nodal orientation from rotational DOF / quaternion) remain orthogonal to longitudinal connectors under rigid body rotation
+    //  - the Z-axess associated to the end nodes (nodal orientation from rotational DOF / quaternion) remain orthogonal to transverse connectors
+    //
+    // The local orientation (3 direct orthogonal directions) of the connector is determined by Gram-Schmidt using:
+    //  - the node-to-node axis for the first direction
+    //  - the average Y-axis of the end nodes (valid under small torsion/bending) for the second "suggested" direction for longitudinal connectors (by convention, we could have used the average X-axis too)
+    //  - the average Z-axis of the end nodes (valid under small torsion/bending) for the second "suggested" direction for non-longitudinal connectors
     ChMatrix33<> Aabs;
-    /*
-    ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-    // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
-    //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
-    ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(q_refrotA.RotateBack(ChVector3d(0, 1, 0)));
-    // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
-    //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
-    ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector3d(0, 1, 0)));
-    // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
-    ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
-    Aabs.SetFromAxisX(mXele_w, myele_w);
-    q_element_abs_rot = Aabs.GetQuaternion();
-    */
-
-    // TODO JBC: This looks fragile and relies on assumptions and current behavior of other parts of the code
-    //           - If the Y-axes are aligned with the node-to-node direction, or cancel out, Gram-Schmidt will fail and use an arbitrary direction
-    //              This arbitrary direction is repeatable, that is the only thing that guarantee this works, otherwise, the initial quaternion determined in SetupInitial() might be different
-    //              Any change to the fallback behavior of ChMatrix33::SetFromAxisX() will break this code !
-    //           - I believe the commented code above for beams should be used instead, together with the initial quaternion being aligned with nmL matrix, similar to the beam element
-    // TODO JBC: This quaternion update actually does not work under large displacement
-    //           If I only comment line 154 (i.e., not update old quaternion), everything runs fine
-    ChVector3d mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-    ChVector3d mYele =
-    (nodes[0]->Frame().GetRotMat().GetAxisY() + nodes[1]->Frame().GetRotMat().GetAxisY()).GetNormalized();
-    Aabs.SetFromAxisX(mXele, mYele);
+    ChVector3d dir1 = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+    ChVector3d dir2;
+    if (section->GetSectionType() == ChBeamSectionCBLCON::ConSectionType::longitudinal) {
+        dir2 = nodes[0]->GetRotMat().GetAxisY() + nodes[1]->GetRotMat().GetAxisY();
+    } else {
+        dir2 = nodes[0]->GetRotMat().GetAxisZ() + nodes[1]->GetRotMat().GetAxisZ();
+    }
+    Aabs.SetFromAxisX(dir1, dir2);
     q_element_abs_rot = Aabs.GetQuaternion();
     this->A.SetFromQuaternion(q_element_ref_rot.GetConjugate() * q_element_abs_rot);
 
     // New center position
-
     // 1. Projection `P` of center `C` on the edge should remain in the same relative position along the edge
     //    For CBL, the relative position is currently always 1/2
     ChVector3d center = 0.5 * (nodes[0]->GetPos() + nodes[1]->GetPos());
@@ -164,7 +163,10 @@ void ChElementCBLCON::UpdateRotation() {
     //       - ConSectionType::transverse_regular_bot
     //       - ConSectionType::transverse_regular_gen
     //       - ConSectionType::transverse_regular_top
-    //       - TODO: test the other connectors / ask Wisdom about the geometry
+    //       - ConSectionType::radial_ray_bot
+    //       - ConSectionType::radial_ray_gen
+    //       - ConSectionType::radial_ray_top
+    //       - TBD about tangential rays: ConSectionType::tangential_ray_bot, ConSectionType::tangential_ray_gen, ConSectionType::tangential_ray_top
     //    For those, rotation is unnecessary
     if (section->GetSectionType() == ChBeamSectionCBLCON::ConSectionType::longitudinal) { // TODO JBC: why is this not aligned?
         ChQuaternion<> q_delta = q_element_abs_rot * q_element_ref_rot.GetConjugate();
@@ -448,12 +450,36 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
     //this->mass = this->length * this->section->GetMassPerUnitLength();
     //this->mass = this->length * 1.0;
-    // Compute initial rotation
+
+    // Compute initial orientation
+    // WARNING: this code for the orientation is fragile and is only expected to work under the following conditions:
+    //  - the longitudinal direction of the CBL sample (the beams) is along the global Z direction
+    //  - the longitudinal connectors of the CBL sample are aligned in the global Z direction
+    //  - the transverse connectors of the CBL sample are located in the global XY plane
+    //  - the nodes rotational DOFs are initialized with unit quaternion, i.e., aligned with principal directions
+    // These conditions are currently met as a result of how the CAD is generated, and the `read_CBL_info` function is implemented
+    // but it is by no means general, and it might be challenged when knots in the wood are introduced and this alignment is slightly different.
+    //
+    // Under these conditions:
+    //  - the global X-, or Y-axis are always orthogonal to longitudinal connectors
+    //  - the global Z-axis is always orthogonal to transverse connectors
+    //
+    // The local orientation (3 direct orthogonal directions) of the connector is determined by Gram-Schmidt using:
+    //  - the node-to-node axis for the first direction
+    //  - the global Y-axis for the second "suggested" direction for longitudinal connectors (by convention, we could have used the X-axis too)
+    //  - the global Z-axis for the second "suggested" direction for non-longitudinal connectors
     ChMatrix33<> A0;
-    ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector3d myele =
-        (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
-    A0.SetFromAxisX(mXele, myele);
+    ChVector3d dir1(nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos());
+    ChVector3d dir2;
+    if (section->GetSectionType() == ChBeamSectionCBLCON::ConSectionType::longitudinal) {
+        // We could have used directly the global Y direction ChVector3d(0, 1, 0) here,
+        // but in UpdateRotation() we find the orientation as the average of the nodes,
+        // so we us the average here as well for consistency.
+        dir2 = nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY();
+    } else {
+        dir2 = nodes[0]->GetX0().GetRotMat().GetAxisZ() + nodes[1]->GetX0().GetRotMat().GetAxisZ();
+    }
+    A0.SetFromAxisX(dir1, dir2); // Directions are normalized inside SetFromAxisX(), no need to normalize here
     q_element_ref_rot = A0.GetQuaternion();
     q_element_abs_rot = q_element_ref_rot; // Initialize the current quaternion as the reference quaternion
 
