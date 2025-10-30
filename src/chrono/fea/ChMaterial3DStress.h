@@ -24,8 +24,8 @@ namespace fea {
 
 // Forward:
 class ChFieldDisplacement3D;
-class ChFieldDataNONE;
-class ChFeaPerElementDataKRM;
+class ChFieldData;
+class ChElementData;
 
 
 /// @addtogroup chrono_fea
@@ -39,8 +39,6 @@ class ChFeaPerElementDataKRM;
 
 class ChMaterial3DStress : public ChMaterial3DDensity {
 public:
-    using T_per_materialpoint = ChFieldDataNONE;
-    using T_per_element = ChFeaPerElementDataKRM;
 
     ChMaterial3DStress() {}
 
@@ -48,29 +46,29 @@ public:
 
     /// Compute elastic stress from finite strain, passed as 3x3 deformation gradient tensor F_def.
     /// Assuming stress if Piola-Kirchhoff tensor S, in Voigt notation.
-    /// TODO: provide a more general interface with more inputs, ex. strain rate, states etc.,
-    /// now it is a bit like hyperelastic materials.
+
     virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
                                 const ChMatrix33d& F_def,           ///< current deformation gradient tensor
-                                T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
-                                T_per_element* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element point
+                                const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
+                                ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
     ) = 0;
 
     /// Computes the tangent modulus for a given strain, assuming it
     /// between delta of 2nd Piola-Kirchhoff S and delta of Green Lagrange E, both in Voigt notation.
     /// Assuming current strain is a 3x3 deformation gradient tensor F_def. 
-    /// TODO: provide a more general interface with more inputs, ex. strain rate, states etc.,
-    /// now it is a bit like hyperelastic materials.
+
     virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, ///< output C tangent modulus, as dS=C*dE
-                                const ChMatrix33d& F_def,           ///< current deformation gradient tensor
-                                T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
-                                T_per_element* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element point
+                                const ChMatrix33d& F_def,       ///< current deformation gradient tensor
+                                const ChMatrix33d* l,           ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
+                                ChFieldData* data_per_point,    ///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                ChElementData* data_per_element ///< pointer to auxiliary data (ex states), if any, per element 
     ) = 0;
 
     /// Update your own auxiliary data, if any, at the end of time step (ex for plasticity).
     /// This is called at the end of every time step (or nl static step)
-    virtual void ComputeUpdateEndStep(T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
-                                      T_per_element* data_per_element,    ///< pointer to auxiliary data (ex states), if any, per element point
+    virtual void ComputeUpdateEndStep(ChFieldData* data_per_point,          ///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                      ChElementData* data_per_element,      ///< pointer to auxiliary data (ex states), if any, per element 
                                       const double time
     ) {
          // default: do nothing. 
