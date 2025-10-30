@@ -25,11 +25,13 @@ namespace fea {
 /// @{
 
 
+
 /// Class for thermal fields, for FEA problems involving temperature, heat, etc.
 /// It contains properties for thermal problems PDEs of the type 
 ///    c*density dT/dt + div [k] grad T = q_source
 class ChApi ChMaterial3DThermal : public ChMaterialPoisson {
 public:
+
     ChMaterial3DThermal() : k_thermal_conductivity(1), c_mass_specific_heat_capacity(1000) {}
 
     virtual ~ChMaterial3DThermal() {}

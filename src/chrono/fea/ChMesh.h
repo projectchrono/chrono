@@ -172,7 +172,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// If true, as by default, this mesh will add automatically a gravity load
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
-    /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
+    /// So this saves you from adding many ChLoad<fea::ChLoaderGravity> to all elements.
     void SetAutomaticGravity(bool mg, int num_points = 1) {
         automatic_gravity_load = mg;
         num_points_gravity = num_points;

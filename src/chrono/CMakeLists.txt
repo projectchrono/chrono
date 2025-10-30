@@ -472,9 +472,10 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChNodeFEAfieldXYZ.cpp
     fea/ChFieldElement.cpp
     fea/ChFieldElementTetrahedron4.cpp
-    fea/ChFieldElementTetrahedron4Loaders.cpp
+    fea/ChFieldElementTetrahedron4Face.cpp
     fea/ChFieldElementHexahedron8.cpp
-    fea/ChFieldElementHexahedron8Loaders.cpp
+    fea/ChFieldElementHexahedron8Face.cpp
+    fea/ChFieldElementLoadableVolume.cpp
     fea/ChFieldData.cpp
     fea/ChField.cpp
     fea/ChMaterial.cpp
@@ -484,19 +485,27 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChMaterial3DStress.cpp
     fea/ChMaterial3DHyperelastic.cpp
     fea/ChMaterial3DStressStVenant.cpp
+    fea/ChMaterial3DThermalStress.cpp
     fea/ChDomain.cpp
     fea/ChDomainThermal.cpp
     fea/ChDomainDeformation.cpp
     fea/ChDomainThermoDeformation.cpp
     fea/ChVisualDataExtractor.cpp
+    fea/ChLoaderPressure.cpp
+    fea/ChLoaderGravity.cpp
+    fea/ChLoaderHeatFlux.cpp
+    fea/ChLoaderHeatRadiation.cpp
+    fea/ChLoaderHeatConvection.cpp
+    fea/ChLoaderHeatVolumetricSource.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
     fea/ChNodeFEAfieldXYZ.h
     fea/ChFieldElement.h
     fea/ChFieldElementTetrahedron4.h
-    fea/ChFieldElementTetrahedron4Loaders.h
+    fea/ChFieldElementTetrahedron4Face.h
     fea/ChFieldElementHexahedron8.h
-    fea/ChFieldElementHexahedron8Loaders.h
+    fea/ChFieldElementHexahedron8Face.h
+    fea/ChFieldElementLoadableVolume.h
     fea/ChFieldData.h
     fea/ChField.h
     fea/ChMaterial.h
@@ -506,11 +515,18 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChMaterial3DStress.h
     fea/ChMaterial3DHyperelastic.h
     fea/ChMaterial3DStressStVenant.h
+    fea/ChMaterial3DThermalStress.h
     fea/ChDomain.h
     fea/ChDomainThermal.h
     fea/ChDomainDeformation.h
     fea/ChDomainThermoDeformation.h
-    fea/ChVisualDataExtractor.h 
+    fea/ChVisualDataExtractor.h
+    fea/ChLoaderPressure.h
+    fea/ChLoaderGravity.h
+    fea/ChLoaderHeatFlux.h
+    fea/ChLoaderHeatRadiation.h
+    fea/ChLoaderHeatConvection.h
+    fea/ChLoaderHeatVolumetricSource.h
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 
