@@ -69,6 +69,12 @@ public:
         ComputeElasticTangentModulus(StressStrainMatrix, C_deformation);
     };
 
+    /// Hyperelastic materials do not need info on the spatial velocity gradient  l=\nabla_x v ,
+    /// Returning false from this means that the ChDomainXXYY can know that the
+    /// computation of the "l" parameter could be skipped left to null when calling ComputeStress(...)
+    virtual bool IsSpatialVelocityGradientNeeded() const { 
+        return false;
+    }
 
     /// Compute elastic stress from the right Cauchy-Green deformation tensor C = F^T*F. 
     /// Return stress as Piola-Kirchhoff S tensor, in Voigt notation. 
