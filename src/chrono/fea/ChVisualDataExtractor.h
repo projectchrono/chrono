@@ -32,36 +32,47 @@ namespace fea {
 /// @{
 
 
+
+
 class ChVisualDataExtractor {
+public:
+    virtual bool IsDataAtMaterialpoint() const = 0;
+    virtual bool IsDataAtNode() const = 0;
 };
 
-template <class T_field_data>
-class ChVisualDataExtractorImpl : public ChVisualDataExtractor {
-};
 
-class ChVisualDataExtractorScalarBase {
+class ChVisualDataExtractorScalarBase : public ChVisualDataExtractor {
 public:
     std::optional<double> virtual Extract(ChFieldData* data) const = 0;
 };
 
-class ChVisualDataExtractorVectorBase {
+class ChVisualDataExtractorVectorBase : public ChVisualDataExtractor {
 public:
     std::optional<ChVector3d> virtual Extract(ChFieldData* data) const = 0;
 };
 
-class ChVisualDataExtractorTensorBase {
+class ChVisualDataExtractorMatrix33Base : public ChVisualDataExtractor {
 public:
     std::optional<ChMatrix33d> virtual Extract(ChFieldData* data) const = 0;
 };
 
-class ChVisualDataExtractorQuaternionBase {
+class ChVisualDataExtractorQuaternionBase : public ChVisualDataExtractor {
 public:
     std::optional<ChQuaternion<double>> virtual Extract(ChFieldData* data) const = 0;
 };
 
+struct DataAtMaterialpoint {
+    static constexpr bool is_materialpoint = true;
+    static constexpr bool is_node = false;
+};
 
-template <class T_field_data>
-class ChVisualDataExtractorScalar : public ChVisualDataExtractorImpl<T_field_data>, public ChVisualDataExtractorScalarBase {
+struct DataAtNode {
+    static constexpr bool is_materialpoint = false;
+    static constexpr bool is_node = true;
+};
+
+template <class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorScalar :  public ChVisualDataExtractorScalarBase {
 public:
     std::optional<double> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -70,10 +81,13 @@ public:
         return std::nullopt;
     }
     virtual double ExtractImpl(const T_field_data* fdata) const = 0;
+
+    bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
+    bool IsDataAtNode() const override { return T_data_location::is_node; }
 };
 
-template <class T_field_data>
-class ChVisualDataExtractorVector : public ChVisualDataExtractorImpl<T_field_data>, public ChVisualDataExtractorVectorBase {
+template <class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorVector :  public ChVisualDataExtractorVectorBase {
 public:
     std::optional<ChVector3d> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -82,10 +96,13 @@ public:
         return std::nullopt;
     }
     virtual ChVector3d ExtractImpl(const T_field_data* fdata) const = 0;
+
+    bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
+    bool IsDataAtNode() const override { return T_data_location::is_node; }
 };
 
-template <class T_field_data>
-class ChVisualDataExtractorTensor : public ChVisualDataExtractorImpl<T_field_data>, public ChVisualDataExtractorTensorBase {
+template <class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorMatrix33 :  public ChVisualDataExtractorMatrix33Base {
 public:
     std::optional<ChMatrix33d> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -94,10 +111,13 @@ public:
         return std::nullopt;
     }
     virtual ChMatrix33d ExtractImpl(const T_field_data* fdata) const = 0;
+
+    bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
+    bool IsDataAtNode() const override { return T_data_location::is_node; }
 };
 
-template <class T_field_data>
-class ChVisualDataExtractorQuaternion : public ChVisualDataExtractorImpl<T_field_data>, public ChVisualDataExtractorQuaternionBase {
+template <class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorQuaternion :  public ChVisualDataExtractorQuaternionBase {
 public:
     std::optional<ChQuaternion<double>> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -106,6 +126,9 @@ public:
         return std::nullopt;
     }
     virtual ChQuaternion<double> ExtractImpl(const T_field_data* fdata) const = 0;
+
+    bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
+    bool IsDataAtNode() const override { return T_data_location::is_node; }
 };
 
 class ChVisualDataExtractorVectorComponent : public ChVisualDataExtractorScalarBase {
@@ -132,32 +155,33 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class ChVisualDataExtractorPos : public ChVisualDataExtractorVector<ChFieldDataPos3D> {
+
+class ChVisualDataExtractorPos : public ChVisualDataExtractorVector<ChFieldDataPos3D, DataAtNode> {
     virtual ChVector3d ExtractImpl(const ChFieldDataPos3D* fdata)  const override {
         return fdata->GetPos();
     }
 };
-class ChVisualDataExtractorPosDt : public ChVisualDataExtractorVector<ChFieldDataPos3D> {
+class ChVisualDataExtractorPosDt : public ChVisualDataExtractorVector<ChFieldDataPos3D, DataAtNode> {
     virtual ChVector3d ExtractImpl(const ChFieldDataPos3D* fdata)  const override {
         return fdata->GetPosDt();
     }
 };
-class ChVisualDataExtractorPosDt2 : public ChVisualDataExtractorVector<ChFieldDataPos3D> {
+class ChVisualDataExtractorPosDt2 : public ChVisualDataExtractorVector<ChFieldDataPos3D, DataAtNode> {
     virtual ChVector3d ExtractImpl(const ChFieldDataPos3D* fdata)  const override {
         return fdata->GetPosDt2();
     }
 };
-class ChVisualDataExtractorTemperature : public ChVisualDataExtractorScalar<ChFieldDataTemperature> {
+class ChVisualDataExtractorTemperature : public ChVisualDataExtractorScalar<ChFieldDataTemperature, DataAtNode> {
     virtual double ExtractImpl(const ChFieldDataTemperature* fdata)  const override {
         return const_cast<ChFieldDataTemperature*>(fdata)->T();
     }
 };
-class ChVisualDataExtractorTemperatureDt : public ChVisualDataExtractorScalar<ChFieldDataTemperature> {
+class ChVisualDataExtractorTemperatureDt : public ChVisualDataExtractorScalar<ChFieldDataTemperature, DataAtNode> {
     virtual double ExtractImpl(const ChFieldDataTemperature* fdata)  const override {
         return const_cast<ChFieldDataTemperature*>(fdata)->T_dt();
     }
 };
-class ChVisualDataExtractorElectricPotential : public ChVisualDataExtractorScalar<ChFieldDataElectricPotential> {
+class ChVisualDataExtractorElectricPotential : public ChVisualDataExtractorScalar<ChFieldDataElectricPotential, DataAtNode> {
     virtual double ExtractImpl(const ChFieldDataElectricPotential* fdata)  const override {
         return const_cast<ChFieldDataElectricPotential*>(fdata)->V();
     }
@@ -431,6 +455,9 @@ public:
         i_vector_prop_colorized = -1;
         i_scalar_prop_colorized = -1;
         use_colormap = false;
+
+        draw_materialpoints = false;
+        draw_nodes = false;
     }
     virtual ~ChVisualDomainGlyphs() {}
 
@@ -450,6 +477,10 @@ public:
 
         i_scalar_prop_colorized = (int)extractors_scalar_properties.size() - 1;
         i_vector_prop_colorized = -1;
+
+        auto mex = std::dynamic_pointer_cast<ChVisualDataExtractor>(mextractor);
+        if (mex->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
+        if (mex->IsDataAtNode()) this->draw_nodes = true;
     }
 
     /// Attach vector property extractor. Also turns the glyph rendering into ChGlyph::GLYPH_POINT mode.
@@ -468,6 +499,37 @@ public:
 
         i_scalar_prop_colorized = -1;
         i_vector_prop_colorized = (int)extractors_vector_properties.size() - 1;
+
+        auto mex = std::dynamic_pointer_cast<ChVisualDataExtractor>(mextractor);
+        if (mex->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
+        if (mex->IsDataAtNode()) this->draw_nodes = true;
+    }
+
+    /// Attach 3x3 matrix property extractor. Also turns the glyph rendering into ChGlyph::GLYPH_TENSOR mode.
+    /// If you added more than one property via AddPropertyExtractor(), by default the last one will
+    /// be used for the falsecolor rendering.
+    void AddPropertyExtractor(std::shared_ptr<ChVisualDataExtractorMatrix33Base> mextractor, double min = 0, double max = 1, std::string mname = "Matr") {
+        auto T_vproperty = new ChPropertyVector;
+        T_vproperty->min = min;
+        T_vproperty->max = max;
+        T_vproperty->name = mname;
+        this->m_properties.push_back(T_vproperty);
+        auto T_qproperty = new ChPropertyQuaternion;
+        T_qproperty->name = mname;
+        this->m_properties.push_back(T_qproperty);
+
+        this->extractors_tensor_properties.push_back({ mextractor, {T_qproperty,T_vproperty} });
+
+        this->SetDrawMode(GLYPH_TENSOR);
+        this->eigenvalues = &T_vproperty->data;
+        this->rotations = &T_qproperty->data;
+
+        i_scalar_prop_colorized = -1;
+        i_vector_prop_colorized = (int)extractors_vector_properties.size() - 1;
+
+        auto mex = std::dynamic_pointer_cast<ChVisualDataExtractor>(mextractor);
+        if (mex->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
+        if (mex->IsDataAtNode()) this->draw_nodes = true;
     }
 
     // Set the extractor that gets the 3D position where to draw the glyph (ex. node spatial coords, 
@@ -499,15 +561,18 @@ protected:
 
         // Count num of glyphs and..
         unsigned int tot_glyphs = 0;
-        for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
-            tot_glyphs += mdomain->GetField(ifield)->GetNumNodes();
+        if (this->draw_nodes) {
+            for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                tot_glyphs += mdomain->GetField(ifield)->GetNumNodes();
+            }
         }
-        auto ele_iter = mdomain->CreateIteratorOnElements();
-        while (!ele_iter->is_end()) {
-            tot_glyphs += ele_iter->get_element()->GetNumQuadraturePoints();
-            ele_iter->next();
+        if (this->draw_materialpoints) {
+            auto ele_iter = mdomain->CreateIteratorOnElements();
+            while (!ele_iter->is_end()) {
+                tot_glyphs += ele_iter->get_element()->GetNumQuadraturePoints();
+                ele_iter->next();
+            }
         }
-
         // ..resize the vector of points and all the vectors of properties
         this->Reserve(tot_glyphs);
 
@@ -516,88 +581,114 @@ protected:
         unsigned int i = 0;
         
         // Update from nodes
-        for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
-            auto mfield = mdomain->GetField(ifield);
-            
-            auto node_iterator = mfield->CreateIteratorOnNodes();
-            while (!node_iterator->is_end()) {
-                if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(node_iterator->get().first)) {
+        if (this->draw_nodes) {
+            for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                auto mfield = mdomain->GetField(ifield);
 
-                    // Fill the 3d positions vector in ChGlyphs::points  with the node positions (if possible, 
-                    // via extractor_position, otherwise falls back to ChNodeFEAfieldXYZ reference position)
-                    ChVector3d mpos = *nodexyz; // default node pos: the reference pos
-                    if (extractor_position)
-                        if (auto fetched_pos = extractor_position->Extract(&node_iterator->get().second))
-                            mpos = fetched_pos.value();
-                    this->points[i] = mpos;
-                    
-                    for (auto& mfetch_s : extractors_scalar_properties)
-                        if (auto fetched_s = mfetch_s.first->Extract(&node_iterator->get().second))
-                            mfetch_s.second->data[i] = fetched_s.value();
-                    for (auto& mfetch_v : extractors_vector_properties)
-                        if (auto fetched_v = mfetch_v.first->Extract(&node_iterator->get().second))
-                            mfetch_v.second->data[i] = fetched_v.value();
+                auto node_iterator = mfield->CreateIteratorOnNodes();
+                while (!node_iterator->is_end()) {
+                    if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(node_iterator->get().first)) {
 
-                    (*this->colors)[i] = mcolor;
-                }
-                ++i;
-                node_iterator->next();
-            }
+                        // Fill the 3d positions vector in ChGlyphs::points  with the node positions (if possible, 
+                        // via extractor_position, otherwise falls back to ChNodeFEAfieldXYZ reference position)
+                        ChVector3d mpos = *nodexyz; // default node pos: the reference pos
+                        if (extractor_position)
+                            if (auto fetched_pos = extractor_position->Extract(&node_iterator->get().second))
+                                mpos = fetched_pos.value();
+                        this->points[i] = mpos;
 
-        }// end loop on fields
+                        for (auto& mfetch_s : extractors_scalar_properties)
+                            if (auto fetched_s = mfetch_s.first->Extract(&node_iterator->get().second))
+                                mfetch_s.second->data[i] = fetched_s.value();
+                        for (auto& mfetch_v : extractors_vector_properties)
+                            if (auto fetched_v = mfetch_v.first->Extract(&node_iterator->get().second))
+                                mfetch_v.second->data[i] = fetched_v.value();
 
-        // Update from material points
-        ele_iter = mdomain->CreateIteratorOnElements();
-        while (!ele_iter->is_end()) {
-            auto element = ele_iter->get_element();
-
-            ChMatrixDynamic<double> Xhat(3, element->GetNumNodes());
-            ChRowVectorDynamic<double> N(element->GetNumNodes());
-
-            // build the Xhat matrix, with all node xyz positions as columns, Xhat=[x1|x2|x3|...]
-            bool has_position_fetched = false;
-            if (extractor_position) {
-                for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
-                    for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
-                        if (auto fetched_s = extractor_position->Extract(&ele_iter->get_data_per_node(inode, ifield))) {
-                            Xhat.col(inode) = fetched_s.value().eigen();
-                            has_position_fetched = true;
-                        }
+                        (*this->colors)[i] = mcolor;
                     }
-                    if (has_position_fetched)
-                        break;
+                    ++i;
+                    node_iterator->next();
                 }
-            }
-            if (!has_position_fetched) {
-                for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
-                    if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(ele_iter->get_element()->GetNode(inode))) {
-                        Xhat.col(inode) = (*nodexyz).eigen();
-                    }
-                }
-            }
 
-            for (int imatpoint = 0; imatpoint < element->GetNumQuadraturePoints(); ++imatpoint) {
-                ChVector3d eta;
-                double weight;
-                ele_iter->get_data_per_matpoint(imatpoint);
-                element->GetQuadraturePointWeight(element->GetQuadratureOrder(), imatpoint, weight, eta);
-                
-                element->ComputeN(eta, N);
-
-                this->points[i]  = Xhat * N.transpose();  // position interpolated at quadrature point
-                (*this->colors)[i] = mcolor;
-
-                for (auto& mfetch_s : extractors_scalar_properties)
-                    if (auto fetched_s = mfetch_s.first->Extract(&ele_iter->get_data_per_matpoint(imatpoint)))
-                        mfetch_s.second->data[i] = fetched_s.value();
-                for (auto& mfetch_v : extractors_vector_properties)
-                    if (auto fetched_v = mfetch_v.first->Extract(&ele_iter->get_data_per_matpoint(imatpoint)))
-                        mfetch_v.second->data[i] = fetched_v.value();
-                ++i;
-            }
-            ele_iter->next();
+            }// end loop on fields
         }
 
+        // Update from material points
+        if (this->draw_materialpoints) {
+            auto ele_iter = mdomain->CreateIteratorOnElements();
+            while (!ele_iter->is_end()) {
+                auto element = ele_iter->get_element();
+
+                ChMatrixDynamic<double> Xhat(3, element->GetNumNodes());
+                ChRowVectorDynamic<double> N(element->GetNumNodes());
+
+                // build the Xhat matrix, with all node xyz positions as columns, Xhat=[x1|x2|x3|...]
+                bool has_position_fetched = false;
+                if (extractor_position) {
+                    for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                        for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
+                            if (auto fetched_s = extractor_position->Extract(ele_iter->get_data_per_node(inode, ifield))) {
+                                Xhat.col(inode) = fetched_s.value().eigen();
+                                has_position_fetched = true;
+                            }
+                        }
+                        if (has_position_fetched)
+                            break;
+                    }
+                }
+                if (!has_position_fetched) {
+                    for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
+                        if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(ele_iter->get_element()->GetNode(inode))) {
+                            Xhat.col(inode) = (*nodexyz).eigen();
+                        }
+                    }
+                }
+
+                for (int imatpoint = 0; imatpoint < element->GetNumQuadraturePoints(); ++imatpoint) {
+                    ChVector3d eta;
+                    double weight;
+                    //ele_iter->get_data_per_matpoint(imatpoint);
+                    element->GetQuadraturePointWeight(element->GetQuadratureOrder(), imatpoint, weight, eta);
+
+                    element->ComputeN(eta, N);
+
+                    this->points[i] = Xhat * N.transpose();  // position interpolated at quadrature point
+                    (*this->colors)[i] = mcolor;
+
+                    for (auto& mfetch_s : extractors_scalar_properties) {
+                        if (mfetch_s.first->IsDataAtNode()) {
+                            if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_matpoint(imatpoint)))
+                                mfetch_s.second->data[i] = fetched_s.value();
+                            if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_matpoint_aux(imatpoint)))
+                                mfetch_s.second->data[i] = fetched_s.value();
+                        }
+                    }
+                    for (auto& mfetch_v : extractors_vector_properties) {
+                        if (auto fetched_v = mfetch_v.first->Extract(ele_iter->get_data_per_matpoint(imatpoint)))
+                            mfetch_v.second->data[i] = fetched_v.value();
+                        if (auto fetched_v = mfetch_v.first->Extract(ele_iter->get_data_per_matpoint_aux(imatpoint)))
+                            mfetch_v.second->data[i] = fetched_v.value();
+                    }
+                    for (auto& mfetch_t : extractors_tensor_properties) {
+                        auto fetched_t = mfetch_t.first->Extract(ele_iter->get_data_per_matpoint(imatpoint));
+                        if (!fetched_t)
+                             fetched_t = mfetch_t.first->Extract(ele_iter->get_data_per_matpoint_aux(imatpoint));
+                        if (fetched_t) {
+                            Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(fetched_t.value());
+                            ChMatrix33d Meigenvectors = solver.eigenvectors();
+                            ChVector3d Meigenvalues = solver.eigenvalues();
+                            if (Meigenvectors.determinant() < 0) {
+                                Meigenvectors.col(2) *= -1.0;
+                            }
+                            mfetch_t.second.first->data[i] = Meigenvectors.GetQuaternion(); // rotation from eigenvectors
+                            mfetch_t.second.second->data[i] = Meigenvalues;  // vector containing 3 eigenvalues
+                        }    
+                    }
+                    ++i;
+                }
+                ele_iter->next();
+            }
+        }
 
         // Update glyph colors via colormap, filling the color vector, i.e. iterating into the .data of 
         // the flagged property, and storing the computed color in the .data of the "color" property that is added by default:
@@ -619,6 +710,7 @@ protected:
     std::shared_ptr<ChVisualDataExtractorVectorBase> extractor_position;
     std::vector<std::pair<std::shared_ptr<ChVisualDataExtractorScalarBase>, ChPropertyScalar*> > extractors_scalar_properties;
     std::vector<std::pair<std::shared_ptr<ChVisualDataExtractorVectorBase>, ChPropertyVector*> > extractors_vector_properties;
+    std::vector<std::pair<std::shared_ptr<ChVisualDataExtractorMatrix33Base>, std::pair<ChPropertyQuaternion*, ChPropertyVector*>> > extractors_tensor_properties;
 
     std::shared_ptr<ChDomain> mdomain;
 
@@ -627,6 +719,9 @@ protected:
 
     int i_scalar_prop_colorized;
     int i_vector_prop_colorized;
+
+    bool draw_materialpoints;
+    bool draw_nodes;
 };
 
 
@@ -703,6 +798,12 @@ public:
         use_colormap = false;
     }
 
+    /// Set shrinkage of elements during drawing.
+    void SetShrinkElements(bool shrink, double factor) {
+        this->shrink_elements = shrink;
+        this->shrink_factor = factor;
+    }
+
 protected:
 
     virtual void Update(ChObj* updater, const ChFrame<>& frame) override {
@@ -744,14 +845,16 @@ protected:
         auto ele_iter = mdomain->CreateIteratorOnElements();
         while (!ele_iter->is_end()) {
 
+            unsigned int ele_num_nodes = ele_iter->get_element()->GetNumNodes();
+
             // Given N nodes in the element, fill the first N values in the std::vector 
             // this->GetMesh()->GetCoordsVertices()  with the N positions (if possible, 
             // via extractor_position, otherwise falls back to ChNodeFEAfieldXYZ reference position)
             bool has_position_fetched = false;
             if (extractor_position) {
                 for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
-                    for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
-                        if (auto fetched_s = extractor_position->Extract(&ele_iter->get_data_per_node(inode, ifield))) {
+                    for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
+                        if (auto fetched_s = extractor_position->Extract(ele_iter->get_data_per_node(inode, ifield))) {
                             this->GetMesh()->GetCoordsVertices()[offset_vert + inode] = fetched_s.value();
                             has_position_fetched = true;
                         }
@@ -761,19 +864,28 @@ protected:
                 }
             }
             if (!has_position_fetched) {
-                for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
+                for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
                     if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(ele_iter->get_element()->GetNode(inode))) {
                         this->GetMesh()->GetCoordsVertices()[offset_vert + inode] = *nodexyz;
                     }
                 }
             }
 
+            if (shrink_elements) {
+                ChVector3d vc(0, 0, 0);
+                for (unsigned int inode = 0; inode < ele_num_nodes; ++inode)
+                    vc += this->GetMesh()->GetCoordsVertices()[offset_vert + inode];
+                vc = vc * (1.0 / 8.0);  // average, center of element
+                for (unsigned int inode = 0; inode < ele_num_nodes; ++inode)
+                    this->GetMesh()->GetCoordsVertices()[offset_vert + inode] = vc + shrink_factor * (this->GetMesh()->GetCoordsVertices()[offset_vert + inode] - vc);
+            }
+
             // Given N nodes in the element, fill the first N values in the std::vector 
             // embedded in this->GetMesh()->GetPropertiesPerVertex()  with the N values of property
             for (auto& mfetch_s : extractors_scalar_properties) {
                 for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
-                    for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
-                        if (auto fetched_s = mfetch_s.first->Extract(&ele_iter->get_data_per_node(inode, ifield))) {
+                    for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
+                        if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_node(inode, ifield))) {
                             mfetch_s.second->data[offset_vert + inode] = fetched_s.value();
                         }
                     }
@@ -781,8 +893,8 @@ protected:
             }
             for (auto& mfetch_s : extractors_vector_properties) {
                 for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
-                    for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
-                        if (auto fetched_s = mfetch_s.first->Extract(&ele_iter->get_data_per_node(inode, ifield))) {
+                    for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
+                        if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_node(inode, ifield))) {
                             mfetch_s.second->data[offset_vert + inode] = fetched_s.value();
                         }
                     }
@@ -796,7 +908,6 @@ protected:
                 offset_vert, 
                 offset_tri, 
                 offset_norm);
-
 
             ele_iter->next();
 
@@ -833,6 +944,9 @@ protected:
 
     int i_scalar_prop_colorized;
     int i_vector_prop_colorized;
+
+    bool shrink_elements;
+    double shrink_factor;
 };
 
 
