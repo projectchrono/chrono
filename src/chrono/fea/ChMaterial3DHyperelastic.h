@@ -27,8 +27,10 @@ namespace fea {
 
 
 /// Class for hyperelastic materials, that is materials with a constitutive equation 
-/// of the type  P = f(E) , where E is the Green Lagrange strain tensor, and P is the
-/// 2nd Piola-Kirchhoff strain. Or in general, materials for which the stress–strain 
+/// of the type  P = f(C) , where P is the 2nd Piola-Kirchhoff strain and 
+/// C is the right Cauchy-Green deformation tensor C=F^T*F  (in material space)
+/// as in E = 1/2(C -I) where E the Green Lagrange strain tensor. 
+/// Or in general, materials for which the stress–strain 
 /// relationship derives from a strain energy density function.
 
 class ChMaterial3DHyperelastic : public ChMaterial3DStress {
@@ -40,50 +42,42 @@ public:
     /// Implement interface to lower level stress material
     virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
                                 const ChMatrix33d& F,               ///< current deformation gradient tensor
-                                T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
-                                T_per_element* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element point
+                                const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
+                                ChFieldData* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
     ) override {
+  
+        // right Cauchy-Green deformation tensor C = F^T*F
+        ChMatrix33d C_deformation = F.transpose() * F;
 
-        // Green Lagrange    E = 1/2( F*F' - I)
-        ChMatrix33d E_strain33 = 0.5 * (F * F.transpose() - ChMatrix33d(1));
-
-        ChStrainTensor<> E_strain; // Green Lagrange in Voigt notation
-        E_strain.ConvertFromMatrix(E_strain33);
-        E_strain.XY() *= 2; E_strain.XZ() *= 2; E_strain.YZ() *= 2;
-        
         // Use the hyperelastic stress computation
-        ComputeElasticStress(S_stress, E_strain);
+        ComputeElasticStress(S_stress, C_deformation);
     };
 
     /// Implement interface to lower level stress material
     virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, ///< output C tangent modulus, dP=C*dE
-                                        const ChMatrix33d& F,                   ///< current deformation gradient tensor
-                                        T_per_materialpoint* data_per_point,///< pointer to auxiliary data (ex states), if any, per quadrature point
-                                        T_per_element* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element point
+                                        const ChMatrix33d& F,               ///< current deformation gradient tensor
+                                        const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
+                                        ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point
+                                        ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
     ) override {
-        
-        // Green Lagrange    E = 1/2( F*F' - I)
-        ChMatrix33d E_strain33 = 0.5 * (F * F.transpose() - ChMatrix33d(1));
 
-        ChStrainTensor<> E_strain; // Green Lagrange in Voigt notation
-        E_strain.ConvertFromMatrix(E_strain33);
-        E_strain.XY() *= 2; E_strain.XZ() *= 2; E_strain.YZ() *= 2;
+        // right Cauchy-Green deformation tensor C = F^T*F
+        ChMatrix33d C_deformation = F.transpose() * F;
 
         // Use the hyperelastic tangent modulus computation
-        ComputeElasticTangentModulus(StressStrainMatrix, E_strain);
+        ComputeElasticTangentModulus(StressStrainMatrix, C_deformation);
     };
 
 
-    /// Compute elastic stress from elastic strain.  Assuming the 2* factor in the last 3 values of strain Voigt notation.
-    /// Assuming strain is Green-Lagrange tensor E, in Voigt notation. For small strains it coincides with espilon tensor.
-    /// Assuming stress if Piola-Kirchhoff tensor S, in Voigt notation. 
+    /// Compute elastic stress from the right Cauchy-Green deformation tensor C = F^T*F. 
+    /// Return stress as Piola-Kirchhoff S tensor, in Voigt notation. 
     /// Children materials MUST implement this.
-    virtual void ComputeElasticStress(ChStressTensor<>& S_stress, const ChStrainTensor<>& E_strain) = 0;
+    virtual void ComputeElasticStress(ChStressTensor<>& S_stress, const ChMatrix33d& C_deformation) = 0;
 
-    /// Computes the tangent modulus for a given strain. For linear elasticity it is the constant E matrix.
-    /// Assuming strain is Green-Lagrange tensor, in Voigt notation. For small strains it coincides with espilon tensor.
+    /// Computes the tangent modulus for a given deformation.
     /// Children materials MUST implement this.
-    virtual void ComputeElasticTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, const ChStrainTensor<>& strain) = 0;
+    virtual void ComputeElasticTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, const ChMatrix33d& C_deformation) = 0;
 };
 
 

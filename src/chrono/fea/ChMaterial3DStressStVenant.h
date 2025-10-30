@@ -96,23 +96,31 @@ public:
     double GetPWaveModulus() const { return m_E * ((1 - m_poisson) / (1 + m_poisson) * (1 - 2 * m_poisson)); }
 
 
-    /// Compute elastic stress from elastic strain.  Assuming the 2* factor in the last 3 values of strain Voigt notation.
-    /// Assuming strain is Green-Lagrange E tensor, in Voigt notation. For small strains it coincides with espilon tensor.
-    /// Assuming stress if Piola-Kirchhoff S tensor, in Voigt notation. 
-    virtual void ComputeElasticStress(ChStressTensor<>& stress, const ChStrainTensor<>& strain) override {
-            double G = GetShearModulus();
-            stress.XX() = strain.XX() * (m_lamefirst + 2 * G) + strain.YY() * m_lamefirst + strain.ZZ() * m_lamefirst;
-            stress.YY() = strain.XX() * m_lamefirst + strain.YY() * (m_lamefirst + 2 * G) + strain.ZZ() * m_lamefirst;
-            stress.ZZ() = strain.XX() * m_lamefirst + strain.YY() * m_lamefirst + strain.ZZ() * (m_lamefirst + 2 * G);
-            stress.XY() = strain.XY() * G;
-            stress.XZ() = strain.XZ() * G;
-            stress.YZ() = strain.YZ() * G;
+    /// Compute elastic stress from elastic strain. 
+    /// Computes Green-Lagrange strain E from C_deformation, the right Cauchy-Green deformation.
+    /// For small strains the Green Lagrange strain in Voigt notation coincides with espilon tensor.
+    /// Return stress as Piola-Kirchhoff S tensor, in Voigt notation. 
+    virtual void ComputeElasticStress(ChStressTensor<>& stress, const ChMatrix33d& C_deformation) override {
+        
+        // Green Lagrange    E = 1/2( F*F' - I) = 1/2( C - I) 
+        ChMatrix33d E_strain33 = 0.5 * (C_deformation - ChMatrix33d(1));
+    
+        // Green Lagrange in Voigt notation (todo: optimization: could be skipped)
+        ChStrainTensor<> strain; 
+        strain.ConvertFromMatrix(E_strain33);
+        strain.XY() *= 2; strain.XZ() *= 2; strain.YZ() *= 2;
+
+        double G = GetShearModulus();
+        stress.XX() = strain.XX() * (m_lamefirst + 2 * G) + strain.YY() * m_lamefirst + strain.ZZ() * m_lamefirst;
+        stress.YY() = strain.XX() * m_lamefirst + strain.YY() * (m_lamefirst + 2 * G) + strain.ZZ() * m_lamefirst;
+        stress.ZZ() = strain.XX() * m_lamefirst + strain.YY() * m_lamefirst + strain.ZZ() * (m_lamefirst + 2 * G);
+        stress.XY() = strain.XY() * G;
+        stress.XZ() = strain.XZ() * G;
+        stress.YZ() = strain.YZ() * G;
     }
 
-    /// Computes the tangent modulus C for a given strain. Assuming the 2* factor in the last 3 values of strain Voigt notation.
-    /// Since here we are using the StVenant model S=[C]*E, this is linear elasticity and C is constant matrix. 
-    /// Assuming strain is Green-Lagrange E tensor, in Voigt notation. For small strains it coincides with espilon tensor.
-    virtual void ComputeElasticTangentModulus(ChMatrixNM<double, 6, 6>& C, const ChStrainTensor<>& strain) override {
+    /// Computes the tangent modulus C for a given strain. 
+    virtual void ComputeElasticTangentModulus(ChMatrixNM<double, 6, 6>& C, const ChMatrix33d& C_deformation) override {
         C = this->StressStrainMatrix;
     }
 
