@@ -97,9 +97,11 @@ public:
 
 
     /// Compute elastic stress from elastic strain. 
-    /// Computes Green-Lagrange strain E from C_deformation, the right Cauchy-Green deformation.
+    /// Starts computing Green-Lagrange strain E from C_deformation, the right Cauchy-Green deformation.
     /// For small strains the Green Lagrange strain in Voigt notation coincides with espilon tensor.
     /// Return stress as Piola-Kirchhoff S tensor, in Voigt notation. 
+    /// This is a very simple material, ie. a linear funciton  S=C:E with C as 4th order constant tensor,
+    /// also S=[C]*E with 6x6 C in Voigt notation. 
     virtual void ComputeElasticStress(ChStressTensor<>& stress, const ChMatrix33d& C_deformation) override {
         
         // Green Lagrange    E = 1/2( F*F' - I) = 1/2( C - I) 
@@ -119,7 +121,8 @@ public:
         stress.YZ() = strain.YZ() * G;
     }
 
-    /// Computes the tangent modulus C for a given strain. 
+    /// Computes the tangent modulus C. 
+    /// (The Cauchy-Green deformation "C_deformation" is not used here, as C  in S=C:E is independent on C_deformation)
     virtual void ComputeElasticTangentModulus(ChMatrixNM<double, 6, 6>& C, const ChMatrix33d& C_deformation) override {
         C = this->StressStrainMatrix;
     }

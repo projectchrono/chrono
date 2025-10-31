@@ -34,10 +34,10 @@ public:
     virtual ~ChMaterial3DDensity() {}
 
     /// Set the density of the material, in kg/m^2.
-    void SetDensity(double density) { m_density = density; }
+    virtual void SetDensity(double density) { m_density = density; }
 
     /// Get the density of the material, in kg/m^2.
-    double GetDensity() const { return m_density; }
+    virtual double GetDensity() const { return m_density; }
 
     //virtual void ArchiveOut(ChArchiveOut& archive_out);
     //virtual void ArchiveIn(ChArchiveIn& archive_in);
