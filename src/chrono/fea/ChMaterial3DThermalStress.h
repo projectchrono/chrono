@@ -49,6 +49,12 @@ public:
 
     double thermal_expansion_coefficient = 0;
     
+    /// Set density of material. Both for stress problem and for thermal problem.
+    virtual void SetDensity(double md) override { 
+        this->ChMaterial3DDensity::SetDensity(md);
+        this->material_stress->SetDensity(md);
+        this->material_thermal->SetDensity(md);
+    }
     /// Implement this because the material might need custom data per material point. 
     /// Here the user can have plugged a material_stress of variuous type, so fall back to its custom data creation
     virtual std::unique_ptr<ChFieldData> CreateMaterialPointData() const override {
