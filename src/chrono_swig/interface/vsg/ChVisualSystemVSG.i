@@ -9,6 +9,11 @@ using namespace chrono::vsg3d;
 
 %}
 
+#ifdef SWIGCSHARP
+// Mark override method for handling in C#
+%csmethodmodifiers chrono::vsg3d::ChVisualSystemVSG::AddGrid "public override"
+#endif
+
 %shared_ptr(chrono::vsg3d::ChVisualSystemVSG)
 %shared_ptr(chrono::vsg3d::ChVisualSystemVSGPlugin)
 
