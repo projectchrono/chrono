@@ -85,8 +85,6 @@ public:
         const double s,
         ChVectorDynamic<>& Fi
     ) override {
-        ChVectorDynamic<> T;
-        this->GetStateBlock(melement, T);
         ChMatrixDynamic<> dNdX;
         ChRowVectorDynamic<> N;
         melement->ComputedNdX(eta, dNdX);
@@ -258,67 +256,73 @@ public:
         // Do also gravity, automatic per each element:
         // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
         if (this->automatic_gravity_load) {
-            /*
-            for (auto& mel : this->element_datamap) {
-                int quadorder = mel.first->GetQuadratureOrder();
-                int numpoints = mel.first->GetNumQuadraturePoints();
-                ChMatrix33<> J;
-                ChVector3d eta;
-                double weight;
-                for (int i_point = 0; i_point < numpoints; ++i_point) {
-                    mel.first->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
-                    double det_J = mel.first->ComputeJ(eta, J);
-                    double s = weight * det_J;
-                    ChRowVectorDynamic<> N(mel.first->GetNumNodes());
-                    mel.first->ComputeN(eta, N);
+            this->LoadAutomaticGravity(R, c);
+        } 
+    }
 
-                    unsigned int stride = 0;
-                    unsigned int i_field = 0;
-                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
-                    for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
-                        ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+    /// Utility function that adds gravity force per each element. 
+    /// This function can called from the IntLoadResidual_F() function.
+    void LoadAutomaticGravity(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
+                              const double c           ///< a scaling factor
+    ) {
+        unsigned int i_field = 0; // assume ChFieldDisplacement is the first in the tuple of this domain
+        int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel(); // should be 3 anyway
+
+        auto mloadable_uvw = chrono_types::make_shared<ChFieldElementLoadableVolume>(nullptr, this->fields[i_field]);
+
+        fea::ChLoaderGravity mygravity_loader(nullptr, this->material->GetDensity());
+        mygravity_loader.SetGravitationalAcceleration(this->gravity_G_acceleration);
+        mygravity_loader.SetNumIntPoints(this->num_points_gravity);
+        mygravity_loader.SetLoadable(mloadable_uvw);
+
+        for (auto& mel : this->element_datamap) {
+            if (auto melement_volume = std::dynamic_pointer_cast<ChFieldElementVolume>(mel.first)) {
+                mloadable_uvw->SetElement(melement_volume);
+                mygravity_loader.ComputeQ(nullptr, nullptr);
+                // Q is contiguous, so must store sparsely in R, per each node 
+                unsigned int stride = 0;
+                for (unsigned int i_node = 0; i_node < melement_volume->GetNumNodes(); i_node++) {
+                    if (ChFieldDataState* mfielddata = dynamic_cast<ChFieldDataState*>(mel.second.nodes_data[i_node][i_field])) {
                         if (!mfielddata->IsFixed()) {
-                            R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += (c * s * N(i_node) * this->material->GetDensity() * this->gravity_G_acceleration).eigen();
+                            R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * mygravity_loader.Q.segment(stride, nfield_coords);
                         }
                         stride += nfield_coords;
                     }
                 }
             }
-            */
+        }
 
-            // Alternative method ...
-            fea::ChLoaderGravity mygravity_loader(nullptr, this->material->GetDensity());
-            mygravity_loader.SetGravitationalAcceleration(this->gravity_G_acceleration);
-            mygravity_loader.SetNumIntPoints(this->num_points_gravity);
+        // alternative, more low-level method that bypasses the integration of the ChLoaderGravity and uses the ChFieldElement quadrature directly:
+        /*
+        for (auto& mel : this->element_datamap) {
+            int quadorder = mel.first->GetQuadratureOrder();
+            int numpoints = mel.first->GetNumQuadraturePoints();
+            ChMatrix33<> J;
+            ChVector3d eta;
+            double weight;
+            for (int i_point = 0; i_point < numpoints; ++i_point) {
+                mel.first->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
+                double det_J = mel.first->ComputeJ(eta, J);
+                double s = weight * det_J;
+                ChRowVectorDynamic<> N(mel.first->GetNumNodes());
+                mel.first->ComputeN(eta, N);
 
-            for (auto& mel : this->element_datamap) {
-                if (auto melement_volume = std::dynamic_pointer_cast<ChFieldElementVolume>(mel.first)) {
-                    ChVectorDynamic<> Fg(this->fields[0]->GetNumFieldCoordsVelLevel() * mel.first->GetNumNodes());
-                    auto mloadable_uvw = chrono_types::make_shared<ChFieldElementLoadableVolume>(melement_volume, this->fields[0]);
-                    mygravity_loader.SetLoadable(mloadable_uvw);
-                    mygravity_loader.ComputeQ(nullptr, nullptr);
-
-                    // Q is contiguous, so must store sparsely in R, per each node 
-                    unsigned int stride = 0;
-                    unsigned int i_field = 0;
-                    for (unsigned int i_node = 0; i_node < melement_volume->GetNumNodes(); i_node++) {
-                        if (ChFieldDataState* mfielddata = dynamic_cast<ChFieldDataState*>(mel.second.nodes_data[i_node][i_field])) {
-                            int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
-                            if (!mfielddata->IsFixed()) {
-                                R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * mygravity_loader.Q.segment(stride, nfield_coords);
-                            }
-                            stride += nfield_coords;
-                        }
+                unsigned int stride = 0;
+                unsigned int i_field = 0;
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                    ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    if (!mfielddata->IsFixed()) {
+                        R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += (c * s * N(i_node) * this->material->GetDensity() * this->gravity_G_acceleration).eigen();
                     }
+                    stride += nfield_coords;
                 }
             }
-
-        } // end automatic gravity
-
-
-
-
+        }
+        */
+        
     }
+
 
     /// If true, as by default, this mesh will add automatically a gravity load
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
