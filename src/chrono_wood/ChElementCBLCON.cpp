@@ -168,6 +168,8 @@ void ChElementCBLCON::UpdateRotation() {
     //       - ConSectionType::radial_ray_top
     //       - TBD about tangential rays: ConSectionType::tangential_ray_bot, ConSectionType::tangential_ray_gen, ConSectionType::tangential_ray_top
     //    For those, rotation is unnecessary
+    // TODO JBC: The top/bottom connectors should have an offset
+    //           when this is changed in the CAD, the code below should include top/bottom connectors
     if (section->GetSectionType() == ChBeamSectionCBLCON::ConSectionType::longitudinal) { // TODO JBC: why is this not aligned?
         ChQuaternion<> q_delta = q_element_abs_rot * q_element_ref_rot.GetConjugate();
         ChVector3d xp_xc0 = section->Get_center_ref() - 0.5 * (nodes[0]->GetX0().GetPos() + nodes[1]->GetX0().GetPos());
