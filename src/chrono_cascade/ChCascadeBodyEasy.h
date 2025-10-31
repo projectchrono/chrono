@@ -66,6 +66,18 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
                       std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
     );
 
+    /// Creates a body by searching the given name in the given Cascade document. If the shape is not found, do nothing.
+    /// Optionally add a visualization shape and a collision shape.
+    /// Mass and inertia are set automatically depending on density.
+    /// The COG is automatically displaced, and the reference position is initialized as shape location.
+    ChCascadeBodyEasy(const std::string& shape_name,                    ///< shape name
+                      const ChCascadeDoc& doc,                          ///< Cascade document
+                      double density,                                   ///< density
+                      bool create_visualization = true,                 ///< create triangulated shape for visualization
+                      bool create_collision = false,                    ///< create collision shape
+                      std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
+    );
+
   private:
     void Init(TopoDS_Shape& shape,                               ///< OpenCASCADE shape
               double density,                                    ///< density

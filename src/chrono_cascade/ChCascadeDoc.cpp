@@ -132,26 +132,35 @@ static int WildcardCompare(const char* wildcard, const char* string) {
 
 class DumpShapesCallback : public ChCascadeDoc::ScanShapesCallback {
   public:
-    virtual bool ForShape(TopoDS_Shape& shape, TopLoc_Location& loc, const std::string& name, int level, TDF_Label& label) override {
+    DumpShapesCallback(std::ostream& ostream) : m_ostream(ostream) {};
+
+    virtual bool ForShape(TopoDS_Shape& shape,
+                          TopLoc_Location& loc,
+                          const std::string& name,
+                          int level,
+                          TDF_Label& label) override {
         for (int i = 0; i < level; i++)
-            std::cout << "  ";
-        std::cout << "- Name: " << name;
+            m_ostream << "  ";
+        m_ostream << "- Name: " << name;
 
         if (level == 0)
-            std::cout << " (root)";
-        std::cout << "\n";
+            m_ostream << " (root)";
+        m_ostream << "\n";
 
         for (int i = 0; i < level; i++)
-            std::cout << "  ";
+            m_ostream << "  ";
         gp_XYZ mtr = loc.Transformation().TranslationPart();
-        std::cout << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
+        m_ostream << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
         for (int i = 0; i < level; i++)
-            std::cout << "  ";
+            m_ostream << "  ";
         gp_XYZ mtr2 = shape.Location().Transformation().TranslationPart();
-        std::cout << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
+        m_ostream << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
 
         return true;
     }
+
+  private:
+    std::ostream& m_ostream;
 };
 
 class GetNamedShapesCallback : public ChCascadeDoc::ScanShapesCallback {
@@ -211,7 +220,11 @@ class GetNamedShapesCallback : public ChCascadeDoc::ScanShapesCallback {
         }
     }
 
-    virtual bool ForShape(TopoDS_Shape& shape, TopLoc_Location& loc, const std::string& name, int mlevel, TDF_Label& label) override {
+    virtual bool ForShape(TopoDS_Shape& shape,
+                          TopLoc_Location& loc,
+                          const std::string& name,
+                          int mlevel,
+                          TDF_Label& label) override {
         if ((int)level_names.size() > mlevel) {
             if (WildcardCompare(level_names[mlevel].c_str(), name.c_str())) {
                 if (level_copy[mlevel] != -2) {
@@ -263,7 +276,7 @@ ChCascadeDoc::~ChCascadeDoc() {
     doc = 0;
 }
 
-void ChCascadeDoc::ScanCascadeShapes(ScanShapesCallback& callback) {
+void ChCascadeDoc::ScanCascadeShapes(ScanShapesCallback& callback) const {
     TopLoc_Location rootloc;
     rootloc.Identity();
 
@@ -292,15 +305,18 @@ bool ChCascadeDoc::LoadSTEP(const std::string& filename) {
     return false;
 }
 
-void ChCascadeDoc::Dump(std::ostream& stream) {
-    DumpShapesCallback dump;
-    this->ScanCascadeShapes(dump);
+void ChCascadeDoc::Dump(std::ostream& stream) const {
+    DumpShapesCallback dump(stream);
+    ScanCascadeShapes(dump);
 }
 
-bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& shape, const std::string& name, bool set_location_to_root, bool get_multiple) {
+bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& shape,
+                                 const std::string& name,
+                                 bool set_location_to_root,
+                                 bool get_multiple) const {
     GetNamedShapesCallback selector(name.c_str());
 
-    this->ScanCascadeShapes(selector);
+    ScanCascadeShapes(selector);
 
     if (selector.res_found) {
         if (get_multiple)
@@ -314,7 +330,7 @@ bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& shape, const std::string& name, b
     }
 }
 
-bool ChCascadeDoc::GetRootShape(TopoDS_Shape& shape, const int num) {
+bool ChCascadeDoc::GetRootShape(TopoDS_Shape& shape, const int num) const {
     opencascade::handle<XCAFDoc_ShapeTool> shapeTool = XCAFDoc_DocumentTool::ShapeTool((*doc)->Main());
     TDF_LabelSequence root_labels;
     shapeTool->GetFreeShapes(root_labels);
@@ -363,7 +379,7 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& shape,    ///< pass t
     return true;
 }
 
-void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFrame<>& to_coord) {
+void ChCascadeDoc::ConvertFrameCascadeToChrono(const TopLoc_Location& from_coord, ChFramed& to_coord) {
     gp_XYZ mtr = from_coord.Transformation().TranslationPart();
     to_coord.SetPos(ChVector3d(mtr.X(), mtr.Y(), mtr.Z()));
 
@@ -385,7 +401,7 @@ void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFram
     to_coord.SetRot(to_mat);
 }
 
-void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord) {
+void ChCascadeDoc::ConvertFrameChronoToCascade(const ChFramed& from_coord, TopLoc_Location& to_coord) {
     const ChVector3d& mpos = from_coord.GetPos();
     gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
