@@ -161,7 +161,7 @@ public:
 
     class ChVisualDataExtractorHeatFlux : public ChVisualDataExtractorVector<ChFieldDataAuxiliaryThermal, DataAtMaterialpoint > {
         virtual ChVector3d ExtractImpl(const ChFieldDataAuxiliaryThermal* fdata)  const override {
-            return const_cast<ChFieldDataAuxiliaryThermal*>(fdata)->q_flux;
+            return fdata->q_flux;
         }
     };
 

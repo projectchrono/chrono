@@ -339,39 +339,35 @@ public:
     /// Extract the unsymmetric F deformation gradient tensor
     class ChVisualDataExtractorDeformationGradientF : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
-            return const_cast<ChFieldDataAuxiliaryDeformation*>(fdata)->F;
+            return fdata->F;
         }
     };
 
     /// Extract the  C=F^T*F  right Cauchy-Green deformation tensor (should be plotted on material undeformed space)
     class ChVisualDataExtractorRightCauchyGreenC : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
-            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
-            return matp->F.transpose() * matp->F;
+            return fdata->F.transpose() * fdata->F;
         }
     };
 
     /// Extract the  B=F*F^T left Cauchy-Green deformation tensor (should be plotted on spatial deformed space)
     class ChVisualDataExtractorLeftCauchyGreenB : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
-            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
-            return matp->F * matp->F.transpose();
+            return fdata->F * fdata->F.transpose();
         }
     };
 
     /// Extract the E=1/2(F^T*F - I)  Green-Lagrange strain tensor (should be plotted on material undeformed space)
     class ChVisualDataExtractorGreenLagrangeStrain : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
-            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
-            return 0.5 * (matp->F.transpose() * matp->F - ChMatrix33d(1));
+            return 0.5 * (fdata->F.transpose() * fdata->F - ChMatrix33d(1));
         }
     };
 
     /// Extract the e=1/2(I- (F*F^T)^-1)  Euler-Almansi strain tensor (should be plotted on spatial deformed space)
     class ChVisualDataExtractorEulerAlmansiStrain : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
-            ChFieldDataAuxiliaryDeformation* matp = const_cast<ChFieldDataAuxiliaryDeformation*>(fdata);
-            return 0.5 * (ChMatrix33d(1) - (matp->F * matp->F.transpose()).inverse());
+            return 0.5 * (ChMatrix33d(1) - (fdata->F * fdata->F.transpose()).inverse());
         }
     };
 
