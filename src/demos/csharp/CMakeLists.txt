@@ -71,6 +71,23 @@ function(CollectCSharpFiles out_list module_list)
     endforeach()
   endif()
   
+  # VSG module
+  list (FIND module_list "vsg" index)
+  if (${index} GREATER -1)
+    set(Chrono_CSHARP_VSG_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/vsg")
+    file(GLOB Chrono_CSHARP_VSG_SOURCES
+         LIST_DIRECTORIES false
+         RELATIVE "${Chrono_CSHARP_VSG_DIR}"
+         CONFIGURE_DEPENDS
+         "${Chrono_CSHARP_VSG_DIR}/*.cs")
+    FindDuplicates(Chrono_CSHARP_VSG_DUPLICATES "${Chrono_CSHARP_CORE_SOURCES}"
+                                                "${Chrono_CSHARP_VSG_SOURCES}")
+    list(REMOVE_ITEM Chrono_CSHARP_VSG_SOURCES ${Chrono_CSHARP_VSG_DUPLICATES})
+    foreach(CS ${Chrono_CSHARP_VSG_SOURCES})
+      list(APPEND file_list "${Chrono_CSHARP_VSG_DIR}/${CS}")
+    endforeach()
+  endif()
+  
   # Postprocess module
   list (FIND module_list "postprocess" index)
   if (${index} GREATER -1)

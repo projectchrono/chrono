@@ -10,17 +10,72 @@
 //
 // =============================================================================
 //
-// Bouncing ball demo.
+// Bouncing ball demo
+// Supports both Irrlicht or VSG
 //
 // =============================================================================
 
 using System;
 using static ChronoGlobals;
+using static chrono;
 
 namespace ChronoDemo
 {
     internal class Program
     {
+        // Helper method to create visualisation system
+        static ChVisualSystem CreateVisualizationSystem(ChSystemSMC sys)
+        {
+#if CHRONO_VSG
+            ChVisualSystemVSG vis = new ChVisualSystemVSG();
+            vis.AttachSystem(sys);
+            vis.SetWindowTitle("[C#] SMC demonstration - VSG");
+            vis.SetWindowSize(new ChVector2i(800, 600));
+            vis.SetWindowPosition(new ChVector2i(100, 100));
+            vis.AddCamera(new ChVector3d(0, 3, -6), new ChVector3d(0, 0, 0));
+            vis.SetCameraVertical(CameraVerticalDir.Y);
+            vis.SetLightIntensity(1.0f);
+            vis.SetLightDirection(1.5 * chrono.CH_PI_2, chrono.CH_PI_4);
+            vis.EnableSkyBox();
+            vis.Initialize();
+            
+            Console.WriteLine("Using VSG visualization");
+            return vis;
+#elif CHRONO_IRRLICHT
+            ChVisualSystemIrrlicht vis = new ChVisualSystemIrrlicht();
+            vis.SetWindowSize(800, 600);
+            vis.SetWindowTitle("[C#] SMC demonstration - Irrlicht");
+            vis.Initialize();
+            vis.AddLogo();
+            vis.AddSkyBox();
+            vis.AddTypicalLights();
+            vis.AddCamera(new ChVector3d(0, 3, -6));
+            vis.AttachSystem(sys);
+            vis.AddGrid(0.2, 0.2, 20, 20,
+                        new ChCoordsysd(new ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
+                        new ChColor(0.1f, 0.1f, 0.1f));
+            
+            Console.WriteLine("Using Irrlicht visualization");
+            return vis;
+#else
+            Console.WriteLine("Error: No visualization system available!");
+            Environment.Exit(1);
+            return null;
+#endif
+        }
+
+        // Render frame for irrlicht
+        static void RenderBallFrame(ChVisualSystem vis, ChBody ball, double radius)
+        {
+#if CHRONO_IRRLICHT
+            ChVisualSystemIrrlicht vis_irr = vis as ChVisualSystemIrrlicht;
+            if (vis_irr != null)
+            {
+                vis_irr.RenderFrame(new ChFramed(CastToChBodyFrame(ball).GetCoordsys()), 1.2 * radius);
+            }
+#endif
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Copyright (c) 2017 projectchrono.org");
@@ -117,20 +172,8 @@ namespace ChronoDemo
 
             sys.AddBody(bin);
 
-            // Create the run-time visualization system
-
-            ChVisualSystemIrrlicht vis = new ChVisualSystemIrrlicht();
-            vis.SetWindowSize(800, 600);
-            vis.SetWindowTitle("[C#] SMC demonstration");
-            vis.Initialize();
-            vis.AddLogo();
-            vis.AddSkyBox();
-            vis.AddTypicalLights();
-            vis.AddCamera(new ChVector3d(0, 3, -6));
-            vis.AttachSystem(sys);
-            vis.AddGrid(0.2, 0.2, 20, 20,
-                        new ChCoordsysd(new ChVector3d(0, 0.11, 0), chrono.QuatFromAngleX(chrono.CH_PI_2)),
-                        new ChColor(0.1f, 0.1f, 0.1f));
+            // visualisation system depends on which Chrono module was compiled
+            ChVisualSystem vis = CreateVisualizationSystem(sys);
 
             // The soft-real-time cycle
             double time = 0.0;
@@ -140,7 +183,9 @@ namespace ChronoDemo
             {
                 vis.BeginScene();
                 vis.Render();
-                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCoordsys()), 1.2 * radius);
+                
+                RenderBallFrame(vis, ball, radius); // todo:- is this still needed?
+                
                 vis.EndScene();
 
                 while (time < out_time)
@@ -150,6 +195,8 @@ namespace ChronoDemo
                 }
                 out_time += out_step;
             }
+            // On exit with VSG, Win32 window destruction warning from VSG window is expected and is a garbage cleanup VSG issue
+
 
         }
 
