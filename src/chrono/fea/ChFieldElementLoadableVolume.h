@@ -39,6 +39,11 @@ public:
 
     ~ChFieldElementLoadableVolume() {}
 
+    /// Set the element to wrap as loadable
+    virtual void SetElement(std::shared_ptr<ChFieldElementVolume> element) {
+        m_element = element;
+    }
+
     // Functions for ChLoadable interface
 
     /// Get the number of DOFs affected by this element (position part).
