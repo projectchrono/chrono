@@ -36,7 +36,7 @@ set GL_INSTALL_DIR="C:/Packages/gl"
 set URDF_INSTALL_DIR="C:/Packages/urdf"
 
 set MATLAB_INSTALL_DIR="C:/Program Files/MATLAB/R2019a"
-set CASCADE_INSTALL_DIR="C:/OpenCASCADE-7.4.0-vc14-64/opencascade-7.4.0"
+set CASCADE_INSTALL_DIR="C:/OpenCASCADE-7.9.2/occt-vc14-64"
 set OPTIX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0"
 set FASTDDS_INSTALL_DIR="C:/Program Files/eProsima/fastrtps 2.4.0"
 set PYTHON_EXECUTABLE_DIR="C:/Python39/python.exe"
