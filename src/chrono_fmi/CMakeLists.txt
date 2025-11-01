@@ -113,11 +113,13 @@ else()
   set(DEFINE_FMU_EXPORT_SUPPORT "#undef FMU_EXPORT_SUPPORT")
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFMI.h.in
-               ${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h)
+set(Chrono_FMI_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h)
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h"
-        DESTINATION include/chrono_fmi)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFMI.h.in ${Chrono_FMI_CONFIG_FILE} @ONLY)
+
+source_group("" FILES ${Chrono_FMI_CONFIG_FILE})
+
+install(FILES ${Chrono_FMI_CONFIG_FILE} DESTINATION include/chrono_fmi)
 
 #=============================================================================
 # Create the Chrono::FMI library
@@ -143,7 +145,9 @@ source_group("" FILES
 
 add_library(Chrono_fmi
             ${Chrono_FMI_HEADERS}
-            ${Chrono_FMI_SOURCES})
+            ${Chrono_FMI_SOURCES}
+            ${Chrono_FMI_CONFIG_FILE}
+)
 
 add_library(Chrono::fmi ALIAS Chrono_fmi)
 

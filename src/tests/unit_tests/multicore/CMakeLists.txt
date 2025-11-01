@@ -1,16 +1,4 @@
-# Unit tests for the Chrono::Multicore module
-# ==================================================================
-
-SET(LIBRARIES Chrono_core Chrono_multicore)
-
-IF (CH_ENABLE_MODULE_VSG)
-    SET(LIBRARIES ${LIBRARIES} Chrono_vsg)
-ENDIF()
-
-#--------------------------------------------------------------
-# List of all executables
-
-SET(TESTS
+set(TESTS
     utest_MCORE_real3
     utest_MCORE_real4
     utest_MCORE_matrix
@@ -26,21 +14,13 @@ SET(TESTS
     utest_MCORE_contact_forces
 )
 
-MESSAGE(STATUS "Add unit test programs for MULTICORE module")
+set(UTILS
+   ../ut_utils.h)
 
-FOREACH(PROGRAM ${TESTS})   
-    set(FILES ${PROGRAM}.cpp ../ut_utils.h)
-    ADD_EXECUTABLE(${PROGRAM} ${FILES})
-    SOURCE_GROUP("" FILES ${FILES})
+set(LIBS Chrono_core Chrono_multicore)
+if(CH_ENABLE_MODULE_VSG)
+    set(LIBS ${LIBS} Chrono_vsg)
+endif()
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER tests)
-    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
-
-    if(MSVC)
-      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-ENDFOREACH(PROGRAM)
+message(STATUS "Add unit test programs for MULTICORE module")
+build_utests(YES "${TESTS}" "${LIBS}" "${UTILS}")

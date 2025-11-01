@@ -25,7 +25,7 @@
 #include "chrono/ChConfig.h"
 
 /// Location of shaders
-#define SHADER_DIR "@SHADER_DIR@"
+#define CHRONO_SENSOR_SHADER_DIR "@SHADER_DIR@"
 
 /// passing lists from cmake to c++ when using NVRTC for runtime compilation of RT Programs
 #define CUDA_NVRTC_INCLUDE_LIST @CUDA_NVRTC_INCLUDE_LIST@

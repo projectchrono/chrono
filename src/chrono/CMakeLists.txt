@@ -1142,8 +1142,6 @@ if (HDF5_FOUND)
 endif()
 source_group(output FILES ${Chrono_output_SOURCES} ${Chrono_output_HEADERS})
 
-
-
 # -------------------------------------------------------------------------------------------------
 # Third-party files
 # -------------------------------------------------------------------------------------------------
@@ -1257,6 +1255,11 @@ set(Chrono_libstl_FILES
 )
 source_group(utils\\libstl FILES ${Chrono_libstl_FILES})
 
+# Chrono configuration and version files
+set(Chrono_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono/ChConfig.h)
+set(Chrono_VERSION_FILE ${PROJECT_BINARY_DIR}/chrono/ChVersion.h)
+source_group("" FILES ${Chrono_CONFIG_FILE} ${Chrono_VERSION_FILE})
+
 # -------------------------------------------------------------------------------------------------
 # Collect all source and header files for the Chrono core library
 # -------------------------------------------------------------------------------------------------
@@ -1336,6 +1339,8 @@ set(Chrono_FILES
     ${Chrono_SOURCES}
     ${Chrono_HEADERS}
     ${Chrono_thirdparty_FILES}
+    ${Chrono_CONFIG_FILE}
+    ${Chrono_VERSION_FILE}
 )
 
 # -------------------------------------------------------------------------------------------------

@@ -5,8 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
-  - [\[Changed\] Refactoring of Chrono::FSI and the Chrono SPH solver](#changed-refactoring-of-chronofsi-and-the-chrono-sph-solver)
-  - [\[Added\] YAML specification of Chrono models and simulations](#added-yaml-specification-of-chrono-models-and-simulations)
+  - [\[Changed\] Upgrade of 3rd-party dependencies](#changed-upgrade-of-3rd-party-dependencies)
+  - [\[Added\] YAML parsers for Chrono models and simulations](#added-yaml-parsers-for-chrono-models-and-simulations) 
+  - [\[Changed\] Refactoring of Chrono::FSI and Chrono fluid solvers](#changed-refactoring-of-chronofsi-and-chrono-fluid-solvers)
   - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
   - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
   - [\[Added\] New Chrono::VSG features and capabilities](#added-new-chronovsg-features-and-capabilities)
@@ -119,25 +120,41 @@ Change Log
 
 # Unreleased (development branch)
 
-## [Changed] Refactoring of Chrono::FSI and the Chrono SPH solver
+## [Changed] Upgrade of 3rd-party dependencies
+
+- Chrono now supports both Eigen3 version 5.0, as well as the older 3.* versions. Priority is given to Eigen3 5.0, with fallback on Eigen3 3.3 or 3.4.
+- Chrono::VSG now requires newer versions of the VSG libraries. See the Chrono::VSG [installation instructions](https://api.projectchrono.org/module_vsg_installation.html).
+- Chrono::Cascade was updated to use OCCT version 7.9.2. Older versions are not supported anymore.
+- Chrono was also tested with the current latest Intel oneAPI release, version 2025.3 (for MKL support, as well as optional MPI).
+
+## [Added] YAML parsers for Chrono models and simulations
+
+A first set of YAML parsers were added to the Chrono::Parsers module to allow full specification of Chrono models and simulations through YAML specification files.
+
+Currently, we provide support for:
+
+- Rigid multibody systems with support for a limited set of joints.
+- SPH-based FSI problems.
+- Chrono::Vehicle models.
+- Simulation settings for multibodyy dynamics and for SPH-based FSI problems.
+
+See the Chrono::parsers [manual](https://api.projectchrono.org/manual_parsers.html) for more details, including schemas of the YAML specification files.
+
+## [Changed] Refactoring of Chrono::FSI and Chrono fluid solvers
 
 The Chrono::FSI module was redesigned in order to:
 - separate the interface between the multibody solver and a fluid solver; 
 - redesign the Chrono SPH solver to seamlessly support different equations of motion (Navier-Stokes for fluid dynamics and continuous representation of granular dynamics);
-- enhance accuracy, robustness, and performance;
-- extend the FSI interface to improve its modeling, visualization, and post-processing capabilities.
+- enhance accuracy, robustness, and performance of the Chrono::SPH dolver;
+- extend the Chrono::SPH FSI interface to improve its modeling, visualization, and post-processing capabilities.
 
-Enabling the Chrono::FSI module, now creates two separate libraries: (1) a generic FSI library which allows coupling Chrono rigid and flexible multibody systems to an arbitrary hydrodynamics solver, and (2) an FSI-aware SPH solver which can be coupled through the generic FSI interface to a Chrono multibody simulation.
+Enabling the Chrono::FSI module, now creates the generic FSI interface library, which allows coupling Chrono rigid and flexible multibody systems to an arbitrary hydrodynamics solver.
+Two separate FSI-aware fluid solver libraries can be built:
+1. Chrono::SPH, which provides SPH capabilities for modeling incompressible Navier-Stokes fluid systems, as well as homogeneized granular systems (CRM for deformable soil);
+2. Chrono::TDPF, which provides a Time-Dependent Potential Flow fluid solver.
 
 
 **TODO**
-
-## [Added] YAML specification of Chrono models and simulations
-
-The new `ChParserYAML` parser, available in the Chrono::Parsers module, allows definition of Chrono models and Chrono simulations via specification files in YAML format, thus providing a mechanism for creating, simulating, and visualizing Chrono systems without the need to write (C++, C#, or Python) code.
-Consult the Chrono::Parsers module [documentation](https://api.projectchrono.org/manual_parsers.html) for details on supported modeling elements and the YAML schema of model description and simulation description files.
-
-Currently, the Chrono YAML parser supports rigid multibody systems, with FEA support coming in the near future.
 
 ## [Added] Chrono::Peridynamics module
 

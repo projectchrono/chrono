@@ -17,7 +17,7 @@ set(TESTS
 
 # ------------------------------------------------------------------------------
 
-set(LIBRARIES
+set(LIBS
     Chrono_core
     Chrono_vehicle
     Chrono_synchrono
@@ -25,7 +25,7 @@ set(LIBRARIES
     )
 
 if (CH_ENABLE_MODULE_IRRLICHT)
-    set(LIBRARIES ${LIBRARIES} Chrono_irrlicht Chrono_vehicle_irrlicht)
+    set(LIBS ${LIBS} Chrono_irrlicht Chrono_vehicle_irrlicht)
 endif()
 
 include_directories(${SYN_INCLUDES})
@@ -33,18 +33,4 @@ include_directories(${SYN_INCLUDES})
 # ------------------------------------------------------------------------------
 
 message(STATUS "Add benchmark test programs for SCM scaling")
-
-foreach(PROGRAM ${TESTS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
-
-    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
-    source_group(""  FILES "${PROGRAM}.cpp")
-
-    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    target_link_libraries(${PROGRAM} ${LIBRARIES})
-    if(MSVC)
-      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-
-    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-endforeach(PROGRAM)
+build_btests("${TESTS}" "${LIBS}")

@@ -135,7 +135,13 @@ endif()
 #-----------------------------------------------------------------------------
 
 message(STATUS "Searching for Eigen3")
-find_package(Eigen3 3.3)
+
+# Look first for Eigen 5.0, then 3.3
+find_package(Eigen3 5.0)
+if(NOT Eigen3_FOUND)
+   find_package(Eigen3 3.3)
+endif()
+
 if(Eigen3_FOUND)
   message(STATUS "Eigen3 found")
   message(STATUS "  Eigen3 version:     ${EIGEN3_VERSION}")
@@ -387,6 +393,8 @@ option(CH_ENABLE_HDF5 "Enable HDF5 support" OFF)
 
 if(CH_ENABLE_HDF5)
     message(STATUS "Searching for HDF5...")
+    find_package(ZLIB)
+    find_package(libaec)
     find_package(HDF5 COMPONENTS CXX)
 
     if (HDF5_FOUND)

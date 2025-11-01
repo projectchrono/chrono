@@ -77,7 +77,6 @@ class CH_FSI_API ChFsiSystem {
     void SetStepsizeMBD(double step);
 
     /// Add a rigid body to the FSI system.
-    /// BCE markers are created based on the provided geometry.
     std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChBodyGeometry> geometry,
                                         bool check_embedded);
