@@ -14,6 +14,7 @@ set(DEMOS
   demo_MBS_callbackSMC
   demo_MBS_collisionNSC
   demo_MBS_collisionSMC
+  demo_MBS_collision_trimesh
   demo_MBS_earthquake
   demo_MBS_friction
   demo_MBS_motors
@@ -42,7 +43,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
       demo_MBS_suspension
       demo_MBS_tracks
       demo_MBS_convergence
-      demo_MBS_collision_trimesh
       demo_MBS_collision_2d
       demo_MBS_emitter
       demo_MBS_emit_cluster

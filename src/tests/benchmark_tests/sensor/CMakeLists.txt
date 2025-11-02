@@ -2,8 +2,6 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
     return()
 endif()
 
-set(LIBRARIES Chrono_core Chrono_sensor ${SENSOR_LIBRARIES})
-
 # ------------------------------------------------------------------------------
 
 set(TESTS
@@ -21,18 +19,7 @@ set(TESTS
 
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Add benchmark test programs for SENSOR module")
+set(LIBS Chrono_core Chrono_sensor ${SENSOR_LIBRARIES})
 
-FOREACH(PROGRAM ${TESTS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
-
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} benchmark_main)
-    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    if(MSVC)
-      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH(PROGRAM)
+message(STATUS "Add benchmark test programs for SENSOR module")
+build_btests("${TESTS}" "${LIBS}")

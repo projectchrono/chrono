@@ -283,6 +283,64 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
 endif()
 
+#-----------------------------------------------------------------------------
+# MODULE for the vsg csharp wrapper
+#-----------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_VSG)
+
+  message(STATUS "Add C# VSG module")
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/vsg")
+
+  # Interface files
+  set(INTERFACE_FILE_VSG ChModuleVsg_csharp.i)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${INTERFACE_FILE_VSG} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${INTERFACE_FILE_VSG} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${INTERFACE_FILE_VSG} PROPERTIES COMPILE_OPTIONS "-w401,503")
+  endif()
+
+  # Create the SWIG module
+  swig_add_library(Chrono_csharp_vsg LANGUAGE csharp SOURCES ${INTERFACE_FILE_VSG})
+  target_link_libraries(Chrono_csharp_vsg PRIVATE Chrono_core Chrono_vsg)
+
+  # Ensure that the library file is generated in the bin/ directory
+  set_target_properties(Chrono_csharp_vsg PROPERTIES
+                        PROJECT_LABEL "Chrono_csharp_vsg"
+                        OUTPUT_NAME   "Chrono_csharp_vsg"
+                        LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
+                        SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+                        )
+
+  target_compile_definitions(Chrono_csharp_vsg PRIVATE "CH_IGNORE_DEPRECATED")
+  target_compile_definitions(Chrono_csharp_vsg PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(Chrono_csharp_vsg Chrono_core)
+  add_dependencies(Chrono_csharp_vsg Chrono_vsg)
+  add_dependencies(Chrono_csharp_vsg Chrono_csharp_core)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(TARGETS Chrono_csharp_vsg
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
+  else()
+    install(TARGETS Chrono_csharp_vsg
+            EXPORT ChronoTargets
+            LIBRARY DESTINATION lib)
+  endif()
+
+  if (DBG_SCRIPT)
+    message("Module name:     Chrono_csharp_vsg")
+    message("SWIG_REAL_NAME:  Chrono_csharp_vsg")
+  endif()
+
+endif()
 
 #-----------------------------------------------------------------------------
 # Wrapper for VEHICLE Chrono module
@@ -351,6 +409,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   
   if (CH_ENABLE_MODULE_VSG)
       target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_vehicle_vsg Chrono_vsg)
+      add_dependencies(Chrono_csharp_vehicle Chrono_csharp_vsg)
   endif()
   
   if (CH_ENABLE_MODULE_IRRLICHT)
@@ -395,10 +454,35 @@ endif()
 #-------------------------------------------------------------------------------
 
 # Swig generated files
-install(DIRECTORY ${CMAKE_SWIG_OUTDIR}/
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/core/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
 
+if(CH_ENABLE_MODULE_POSTPROCESS)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/postprocess/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+if(CH_ENABLE_MODULE_IRRLICHT)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/irrlicht/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+if(CH_ENABLE_MODULE_VSG)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/vsg/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/vehicle/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+# Template project
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_csharp/ DESTINATION "template_project_csharp")
 else()

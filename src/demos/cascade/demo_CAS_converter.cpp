@@ -20,83 +20,26 @@
 #include "chrono/core/ChRandom.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
 
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 #include "chrono_cascade/ChCascadeIrrMeshTools.h"
 
-#include <TopoDS_Shape.hxx>
-#include <TopoDS.hxx>
-#include <TopoDS_HShape.hxx>
-#include <STEPControl_Reader.hxx>
-#include <STEPControl_StepModelType.hxx>
-#include <TopoDS_Edge.hxx>
-#include <TopoDS_Face.hxx>
-#include <TopoDS_Compound.hxx>
-#include <BRep_Builder.hxx>
-#include <BRepTools.hxx>
-#include <BRep_Tool.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeVertex.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopLoc_Location.hxx>
-#include <TopoDS_Iterator.hxx>
-#include <TopExp_Explorer.hxx>
-#include <Bnd_Box.hxx>
-#include <gp_Pnt.hxx>
-#include <Prs3d_ShapeTool.hxx>
-#include <BRepAdaptor_HSurface.hxx>
-#include <BRepAdaptor_Curve.hxx>
-#include <BRepBndLib.hxx>
-#include <BRepMesh_IncrementalMesh.hxx>
-#include <TColgp_HArray1OfVec.hxx>
-#include <TColStd_HArray1OfInteger.hxx>
-#include <Poly_Connect.hxx>
-#include <Poly_Triangle.hxx>
-#include <Poly_Triangulation.hxx>
-#include <TColgp_Array1OfDir.hxx>
-
-#include <CSLib_DerivativeStatus.hxx>
-#include <CSLib_NormalStatus.hxx>
-#include <CSLib.hxx>
-#include <TColgp_Array1OfPnt2d.hxx>
-
-#include <TDocStd_Document.hxx>
-#include <STEPCAFControl_Reader.hxx>
-#include <XCAFDoc_ShapeTool.hxx>
-#include <XCAFDoc_DocumentTool.hxx>
-#include <TDataStd_Name.hxx>
-#include <Interface_Static.hxx>
-#include <TDF_Label.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDF_LabelSequence.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDF_Tool.hxx>
-#include <TObj_TObject.hxx>
-#include <TObj_TReference.hxx>
-#include <TNaming_NamedShape.hxx>
-
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#include "chrono_irrlicht/ChIrrMeshTools.h"
-
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
+using namespace chrono::cascade;
 
 // Use the main namespace of Irrlicht
 using namespace irr;
 
-// Use the namespace with OpenCascade stuff
-using namespace cascade;
-
-// to make things easier (it's a test..) introduce global variables.
-
+// To make things easier (it's a test..) introduce global variables.
 scene::IAnimatedMesh* modelMesh;
 scene::IAnimatedMeshSceneNode* modelNode;
 scene::ISceneNode* decompositionNode;
-
 ChConvexDecompositionHACDv2 mydecompositionHACDv2;
-
 int hacd_maxhullcount;
 int hacd_maxhullmerge;
 int hacd_maxhullvertexes;
@@ -104,8 +47,7 @@ double hacd_concavity;
 double hacd_smallclusterthreshold;
 double hacd_fusetolerance;
 
-// LOAD A TRIANGLE MESH USING IRRLICHT IMPORTERS
-//
+// Load a triangle mesh using Irrlicht importer
 void LoadModel(ChVisualSystemIrrlicht* application, const char* filename) {
     if (modelNode)
         modelNode->remove();
@@ -121,7 +63,7 @@ void LoadModel(ChVisualSystemIrrlicht* application, const char* filename) {
     modelNode->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 }
 
-// LOAD THE STEP 3D MODEL USING OPEN CASCADE
+// Load STEP model using OpenCASCADE
 void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
     if (modelNode)
         modelNode->remove();
@@ -134,7 +76,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
     std::cout << std::endl << std::endl << "0-LOADING THE STEP MODEL..." << std::endl;
 
     ChCascadeDoc mydoc;
-    bool aRes = mydoc.Load_STEP(filename);
+    bool aRes = mydoc.LoadSTEP(filename);
 
     if (aRes) {
         // ---Print hierarchy on screen
@@ -150,7 +92,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
             scene::SMesh* mmesh = new scene::SMesh();
             video::SColor clr(255, 100, 120, 125);
 
-            ChCascadeIrrMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
+            ChCascadeIrrMeshTools::FillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
             // ..also show in Irrlicht view
             scene::SAnimatedMesh* Amesh = new scene::SAnimatedMesh();
             Amesh->addMesh(mmesh);
@@ -161,7 +103,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
 
             std::ofstream mobjfile("triangulated_step_model_root.obj");
             // afinder.res_shape.Location(TopLoc_Location()); // to reset CAD reference as center of obj.
-            ChCascadeMeshTools::fillObjFileFromCascade(mobjfile, mshape, 0.5);
+            ChCascadeMeshTools::FillObjFileFromCascade(mobjfile, mshape, 0.5);
             std::cout << " ... done!" << std::endl;
         }
 
@@ -169,6 +111,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
         std::cerr << std::endl << "Error while reading STEP!" << std::endl << std::endl;
 }
 
+// Perform convex decomposition using HACDv2
 void DecomposeModel(ChVisualSystemIrrlicht* application) {
     if (decompositionNode)
         decompositionNode->remove();
@@ -231,9 +174,9 @@ void DecomposeModel(ChVisualSystemIrrlicht* application) {
     modelNode->setVisible(false);
 }
 
+// Save the convex decomposition to a file using the .obj file format
 void SaveHullsWavefront(ChVisualSystemIrrlicht* application, const char* filename) {
-    // Save the convex decomposition to a
-    // file using the .obj fileformat.
+
 
     try {
         std::ofstream decomposed_objfile(filename);
@@ -243,10 +186,8 @@ void SaveHullsWavefront(ChVisualSystemIrrlicht* application, const char* filenam
     }
 }
 
+// Save the convex decomposition to a file using the .obj file format
 void SaveHullsChulls(ChVisualSystemIrrlicht* application, const char* filename) {
-    // Save the convex decomposition to a
-    // file using the .obj fileformat.
-
     try {
         std::ofstream decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
@@ -255,18 +196,15 @@ void SaveHullsChulls(ChVisualSystemIrrlicht* application, const char* filename) 
     }
 }
 
-// Define a MyEventReceiver class which will be used to manage input
-// from the GUI graphical user interface (the interface will
-// be created with the basic -yet flexible- platform
-// independent toolset of Irrlicht).
-
+// Define a MyEventReceiver class which will be used to manage input from the GUI graphical user interface
+// The interface will be created with the basic, yet flexible. platform-independent toolset of Irrlicht
 class MyEventReceiver : public IEventReceiver {
   public:
     MyEventReceiver(ChVisualSystemIrrlicht* vsys) : vis(vsys) {
         vis->GetDevice()->setEventReceiver(this);
 
         // create menu
-        gui::IGUIContextMenu* menu = vis->GetGUIEnvironment()->addMenu();
+        menu = vis->GetGUIEnvironment()->addMenu();
         menu->addItem(L"File", -1, true, true);
         menu->addItem(L"View", -1, true, true);
 
@@ -349,7 +287,7 @@ class MyEventReceiver : public IEventReceiver {
                 case gui::EGET_MENU_ITEM_SELECTED: {
                     // a menu item was clicked
 
-                    gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
+                    menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
                     id = menu->getItemCommandId(menu->getSelectedItem());
 
                     switch (id) {
@@ -471,10 +409,7 @@ class MyEventReceiver : public IEventReceiver {
     gui::IGUIEditBox* edit_hacd_fusetolerance;
 };
 
-//
 // This is the program which is executed
-//
-
 int main(int argc, char* argv[]) {
     // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.

@@ -1,5 +1,3 @@
-set(LIBRARIES Chrono_core)
-
 set(TESTS
     utest_COLL_bullet_utils
 )
@@ -45,24 +43,9 @@ ELSE()
   SET(BULLET_FILES "")
 ENDIF()
 
+set(LIBS Chrono_core)
+
 MESSAGE(STATUS "Add unit test programs for COLLISION")
-
-foreach(PROGRAM ${TESTS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
-
-    add_executable(${PROGRAM}  ${PROGRAM}.cpp ${BULLET_FILES})
-    source_group(""  FILES "${PROGRAM}.cpp")
-
-    set_target_properties(${PROGRAM} PROPERTIES
-        FOLDER tests)
-    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
-    if(MSVC)
-      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-
-    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-    add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-endforeach(PROGRAM)
+build_utests(YES "${TESTS}" "${LIBS}" "${BULLET_FILES}")
 
 

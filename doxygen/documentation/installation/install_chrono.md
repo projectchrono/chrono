@@ -90,7 +90,8 @@ On Linux, Eigen is also available through the system package manager (e.g. <tt>s
 
 On the Mac, Eigen can be installed via homebrew: <tt>brew install eigen</tt>. Beginning with MacOS 12 Monterey, homebrew installs in `/opt/homebrew`.
 
-We strongly **recommend** using the latest Eigen3 version 3.4.0.
+Chrono supports both the latest Eigen3 version 5.0.0, as well as the previous 3.* versions (e.g., 3.3.9 and 3.4.1). 
+For best compatibility with newer versions of other 3rd party packages, most notably Intel oneAPI, we recommend using the latest Eigen3 5.0.0.
 
 #### Utility scripts for installing 3rd-party Chrono dependencies {#scripts}
 
@@ -133,8 +134,8 @@ E:\Packages\urdf\CMake;
 E:\Packages\spectra\share\spectra\cmake;
 E:\Packages\gl\lib\cmake;
 E:\Packages\mumps\cmake;
-C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\cmake;
-C:\Program Files (x86)\Intel\oneAPI\mkl\2023.0.0\lib\cmake\mkl;
+C:\occt-7.9.2\occt-vc14-64\cmake;
+C:\Program Files (x86)\Intel\oneAPI\mkl\latest\lib\cmake\mkl;
 ```
 
 #### Notes on 3rd-party Chrono dependencies {#notes}

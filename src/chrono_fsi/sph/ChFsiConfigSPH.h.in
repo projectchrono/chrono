@@ -12,14 +12,14 @@
 // Authors: Radu Serban, Arman Pazouki
 // =============================================================================
 //
-// Chrono-fsi configuration header file
+// Chrono::SPH configuration header file
 //
 // Automatically created during CMake configuration.
 //
 // =============================================================================
 
-#ifndef CH_CONFIG_FSI_H
-#define CH_CONFIG_FSI_H 
+#ifndef CH_CONFIG_SPH_H
+#define CH_CONFIG_SPH_H 
 
 // Include main Chrono configuration  header
 #include "chrono/ChConfig.h"
@@ -27,8 +27,8 @@
 // -----------------------------------------------------------------------------
 
 // If using double precision
-//   #define CHRONO_FSI_USE_DOUBLE
-@CHRONO_FSI_USE_DOUBLE@
+//   #define CHRONO_SPH_USE_DOUBLE
+@CHRONO_SPH_USE_DOUBLE@
 
 // -----------------------------------------------------------------------------
 

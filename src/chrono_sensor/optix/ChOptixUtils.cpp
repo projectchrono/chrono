@@ -35,7 +35,7 @@
 namespace chrono {
 namespace sensor {
 
-static std::string shader_dir = SHADER_DIR;
+static std::string shader_dir = CHRONO_SENSOR_SHADER_DIR;
 
 void SetSensorShaderDir(const std::string& path) {
     shader_dir = path;
