@@ -11,6 +11,15 @@ using namespace chrono::vehicle;
 
 %}
 
+#ifdef SWIGCSHARP
+    // Import ChVisualSystemVSG from vsg module (same pattern as irrlicht)
+    // for C# to understand the multiple inheritance chain
+    %import "../../../chrono_swig/interface/vsg/ChVisualSystemVSG.i"
+    
+    // Declare shared pointer for base VSG class so that swig handles dual inheritance
+    %shared_ptr(chrono::vsg3d::ChVisualSystemVSG)
+#endif
+
 %shared_ptr(chrono::vehicle::ChVehicleVisualSystemVSG)
 %shared_ptr(chrono::vehicle::ChWheeledVehicleVisualSystemVSG)
 %shared_ptr(chrono::vehicle::ChTrackedVehicleVisualSystemVSG)
@@ -23,4 +32,7 @@ using namespace chrono::vehicle;
 
 %DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChTrackedVehicleVisualSystemVSG)
 %DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChWheeledVehicleVisualSystemVSG)
+// Cross-namespace dynamic casts (for the multiple inheritance from vsg3d::ChVisualSystemVSG)
+%DefSharedPtrDynamicCast2NS(chrono::vsg3d, chrono::vehicle, ChVisualSystemVSG, ChWheeledVehicleVisualSystemVSG)
+%DefSharedPtrDynamicCast2NS(chrono::vsg3d, chrono::vehicle, ChVisualSystemVSG, ChTrackedVehicleVisualSystemVSG)
 %DefSharedPtrDynamicCast2NS(chrono::vsg3d, chrono::vehicle, ChVisualSystemVSG, ChSuspensionTestRigVisualSystemVSG)

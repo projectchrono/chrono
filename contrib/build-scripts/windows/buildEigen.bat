@@ -13,7 +13,9 @@
 set DOWNLOAD=ON
 
 set EIGEN_INSTALL_DIR="C:/Packages/eigen"
-set EIGEN_VERSION="3.4.0"
+set EIGEN_VERSION="5.0.0"
+@rem set EIGEN_VERSION="3.4.0"
+
 
 @if %DOWNLOAD% EQU OFF (
     set EIGEN_SOURCE_DIR="C:/Sources/eigen"

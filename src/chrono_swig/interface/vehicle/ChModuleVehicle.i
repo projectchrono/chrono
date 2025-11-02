@@ -77,6 +77,8 @@
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
+// moved up the file order to ensure this is included in this group - otherwise a build without irrlicht/vsg fails (i.e. Chrono Unity)
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 
 // Wheeled vehicle
@@ -165,7 +167,9 @@ using namespace chrono::vehicle::m113;
 %include "std_string.i"
 %include "std_vector.i"
 %include "typemaps.i"
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
+#endif             // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
@@ -255,13 +259,13 @@ using namespace chrono::vehicle::m113;
 #ifdef CHRONO_FSI
 %import(module = "pychrono.fsi") "chrono_swig/interface/fsi/ChFsiProblemSPH.i"
 #endif
+#endif             // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_VSG
 #define CH_VSG_API
 %import(module = "pychrono.vsg3d") "chrono_swig/interface/vsg/ChVisualSystemVSG.i"
 #endif
 
-#endif             // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
 #define ChApiIrr 
@@ -394,6 +398,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// Mark override methods to avoid CS0114 warnings in Unity and instruct SWIG how to generate the correct overrides of virtual
+%csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize(double, const DriverInputs&) "public override"
+%csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize(double, const DriverInputs&, const ChTerrain&) "public override"
+%csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize(double, const DriverInputs&) "public override"
+%csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize(double, const DriverInputs&, const ChTerrain&) "public override"
+#endif             // --------------------------------------------------------------------- CSHARP
+
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
@@ -411,6 +423,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "vehicleUtils.i"
 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// Import ChVisualSystem base class unconditionally (ChVehicleVisualSystem inherits from it)
+// Python gets this via module imports from pychrono.irrlicht or pychrono.vsg3d into appropriate module
+// but C# Unity with no visualisation module but with this vehicle module needs an unconditional
+// for SWIG to understand the inheritance
+%import "chrono_swig/interface/core/ChVisualSystem.i"
+#endif             // --------------------------------------------------------------------- CSHARP
+
 %include "../../../chrono_vehicle/ChVehicleVisualSystem.h" 
 
 #ifdef CHRONO_IRRLICHT
@@ -420,11 +440,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
   %include "ChVehicleVisualSystemIrrlicht.i"
 #endif
 
-#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_VSG
   %include "ChVehicleVisualSystemVSG.i"
 #endif
-#endif             // --------------------------------------------------------------------- PYTHON
 
 //
 // C- CASTING OF SHARED POINTERS

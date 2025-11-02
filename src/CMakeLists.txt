@@ -135,7 +135,13 @@ endif()
 #-----------------------------------------------------------------------------
 
 message(STATUS "Searching for Eigen3")
-find_package(Eigen3 3.3)
+
+# Look first for Eigen 5.0, then 3.3
+find_package(Eigen3 5.0)
+if(NOT Eigen3_FOUND)
+   find_package(Eigen3 3.3)
+endif()
+
 if(Eigen3_FOUND)
   message(STATUS "Eigen3 found")
   message(STATUS "  Eigen3 version:     ${EIGEN3_VERSION}")

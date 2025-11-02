@@ -25,7 +25,7 @@ INSTALL_DIR="$HOME/Install/chrono"
 
 EIGEN3_INSTALL_DIR="$HOME/Packages/eigen-3.4.0"
 BLAZE_ROOT="$HOME/Packages/blaze-3.8"
-CASCADE_INSTALL_DIR="$HOME/Packages/opencascade-7.4.0"
+CASCADE_INSTALL_DIR="$HOME/Packages/opencascade-7.9.2"
 SPECTRA_INCLUDE_DIR="$HOME/Packages/spectra/include"
 
 CRG_INCLUDE_DIR="${HOME}/Packages/OpenCRG/include"

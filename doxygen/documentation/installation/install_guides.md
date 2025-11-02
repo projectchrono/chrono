@@ -64,6 +64,8 @@ For some of these dependencies, we provide utility scripts that will download, c
 
 The subdirectories in `contrib/build-scripts` also include sample scripts (`buildChrono.bat`, `buildChrono.sh`, and `buildChronoMac.sh`) for configuring Chrono with CMake which can be used as examples of satisfying the dependencies for the various optional Chrono modules (assuming these dependencies were installed with the utility scripts described above).
 
+For more details, see the relevant [section](@ref scripts) in the Chrono core module installation guide.
+
 ### Building a project that uses Chrono
 
 - [Configure and build an external Chrono project](@ref tutorial_install_project)

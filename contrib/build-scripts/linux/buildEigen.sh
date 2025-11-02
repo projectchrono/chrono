@@ -14,7 +14,8 @@
 # -------------------------------------------------------------------------------------------------------
 
 EIGEN_INSTALL_DIR="$HOME/Packages/eigen"
-EIGEN_VERSION="3.4.0"
+EIGEN_VERSION="5.0.0"
+#EIGEN_VERSION="3.4.0"
 
 BUILD_SYSTEM="Ninja"
 

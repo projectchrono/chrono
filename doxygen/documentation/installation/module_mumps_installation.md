@@ -51,6 +51,11 @@ These scripts (`buildMUMPS.bat`, `buildMUMPS.sh`, and buildMUMPS_Mac.sh, for Win
 
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
+<div class="ce-warning">
+If using the Intel oneAPI Fortran compiler, `ifort` was superseded by `ifx` in the latest releases of oneAPI. 
+<br>
+To ensure that CMake uses the correct Fortran compiler, make sure to explicitly specify it when invoking CMake, by passing `-T fortran=ifx` (of course, this assumes that you have properly configured Intel oneAPI and `ifx` is in the search path).
+</div>
 
 
 ## How to use it
