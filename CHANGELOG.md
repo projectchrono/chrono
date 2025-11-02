@@ -122,9 +122,15 @@ Change Log
 
 ## [Changed] Upgrade of 3rd-party dependencies
 
-- Chrono now supports both Eigen3 version 5.0, as well as the older 3.* versions. Priority is given to Eigen3 5.0, with fallback on Eigen3 3.3 or 3.4.
-- Chrono::VSG now requires newer versions of the VSG libraries. See the Chrono::VSG [installation instructions](https://api.projectchrono.org/module_vsg_installation.html).
-- Chrono::Cascade was updated to use OCCT version 7.9.2. Older versions are not supported anymore.
+- Chrono now supports both Eigen3 version 5.0, as well as the older 3.* versions.
+  <br>
+  Priority is given to Eigen3 5.0, with fallback on Eigen3 3.3 or 3.4.
+- Chrono::VSG now requires newer versions of the VSG libraries.
+  <br>
+  See the Chrono::VSG [installation instructions](https://api.projectchrono.org/module_vsg_installation.html).
+- Chrono::Cascade was updated to use OCCT version 7.9.2
+  <br>
+  Older versions are **not** supported anymore.
 - Chrono was also tested with the current latest Intel oneAPI release, version 2025.3 (for MKL support, as well as optional MPI).
 
 ## [Added] YAML parsers for Chrono models and simulations
