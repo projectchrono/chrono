@@ -260,11 +260,8 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector3d(0.2, 0.2, -2.3));
+            vis_irr->AddCamera(ChVector3d(0.2, 0.2, -4.3));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(1.5, 5.5, -3.5), ChVector3d(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
-                                        ChColor(0.8f, 0.8f, 0.8f));
-            vis_irr->EnableShadows();
 
             vis = vis_irr;
 #endif

@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     ChCascadeDoc mydoc;
 
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("cascade/assembly.stp").c_str());
+    bool load_ok = mydoc.LoadSTEP(GetChronoDataFile("cascade/assembly.stp").c_str());
     // or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
 
     // print the contained shapes

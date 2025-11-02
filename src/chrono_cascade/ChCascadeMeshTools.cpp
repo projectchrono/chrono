@@ -14,70 +14,26 @@
 
 #include "chrono_cascade/ChCascadeMeshTools.h"
 
-#include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
-#include <TopoDS_HShape.hxx>
-#include <STEPControl_Reader.hxx>
-#include <STEPControl_StepModelType.hxx>
-#include <TopoDS_Edge.hxx>
-#include <TopoDS_Face.hxx>
-#include <TopoDS_Compound.hxx>
-#include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeVertex.hxx>
 #include <TopExp_Explorer.hxx>
-#include <TopLoc_Location.hxx>
-#include <TopoDS_Iterator.hxx>
-#include <TopExp_Explorer.hxx>
-#include <Bnd_Box.hxx>
-#include <gp_Pnt.hxx>
-#include <Prs3d_ShapeTool.hxx>
-#include <BRepAdaptor_HSurface.hxx>
-#include <BRepAdaptor_Curve.hxx>
-#include <BRepBndLib.hxx>
+#include <BRepAdaptor_Surface.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
-#include <TColgp_HArray1OfVec.hxx>
-#include <TColStd_HArray1OfInteger.hxx>
 #include <Poly.hxx>
-#include <Poly_Connect.hxx>
-#include <Poly_Triangle.hxx>
 #include <Poly_Triangulation.hxx>
-#include <TColgp_Array1OfDir.hxx>
-#include <CSLib_DerivativeStatus.hxx>
-#include <CSLib_NormalStatus.hxx>
-#include <CSLib.hxx>
-#include <TColgp_Array1OfPnt2d.hxx>
-#include <TDocStd_Document.hxx>
-#include <STEPCAFControl_Reader.hxx>
-#include <XCAFDoc_ShapeTool.hxx>
-#include <XCAFDoc_DocumentTool.hxx>
-#include <TDataStd_Name.hxx>
-#include <Interface_Static.hxx>
-#include <TDF_Label.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDF_LabelSequence.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDF_Tool.hxx>
-#include <TObj_TObject.hxx>
-#include <TObj_TReference.hxx>
-#include <TNaming_NamedShape.hxx>
-#include <GProp_GProps.hxx>
-#include <BRepGProp.hxx>
-#include <TShort_Array1OfShortReal.hxx>
+
 
 using namespace chrono;
 using namespace cascade;
 
-void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
+void ChCascadeMeshTools::FillTriangleMeshFromCascadeFace(
     ChTriangleMeshConnected& chmesh,  // Mesh that will be filled with triangles
     const TopoDS_Face& F) {
     BRepAdaptor_Surface BS(F, Standard_False);
-    Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
-    ////GeomAbs_SurfaceType thetype = BS.GetType();
+    opencascade::handle<BRepAdaptor_Surface> gFace = new BRepAdaptor_Surface(BS);
 
-    Handle(Poly_Triangulation) T;
+    opencascade::handle<Poly_Triangulation> T;
     TopLoc_Location theLocation;
     T = BRep_Tool::Triangulation(F, theLocation);
 
@@ -85,19 +41,19 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
     int v_offset = (int)chmesh.m_vertices.size();
 
     if (!T.IsNull()) {
-        const TColgp_Array1OfPnt& mNodes = T->Nodes();
+        const Poly_ArrayOfNodes& mNodes = T->InternalNodes();
 
         Poly::ComputeNormals(T);
-        const TShort_Array1OfShortReal& mNormals = T->Normals();
+        const auto& mNormals = T->InternalNormals();
 
         int ivert = 0;
         for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
             gp_Pnt p;
             gp_Dir pn;
-            p = mNodes(j).Transformed(theLocation.Transformation());
+            p = mNodes.Value(j).Transformed(theLocation.Transformation());
 
             chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
-            chrono::ChVector3d nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
+            chrono::ChVector3d nor(mNormals.Value(j).x(), mNormals.Value(j).y(), mNormals.Value(j).z());
             if (F.Orientation() == TopAbs_REVERSED)
                 nor *= -1;
 
@@ -108,12 +64,12 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
         }
 
         int itri = 0;
-        for (int j = T->Triangles().Lower(); j <= T->Triangles().Upper(); j++) {
+        for (int j = 1; j <= T->NbTriangles(); ++j) { // NB: opencascade indexing is [1, last]
             Standard_Integer n[3];
             if (F.Orientation() == TopAbs_REVERSED)
-                T->Triangles()(j).Get(n[0], n[2], n[1]);
+                T->Triangle(j).Get(n[0], n[2], n[1]);
             else
-                T->Triangles()(j).Get(n[0], n[1], n[2]);
+                T->Triangle(j).Get(n[0], n[1], n[2]);
             int ia = v_offset + (n[0]) - 1;
             int ib = v_offset + (n[1]) - 1;
             int ic = v_offset + (n[2]) - 1;
@@ -187,7 +143,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
 }
 */
 
-void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& mesh,
+void ChCascadeMeshTools::FillTriangleMeshFromCascade(ChTriangleMeshConnected& mesh,
                                                      const TopoDS_Shape& shape,
                                                      const ChCascadeTriangulate& tolerances) {
     BRepTools::Clean(shape);
@@ -201,11 +157,11 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& me
     TopExp_Explorer ex;
     for (ex.Init(shape, TopAbs_FACE); ex.More(); ex.Next()) {
         const TopoDS_Face& F = TopoDS::Face(ex.Current());
-        fillTriangleMeshFromCascadeFace(mesh, F);
+        FillTriangleMeshFromCascadeFace(mesh, F);
     }
 }
 
-void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
+void ChCascadeMeshTools::FillObjFileFromCascade(std::ofstream& objfile,
                                                 const TopoDS_Shape& shape,
                                                 const ChCascadeTriangulate& tolerances) {
     BRepTools::Clean(shape);
@@ -226,25 +182,25 @@ void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
         const TopoDS_Face& F = TopoDS::Face(ex.Current());
 
         BRepAdaptor_Surface BS(F, Standard_False);
-        Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
+        opencascade::handle<BRepAdaptor_Surface> gFace = new BRepAdaptor_Surface(BS);
 
-        Handle(Poly_Triangulation) T;
+        opencascade::handle<Poly_Triangulation> T;
         TopLoc_Location theLocation;
         T = BRep_Tool::Triangulation(F, theLocation);
 
         if (!T.IsNull()) {
             Standard_Integer n[3];
-            const TColgp_Array1OfPnt& mNodes = T->Nodes();
+            const Poly_ArrayOfNodes& mNodes = T->InternalNodes();
 
             Poly::ComputeNormals(T);
-            const TShort_Array1OfShortReal& mNormals = T->Normals();
+            const auto& mNormals = T->InternalNormals();
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
                 gp_Dir pn;
-                gp_Pnt p = mNodes(j).Transformed(theLocation.Transformation());
+                gp_Pnt p = mNodes.Value(j).Transformed(theLocation.Transformation());
                 chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector3d nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
+                chrono::ChVector3d nor(mNormals.Value(j).x(), mNormals.Value(j).y(), mNormals.Value(j).z());
                 if (F.Orientation() == TopAbs_REVERSED)
                     nor *= -1;
 
@@ -258,11 +214,11 @@ void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
                 ivert++;
             }
             int itri = 0;
-            for (int j = T->Triangles().Lower(); j <= T->Triangles().Upper(); j++) {
+            for (int j = 1; j <= T->NbTriangles(); ++j) {  // NB: opencascade indexing is [1, last]
                 if (F.Orientation() == TopAbs_REVERSED)
-                    T->Triangles()(itri + 1).Get(n[0], n[2], n[1]);
+                    T->Triangle(itri + 1).Get(n[0], n[2], n[1]);
                 else
-                    T->Triangles()(itri + 1).Get(n[0], n[1], n[2]);
+                    T->Triangle(itri + 1).Get(n[0], n[1], n[2]);
                 int ia = (n[0]) - 1;
                 int ib = (n[1]) - 1;
                 int ic = (n[2]) - 1;
