@@ -48,6 +48,9 @@
         @brief Base classes for a generic FSI Chrono interface
         @defgroup fsisph SPH-based FSI module
         @brief SPH-based fluid solver and FSI interface
+        This sub-module provides a Smoothed Particle Hydrodynamics fluid solver with support for:
+        - incompressible Navier-Stokes, and
+        - continuous representation model for terramechanics.
         @{
           @defgroup fsisph_physics Physics objects
           @defgroup fsisph_math Math support
@@ -55,6 +58,8 @@
           @defgroup fsisph_visualization Visualization
         @}
         @defgroup fsitdpf TDPF-based FSI module
+        @brief TDPF-based fluid solver and FSI interface
+        This sub-module provides a Time-Dependent Potential Flow fluid solver for FSI problems.
     @}
 */
 
