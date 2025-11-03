@@ -53,6 +53,7 @@
 #include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vsg/ChEventHandlerVSG.h"
 #include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/utils/ChConversionsVSG.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -246,6 +247,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
+
+    /// Set target render frame rate (default: 0 means render every frame)
+    /// When set to, for example, 60fps, it limits rendering to approximately that many FPS
+    /// even if physics is running faster. Dramatically improves performance for VSG since
+    /// recordAndSubmit() is expensive
+    void SetTargetRenderFPS(double fps) { m_target_render_fps = fps; }
 
     /// Enable/disable rendering of shadows (default: false).
     /// This function must be called before Initialize().
@@ -639,6 +646,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChTimer m_timer_render;                           ///< timer for rendering speed
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
+    
+    double m_target_render_fps;                       ///< target rendering framerate (0 = unlimited)
+    double m_last_render_time;                        ///< simulation time of last render
 
     // ImGui textures
     vsg::ref_ptr<vsgImGui::Texture> m_logo_texture;

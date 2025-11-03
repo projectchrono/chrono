@@ -731,7 +731,9 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_time_total(0),
       m_old_time(0),
       m_current_time(0),
-      m_fps(0) {
+      m_fps(0),
+      m_target_render_fps(0),
+      m_last_render_time(0) {
     m_windowTitle = std::string("Window Title");
     ////m_skyboxPath = std::string("vsg/textures/chrono_skybox.ktx2");
     m_skyboxPath = std::string("vsg/textures/vsg_skybox.ktx");
@@ -1354,18 +1356,31 @@ bool ChVisualSystemVSG::Run() {
 }
 
 void ChVisualSystemVSG::Render() {
+    // Frame rate limiting - decouples the simulation time step from the rendering frame rate and reduces cpu overhead
+    // if set to 0, no frame rate limiting is applied
+    if (m_target_render_fps > 0 && m_frame_number > 0) {
+        m_timer_render.stop();
+        double elapsed = m_timer_render();
+        double min_frame_time = 1.0 / m_target_render_fps;
+        
+        if (elapsed < min_frame_time) {
+            // Not enough wall-clock time passed - skip this frame entirely
+            m_timer_render.start();
+            ChVisualSystem::Render();
+            return;
+        }
+        // Frame gate passed - timer already stopped, will be reset/started at bottom
+    }
+    
     if (m_write_images && m_frame_number > 0) {
         // Zero-pad frame numbers in file names for postprocessing
         std::ostringstream filename;
         filename << m_image_dir << "/img_" << std::setw(5) << std::setfill('0') << m_frame_number << ".png";
         WriteImageToFile(filename.str());
-    }
-
+    }    
+    
     if (m_frame_number == 0)
         m_start_time = double(clock()) / double(CLOCKS_PER_SEC);
-
-    m_timer_render.reset();
-    m_timer_render.start();
 
     // Let any plugins perform pre-rendering operations
     for (auto& plugin : m_plugins)
@@ -1383,7 +1398,9 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU->GPU for COM symbol size and body labels
-    if (!m_com_symbols_empty) {
+    // Only update if COM symbols are actually visible to avoid unecessary cpu to gpu data transfers
+    // otherwise this is effectively marking dirty even if the symbols are hidden! (extra work)
+    if (m_show_com_symbols && !m_com_symbols_empty) {
         auto symbol_size = m_com_frame_scale * m_com_symbol_ratio;
 
         std::vector<ChVector3d> c_pos;
@@ -1416,8 +1433,10 @@ void ChVisualSystemVSG::Render() {
         }
     }
 
-    // Dynamic data transfer CPU->GPU for link labels
-    if (!m_link_labels.empty()) {
+    // Dynamic data transfer CPU->GPU for link labels  
+    // Only update if link labels are actually visible to avoid expensive CPU work - the !m_link_labels_empty test doesn't condition this
+    // code comprehensively. If the link labels are empty, the for ipos won't run, but the CollectLinkFramePositions will still be called needlessly.
+    if (m_show_link_labels) {
         auto label_size = m_link_labels_scale * m_label_size;
 
         std::vector<ChVector3d> c_pos;
@@ -1465,24 +1484,27 @@ void ChVisualSystemVSG::Render() {
     }
 
     // Dynamic data transfer CPU->GPU for point clouds
-    auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
-    for (const auto& cloud : m_clouds) {
-        if (cloud.dynamic_positions) {
-            unsigned int k = 0;
-            for (auto& p : *cloud.positions) {
-                if (cloud.pcloud->IsVisible(k))
-                    p = vsg::vec3CH(cloud.pcloud->GetParticlePos(k));
-                else
-                    p = hide_pos;  // vsg::vec3(0, 0, 0);
-                k++;
+    // Skip if no particle clouds exist - avoids buffer uploads with dirty() - this is very minor saving, but every calc minimised/conditioned helps
+    if (!m_clouds.empty()) {
+        auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
+        for (const auto& cloud : m_clouds) {
+            if (cloud.dynamic_positions) {
+                unsigned int k = 0;
+                for (auto& p : *cloud.positions) {
+                    if (cloud.pcloud->IsVisible(k))
+                        p = vsg::vec3CH(cloud.pcloud->GetParticlePos(k));
+                    else
+                        p = hide_pos;  // vsg::vec3(0, 0, 0);
+                    k++;
+                }
+                cloud.positions->dirty();
             }
-            cloud.positions->dirty();
-        }
-        if (cloud.dynamic_colors) {
-            unsigned int k = 0;
-            for (auto& c : *cloud.colors)
-                c = vsg::vec4CH(cloud.pcloud->GetVisualColor(k++));
-            cloud.colors->dirty();
+            if (cloud.dynamic_colors) {
+                unsigned int k = 0;
+                for (auto& c : *cloud.colors)
+                    c = vsg::vec4CH(cloud.pcloud->GetVisualColor(k++));
+                cloud.colors->dirty();
+            }
         }
     }
 
@@ -1529,14 +1551,20 @@ void ChVisualSystemVSG::Render() {
     m_viewer->present();
     m_frame_number++;
 
-    m_timer_render.stop();
-    m_time_total = .5 * m_timer_render() + .5 * m_time_total;
-    m_current_time = m_time_total;
-    m_current_time = m_current_time * 0.5 + m_old_time * 0.5;
-    m_old_time = m_current_time;
-    m_fps = 1.0 / m_current_time;
+    if (m_frame_number > 1) {
+        m_timer_render.stop();
+        m_time_total = .5 * m_timer_render() + .5 * m_time_total;
+        m_current_time = m_time_total;
+        m_current_time = m_current_time * 0.5 + m_old_time * 0.5;
+        m_old_time = m_current_time;
+        m_fps = 1.0 / m_current_time;
+    }
 
     ChVisualSystem::Render();
+
+    m_timer_render.reset();
+    m_timer_render.start();
+
 }
 
 void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
@@ -2042,7 +2070,6 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     // Important for update: keep the correct scenegraph hierarchy
     //     modelGroup->model_transform->shapes_group
 
-    // Create a group to hold this visual model
     auto vis_model_group = vsg::Group::create();
 
     // Create a group to hold the shapes with their subtransforms
@@ -2051,10 +2078,12 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     // Populate the group with shapes in the visual model
     PopulateVisGroup(vis_shapes_group, vis_model);
 
-    // Attach a transform to the group and initialize it with the body current position
+    // Create transform and initialize with current frame
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(vis_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = false;
+     // Enable frustum culling means we're not wasting rendering resources on things out of frame
+    vis_model_transform->subgraphRequiresLocalFrustum = true; 
+    
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(vis_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -2062,7 +2091,6 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     vis_model_transform->addChild(vis_shapes_group);
     vis_model_group->addChild(vis_model_transform);
 
-    // Set group properties
     vis_model_group->setValue("Object", obj);
     vis_model_group->setValue("Type", type);
     vis_model_group->setValue("Tag", obj->GetTag());
@@ -2109,7 +2137,7 @@ void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContact
     // Attach a transform to the group and initialize it with the body current position
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = false;
+    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(coll_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -2241,6 +2269,9 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
             group->setValue("Transform", transform);
             m_pointpointScene->addChild(mask_segments, group);
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
+            // VSG generates spring coils procedurally on GPU, so disable expensive CPU geometry updates
+            sprshape->SetGeometryUpdatesDisabled(true);
+            
             auto rad = sprshape->GetRadius();
             auto turns = sprshape->GetTurns();
             auto resolution = sprshape->GetResolution();
@@ -2673,7 +2704,7 @@ void ChVisualSystemVSG::Update() {
         }
     }
 
-    // Update all VSG nodes with object visualization
+    // Update all VSG nodes with object visualization assets
     for (const auto& child : m_objScene->children) {
         std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -2933,7 +2964,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
     // Attach a transform to the group and initialize it with the provided frame
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = false;
+    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(vis_model_group);
         m_options->sharedObjects->share(vis_model_transform);
