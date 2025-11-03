@@ -55,8 +55,11 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     virtual unsigned int GetNumNodes() override { return 2; }
     virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 6; }
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 6; }
-    virtual unsigned int GetNumStateVar() override { return 1 * section->Get_material()->GetNumberOfStateVariables(); }
+    virtual unsigned int GetNumStateVar() override { return section->Get_material()->GetNumberOfStateVariables() + 2*7; } // TODO: the + 2*7 is designed to store the old DOFs (position (3) + quaternion (4)) in order to compute strain increment.
+                                                                                                                          //       This is not great, because it duplicates nodal information multiple times in each element that shares a node.
+                                                                                                                          //       Until the new FEA developments by Alessandro Tasora where nodal information is accessible, we use this hack.
 
+    unsigned int GetDOFOffset() { return section->Get_material()->GetNumberOfStateVariables(); }
     virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 	
 	virtual std::shared_ptr<ChNodeFEAxyzrot> GetConnectorNode(unsigned int n) { return nodes[n]; }
@@ -130,17 +133,16 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     /// Compute large rotation of element for corotational approach
     /// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
     virtual void UpdateRotation() override;
+
+    /// Compute the vectors connecting the nodes to the centroid of the section
+    void ComputeBranchVectors(ChVector3d& xi_xc, ChVector3d& xj_xc);
     //
     // The default implementation in ChElementBase is ok, but inefficient because it passes
     // through the computation of the M mass matrix via ComputeKRMmatricesGlobal(H,0,0,M).
     virtual void EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c){};
     
-    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    /// For corotational elements, field is assumed in local reference!
-    /// Given that this element includes rotations at nodes, this gives:
-    ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
-    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
+    /// Fills the last 14 entries of the state variable with the DOFs (position, quaternion) of the nodes
+    virtual void GetStateBlock(ChVectorDynamic<>& statev) override;
 
     /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
@@ -153,7 +155,7 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	///
 	/// Compute strain at a CBLCON facet 
 	///
-	void ComputeStrain(ChVectorN<double, 12>& displ, ChVector3d& mStrain, ChVector3d& curvature);
+	void ComputeStrainIncrement(ChVectorN<double, 12>& displ, ChVector3d& mStrain, ChVector3d& curvature);
 	///
 	///
 	///	
