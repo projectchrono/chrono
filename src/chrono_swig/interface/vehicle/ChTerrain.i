@@ -75,6 +75,8 @@
 #endif
 
 %template(ChPatchList) std::vector<std::shared_ptr<chrono::vehicle::RigidTerrain::Patch>>;
+%template(ChSCMTerrainNodeLevel) std::pair<chrono::ChVector2i, double>;
+%template(ChSCMTerrainNodeLevelList) std::vector<std::pair<chrono::ChVector2i, double>>; // To support SCMTerrain::Get/SetModifiedNodes
 
 // Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/ChTerrain.h"    

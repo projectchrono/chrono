@@ -166,6 +166,7 @@ using namespace chrono::vehicle::m113;
 // Include other .i configuration files for SWIG. 
 %include "std_string.i"
 %include "std_vector.i"
+%include "std_pair.i"
 %include "typemaps.i"
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
