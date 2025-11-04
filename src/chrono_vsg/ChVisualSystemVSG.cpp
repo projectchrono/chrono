@@ -1508,38 +1508,75 @@ void ChVisualSystemVSG::Render() {
         }
     }
 
+
     // Dynamic data transfer CPU->GPU for deformable meshes
+    // To speed up cpu-gpu - treat ChVector3d arrays as contiguous arrays for bulk conversion over to gpu
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
             const auto& new_vertices =
                 def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
             assert(def_mesh.vertices->size() == new_vertices.size());
-            size_t k = 0;
-            for (auto& v : *def_mesh.vertices)
-                v = vsg::vec3CH(new_vertices[k++]);
-            def_mesh.vertices->dirty();
+
+            const size_t count = new_vertices.size();
+            if (count > 0) {
+                // ChVector3d stores 3 doubles contiguously, cast to raw double* and float* with less overhead
+                const double* src_ptr = new_vertices[0].data();
+                float* dst_ptr = reinterpret_cast<float*>(def_mesh.vertices->data());
+
+                // convert 3*count doubles to floats with tight loop
+                const size_t total_components = count * 3;
+                for (size_t i = 0; i < total_components; ++i) {
+                    dst_ptr[i] = static_cast<float>(src_ptr[i]);
+                }
+
+                def_mesh.vertices->dirty();
+            }
         }
 
         if (def_mesh.dynamic_normals) {
             const auto& new_normals =
                 def_mesh.mesh_soup ? def_mesh.trimesh->getFaceNormals() : def_mesh.trimesh->getAverageNormals();
             assert(def_mesh.normals->size() == new_normals.size());
-            size_t k = 0;
-            for (auto& n : *def_mesh.normals)
-                n = vsg::vec3CH(new_normals[k++]);
-            def_mesh.normals->dirty();
+
+            const size_t count = new_normals.size();
+            if (count > 0) {
+                const double* src_ptr = new_normals[0].data();
+                float* dst_ptr = reinterpret_cast<float*>(def_mesh.normals->data());
+
+                const size_t total_components = count * 3;
+                for (size_t i = 0; i < total_components; ++i) {
+                    dst_ptr[i] = static_cast<float>(src_ptr[i]);
+                }
+
+                def_mesh.normals->dirty();
+            }
         }
 
         if (def_mesh.dynamic_colors) {
             const auto& new_colors =
                 def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->GetCoordsColors();
             assert(def_mesh.colors->size() == new_colors.size());
-            size_t k = 0;
-            for (auto& c : *def_mesh.colors)
-                c = vsg::vec4CH(new_colors[k++]);
-            def_mesh.colors->dirty();
+
+            const size_t count = new_colors.size();
+            if (count > 0) {
+                // ChColor is 12 bytes (3 floats), but need to give to the gpu with vec4 (16 bytes) for alignment
+                // copy element-wise with manual unroll
+                const ChColor* src_ptr = new_colors.data();
+                float* dst_ptr = reinterpret_cast<float*>(def_mesh.colors->data());
+
+                // Manual unroll (RGBA = 4 components)
+                for (size_t k = 0; k < count; ++k) {
+                    const size_t idx = k * 4;
+                    dst_ptr[idx + 0] = src_ptr[k].R;
+                    dst_ptr[idx + 1] = src_ptr[k].G;
+                    dst_ptr[idx + 2] = src_ptr[k].B;
+                    dst_ptr[idx + 3] = 1.0f;  // Alpha channel (ChColor has no transparency)
+                }
+                def_mesh.colors->dirty();
+            }
         }
     }
+
 
     m_viewer->recordAndSubmit();
 
