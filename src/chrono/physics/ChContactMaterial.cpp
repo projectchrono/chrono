@@ -29,7 +29,7 @@ CH_FACTORY_REGISTER(ChContactMaterialCompositionStrategy);
 // -----------------------------------------------------------------------------
 
 ChContactMaterial::ChContactMaterial()
-    : static_friction(0.6f), sliding_friction(0.6f), rolling_friction(0), spinning_friction(0), restitution(0.4f) {}
+    : static_friction(0.6f), sliding_friction(0.6f), rolling_friction(0), spinning_friction(0), restitution(0) {}
 
 ChContactMaterial::ChContactMaterial(const ChContactMaterial& other) {
     static_friction = other.static_friction;
