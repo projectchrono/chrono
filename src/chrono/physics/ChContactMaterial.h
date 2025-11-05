@@ -51,7 +51,7 @@ class ChApi ChContactMaterial {
     /// Get the static friction coefficient.
     float GetStaticFriction() const { return static_friction; }
 
-    /// Set the sliding (kinetic) friction coefficient.
+    /// Set the sliding (kinetic) friction coefficient (default: 0.6).
     void SetSlidingFriction(float val) { sliding_friction = val; }
 
     /// Get the sliding friction coefficient.
