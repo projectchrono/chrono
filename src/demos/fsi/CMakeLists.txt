@@ -22,6 +22,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_NormalBevameter
    demo_FSI_ConePenetrometer
    demo_FSI_Hydrostatic
+   demo_FSI_Cone_Drop
 )
 
 if(CH_ENABLE_MODULE_VSG)

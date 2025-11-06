@@ -597,8 +597,8 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
         double angle_mus = std::atan(params.mu_s);
         // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
         mat_props.mcc_M = 1.34;
-        mat_props.mcc_kappa = 0.05;
-        mat_props.mcc_lambda = 0.1;
+        mat_props.mcc_kappa = 0.01;
+        mat_props.mcc_lambda = 0.04;
     }
 
     sysSPH.SetElasticSPH(mat_props);

@@ -66,54 +66,120 @@ class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVis
 bool GetProblemSpecs(int argc,
                      char** argv,
                      double& t_end,
-                     bool& verbose,
-                     bool& output,
-                     double& output_fps,
-                     bool& snapshots,
-                     double& pre_pressure_scale,
                      int& ps_freq,
                      double& sphere_density,
                      double& Hdrop,
-                     bool& render,
-                     std::string& boundary_method,
-                     std::string& viscosity_method,
-                     std::string& rheology_model_crm) {
+                     double& initial_spacing,
+                     double& d0_multiplier,
+                     double& time_step,
+                     std::string& boundary_type,
+                     std::string& viscosity_type,
+                     std::string& kernel_type,
+                     std::string& rheology_model_crm,
+                     double& pre_pressure_scale,
+                     double& kappa,
+                     double& lambda) {
     ChCLI cli(argv[0], "FSI Cratering Demo");
 
     cli.AddOption<double>("Simulation", "t_end", "End time", std::to_string(t_end));
-    cli.AddOption<bool>("Simulation", "verbose", "Verbose output", std::to_string(verbose));
-    cli.AddOption<bool>("Output", "output", "Enable output", std::to_string(output));
-    cli.AddOption<double>("Output", "output_fps", "Output FPS", std::to_string(output_fps));
-    cli.AddOption<bool>("Output", "snapshots", "Enable snapshots", std::to_string(snapshots));
-    cli.AddOption<double>("Output", "pre_pressure_scale", "Pre-pressure scale", std::to_string(pre_pressure_scale));
     cli.AddOption<int>("Simulation", "ps_freq", "Proximity search frequency", std::to_string(ps_freq));
     cli.AddOption<double>("Geometry", "sphere_density", "Sphere density", std::to_string(sphere_density));
     cli.AddOption<double>("Geometry", "Hdrop", "Drop height", std::to_string(Hdrop));
-    cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
+    cli.AddOption<double>("Geometry", "initial_spacing", "Initial spacing", std::to_string(initial_spacing));
+    cli.AddOption<double>("Physics", "d0_multiplier", "D0 multiplier", std::to_string(d0_multiplier));
 
-    cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", "adami");
-    cli.AddOption<std::string>("Physics", "viscosity_method",
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_type",
                                "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
+    cli.AddOption<std::string>("Physics", "kernel_type", "Kernel type (cubic/wendland)", "cubic");
+    cli.AddOption<double>("Physics", "time_step", "Time step", std::to_string(time_step));
     cli.AddOption<std::string>("Physics", "rheology_model_crm", "Rheology model (MU_OF_I/MCC)", "MU_OF_I");
-
+    cli.AddOption<double>("Physics", "pre_pressure_scale", "Pre-pressure scale", std::to_string(pre_pressure_scale));
+    cli.AddOption<double>("Physics", "kappa", "kappa", std::to_string(kappa));
+    cli.AddOption<double>("Physics", "lambda", "lambda", std::to_string(lambda));
     if (!cli.Parse(argc, argv))
         return false;
 
     t_end = cli.GetAsType<double>("t_end");
-    verbose = cli.GetAsType<bool>("verbose");
-    output = cli.GetAsType<bool>("output");
-    output_fps = cli.GetAsType<double>("output_fps");
-    snapshots = cli.GetAsType<bool>("snapshots");
-    pre_pressure_scale = cli.GetAsType<double>("pre_pressure_scale");
     ps_freq = cli.GetAsType<int>("ps_freq");
     sphere_density = cli.GetAsType<double>("sphere_density");
     Hdrop = cli.GetAsType<double>("Hdrop");
-    render = !cli.GetAsType<bool>("no_vis");
-
-    boundary_method = cli.GetAsType<std::string>("boundary_method");
-    viscosity_method = cli.GetAsType<std::string>("viscosity_method");
+    initial_spacing = cli.GetAsType<double>("initial_spacing");
+    d0_multiplier = cli.GetAsType<double>("d0_multiplier");
+    time_step = cli.GetAsType<double>("time_step");
+    boundary_type = cli.GetAsType<std::string>("boundary_type");
+    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+    kernel_type = cli.GetAsType<std::string>("kernel_type");
     rheology_model_crm = cli.GetAsType<std::string>("rheology_model_crm");
+    pre_pressure_scale = cli.GetAsType<double>("pre_pressure_scale");
+    kappa = cli.GetAsType<double>("kappa");
+    lambda = cli.GetAsType<double>("lambda");
     return true;
+}
+
+//------------------------------------------------------------------
+// Function to generate a UV sphere mesh and save to VTK file
+//------------------------------------------------------------------
+void WriteSphereVTK(const std::string& filename, std::shared_ptr<ChBody> body, double radius, int resolution = 16) {
+    // Generate a sphere mesh with UV coordinates
+    ChTriangleMeshConnected mesh;
+    std::vector<ChVector3d>& vertices = mesh.GetCoordsVertices();
+    std::vector<ChVector3i>& indices = mesh.GetIndicesVertexes();
+
+    // Create vertices using spherical coordinates
+    for (int i = 0; i <= resolution; i++) {
+        double phi = CH_PI * i / resolution;
+        for (int j = 0; j <= resolution; j++) {
+            double theta = 2 * CH_PI * j / resolution;
+            double x = radius * sin(phi) * cos(theta);
+            double y = radius * sin(phi) * sin(theta);
+            double z = radius * cos(phi);
+            vertices.push_back(ChVector3d(x, y, z));
+        }
+    }
+
+    // Create triangular faces
+    for (int i = 0; i < resolution; i++) {
+        for (int j = 0; j < resolution; j++) {
+            int p1 = i * (resolution + 1) + j;
+            int p2 = p1 + 1;
+            int p3 = (i + 1) * (resolution + 1) + j;
+            int p4 = p3 + 1;
+
+            // Add two triangles for each grid cell
+            indices.push_back(ChVector3i(p1, p2, p3));
+            indices.push_back(ChVector3i(p2, p4, p3));
+        }
+    }
+
+    // Now write the mesh to VTK file, transforming it to the body's position
+    std::ofstream outf(filename);
+    outf << "# vtk DataFile Version 2.0" << std::endl;
+    outf << "Sphere VTK from simulation" << std::endl;
+    outf << "ASCII" << std::endl;
+    outf << "DATASET UNSTRUCTURED_GRID" << std::endl;
+
+    // Write vertices transformed by body frame
+    ChFrame<> frame = body->GetFrameRefToAbs();
+    outf << "POINTS " << vertices.size() << " float" << std::endl;
+    for (const auto& v : vertices) {
+        auto w = frame.TransformPointLocalToParent(v);
+        outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
+    }
+
+    // Write triangular cells
+    int nf = static_cast<int>(indices.size());
+    outf << "CELLS " << nf << " " << 4 * nf << std::endl;
+    for (const auto& f : indices) {
+        outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
+    }
+
+    // Write cell types (5 = VTK_TRIANGLE)
+    outf << "CELL_TYPES " << nf << std::endl;
+    for (int i = 0; i < nf; i++) {
+        outf << "5" << std::endl;
+    }
+    outf.close();
 }
 
 int main(int argc, char* argv[]) {
@@ -122,22 +188,30 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
     bool output = false;
     double output_fps = 100;
+    bool write_marker_files = false;
     bool snapshots = true;
-    double pre_pressure_scale = 5000;
-    int ps_freq = 10;
+    int ps_freq = 1;
     double sphere_density = 700;
     double Hdrop = 0.5;
     bool render = true;
     double render_fps = 400;
     double step_size = 5e-5;
     double init_spacing = 0.0025;
-    std::string boundary_method = "adami";
-    std::string viscosity_method = "artificial_unilateral";
+    double d0_multiplier = 1.3;
+    std::string boundary_type = "adami";
+    std::string viscosity_type = "artificial_unilateral";
     std::string rheology_model_crm = "MU_OF_I";
+    std::string kernel_type = "cubic";
+    double pre_pressure_scale = 2;
+    double kappa = 0.01;
+    double lambda = 0.04;
+    double mu_fric_s = 0.3;
+    double mu_fric_2 = 0.48;
 
     // Parse command-line arguments
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, pre_pressure_scale, ps_freq,
-                         sphere_density, Hdrop, render, boundary_method, viscosity_method, rheology_model_crm)) {
+    if (!GetProblemSpecs(argc, argv, t_end, ps_freq, sphere_density, Hdrop, init_spacing, d0_multiplier, step_size,
+                         boundary_type, viscosity_type, kernel_type, rheology_model_crm, pre_pressure_scale, kappa,
+                         lambda)) {
         return 1;
     }
 
@@ -158,50 +232,56 @@ int main(int argc, char* argv[]) {
 
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1510;
-    mat_props.Young_modulus = 2e6;
+    mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
     if (rheology_model_crm == "MU_OF_I") {
         mat_props.rheology_model = RheologyCRM::MU_OF_I;
         mat_props.mu_I0 = 0.04;
-        mat_props.mu_fric_s = 0.3;
-        mat_props.mu_fric_2 = 0.48;
-        mat_props.average_diam = 0.002;
+        mat_props.mu_fric_s = mu_fric_s;
+        mat_props.mu_fric_2 = mu_fric_2;
+        mat_props.average_diam = 0.001;
     } else {
         mat_props.rheology_model = RheologyCRM::MCC;
-        double angle_mus = std::atan(mat_props.mu_fric_s);
-        // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
-        mat_props.mcc_M = 1.02;
-        mat_props.mcc_kappa = 0.05;
-        mat_props.mcc_lambda = 0.2;
+        double angle_mus = std::atan(mu_fric_s);
+        mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
+        std::cout << "MCC M: " << mat_props.mcc_M << std::endl;
+        // mat_props.mcc_M = 1.02;
+        mat_props.mcc_kappa = kappa;
+        mat_props.mcc_lambda = lambda;
     }
     sysSPH.SetElasticSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = init_spacing;
-    sph_params.d0_multiplier = 1.2;
-    sph_params.artificial_viscosity = 0.1;
+    sph_params.d0_multiplier = d0_multiplier;
+    sph_params.artificial_viscosity = 0.01;
     // Set boundary type
-    if (boundary_method == "holmes") {
+    if (boundary_type == "holmes") {
         sph_params.boundary_method = BoundaryMethod::HOLMES;
     } else {
         sph_params.boundary_method = BoundaryMethod::ADAMI;
     }
     // Set viscosity type
-    if (viscosity_method == "artificial_bilateral") {
+    if (viscosity_type == "artificial_bilateral") {
         sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     } else {
         sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     }
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
-    sph_params.shifting_xsph_eps = 0.5;
+    sph_params.shifting_xsph_eps = 0.25;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
     sph_params.free_surface_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
-    sph_params.kernel_type = KernelType::WENDLAND;
+    if (kernel_type == "cubic") {
+        sph_params.kernel_type = KernelType::CUBIC_SPLINE;
+    } else {
+        sph_params.kernel_type = KernelType::WENDLAND;
+    }
     sph_params.use_variable_time_step = false;
     sysSPH.SetSPHParameters(sph_params);
+    sysFSI.SetVerbose(verbose);
 
     // Dimension of the space domain
     double bxDim = 0.14;
@@ -225,16 +305,25 @@ int main(int argc, char* argv[]) {
     // Add SPH particles to the fluid system
     double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (const auto& p : points) {
-        double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
-        double depth_cm = (-p.z() + fzDim) * 100;
-        double b = 12.2;
-        double c = 18;
-        double fzDim_cm = fzDim * 100;
-        double g = (depth_cm + b) / (depth_cm + c);
-        double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
-        double density_mean_target = 1510;
-        double rho_ini = density_mean_target * g / gbar;
-        double preconsidation_pressure = pre_ini + pre_pressure_scale;
+        // double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
+        // double depth_cm = (-p.z() + fzDim) * 100;
+        // double b = 12.2;
+        // double c = 18;
+        // double fzDim_cm = fzDim * 100;
+        // double g = (depth_cm + b) / (depth_cm + c);
+        // double gbar = 1.0 - ((c - b) / fzDim_cm) * std::log((c + fzDim_cm) / c);
+        // double density_mean_target = 1510;
+        // double rho_ini = density_mean_target * g / gbar;
+        // double preconsidation_pressure = pre_ini + pre_pressure_scale;
+        auto rho_ini = 1510;
+        double pre_ini = rho_ini * gz * (-p.z() + fzDim);
+        // double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
+        // double rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
+        double preconsidation_pressure = 0;
+        if (rheology_model_crm == "MCC") {
+            preconsidation_pressure = pre_ini * pre_pressure_scale;
+        }
+
         sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
                               ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }
@@ -302,11 +391,16 @@ int main(int argc, char* argv[]) {
         }
 
         std::stringstream ss;
-        ss << viscosity_method << "_" << boundary_method;
+        ss << viscosity_type << "_" << boundary_type;
         ss << "_ps" << ps_freq;
         ss << "_d" << sphere_density;
         ss << "_h" << Hdrop;
         ss << "_s" << init_spacing;
+        if (rheology_model_crm == "MCC") {
+            ss << "_pre_pressure_scale" << pre_pressure_scale;
+            ss << "_kappa" << kappa;
+            ss << "_lambda" << lambda;
+        }
         out_dir = out_dir + ss.str();
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
@@ -385,15 +479,20 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << "time: " << time << std::endl;
         if (output && time >= out_frame / output_fps) {
-            sysSPH.SaveParticleData(out_dir + "/particles");
-            sysSPH.SaveSolidData(out_dir + "/fsi", time);
+            if (write_marker_files) {
+                sysSPH.SaveParticleData(out_dir + "/particles");
+                sysSPH.SaveSolidData(out_dir + "/fsi", time);
+                std::stringstream vtk_filename;
+                vtk_filename << out_dir << "/vtk/sphere_" << std::setw(5) << std::setfill('0') << out_frame << ".vtk";
+                WriteSphereVTK(vtk_filename.str(), sphere, sphere_radius);
+            }
             out_frame++;
         }
 
 #ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
+            std::cout << "time: " << time << std::endl;
             if (!vis->Run())
                 break;
             vis->Render();
@@ -412,10 +511,9 @@ int main(int argc, char* argv[]) {
 
         // Write penetration depth to file
         double d_pen = fzDim + sphere_radius + 0.5 * init_spacing - sphere->GetPos().z();
-        // ofile << time << " " << d_pen << " " << sphere->GetPos().x() << " " << sphere->GetPos().y() << " "
-        //       << sphere->GetPos().z() << " " << sphere->GetPosDt().x() << " " << sphere->GetPosDt().y() << " "
-        //       << sphere->GetPosDt().z() << std::endl;
-        // Advance simulation for one timestep for all systems
+        ofile << time << " " << d_pen << " " << sphere->GetPos().x() << " " << sphere->GetPos().y() << " "
+              << sphere->GetPos().z() << " " << sphere->GetPosDt().x() << " " << sphere->GetPosDt().y() << " "
+              << sphere->GetPosDt().z() << std::endl;
         sysFSI.DoStepDynamics(dT);
         time += dT;
 

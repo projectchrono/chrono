@@ -2253,7 +2253,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 
     // Use polar coordinates
     if (polar) {
-        for (int iz = 0; iz < np_h; iz++) {
+        for (int iz = 0; iz < np_h - 2; iz++) {
             double z = iz * delta_h;
             double rz = rad * (height - z) / height;
             double rad_out = rz;
