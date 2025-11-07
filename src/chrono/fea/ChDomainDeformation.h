@@ -85,36 +85,36 @@ public:
         const double s,
         ChVectorDynamic<>& Fi
     ) override {
+        // Compute shape functions N at eta, and their material derivatives
         ChMatrixDynamic<> dNdX;
         ChRowVectorDynamic<> N;
         melement->ComputedNdX(eta, dNdX);
         melement->ComputeN(eta, N);
 
+        // Compute the matrix  x_hh = [x1|x2|x3|x4..] with discrete values of spatial positions at nodes
+        ChMatrixDynamic<> x_hh(3, melement->GetNumNodes());   
+        this->GetFieldPackedStateBlock(melement, data, x_hh, 0);
+
+        ChMatrixDynamic<> dNde;
+        melement->ComputedNde(eta, dNde);
+
         // F deformation tensor = J_x * J_X^{-1}
         //   J_X: already available via element->ComputeJ()
         //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
-        ChMatrixDynamic<> Xhat(3, melement->GetNumNodes());
-        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
-            Xhat.block(0, i, 3, 1) = ((ChFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
-        }
-        ChMatrixDynamic<> dNde;
-        melement->ComputedNde(eta, dNde);
 
         ChMatrix33d J_X_inv;
         melement->ComputeJinv(eta, J_X_inv);
 
-        ChMatrix33d J_x = Xhat * dNde.transpose();
+        ChMatrix33d J_x = x_hh * dNde.transpose();
 
         ChMatrix33d F = J_x * J_X_inv;
 
         ChMatrix33d l;
         ChMatrix33d* a_l = nullptr;
         if (material->IsSpatialVelocityGradientNeeded()) {
-            ChMatrixDynamic<> dot_Xhat(3, melement->GetNumNodes());
-            for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
-                dot_Xhat.block(0, i, 3, 1) = ((ChFieldDataPos3D*)(data.nodes_data[i][0]))->GetPosDt().eigen();
-            }
-            l = dot_Xhat * dNde.transpose() * J_x.inverse();
+            ChMatrixDynamic<> dot_x_hh(3, melement->GetNumNodes());
+            this->GetFieldPackedStateBlockDt(melement, data, dot_x_hh, 0); // dot_x_hh = [v1 | v2 | v3 | v4..]
+            l = dot_x_hh * dNde.transpose() * J_x.inverse();
         }
 
         // Compute  2nd Piola-Kirchhoff tensor in Voigt notation using the constitutive relation of material
@@ -126,7 +126,7 @@ public:
             &data.element_data);
 
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
-        this->ComputeB(B, dNdX, F);
+        ChDomainDeformation::ComputeB(B, dNdX, F);
 
         // We have:             Fi = - sum (B' * S * w * |J|)
         // so here we compute  Fi += - B' * S * s
@@ -154,48 +154,46 @@ public:
         melement->ComputedNdX(eta, dNdX);
         melement->ComputeN(eta, N);
 
-        // F deformation tensor = J_x * J_X^{-1}
-        //   J_X: already available via element->ComputeJ()
-        //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
-        ChMatrixDynamic<> Xhat(3, melement->GetNumNodes());
-        for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
-            Xhat.block(0, i, 3, 1) = ((ChFieldDataPos3D*)(data.nodes_data[i][0]))->GetPos().eigen();
-        }
+        ChMatrixDynamic<> x_hh(3, melement->GetNumNodes());   // x_hh = [x1 | x2 | x3 | x4..]
+        this->GetFieldPackedStateBlock(melement, data, x_hh, 0);
 
         ChMatrixDynamic<> dNde;
         melement->ComputedNde(eta, dNde);
 
+        // F deformation tensor = J_x * J_X^{-1}
+        //   J_X: already available via element->ComputeJ()
+        //   J_x: compute via   [x1|x2|x3|x4..]*dNde'
+
         ChMatrix33d J_X_inv;
         melement->ComputeJinv(eta, J_X_inv);
 
-        ChMatrix33d J_x = Xhat * dNde.transpose();
+        ChMatrix33d J_x = x_hh * dNde.transpose();
 
         ChMatrix33d F = J_x * J_X_inv;
 
         ChMatrix33d l;
         ChMatrix33d* a_l = nullptr;
         if (material->IsSpatialVelocityGradientNeeded()) {
-            ChMatrixDynamic<> dot_Xhat(3, melement->GetNumNodes());
-            for (unsigned int i = 0; i < melement->GetNumNodes(); ++i) {
-                dot_Xhat.block(0, i, 3, 1) = ((ChFieldDataPos3D*)(data.nodes_data[i][0]))->GetPosDt().eigen();
-            }
-            l = dot_Xhat * dNde.transpose() * J_x.inverse();
+            ChMatrixDynamic<> dot_x_hh(3, melement->GetNumNodes());
+            this->GetFieldPackedStateBlockDt(melement, data, dot_x_hh, 0); // dot_x_hh = [v1 | v2 | v3 | v4..]
+            l = dot_x_hh * dNde.transpose() * J_x.inverse();
         }
 
-        // Compute tangent modulus (assumed: dP=[C]dE with P  2nd Piola-Kirchhoff, E Green-Lagrange)
-        ChMatrix66<double> C;
-        this->material->ComputeTangentModulus(C,
-            F,
-            a_l,
-            data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
-            &data.element_data);
-
-        ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
-        this->ComputeB(B, dNdX, F);
-
         // K  matrix 
-        // K = sum (B' * k * B  * w * |J|)  
+        // K = sum (B' * C * B  * w * |J|)  
         if (Kpfactor) {
+
+            // Compute tangent modulus (assumed: dP=[C]dE with P  2nd Piola-Kirchhoff, E Green-Lagrange)
+            ChMatrix66<double> C;
+            this->material->ComputeTangentModulus(C,
+                F,
+                a_l,
+                data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
+                &data.element_data);
+
+            ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
+            ChDomainDeformation::ComputeB(B, dNdX, F);
+
             H += Kpfactor * (B.transpose() * C * B);
             // ***TODO*** add the geometric tangent stiffness
             // ***TODO*** rayleigh damping
@@ -341,52 +339,44 @@ public:
     //
 
     /// Extract the unsymmetric F deformation gradient tensor
-    class ChVisualDataExtractorDeformationGradientF : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+    class ExtractDeformationGradientF : public ChVisualDataExtractorMatrix33<ExtractDeformationGradientF, ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
             return fdata->F;
         }
     };
 
     /// Extract the  C=F^T*F  right Cauchy-Green deformation tensor (should be plotted on material undeformed space)
-    class ChVisualDataExtractorRightCauchyGreenC : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+    class ExtractRightCauchyGreenC : public ChVisualDataExtractorMatrix33<ExtractRightCauchyGreenC, ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
             return fdata->F.transpose() * fdata->F;
         }
     };
 
     /// Extract the  B=F*F^T left Cauchy-Green deformation tensor (should be plotted on spatial deformed space)
-    class ChVisualDataExtractorLeftCauchyGreenB : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+    class ExtractLeftCauchyGreenB : public ChVisualDataExtractorMatrix33<ExtractLeftCauchyGreenB, ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
             return fdata->F * fdata->F.transpose();
         }
     };
 
     /// Extract the E=1/2(F^T*F - I)  Green-Lagrange strain tensor (should be plotted on material undeformed space)
-    class ChVisualDataExtractorGreenLagrangeStrain : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+    class ExtractGreenLagrangeStrain : public ChVisualDataExtractorMatrix33<ExtractGreenLagrangeStrain, ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
             return 0.5 * (fdata->F.transpose() * fdata->F - ChMatrix33d(1));
         }
     };
 
     /// Extract the e=1/2(I- (F*F^T)^-1)  Euler-Almansi strain tensor (should be plotted on spatial deformed space)
-    class ChVisualDataExtractorEulerAlmansiStrain : public ChVisualDataExtractorMatrix33<ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+    class ExtractEulerAlmansiStrain : public ChVisualDataExtractorMatrix33<ExtractEulerAlmansiStrain, ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
             return 0.5 * (ChMatrix33d(1) - (fdata->F * fdata->F.transpose()).inverse());
         }
     };
 
 
-protected:
-    /// Get the material of the domain.
-    virtual std::shared_ptr<ChMaterial> GetMaterial() override {
-        return material;
-    };
-
-
-private:
     /// Utility: Compute  B as in  dE = B dx  where dE is variation in Green Lagrange strain (Voigt notation)
     /// and dx is the variation in spatial node coordinates (also works as  dE = B du  with du variation in displacements)
-    void ComputeB(ChMatrixRef B, ChMatrixConstRef dNdX, ChMatrixConstRef F) {
+    static void ComputeB(ChMatrixRef B, ChMatrixConstRef dNdX, ChMatrixConstRef F) {
         B.resize(6, 3 * dNdX.cols());
         B.setZero();
         for (int i = 0; i < dNdX.cols(); ++i) {
@@ -405,6 +395,13 @@ private:
             B.block<1, 3>(5, i * 3) = dNdX(0, i) * F.block<3, 1>(0, 1).transpose() + dNdX(1, i) * F.block<3, 1>(0, 0).transpose();
         }
     }
+
+protected:
+
+    /// Get the material of the domain.
+    virtual std::shared_ptr<ChMaterial> GetMaterial() override {
+        return material;
+    };
 
     bool automatic_gravity_load;
     int num_points_gravity;

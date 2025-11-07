@@ -18,6 +18,7 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/fea/ChFieldElement.h"
 #include "chrono/fea/ChFieldData.h"
+#include "chrono/fea/ChNodeFEAfieldXYZ.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
@@ -27,8 +28,8 @@ namespace fea {
 /// @{
 
 // Forward references:
-class ChNodeFEAbase;
-
+//class ChNodeFEAbase;
+//class ChNodeFEAfieldXYZ;
 
 class ChFieldBase : public ChPhysicsItem {
 public:

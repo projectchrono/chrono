@@ -67,7 +67,7 @@ namespace fea {
     // Compute shape function spatial derivatives dN/dX at eta parametric coordinates.
     // Write shape functions dN_j(eta)/dX_i in dNdX, a matrix with 4 columns, and 3 rows.
     // Instead of falling back to default dNdX = J^{-T} * dNde; for lin tetrahedron we know the ad-hoc expression:
-
+/*
     inline void ChFieldElementTetrahedron4::ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) {
         dNdX.resize(3, 4);
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
@@ -85,10 +85,11 @@ namespace fea {
         //ChFieldElement::ComputedNdX(eta, test_dNdX);
         //**** 
     }
-
+*/
     // Compute Jacobian J, and returns its determinant. J is square 3x3
 
     double ChFieldElementTetrahedron4::ComputeJ(const ChVector3d eta, ChMatrix33d& J) {
+        
         ChVector3d x14 = *this->nodes[0] - *this->nodes[3];
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
         ChVector3d x34 = *this->nodes[2] - *this->nodes[3];

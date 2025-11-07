@@ -23,7 +23,6 @@ namespace chrono {
 namespace fea {
 
 // Forward:
-class ChFieldDisplacement3D;
 class ChFieldData;
 class ChElementData;
 
@@ -34,8 +33,6 @@ class ChElementData;
 
 /// Class for the basic properties of materials in 3D continua where stress 
 /// can be computed from some deformation measure and some state. 
-/// TODO: provide a more general interface, now it is like in the subcase of the hyperelastic
-/// materials.
 
 class ChMaterial3DStress : public ChMaterial3DDensity {
 public:
@@ -43,6 +40,7 @@ public:
     ChMaterial3DStress() {}
 
     virtual ~ChMaterial3DStress() {}
+
 
     /// Compute elastic stress from finite strain, passed as 3x3 deformation gradient tensor F_def.
     /// Assuming stress if Piola-Kirchhoff tensor S, in Voigt notation.

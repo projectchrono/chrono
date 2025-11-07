@@ -95,7 +95,7 @@ public:
     /// Get P-wave modulus (if V=speed of propagation of a P-wave, then (M/density)=V^2 )
     double GetPWaveModulus() const { return m_E * ((1 - m_poisson) / (1 + m_poisson) * (1 - 2 * m_poisson)); }
 
-
+    //  CONSTITUTIVE LAW
     /// Compute elastic stress from elastic strain. 
     /// Starts computing Green-Lagrange strain E from C_deformation, the right Cauchy-Green deformation.
     /// For small strains the Green Lagrange strain in Voigt notation coincides with espilon tensor.
@@ -104,7 +104,7 @@ public:
     /// also S=[C]*E with 6x6 C in Voigt notation. 
     virtual void ComputeElasticStress(ChStressTensor<>& stress, const ChMatrix33d& C_deformation) override {
         
-        // Green Lagrange    E = 1/2( F*F' - I) = 1/2( C - I) 
+        // Green Lagrange    E = 1/2( F'*F - I) = 1/2( C - I) 
         ChMatrix33d E_strain33 = 0.5 * (C_deformation - ChMatrix33d(1));
     
         // Green Lagrange in Voigt notation (todo: optimization: could be skipped)

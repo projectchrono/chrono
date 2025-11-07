@@ -76,7 +76,7 @@ public:
     // Compute shape function spatial derivatives dN/dX at eta parametric coordinates.
     // Write shape functions dN_j(eta)/dX_i in dNdX, a matrix with 4 columns, and 3 rows.
     // Instead of falling back to default dNdX = J^{-T} * dNde; for lin tetrahedron we know the ad-hoc expression:
-    virtual void ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) override;
+//    virtual void ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) override;
 
     // Compute Jacobian J, and returns its determinant. J is square 3x3
     virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) override;

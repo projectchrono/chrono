@@ -151,13 +151,17 @@ public:
     };
     virtual std::unique_ptr<IteratorOnElements> CreateIteratorOnElements() = 0;
 
-    /// Fills the S vector with the current field states S_i at the nodes of the element, with proper ordering.
-    /// If the S vector size is not the proper size, it will be resized.
-    virtual void GetStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S) = 0;
+    /// Fills the S vector with the current i-th field states S_j at the nodes of the element.
+    /// If the S vector size is not the proper size, it will be resized. 
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldStateBlock(myelement, S, 1)  will give [T_1; T_2; ....]
+    virtual void GetFieldStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S, unsigned int i_field) = 0;
 
-    /// Fills the dSdt vector with the current field states dS_i/dt at the nodes of the element, with proper ordering.
+    /// Fills the dSdt vector with the current i-th field states dS_j/dt at the nodes of the element. with proper ordering.
     /// If the dSdt vector size is not the proper size, it will be resized.
-    virtual void GetStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt) = 0;
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldStateBlockDt(myelement, dSdt, 1)  will give [dT/dt_1; dT/dt_2; ....]
+    virtual void GetFieldStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt, unsigned int i_field) = 0;
 
     /// Invoke the ComputeUpdateEndStep() per each material point, if some plasticity etc must be done
     virtual void UpdateEndStep(double t) = 0;
@@ -276,8 +280,8 @@ public:
             std::vector<ChVariables*> mvars;
             
             mel.second.nodes_data.resize(mel.first->GetNumNodes());
-            for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
-                for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
                     mel.second.nodes_data[i][i_field] = fields[i_field]->GetNodeDataPointer(mel.first->GetNode(i));
                     mvars.push_back(&(mel.second.nodes_data[i][i_field]->GetVariable()));
                 }
@@ -339,28 +343,52 @@ public:
         return std::make_unique<IteratorOnElements>(element_datamap.begin(), element_datamap.end());
     }
 
-    virtual void GetStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S) override {
+    virtual void GetFieldStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S, unsigned int i_field)  override {
         auto& elementdata = this->ElementData(melement);
-        S.resize(this->GetNumPerNodeCoordsPosLevel() * melement->GetNumNodes());
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsPosLevel();
+        S.resize(field_node_size * melement->GetNumNodes());
         int off = 0;
         for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
-            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                int ifieldsize = elementdata.nodes_data[i_node][i_field]->State().size();
-                S.segment(off, ifieldsize) = elementdata.nodes_data[i_node][i_field]->State();
-                off += ifieldsize;
-            }
+            S.segment(off, field_node_size) = elementdata.nodes_data[i_node][i_field]->State();
+            off += field_node_size;
         }
     }
-    virtual void GetStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt) override {
+
+    virtual void GetFieldStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt, unsigned int i_field)  override {
         auto& elementdata = this->ElementData(melement);
-        dSdt.resize(this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes());
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+        dSdt.resize(field_node_size * melement->GetNumNodes());
         int off = 0;
         for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
-            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
-                int ifieldsize = elementdata.nodes_data[i_node][i_field]->StateDt().size();
-                dSdt.segment(off, ifieldsize) = elementdata.nodes_data[i_node][i_field]->StateDt();
-                off += ifieldsize;
-            }
+            dSdt.segment(off, field_node_size) = elementdata.nodes_data[i_node][i_field]->StateDt();
+            off += field_node_size;
+        }
+    }
+
+
+    /// Fills the S_hh matrix with the "packed" i-th field states S_j at the nodes of the element.
+    /// The S_hh matrix has states values stacked side to side as columns! (NOT queued 
+    /// one after the other in a vector as in GetFieldStateBlock. Also, it is a bit faster).
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldPackedStateBlock(myelement, data, S, 0)  will give [x_1 | x_2 | ....]
+    virtual void GetFieldPackedStateBlock(std::shared_ptr<ChFieldElement> melement, DataPerElement& elementdata, ChMatrixDynamic<>& S_hh, unsigned int i_field)  {
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsPosLevel();
+        S_hh.resize(field_node_size,  melement->GetNumNodes());
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            S_hh.block(0, i_node, field_node_size, 1) = elementdata.nodes_data[i_node][i_field]->State();
+        }
+    }
+
+    /// Fills the dSdt_hh matrix with the "packed" i-th field states dSdt_j at the nodes of the element.
+    /// The S_hh matrix has states values stacked side to side as columns! (NOT queued 
+    /// one after the other in a vector as in GetFieldStateBlockDt. Also, it is a bit faster).
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldPackedStateBlockDt(myelement, data, dSdt, 0)  will give [dx/dt_1 | dx/dt_2 | ....]
+    virtual void GetFieldPackedStateBlockDt(std::shared_ptr<ChFieldElement> melement, DataPerElement& elementdata, ChMatrixDynamic<>& dSdt_hh, unsigned int i_field)  {
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+        dSdt_hh.resize(field_node_size,  melement->GetNumNodes());
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            dSdt_hh.block(0, i_node, field_node_size, 1) = elementdata.nodes_data[i_node][i_field]->StateDt();
         }
     }
 
@@ -711,10 +739,10 @@ public:
 
             // Fi is contiguous, so must store sparsely in R, per each node and per each field of node
             unsigned int stride = 0;
-            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
-                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                     ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
-                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * Fi.segment(stride, nfield_coords);
                     }
@@ -759,10 +787,10 @@ public:
             W_i.setZero();
             // sparse w to contiguous W_i
             unsigned int stride = 0;
-            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
-                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                     ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
-                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         W_i.segment(stride, nfield_coords) = w.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords);
                     }
@@ -772,10 +800,10 @@ public:
 
             // R_i = c*M_i*W_i is contiguous, so must store sparsely in R, per each node and per each field of node
             stride = 0;
-            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
-                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                     ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
-                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * M_i.middleRows(stride, nfield_coords) * W_i;
                     }
@@ -816,10 +844,10 @@ public:
 
             // Md_i is contiguous, so must store sparsely in Md, per each node and per each field of node
             unsigned int stride = 0;
-            for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
-                for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
                     ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
-                    int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
                     if (!mfielddata->IsFixed()) {
                         Md.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * Md_i.segment(stride, nfield_coords);
                     }

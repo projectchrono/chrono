@@ -16,7 +16,7 @@
 #define CHDOMAINTHERMAL_H
 
 #include "chrono/fea/ChDomain.h"
-#include "chrono/fea/ChMaterial3DThermal.h"
+#include "chrono/fea/ChMaterial3DThermalLinear.h"
 #include "chrono/fea/ChVisualDataExtractor.h"
 
 namespace chrono {
@@ -59,7 +59,7 @@ public:
         : Base(mfield)
     {
         // attach a default material to simplify user side
-        material = chrono_types::make_shared<ChMaterial3DThermal>();
+        material = chrono_types::make_shared<ChMaterial3DThermalLinear>();
     }
 
     
@@ -73,7 +73,8 @@ public:
     //
 
     /// Computes the internal loads Fi for one quadrature point, except quadrature weighting "...* w * |J|", 
-    /// and *ADD* the s-scaled result to Fi vector.
+    /// and *ADD* the s-scaled result to Fi vector
+ 
     virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
         DataPerElement& data,
         const int i_point,
@@ -81,12 +82,16 @@ public:
         const double s,
         ChVectorDynamic<>& Fi
     ) override {
-        ChVectorDynamic<> T;
-        this->GetStateBlock(melement, T);
+        // Compute shape functions N at eta, and their material derivatives dNdX
         ChMatrixDynamic<> dNdX;
         ChRowVectorDynamic<> N;
         melement->ComputedNdX(eta, dNdX);
         melement->ComputeN(eta, N);
+
+        // Compute the vector  T_h = [T_1, T_2, .. T_n] with discrete values of temperatures at nodes
+        ChVectorDynamic<> T_h;
+        this->GetFieldStateBlock(melement, T_h, 0);
+
         // B = dNdX // lucky case of thermal problem: no need to build B in \nabla_x T(x) = B * T_h because B is simply dNdX
 
         // We have:  Fi_tot = sum (dNdX' * q_flux * w * |J|) * s 
@@ -98,9 +103,23 @@ public:
         // 
         // so we compute  Fi += -(dNdX' * k * dNdX * T) * s    
         //           or   Fi += dNdX' * q_flux * s
+        
+        // Temperature at point  (might be needed by nonlinear ChMaterial3DThermal materials with dependence on T)
+        double T          = N * T_h;
 
-        ChVector3d q_flux = -this->material->GetConductivityMatrix() * dNdX * T;  //  = - k * \nabla_x T(x)  
+        // Gradient of temperature
+        ChVector3d T_grad = dNdX * T_h;  //  = \nabla_x T(x) 
 
+        // Heat flux. 
+        // (For a linearixed thermal material, this is q_flux = - [k] * T_grad; with [k] conductivity matrix.)
+        ChVector3d q_flux;
+        this->material->ComputeHeatFlux(q_flux,
+            T_grad, T,
+            data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
+            &data.element_data);
+
+        // To the discrete coordinates:  
+        //   Fi += dNdX' * q_flux * s
         Fi += dNdX.transpose() * q_flux.eigen() * s;   // += dNdX' * q_flux * s
 
         // Store auxiliary data in material point data (ex. for postprocessing)
@@ -108,8 +127,10 @@ public:
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
-    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
+    /// H = Mfactor*M + Rfactor*R + Kfactor*K.  
     /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
+    /// Done here in incremental form, as H += ... Also: compute matrix *except* quadrature weighting "...* w * |J|"
+
     virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
         DataPerElement& data,
         const int i_point,
@@ -123,16 +144,38 @@ public:
         ChRowVectorDynamic<> N;
         melement->ComputedNdX(eta, dNdX);
         melement->ComputeN(eta, N);
+
+        // Temperature at point (might be needed by nonlinear ChMaterial3DThermal materials with dependence on T)
+        // Compute the vector  T_h = [T_1, T_2, .. T_n] with discrete values of temperatures at nodes
+        ChVectorDynamic<> T_h;
+        this->GetFieldStateBlock(melement, T_h, 0);
+        double T = N * T_h;
+
         // B = dNdX // in the lucky case of thermal problem, no need to build B because B is simply dNdX
 
-        // K  matrix (jacobian d/dT of:    c dT/dt + div [C] grad T = f )  
-        // K = sum (dNdX' * k * dNdX * w * |J|)
-        H += Kpfactor * (dNdX.transpose() * this->material->GetConductivityMatrix() * dNdX);
+        // K  matrix (jacobian of:    c dT/dt + div [C] grad T = f )  
+        // K = sum (dNdX' * [k] * dNdX * w * |J|)
+        
+        if (Rpfactor) {
+            ChMatrix33d tangent_conductivity;
+            this->material->ComputeTangentModulus(tangent_conductivity,
+                VNULL, T,
+                data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
+                &data.element_data);
 
-        // R  matrix : (jacobian d / d\dot(T) of:    c dT / dt + div[C] grad T = f)
-        // R = sum (N' * c*rho * N * w * |J|)
-        if (Rpfactor && this->material->GetSpecificHeatCapacity()) {
-            H += (Rpfactor * this->material->GetSpecificHeatCapacity() * this->material->GetDensity()) * (N.transpose() * N);
+            H += Kpfactor * (dNdX.transpose() * tangent_conductivity * dNdX); // H += Kpfactor * (B' * [k] * B)
+        }
+
+        // R  matrix : (jacobian d / d\dot(T) of:    (c*rho) * dT/dt + div [C]*grad T = f)
+        // R = sum ( N' * N * (c*rho) * w * |J|)
+
+        if (Rpfactor) {
+            double c_rho;
+            this->material->ComputeDtMultiplier(c_rho,
+                T,
+                data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
+                &data.element_data);
+            H += Rpfactor * c_rho * (N.transpose() * N); // H += Rpfactor  * (N' * N) * (c*rho)
         }
     }
 
@@ -159,7 +202,7 @@ public:
     // EXTRACTORS for drawing stuff in postprocessors/visualization:
     //
 
-    class ChVisualDataExtractorHeatFlux : public ChVisualDataExtractorVector<ChFieldDataAuxiliaryThermal, DataAtMaterialpoint > {
+    class ExtractHeatFlux : public ChVisualDataExtractorVector<ExtractHeatFlux, ChFieldDataAuxiliaryThermal, DataAtMaterialpoint > {
         virtual ChVector3d ExtractImpl(const ChFieldDataAuxiliaryThermal* fdata)  const override {
             return fdata->q_flux;
         }
