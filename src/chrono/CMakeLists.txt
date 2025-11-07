@@ -482,6 +482,8 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChMaterial3DDensity.cpp
     fea/ChMaterialPoisson.cpp
     fea/ChMaterial3DThermal.cpp
+    fea/ChMaterial3DThermalLinear.cpp
+    fea/ChMaterial3DThermalNonlinear.cpp
     fea/ChMaterial3DStress.cpp
     fea/ChMaterial3DHyperelastic.cpp
     fea/ChMaterial3DStressStVenant.cpp
@@ -513,6 +515,8 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChMaterial3DDensity.h
     fea/ChMaterialPoisson.h
     fea/ChMaterial3DThermal.h
+    fea/ChMaterial3DThermalLinear.h
+    fea/ChMaterial3DThermalNonlinear.h
     fea/ChMaterial3DStress.h
     fea/ChMaterial3DHyperelastic.h
     fea/ChMaterial3DStressStVenant.h

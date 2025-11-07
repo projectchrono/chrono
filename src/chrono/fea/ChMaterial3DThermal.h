@@ -24,51 +24,59 @@ namespace fea {
 /// @addtogroup chrono_fea
 /// @{
 
+// Forward:
+class ChFieldData;
+class ChElementData;
 
 
-/// Class for thermal fields, for FEA problems involving temperature, heat, etc.
-/// It contains properties for thermal problems PDEs of the type 
-///    c*density dT/dt + div [k] grad T = q_source
+/// Base class for materials about thermal problems, for FEA problems involving temperature, heat flow, etc.
+/// It contains properties and constitutive laws for thermal problems PDEs of the type 
+///    Z * dT/dt + div(q_flux) = q_source
+/// Children classes must implement the interface  q_flux = f(grad_T,T), to [Z] = f(grad_T,T) 
+/// and to the tangent modulus [C] in the linearization of q_flux.
+/// The q_source is assumed provided by optional ChLoaderHeatVolumetricSource, and same for boundary conditions. 
+
 class ChApi ChMaterial3DThermal : public ChMaterialPoisson {
 public:
 
-    ChMaterial3DThermal() : k_thermal_conductivity(1), c_mass_specific_heat_capacity(1000) {}
+    ChMaterial3DThermal() {}
 
     virtual ~ChMaterial3DThermal() {}
 
-    /// Sets the k conductivity constant of the material,
-    /// expressed in watts per meter kelvin [ W/(m K) ].
-    /// Ex. (approx.): water = 0.6, aluminium = 200, steel = 50, plastics=0.9-0.2
-    /// Sets the conductivity matrix as isotropic (diagonal k)
-    void SetThermalConductivity(double mk) {
-        k_thermal_conductivity = mk;
-        constitutiveMatrix.setZero();
-        constitutiveMatrix.fillDiagonal(k_thermal_conductivity);
-    }
 
-    /// Gets the k conductivity constant of the material,
-    /// expressed in watts per meter kelvin (W/(m K)).
-    double GetThermalConductivity() const { return k_thermal_conductivity; }
+    /// Compute heat flux vector q_flux from a temperature gradient grad_T
+    ///  q_flux = f(grad_T)
+    /// This MUST be implemented by children classes.
 
-    /// Sets the c mass-specific heat capacity of the material,
-    /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    void SetSpecificHeatCapacity(double mc) { c_mass_specific_heat_capacity = mc; }
+    virtual void ComputeHeatFlux(ChVector3d& q_flux, ///< output heat flux
+        const ChVector3d  grad_T,           ///< current temperature gradient 
+        const double  T,                    ///< current temperature 
+        ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point
+        ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
+    ) = 0;
 
-    /// Sets the c mass-specific heat capacity of the material,
-    /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    double GetSpecificHeatCapacity() const { return c_mass_specific_heat_capacity; }
+    /// Computes the tangent modulus [C] in the linearization of q_flux = f(grad_T)  about temperature:
+    ///   δq_flux = [C] δgrad_T
+    /// This MUST be implemented by children classes. It is also diffusivity matrix in a diffusion PDE.
 
-    /// Get the k conductivity matrix. It is also the constitutive matrix of the Poisson problem.
-    /// You can modify its values, for setting material property.
-    ChMatrixDynamic<>& GetConductivityMatrix() { return constitutiveMatrix; }
+    virtual void ComputeTangentModulus(ChMatrix33d& tangent_matrix, ///< output [C] tangent as δq_flux = [C] δgrad_T
+        const ChVector3d  grad_T,       ///< current temperature gradient
+        const double  T,                ///< current temperature 
+        ChFieldData* data_per_point,    ///< pointer to auxiliary data (ex states), if any, per quadrature point
+        ChElementData* data_per_element ///< pointer to auxiliary data (ex states), if any, per element 
+    ) = 0;
 
-    /// override base: (the dT/dt term has multiplier rho*c with rho=density, c=heat capacity)
-    virtual double Get_DtMultiplier() override { return m_density * c_mass_specific_heat_capacity; }
+    /// Computes the  Z  multiplier in  Z*dT/dt + div(q_flux) = q_source:
+    /// This MUST be implemented by children classes.
+    
+    virtual void ComputeDtMultiplier(double& Dt_multiplier,   ///< the Z  term  in Z*dT/dt + div(q_flux) = q_source
+        const double  T,                ///< current temperature (not used here)
+        ChFieldData* data_per_point,    ///< pointer to auxiliary data (ex states), if any, per quadrature point
+        ChElementData* data_per_element ///< pointer to auxiliary data (ex states), if any, per element 
+    ) = 0;
 
-private:
-    double k_thermal_conductivity;
-    double c_mass_specific_heat_capacity;
 };
+
 
 
 
