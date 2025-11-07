@@ -38,6 +38,8 @@ class ChVisualDataExtractor {
 public:
     virtual bool IsDataAtMaterialpoint() const = 0;
     virtual bool IsDataAtNode() const = 0;
+
+    virtual ChVisualDataExtractor* clone() const = 0;
 };
 
 
@@ -71,8 +73,8 @@ struct DataAtNode {
     static constexpr bool is_node = true;
 };
 
-template <class T_field_data, class T_data_location = DataAtNode>
-class ChVisualDataExtractorScalar :  public ChVisualDataExtractorScalarBase {
+template <typename Derived, class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorScalar : public ChVisualDataExtractorScalarBase {
 public:
     std::optional<double> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -84,10 +86,64 @@ public:
 
     bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
     bool IsDataAtNode() const override { return T_data_location::is_node; }
+
+    ChVisualDataExtractor* clone()  const override {
+        // Creates a new object of the derived type using its copy constructor
+        return new Derived(*static_cast<const Derived*>(this));
+    }
 };
 
-template <class T_field_data, class T_data_location = DataAtNode>
-class ChVisualDataExtractorVector :  public ChVisualDataExtractorVectorBase {
+class ChVisualDataExtractorVectorToScalar : public ChVisualDataExtractorScalarBase {
+public:
+    enum eVectorConversion {
+        X = 0,
+        Y,
+        Z,
+        LENGTH,
+    };
+
+    ChVisualDataExtractorVectorToScalar(std::shared_ptr<ChVisualDataExtractorVectorBase> mvector_extractor, eVectorConversion n_component) :
+        vector_extractor(mvector_extractor),
+        id_component(n_component)
+    {};
+
+    std::optional<double> Extract(ChFieldData* data) const override {
+        if (auto retv = vector_extractor->Extract(data)) {
+            switch (id_component) {
+            case X: {
+                return retv.value().x();
+            }
+            case Y: {
+                return retv.value().y();
+            }
+            case Z: {
+                return retv.value().z();
+            }
+            case LENGTH: {
+                return retv.value().Length();
+            }
+            default:
+                return std::nullopt;
+            }
+        }
+        return std::nullopt;
+    }
+
+    bool IsDataAtMaterialpoint() const override { return vector_extractor->IsDataAtMaterialpoint(); }
+    bool IsDataAtNode() const override { return vector_extractor->IsDataAtMaterialpoint(); }
+
+    ChVisualDataExtractor* clone()  const override {
+        return new ChVisualDataExtractorVectorToScalar(*(this));
+    }
+
+private:
+    eVectorConversion id_component; // 0=x, 1=y, 2=z;
+    std::shared_ptr<ChVisualDataExtractorVectorBase> vector_extractor;
+};
+
+
+template <typename Derived, class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorVector : public ChVisualDataExtractorVectorBase {
 public:
     std::optional<ChVector3d> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -99,10 +155,109 @@ public:
 
     bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
     bool IsDataAtNode() const override { return T_data_location::is_node; }
+
+    ChVisualDataExtractor* clone()  const override {
+        // Creates a new object of the derived type using its copy constructor
+        return new Derived(*static_cast<const Derived*>(this));
+    }
+
+    // Access sub-components of the vector so that one can do things like visual_mesh->AddPropertyExtractor( ExtractHeatFlow().X() )  
+    // with a fluent syntax where the .X() .Y() etc. return a scalar wrapper of this vector extractor
+
+    ChVisualDataExtractorVectorToScalar X() const {
+        return ChVisualDataExtractorVectorToScalar(std::shared_ptr<ChVisualDataExtractorVectorBase>((ChVisualDataExtractorVectorBase*)this->clone()), ChVisualDataExtractorVectorToScalar::X);
+    }
+    ChVisualDataExtractorVectorToScalar Y() const {
+        return ChVisualDataExtractorVectorToScalar(std::shared_ptr<ChVisualDataExtractorVectorBase>((ChVisualDataExtractorVectorBase*)this->clone()), ChVisualDataExtractorVectorToScalar::Y);
+    }
+    ChVisualDataExtractorVectorToScalar Z() const {
+        return ChVisualDataExtractorVectorToScalar(std::shared_ptr<ChVisualDataExtractorVectorBase>((ChVisualDataExtractorVectorBase*)this->clone()), ChVisualDataExtractorVectorToScalar::Z);
+    }
+    ChVisualDataExtractorVectorToScalar Length() const {
+        return ChVisualDataExtractorVectorToScalar(std::shared_ptr<ChVisualDataExtractorVectorBase>((ChVisualDataExtractorVectorBase*)this->clone()), ChVisualDataExtractorVectorToScalar::LENGTH);
+    }
 };
 
-template <class T_field_data, class T_data_location = DataAtNode>
-class ChVisualDataExtractorMatrix33 :  public ChVisualDataExtractorMatrix33Base {
+
+
+class ChVisualDataExtractorTensorToScalar : public ChVisualDataExtractorScalarBase {
+public:
+    enum eTensorConversion {
+        VON_MISES = 0,
+        PRINCIPAL_1,
+        PRINCIPAL_2,
+        PRINCIPAL_3,
+        INVARIANT_1,
+        INVARIANT_2,
+        INVARIANT_3,
+    };
+
+    ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base> mtensor_extractor, eTensorConversion which_conversion) :
+        tensor_extractor(mtensor_extractor),
+        id_what(which_conversion)
+    {};
+    std::optional<double> Extract(ChFieldData* data) const override {
+        if (auto retv = tensor_extractor->Extract(data)) {
+            switch (id_what) {
+            case VON_MISES: {
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(retv.value());
+                ChVector3d ei = solver.eigenvalues();
+                double a = ei.x() - ei.y();
+                double b = ei.y() - ei.z();
+                double c = ei.z() - ei.x();
+                return std::sqrt(0.5 * (a * a + b * b + c * c)); // Von Mises
+            }
+            case PRINCIPAL_1: {
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(retv.value());
+                ChVector3d ei = solver.eigenvalues();
+                return std::sqrt(ei.x());
+            }
+            case PRINCIPAL_2: {
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(retv.value());
+                ChVector3d ei = solver.eigenvalues();
+                return std::sqrt(ei.y());
+            }
+            case PRINCIPAL_3: {
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(retv.value());
+                ChVector3d ei = solver.eigenvalues();
+                return std::sqrt(ei.z());
+            }
+            case INVARIANT_1: {
+                // I1
+                return retv.value().trace();
+            }
+            case INVARIANT_2: {
+                // I2
+                double I1 = retv.value().trace();
+                double traceAA = (retv.value() * retv.value()).trace();               // trace(A^2)
+                return 0.5 * (I1 * I1 - traceAA);
+            }
+            case INVARIANT_3: {
+                // I3
+                return retv.value().determinant();
+            }
+            default:
+                return std::nullopt;
+            }
+        }
+        return std::nullopt;
+    }
+
+    bool IsDataAtMaterialpoint() const override { return tensor_extractor->IsDataAtMaterialpoint(); }
+    bool IsDataAtNode() const override { return tensor_extractor->IsDataAtMaterialpoint(); }
+
+    ChVisualDataExtractor* clone()  const override {
+        return new ChVisualDataExtractorTensorToScalar(*(this));
+    }
+
+private:
+    eTensorConversion id_what;
+    std::shared_ptr<ChVisualDataExtractorMatrix33Base> tensor_extractor;
+};
+
+
+template <typename Derived, class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorMatrix33 : public ChVisualDataExtractorMatrix33Base {
 public:
     std::optional<ChMatrix33d> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -114,10 +269,41 @@ public:
 
     bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
     bool IsDataAtNode() const override { return T_data_location::is_node; }
+
+    ChVisualDataExtractor* clone()  const override {
+        // Creates a new object of the derived type using its copy constructor
+        return new Derived(*static_cast<const Derived*>(this));
+    }
+
+    // Access scalar invariants etc of the 3x3 tensor so that one can do things like visual_mesh->AddPropertyExtractor( ExtractCauchyStress().I3() )  
+    // with a fluent syntax where the .X() .Y() etc. return a scalar wrapper of this 3x3 tensor extractor
+
+    ChVisualDataExtractorTensorToScalar VonMises() const {
+        return ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base>((ChVisualDataExtractorMatrix33Base*)this->clone()), ChVisualDataExtractorTensorToScalar::VON_MISES);
+    }
+    ChVisualDataExtractorTensorToScalar I1() const {
+        return ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base>((ChVisualDataExtractorMatrix33Base*)this->clone()), ChVisualDataExtractorTensorToScalar::INVARIANT_1);
+    }
+    ChVisualDataExtractorTensorToScalar I2() const {
+        return ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base>((ChVisualDataExtractorMatrix33Base*)this->clone()), ChVisualDataExtractorTensorToScalar::INVARIANT_2);
+    }
+    ChVisualDataExtractorTensorToScalar I3() const {
+        return ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base>((ChVisualDataExtractorMatrix33Base*)this->clone()), ChVisualDataExtractorTensorToScalar::INVARIANT_3);
+    }
+    ChVisualDataExtractorTensorToScalar Principal1() const {
+        return ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base>((ChVisualDataExtractorMatrix33Base*)this->clone()), ChVisualDataExtractorTensorToScalar::PRINCIPAL_1);
+    }
+    ChVisualDataExtractorTensorToScalar Principal2() const {
+        return ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base>((ChVisualDataExtractorMatrix33Base*)this->clone()), ChVisualDataExtractorTensorToScalar::PRINCIPAL_2);
+    }
+    ChVisualDataExtractorTensorToScalar Principal3() const {
+        return ChVisualDataExtractorTensorToScalar(std::shared_ptr<ChVisualDataExtractorMatrix33Base>((ChVisualDataExtractorMatrix33Base*)this->clone()), ChVisualDataExtractorTensorToScalar::PRINCIPAL_3);
+    }
 };
 
-template <class T_field_data, class T_data_location = DataAtNode>
-class ChVisualDataExtractorQuaternion :  public ChVisualDataExtractorQuaternionBase {
+
+template <typename Derived, class T_field_data, class T_data_location = DataAtNode>
+class ChVisualDataExtractorQuaternion : public ChVisualDataExtractorQuaternionBase {
 public:
     std::optional<ChQuaternion<double>> Extract(ChFieldData* data) const override {
         if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
@@ -129,59 +315,68 @@ public:
 
     bool IsDataAtMaterialpoint() const override { return T_data_location::is_materialpoint; }
     bool IsDataAtNode() const override { return T_data_location::is_node; }
+
+    ChVisualDataExtractor* clone()  const override {
+        // Creates a new object of the derived type using its copy constructor
+        return new Derived(*static_cast<const Derived*>(this));
+    }
 };
 
-class ChVisualDataExtractorVectorComponent : public ChVisualDataExtractorScalarBase {
-public:
-    ChVisualDataExtractorVectorComponent(std::shared_ptr<ChVisualDataExtractorVectorBase> mvector_extractor, int n_component) :
-        vector_extractor(mvector_extractor),
-        id_component(n_component)
-    {};
-    std::optional<double> Extract(ChFieldData* data) const override {
-        if (auto retv = vector_extractor->Extract(data)) {
-            if (id_component == 0)
-                return retv.value().x();
-            if (id_component == 1)
-                return retv.value().y();
-            if (id_component == 2)
-                return retv.value().z();
-        }
-        return std::nullopt;
-    }
-    int id_component; // 0=x, 1=y, 2=z;
-    std::shared_ptr<ChVisualDataExtractorVectorBase> vector_extractor;
-};
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Ready to use extractors. If you implement some custom ChFieldData-inherited class, you may want to provide
+// the corresponding extractor(s) to fetch the data when painting the finite element meshes. 
+// Inherit from ChVisualDataExtractorVector or ChVisualDataExtractorScalar etc., like in the examples below.
+//
+// Example of extractor: given a generic ChFieldData* mydata, ExtractPos attempts to fetch the position: if the mydata is
+// of type ChFieldDataPos3D, then  you can do  mypos = extractor.Extract(mydata).value() , otherwise 
+// it returns std::nullopt. So, you can do things like: 
+//   ExtractPos extractor;
+//   if (auto fetched_pos = extractor->Extract(mydata)) 
+//      mypos = fetched_pos.value();
 
 
-class ChVisualDataExtractorPos : public ChVisualDataExtractorVector<ChFieldDataPos3D, DataAtNode> {
+class ExtractPos : public ChVisualDataExtractorVector<
+                    ExtractPos,             // (just repeat the class name here - will be used for CRTP to generate the clone() function automatically)
+                    ChFieldDataPos3D,       // here put the class of the data that you want to fetch!
+                    DataAtNode>             // flag - choose one option between: DataAtNode  or DataAtMaterialpoint 
+{
     virtual ChVector3d ExtractImpl(const ChFieldDataPos3D* fdata)  const override {
         return fdata->GetPos();
     }
 };
-class ChVisualDataExtractorPosDt : public ChVisualDataExtractorVector<ChFieldDataPos3D, DataAtNode> {
+
+class ExtractPosDt : public ChVisualDataExtractorVector<ExtractPosDt, ChFieldDataPos3D, DataAtNode> {
     virtual ChVector3d ExtractImpl(const ChFieldDataPos3D* fdata)  const override {
         return fdata->GetPosDt();
     }
 };
-class ChVisualDataExtractorPosDt2 : public ChVisualDataExtractorVector<ChFieldDataPos3D, DataAtNode> {
+
+class ExtractPosDt2 : public ChVisualDataExtractorVector<ExtractPosDt2, ChFieldDataPos3D, DataAtNode> {
     virtual ChVector3d ExtractImpl(const ChFieldDataPos3D* fdata)  const override {
         return fdata->GetPosDt2();
     }
 };
-class ChVisualDataExtractorTemperature : public ChVisualDataExtractorScalar<ChFieldDataTemperature, DataAtNode> {
+
+class ExtractTemperature : public ChVisualDataExtractorScalar<ExtractTemperature, ChFieldDataTemperature, DataAtNode> {
     virtual double ExtractImpl(const ChFieldDataTemperature* fdata)  const override {
         return const_cast<ChFieldDataTemperature*>(fdata)->T();
     }
 };
-class ChVisualDataExtractorTemperatureDt : public ChVisualDataExtractorScalar<ChFieldDataTemperature, DataAtNode> {
+
+class ExtractTemperatureDt : public ChVisualDataExtractorScalar<ExtractTemperatureDt, ChFieldDataTemperature, DataAtNode> {
     virtual double ExtractImpl(const ChFieldDataTemperature* fdata)  const override {
         return const_cast<ChFieldDataTemperature*>(fdata)->T_dt();
     }
 };
-class ChVisualDataExtractorElectricPotential : public ChVisualDataExtractorScalar<ChFieldDataElectricPotential, DataAtNode> {
+
+class ExtractElectricPotential : public ChVisualDataExtractorScalar<ExtractElectricPotential, ChFieldDataElectricPotential, DataAtNode> {
     virtual double ExtractImpl(const ChFieldDataElectricPotential* fdata)  const override {
         return const_cast<ChFieldDataElectricPotential*>(fdata)->V();
     }
@@ -465,12 +660,13 @@ public:
     /// Attach scalar property extractor. Also turns the glyph rendering into ChGlyph::GLYPH_POINT mode. 
     /// If you added more than one property via AddPropertyExtractor(), by default the last one will
     /// be used for the falsecolor rendering.
-    void AddPropertyExtractor(std::shared_ptr<ChVisualDataExtractorScalarBase> mextractor, double min = 0, double max = 1, std::string mname = "Scalar") {
+    void AddPropertyExtractor(const ChVisualDataExtractorScalarBase& mextractor, double min = 0, double max = 1, std::string mname = "Scalar") {
+        auto owned_extractor = std::dynamic_pointer_cast<ChVisualDataExtractorScalarBase>(std::shared_ptr<ChVisualDataExtractor>(mextractor.clone()));
         auto T_property = new ChPropertyScalar;
         T_property->min = min;
         T_property->max = max;
         T_property->name = mname;
-        this->extractors_scalar_properties.push_back({ mextractor, T_property });
+        this->extractors_scalar_properties.push_back({ owned_extractor, T_property });
         this->m_properties.push_back(T_property);
 
         this->SetDrawMode(GLYPH_POINT);
@@ -478,20 +674,20 @@ public:
         i_scalar_prop_colorized = (int)extractors_scalar_properties.size() - 1;
         i_vector_prop_colorized = -1;
 
-        auto mex = std::dynamic_pointer_cast<ChVisualDataExtractor>(mextractor);
-        if (mex->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
-        if (mex->IsDataAtNode()) this->draw_nodes = true;
+        if (owned_extractor->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
+        if (owned_extractor->IsDataAtNode()) this->draw_nodes = true;
     }
 
     /// Attach vector property extractor. Also turns the glyph rendering into ChGlyph::GLYPH_POINT mode.
     /// If you added more than one property via AddPropertyExtractor(), by default the last one will
     /// be used for the falsecolor rendering.
-    void AddPropertyExtractor(std::shared_ptr<ChVisualDataExtractorVectorBase> mextractor, double min = 0, double max = 1, std::string mname = "Vect") {
+    void AddPropertyExtractor(const ChVisualDataExtractorVectorBase& mextractor, double min = 0, double max = 1, std::string mname = "Vect") {
+        auto owned_extractor = std::dynamic_pointer_cast<ChVisualDataExtractorVectorBase>(std::shared_ptr<ChVisualDataExtractor>(mextractor.clone()));
         auto T_property = new ChPropertyVector;
         T_property->min = min;
         T_property->max = max;
         T_property->name = mname;
-        this->extractors_vector_properties.push_back({ mextractor, T_property });
+        this->extractors_vector_properties.push_back({ owned_extractor, T_property });
         this->m_properties.push_back(T_property);
 
         this->SetDrawMode(GLYPH_VECTOR);
@@ -500,15 +696,15 @@ public:
         i_scalar_prop_colorized = -1;
         i_vector_prop_colorized = (int)extractors_vector_properties.size() - 1;
 
-        auto mex = std::dynamic_pointer_cast<ChVisualDataExtractor>(mextractor);
-        if (mex->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
-        if (mex->IsDataAtNode()) this->draw_nodes = true;
+        if (owned_extractor->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
+        if (owned_extractor->IsDataAtNode()) this->draw_nodes = true;
     }
 
     /// Attach 3x3 matrix property extractor. Also turns the glyph rendering into ChGlyph::GLYPH_TENSOR mode.
     /// If you added more than one property via AddPropertyExtractor(), by default the last one will
     /// be used for the falsecolor rendering.
-    void AddPropertyExtractor(std::shared_ptr<ChVisualDataExtractorMatrix33Base> mextractor, double min = 0, double max = 1, std::string mname = "Matr") {
+    void AddPropertyExtractor(const ChVisualDataExtractorMatrix33Base& mextractor, double min = 0, double max = 1, std::string mname = "Matr") {
+        auto owned_extractor = std::dynamic_pointer_cast<ChVisualDataExtractorMatrix33Base>(std::shared_ptr<ChVisualDataExtractor>(mextractor.clone()));
         auto T_vproperty = new ChPropertyVector;
         T_vproperty->min = min;
         T_vproperty->max = max;
@@ -518,7 +714,7 @@ public:
         T_qproperty->name = mname;
         this->m_properties.push_back(T_qproperty);
 
-        this->extractors_tensor_properties.push_back({ mextractor, {T_qproperty,T_vproperty} });
+        this->extractors_tensor_properties.push_back({ owned_extractor, {T_qproperty,T_vproperty} });
 
         this->SetDrawMode(GLYPH_TENSOR);
         this->eigenvalues = &T_vproperty->data;
@@ -527,16 +723,16 @@ public:
         i_scalar_prop_colorized = -1;
         i_vector_prop_colorized = (int)extractors_vector_properties.size() - 1;
 
-        auto mex = std::dynamic_pointer_cast<ChVisualDataExtractor>(mextractor);
-        if (mex->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
-        if (mex->IsDataAtNode()) this->draw_nodes = true;
+        if (owned_extractor->IsDataAtMaterialpoint()) this->draw_materialpoints = true;
+        if (owned_extractor->IsDataAtNode()) this->draw_nodes = true;
     }
 
     // Set the extractor that gets the 3D position where to draw the glyph (ex. node spatial coords, 
     // for nonlinear deformation analysis). If not set, by default the drawing system will fall 
     // back to the 3D position of the node (material space reference coords). 
-    void AddPositionExtractor(std::shared_ptr<ChVisualDataExtractorVectorBase> mextractor) {
-        extractor_position = mextractor;
+    void AddPositionExtractor(const ChVisualDataExtractorVectorBase& mextractor) {
+        auto owned_extractor = std::dynamic_pointer_cast<ChVisualDataExtractorVectorBase>(std::shared_ptr<ChVisualDataExtractor>(mextractor.clone()));
+        extractor_position = owned_extractor;
     }
 
     /// Set the colormap for rendering the property via falsecolor.  
@@ -562,9 +758,13 @@ protected:
         // Count num of glyphs and..
         unsigned int tot_glyphs = 0;
         if (this->draw_nodes) {
+            /*
             for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
                 tot_glyphs += mdomain->GetField(ifield)->GetNumNodes();
             }
+            */
+            // Assume all fields of this domain have the same number of nodes (not necessarily true in a general context.. maybe enforce this?)
+            tot_glyphs += mdomain->GetField(0)->GetNumNodes();
         }
         if (this->draw_materialpoints) {
             auto ele_iter = mdomain->CreateIteratorOnElements();
@@ -582,20 +782,44 @@ protected:
         
         // Update from nodes
         if (this->draw_nodes) {
+
+            // Fill the 3d positions vector in ChGlyphs::points  with the node positions (if possible, 
+            // via extractor_position, otherwise falls back to ChNodeFEAfieldXYZ reference position)
+            
+            bool has_position_fetched = false;
             for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                i = 0;
                 auto mfield = mdomain->GetField(ifield);
 
                 auto node_iterator = mfield->CreateIteratorOnNodes();
                 while (!node_iterator->is_end()) {
                     if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(node_iterator->get().first)) {
 
-                        // Fill the 3d positions vector in ChGlyphs::points  with the node positions (if possible, 
-                        // via extractor_position, otherwise falls back to ChNodeFEAfieldXYZ reference position)
                         ChVector3d mpos = *nodexyz; // default node pos: the reference pos
                         if (extractor_position)
-                            if (auto fetched_pos = extractor_position->Extract(&node_iterator->get().second))
+                            if (auto fetched_pos = extractor_position->Extract(&node_iterator->get().second)) {
                                 mpos = fetched_pos.value();
+                                has_position_fetched = true;
+                            }
                         this->points[i] = mpos;
+                    }
+                    ++i;
+                    node_iterator->next();
+                }
+                if (has_position_fetched)
+                    break;
+            }// end loop on fields
+
+
+            // Fill the properties of field nodes:
+            
+            for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                i = 0;
+                auto mfield = mdomain->GetField(ifield);
+
+                auto node_iterator = mfield->CreateIteratorOnNodes();
+                while (!node_iterator->is_end()) {
+                    if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(node_iterator->get().first)) {
 
                         for (auto& mfetch_s : extractors_scalar_properties)
                             if (auto fetched_s = mfetch_s.first->Extract(&node_iterator->get().second))
@@ -611,6 +835,7 @@ protected:
                 }
 
             }// end loop on fields
+
         }
 
         // Update from material points
@@ -742,6 +967,8 @@ public:
         elem_dispatcher.RegisterDrawer<ChFieldElementTetrahedron4>(std::make_unique<ChDrawerTetrahedron_4>());
         elem_dispatcher.RegisterDrawer<ChFieldElementHexahedron8>(std::make_unique<ChDrawerHexahedron_8>());
         //...
+        shrink_elements = false;
+        shrink_factor = 0.8;
     }
     virtual ~ChVisualDomainMesh() {}
 
@@ -750,12 +977,13 @@ public:
     /// and stored in the corresponding ChProperty attached to the triangle mesh, with proper interpolation.
     /// If you added more than one property via AddPropertyExtractor(), by default the last one will
     /// be used for the falsecolor rendering.
-    void AddPropertyExtractor(std::shared_ptr<ChVisualDataExtractorScalarBase> mextractor, double min = 0, double max = 1, std::string mname = "Scalar") {
+    void AddPropertyExtractor(const ChVisualDataExtractorScalarBase& mextractor, double min = 0, double max = 1, std::string mname = "Scalar") {
+        auto owned_extractor = std::dynamic_pointer_cast<ChVisualDataExtractorScalarBase>(std::shared_ptr<ChVisualDataExtractor>(mextractor.clone()));
         auto T_property = new ChPropertyScalar;
         T_property->min = min;
         T_property->max = max;
         T_property->name = mname;
-        this->extractors_scalar_properties.push_back({ mextractor, T_property });
+        this->extractors_scalar_properties.push_back({ owned_extractor, T_property });
         this->GetMesh()->m_properties_per_vertex.push_back(T_property);
 
         i_scalar_prop_colorized = (int)extractors_scalar_properties.size() - 1;
@@ -766,12 +994,13 @@ public:
     /// and stored in the corresponding ChProperty attached to the triangle mesh, with proper interpolation.
     /// If you added more than one property via AddPropertyExtractor(), by default the last one will
     /// be used for the falsecolor rendering.
-    void AddPropertyExtractor(std::shared_ptr<ChVisualDataExtractorVectorBase> mextractor, double min = 0, double max = 1, std::string mname = "Vect") {
+    void AddPropertyExtractor(const ChVisualDataExtractorVectorBase& mextractor, double min = 0, double max = 1, std::string mname = "Vect") {
+        auto owned_extractor = std::dynamic_pointer_cast<ChVisualDataExtractorVectorBase>(std::shared_ptr<ChVisualDataExtractor>(mextractor.clone()));
         auto T_property = new ChPropertyVector;
         T_property->min = min;
         T_property->max = max;
         T_property->name = mname;
-        this->extractors_vector_properties.push_back({ mextractor, T_property });
+        this->extractors_vector_properties.push_back({ owned_extractor, T_property });
         this->GetMesh()->m_properties_per_vertex.push_back(T_property);
 
         i_scalar_prop_colorized = -1;
@@ -781,8 +1010,9 @@ public:
     // Set the extractor that gets the 3D position where to draw the glyph (ex. node spatial coords, 
     // for nonlinear deformation analysis). If not set, by default the drawing system will fall 
     // back to the 3D position of the node (material space reference coords). 
-    void AddPositionExtractor(std::shared_ptr<ChVisualDataExtractorVectorBase> mextractor) {
-        extractor_position = mextractor;
+    void AddPositionExtractor(const ChVisualDataExtractorVectorBase& mextractor) {
+        auto owned_extractor = std::dynamic_pointer_cast<ChVisualDataExtractorVectorBase>(std::shared_ptr<ChVisualDataExtractor>(mextractor.clone()));
+        extractor_position = owned_extractor;
     }
 
     /// Set the colormap for rendering the property via falsecolor.  
@@ -875,7 +1105,7 @@ protected:
                 ChVector3d vc(0, 0, 0);
                 for (unsigned int inode = 0; inode < ele_num_nodes; ++inode)
                     vc += this->GetMesh()->GetCoordsVertices()[offset_vert + inode];
-                vc = vc * (1.0 / 8.0);  // average, center of element
+                vc = vc * (1.0 / ele_num_nodes);  // average, center of element
                 for (unsigned int inode = 0; inode < ele_num_nodes; ++inode)
                     this->GetMesh()->GetCoordsVertices()[offset_vert + inode] = vc + shrink_factor * (this->GetMesh()->GetCoordsVertices()[offset_vert + inode] - vc);
             }
@@ -889,6 +1119,31 @@ protected:
                             mfetch_s.second->data[offset_vert + inode] = fetched_s.value();
                         }
                     }
+                    // TEST: EXTRAPOLATE FROM GAUSSPOINTS - fast method
+                    ChRowVectorDynamic<> V_num(ele_iter->get_element()->GetNumNodes()); V_num.setZero();
+                    ChRowVectorDynamic<> V_den(ele_iter->get_element()->GetNumNodes()); V_den.setZero();
+                    bool extrapolate_gp = true;
+                    for (int imatpoint = 0; imatpoint < ele_iter->get_element()->GetNumQuadraturePoints(); ++imatpoint) {
+                        ChVector3d eta;
+                        double weight;
+                        ele_iter->get_element()->GetQuadraturePointWeight(ele_iter->get_element()->GetQuadratureOrder(), imatpoint, weight, eta);
+                        ChRowVectorDynamic<> N;
+                        ele_iter->get_element()->ComputeN(eta, N);
+                        if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_matpoint_aux(imatpoint))) {
+                            V_num += weight * N * fetched_s.value();
+                            V_den += weight * N;
+                        }
+                        else {
+                            extrapolate_gp = false;
+                            break;
+                        }
+                    }
+                    if (extrapolate_gp) {
+                        for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
+                            mfetch_s.second->data[offset_vert + inode] = V_num(inode) / V_den(inode);
+                        }
+                    }
+                    // END GAUSSPOINT EXTRAPOLATION
                 }
             }
             for (auto& mfetch_s : extractors_vector_properties) {
