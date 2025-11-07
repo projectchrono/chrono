@@ -388,7 +388,28 @@ class ChFieldTemperature : public ChField<ChFieldDataTemperature> {};
 
 class ChFieldElectricPotential : public ChField<ChFieldDataElectricPotential> {};
 
-class ChFieldDisplacement3D : public ChField<ChFieldDataPos3D> {};
+
+/// Field of spatial positions of moving material. This is used to represent the x_i
+/// positions of nodes in deformed spatial configuration when doing large strain analysis.
+/// (Note: for efficiency, it does not contain the displacement u=x-X, with X the
+/// node reference position, but rather it contains x.)
+
+class ChFieldDisplacement3D : public ChField<ChFieldDataPos3D> {
+public:
+    /// Add a node to the displacement 3D field (a field of spatial positions x of the deformed nodes).
+    /// Note: respect to the base implementation, this also does an initialization:
+    /// it sets the initial value x  to the current reference position X of the node. 
+  
+    virtual void AddNode(std::shared_ptr<ChNodeFEAbase> mnode) override {
+        ChFieldDataPos3D& data = node_data[mnode]; // just key, no need to provide value as it is default constructor of T_per_node
+
+        // initialize default x value
+        if (auto posnode = std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(mnode)) {
+            ChVector3d X = *posnode;
+            data.SetPos(X); // x=X
+        }
+    }
+};
 
 
 
