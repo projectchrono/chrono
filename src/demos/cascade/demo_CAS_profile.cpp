@@ -37,7 +37,7 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::cascade;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono physical system: all bodies and constraints
