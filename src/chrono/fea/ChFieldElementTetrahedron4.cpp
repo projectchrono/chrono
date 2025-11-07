@@ -105,9 +105,9 @@ namespace fea {
         ChVector3d x24 = *this->nodes[1] - *this->nodes[3];
         ChVector3d x34 = *this->nodes[2] - *this->nodes[3];
         double inv_det_J = 1.0 / Vdot(x14, Vcross(x24, x34));
-        Jinv(0, Eigen::indexing::all) = Vcross(x24, x34).eigen().transpose();
-        Jinv(1, Eigen::indexing::all) = Vcross(x34, x14).eigen().transpose();
-        Jinv(2, Eigen::indexing::all) = Vcross(x14, x24).eigen().transpose();
+        Jinv(0, Eigen::indexing::all) = inv_det_J * Vcross(x24, x34).eigen().transpose();
+        Jinv(1, Eigen::indexing::all) = inv_det_J * Vcross(x34, x14).eigen().transpose();
+        Jinv(2, Eigen::indexing::all) = inv_det_J * Vcross(x14, x24).eigen().transpose();
         return inv_det_J;
     }
 
