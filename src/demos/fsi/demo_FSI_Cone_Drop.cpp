@@ -293,8 +293,8 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
     bool output = true;
     double output_fps = 400;
-    bool snapshots = true;
-    bool render = false;
+    bool snapshots = false;
+    bool render = true;
     double render_fps = 400;
 
     std::string gran_material = "sand";  // This can also be "bead"
@@ -435,7 +435,7 @@ int main(int argc, char* argv[]) {
     } else {
         sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     }
-    sph_params.use_variable_time_step = false;
+    sph_params.use_variable_time_step = true;
     sysSPH.SetSPHParameters(sph_params);
 
     double g = 9.81;
@@ -521,7 +521,7 @@ int main(int argc, char* argv[]) {
         CalculateConeProperties(cone_60.length, cone_60.diameter, cone_60.mass, Hdrop, g, fzDim, initial_spacing,
                                 volume, mass, inertia, cone_z_pos, cone_z_vel, cone_length, cone_diameter);
     }
-
+    auto vis_material = chrono_types::make_shared<ChVisualMaterial>();
     auto cone = chrono_types::make_shared<ChBody>();
 
     cone->SetPos(ChVector3d(0, 0, cone_z_pos));
@@ -531,7 +531,8 @@ int main(int argc, char* argv[]) {
     cone->SetRot(cone_rot);
     cone->SetInertia(inertia);
     sysMBS.AddBody(cone);
-    chrono::utils::AddConeGeometry(cone.get(), cmaterial, cone_diameter / 2, cone_length);
+    chrono::utils::AddConeGeometry(cone.get(), cmaterial, cone_diameter / 2., cone_length,
+                                   ChVector3d(0, 0, cone_length / 2), QUNIT, true, vis_material);
     cone->GetCollisionModel()->SetSafeMargin(initial_spacing);
 
     // Register cone as FSI body with explicit BCE points
@@ -621,27 +622,28 @@ int main(int argc, char* argv[]) {
     // Create a run-time visualizer
 #ifdef CHRONO_VSG
     auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2);
+    if (render) {
+        auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableRigidBodyMarkers(true);
+        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
-    auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
-    visFSI->EnableFluidMarkers(true);
-    visFSI->EnableBoundaryMarkers(true);
-    visFSI->EnableRigidBodyMarkers(true);
-    visFSI->SetSPHColorCallback(col_callback);
-    visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-    visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("FSI Cone Penetration");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(100, 100);
+        visVSG->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
+        visVSG->SetLightIntensity(0.9);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
-    auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-    visVSG->AttachPlugin(visFSI);
-    visVSG->AttachSystem(&sysMBS);
-    visVSG->SetWindowTitle("FSI Cone Penetration");
-    visVSG->SetWindowSize(1280, 720);
-    visVSG->SetWindowPosition(100, 100);
-    visVSG->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
-    visVSG->SetLightIntensity(0.9);
-    visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
-
-    visVSG->Initialize();
-    vis = visVSG;
+        visVSG->Initialize();
+        vis = visVSG;
+    }
 #else
     render = false;
 #endif

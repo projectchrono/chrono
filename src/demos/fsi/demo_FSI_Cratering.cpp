@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     int ps_freq = 1;
     double sphere_density = 700;
     double Hdrop = 0.5;
-    bool render = true;
+    bool render = false;
     double render_fps = 400;
     double step_size = 5e-5;
     double init_spacing = 0.0025;
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     double kappa = 0.01;
     double lambda = 0.04;
     double mu_fric_s = 0.3;
-    double mu_fric_2 = 0.48;
+    double mu_fric_2 = 0.42;
 
     // Parse command-line arguments
     if (!GetProblemSpecs(argc, argv, t_end, ps_freq, sphere_density, Hdrop, init_spacing, d0_multiplier, step_size,
