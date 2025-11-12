@@ -51,8 +51,8 @@ SphBceManager::~SphBceManager() {}
 // -----------------------------------------------------------------------------
 
 void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH), 0, cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters), 0, cudaMemcpyHostToDevice);
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
     m_totalForceRigid.resize(m_data_mgr.countersH->numFsiBodies);
