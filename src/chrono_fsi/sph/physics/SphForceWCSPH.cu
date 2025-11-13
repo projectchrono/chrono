@@ -1581,12 +1581,12 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
         // Candidate bulk modulus from MCC
         Real K_cand = sortedPcEvSv[index].z * (p_eff) / paramsD.mcc_kappa;
         // Clamp K to prevent collapse of the bulk modulus
-        Real K_clamped = fmin(fmax(K_cand, Real(0.1) * paramsD.K_bulk), Real(10.0) * paramsD.K_bulk);
+        Real K_clamped = fmin(fmax(K_cand, Real(0.1) * paramsD.K_bulk), Real(1.0) * paramsD.K_bulk);
 
         // Shear
         Real G_cand = (3.0 * K_clamped * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
-        Real G_clamped = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(10.0) * paramsD.G_shear);
-        // Real G_clamped = 200000;  // 250 Kpa
+        Real G_clamped = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(1.0) * paramsD.G_shear);
+        // Real G_clamped = 250000;  // 250 Kpa
 
         twoG = 2 * G_clamped;
         threeK = 3 * K_clamped;

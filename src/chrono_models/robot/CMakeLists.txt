@@ -49,6 +49,14 @@ set(CRM_CURIOSITY_FILES
 
 source_group("curiosity" FILES ${CRM_CURIOSITY_FILES})
 
+#-----------------------------------------------------------------------------
+
+set(CRM_LANDER_FILES
+    lander/Lander.cpp
+    lander/Lander.h
+)
+
+source_group("lander" FILES ${CRM_LANDER_FILES})
 
 #-----------------------------------------------------------------------------
 
@@ -85,6 +93,7 @@ add_library(ChronoModels_robot
             ${CRM_CURIOSITY_FILES}
             ${CRM_VIPER_FILES}
             ${CRM_TURTLEBOT_FILES}
+            ${CRM_LANDER_FILES}
             ${CRM_COPTERS_FILES}
             ${CRM_INDUSTRIAL_FILES}
             )

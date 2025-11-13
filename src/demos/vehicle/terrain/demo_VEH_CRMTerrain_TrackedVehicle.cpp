@@ -17,10 +17,13 @@
 // =============================================================================
 
 #include <cstdio>
+#include <cmath>
 #include <string>
 #include <stdexcept>
 #include <iomanip>
 #include <thread>
+#include <fstream>
+#include <sstream>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -37,6 +40,7 @@
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
@@ -60,15 +64,59 @@ std::shared_ptr<TrackedVehicle> CreateVehicle(const ChCoordsys<>& init_pos);
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
 void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrain);
 
+// Callback for setting initial SPH particle properties
+class SPHPropertiesCallbackWithPressureScale : public ChFsiProblemSPH::ParticlePropertiesCallback {
+  public:
+    SPHPropertiesCallbackWithPressureScale(double zero_height, double pre_pressure_scale)
+        : ParticlePropertiesCallback(), zero_height(zero_height), pre_pressure_scale(pre_pressure_scale) {}
+
+    virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+        rho0 = sysSPH.GetDensity();
+        mu0 = sysSPH.GetViscosity();
+        v0 = ChVector3d(0, 0, 0);
+        pre_pressure_scale0 = pre_pressure_scale;
+    }
+
+    double zero_height;
+    double pre_pressure_scale;
+};
+
 // ===================================================================================================================
 
 int main(int argc, char* argv[]) {
+    // Parse command line arguments
+    ChCLI cli(argv[0], "Tracked Vehicle on CRM Terrain Demo");
+
+    // Default values
+    bool snapshots = false;
+    std::string snapshots_str = snapshots ? "true" : "false";
+    std::string rheology_model_crm = "MU_OF_I";
+    double pre_pressure_scale = 2.0;
+    double kappa = 0.2;
+    double lambda = 1.0;
+
+    cli.AddOption<std::string>("Visualization", "snapshots", "Enable writing snapshot image files", snapshots_str);
+    cli.AddOption<std::string>("Physics", "rheology_model_crm", "Rheology model (MU_OF_I/MCC)", rheology_model_crm);
+    cli.AddOption<double>("Physics", "pre_pressure_scale", "Pre-pressure scale", std::to_string(pre_pressure_scale));
+    cli.AddOption<double>("Physics", "kappa", "kappa", std::to_string(kappa));
+    cli.AddOption<double>("Physics", "lambda", "lambda", std::to_string(lambda));
+
+    if (!cli.Parse(argc, argv))
+        return 1;
+
+    snapshots = parse_bool(cli.GetAsType<std::string>("snapshots"));
+    rheology_model_crm = cli.GetAsType<std::string>("rheology_model_crm");
+    pre_pressure_scale = cli.GetAsType<double>("pre_pressure_scale");
+    kappa = cli.GetAsType<double>("kappa");
+    lambda = cli.GetAsType<double>("lambda");
     // Set model and simulation parameters
     std::string terrain_dir = "terrain/sph/S-lane_RMS";
 
     double density = 1700;
     double cohesion = 5e3;
-    double friction = 0.8;
+    double friction = 0.6;
     double youngs_modulus = 1e6;
     double poisson_ratio = 0.3;
 
@@ -116,36 +164,68 @@ int main(int argc, char* argv[]) {
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
-    mat_props.mu_I0 = 0.04;
-    mat_props.mu_fric_s = friction;
-    mat_props.mu_fric_2 = friction;
-    mat_props.average_diam = 0.005;
-    mat_props.cohesion_coeff = cohesion;
+    if (rheology_model_crm == "MU_OF_I") {
+        mat_props.rheology_model = RheologyCRM::MU_OF_I;
+        mat_props.mu_I0 = 0.04;
+        mat_props.mu_fric_s = friction;
+        mat_props.mu_fric_2 = friction;
+        mat_props.average_diam = 0.005;
+        mat_props.cohesion_coeff = cohesion;
+    } else {
+        mat_props.rheology_model = RheologyCRM::MCC;
+        double mu_s = friction;
+        double angle_mus = std::atan(mu_s);
+        mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
+        std::cout << "MCC M: " << mat_props.mcc_M << std::endl;
+        mat_props.mcc_kappa = kappa;
+        mat_props.mcc_lambda = lambda;
+    }
     terrain.SetElasticSPH(mat_props);
 
     // Set SPH solver parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.d0_multiplier = 1;
+    sph_params.d0_multiplier = 1.3;
     sph_params.free_surface_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.use_consistent_gradient_discretization = false;
-    sph_params.use_consistent_laplacian_discretization = false;
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     sph_params.boundary_method = BoundaryMethod::HOLMES;
+    sph_params.kernel_type = KernelType::WENDLAND;
+    sph_params.shifting_method = ShiftingMethod::NONE;
+    sph_params.shifting_xsph_eps = 0.5;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.num_proximity_search_steps = 1;
+    sph_params.use_variable_time_step = true;
     terrain.SetSPHParameters(sph_params);
+    double meta_step_size = 1 * step_size;
 
     // Set output level from SPH simulation
     terrain.SetOutputLevel(OutputLevel::STATE);
+
+    // Register the SPH properties callback
+    // TODO check if the zero height is correct
+    double terrain_length = 6;
+    double terrain_width = 3;
+    double terrain_height = 0.5;
+    double terrain_center_x = terrain_length / 2;
+    double terrain_center_y = 0;
+    double terrain_center_z = -terrain_height;
+    auto props_cb =
+        chrono_types::make_shared<SPHPropertiesCallbackWithPressureScale>(terrain_height, pre_pressure_scale);
+    terrain.RegisterParticlePropertiesCallback(props_cb);
 
     // Add track shoes as FSI bodies
     CreateFSITracks(vehicle, terrain);
     terrain.SetActiveDomain(active_box_dim);
 
     cout << "Create terrain..." << endl;
+
     // Construct flat rectangular CRM terrain
-    ////terrain.Construct(ChVector3d(10, 4, 0.5), ChVector3d(5, 0, -0.5), true);
+    // terrain.Construct(ChVector3d(terrain_length, terrain_width, terrain_height),
+    //                   ChVector3d(terrain_center_x, terrain_center_y, terrain_center_z),
+    //                   BoxSide::ALL & ~BoxSide::Z_POS & ~BoxSide::Y_NEG & ~BoxSide::Y_POS);
     // Construct the terrain using SPH particles and BCE markers from files
     terrain.Construct(vehicle::GetDataFile(terrain_dir + "/sph_particles.txt"),
                       vehicle::GetDataFile(terrain_dir + "/bce_markers.txt"), VNULL);
@@ -169,7 +249,7 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Create run-time visualization
-    std::shared_ptr<ChVisualSystem> vis;
+    std::shared_ptr<ChVehicleVisualSystem> vis;
 
 #ifdef CHRONO_VSG
     if (render) {
@@ -211,6 +291,36 @@ int main(int argc, char* argv[]) {
     TerrainForces shoe_forces_left(vehicle->GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle->GetNumTrackShoes(RIGHT));
 
+    // Set up output directory
+    std::string base_dir = GetChronoOutputPath();
+    filesystem::create_directory(filesystem::path(base_dir));
+
+    // Create output directory name with rheology model and parameters
+    std::stringstream ss;
+    ss << std::fixed;
+    ss << base_dir << "CRMTerrain_TrackedVehicle";
+    ss << "_" << rheology_model_crm;
+    if (rheology_model_crm == "MCC") {
+        ss << "_pre_pressure_scale_" << std::setprecision(1) << pre_pressure_scale;
+        ss << "_kappa_" << std::setprecision(2) << kappa;
+        ss << "_lambda_" << std::setprecision(2) << lambda;
+    }
+    ss << "/";
+    std::string out_dir = ss.str();
+    filesystem::create_directory(filesystem::path(out_dir));
+
+    // Create snapshots directory if enabled
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "snapshots"))) {
+            std::cerr << "Error creating directory " << out_dir + "snapshots" << std::endl;
+        }
+    }
+
+    // Open vehicle stats CSV file
+    std::string stats_file = out_dir + "tracked_vehicle_stats.csv";
+    std::ofstream stats_output(stats_file);
+    stats_output << "time,x,y,z,vx,vy,vz,ax,ay,az,qw,qx,qy,qz,wx,wy,wz" << std::endl;
+
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
@@ -231,13 +341,24 @@ int main(int argc, char* argv[]) {
         // Run-time visualization
         if (render && time >= render_frame / render_fps) {
             if (chase_cam) {
-                ChVector3d cam_loc = veh_loc + ChVector3d(-6, 6, 0.5);
+                ChVector3d cam_loc = veh_loc + ChVector3d(-8, 6, 0.5);
                 ChVector3d cam_point = veh_loc;
                 vis->UpdateCamera(cam_loc, cam_point);
             }
             if (!vis->Run())
                 break;
             vis->Render();
+
+            // Save snapshots if enabled
+            if (snapshots) {
+                if (verbose)
+                    cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
+                std::ostringstream filename;
+                filename << out_dir << "snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
+                         << ".jpg";
+                vis->WriteImageToFile(filename.str());
+            }
+
             render_frame++;
         }
         if (!render) {
@@ -247,15 +368,44 @@ int main(int argc, char* argv[]) {
         // Synchronize systems
         driver.Synchronize(time);
         terrain.Synchronize(time);
+        vis->Synchronize(time, driver_inputs);
         vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+
+        // Write vehicle stats to CSV
+        const auto& veh_pos = vehicle->GetPos();
+        auto chassis_body = vehicle->GetChassisBody();
+        const auto& veh_vel = chassis_body->GetPosDt();
+        const auto& veh_acc = chassis_body->GetPosDt2();
+        const auto& veh_rot = vehicle->GetRot();
+        const auto& veh_angvel = chassis_body->GetAngVelParent();
+
+        stats_output << time << "," << veh_pos.x() << "," << veh_pos.y() << "," << veh_pos.z() << "," << veh_vel.x()
+                     << "," << veh_vel.y() << "," << veh_vel.z() << "," << veh_acc.x() << "," << veh_acc.y() << ","
+                     << veh_acc.z() << "," << veh_rot.e0() << "," << veh_rot.e1() << "," << veh_rot.e2() << ","
+                     << veh_rot.e3() << "," << veh_angvel.x() << "," << veh_angvel.y() << "," << veh_angvel.z()
+                     << std::endl;
 
         // Advance system state
         // Note: CRMTerrain::Advance also performs the vehicle dynamics
-        driver.Advance(step_size);
-        terrain.Advance(step_size);
+        if (sph_params.use_variable_time_step) {
+            driver.Advance(meta_step_size);
+            vis->Advance(meta_step_size);
+            terrain.Advance(meta_step_size);
+            time += meta_step_size;
+        } else {
+            driver.Advance(step_size);
+            vis->Advance(step_size);
+            terrain.Advance(step_size);
+            time += step_size;
+        }
 
-        time += step_size;
         sim_frame++;
+    }
+
+    stats_output.close();
+    cout << "Vehicle stats saved to: " << stats_file << endl;
+    if (snapshots) {
+        cout << "Snapshots saved to: " << out_dir << "snapshots/" << endl;
     }
 
     return 0;
