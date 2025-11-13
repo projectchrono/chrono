@@ -613,6 +613,133 @@ class FindVec4BufferData : public vsg::Visitor {
     vsg::vec4Array* m_buffer;
 };
 
+// Custom VertexIndexDraw variant that can request extra buffer usage flags (e.g., storage writes for GPU colouring)
+class ChronoVertexIndexDraw : public vsg::Inherit<vsg::VertexIndexDraw, ChronoVertexIndexDraw> {
+  public:
+    ChronoVertexIndexDraw() = default;
+    ChronoVertexIndexDraw(const vsg::VertexIndexDraw& rhs, const vsg::CopyOp& copyop = {}) : Inherit(rhs, copyop) {}
+    ChronoVertexIndexDraw(const ChronoVertexIndexDraw& rhs, const vsg::CopyOp& copyop = {})
+        : Inherit(rhs, copyop), m_extraUsage(rhs.m_extraUsage) {}
+
+    void setExtraUsage(VkBufferUsageFlags extraUsage) { m_extraUsage = extraUsage; }
+    VkBufferUsageFlags getExtraUsage() const { return m_extraUsage; }
+
+    void compile(vsg::Context& context) override {
+        if (arrays.empty() || !indices)
+            return;
+
+        const auto deviceID = context.deviceID;
+
+        bool requiresCreateAndCopy = !indices->buffer;
+        if (!requiresCreateAndCopy) {
+            if (indices->requiresCopy(deviceID)) {
+                requiresCreateAndCopy = true;
+            } else {
+                for (auto& array : arrays) {
+                    if (!array->buffer || array->requiresCopy(deviceID)) {
+                        requiresCreateAndCopy = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (requiresCreateAndCopy) {
+            // When the original VSG node only asked for vertex/index usage, rebuild the combined buffer with any
+            // extra usage bits so compute shaders can write into the same allocation the renderer reads from
+            // otherwise the colourmapping wont be accurate for particles
+            vsg::BufferInfoList combinedBufferInfos(arrays);
+            combinedBufferInfos.push_back(indices);
+
+            VkBufferUsageFlags usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | m_extraUsage;
+            createBufferAndTransferData(context, combinedBufferInfos, usage, VK_SHARING_MODE_EXCLUSIVE);
+        }
+
+        assignVulkanArrayData(deviceID, arrays, _vulkanData[deviceID]);
+    }
+
+  private:
+    VkBufferUsageFlags m_extraUsage = 0;
+};
+
+// Utility visitor for fetching the BufferInfo used by the N-th vertex array binding.
+template <int N>
+class FindVertexArrayBufferInfo : public vsg::Visitor {
+  public:
+    void apply(vsg::Object& object) override {
+        // Continue traversal until the target binding is discovered
+        if (!bufferInfo)
+            object.traverse(*this);
+    }
+
+    void apply(vsg::BindVertexBuffers& bvb) override {
+        // Grab the BufferInfo from legacy BindVertexBuffers nodes when slot N exists
+        if (bufferInfo || bvb.arrays.size() <= N)
+            return;
+        bufferInfo = bvb.arrays[N].cast<vsg::BufferInfo>();
+    }
+
+    void apply(vsg::VertexIndexDraw& vid) override {
+        // Support modern VertexIndexDraw nodes that replaced BindVertexBuffers in newer VSG
+        if (bufferInfo || vid.arrays.size() <= N)
+            return;
+        bufferInfo = vid.arrays[N].cast<vsg::BufferInfo>();
+    }
+
+    vsg::ref_ptr<vsg::BufferInfo> bufferInfo;
+};
+
+class ReplaceVertexIndexDraw : public vsg::Inherit<vsg::Visitor, ReplaceVertexIndexDraw> {
+  public:
+    explicit ReplaceVertexIndexDraw(VkBufferUsageFlags extraUsage = 0) : m_extraUsage(extraUsage) {}
+
+    vsg::ref_ptr<ChronoVertexIndexDraw> replaced_node;
+
+    void apply(vsg::Object& object) override {
+        if (replaced_node)
+            return;
+        object.traverse(*this);
+    }
+
+    void apply(vsg::Node& node) override {
+        if (replaced_node)
+            return;
+        node.traverse(*this);
+    }
+
+    void apply(vsg::Group& group) override {
+        if (replaced_node)
+            return;
+        for (auto& child : group.children) {
+            if (!child)
+                continue;
+
+            if (auto vid = child.cast<vsg::VertexIndexDraw>()) {
+                // Clone the original draw node but request extra usage flags so the rebuilt buffers support
+                // compute shader writes (needed for GPU particle colouring!)
+                auto chrono_vid = ChronoVertexIndexDraw::create(*vid);
+                chrono_vid->setExtraUsage(m_extraUsage);
+                for (auto& array : chrono_vid->arrays) {
+                    if (array)
+                        array->release();
+                }
+                if (chrono_vid->indices)
+                    chrono_vid->indices->release();
+                child = chrono_vid;
+                replaced_node = chrono_vid;
+                return;
+            }
+
+            child->accept(*this);
+            if (replaced_node)
+                return;
+        }
+    }
+
+  private:
+    VkBufferUsageFlags m_extraUsage;
+};
+
 // -----------------------------------------------------------------------------
 
 struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
@@ -731,7 +858,9 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_time_total(0),
       m_old_time(0),
       m_current_time(0),
-      m_fps(0) {
+      m_fps(0),
+      m_target_render_fps(0),
+      m_last_render_time(0) {
     m_windowTitle = std::string("Window Title");
     ////m_skyboxPath = std::string("vsg/textures/chrono_skybox.ktx2");
     m_skyboxPath = std::string("vsg/textures/vsg_skybox.ktx");
@@ -874,6 +1003,18 @@ void ChVisualSystemVSG::ToggleBaseGuiVisibility() {
 
 void ChVisualSystemVSG::AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) {
     m_evhandler.push_back(eh);
+}
+
+void ChVisualSystemVSG::AddComputeCommands(vsg::ref_ptr<vsg::Commands> commands) {
+    if (!commands || !m_computeCommandGraph || !m_viewer)
+        return;
+
+    // Schedule plugin compute work on the dedicated command graph so it executes before the render graph
+    m_computeCommandGraph->addChild(commands);
+
+    // Compile the incoming commands immediately to match current pipeline setup
+    auto compileTraversal = vsg::CompileTraversal::create(*m_viewer);
+    commands->accept(*compileTraversal);
 }
 
 void ChVisualSystemVSG::AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin) {
@@ -1230,9 +1371,11 @@ void ChVisualSystemVSG::Initialize() {
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
     // switches off automatic directional light setting
 
-    auto renderGraph =
+    m_renderGraph =
         vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
-    auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
+    // extend for seperate render and compute graphs
+    m_renderCommandGraph = vsg::CommandGraph::create(m_window, m_renderGraph);
+    m_computeCommandGraph = vsg::CommandGraph::create(m_window);
 
     // initialize ImGui
     ImGui::CreateContext();
@@ -1269,7 +1412,7 @@ void ChVisualSystemVSG::Initialize() {
 #endif
 
     auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
-    renderGraph->addChild(renderImGui);
+    m_renderGraph->addChild(renderImGui);
 
     // Use the ImGui dark (default) style, with adjusted transparency
     ImGui::StyleColorsDark();
@@ -1317,7 +1460,8 @@ void ChVisualSystemVSG::Initialize() {
     if (m_camera_trackball)
         m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 
-    m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
+    // assign both compute and render command graphs to the viewer
+    m_viewer->assignRecordAndSubmitTaskAndPresentation({m_computeCommandGraph, m_renderCommandGraph});
 
     // Assign a CompileTraversal to the Builders that will compile for all the views assigned to the viewer.
     // Must be done after Viewer.assignRecordAndSubmitTasksAndPresentations()
@@ -1354,18 +1498,31 @@ bool ChVisualSystemVSG::Run() {
 }
 
 void ChVisualSystemVSG::Render() {
+    // Frame rate limiting - decouples the simulation time step from the rendering frame rate and reduces cpu overhead
+    // if set to 0, no frame rate limiting is applied
+    if (m_target_render_fps > 0 && m_frame_number > 0) {
+        m_timer_render.stop();
+        double elapsed = m_timer_render();
+        double min_frame_time = 1.0 / m_target_render_fps;
+        
+        if (elapsed < min_frame_time) {
+            // Not enough wall-clock time passed - skip this frame entirely
+            m_timer_render.start();
+            ChVisualSystem::Render();
+            return;
+        }
+        // Frame gate passed - timer already stopped, will be reset/started at bottom
+    }
+    
     if (m_write_images && m_frame_number > 0) {
         // Zero-pad frame numbers in file names for postprocessing
         std::ostringstream filename;
         filename << m_image_dir << "/img_" << std::setw(5) << std::setfill('0') << m_frame_number << ".png";
         WriteImageToFile(filename.str());
-    }
-
+    }    
+    
     if (m_frame_number == 0)
         m_start_time = double(clock()) / double(CLOCKS_PER_SEC);
-
-    m_timer_render.reset();
-    m_timer_render.start();
 
     // Let any plugins perform pre-rendering operations
     for (auto& plugin : m_plugins)
@@ -1383,7 +1540,9 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU->GPU for COM symbol size and body labels
-    if (!m_com_symbols_empty) {
+    // Only update if COM symbols are actually visible to avoid unecessary cpu to gpu data transfers
+    // otherwise this is effectively marking dirty even if the symbols are hidden! (extra work)
+    if (m_show_com_symbols && !m_com_symbols_empty) {
         auto symbol_size = m_com_frame_scale * m_com_symbol_ratio;
 
         std::vector<ChVector3d> c_pos;
@@ -1416,8 +1575,10 @@ void ChVisualSystemVSG::Render() {
         }
     }
 
-    // Dynamic data transfer CPU->GPU for link labels
-    if (!m_link_labels.empty()) {
+    // Dynamic data transfer CPU->GPU for link labels  
+    // Only update if link labels are actually visible to avoid expensive CPU work - the !m_link_labels_empty test doesn't condition this
+    // code comprehensively. If the link labels are empty, the for ipos won't run, but the CollectLinkFramePositions will still be called needlessly.
+    if (m_show_link_labels) {
         auto label_size = m_link_labels_scale * m_label_size;
 
         std::vector<ChVector3d> c_pos;
@@ -1465,59 +1626,101 @@ void ChVisualSystemVSG::Render() {
     }
 
     // Dynamic data transfer CPU->GPU for point clouds
-    auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
-    for (const auto& cloud : m_clouds) {
-        if (cloud.dynamic_positions) {
-            unsigned int k = 0;
-            for (auto& p : *cloud.positions) {
-                if (cloud.pcloud->IsVisible(k))
-                    p = vsg::vec3CH(cloud.pcloud->GetParticlePos(k));
-                else
-                    p = hide_pos;  // vsg::vec3(0, 0, 0);
-                k++;
+    // use direct pointer access to avoid temporary object construction
+    // Dynamic colours are handled by the vulkan compute shader
+    if (!m_clouds.empty()) {
+        auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
+        for (const auto& cloud : m_clouds) {
+            if (cloud.dynamic_positions) {
+                // Write particle positions in bulk via raw pointers to avoid per-element temporary objects
+                const size_t count = cloud.positions->size();
+                auto* pos_data = cloud.positions->data();
+
+                for (size_t k = 0; k < count; ++k) {
+                    if (cloud.pcloud->IsVisible(static_cast<unsigned int>(k))) {
+                        const auto& src = cloud.pcloud->GetParticlePos(static_cast<unsigned int>(k));
+                        pos_data[k].set(static_cast<float>(src.x()), static_cast<float>(src.y()),
+                                        static_cast<float>(src.z()));
+                    } else {
+                        pos_data[k] = hide_pos;
+                    }
+                }
+                cloud.positions->dirty();
             }
-            cloud.positions->dirty();
-        }
-        if (cloud.dynamic_colors) {
-            unsigned int k = 0;
-            for (auto& c : *cloud.colors)
-                c = vsg::vec4CH(cloud.pcloud->GetVisualColor(k++));
-            cloud.colors->dirty();
         }
     }
 
+
     // Dynamic data transfer CPU->GPU for deformable meshes
+    // To speed up cpu-gpu - treat ChVector3d arrays as contiguous arrays for bulk conversion over to gpu
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
             const auto& new_vertices =
                 def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
             assert(def_mesh.vertices->size() == new_vertices.size());
-            size_t k = 0;
-            for (auto& v : *def_mesh.vertices)
-                v = vsg::vec3CH(new_vertices[k++]);
-            def_mesh.vertices->dirty();
+
+            const size_t count = new_vertices.size();
+            if (count > 0) {
+                // ChVector3d stores 3 doubles contiguously, cast to raw double* and float* with less overhead
+                const double* src_ptr = new_vertices[0].data();
+                float* dst_ptr = reinterpret_cast<float*>(def_mesh.vertices->data());
+
+                // convert 3*count doubles to floats with tight loop
+                const size_t total_components = count * 3;
+                for (size_t i = 0; i < total_components; ++i) {
+                    dst_ptr[i] = static_cast<float>(src_ptr[i]);
+                }
+
+                def_mesh.vertices->dirty();
+            }
         }
 
         if (def_mesh.dynamic_normals) {
             const auto& new_normals =
                 def_mesh.mesh_soup ? def_mesh.trimesh->getFaceNormals() : def_mesh.trimesh->getAverageNormals();
             assert(def_mesh.normals->size() == new_normals.size());
-            size_t k = 0;
-            for (auto& n : *def_mesh.normals)
-                n = vsg::vec3CH(new_normals[k++]);
-            def_mesh.normals->dirty();
+
+            const size_t count = new_normals.size();
+            if (count > 0) {
+                const double* src_ptr = new_normals[0].data();
+                float* dst_ptr = reinterpret_cast<float*>(def_mesh.normals->data());
+
+                const size_t total_components = count * 3;
+                for (size_t i = 0; i < total_components; ++i) {
+                    dst_ptr[i] = static_cast<float>(src_ptr[i]);
+                }
+
+                def_mesh.normals->dirty();
+            }
         }
 
+        // TODO: - could be converted to the VSG compute shader which particles use, but would only benefit with
+        // large vertice mesh when this loop is significant compared to the rest of the frame time
         if (def_mesh.dynamic_colors) {
             const auto& new_colors =
                 def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->GetCoordsColors();
             assert(def_mesh.colors->size() == new_colors.size());
-            size_t k = 0;
-            for (auto& c : *def_mesh.colors)
-                c = vsg::vec4CH(new_colors[k++]);
-            def_mesh.colors->dirty();
+
+            const size_t count = new_colors.size();
+            if (count > 0) {
+                // ChColor is 12 bytes (3 floats), but need to give to the gpu with vec4 (16 bytes) for alignment
+                // copy element-wise with manual unroll
+                const ChColor* src_ptr = new_colors.data();
+                float* dst_ptr = reinterpret_cast<float*>(def_mesh.colors->data());
+
+                // Manual unroll (RGBA = 4 components)
+                for (size_t k = 0; k < count; ++k) {
+                    const size_t idx = k * 4;
+                    dst_ptr[idx + 0] = src_ptr[k].R;
+                    dst_ptr[idx + 1] = src_ptr[k].G;
+                    dst_ptr[idx + 2] = src_ptr[k].B;
+                    dst_ptr[idx + 3] = 1.0f;  // Alpha channel (ChColor has no transparency)
+                }
+                def_mesh.colors->dirty();
+            }
         }
     }
+
 
     m_viewer->recordAndSubmit();
 
@@ -1529,14 +1732,20 @@ void ChVisualSystemVSG::Render() {
     m_viewer->present();
     m_frame_number++;
 
-    m_timer_render.stop();
-    m_time_total = .5 * m_timer_render() + .5 * m_time_total;
-    m_current_time = m_time_total;
-    m_current_time = m_current_time * 0.5 + m_old_time * 0.5;
-    m_old_time = m_current_time;
-    m_fps = 1.0 / m_current_time;
+    if (m_frame_number > 1) {
+        m_timer_render.stop();
+        m_time_total = .5 * m_timer_render() + .5 * m_time_total;
+        m_current_time = m_time_total;
+        m_current_time = m_current_time * 0.5 + m_old_time * 0.5;
+        m_old_time = m_current_time;
+        m_fps = 1.0 / m_current_time;
+    }
 
     ChVisualSystem::Render();
+
+    m_timer_render.reset();
+    m_timer_render.start();
+
 }
 
 void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
@@ -1610,15 +1819,38 @@ void ChVisualSystemVSG::SetSegmentVisibility(bool vis, int tag) {
 }
 
 void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
+    // Remember requested visibility even before the scene graph is constructed so late clouds inherit it
+    // otherwise it causees issues with clouds added after initialisation
+    if (tag == -1) {
+        m_default_cloud_visibility = vis;
+        m_cloud_visibility_overrides.clear();
+    } else {
+        m_cloud_visibility_overrides[tag] = vis;
+    }
+
     if (!m_initialized)
         return;
 
     for (auto& child : m_particleScene->children) {
         int c_tag;
-        child.node->getValue("Tag", c_tag);
-        if (c_tag == tag || tag == -1)
+        if (!child.node->getValue("Tag", c_tag))
+            continue;
+
+        if (tag == -1) {
+            // Apply the stored preference to every cloud when toggling the global state
+            child.mask = GetDesiredCloudVisibility(c_tag);
+        } else if (c_tag == tag) {
             child.mask = vis;
+        }
     }
+}
+
+bool ChVisualSystemVSG::GetDesiredCloudVisibility(int tag) const {
+    // Resolve the desired visibility using the tag override, falling back to global default
+    auto it = m_cloud_visibility_overrides.find(tag);
+    if (it != m_cloud_visibility_overrides.end())
+        return it->second;
+    return m_default_cloud_visibility;
 }
 
 void ChVisualSystemVSG::SetCollisionVisibility(bool vis, int tag) {
@@ -2042,7 +2274,6 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     // Important for update: keep the correct scenegraph hierarchy
     //     modelGroup->model_transform->shapes_group
 
-    // Create a group to hold this visual model
     auto vis_model_group = vsg::Group::create();
 
     // Create a group to hold the shapes with their subtransforms
@@ -2051,10 +2282,12 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     // Populate the group with shapes in the visual model
     PopulateVisGroup(vis_shapes_group, vis_model);
 
-    // Attach a transform to the group and initialize it with the body current position
+    // Create transform and initialize with current frame
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(vis_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = false;
+     // Enable frustum culling means we're not wasting rendering resources on things out of frame
+    vis_model_transform->subgraphRequiresLocalFrustum = true; 
+    
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(vis_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -2062,7 +2295,6 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     vis_model_transform->addChild(vis_shapes_group);
     vis_model_group->addChild(vis_model_transform);
 
-    // Set group properties
     vis_model_group->setValue("Object", obj);
     vis_model_group->setValue("Type", type);
     vis_model_group->setValue("Tag", obj->GetTag());
@@ -2109,7 +2341,7 @@ void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContact
     // Attach a transform to the group and initialize it with the body current position
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = false;
+    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(coll_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -2241,6 +2473,9 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
             group->setValue("Transform", transform);
             m_pointpointScene->addChild(mask_segments, group);
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
+            // VSG generates spring coils procedurally on GPU, so disable expensive CPU geometry updates
+            sprshape->SetGeometryUpdatesDisabled(true);
+            
             auto rad = sprshape->GetRadius();
             auto turns = sprshape->GetTurns();
             auto resolution = sprshape->GetResolution();
@@ -2368,11 +2603,44 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     }
 
     if (node) {
-        node->setValue("Tag", pcloud->GetTag());
-        vsg::Mask mask = true;
-        m_particleScene->addChild(mask, node);
-    }
+        VkBufferUsageFlags extraUsage = 0;
+        if (cloud.dynamic_colors)
+            extraUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
+        if (extraUsage != 0) {
+            // We need colour buffers that are both vertex inputs and storage buffers so the compute shader
+            // can overwrite particle colours; standard VSG nodes were only request vertex usage, so these get replaced here
+            ReplaceVertexIndexDraw replacer(extraUsage);
+            node->accept(replacer);
+
+            if (replacer.replaced_node) {
+                if (m_vsgBuilder->compileTraversal) {
+                    m_vsgBuilder->compileTraversal->compile(node);
+                } else if (m_viewer) {
+                    replacer.replaced_node->accept(*vsg::CompileTraversal::create(*m_viewer));
+                }
+            }
+        }
+
+        node->setValue("Tag", pcloud->GetTag());
+        // Seed the scene graph node with the cached visibility choice for its tag
+        // this is primarily all for the bce particle markers - so that the visibility is consistent
+        // (since OnInitialize calls SetParticleCloudVisibility before the VSG scene has bound geometry)
+        vsg::Mask mask = GetDesiredCloudVisibility(pcloud->GetTag());
+        m_particleScene->addChild(mask, node);
+
+        cloud.geometry_node = node;
+
+        // Capture BufferInfo handles for instance data so plugins can share GPU buffers
+        FindVertexArrayBufferInfo<4> positionVisitor;
+        node->accept(positionVisitor);
+        cloud.position_bufferInfo = positionVisitor.bufferInfo;
+        if (cloud.dynamic_colors) {
+            FindVertexArrayBufferInfo<3> colorVisitor;
+            node->accept(colorVisitor);
+            cloud.color_bufferInfo = colorVisitor.bufferInfo;
+        }
+    }
     m_clouds.push_back(cloud);
 }
 
@@ -2673,7 +2941,7 @@ void ChVisualSystemVSG::Update() {
         }
     }
 
-    // Update all VSG nodes with object visualization
+    // Update all VSG nodes with object visualization assets
     for (const auto& child : m_objScene->children) {
         std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -2933,7 +3201,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
     // Attach a transform to the group and initialize it with the provided frame
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = false;
+    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(vis_model_group);
         m_options->sharedObjects->share(vis_model_transform);

@@ -65,6 +65,9 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
     double GetRadius() { return radius; }
     size_t GetResolution() { return resolution; }
     double GetTurns() { return turns; }
+    
+    /// Disable CPU-side visual geometry updates (for visualisation systems that generate geometry on GPU)
+    void SetGeometryUpdatesDisabled(bool disable) { m_disable_geom_updates = disable; }
 
   private:
     /// Set line geometry as coil between two end points (assumed in local frame).
@@ -74,6 +77,7 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
     double radius;
     double turns;
     size_t resolution;
+    bool m_disable_geom_updates = false;  ///< Skip CPU geometry updates
 };
 
 /// Shape representing a rotational spring.

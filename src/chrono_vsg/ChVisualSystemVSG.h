@@ -53,6 +53,7 @@
 #include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vsg/ChEventHandlerVSG.h"
 #include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/utils/ChConversionsVSG.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -247,6 +248,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
+    /// Set target render frame rate (default: 0 means render every frame)
+    /// When set to, for example, 60fps, it limits rendering to approximately that many FPS
+    /// even if physics is running faster. Dramatically improves performance for VSG since
+    /// recordAndSubmit() is expensive
+    void SetTargetRenderFPS(double fps) { m_target_render_fps = fps; }
+
     /// Enable/disable rendering of shadows (default: false).
     /// This function must be called before Initialize().
     void EnableShadows(bool val = true) { m_use_shadows = val; }
@@ -335,6 +342,38 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         return m_colormap_textures.at(type);
     }
 
+    /// Data for particle clouds managed by the visual system (extended for
+    // VSG and compute shader and moved to public for access by plugins)
+    struct ParticleCloud {
+    std::shared_ptr<ChParticleCloud> pcloud;            ///< reference to the Chrono physics item
+    vsg::ref_ptr<vsg::vec3Array> positions;             ///< particle positions
+    vsg::ref_ptr<vsg::vec4Array> colors;                ///< particle colours
+    bool dynamic_positions;                             ///< particle positions change
+    bool dynamic_colors;                                ///< particle colours change
+    vsg::ref_ptr<vsg::Node> geometry_node;              ///< owning scene graph node
+    vsg::ref_ptr<vsg::BufferInfo> position_bufferInfo;  ///< instance positions buffer
+    vsg::ref_ptr<vsg::BufferInfo> color_bufferInfo;     ///< instance colours buffer
+    bool use_compute_colors = false;                    ///< GPU compute overrides CPU updates
+    vsg::ref_ptr<vsg::Commands> compute_commands;       ///< compute dispatch commands
+    };
+
+    /// Access particle cloud metadata
+    std::vector<ParticleCloud>& GetParticleClouds() { return m_clouds; }
+    const std::vector<ParticleCloud>& GetParticleClouds() const { return m_clouds; }
+
+    /// Register commands that must run on the compute queue before rendering
+    void AddComputeCommands(vsg::ref_ptr<vsg::Commands> commands);
+
+    /// Access command graphs used for compute and rendering work
+    vsg::ref_ptr<vsg::CommandGraph> GetComputeCommandGraph() const { return m_computeCommandGraph; }
+    vsg::ref_ptr<vsg::CommandGraph> GetRenderCommandGraph() const { return m_renderCommandGraph; }
+
+    /// Access the underlying window
+    vsg::ref_ptr<vsg::Window> GetWindow() const { return m_window; }
+
+    /// Access the VSG options object used for resource loading
+    vsg::ref_ptr<vsg::Options> GetOptions() const { return m_options; }
+
   protected:
     /// Perform necessary setup operations at the beginning of a time step.
     virtual void OnSetup(ChSystem* sys) override;
@@ -348,7 +387,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
-    vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+  vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+  vsg::ref_ptr<vsg::CommandGraph> m_renderCommandGraph;   ///< graphics submit path
+  vsg::ref_ptr<vsg::CommandGraph> m_computeCommandGraph;  ///< compute submit path (particle colouring)
 
     bool m_show_logo;
     float m_logo_height;
@@ -405,15 +446,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
     std::vector<DeformableMesh> m_def_meshes;
 
-    /// Data for particle clouds.
-    struct ParticleCloud {
-        std::shared_ptr<ChParticleCloud> pcloud;  ///< reference to the Chrono physics item
-        vsg::ref_ptr<vsg::vec3Array> positions;   ///< particle positions
-        vsg::ref_ptr<vsg::vec4Array> colors;      ///< particle colors
-        bool dynamic_positions;                   ///< particle positions change
-        bool dynamic_colors;                      ///< particle colors change
-    };
-    std::vector<ParticleCloud> m_clouds;
+  std::vector<ParticleCloud> m_clouds;  ///< particle cloud metadata cached for VSG interop
+  bool GetDesiredCloudVisibility(int tag) const;
+  bool m_default_cloud_visibility = true;  ///< fallback visibility before a specific tag is toggled
+  std::unordered_map<int, bool> m_cloud_visibility_overrides;  ///< per-tag visibility overrides
 
     bool m_show_visibility_controls;  ///< enable/disable global visibility controls
 
@@ -639,6 +675,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChTimer m_timer_render;                           ///< timer for rendering speed
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
+    
+    double m_target_render_fps;                       ///< target rendering framerate (0 = unlimited)
+    double m_last_render_time;                        ///< simulation time of last render
 
     // ImGui textures
     vsg::ref_ptr<vsgImGui::Texture> m_logo_texture;

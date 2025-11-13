@@ -104,6 +104,10 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
                 vis_vsg->AddGuiColorbar(colorbar_title, colorbar_range, colormap_type, false, 300);
             }
 
+            // optionally decouple the visualisation updates so less cpu-gpu work - comment out to test for performance
+            // change
+            // - testing shows a reduction in vsg Render() calls to 1/2 or less
+            vis_vsg->SetTargetRenderFPS(60); 
             vis_vsg->Initialize();
 
             vis = vis_vsg;

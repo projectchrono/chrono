@@ -183,10 +183,11 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
       m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
       m_flex_bce_color(ChColor(1.0f, 1.0f, 0.4f)),
-      m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
-      m_colormap_type(ChColormap::Type::JET),
-      m_write_images(false),
-      m_image_dir(".") {
+            m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
+            m_colormap_type(ChColormap::Type::JET),
+            m_write_images(false),
+            m_image_dir("."),
+            m_sph_cloud_index(-1) {  // start with invalid cache so we rescan once the VSG clouds are bound
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
     m_activeBoxScene = vsg::Switch::create();
 }
@@ -202,8 +203,9 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
       m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
       m_flex_bce_color(ChColor(1.0f, 1.0f, 0.4f)),
-      m_write_images(false),
-      m_image_dir(".") {
+    m_write_images(false),
+    m_image_dir("."),
+    m_sph_cloud_index(-1) {  // ensure the SPH cloud lookup is revalidated on the first query
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
 }
 
@@ -232,6 +234,9 @@ void ChSphVisualizationVSG::SetSPHColorCallback(std::shared_ptr<ParticleColorCal
     if (m_colormap) {
         m_colormap->Load(type);
     }
+
+    // Force the GPU colormap buffer to be regenerated for the new palette
+    m_gpu_color.colormapDirty = true;
 }
 
 void ChSphVisualizationVSG::OnAttach() {
@@ -405,7 +410,350 @@ void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, in
     m_activeBoxScene->addChild(mask, group);
 }
 
+vsg3d::ChVisualSystemVSG::ParticleCloud* ChSphVisualizationVSG::GetSphParticleCloud() {
+    if (!m_vsys)
+        return nullptr;
+
+    // Cache the mapping to the VSG particle cloud list so we do not search every frame
+    // (less cpu work). But verify that the cached index is still valid (in case clouds were added/removed or dynamic range)
+    auto& clouds = m_vsys->GetParticleClouds();
+
+    if (m_sph_cloud_index >= 0 && m_sph_cloud_index < static_cast<int>(clouds.size())) {
+        auto& cached = clouds[static_cast<size_t>(m_sph_cloud_index)];
+        if (cached.pcloud.get() == m_sph_cloud.get())
+            return &cached;
+    }
+
+    for (size_t i = 0; i < clouds.size(); ++i) {
+        if (clouds[i].pcloud.get() == m_sph_cloud.get()) {
+            m_sph_cloud_index = static_cast<int>(i);
+            return &clouds[i];
+        }
+    }
+
+    m_sph_cloud_index = -1;
+    return nullptr;
+}
+
+ChSphVisualizationVSG::ColorMode ChSphVisualizationVSG::DetermineColorMode() const {
+    // Translate the active color callback into the shader mode setting
+    if (!m_color_fun)
+        return ColorMode::NONE;
+
+    if (std::dynamic_pointer_cast<ParticleHeightColorCallback>(m_color_fun))
+        return ColorMode::HEIGHT;
+
+    if (auto velocity = std::dynamic_pointer_cast<ParticleVelocityColorCallback>(m_color_fun)) {
+        switch (velocity->GetComponent()) {
+            case ParticleVelocityColorCallback::Component::NORM:
+                return ColorMode::VELOCITY_MAG;
+            case ParticleVelocityColorCallback::Component::X:
+                return ColorMode::VELOCITY_X;
+            case ParticleVelocityColorCallback::Component::Y:
+                return ColorMode::VELOCITY_Y;
+            case ParticleVelocityColorCallback::Component::Z:
+                return ColorMode::VELOCITY_Z;
+        }
+    }
+
+    if (std::dynamic_pointer_cast<ParticleDensityColorCallback>(m_color_fun))
+        return ColorMode::DENSITY;
+
+    if (std::dynamic_pointer_cast<ParticlePressureColorCallback>(m_color_fun))
+        return ColorMode::PRESSURE;
+
+    return ColorMode::NONE;
+}
+
+bool ChSphVisualizationVSG::ShouldUseGpuColoring(size_t num_particles) const {
+    // Only enable the compute path when we have data and a supported colouring callback, else dont
+    if (!m_color_fun) {
+        std::cout << "GPU colouring disabled: no colour callback function set" << std::endl;
+        return false;
+    }
+    if (num_particles == 0) {
+        std::cout << "GPU colouring disabled: no particles to render" << std::endl;
+        return false;
+    }
+    if (DetermineColorMode() == ColorMode::NONE) {
+        std::cout << "GPU colouring disabled: unsupported colour mode" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool ChSphVisualizationVSG::IsColormapSupported() const {
+    return true;
+}
+
+bool ChSphVisualizationVSG::InitializeGpuColoringResources(size_t num_particles) {
+    if (num_particles == 0)
+        return false;
+
+    auto cloud = GetSphParticleCloud();
+    // Defer initialisation until the visual system has bound the SPH cloud buffers
+    if (!cloud || !cloud->position_bufferInfo || !cloud->color_bufferInfo)
+        return false;
+
+    auto shaderPath = vsg::findFile("vsg/shaders/fsiParticleColor.comp", m_vsys->GetOptions());
+    // Abort silently if the compute shader is missing from the resource paths
+    if (shaderPath.empty())
+        return false;
+
+    auto shaderStage = vsg::ShaderStage::read(VK_SHADER_STAGE_COMPUTE_BIT, "main", shaderPath, m_vsys->GetOptions());
+    if (!shaderStage)
+        return false;
+
+    // Use vec4 storage for alignment with the compute shader
+    m_gpu_color.positionData = vsg::vec4Array::create(num_particles);
+    m_gpu_color.positionData->properties.dataVariance = vsg::DYNAMIC_DATA;
+
+    m_gpu_color.velocityData = vsg::vec4Array::create(num_particles);
+    m_gpu_color.velocityData->properties.dataVariance = vsg::DYNAMIC_DATA;
+
+    m_gpu_color.propertyData = vsg::vec4Array::create(num_particles);
+    m_gpu_color.propertyData->properties.dataVariance = vsg::DYNAMIC_DATA;
+
+    m_gpu_color.uniformData = vsg::vec4Array::create(3);
+    m_gpu_color.uniformData->properties.dataVariance = vsg::DYNAMIC_DATA;
+
+    m_gpu_color.colormapData = vsg::vec4Array::create(static_cast<size_t>(m_gpu_color.colormapResolution));
+    m_gpu_color.colormapData->properties.dataVariance = vsg::DYNAMIC_DATA;
+
+    m_gpu_color.positionDescriptor =
+        vsg::DescriptorBuffer::create(m_gpu_color.positionData, 0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    m_gpu_color.velocityDescriptor =
+        vsg::DescriptorBuffer::create(m_gpu_color.velocityData, 1, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    m_gpu_color.propertyDescriptor =
+        vsg::DescriptorBuffer::create(m_gpu_color.propertyData, 2, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    m_gpu_color.colorDescriptor = vsg::DescriptorBuffer::create(
+        vsg::BufferInfoList{cloud->color_bufferInfo}, 3, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    m_gpu_color.uniformDescriptor =
+        vsg::DescriptorBuffer::create(m_gpu_color.uniformData, 4, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    m_gpu_color.colormapDescriptor =
+        vsg::DescriptorBuffer::create(m_gpu_color.colormapData, 5, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+    vsg::DescriptorSetLayoutBindings bindings = {
+        {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr},
+        {1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr},
+        {2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr},
+        {3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr},
+        {4, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr},
+        {5, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr}};
+
+    m_gpu_color.descriptorSetLayout = vsg::DescriptorSetLayout::create(bindings);
+    m_gpu_color.pipelineLayout = vsg::PipelineLayout::create(
+        vsg::DescriptorSetLayouts{m_gpu_color.descriptorSetLayout}, vsg::PushConstantRanges{});
+    m_gpu_color.pipeline = vsg::ComputePipeline::create(m_gpu_color.pipelineLayout, shaderStage);
+
+    vsg::Descriptors descriptors{m_gpu_color.positionDescriptor, m_gpu_color.velocityDescriptor,
+                                 m_gpu_color.propertyDescriptor, m_gpu_color.colorDescriptor,
+                                 m_gpu_color.uniformDescriptor, m_gpu_color.colormapDescriptor};
+    m_gpu_color.descriptorSet = vsg::DescriptorSet::create(m_gpu_color.descriptorSetLayout, descriptors);
+
+    m_gpu_color.bindPipeline = vsg::BindComputePipeline::create(m_gpu_color.pipeline);
+    m_gpu_color.bindDescriptorSets = vsg::BindDescriptorSets::create(
+        VK_PIPELINE_BIND_POINT_COMPUTE, m_gpu_color.pipelineLayout, 0,
+        vsg::DescriptorSets{m_gpu_color.descriptorSet});
+    m_gpu_color.dispatch = vsg::Dispatch::create(1, 1, 1);
+    auto memoryBarrier = vsg::MemoryBarrier::create(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+    m_gpu_color.barrier =
+        vsg::PipelineBarrier::create(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0);
+    m_gpu_color.barrier->add(memoryBarrier);
+
+    // Build a reusable command list so we can toggle execution without re-creating nodes
+    m_gpu_color.commands = vsg::Commands::create();
+    m_gpu_color.commands->addChild(m_gpu_color.bindPipeline);
+    m_gpu_color.commands->addChild(m_gpu_color.bindDescriptorSets);
+    m_gpu_color.commands->addChild(m_gpu_color.dispatch);
+    m_gpu_color.commands->addChild(m_gpu_color.barrier);
+
+    // Register the compute work with the visualisation system's compute command graph
+    m_vsys->AddComputeCommands(m_gpu_color.commands);
+    cloud->compute_commands = m_gpu_color.commands;
+
+    m_gpu_color.colormapDirty = true;
+    UpdateGpuColormapBuffer();
+
+    m_gpu_color.initialized = true;
+    return true;
+}
+
+void ChSphVisualizationVSG::ConfigureGpuCommands(bool enable) {
+    if (!m_gpu_color.commands)
+        return;
+
+    // Toggle whether the compute command list is submitted this frame
+    if (enable) {
+        if (m_gpu_color.commands->children.empty()) {
+            m_gpu_color.commands->addChild(m_gpu_color.bindPipeline);
+            m_gpu_color.commands->addChild(m_gpu_color.bindDescriptorSets);
+            m_gpu_color.commands->addChild(m_gpu_color.dispatch);
+            if (m_gpu_color.barrier)
+                m_gpu_color.commands->addChild(m_gpu_color.barrier);
+        }
+    } else {
+        if (!m_gpu_color.commands->children.empty())
+            m_gpu_color.commands->children.clear();
+    }
+}
+
+void ChSphVisualizationVSG::EnsureGpuColoringReady(size_t num_particles) {
+    auto cloud = GetSphParticleCloud();
+    if (!cloud) {
+        // No cloud bound yet; make sure we stop submitting compute work
+        ConfigureGpuCommands(false);
+        m_gpu_color.active = false;
+        return;
+    }
+
+    const bool enable = ShouldUseGpuColoring(num_particles);
+    if (!enable) {
+        // Fall back to the old CPU path when the colour callback is disabled or unsupported
+        // .. could probably delete this handling and associated once confident the gpu path is good
+        ConfigureGpuCommands(false);
+        cloud->use_compute_colors = false;
+        m_gpu_color.active = false;
+        return;
+    }
+
+    if (!m_gpu_color.initialized) {
+        // lazy allocate GPU resources once number of particles known
+        if (!InitializeGpuColoringResources(num_particles)) {
+            ConfigureGpuCommands(false);
+            cloud->use_compute_colors = false;
+            m_gpu_color.active = false;
+            return;
+        }
+    }
+
+    if (m_gpu_color.currentColormapType != m_colormap_type)
+        m_gpu_color.colormapDirty = true;
+
+    UpdateGpuColormapBuffer();
+
+    // keep the compute dispatch in sync with the render pass
+    ConfigureGpuCommands(true);
+    cloud->use_compute_colors = true;
+    m_gpu_color.active = true;
+}
+
+void ChSphVisualizationVSG::UpdateGpuColoring(size_t num_particles) {
+    // Populate GPU buffers with each particle data and update dispatch parameters
+    if (!m_gpu_color.initialized || !m_gpu_color.active || num_particles == 0)
+        return;
+
+    m_gpu_color.mode = DetermineColorMode();
+
+    auto range = m_color_fun ? m_color_fun->GetDataRange() : ChVector2d(0, 1);
+    const float dataMin = static_cast<float>(range.x());
+    const float dataMax = static_cast<float>(range.y());
+    const float diff = dataMax - dataMin;
+    const float invRange = std::abs(diff) > 1e-6f ? 1.0f / diff : 0.0f;
+
+    float upX = 0.0f;
+    float upY = 0.0f;
+    float upZ = 1.0f;
+    if (m_gpu_color.mode == ColorMode::HEIGHT) {
+        if (auto height = std::dynamic_pointer_cast<ParticleHeightColorCallback>(m_color_fun)) {
+            const auto up = height->GetUpVector();
+            upX = static_cast<float>(up.x);
+            upY = static_cast<float>(up.y);
+            upZ = static_cast<float>(up.z);
+        }
+    }
+
+    const bool bimodal = m_color_fun && m_color_fun->IsBimodal();
+    (*m_gpu_color.uniformData)[0].set(dataMin, dataMax, invRange,
+                                      static_cast<float>(static_cast<int>(m_gpu_color.mode)));
+    (*m_gpu_color.uniformData)[1].set(upX, upY, upZ, static_cast<float>(num_particles));
+    (*m_gpu_color.uniformData)[2].set(static_cast<float>(m_gpu_color.colormapResolution),
+                                      bimodal ? 1.0f : 0.0f, 0.0f, 0.0f);
+    m_gpu_color.uniformData->dirty();
+
+    const size_t positionCount = std::min(m_pos.size(), num_particles);
+    // Helper for packing SoA float3 data into float4 buffers
+    const auto copyVec3ToVec4 = [](auto* dst, const auto* src, size_t count, float w_value) {
+        for (size_t i = 0; i < count; ++i) {
+            auto& out = dst[i];
+            out.x = static_cast<float>(src[i].x);
+            out.y = static_cast<float>(src[i].y);
+            out.z = static_cast<float>(src[i].z);
+            out.w = w_value;
+        }
+    };
+
+    auto* pos_dst = m_gpu_color.positionData->data();
+    const auto* pos_src = m_pos.data();
+    copyVec3ToVec4(pos_dst, pos_src, positionCount, 1.0f);
+    if (positionCount < num_particles)
+        std::fill_n(pos_dst + positionCount, num_particles - positionCount, vsg::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    m_gpu_color.positionData->dirty();
+
+    const size_t velocityCount = std::min(m_vel.size(), num_particles);
+    auto* vel_dst = m_gpu_color.velocityData->data();
+    const auto* vel_src = m_vel.data();
+    copyVec3ToVec4(vel_dst, vel_src, velocityCount, 0.0f);
+    if (velocityCount < num_particles)
+        std::fill_n(vel_dst + velocityCount, num_particles - velocityCount, vsg::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    m_gpu_color.velocityData->dirty();
+
+    const size_t propertyCount = std::min(m_prop.size(), num_particles);
+    auto* prop_dst = m_gpu_color.propertyData->data();
+    const auto* prop_src = m_prop.data();
+    copyVec3ToVec4(prop_dst, prop_src, propertyCount, 0.0f);
+    if (propertyCount < num_particles)
+        std::fill_n(prop_dst + propertyCount, num_particles - propertyCount, vsg::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    m_gpu_color.propertyData->dirty();
+
+    const uint32_t groups = static_cast<uint32_t>((num_particles + m_gpu_color.workgroupSize - 1) /
+                                                  m_gpu_color.workgroupSize);
+    const uint32_t groupCount = groups > 0 ? groups : 1u;
+
+    auto newDispatch = vsg::Dispatch::create(groupCount, 1u, 1u);
+    if (m_gpu_color.dispatch) {
+        auto& children = m_gpu_color.commands->children;
+        for (auto& child : children) {
+            if (child == m_gpu_color.dispatch) {
+                child = newDispatch;
+                break;
+            }
+        }
+    } else {
+        m_gpu_color.commands->addChild(newDispatch);
+    }
+    m_gpu_color.dispatch = newDispatch;
+}
+
+void ChSphVisualizationVSG::UpdateGpuColormapBuffer() {
+    // Reupload the lookup table if the palette changed (so compute knows what to shade)
+    if (!m_gpu_color.initialized || !m_gpu_color.colormapDirty || !m_gpu_color.colormapData)
+        return;
+
+    if (!m_colormap)
+        m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
+
+    if (m_gpu_color.currentColormapType != m_colormap_type)
+        m_colormap->Load(m_colormap_type);
+
+    const size_t resolution = std::max<size_t>(1u, static_cast<size_t>(m_gpu_color.colormapResolution));
+    const size_t denom = resolution > 1 ? (resolution - 1) : 1;
+
+    for (size_t i = 0; i < resolution && i < m_gpu_color.colormapData->size(); ++i) {
+        const double t = (resolution > 1) ? static_cast<double>(i) / static_cast<double>(denom) : 0.0;
+        const ChColor color = m_colormap->Get(t);
+        m_gpu_color.colormapData->set(i, vsg::vec4(static_cast<float>(color.R), static_cast<float>(color.G),
+                                                   static_cast<float>(color.B), 1.0f));
+    }
+
+    m_gpu_color.colormapData->dirty();
+    m_gpu_color.currentColormapType = m_colormap_type;
+    m_gpu_color.colormapDirty = false;
+}
+
 void ChSphVisualizationVSG::OnRender() {
+    const size_t num_fluid_particles = m_sysSPH->GetNumFluidMarkers();
+
     // Copy SPH particle positions from device to host
     m_pos.clear();
     m_pos = m_sysSPH->GetPositions();
@@ -418,13 +766,19 @@ void ChSphVisualizationVSG::OnRender() {
         ////m_frc = m_sysSPH->GetForces();
         m_prop.clear();
         m_prop = m_sysSPH->GetProperties();
+
     }
+
+    EnsureGpuColoringReady(num_fluid_particles);
+    if (m_gpu_color.active)
+        UpdateGpuColoring(num_fluid_particles);
 
     // Set members for the callback functors (if defined)
     if (m_color_fun) {
         m_color_fun->pos = m_pos.data();
         m_color_fun->vel = m_vel.data();
         m_color_fun->prop = m_prop.data();
+        m_color_fun->cloud = m_sph_cloud.get();
     }
     if (m_vis_sph_fun) {
         m_vis_sph_fun->pos = m_pos.data();
@@ -446,31 +800,34 @@ void ChSphVisualizationVSG::OnRender() {
     // Set particle positions in the various particle clouds
     size_t p = 0;
 
+    // Utility to push a contiguous block of positions into a target cloud without per-particle loops
+    auto bulkWritePositions = [&](const std::shared_ptr<ChParticleCloud>& cloud, size_t offset, size_t count) {
+        if (!cloud || count == 0)
+            return;
+#if defined(CHRONO_SPH_USE_DOUBLE)
+        cloud->SetParticlePositions(reinterpret_cast<const double*>(m_pos.data() + offset), count);
+#else
+        cloud->SetParticlePositions(reinterpret_cast<const float*>(m_pos.data() + offset), count);
+#endif
+    };
+
     if (m_sph_markers) {
-        for (unsigned int i = 0; i < m_sysSPH->GetNumFluidMarkers(); i++) {
-            m_sph_cloud->Particle(i).SetPos(ToChVector(m_pos[p + i]));
-        }
+        bulkWritePositions(m_sph_cloud, p, m_sysSPH->GetNumFluidMarkers());
     }
     p += m_sysSPH->GetNumFluidMarkers();
 
     if (m_bndry_bce_markers) {
-        for (unsigned int i = 0; i < m_sysSPH->GetNumBoundaryMarkers(); i++) {
-            m_bndry_bce_cloud->Particle(i).SetPos(ToChVector(m_pos[p + i]));
-        }
+        bulkWritePositions(m_bndry_bce_cloud, p, m_sysSPH->GetNumBoundaryMarkers());
     }
     p += m_sysSPH->GetNumBoundaryMarkers();
 
     if (m_rigid_bce_markers) {
-        for (unsigned int i = 0; i < m_sysSPH->GetNumRigidBodyMarkers(); i++) {
-            m_rigid_bce_cloud->Particle(i).SetPos(ToChVector(m_pos[p + i]));
-        }
+        bulkWritePositions(m_rigid_bce_cloud, p, m_sysSPH->GetNumRigidBodyMarkers());
     }
     p += m_sysSPH->GetNumRigidBodyMarkers();
 
     if (m_flex_bce_markers) {
-        for (unsigned int i = 0; i < m_sysSPH->GetNumFlexBodyMarkers(); i++) {
-            m_flex_bce_cloud->Particle(i).SetPos(ToChVector(m_pos[p + i]));
-        }
+        bulkWritePositions(m_flex_bce_cloud, p, m_sysSPH->GetNumFlexBodyMarkers());
     }
 
     // Update positions of all active boxes
