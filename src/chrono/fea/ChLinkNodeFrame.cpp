@@ -140,7 +140,7 @@ void ChLinkNodeFrameGeneric::IntLoadResidual_CqL(const unsigned int off_L,    //
         m_constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
         cnt++;
     }
-    if (c_y && this->m_constraint3.IsActive()) {
+    if (c_z && this->m_constraint3.IsActive()) {
         m_constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
         // cnt++;
     }
