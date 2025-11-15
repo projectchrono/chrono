@@ -29,6 +29,7 @@ CH_UPCASTING(ChTimestepperImplicit, ChTimestepper)
 ChTimestepperImplicit::ChTimestepperImplicit()
     : jacobian_update_method(JacobianUpdate::EVERY_STEP),
       call_setup(true),
+      call_analyze(true),
       jacobian_is_current(false),
       max_iters(6),
       reltol(1e-4),
@@ -53,9 +54,12 @@ ChTimestepperImplicit::ChTimestepperImplicit()
       num_terminated(0) {}
 
 void ChTimestepperImplicit::SetJacobianUpdateMethod(JacobianUpdate method) {
-    // If switching to JacobianUpdate::NEVER from a different strategy, force a Jacobian update
-    if (method == JacobianUpdate::NEVER && jacobian_update_method != JacobianUpdate::NEVER)
+    // If switching to JacobianUpdate::NEVER from a different strategy, force a call to Setup(),
+    // including the analyze phase
+    if (method == JacobianUpdate::NEVER && jacobian_update_method != JacobianUpdate::NEVER) {
         call_setup = true;
+        call_analyze = true;
+    }
 
     jacobian_update_method = method;
 }
@@ -96,6 +100,17 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
     // On entry, call_setup is true only:
     // - at the first iteration on the first step
     // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
+  
+    // If the integrable object was modified, force a call to setup (including the analyze phase).
+    // Otherwise, a potantial call to setup need not include the analyze phase.
+    if (GetIntegrable()->StateModified()) {
+        call_setup = true;
+        call_analyze = true;
+        if (verbose)
+            cout << "  Force full Setup" << endl;
+    } else {
+        call_analyze = false;
+    }
 
     // Let the concrete integrator initialze step
     InitializeStep();
@@ -116,7 +131,7 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             h = new_h;
             num_successful_steps = 0;
             if (verbose)
-                cout << " +++HHT increase stepsize to " << h << endl;
+                cout << "  Increase stepsize to " << h << endl;
         }
     } else {
         h = std::min(h, dt);
@@ -203,7 +218,7 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             if (verbose)
                 cout << "  Re-attempt step with updated matrix." << endl;
 
-            // Force a Jacobian update for JacobianUpdate::AUTOMATIC
+            // force a Jacobian update (for JacobianUpdate::AUTOMATIC)
             call_setup = true;
 
         } else if (step_control) {
@@ -388,13 +403,14 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
 
         integrable->StateSolveCorrection(  //
             Ds, Dl, R, Qc,                 //
-            1.0,                           // factor for  M
-            -dt,                           // factor for  dF/dv
-            -dt * dt,                      // factor for  dF/dx
+            1.0,                           // factor for M
+            -dt,                           // factor for dF/dv
+            -dt * dt,                      // factor for dF/dx
             Xnew, Vnew, T + dt,            // not used here (scatter = false)
             false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-            false,                         // full update? (not used, since no scatter)
-            true                           // always call the solver's Setup
+            false,                         // no need for full update, since no scatter
+            true,                          // always call the solver's Setup
+            true                           // always call the solver's Setup analyze phase
         );
 
         num_step_iters++;
@@ -487,8 +503,9 @@ void ChTimestepperEulerImplicitLinearized::OnAdvance(double dt) {
         -dt * dt,                      // factor for  dF/dx
         X, V, T + dt,                  // not needed
         false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-        false,                         // full update? (not used, since no scatter)
-        true                           // force a call to the solver's Setup() function
+        false,                         // no need for full update, since no scatter
+        true,                          // always call the solver's Setup
+        true                           // always call the solver's Setup analyze phase
     );
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
@@ -559,13 +576,14 @@ void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
 
     integrable->StateSolveCorrection(  //
         V, L, R, Qc,                   //
-        1.0,                           // factor for  M
-        -dt,                           // factor for  dF/dv
-        -dt * dt,                      // factor for  dF/dx
+        1.0,                           // factor for M
+        -dt,                           // factor for dF/dv
+        -dt * dt,                      // factor for dF/dx
         X, V, T + dt,                  // not needed
         false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-        false,                         // full update? (not used, since no scatter)
-        true                           // force a call to the solver's Setup() function
+        false,                         // no need for full update, since no scatter
+        true,                          // always call the solver's Setup
+        true                           // always call the solver's Setup analyze phase
     );
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
@@ -597,13 +615,14 @@ void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
 
     integrable->StateSolveCorrection(  //
         Vold, L, R, Qc,                //
-        1.0,                           // factor for  M
-        0,                             // factor for  dF/dv
-        0,                             // factor for  dF/dx
+        1.0,                           // factor for M
+        0,                             // factor for dF/dv
+        0,                             // factor for dF/dx
         X, V, T,                       // not needed
         false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-        false,                         // full update? (not used, since no scatter)
-        true                           // force a call to the solver's Setup() function
+        false,                         // no need for full update, since no scatter
+        true,                          // always call the solver's Setup
+        true                           // always call the solver's Setup analyze phase
     );
 
     X += Vold;  // here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
@@ -690,13 +709,14 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
 
         integrable->StateSolveCorrection(  //
             Ds, Dl, R, Qc,                 //
-            1.0,                           // factor for  M
-            -dt * 0.5,                     // factor for  dF/dv
-            -dt * dt * 0.25,               // factor for  dF/dx
+            1.0,                           // factor for M
+            -dt * 0.5,                     // factor for dF/dv
+            -dt * dt * 0.25,               // factor for dF/dx
             Xnew, Vnew, T + dt,            // not used here (scatter = false)
             false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-            false,                         // full update? (not used, since no scatter)
-            true                           // always force a call to the solver's Setup() function
+            false,                         // no need for full update, since no scatter
+            true,                          // always call the solver's Setup
+            true                           // always call the solver's Setup analyze phase
         );
 
         num_step_iters++;
@@ -789,33 +809,37 @@ void ChTimestepperTrapezoidalLinearized::OnAdvance(double dt) {
 
     integrable->StateSolveCorrection(  //
         Ds, Dl, R, Qc,                 //
-        1.0,                           // factor for  M
-        -dt * 0.5,                     // factor for  dF/dv
-        -dt * dt * 0.25,               // factor for  dF/dx
+        1.0,                           // factor for M
+        -dt * 0.5,                     // factor for dF/dv
+        -dt * dt * 0.25,               // factor for dF/dx
         Xnew, Vnew, T + dt,            // not used here (scatter = false)
         false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-        false,                         // full update? (not used, since no scatter)
-        true                           // force a call to the solver's Setup() function
+        false,                         // no need for full update, since no scatter
+        true,                          // always call the solver's Setup
+        true                           // always call the solver's Setup analyze phase
     );
 
     num_step_iters = 1;
     num_step_setups = 1;
     num_step_solves = 1;
 
-    Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
-    L += Dl;
+    Dl *= (2 / dt);  // not -(2/dt) because StateSolveCorrection already flips sign of Dl
 
     Vnew += Ds;
+    L += Dl;
 
-    Xnew = X + ((Vnew + V) * (dt * 0.5));  // Xnew = Xold + h/2(Vnew+Vold)
+    Ds *= (1 / dt);
+    L *= 0.5;  // because L_old = 0
+
+    Xnew = X + (Vnew + V) * (dt * 0.5);
 
     X = Xnew;
     V = Vnew;
     T += dt;
 
-    integrable->StateScatter(X, V, T, true);                 // state -> system
-    integrable->StateScatterAcceleration((Ds *= (1 / dt)));  // -> system auxiliary data (i.e acceleration as measure)
-    integrable->StateScatterReactions(L *= 0.5);             // -> system auxiliary data (*=0.5 because use l_old = 0)
+    integrable->StateScatter(X, V, T, true);   // state -> system
+    integrable->StateScatterAcceleration(Ds);  // -> system auxiliary data (accelerations)
+    integrable->StateScatterReactions(L);      // -> system auxiliary data (Lagrange multipliers)
 }
 
 void ChTimestepperTrapezoidalLinearized::ArchiveOut(ChArchiveOut& archive) {
@@ -887,6 +911,7 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
     // [ Cq                                      0   ] [ -Dl  ] = [ -1/(beta*dt^2)*C              ]
     //
     call_setup = true;
+    call_analyze = true;
 
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; ++iteration) {
@@ -918,13 +943,14 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
 
         integrable->StateSolveCorrection(  //
             Ds, Dl, R, Qc,                 //
-            1.0,                           // factor for  M
-            -dt * gamma,                   // factor for  dF/dv
-            -dt * dt * beta,               // factor for  dF/dx
+            1.0,                           // factor for M
+            -dt * gamma,                   // factor for dF/dv
+            -dt * dt * beta,               // factor for dF/dx
             Xnew, Vnew, T + dt,            // not used here (scatter = false)
             false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-            false,                         // full update? (not used, since no scatter)
-            call_setup                     // force a call to the solver's Setup() function
+            false,                         // no need for full update, since no scatter
+            call_setup,                    // if true, call the solver's Setup function
+            call_analyze                   // if true, call the solver's Setup analyze phase
         );
 
         num_step_iters++;

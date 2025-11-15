@@ -145,12 +145,15 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     ChVectorDynamic<double>& b() { return m_rhs; }
 
     /// Perform the solver setup operations.
-    /// Here, sysd is the system description with constraints and variables.
-    /// Returns true if successful and false otherwise.
-    virtual bool Setup(ChSystemDescriptor& sysd) override;
+    /// The system descriptor contains the constraints and variables.
+    /// The argument `analyze` indicates if a full analysis of the system matrix is required. This is true when a
+    /// structural change in the system was detected (e.g., when a physical component was added to or removed from the
+    /// Chrono system).
+    virtual bool Setup(ChSystemDescriptor& sysd, bool analyze) override;
 
-    /// Solve linear system.
-    /// Here, sysd is the system description with constraints and variables.
+    /// Solve the linear system.
+    /// The system descriptor contains the constraints and variables.
+    /// Return 1 if successful and 0 otherwise.
     virtual double Solve(ChSystemDescriptor& sysd) override;
 
     /// Generic setup-solve without passing through the ChSystemDescriptor,

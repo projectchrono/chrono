@@ -45,7 +45,7 @@ void ChDirectSolverLS::ResetTimers() {
     m_timer_solve_solvercall.reset();
 }
 
-bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
+bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     m_timer_setup_assembly.start();
 
     // Calculate problem size.

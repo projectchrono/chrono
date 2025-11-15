@@ -51,15 +51,14 @@ void ChIntegrableIIorder::StateSetup(ChState& x, ChStateDelta& v, ChStateDelta& 
 }
 
 bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: computed a for a=dv/dt
-                                      ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
+                                      ChVectorDynamic<>& L,      // result: computed Lagrange multipliers
                                       const ChState& x,          // current state, x
                                       const ChStateDelta& v,     // current state, v
                                       const double T,            // current time T
                                       const double dt,           // timestep (if needed)
-                                      bool force_state_scatter,  // if false, x and v are not scattered to the system
+                                      bool force_state_scatter,  // if true, scatter x and v to the system
                                       bool full_update,          // if true, perform a full update during scatter
-                                      ChLumpingParms* lumping  ///< if not null, uses lumped masses to avoid inverting a
-                                                               ///< mass matrix, and uses penalty for constraints.
+                                      ChLumpingParms* lumping    // use lumped masses to avoid inverting a mass matrix
 ) {
     if (force_state_scatter)
         StateScatter(x, v, T, full_update);
@@ -91,7 +90,7 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
 
         StateScatter(x, v, T, full_update);  // back to original state
 
-        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, false, true);
+        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, false, true, true);
 
         return success;
     } else {
@@ -204,10 +203,10 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
 }
 
 bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: computed dydt
-                                     ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
+                                     ChVectorDynamic<>& L,      // result: computed Lagrange multipliers
                                      const ChState& y,          // current state y
                                      const double T,            // current time T
-                                     const double dt,           // timestep (if needed, ex. in NSC)
+                                     const double dt,           // timestep (if needed, e.g. in NSC)
                                      bool force_state_scatter,  // if false, y and T are not scattered to the system
                                      bool full_update,          // if true, perform a full update during scatter
                                      ChLumpingParms* lumping    // if not null, uses lumped masses to avoid inverting a

@@ -47,7 +47,7 @@ void example1(const std::string& out_dir) {
 
         // compute  dy/dt=f(y,t)
         virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
-                                ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
                                 const ChState& y,                  // current state y
                                 const double T,                    // current time T
                                 const double dt,                   // timestep (if needed)
@@ -146,7 +146,7 @@ void example2(const std::string& out_dir) {
 
         // compute  dy/dt=f(y,t)
         virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
-                                ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
                                 const ChState& y,                  // current state y
                                 const double t,                    // current time T
                                 const double dt,                   // timestep (if needed)
@@ -263,7 +263,7 @@ void example3(const std::string& out_dir) {
 
         // compute  dy/dt=f(y,t)
         virtual bool StateSolveA(ChStateDelta& dvdt,                // result: computed accel. a = dv/dt
-                                 ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                 ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
                                  const ChState& x,                  // current state, x
                                  const ChStateDelta& v,             // current state, v
                                  const double T,                    // current time T
@@ -385,7 +385,7 @@ void example4(const std::string& out_dir) {
         // for acceleration also using StateSolveCorrection, although a bit less efficient)
         virtual bool StateSolveA(
             ChStateDelta& dvdt,                // result: computed accel. a=dv/dt
-            ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+            ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
             const ChState& x,                  // current state, x
             const ChStateDelta& v,             // current state, v
             const double T,                    // current time T
@@ -405,21 +405,21 @@ void example4(const std::string& out_dir) {
 
         // Compute the correction with linear system
         //  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
-        virtual bool StateSolveCorrection(
-            ChStateDelta& Dv,             // result: computed Dv
-            ChVectorDynamic<>& L,         // result: computed lagrangian multipliers, if any
-            const ChVectorDynamic<>& R,   // the R residual
-            const ChVectorDynamic<>& Qc,  // the Qc residual
-            const double c_a,             // the factor in c_a*M
-            const double c_v,             // the factor in c_v*dF/dv
-            const double c_x,             // the factor in c_x*dF/dv
-            const ChState& x,             // current state, x part
-            const ChStateDelta& v,        // current state, v part
-            const double T,               // current time T
-            bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-            bool full_update,             // if true, perform a full update during scatter
-            bool force_setup              // if true, call the solver's Setup() function
-            ) override {
+        virtual bool StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
+                                          ChVectorDynamic<>& L,         // result: computed Lagrange multipliers
+                                          const ChVectorDynamic<>& R,   // the R residual
+                                          const ChVectorDynamic<>& Qc,  // the Qc residual
+                                          const double c_a,             // the factor in c_a*M
+                                          const double c_v,             // the factor in c_v*dF/dv
+                                          const double c_x,             // the factor in c_x*dF/dv
+                                          const ChState& x,             // current state, x part
+                                          const ChStateDelta& v,        // current state, v part
+                                          const double T,               // current time T
+                                          bool force_state_scatter,     // if true, scatter x and v to the system
+                                          bool full_update,             // if true, perform a full update during scatter
+                                          bool call_setup,              // if true, call the solver's Setup function
+                                          bool call_analyze  // if true, call the solver's Setup analyze phase
+                                          ) override {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 
@@ -574,12 +574,14 @@ void example5(const std::string& out_dir) {
             m_reaction = 0;
         }
 
-        // the number of coordinates in the state, x position part:
+        // Number of coordinates in the state, position level
         virtual unsigned int GetNumCoordsPosLevel() override { return 2; }
+        // Number of coordinates in the state, velocity level
         virtual unsigned int GetNumCoordsVelLevel() override { return 2; }
+        // Number of coordinates in the state, acceleration level
         virtual unsigned int GetNumCoordsAccLevel() override { return 2; }
 
-        // Tells the number of lagrangian multipliers (constraints)
+        // Return the number of Lagrange multipliers (constraints)
         virtual unsigned int GetNumConstraints() override { return 1; }
 
         // system -> state
@@ -616,21 +618,21 @@ void example5(const std::string& out_dir) {
         // Compute the correction with linear system
         //  | Dv| = [ c_a*M + c_v*dF/dv + c_x*dF/dx    Cq']^-1 * | R |
         //  |-Dl|   [   Cq                              0 ]      |-Qc|
-        virtual bool StateSolveCorrection(
-            ChStateDelta& Dv,             // result: computed Dv
-            ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any, note the sign
-            const ChVectorDynamic<>& R,   // the R residual
-            const ChVectorDynamic<>& Qc,  // the Qc residual, note the sign
-            const double c_a,             // the factor in c_a*M
-            const double c_v,             // the factor in c_v*dF/dv
-            const double c_x,             // the factor in c_x*dF/dv
-            const ChState& x,             // current state, x part
-            const ChStateDelta& v,        // current state, v part
-            const double T,               // current time T
-            bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-            bool full_update,             // if true, perform a full update during scatter
-            bool force_setup              // if true, call the solver's Setup() function
-            ) override {
+        virtual bool StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
+                                          ChVectorDynamic<>& Dl,        // result: computed Dl Lagrange multipliers
+                                          const ChVectorDynamic<>& R,   // the R residual
+                                          const ChVectorDynamic<>& Qc,  // the Qc residual
+                                          const double c_a,             // the factor in c_a*M
+                                          const double c_v,             // the factor in c_v*dF/dv
+                                          const double c_x,             // the factor in c_x*dF/dv
+                                          const ChState& x,             // current state, x part
+                                          const ChStateDelta& v,        // current state, v part
+                                          const double T,               // current time T
+                                          bool force_state_scatter,     // if true, scatter x and v to the system
+                                          bool full_update,             // if true, perform a full update during scatter
+                                          bool call_setup,              // if true, call the solver's Setup function
+                                          bool call_analyze  // if true, call the solver's Setup analyze phase
+                                          ) override {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 

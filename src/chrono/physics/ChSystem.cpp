@@ -1027,9 +1027,9 @@ void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDe
 // This function returns true if successful and false otherwise.
 bool ChSystem::StateSolveCorrection(
     ChStateDelta& Dv,             // result: computed Dv
-    ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any. Note sign.
+    ChVectorDynamic<>& Dl,        // result: computed Dl Lagrange multipliers
     const ChVectorDynamic<>& R,   // the R residual
-    const ChVectorDynamic<>& Qc,  // the Qc residual. Note sign.
+    const ChVectorDynamic<>& Qc,  // the Qc residual
     const double c_a,             // the factor in c_a*M
     const double c_v,             // the factor in c_v*dF/dv
     const double c_x,             // the factor in c_x*dF/dx
@@ -1038,7 +1038,8 @@ bool ChSystem::StateSolveCorrection(
     const double T,               // current time T
     bool force_state_scatter,     // if false, x,v and T are not scattered to the system
     bool full_update,             // if true, perform a full update during scatter
-    bool force_setup              // if true, call the solver's Setup() function
+    bool call_setup,              // if true, call the solver's Setup() function
+    bool call_analyze             // if true, call the solver's Setup analyze phase
 ) {
     CH_PROFILE("StateSolveCorrection");
 
@@ -1050,7 +1051,7 @@ bool ChSystem::StateSolveCorrection(
 
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
-    if (force_setup || GetSolver()->SolveRequiresMatrix()) {
+    if (call_setup || solver->SolveRequiresMatrix()) {
         timer_jacobian.start();
 
         // Cq  matrix
@@ -1086,13 +1087,13 @@ bool ChSystem::StateSolveCorrection(
         StreamOut(v, file_v);
     }
 
-    GetSolver()->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
+    solver->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
 
     // If indicated, first perform a solver setup.
     // Return 'false' if the setup phase fails.
-    if (force_setup) {
+    if (call_setup) {
         timer_ls_setup.start();
-        bool success = GetSolver()->Setup(*descriptor);
+        bool success = solver->Setup(*descriptor, call_analyze);
         timer_ls_setup.stop();
         setupcount++;
         if (!success)
@@ -1102,7 +1103,7 @@ bool ChSystem::StateSolveCorrection(
     // Solve the problem
     // The solution is scattered in the provided system descriptor
     timer_ls_solve.start();
-    GetSolver()->Solve(*descriptor);
+    solver->Solve(*descriptor);
     timer_ls_solve.stop();
 
     // Dv and Dl vectors  <-- sparse solver structures
@@ -1642,7 +1643,7 @@ bool ChSystem::AdvanceDynamics() {
     if (visual_system)
         visual_system->OnUpdate(this);
 
-    // Tentatively mark system as unchanged (i.e., no updated necessary)
+    // Tentatively mark system as unchanged (i.e., no update necessary)
     is_updated = true;
 
     return true;

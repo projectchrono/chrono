@@ -209,6 +209,7 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 
     JacobianUpdate jacobian_update_method;  ///< Jacobian update strategy
     bool call_setup;                        ///< should the solver's Setup function be called?
+    bool call_analyze;                      ///< should the solver's Setup analyze phase be called?
     bool jacobian_is_current;               ///< was the Jacobian evaluated at current Newton iteration?
 
     unsigned int max_iters;  ///< maximum number of iterations

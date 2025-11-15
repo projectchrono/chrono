@@ -65,8 +65,9 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
         -1.0,                          // factor for  dF/dx (the stiffness matrix)
         X, V, T,                       // not needed here
         false,                         // do not scatter Xnew Vnew T+dt before computing correction
-        false,                         // full update? (not used, since no scatter)
-        true                           // force a call to the solver's Setup() function
+        false,                         // no need for full update, since no scatter
+        true,                          // call the solver's Setup function
+        true                           // call the solver's Setup analyze phase
     );
 
     X += Dx;
@@ -173,8 +174,9 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
             -1.0,                          // factor for  dF/dx (the stiffness matrix)
             X, V, T,                       // not needed here
             false,                         // do not scatter Xnew Vnew T+dt before computing correction
-            false,                         // full update? (not used, since no scatter)
-            true                           // force a call to the solver's Setup() function
+            false,                         // no need for full update, since no scatter
+            true,                          // call the solver's Setup function
+            true                           // call the solver's Setup analyze phase
         );
 
         Xnew = X + Dx;
@@ -339,8 +341,9 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // full update? (not used, since no scatter)
-                true                           // force a call to the solver's Setup() function
+                false,                         // no need for full update, since no scatter
+                true,                          // call the solver's Setup function
+                true                           // call the solver's Setup analyze phase
             );
             /*
             std::cout << "V=\n"<< V << std::endl;
@@ -362,8 +365,9 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // full update? (not used, since no scatter)
-                true                           // force a call to the solver's Setup() function
+                false,                         // no need for full update, since no scatter
+                true,                          // call the solver's Setup function
+                true                           // call the solver's Setup analyze phase
             );
 
             Xnew =
@@ -382,8 +386,9 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // full update? (not used, since no scatter)
-                true                           // force a call to the solver's Setup() function
+                false,                         // no need for full update, since no scatter
+                true,                          // call the solver's Setup function
+                true                           // call the solver's Setup analyze phase
             );
 
             A = (Vp - Vm) / (2 * dt_perturbation);
@@ -436,8 +441,9 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             -1.0,                          // factor for  dF/dx (the stiffness matrix)
             X, V, T,                       // not needed here
             false,                         // do not scatter Xnew Vnew T+dt before computing correction
-            false,                         // full update? (not used, since no scatter)
-            true                           // force a call to the solver's Setup() function
+            false,                         // no need for full update, since no scatter
+            true,                          // call the solver's Setup function
+            true                           // call the solver's Setup analyze phase
         );
 
         Xnew = X + Dx;
@@ -511,8 +517,9 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // full update? (not used, since no scatter)
-                true                           // force a call to the solver's Setup() function
+                false,                         // no need for full update, since no scatter
+                true,                          // call the solver's Setup function
+                true                           // call the solver's Setup analyze phase
             );
 
             // Xnew = X + Dx;
@@ -536,8 +543,9 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             -1.0,                          // factor for  dF/dx (the stiffness matrix)
             X, V, T,                       // not needed here
             false,                         // do not scatter Xnew Vnew T+dt before computing correction
-            false,                         // full update? (not used, since no scatter)
-            true                           // force a call to the solver's Setup() function
+            false,                         // no need for full update, since no scatter
+            true,                          // call the solver's Setup function
+            true                           // call the solver's Setup analyze phase
         );
 
         /*
@@ -736,8 +744,9 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // full update? (not used, since no scatter)
-                true                           // force a call to the solver's Setup() function
+                false,                         // no need for full update, since no scatter
+                true,                          // call the solver's Setup function
+                true                           // call the solver's Setup analyze phase
             );
 
             // Increment state (and constraint reactions)

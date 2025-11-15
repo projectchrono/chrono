@@ -127,7 +127,7 @@ void test_1(const std::string& out_dir) {
     }
 
     // Pass the constraint and the variables to the solver to solve
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // Output results
@@ -224,7 +224,7 @@ void test_2(const std::string& out_dir) {
     }
 
     // .. pass the constraint and the variables to the solver to solve
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // Output values
@@ -360,7 +360,7 @@ void test_3(const std::string& out_dir) {
 
     // .. solve the system (passing variables, constraints, stiffness
     //    blocks with the ChSystemDescriptor that we populated above)
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // .. optional: get the result as a single vector (it collects all q_i and l_i
@@ -447,7 +447,7 @@ void test_4(const std::string& out_dir) {
     }
 
     // .. pass the constraint and the variables to the solver to solve
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // Print results
