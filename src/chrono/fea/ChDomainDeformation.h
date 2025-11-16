@@ -46,6 +46,7 @@ public:
 /// Material properties are defined via a material from the ChMaterial3DStress subclasses
 /// (the simplest of these materials is the ChMaterial3DStressStVenant, that corresponds to 
 /// conventional linear elasticity for small strains). 
+/// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChDomainDeformation...", just keep all in .h
 
 class ChDomainDeformation : public ChDomainImpl<
     std::tuple<ChFieldDisplacement3D>, // per each node

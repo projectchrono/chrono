@@ -54,6 +54,7 @@ public:
 /// the displacement from the material reference position, d=x-X, as in some software) and
 /// a ChFieldTemperature. It solves the transient Poisson thermal equation together with 
 /// structural dynamics. 
+/// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChDomainThermoDeformation...", just keep all in .h
 
 class ChDomainThermoDeformation : public ChDomainImpl<
     std::tuple<ChFieldTemperature, ChFieldDisplacement3D>, 

@@ -208,23 +208,45 @@ public:
         std::vector<std::unique_ptr<ChFieldData>> matpoints_data;
         std::vector<T_per_matpoint_aux>           matpoints_data_aux;
         std::vector<std::array<ChFieldDataState*, std::tuple_size_v<T_per_node> > > nodes_data;
+
+        // Delete copy constructor/assignment
+        DataPerElement(const DataPerElement&) = delete;
+        DataPerElement& operator=(const DataPerElement&) = delete;
+        // Define move constructor
+        DataPerElement(DataPerElement&& other) noexcept
+            : element_data(std::move(other.element_data)),
+            matpoints_data(std::move(other.matpoints_data)),
+            matpoints_data_aux(std::move(other.matpoints_data_aux)),
+            nodes_data(std::move(other.nodes_data)) {}
+        // Define move assignment
+        DataPerElement& operator=(DataPerElement&& other) noexcept {
+            if (this != &other) {
+                element_data = std::move(other.element_data);
+                matpoints_data = std::move(other.matpoints_data);
+                matpoints_data_aux = std::move(other.matpoints_data_aux);
+                nodes_data = std::move(other.nodes_data);
+            }
+            return *this;
+        }
     };
 
-    
 
-    std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement> element_datamap;
-
-    std::array < std::shared_ptr<ChFieldBase>, std::tuple_size_v<T_per_node> > fields;
-
+    /// Construct a domain, given a tuple of fields.
     ChDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFieldBase>(mfields); }
 
+    /// Access the DataPerElement associated to the element. This requires a lookup in a 
+    /// the unordered_map container, that usually has a very small but not negligible overhead.
     DataPerElement& ElementData(std::shared_ptr<ChFieldElement> melement) {
-        return element_datamap[melement];
+        // try_emplace inserts only if key is not present,
+        // constructing DataPerElement in place with default constructor.
+        auto [it, inserted] = element_datamap.try_emplace(melement);
+        return it->second;
     }
 
 
     // INTERFACE to ChDomain
     //
+
 
     virtual void AddElement(std::shared_ptr<ChFieldElement> melement) override {
         auto data_el = DataPerElement(melement->GetNumQuadraturePoints(), melement->GetNumNodes());
@@ -937,6 +959,11 @@ protected:
     // Children classes must implement this. 
     // The material is needed here to build the auxiliary per-material data.
     virtual std::shared_ptr<ChMaterial> GetMaterial() = 0;
+
+
+    std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement> element_datamap;
+
+    std::array < std::shared_ptr<ChFieldBase>, std::tuple_size_v<T_per_node> > fields;
 
 private:
     int per_node_coords_pos = 0;
