@@ -41,7 +41,7 @@ class ChApi ChDirectSolverLScomplex {
     virtual ~ChDirectSolverLScomplex() {}
 
     /// Get shortcut handle to underlying A matrix, for A*x=b
-    Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>& A() { return m_mat; }
+    ChComplexSparseMatrix& A() { return m_mat; }
 
     /// Get shortcut handle to underlying x solution vector, for A*x=b
     ChVectorDynamic<std::complex<double>>& x() { return m_sol; }
@@ -69,9 +69,9 @@ class ChApi ChDirectSolverLScomplex {
     /// This function is only called if Factorize or Solve returned false.
     virtual void PrintErrorMessage() = 0;
 
-    Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor> m_mat;  ///< problem matrix
-    int m_dim;                                                         ///< problem size
-    ChVectorDynamic<std::complex<double>> m_sol;                       ///< solution vector
+    ChComplexSparseMatrix m_mat;                  ///< problem matrix
+    int m_dim;                                    ///< problem size
+    ChVectorDynamic<std::complex<double>> m_sol;  ///< solution vector
 };
 
 // ---------------------------------------------------------------------------
@@ -97,8 +97,7 @@ class ChApi ChSolverSparseComplexLU : public ChDirectSolverLScomplex {
     /// This function is only called if Factorize or Solve returned false.
     virtual void PrintErrorMessage() override;
 
-    Eigen::SparseLU<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>, Eigen::COLAMDOrdering<int>>
-        m_engine;  ///< Eigen SparseLU solver
+    Eigen::SparseLU<ChComplexSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseLU solver
 };
 
 /// Sparse complex QR direct solver.\n
@@ -122,8 +121,7 @@ class ChApi ChSolverSparseComplexQR : public ChDirectSolverLScomplex {
     /// This function is only called if Factorize or Solve returned false.
     virtual void PrintErrorMessage() override;
 
-    Eigen::SparseQR<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>, Eigen::COLAMDOrdering<int>>
-        m_engine;  ///< Eigen SparseQR solver
+    Eigen::SparseQR<ChComplexSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseQR solver
 };
 
 /// @} chrono_solver
