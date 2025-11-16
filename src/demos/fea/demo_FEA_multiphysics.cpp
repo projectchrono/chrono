@@ -504,6 +504,9 @@ int main(int argc, char* argv[]) {
         heat_flux->SetSurfaceHeatFlux(100); // the surface flux: heat in W/m^2
         load_container->Add(heat_flux);
 
+        // - IMPOSED CONVECTION ON THE ENTIRE BOUNDARY OF VOLUME
+        // Weìll use the ChDomainSurface to generate all faces of the moundary. Then, for all faces
+        // create ChFieldElementLoadableSurface face wrappers to whom we can apply the convection load:
         auto outer_surface = chrono_types::make_shared<ChDomainSurface>(domain.get());
         outer_surface->AddFacesFromBoundary();
         for (auto msurf : outer_surface->GetFaces()) {
