@@ -38,6 +38,7 @@
 #include "chrono/fea/ChDomainThermoDeformation.h"
 #include "chrono/fea/ChMaterial3DThermalNonlinear.h"
 #include "chrono/fea/ChDrawer.h"
+#include "chrono/fea/ChDomainSurface.h"
 #include "chrono/fea/ChFieldElementHexahedron8.h"
 #include "chrono/fea/ChFieldElementHexahedron8Face.h"
 #include "chrono/fea/ChFieldElementTetrahedron4.h"
@@ -334,8 +335,8 @@ int main(int argc, char* argv[]) {
         auto exa_face3_loadable = chrono_types::make_shared <ChFieldElementLoadableSurface>(exa_face3, temperature_field);
 
         auto heat_convection = chrono_types::make_shared<ChLoaderHeatConvection>(exa_face3_loadable, temperature_field);
-        heat_convection->SetSurfaceConvectionCoeff(10000);
-        heat_convection->SetFluidTemperature(400);
+        heat_convection->SetSurfaceConvectionCoeff(3);
+        heat_convection->SetFluidTemperature(50);
         load_container->Add(heat_convection);
 
 
@@ -462,7 +463,7 @@ int main(int argc, char* argv[]) {
 
         ChBuilderVolumeBox builder;
         builder.BuildVolume( ChFrame<>(),
-            5, 1, 5,        // N of elements in x,y,z direction
+            5, 3, 5,        // N of elements in x,y,z direction
             3, 0.5, 3);     // width in x,y,z direction
 
         // After Build(), the elements and the nodes must be added to domains and fields:
@@ -496,13 +497,22 @@ int main(int argc, char* argv[]) {
         // - IMPOSED HEAT FLUX ON SURFACE
         // Create a face wrapper, an auxiliary object that references a face of an
         // element as a ChLoadableUV so that can receive a surface load affecting a field 
-        auto exa_face = chrono_types::make_shared<ChFieldHexahedron8Face>(builder.elements.at(2, 0, 3), 3); // 3rd face of hexa is y up
+        auto exa_face = chrono_types::make_shared<ChFieldHexahedron8Face>(builder.elements.at(2, 0, 3), 2); // 2nd face of hexa is y down
         auto exa_face_loadable = chrono_types::make_shared <ChFieldElementLoadableSurface>(exa_face, temperature_field);
 
         auto heat_flux = chrono_types::make_shared<ChLoaderHeatFlux>(exa_face_loadable);
         heat_flux->SetSurfaceHeatFlux(100); // the surface flux: heat in W/m^2
         load_container->Add(heat_flux);
 
+        auto outer_surface = chrono_types::make_shared<ChDomainSurface>(domain.get());
+        outer_surface->AddFacesFromBoundary();
+        for (auto msurf : outer_surface->GetFaces()) {
+            auto exa_iface_loadable = chrono_types::make_shared <ChFieldElementLoadableSurface>(msurf, temperature_field);
+            auto heat_iconvection = chrono_types::make_shared<ChLoaderHeatConvection>(exa_iface_loadable, temperature_field);
+            heat_iconvection->SetSurfaceConvectionCoeff(10);
+            heat_iconvection->SetFluidTemperature(0);
+            load_container->Add(heat_iconvection);
+        }
 
         // POSTPROCESSING & VISUALIZATION (optional)
 
