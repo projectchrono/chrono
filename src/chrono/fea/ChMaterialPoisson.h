@@ -29,6 +29,7 @@ namespace fea {
 /// Class for the basic properties of scalar fields P in 3D FEM problems
 /// that can be described by PDEs of type
 ///    rho dP/dt + div [C] grad P = 0
+
 class ChApi ChMaterialPoisson : public ChMaterial3DDensity {
 public:
     ChMaterialPoisson() { constitutiveMatrix.setIdentity(3, 3); }

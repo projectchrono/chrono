@@ -17,6 +17,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChLoadable.h"
 
 
 namespace chrono {
@@ -133,17 +134,22 @@ protected:
 
 
 
-////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------------------
 
+/// Class for grouping all finite elements that have a manifold dimension of 1,
+/// like beams, cables, etc.
 
-class ChApi ChFieldElementVolume : public ChFieldElement {
+class ChApi ChFieldElementLine : public ChFieldElement {
 public:
-    virtual int GetManifoldDimensions() const override { return 3; }
+    virtual int GetManifoldDimensions() const override { return 1; }
 
-    // The following needed only if element is wrapped as component of a ChLoaderUVW.
-    virtual bool IsTetrahedronIntegrationCompatible() const = 0;
-    virtual bool IsTrianglePrismIntegrationCompatible() const = 0;
 };
+
+
+//-----------------------------------------------------------------------------------------
+
+/// Class for grouping all finite elements that have a manifold dimension of 2,
+/// like surfaces (shells, etc.)
 
 class ChApi ChFieldElementSurface : public ChFieldElement {
 public:
@@ -151,13 +157,46 @@ public:
 
     // The following needed only if element is wrapped as a component of a ChLoaderUV.
     virtual bool IsTriangleIntegrationCompatible() const = 0;
+
+    /// Gets the normal to the surface at the parametric coordinate u,v.
+    /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
+    virtual ChVector3d ComputeNormal(const double U, const double V) = 0;
 };
 
-class ChApi ChFieldElementLine : public ChFieldElement {
+
+//-----------------------------------------------------------------------------------------
+
+/// Class for grouping all finite elements that have a manifold dimension of 3,
+/// like volumes (tetrahedrons, hexahedrons, etc.)
+
+class ChApi ChFieldElementVolume : public ChFieldElement {
 public:
-    virtual int GetManifoldDimensions() const override { return 1; }
+    virtual int GetManifoldDimensions() const override { return 3; }
 
+    virtual int GetNumFaces() { return 0; }
+    virtual std::shared_ptr<ChFieldElementSurface> BuildFace(int i_face, std::shared_ptr<ChFieldElementVolume> shared_this) { return nullptr; }
+
+    // The following needed only if element is wrapped as component of a ChLoaderUVW.
+    virtual bool IsTetrahedronIntegrationCompatible() const = 0;
+    virtual bool IsTrianglePrismIntegrationCompatible() const = 0;
 };
+
+
+// Forward
+class ChFieldBase;
+
+class ChLoadableUVwithField : public ChLoadableUV {
+public:
+    ChLoadableUVwithField(std::shared_ptr<ChFieldBase> field = nullptr) : m_field(field) {}
+
+    void SetField(std::shared_ptr<ChFieldBase> field) { m_field = field; }
+
+protected:
+    std::shared_ptr<ChFieldBase> m_field;
+};
+
+
+
 
 /// @} chrono_fea
 

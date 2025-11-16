@@ -20,7 +20,7 @@
 #include "chrono/fea/ChVisualDataExtractor.h"
 
 namespace chrono {
-namespace fea {
+    namespace fea {
 
 
 /// @addtogroup chrono_fea
@@ -59,6 +59,8 @@ public:
     >;
     using DataPerElement = typename Base::DataPerElement;
 
+
+    /// Construct the domain
     ChDomainThermal(std::shared_ptr<ChFieldTemperature> mfield)
         : Base(mfield)
     {
@@ -66,7 +68,6 @@ public:
         material = chrono_types::make_shared<ChMaterial3DThermalLinear>();
     }
 
-    
 
     /// Thermal properties of this domain (conductivity, 
     /// heat capacity constants etc.) 
@@ -107,9 +108,9 @@ public:
         // 
         // so we compute  Fi += -(dNdX' * k * dNdX * T) * s    
         //           or   Fi += dNdX' * q_flux * s
-        
+
         // Temperature at point  (might be needed by nonlinear ChMaterial3DThermal materials with dependence on T)
-        double T          = N * T_h;
+        double T = N * T_h;
 
         // Gradient of temperature
         ChVector3d T_grad = dNdX * T_h;  //  = \nabla_x T(x) 
@@ -159,7 +160,7 @@ public:
 
         // K  matrix (jacobian of:    c dT/dt + div [C] grad T = f )  
         // K = sum (dNdX' * [k] * dNdX * w * |J|)
-        
+
         if (Rpfactor) {
             ChMatrix33d tangent_conductivity;
             this->material->ComputeTangentModulus(tangent_conductivity,

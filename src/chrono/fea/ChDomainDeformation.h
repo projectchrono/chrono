@@ -54,6 +54,7 @@ class ChDomainDeformation : public ChDomainImpl<
     ChElementDataKRM> {                // auxiliary data per each element (defaults to jacobian matrices K, R, M)
 public:
 
+    // The following just to provide a shortcut in type naming.
     using Base = ChDomainImpl<
         std::tuple<ChFieldDisplacement3D>, // per each node
         ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by domain algos - materials can add other data too.
@@ -61,6 +62,7 @@ public:
     >;
     using DataPerElement = typename Base::DataPerElement;
 
+    /// Construct the domain
     ChDomainDeformation(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : Base(melasticfield)
     {
@@ -93,7 +95,7 @@ public:
         melement->ComputeN(eta, N);
 
         // Compute the matrix  x_hh = [x1|x2|x3|x4..] with discrete values of spatial positions at nodes
-        ChMatrixDynamic<> x_hh(3, melement->GetNumNodes());   
+        ChMatrixDynamic<> x_hh(3, melement->GetNumNodes());
         this->GetFieldPackedStateBlock(melement, data, x_hh, 0);
 
         ChMatrixDynamic<> dNde;
@@ -256,7 +258,7 @@ public:
         // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
         if (this->automatic_gravity_load) {
             this->LoadAutomaticGravity(R, c);
-        } 
+        }
     }
 
     /// Utility function that adds gravity force per each element. 
@@ -291,35 +293,6 @@ public:
             }
         }
 
-        // alternative, more low-level method that bypasses the integration of the ChLoaderGravity and uses the ChFieldElement quadrature directly:
-        /*
-        for (auto& mel : this->element_datamap) {
-            int quadorder = mel.first->GetQuadratureOrder();
-            int numpoints = mel.first->GetNumQuadraturePoints();
-            ChMatrix33<> J;
-            ChVector3d eta;
-            double weight;
-            for (int i_point = 0; i_point < numpoints; ++i_point) {
-                mel.first->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
-                double det_J = mel.first->ComputeJ(eta, J);
-                double s = weight * det_J;
-                ChRowVectorDynamic<> N(mel.first->GetNumNodes());
-                mel.first->ComputeN(eta, N);
-
-                unsigned int stride = 0;
-                unsigned int i_field = 0;
-                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
-                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
-                    ChFieldData* mfielddata = mel.second.nodes_data[i_node][i_field];
-                    if (!mfielddata->IsFixed()) {
-                        R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += (c * s * N(i_node) * this->material->GetDensity() * this->gravity_G_acceleration).eigen();
-                    }
-                    stride += nfield_coords;
-                }
-            }
-        }
-        */
-        
     }
 
 
@@ -331,6 +304,7 @@ public:
         num_points_gravity = num_points;
         gravity_G_acceleration = G_acc;
     }
+
     /// Tell if this mesh will add automatically a gravity load to all contained elements.
     bool GetAutomaticGravity() { return automatic_gravity_load; }
 

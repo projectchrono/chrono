@@ -32,9 +32,9 @@ namespace fea {
 
 class ChApi ChFieldElementLoadableVolume : public ChLoadableUVW {
 public:
-    /// Construct a loadable volume the given hexahedral element and a field.
-    /// For example if the field is ChFieldTemperature, this can be used to apply a 
-    /// volumetric heat source. If the field is ChFieldDisplacement, this can apply gravity, etc.
+    /// Construct a loadable volume the given solid finite element and a field.
+    /// For example if the field is ChFieldTemperature, this can be used to receive a 
+    /// volumetric heat source. If the field is ChFieldDisplacement, this can receive gravity, etc.
     ChFieldElementLoadableVolume(std::shared_ptr<ChFieldElementVolume> element, std::shared_ptr<ChFieldBase> field) : m_element(element), m_field(field) {}
 
     ~ChFieldElementLoadableVolume() {}
@@ -125,7 +125,7 @@ public:
     virtual bool IsTrianglePrismIntegrationNeeded() override { return m_element->IsTrianglePrismIntegrationCompatible(); }
 
 private:
-    std::shared_ptr<ChFieldElementVolume> m_element;  ///< associated hexahedron element
+    std::shared_ptr<ChFieldElementVolume> m_element;  ///< associated element
     std::shared_ptr<ChFieldBase> m_field;  ///< associated field
 };
 

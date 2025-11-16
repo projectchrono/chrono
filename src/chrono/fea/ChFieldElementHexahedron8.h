@@ -93,6 +93,9 @@ public:
     virtual bool IsTetrahedronIntegrationCompatible() const { return false; }
     virtual bool IsTrianglePrismIntegrationCompatible() const { return false; }
 
+    virtual int GetNumFaces() override { return 6; }
+    virtual std::shared_ptr<ChFieldElementSurface> BuildFace(int i_face, std::shared_ptr<ChFieldElementVolume> shared_this) override;
+
 private:
     /// Initial setup (called once before start of simulation).
     /// This is used mostly to precompute matrices that do not change during the simulation, i.e. the local stiffness of

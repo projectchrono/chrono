@@ -29,6 +29,9 @@ namespace fea {
 /// @{
 
 
+// ----------------------------------------------------------------------------------
+
+
 /// Helper class to store 3d arrays of items, with i,j,k indexing
 
 template <class T>
@@ -61,6 +64,10 @@ private:
     std::vector<T> data;
     size_t n, m, k;
 };
+
+
+// ----------------------------------------------------------------------------------
+
 
 /// Helper class to store 2d arrays of items, with i,j indexing
 
@@ -101,6 +108,9 @@ class Ch3DArrayOfHexa8 : public Ch3DArrayOfItems<std::shared_ptr<ChFieldElementH
 
 
 
+// ----------------------------------------------------------------------------------
+
+
 
 /// For testing purposes.
 /// Utility class for creating a box filled with a 3d structured grid of hexahedral
@@ -125,6 +135,9 @@ public:
     Ch3DArrayOfHexa8  elements;
 
 };
+
+
+// ----------------------------------------------------------------------------------
 
 /// For testing purposes.
 /// Utility class for creating a box filled with a 3d structured grid of tetrahedral

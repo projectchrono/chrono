@@ -15,6 +15,7 @@
 #include <cmath>
 
 #include "chrono/fea/ChFieldElementHexahedron8.h"
+#include "chrono/fea/ChFieldElementHexahedron8Face.h"
 #include "chrono/fea/ChNodeFEAfieldXYZ.h"
 
 
@@ -126,6 +127,10 @@ namespace fea {
         coords.y() = mtables->Lroots[order - 1][k];
         coords.z() = mtables->Lroots[order - 1][l];
         weight = mtables->Weight[order - 1][j] * mtables->Weight[order - 1][k] * mtables->Weight[order - 1][l];
+    }
+
+    std::shared_ptr<ChFieldElementSurface> ChFieldElementHexahedron8::BuildFace(int i_face, std::shared_ptr<ChFieldElementVolume> shared_this)  {
+        return chrono_types::make_shared<ChFieldHexahedron8Face>(std::dynamic_pointer_cast<ChFieldElementHexahedron8>(shared_this), i_face);
     }
 
 }  // end namespace fea

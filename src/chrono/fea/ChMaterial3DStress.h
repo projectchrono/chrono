@@ -43,7 +43,9 @@ public:
 
 
     /// Compute elastic stress from finite strain, passed as 3x3 deformation gradient tensor F_def.
-    /// Assuming stress if Piola-Kirchhoff tensor S, in Voigt notation.
+    /// Assuming stress is 2nd Piola-Kirchhoff tensor "S_stress", in Voigt notation.
+    /// Some materials could also make use of spatial velocity gradient "l", ex. for damping effects,
+    /// and of the "data_per_point" auxiliary structure, tht could contain states like in plasticity.
 
     virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
                                 const ChMatrix33d& F_def,           ///< current deformation gradient tensor

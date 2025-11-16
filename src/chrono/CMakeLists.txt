@@ -495,6 +495,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChDomainDeformation.cpp
     fea/ChDomainThermoDeformation.cpp
     fea/ChVisualDataExtractor.cpp
+    fea/ChDrawer.cpp
     fea/ChLoaderPressure.cpp
     fea/ChLoaderGravity.cpp
     fea/ChLoaderHeatFlux.cpp
@@ -503,6 +504,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChLoaderHeatVolumetricSource.cpp
     fea/ChBuilderVolume.cpp
     fea/ChLinkFieldNode.cpp
+    fea/ChDomainSurface.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
     fea/ChNodeFEAfieldXYZ.h
@@ -531,6 +533,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChDomainDeformation.h
     fea/ChDomainThermoDeformation.h
     fea/ChVisualDataExtractor.h
+    fea/ChDrawer.h
     fea/ChLoaderPressure.h
     fea/ChLoaderGravity.h
     fea/ChLoaderHeatFlux.h
@@ -539,6 +542,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChLoaderHeatVolumetricSource.h
     fea/ChBuilderVolume.h
     fea/ChLinkFieldNode.h
+    fea/ChDomainSurface.h
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 

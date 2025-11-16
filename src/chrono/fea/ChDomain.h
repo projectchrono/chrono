@@ -42,7 +42,7 @@ namespace fea {
 
 
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 
 /// Base class for auxiliary per-element properties.
 /// Inherit from this if you want to attach some property such as "float price; string name;" etc.
@@ -113,12 +113,21 @@ auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
 
 class ChDomain : public ChPhysicsItem {
 public:
+
+    /// Adds a finite element to this domain. Elements should not be shared among multiple 
+    /// domains (whereas nodes could be shared).
     virtual void AddElement(std::shared_ptr<ChFieldElement> melement) = 0;
+
+    /// Removes a finite element from this domain. 
     virtual void RemoveElement(std::shared_ptr<ChFieldElement> melement) = 0;
+
+    /// Returns true if the element is already in the domain.
     virtual bool IsElementAdded(std::shared_ptr<ChFieldElement> melement) = 0;
 
+
     /// This rewires all pointers and correctly set up the element_datamap
-    virtual bool InitialSetup() = 0;  //***TODO*** check if better merge into ChPhysicsItem::SetupInitial() 
+    virtual bool InitialDataSetup() = 0;  
+
 
     /// Get the total coordinates per each node (summing the dofs per each field) 
     virtual int GetNumPerNodeCoordsPosLevel() = 0;
@@ -173,7 +182,7 @@ protected:
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------------------------
 
 
 /// Class for domains subject to a material model. Domains define (sub) regions of 
@@ -187,7 +196,9 @@ protected:
 ///   PointComputeInternalLoads()
 ///   PointComputeKRMmatrices()
 /// The T_... types are used to carry type info about the per-node or per-element 
-/// or per-integration point data to instance.
+/// or per-integration point data to instance. 
+/// Usable domains such as ChDomainThermal, ChDomainDeformation etc. are inherited 
+/// from this templated class.
 
 template <
     typename T_per_node = std::tuple<ChFieldScalar>,
@@ -197,6 +208,7 @@ template <
 class ChDomainImpl : public ChDomain {
 public:
 
+    // This data structure will be instantiated per each finite element of the domain.
     class DataPerElement {
     public:
         DataPerElement(int n_matpoints = 0, int n_nodes = 0) :
@@ -260,8 +272,8 @@ public:
         return (element_datamap.find(melement) != element_datamap.end());
     };
 
-    // This rewires all pointers and correctly set up the element_datamap
-    virtual bool InitialSetup() override {
+    /// This rewires all pointers and correctly set up the element_datamap
+    virtual bool InitialDataSetup() override {
         num_nodes = 0;
         per_node_coords_pos = 0;
         per_node_coords_vel = 0;
@@ -574,6 +586,9 @@ public:
     };
 
     virtual void SetupInitial() override {
+
+        this->InitialDataSetup();
+
         for (auto& mel : this->element_datamap) {
             mel.first->SetupInitial(this->GetSystem());
         }

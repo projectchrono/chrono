@@ -27,9 +27,9 @@ namespace fea {
 /// @addtogroup chrono_fea
 /// @{
 
-// Forward references:
-//class ChNodeFEAbase;
-//class ChNodeFEAfieldXYZ;
+
+/// Base class for fields, more precisely discretized fields, that are maps of 
+/// FEA nodes and associated states. Interfaces must be implemented by children classes.
 
 class ChFieldBase : public ChPhysicsItem {
 public:
@@ -66,8 +66,12 @@ public:
     unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 };
 
+
 // -----------------------------------------------------------------------------
 
+
+/// Templated class for implementing fields, more precisely discretized fields, that are maps of 
+/// FEA nodes and associated states. See children classes for ready-to-use fields.
 
 template <class T_data_per_node>
 class ChField : public ChFieldBase {
@@ -379,13 +383,26 @@ protected:
 // Some ready-to-use fields.
 
 
-
+/// Generic scalar field. A single scalar state S_i , as ChFieldDataScalar, 
+/// is attached to each node.
 
 class ChFieldScalar : public ChField<ChFieldDataScalar> {};
 
+
+/// Generic scalar field. A xyz vector state v_i, as ChFieldDataVector, 
+/// is attached to each node.
+
 class ChFieldVector : public ChField<ChFieldDataVector> {};
 
+
+/// Temperature field. A scalar temperature T_i, as ChFieldDataTemperature, 
+///is attached to each node. 
+
 class ChFieldTemperature : public ChField<ChFieldDataTemperature> {};
+
+
+/// Electric potential field. An electric potential V_i, as ChFieldDataElectricPotential, 
+/// is attached to each node, as a scalar. 
 
 class ChFieldElectricPotential : public ChField<ChFieldDataElectricPotential> {};
 

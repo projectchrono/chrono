@@ -15,6 +15,7 @@
 #include <cmath>
 
 #include "chrono/fea/ChFieldElementTetrahedron4.h"
+#include "chrono/fea/ChFieldElementTetrahedron4Face.h"
 #include "chrono/fea/ChNodeFEAfieldXYZ.h"
 
 namespace chrono {
@@ -136,6 +137,9 @@ namespace fea {
     }
 
 
+    std::shared_ptr<ChFieldElementSurface> ChFieldElementTetrahedron4::BuildFace(int i_face, std::shared_ptr<ChFieldElementVolume> shared_this) {
+        return chrono_types::make_shared<ChFieldTetrahedron4Face>(std::dynamic_pointer_cast<ChFieldElementTetrahedron4>(shared_this), i_face);
+    }
 
 }  // end namespace fea
 }  // end namespace chrono

@@ -30,7 +30,8 @@ namespace fea {
 /// Class for a node of a generic 3D finite element node with x,y,z position.
 /// This is the typical node that can be used for tetrahedrons, etc.
 /// Note: this type of multiphysics node do not carry any ChVariable with it,
-/// because attaching ChVariables is up to some ChFeaField. See also ChFeaDomain.
+/// because attaching ChVariables is up to some ChField. See also ChDomain.
+
 class ChNodeFEAfieldXYZ : public ChNodeFEAbase, public ChVector3d {
 public:
     ChNodeFEAfieldXYZ(ChVector3d reference_pos = VNULL) : ChNodeFEAbase(), ChVector3d(reference_pos) {};

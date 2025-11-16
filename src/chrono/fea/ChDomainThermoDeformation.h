@@ -35,7 +35,7 @@ namespace fea {
 /// Auxiliary scratch data stored per each material point during the ChDomainThermoDeformation
 /// computation. This can be plotted in postprocessing, etc.
 
-class ChFieldDataAuxiliaryThermoDeformation : public ChFieldDataNONE {
+class ChApi ChFieldDataAuxiliaryThermoDeformation : public ChFieldDataNONE {
 public:
     ChMatrix33d F;      /// total deformation gradient tensor F = F_m * F_t 
     ChMatrix33d F_t_inv;/// thermal deformation gradient tensor, inverse
@@ -62,6 +62,7 @@ class ChDomainThermoDeformation : public ChDomainImpl<
     ChElementDataKRM> {
 public:
 
+    // The following just to provide a shortcut in type naming.
     using Base = ChDomainImpl<
         std::tuple<ChFieldTemperature, ChFieldDisplacement3D>,
         ChFieldDataAuxiliaryThermoDeformation,   
@@ -69,6 +70,7 @@ public:
     >;
     using DataPerElement = typename Base::DataPerElement;
 
+    /// Construct the domain.
     ChDomainThermoDeformation(std::shared_ptr<ChFieldTemperature> mthermalfield, std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : Base({ mthermalfield, melasticfield })
     {
@@ -115,8 +117,8 @@ public:
         ChRowVectorDynamic<> T_h(T_hm.row(0));
 
         // Temperature at point  T = T_h * N'
-        double T = T_h * N.transpose(); 
-         
+        double T = T_h * N.transpose();
+
         // Compute the matrix  x_hh = [x1|x2|x3|x4..] with discrete values of spatial positions at nodes
         ChMatrixDynamic<> x_hh(3, melement->GetNumNodes());
         this->GetFieldPackedStateBlock(melement, data, x_hh, i_field_displ);
@@ -140,7 +142,7 @@ public:
         double alpha_t = 1 + material_thermalstress->GetThermalExpansionCoefficient() * (T - material_thermalstress->GetRestTemperature());
         // Isotropic F_t initial deformation
         ChMatrix33d F_t_inv;
-        F_t_inv.setZero(); F_t_inv.fillDiagonal(1.0/alpha_t);
+        F_t_inv.setZero(); F_t_inv.fillDiagonal(1.0 / alpha_t);
         // Mechanical deformation:  F = F_m * F_t  -->  F_m = F * F_t^{-1}
         ChMatrix33d F_m = F * F_t_inv;
 
@@ -184,13 +186,13 @@ public:
             &data.element_data);
 
         // To the discrete coordinates  (thermal part): 
-        
+
         //   Fi += dNdX' * q_flux * s
         Fi.segment(0, n_ele_coords_thermal) += dNdX.transpose() * q_flux.eigen() * s;   // += dNdX' * q_flux * s
 
 
         // ----------------------------------
-        
+
         // Store auxiliary data in material point data (ex. for postprocessing).  
 
         data.matpoints_data_aux[i_point].F = F;
@@ -221,7 +223,7 @@ public:
         melement->ComputeN(eta, N);
 
         unsigned int n_ele_coords_thermal = melement->GetNumNodes();
-        unsigned int n_ele_coords_deform = 3* melement->GetNumNodes();
+        unsigned int n_ele_coords_deform = 3 * melement->GetNumNodes();
 
         // NOTE: the tangent matrices of the coupled thermo-deformation problem, for a finite element,
         // and with our assumption that states are ordered as [x_1; x_2; ... T_1, T_2], has a block structure
@@ -240,7 +242,7 @@ public:
         // represent the coupling between temp and deformation in implicit iterations, but these are ignored 
         // for simplicity, and not computed here.
         // So, proceed as with a staggered solver:
-        
+
 
         //--- DEFORMATION PROBLEM ---
 
@@ -329,19 +331,19 @@ public:
 
 
         //--- THERMAL PROBLEM ---
-        
+
         // Temperature at point (might be needed by nonlinear ChMaterial3DThermal materials with dependence on T)
-        
+
 
         // K_thermo-thermo = sum (dNdX' * [k] * dNdX * w * |J|)
         if (Kpfactor) {
-            
+
             ChMatrix33d tangent_conductivity;
             this->material_thermalstress->material_thermal->ComputeTangentModulus(tangent_conductivity,
                 VNULL, T,
                 data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
                 &data.element_data);
-            
+
             // upper left block of K 
             H.block(0, 0, n_ele_coords_thermal, n_ele_coords_thermal) += Kpfactor * (dNdX.transpose() * tangent_conductivity * dNdX); // H += Kpfactor * (B' * [k] * B)
         }
