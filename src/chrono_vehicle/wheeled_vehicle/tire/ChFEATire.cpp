@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
+#include "chrono/fea/ChLoaderPressure.h"
 
 namespace chrono {
 namespace vehicle {
