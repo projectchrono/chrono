@@ -176,6 +176,9 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
+    /// Return the given Eigen info flag as a string.
+    static std::string ComputationInfoString(Eigen::ComputationInfo info);
+
   protected:
     ChDirectSolverLS();
 
@@ -184,7 +187,10 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     virtual ChDirectSolverLS* AsDirect() override { return this; }
 
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() = 0;
+    /// The flag `analyze` indicates if a potential matrix analyze phase is necessary before the factorization. This
+    /// flag is true if a structural change in the matrix was detected (e.g., addition or removal of a physical
+    /// component in a Chrono system).
+    virtual bool FactorizeMatrix(bool analze) = 0;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.
@@ -240,7 +246,7 @@ class ChApi ChSolverSparseLU : public ChDirectSolverLS {
 
   private:
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() override;
+    virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.
@@ -265,7 +271,7 @@ class ChApi ChSolverSparseQR : public ChDirectSolverLS {
 
   private:
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() override;
+    virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.

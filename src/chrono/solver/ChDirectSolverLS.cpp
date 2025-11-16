@@ -52,16 +52,16 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     // Note that ChSystemDescriptor::UpdateCountsAndOffsets was already called at the beginning of the step.
     m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 
-    // If use of the sparsity pattern learner is enabled, call it if:
-    // (a) an explicit update was requested (by default this is true at the first call), or
-    // (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
-    bool call_learner = m_use_learner && (m_force_update || !m_lock);
+    // If the sparsity pattern learner is enabled and a full setup is required (analyze=true), call the learner if:
+    //  (a) an explicit update was requested (by default this is true at the first call), or
+    //  (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
+    bool call_learner = m_use_learner && analyze && (m_force_update || !m_lock);
 
-    // If use of the sparsity pattern learner is disabled, reserve space for nonzeros,
-    // using the current sparsity level estimate, if:
-    // (a) this is the first call to setup, or
-    // (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
-    bool call_reserve = !m_use_learner && (m_setup_call == 0 || !m_lock);
+    // If the sparsity pattern learner is disabled and a full setup is required (analyze=true), reserve space for
+    // nonzeros, using the current sparsity level estimate, if:
+    //  (a) this is the first call to setup, or
+    //  (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
+    bool call_reserve = !m_use_learner && analyze && (m_setup_call == 0 || !m_lock);
 
     if (call_learner) {
         ChSparsityPatternLearner sparsity_pattern(m_dim, m_dim);
@@ -87,7 +87,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
 
     // Let the concrete solver perform the facorization
     m_timer_setup_solvercall.start();
-    bool result = FactorizeMatrix();
+    bool result = FactorizeMatrix(analyze);
     m_timer_setup_solvercall.stop();
 
     if (write_matrix)
@@ -95,6 +95,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
 
     if (verbose) {
         cout << "  Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << endl;
+        cout << "     analyze?        " << analyze << endl;
         cout << "     use learner?    " << m_use_learner << endl;
         cout << "     pattern locked? " << m_lock << endl;
         cout << "     call learner?   " << call_learner << endl;
@@ -165,7 +166,7 @@ bool ChDirectSolverLS::SetupCurrent() {
 
     // Let the concrete solver perform the factorization
     m_timer_setup_solvercall.start();
-    bool result = FactorizeMatrix();
+    bool result = FactorizeMatrix(true);
     m_timer_setup_solvercall.stop();
 
     if (verbose) {
@@ -215,6 +216,20 @@ double ChDirectSolverLS::SolveCurrent() {
 
 // ---------------------------------------------------------------------------
 
+std::string ChDirectSolverLS::ComputationInfoString(Eigen::ComputationInfo info) {
+    switch (info) {
+        case Eigen::Success:
+            return "Success";
+        case Eigen::NumericalIssue:
+            return "NumericalIssue";
+        case Eigen::NoConvergence:
+            return "NoConvergence";
+        case Eigen::InvalidInput:
+            return "InvalidInput";
+    }
+    return "";
+}
+
 void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMatrix& M) {
     std::ofstream file(filename);
     file << std::setprecision(12) << std::scientific;
@@ -234,8 +249,6 @@ void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDy
     for (int i = 0; i < v.size(); i++)
         file << v(i) << endl;
 }
-
-// ---------------------------------------------------------------------------
 
 void ChDirectSolverLS::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -267,9 +280,24 @@ void ChDirectSolverLS::ArchiveIn(ChArchiveIn& archive_in) {
 
 // ---------------------------------------------------------------------------
 
-bool ChSolverSparseLU::FactorizeMatrix() {
-    m_engine.compute(m_mat);
-    return (m_engine.info() == Eigen::Success);
+bool ChSolverSparseLU::FactorizeMatrix(bool analyze) {
+    if (analyze) {
+        m_engine.analyzePattern(m_mat);
+        auto err_A = m_engine.info();
+        if (err_A != Eigen::Success) {
+            std::cerr << "SparseLU ANALYZE failed with error code " << ComputationInfoString(err_A) << std::endl;
+            return false;
+        }
+    }
+
+    m_engine.factorize(m_mat);
+    auto err_F = m_engine.info();
+    if (err_F != Eigen::Success) {
+        std::cerr << "SparseLU FACTORIZE failed with error code " << ComputationInfoString(err_F) << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 bool ChSolverSparseLU::SolveSystem() {
@@ -296,9 +324,24 @@ void ChSolverSparseLU::PrintErrorMessage() {
 
 // ---------------------------------------------------------------------------
 
-bool ChSolverSparseQR::FactorizeMatrix() {
-    m_engine.compute(m_mat);
-    return (m_engine.info() == Eigen::Success);
+bool ChSolverSparseQR::FactorizeMatrix(bool analyze) {
+    if (analyze) {
+        m_engine.analyzePattern(m_mat);
+        auto err_A = m_engine.info();
+        if (err_A != Eigen::Success) {
+            std::cerr << "SparseQR ANALYZE failed with error code " << ComputationInfoString(err_A) << std::endl;
+            return false;
+        }
+    }
+
+    m_engine.factorize(m_mat);
+    auto err_F = m_engine.info();
+    if (err_F != Eigen::Success) {
+        std::cerr << "SparseQR FACTORIZE failed with error code " << ComputationInfoString(err_F) << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 bool ChSolverSparseQR::SolveSystem() {
