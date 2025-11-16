@@ -476,6 +476,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChFieldElementHexahedron8.cpp
     fea/ChFieldElementHexahedron8Face.cpp
     fea/ChFieldElementLoadableVolume.cpp
+    fea/ChFieldElementLoadableSurface.cpp
     fea/ChFieldData.cpp
     fea/ChField.cpp
     fea/ChMaterial.cpp
@@ -510,6 +511,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChFieldElementHexahedron8.h
     fea/ChFieldElementHexahedron8Face.h
     fea/ChFieldElementLoadableVolume.h
+    fea/ChFieldElementLoadableSurface.h
     fea/ChFieldData.h
     fea/ChField.h
     fea/ChMaterial.h
