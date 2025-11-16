@@ -23,7 +23,13 @@
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
+
+#ifdef CHRONO_MUMPS
+    #include "chrono_mumps/ChSolverMumps.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -121,17 +127,40 @@ class WaveEquation : public ChExternalDynamicsODE {
 
 // -----------------------------------------------------------------------------
 
-bool SolveHHT(ChTimestepperImplicit::JacobianUpdate jacobian_update, const std::string& out_dir, bool verbose) {
-    cout << "\n" << ChTimestepperImplicit::GetJacobianUpdateMethodAsString(jacobian_update) << endl;
+void SolveHHT(ChSolver::Type solver_type,
+              ChTimestepperImplicit::JacobianUpdate jacobian_update,
+              const std::string& out_dir,
+              bool verbose) {
+    cout << ChSolver::GetTypeAsString(solver_type) << endl;
+    cout << ChTimestepperImplicit::GetJacobianUpdateMethodAsString(jacobian_update) << endl;
 
     ChSystemSMC sys;
 
     // Set up solver
-    auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-    solver->UseSparsityPatternLearner(true);
-    solver->LockSparsityPattern(true);
-    solver->SetVerbose(false);
-    sys.SetSolver(solver);
+    switch (solver_type) {
+        case ChSolver::Type::PARDISO_MKL: {
+#ifdef CHRONO_PARDISO_MKL
+            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            sys.SetSolver(solver);
+#endif
+            break;
+        }
+        case ChSolver::Type::MUMPS: {
+#ifdef CHRONO_MUMPS
+            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            sys.SetSolver(solver);
+#endif
+            break;
+        }
+        default:
+            return;
+    }
 
     // Set up integrator
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&sys);
@@ -176,8 +205,8 @@ bool SolveHHT(ChTimestepperImplicit::JacobianUpdate jacobian_update, const std::
         try {
             sys.DoStepDynamics(step);
         } catch (const std::exception&) {
-            cout << "Integration failed" << endl;
-            return false;
+            cout << "Integration failed" << endl << endl;
+            return;
         }
         sim_time += sys.GetTimerStep();
 
@@ -191,7 +220,8 @@ bool SolveHHT(ChTimestepperImplicit::JacobianUpdate jacobian_update, const std::
         }
     }
 
-    cout << "\nSimulation time: " << sim_time << endl;
+    cout << "\nFinal ||y||:     " << y.segment(0, n).norm() << endl;
+    cout << "Simulation time: " << sim_time << endl;
     cout << "  Num steps:       " << sim_frame << endl;
     cout << "  Num iterations:  " << integrator->GetNumIterations() << endl;
     cout << "  Num setups:      " << integrator->GetNumSetupCalls() << endl;
@@ -202,7 +232,7 @@ bool SolveHHT(ChTimestepperImplicit::JacobianUpdate jacobian_update, const std::
         out_dir + "/wave_" + ChTimestepperImplicit::GetJacobianUpdateMethodAsString(jacobian_update) + ".out";
     csv.WriteToFile(out_file);
 
-    return true;
+    return;
 }
 
 // -----------------------------------------------------------------------------
@@ -217,8 +247,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SolveHHT(ChTimestepperImplicit::JacobianUpdate::NEVER, out_dir, false);
-    SolveHHT(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP, out_dir, false);
-    SolveHHT(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION, out_dir, false);
-    SolveHHT(ChTimestepperImplicit::JacobianUpdate::AUTOMATIC, out_dir, false);
+#ifdef CHRONO_PARDISO_MKL
+    cout << endl;
+    SolveHHT(ChSolver::Type::PARDISO_MKL, ChTimestepperImplicit::JacobianUpdate::NEVER, out_dir, false);
+    SolveHHT(ChSolver::Type::PARDISO_MKL, ChTimestepperImplicit::JacobianUpdate::EVERY_STEP, out_dir, false);
+    SolveHHT(ChSolver::Type::PARDISO_MKL, ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION, out_dir, false);
+    SolveHHT(ChSolver::Type::PARDISO_MKL, ChTimestepperImplicit::JacobianUpdate::AUTOMATIC, out_dir, false);
+#endif
+
+#ifdef CHRONO_MUMPS
+    cout << endl;
+    SolveHHT(ChSolver::Type::MUMPS, ChTimestepperImplicit::JacobianUpdate::NEVER, out_dir, false);
+    SolveHHT(ChSolver::Type::MUMPS, ChTimestepperImplicit::JacobianUpdate::EVERY_STEP, out_dir, false);
+    SolveHHT(ChSolver::Type::MUMPS, ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION, out_dir, false);
+    SolveHHT(ChSolver::Type::MUMPS, ChTimestepperImplicit::JacobianUpdate::AUTOMATIC, out_dir, false);
+#endif
 }
