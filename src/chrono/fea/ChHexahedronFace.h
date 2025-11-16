@@ -150,7 +150,7 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
         ShapeFunctions(N, U, V);
 
         //// TODO  exact det of jacobian at u,v
-        detJ =
+        detJ = 0.25 *
             ((GetNode(0)->GetPos() - GetNode(1)->GetPos()) - (GetNode(2)->GetPos() - GetNode(3)->GetPos())).Length() *
             ((GetNode(1)->GetPos() - GetNode(2)->GetPos()) - (GetNode(3)->GetPos() - GetNode(0)->GetPos())).Length();
         // (approximate detJ, ok only for rectangular face)
