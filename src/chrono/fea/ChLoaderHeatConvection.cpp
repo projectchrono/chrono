@@ -14,15 +14,16 @@
 
 
 #include "chrono/fea/ChLoaderHeatConvection.h"
+#include "chrono/fea/ChFieldElementLoadableSurface.h"
 
 namespace chrono {
 namespace fea {
 
 
 inline void ChLoaderHeatConvection::ComputeF(double U, double V, ChVectorDynamic<>& F, ChVectorDynamic<>* state_x, ChVectorDynamic<>* state_w) {
-    if (auto face = std::dynamic_pointer_cast<ChFieldElement>(this->loadable)) {
-        if (face->GetManifoldDimensions() == 2) {
-
+    F(0) = 0; // fallback if no face 
+    if (auto loface = std::dynamic_pointer_cast<ChFieldElementLoadableSurface>(this->loadable)) {
+        if (auto face = std::dynamic_pointer_cast<ChFieldElementSurface>(loface->GetElement())) {
             // Ck, we are loading a "face" finite element, so we can use NodeData(node) and fetch associated temperature .
             // Compute shape functions for interpolating temperature from the m_temp auxiliary field:
             ChRowVectorDynamic<> N(face->GetNumNodes());
@@ -38,7 +39,6 @@ inline void ChLoaderHeatConvection::ComputeF(double U, double V, ChVectorDynamic
             F(0) = -this->m_convection_coeff * (T - m_T_fluid);
         }
     }
-    F(0) = 0; // fallback if no face 
 }
 
 }  // end namespace fea

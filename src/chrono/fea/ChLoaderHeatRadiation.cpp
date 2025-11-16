@@ -14,14 +14,16 @@
 
 
 #include "chrono/fea/ChLoaderHeatRadiation.h"
+#include "chrono/fea/ChFieldElementLoadableSurface.h"
 
 namespace chrono {
 namespace fea {
 
 
 inline void ChLoaderHeatRadiation::ComputeF(double U, double V, ChVectorDynamic<>& F, ChVectorDynamic<>* state_x, ChVectorDynamic<>* state_w) {
-    if (auto face = std::dynamic_pointer_cast<ChFieldElement>(this->loadable)) {
-        if (face->GetManifoldDimensions() == 2) {
+    F(0) = 0; // fallback if no face
+    if (auto loface = std::dynamic_pointer_cast<ChFieldElementLoadableSurface>(this->loadable)) {
+        if (auto face = std::dynamic_pointer_cast<ChFieldElementSurface>(loface->GetElement())) {
 
             // Ok, we are loading a "face" finite element, so we can use NodeData(node) and fetch associated temperature .
             // Compute shape functions for interpolating temperature from the m_temp auxiliary field:
@@ -38,8 +40,7 @@ inline void ChLoaderHeatRadiation::ComputeF(double U, double V, ChVectorDynamic<
             double sigma = 5.670374419e-8; // Stefan-Boltzmann constant
             F(0) = -this->m_emissivity * sigma * std::pow((T - m_T_env), 4);
         }
-    }
-    F(0) = 0; // fallback if no face 
+    } 
 }
 
 }  // end namespace fea

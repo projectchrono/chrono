@@ -44,6 +44,10 @@ public:
     virtual void SetElement(std::shared_ptr<ChFieldElementSurface> element) {
         m_element = element;
     }
+    /// Get the wrapped element
+    virtual std::shared_ptr<ChFieldElementSurface> GetElement() const {
+        return m_element;
+    }
 
     // Functions for ChLoadable interface
 
