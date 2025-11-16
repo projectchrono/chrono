@@ -56,6 +56,9 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 endif()
 
 CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
+list(LENGTH CHRONO_CSHARP_SOURCES NUM_CSHARP_FILES)
+
+message(STATUS "  C# vehicle demos; number C# sources: ${NUM_CSHARP_FILES}")
 
 # ----------------------------------------------------------------------
 
@@ -72,10 +75,6 @@ foreach(PROGRAM ${DEMOS})
       find_package(Mono REQUIRED)
     endif()
   endif()
-  # set dependencies, so latest SWIG always builds first
-  foreach(module IN LISTS MODULE_LIST)
-    add_dependencies(${PROGRAM} "Chrono_csharp_${module}")
-  endforeach()
   
   # Add preprocessor defines based on available visualisation modules
   if(CH_ENABLE_MODULE_IRRLICHT)

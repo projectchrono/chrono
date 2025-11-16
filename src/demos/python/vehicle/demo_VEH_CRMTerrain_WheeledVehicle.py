@@ -70,6 +70,10 @@ visualization_sph = True
 visualization_bndry_bce = False
 visualization_rigid_bce = False
 
+# Output settings
+save_images = False  # Set to True to save BMP images
+save_results = False  # Set to True to save results.txt
+
 # CRM material properties
 density = 1700
 cohesion = 5e3
@@ -261,9 +265,12 @@ os.makedirs(out_dir, exist_ok=True)
 out_file = os.path.join(out_dir, "results.txt")
 
 # Use a simple CSV writer
-import csv
-csvfile = open(out_file, 'w', newline='')
-csvwriter = csv.writer(csvfile, delimiter=' ')
+csvfile = None
+csvwriter = None
+if save_results:
+    import csv
+    csvfile = open(out_file, 'w', newline='')
+    csvwriter = csv.writer(csvfile, delimiter=' ')
 
 # -----------------------------
 # Create run-time visualization
@@ -290,6 +297,8 @@ if render:
     visVSG.SetCameraAngleDeg(40)
     visVSG.SetChaseCamera(chrono.VNULL, 6.0, 2.0)
     visVSG.SetChaseCameraPosition(chrono.ChVector3d(0, 8, 1.5))
+    # By default the target render FPS is 60 for all vehicle VSG visualisations, set to 0 to disable
+    # visVSG.SetTargetRenderFPS(200)
     visVSG.Initialize()
     vis = visVSG
 
@@ -329,6 +338,8 @@ while time < tend:
         vis.Render()
         render_frame += 1
 
+
+
     # Synchronize systems
     driver.Synchronize(time)
     if vis:
@@ -340,15 +351,19 @@ while time < tend:
     driver.Advance(step_size)
     if vis:
         vis.Advance(step_size)
-        vis.WriteImageToFile(os.path.join(out_dir, f"img_{render_frame + 1:05d}.bmp"))
+        if save_images:
+            vis.WriteImageToFile(os.path.join(out_dir, f"img_{render_frame + 1:05d}.bmp"))
     terrain.Advance(step_size)
 
     # Output results
-    csvwriter.writerow([time, veh_loc.x, veh_loc.y, veh_loc.z, vehicle.GetSpeed()])
+    if save_results and csvwriter:
+        csvwriter.writerow([time, veh_loc.x, veh_loc.y, veh_loc.z, vehicle.GetSpeed()])
 
     time += step_size
     sim_frame += 1
 
-csvfile.close()
-print("Simulation complete. Results written to:", out_file)
-
+if csvfile:
+    csvfile.close()
+    print("Simulation complete. Results written to:", out_file)
+else:
+    print("Simulation complete.")

@@ -1,0 +1,126 @@
+#version 450
+
+// Compute shader for FSI particle colouring
+// Processes all particles on the GPU to avoid CPU callbacks to calc dynamic colours on particles
+
+layout(local_size_x = 256) in;
+
+// Arrays are vec4 to ensure 16-byte pack
+layout(binding = 0) readonly buffer PositionBuffer {
+    vec4 positions[];
+};
+
+layout(binding = 1) readonly buffer VelocityBuffer {
+    vec4 velocities[];
+};
+
+layout(binding = 2) readonly buffer PropertyBuffer {
+    vec4 properties[];  // x = density, y = pressure, z = dynamic viscosity (not used yet)
+};
+
+layout(binding = 3) writeonly buffer ColorBuffer {
+    vec4 colors[];
+};
+
+// All the bindings need to match correctly with cpp side!!
+layout(binding = 4, std140) uniform ColorParams {
+    vec4 rangeInfo;   // x = min, y = max, z = inverse range, w = color mode
+    vec4 upInfo;      // xyz = up vector, w = number of particles
+    vec4 extraInfo;   // x = colormap resolution, y = bimodal flag, z/w unused
+} params;
+
+layout(binding = 5) readonly buffer ColormapBuffer {
+    vec4 colormap[];
+};
+
+const int COLOR_MODE_HEIGHT = 1;
+const int COLOR_MODE_VELOCITY_MAG = 2;
+const int COLOR_MODE_VELOCITY_X = 3;
+const int COLOR_MODE_VELOCITY_Y = 4;
+const int COLOR_MODE_VELOCITY_Z = 5;
+const int COLOR_MODE_DENSITY = 6;
+const int COLOR_MODE_PRESSURE = 7;
+
+// Interpolate a RGB sample from the uploaded colourmap texture
+vec3 sampleColormap(float normalizedValue) {
+    int count = colormap.length();
+    if (count == 0) {
+        return vec3(clamp(normalizedValue, 0.0, 1.0));
+    }
+
+    if (count == 1) {
+        return colormap[0].xyz;
+    }
+
+    float t = clamp(normalizedValue, 0.0, 1.0);
+    float scaled = t * float(count - 1);
+    int i0 = int(floor(scaled));
+    int i1 = min(i0 + 1, count - 1);
+    float w = scaled - float(i0);
+    vec3 c0 = colormap[i0].xyz;
+    vec3 c1 = colormap[i1].xyz;
+    return mix(c0, c1, w);
+}
+
+// Map the raw scalar into [0,1] using the shared range parameters
+float safeNormalize(float value) {
+    return clamp((value - params.rangeInfo.x) * params.rangeInfo.z, 0.0, 1.0);
+}
+
+// Special pressure mapping keeps negative values in [0,0.5] and positive in [0.5,1]
+// for demos like 'objectdrop'
+float normalizePressure(float value) {
+    if (int(params.extraInfo.y + 0.5) == 0)
+        return safeNormalize(value);
+
+    float pmin = params.rangeInfo.x;
+    float pmax = params.rangeInfo.y;
+    float negDenom = (abs(pmin) < 1e-6) ? -1.0 : pmin;
+    float posDenom = (abs(pmax) < 1e-6) ? 1.0 : pmax;
+
+    if (value < 0.0) {
+        float t = clamp(value / negDenom, 0.0, 1.0);
+        return 0.5 * (1.0 - t);
+    } else {
+        float t = clamp(value / posDenom, 0.0, 1.0);
+        return 0.5 * (1.0 + t);
+    }
+}
+
+// Return the scalar to visualise for the requested colour mode
+// will be sent to renderer
+float computeScalar(uint idx, int colorMode) {
+    if (colorMode == COLOR_MODE_HEIGHT)
+        return dot(positions[idx].xyz, params.upInfo.xyz);
+    if (colorMode == COLOR_MODE_VELOCITY_MAG)
+        return length(velocities[idx].xyz);
+    if (colorMode == COLOR_MODE_VELOCITY_X)
+        return abs(velocities[idx].x);
+    if (colorMode == COLOR_MODE_VELOCITY_Y)
+        return abs(velocities[idx].y);
+    if (colorMode == COLOR_MODE_VELOCITY_Z)
+        return abs(velocities[idx].z);
+    if (colorMode == COLOR_MODE_DENSITY)
+        return properties[idx].x;
+    if (colorMode == COLOR_MODE_PRESSURE)
+        return properties[idx].y;
+    return 0.0;
+}
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+
+    int count = int(params.upInfo.w + 0.5);
+    if (idx >= uint(count))
+        return;
+
+    int colorMode = int(params.rangeInfo.w + 0.5);
+
+    float scalar = computeScalar(idx, colorMode);
+    // Pressure falls back to centered/bimodal normalisation only when the CPU-side callback flags it
+    // (e.g. for the object drop demo)
+    float normalizedValue = (colorMode == COLOR_MODE_PRESSURE) ? normalizePressure(scalar) : safeNormalize(scalar);
+
+    vec3 color = sampleColormap(normalizedValue);
+    colors[idx] = vec4(color, 1.0); // no alpha
+}

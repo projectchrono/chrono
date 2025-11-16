@@ -32,7 +32,11 @@ ChWheeledVehicleVisualSystemVSG::ChWheeledVehicleVisualSystemVSG()
       m_suspension_visible(true),
       m_steering_visible(true),
       m_wheel_visible(true),
-      m_tire_visible(true) {}
+      m_tire_visible(true) {
+    // Set a rendering target of 60 fps to avoid expensive recordAndSubmit() overhead (cpu to gpu data transfers too often)
+    // Can override with SetTargetRenderFPS(0) for unlimited or other values
+    SetTargetRenderFPS(60);
+}
 
 void ChWheeledVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     ChVehicleVisualSystemVSG::AttachVehicle(vehicle);

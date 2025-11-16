@@ -39,9 +39,20 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::cascade;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::NONE;
 
 int main(int argc, char* argv[]) {
+#ifdef CHRONO_IRRLICHT
+    vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+#ifdef CHRONO_VSG
+    vis_type = ChVisualSystem::Type::VSG;
+#endif
+    // Check for valid visualization system
+    if(vis_type == ChVisualSystem::Type::NONE) {
+        std::cout << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
+        return 99;
+    }
     // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
