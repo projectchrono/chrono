@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Refactor Jacobian update strategy for implicit integrators](#changed-refactor-jacobian-update-strategy-for-implicit-integrators)
   - [\[Changed\] Upgrade of 3rd-party dependencies](#changed-upgrade-of-3rd-party-dependencies)
   - [\[Added\] YAML parsers for Chrono models and simulations](#added-yaml-parsers-for-chrono-models-and-simulations) 
   - [\[Changed\] Refactoring of Chrono::FSI and Chrono fluid solvers](#changed-refactoring-of-chronofsi-and-chrono-fluid-solvers)
@@ -119,6 +120,33 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Changed] Refactor Jacobian update strategy for implicit integrators
+
+These changes allow lagging Jacobian evaluation and factorization across multiple time steps. This is an extension of the previous "modified Newton" strategy where it was possible to use the same Jacobian matrix for all iterations of the Newton process at a given integration step.
+
+Previously, the two options (full Newton and modified Newton) were controlled through a boolean, such that `modified_Newton = true` resulted in the Jacobian evaluation and factorization happening once per step and `modified_Newton = false` resulted in Jacobian evaluations and factorizations at every Newton iteration.
+
+With the new strategy, there are 4 options provided through the `ChTimestepperImplicit::JacobianUpdate` enum:
+- EVERY_ITERATION,  ///< Full Newton: Jacobian updated at every iteration
+- EVERY_STEP,       ///< Jacobian updated at every step
+- NEVER,            ///< Jacobian never updated
+- AUTOMATIC         ///< Automatic Jacobian update
+
+The options `EVERY_ITERATION` and `EVERY_STEP` correspond to the previous two available options. 
+The option `NEVER` instructs the code to use the same Jacobian factorization from the very first step throughout the entire simulation.
+The option `AUTOMATIC` leads to reusing a Jacobian factorization until there’s a Newton convergence failure with an out-of-date Jacobian.
+
+The Jacobian update strategy method is set through the function `ChTimestepperImplicit::SetJacobianUpdateMethod` (default value EVERY_STEP).
+This function can also be called during half-way through the simulation, including a change to the option `NEVER` (for example, for a case where things “settle down” and the caller knows when that happens).
+
+These changes also come with a refactoring of the class hierarchy for the implicit integrators in Chrono.
+One outcome of that is that the logic for Jacobian evaluations and factorizations, step size control, convergence testing, and integrator behavior was moved to the ChTimestepperImplicit base class.
+This means that any of the Chrono implicit integrators can leverage it (with the exception of the linearized and projected Euler schemes which have their own decisions about solving the non-linear system).
+For now, only the HHT integrator uses this mechanism, with others (in particular implicit Euler) to follow.  
+
+To further imporove the overall performance of Chrono simulations that use an implicit integrator, we implemented logic to fine control the phases required for a matrix factorization for a sparse direct linear solver. 
+In particular, a so-called `analyze` phase (including a call to Chrono's sparsity patter learner, as well as any other operations a particular solver may require) is performed only if a structural change in the problem matrix is detected (for example, upon addition or deletion of a physical item in the Chrono system).
 
 ## [Changed] Upgrade of 3rd-party dependencies
 
