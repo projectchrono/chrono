@@ -128,10 +128,13 @@ These changes allow lagging Jacobian evaluation and factorization across multipl
 Previously, the two options (full Newton and modified Newton) were controlled through a boolean, such that `modified_Newton = true` resulted in the Jacobian evaluation and factorization happening once per step and `modified_Newton = false` resulted in Jacobian evaluations and factorizations at every Newton iteration.
 
 With the new strategy, there are 4 options provided through the `ChTimestepperImplicit::JacobianUpdate` enum:
-- EVERY_ITERATION,  ///< Full Newton: Jacobian updated at every iteration
-- EVERY_STEP,       ///< Jacobian updated at every step
-- NEVER,            ///< Jacobian never updated
-- AUTOMATIC         ///< Automatic Jacobian update
+
+| Option             | Strategy                                         |
+| :----------------- | :----------------------------------------------- |
+| `EVERY_ITERATION`  | Full Newton: Jacobian updated at every iteration |
+| `EVERY_STEP`       | Jacobian updated at every step                   |
+| `NEVER`            | Jacobian never updated                           |
+| `AUTOMATIC`        | Automatic Jacobian update                        |
 
 The options `EVERY_ITERATION` and `EVERY_STEP` correspond to the previous two available options. 
 The option `NEVER` instructs the code to use the same Jacobian factorization from the very first step throughout the entire simulation.
