@@ -283,11 +283,7 @@ void ChDirectSolverLS::ArchiveIn(ChArchiveIn& archive_in) {
 bool ChSolverSparseLU::FactorizeMatrix(bool analyze) {
     if (analyze) {
         m_engine.analyzePattern(m_mat);
-        auto err_A = m_engine.info();
-        if (err_A != Eigen::Success) {
-            std::cerr << "SparseLU ANALYZE failed with error code " << ComputationInfoString(err_A) << std::endl;
-            return false;
-        }
+        // Note: Eigen does not set info after the analyzePattern call -> no possible failure here
     }
 
     m_engine.factorize(m_mat);
@@ -327,11 +323,7 @@ void ChSolverSparseLU::PrintErrorMessage() {
 bool ChSolverSparseQR::FactorizeMatrix(bool analyze) {
     if (analyze) {
         m_engine.analyzePattern(m_mat);
-        auto err_A = m_engine.info();
-        if (err_A != Eigen::Success) {
-            std::cerr << "SparseQR ANALYZE failed with error code " << ComputationInfoString(err_A) << std::endl;
-            return false;
-        }
+        // Note: Eigen does not set info after the analyzePattern call -> no possible failure here
     }
 
     m_engine.factorize(m_mat);
