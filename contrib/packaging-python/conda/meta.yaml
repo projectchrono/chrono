@@ -33,7 +33,7 @@ requirements:
     - mkl-devel ==2025.2.0 # [not arm64]
     - irrlicht
     - occt ==7.9.2
-    - numpy >=1.24.0
+    - numpy
     - glew
     - glfw
     - eigen ==3.4.0
