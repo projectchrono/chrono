@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -133,8 +132,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM",  //
-                                         ChVector3d(0, 0.6, -1.0), VNULL,                    //
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM",         //
+                                         ChVector3d(-0.4, -0.15, -0.9), ChVector3d(0, -0.4, -0.3),  //
                                          true, "Mz (Nm)", colormap_range, colormap_type);
 
     // Set integrator

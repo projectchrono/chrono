@@ -22,7 +22,6 @@
 #include "chrono/physics/ChExternalDynamicsODE.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -157,7 +156,7 @@ int main(int argc, char* argv[]) {
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxIters(100);
         mystepper->SetAbsTolerances(1e-5);
-        mystepper->SetModifiedNewton(true);
+        mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
         mystepper->SetVerbose(false);
 
         double t_end = 300;

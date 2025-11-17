@@ -19,8 +19,6 @@
 #include <cmath>
 
 #include "chrono/core/ChDataPath.h"
-#include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
@@ -49,7 +47,7 @@ void example1(const std::string& out_dir) {
 
         // compute  dy/dt=f(y,t)
         virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
-                                ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
                                 const ChState& y,                  // current state y
                                 const double T,                    // current time T
                                 const double dt,                   // timestep (if needed)
@@ -75,7 +73,7 @@ void example1(const std::string& out_dir) {
     MyIntegrable mintegrable;
 
     // Create a time-integrator, class: Euler explicit
-    ChTimestepperEulerExpl mystepper(&mintegrable);
+    ChTimestepperEulerExplicitIorder mystepper(&mintegrable);
 
     // Execute the time integration
     while (mystepper.GetTime() < 4) {
@@ -148,7 +146,7 @@ void example2(const std::string& out_dir) {
 
         // compute  dy/dt=f(y,t)
         virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
-                                ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
                                 const ChState& y,                  // current state y
                                 const double t,                    // current time T
                                 const double dt,                   // timestep (if needed)
@@ -178,14 +176,14 @@ void example2(const std::string& out_dir) {
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable;
     // Create a time-integrator:
-    ChTimestepperEulerExpl mystepper(&mintegrable);
+    ChTimestepperEulerExplicitIorder mystepper(&mintegrable);
 
     // Try integrator Runge Kutta 4st  explicit
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable_rk;
     // Create a time-integrator, class: Runge Kutta 4 explicit
-    ChTimestepperRungeKuttaExpl mystepper_rk(&mintegrable_rk);
+    ChTimestepperRungeKutta mystepper_rk(&mintegrable_rk);
 
     // Execute the time integration
     while (mystepper.GetTime() < 1) {
@@ -265,7 +263,7 @@ void example3(const std::string& out_dir) {
 
         // compute  dy/dt=f(y,t)
         virtual bool StateSolveA(ChStateDelta& dvdt,                // result: computed accel. a = dv/dt
-                                 ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                 ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
                                  const ChState& x,                  // current state, x
                                  const ChStateDelta& v,             // current state, v
                                  const double T,                    // current time T
@@ -296,8 +294,8 @@ void example3(const std::string& out_dir) {
     MyIntegrable mintegrable3;
 
     // Create few time-integrators to be compared:
-    ChTimestepperRungeKuttaExpl mystepper1(&mintegrable1);
-    ChTimestepperEulerExplIIorder mystepper2(&mintegrable2);
+    ChTimestepperRungeKutta mystepper1(&mintegrable1);
+    ChTimestepperEulerExplicitIIorder mystepper2(&mintegrable2);
     ChTimestepperEulerSemiImplicit mystepper3(&mintegrable3);
 
     // Execute the time integration
@@ -387,7 +385,7 @@ void example4(const std::string& out_dir) {
         // for acceleration also using StateSolveCorrection, although a bit less efficient)
         virtual bool StateSolveA(
             ChStateDelta& dvdt,                // result: computed accel. a=dv/dt
-            ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+            ChVectorDynamic<>& L,              // result: computed Lagrange multipliers
             const ChState& x,                  // current state, x
             const ChStateDelta& v,             // current state, v
             const double T,                    // current time T
@@ -407,21 +405,21 @@ void example4(const std::string& out_dir) {
 
         // Compute the correction with linear system
         //  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
-        virtual bool StateSolveCorrection(
-            ChStateDelta& Dv,             // result: computed Dv
-            ChVectorDynamic<>& L,         // result: computed lagrangian multipliers, if any
-            const ChVectorDynamic<>& R,   // the R residual
-            const ChVectorDynamic<>& Qc,  // the Qc residual
-            const double c_a,             // the factor in c_a*M
-            const double c_v,             // the factor in c_v*dF/dv
-            const double c_x,             // the factor in c_x*dF/dv
-            const ChState& x,             // current state, x part
-            const ChStateDelta& v,        // current state, v part
-            const double T,               // current time T
-            bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-            bool full_update,             // if true, perform a full update during scatter
-            bool force_setup              // if true, call the solver's Setup() function
-            ) override {
+        virtual bool StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
+                                          ChVectorDynamic<>& L,         // result: computed Lagrange multipliers
+                                          const ChVectorDynamic<>& R,   // the R residual
+                                          const ChVectorDynamic<>& Qc,  // the Qc residual
+                                          const double c_a,             // the factor in c_a*M
+                                          const double c_v,             // the factor in c_v*dF/dv
+                                          const double c_x,             // the factor in c_x*dF/dv
+                                          const ChState& x,             // current state, x part
+                                          const ChStateDelta& v,        // current state, v part
+                                          const double T,               // current time T
+                                          bool force_state_scatter,     // if true, scatter x and v to the system
+                                          bool full_update,             // if true, perform a full update during scatter
+                                          bool call_setup,              // if true, call the solver's Setup function
+                                          bool call_analyze  // if true, call the solver's Setup analyze phase
+                                          ) override {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 
@@ -481,7 +479,7 @@ void example4(const std::string& out_dir) {
     // Create few time-integrators to be compared:
     ChTimestepperEulerImplicit mystepper1(&mintegrable1);
     ChTimestepperTrapezoidal mystepper2(&mintegrable2);
-    ChTimestepperEulerExplIIorder mystepper3(&mintegrable3);
+    ChTimestepperEulerExplicitIIorder mystepper3(&mintegrable3);
     ChTimestepperHHT mystepper4(&mintegrable4);
     mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
     ChTimestepperHHT mystepper5(&mintegrable5);
@@ -576,12 +574,14 @@ void example5(const std::string& out_dir) {
             m_reaction = 0;
         }
 
-        // the number of coordinates in the state, x position part:
+        // Number of coordinates in the state, position level
         virtual unsigned int GetNumCoordsPosLevel() override { return 2; }
+        // Number of coordinates in the state, velocity level
         virtual unsigned int GetNumCoordsVelLevel() override { return 2; }
+        // Number of coordinates in the state, acceleration level
         virtual unsigned int GetNumCoordsAccLevel() override { return 2; }
 
-        // Tells the number of lagrangian multipliers (constraints)
+        // Return the number of Lagrange multipliers (constraints)
         virtual unsigned int GetNumConstraints() override { return 1; }
 
         // system -> state
@@ -618,21 +618,21 @@ void example5(const std::string& out_dir) {
         // Compute the correction with linear system
         //  | Dv| = [ c_a*M + c_v*dF/dv + c_x*dF/dx    Cq']^-1 * | R |
         //  |-Dl|   [   Cq                              0 ]      |-Qc|
-        virtual bool StateSolveCorrection(
-            ChStateDelta& Dv,             // result: computed Dv
-            ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any, note the sign
-            const ChVectorDynamic<>& R,   // the R residual
-            const ChVectorDynamic<>& Qc,  // the Qc residual, note the sign
-            const double c_a,             // the factor in c_a*M
-            const double c_v,             // the factor in c_v*dF/dv
-            const double c_x,             // the factor in c_x*dF/dv
-            const ChState& x,             // current state, x part
-            const ChStateDelta& v,        // current state, v part
-            const double T,               // current time T
-            bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-            bool full_update,             // if true, perform a full update during scatter
-            bool force_setup              // if true, call the solver's Setup() function
-            ) override {
+        virtual bool StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
+                                          ChVectorDynamic<>& Dl,        // result: computed Dl Lagrange multipliers
+                                          const ChVectorDynamic<>& R,   // the R residual
+                                          const ChVectorDynamic<>& Qc,  // the Qc residual
+                                          const double c_a,             // the factor in c_a*M
+                                          const double c_v,             // the factor in c_v*dF/dv
+                                          const double c_x,             // the factor in c_x*dF/dv
+                                          const ChState& x,             // current state, x part
+                                          const ChStateDelta& v,        // current state, v part
+                                          const double T,               // current time T
+                                          bool force_state_scatter,     // if true, scatter x and v to the system
+                                          bool full_update,             // if true, perform a full update during scatter
+                                          bool call_setup,              // if true, call the solver's Setup function
+                                          bool call_analyze  // if true, call the solver's Setup analyze phase
+                                          ) override {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 
@@ -748,8 +748,8 @@ void example5(const std::string& out_dir) {
         0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
     // mystepper6.SetVerbose(true);
 
-    // ChTimestepperEulerExplIIorder mystepper7(&mintegrable7);
-    ChTimestepperRungeKuttaExpl mystepper7(&mintegrable7);
+    // ChTimestepperEulerExplicitIIorder mystepper7(&mintegrable7);
+    ChTimestepperRungeKutta mystepper7(&mintegrable7);
     mystepper7.SetDiagonalLumpingON(20000);  // this avoids calling the linear solver completely, even with constraints.
 
     // B) - same pendulum, but multibody:

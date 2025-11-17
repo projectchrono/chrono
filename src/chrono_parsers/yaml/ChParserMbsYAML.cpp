@@ -674,7 +674,9 @@ void ChParserMbsYAML::SetIntegrator(ChSystem& sys, const IntegratorParams& param
             integrator->SetRelTolerance(params.rtol);
             integrator->SetAbsTolerances(params.atol_states, params.atol_multipliers);
             integrator->SetStepControl(params.use_stepsize_control);
-            integrator->SetModifiedNewton(params.use_modified_newton);
+            integrator->SetJacobianUpdateMethod(params.use_modified_newton
+                                                    ? ChTimestepperImplicit::JacobianUpdate::EVERY_STEP
+                                                    : ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
             break;
         }
         case ChTimestepper::Type::EULER_IMPLICIT: {

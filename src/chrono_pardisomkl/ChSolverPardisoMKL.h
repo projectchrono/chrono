@@ -66,7 +66,7 @@ class ChApiPardisoMKL ChSolverPardisoMKL : public ChDirectSolverLS {
 
   private:
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() override;
+    virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.
@@ -86,7 +86,7 @@ class ChApiPardisoMKL ChSolverComplexPardisoMKL : public ChDirectSolverLScomplex
     ~ChSolverComplexPardisoMKL() {}
 
     /// Get a handle to the underlying MKL engine.
-    Eigen::PardisoLU<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>>& GetMklEngine() { return m_engine; }
+    Eigen::PardisoLU<ChComplexSparseMatrix>& GetMklEngine() { return m_engine; }
 
   private:
     /// Factorize the current sparse matrix and return true if successful.
@@ -100,8 +100,7 @@ class ChApiPardisoMKL ChSolverComplexPardisoMKL : public ChDirectSolverLScomplex
     /// This function is only called if Factorize or Solve returned false.
     virtual void PrintErrorMessage() override;
 
-    Eigen::PardisoLU<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>>
-        m_engine;  ///< underlying Eigen Pardiso interface
+    Eigen::PardisoLU<ChComplexSparseMatrix> m_engine;  ///< underlying Eigen Pardiso interface
 };
 
 /// @} mkl_module

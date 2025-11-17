@@ -22,7 +22,6 @@
 // =============================================================================
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 
@@ -73,7 +72,7 @@ ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const 
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-04, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(false);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     integrator->SetVerbose(false);
     m_system->SetTimestepper(integrator);
 

@@ -10,6 +10,9 @@
 %csmethodmodifiers chrono::ChTimestepperHHT::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetAbsTolerances "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumStepIterations "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumStepSetupCalls "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumStepSolveCalls "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumIterations "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSolveCalls "public"
@@ -17,6 +20,9 @@
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetAbsTolerances "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumStepIterations "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumStepSetupCalls "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumStepSolveCalls "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumIterations "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSolveCalls "public"
@@ -32,6 +38,9 @@
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
+    int GetNumStepIterations() const {return $self->GetNumStepIterations();}
+    int GetNumStepSetupCalls() const {return $self->GetNumStepSetupCalls();}
+    int GetNumStepSolveCalls() const {return $self->GetNumStepSolveCalls();}
     int GetNumIterations() const {return $self->GetNumIterations();}
     int GetNumSetupCalls() const {return $self->GetNumSetupCalls();}
     int GetNumSolveCalls() const {return $self->GetNumSolveCalls();}
@@ -43,6 +52,9 @@
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
+    int GetNumStepIterations() const {return $self->GetNumStepIterations();}
+    int GetNumStepSetupCalls() const {return $self->GetNumStepSetupCalls();}
+    int GetNumStepSolveCalls() const {return $self->GetNumStepSolveCalls();}
     int GetNumIterations() const {return $self->GetNumIterations();}
     int GetNumSetupCalls() const {return $self->GetNumSetupCalls();}
     int GetNumSolveCalls() const {return $self->GetNumSolveCalls();}
@@ -72,26 +84,28 @@ using namespace chrono;
 
 %shared_ptr(chrono::ChIntegrable)
 %shared_ptr(chrono::ChIntegrableIIorder)
+
 %shared_ptr(chrono::ChTimestepper)
 %shared_ptr(chrono::ChTimestepperIorder)
 %shared_ptr(chrono::ChTimestepperIIorder)
-%shared_ptr(chrono::ChTimestepperEulerExpl)
-%shared_ptr(chrono::ChTimestepperEulerExplIIorder)
+
+%shared_ptr(chrono::ChTimestepperExplicit)  
+%shared_ptr(chrono::ChTimestepperEulerExplicitIorder)
+%shared_ptr(chrono::ChTimestepperEulerExplicitIIorder)
 %shared_ptr(chrono::ChTimestepperEulerSemiImplicit)
-%shared_ptr(chrono::ChTimestepperRungeKuttaExpl)
+%shared_ptr(chrono::ChTimestepperRungeKutta)
 %shared_ptr(chrono::ChTimestepperHeun)
 %shared_ptr(chrono::ChTimestepperLeapfrog)
+
+%shared_ptr(chrono::ChTimestepperImplicit)
 %shared_ptr(chrono::ChTimestepperEulerImplicit)
 %shared_ptr(chrono::ChTimestepperEulerImplicitLinearized)
 %shared_ptr(chrono::ChTimestepperEulerImplicitProjected)
-%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized)
-%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized2)
 %shared_ptr(chrono::ChTimestepperTrapezoidal)
+%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized)
 %shared_ptr(chrono::ChTimestepperNewmark)
 %shared_ptr(chrono::ChTimestepperHHT)
-%shared_ptr(chrono::ChImplicitIterativeTimestepper)
-%shared_ptr(chrono::ChImplicitTimestepper)
-%shared_ptr(chrono::ChExplicitTimestepper)  
+
 %shared_ptr(chrono::ChAssemblyAnalysis)  
 %shared_ptr(chrono::ChStaticAnalysis)
 %shared_ptr(chrono::ChStaticLinearAnalysis)

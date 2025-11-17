@@ -17,7 +17,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
-#include "chrono/timestepper/ChAssemblyAnalysis.h"
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"

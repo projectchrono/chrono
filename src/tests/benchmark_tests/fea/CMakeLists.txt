@@ -1,16 +1,18 @@
 set(TESTS
     btest_FEA_ANCFshell
     btest_FEA_contact
-	btest_FEA_ANCFbeam_3243_LargeDisplacement
-	btest_FEA_ANCFbeam_3333_LargeDisplacement
-	btest_FEA_ANCFshell_3443_LargeDisplacement
-	btest_FEA_ANCFshell_3833_LargeDisplacement
-	btest_FEA_ANCFhexa_3843_LargeDisplacement
+    btest_FEA_ANCFbeam_3243_LargeDisplacement
+    btest_FEA_ANCFbeam_3333_LargeDisplacement
+    btest_FEA_ANCFshell_3443_LargeDisplacement
+    btest_FEA_ANCFshell_3833_LargeDisplacement
+    btest_FEA_ANCFhexa_3843_LargeDisplacement
     )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL OR CH_ENABLE_MODULE_MUMPS)
   set(TESTS ${TESTS}
-      btest_FEA_sparse_solver)
+      btest_FEA_sparse_solver
+      btest_FEA_HHT
+  )
 endif()
 
 # ------------------------------------------------------------------------------

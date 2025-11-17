@@ -26,6 +26,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChMesh.h"
 
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxIters(10);
     mystepper->SetAbsTolerances(1e-10);
     mystepper->SetVerbose(true);
-    mystepper->SetModifiedNewton(false);
+    mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
 
     // Simulation loop
     unsigned int num_steps = 50;

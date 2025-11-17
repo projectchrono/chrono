@@ -892,6 +892,8 @@ source_group(particlefactory FILES ${Chrono_particlefactory_SOURCES} ${Chrono_pa
 set(Chrono_timestepper_SOURCES
     timestepper/ChIntegrable.cpp
     timestepper/ChTimestepper.cpp
+    timestepper/ChTimestepperExplicit.cpp
+    timestepper/ChTimestepperImplicit.cpp
     timestepper/ChTimestepperHHT.cpp
     timestepper/ChStaticAnalysis.cpp
     timestepper/ChAssemblyAnalysis.cpp
@@ -900,6 +902,8 @@ set(Chrono_timestepper_HEADERS
     timestepper/ChState.h
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
+    timestepper/ChTimestepperExplicit.h
+    timestepper/ChTimestepperImplicit.h
     timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
     timestepper/ChAssemblyAnalysis.h

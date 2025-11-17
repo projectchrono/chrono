@@ -95,7 +95,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
             integrator->SetMaxIters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
-            integrator->SetModifiedNewton(false);
+            integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
             integrator->SetVerbose(false);
             break;
         }

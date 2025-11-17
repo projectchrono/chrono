@@ -140,9 +140,11 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// The subsystem is initialized by attaching it to the specified chassis at the specified location (with respect to
     /// and expressed in the reference frame of the chassis). It is assumed that the track assembly reference frame is
     /// always aligned with the chassis reference frame.
-    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
-                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                    bool create_shoes = true             ///< [in] control creation of the actual track
+    /// All work is done in this base class implementation. Derived classes may override this method to provide
+    /// additional output and/or diagnostics.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                            bool create_shoes = true             ///< [in] control creation of the actual track
     );
 
     /// Return total assembled track length (sum of pitch over all track shoes).

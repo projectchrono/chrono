@@ -36,6 +36,8 @@
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperExplicit.h"
+#include "chrono/timestepper/ChTimestepperImplicit.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/output/ChOutput.h"
@@ -497,24 +499,32 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }
+
     /// Return the time (in seconds) for time integration, within the time step.
     virtual double GetTimerAdvance() const { return timer_advance(); }
+
     /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
     virtual double GetTimerLSsolve() const { return timer_ls_solve(); }
+
     /// Return the time (in seconds) for the solver Setup phase, within the time step.
     virtual double GetTimerLSsetup() const { return timer_ls_setup(); }
+
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const { return timer_jacobian(); }
+
     /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
+
     /// Return the time (in seconds) for system setup, within the time step.
     virtual double GetTimerSetup() const { return timer_setup(); }
+
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const { return timer_update(); }
 
     /// Return the time (in seconds) for broadphase collision detection, within the time step.
     double GetTimerCollisionBroad() const;
+
     /// Return the time (in seconds) for narrowphase collision detection, within the time step.
     double GetTimerCollisionNarrow() const;
 
@@ -544,7 +554,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// - v_pre: the velocity vector before the integration step
     /// - F_pre: unscaled loads before the integration step
     /// - Dv: the state variation
-    /// - Dl: the lagrangian multipliers variation
+    /// - Dl: the Lagrange multipliers variation
     /// if the solver is direct then also the following are output:
     /// - f, b: subparts of 'rhs'
     /// - H, Cq, E: the submatrices of Z
@@ -704,6 +714,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                                  const ChStateDelta& Dx  ///< state increment Dx
                                  ) override;
 
+    /// Return true if the number of states or Jacobian structure has changed.
+    /// In such cases, an implicit integrator should force a Jacobian re-evaluation.
+    /// For a ChSystem, this happens when a physics item is added to or removed from the underlying assembly.
+    virtual bool StateModified() const override { return !is_updated; }
+
     /// Assuming a DAE of the form
     /// <pre>
     ///       M*a = F(x,v,t) + Cq'*L
@@ -719,18 +734,19 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(
         ChStateDelta& Dv,             ///< result: computed Dv
-        ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
+        ChVectorDynamic<>& DL,        ///< result: computed Lagrange multipliers
         const ChVectorDynamic<>& R,   ///< the R residual
-        const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
+        const ChVectorDynamic<>& Qc,  ///< the Qc residual
         const double c_a,             ///< the factor in c_a*M
         const double c_v,             ///< the factor in c_v*dF/dv
         const double c_x,             ///< the factor in c_x*dF/dv
         const ChState& x,             ///< current state, x part
         const ChStateDelta& v,        ///< current state, v part
         const double T,               ///< current time T
-        bool force_state_scatter,     ///< if false, x and v are not scattered to the system
+        bool force_state_scatter,     ///< if true, scatter x and v to the system
         bool full_update,             ///< if true, perform a full update during scatter
-        bool force_setup              ///< if true, call the solver's Setup() function
+        bool call_setup,              ///< if true, call the solver's Setup function
+        bool call_analyze             ///< if true, call the solver's Setup analyze phase
         ) override;
 
     /// Increment a vector R with the term c*F:

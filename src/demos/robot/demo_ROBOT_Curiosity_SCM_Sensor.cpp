@@ -392,12 +392,12 @@ int main(int argc, char* argv[]) {
                                 ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
 
         // add moving patch for all obstacles
-        terrain.AddActiveDomain(rock_1, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rock_2, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rock_3, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rock_4, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rock_5, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rock_6, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rock_1, VNULL, ChVector3d(2.0, 2.0, 2.0));
+        terrain.AddActiveDomain(rock_2, VNULL, ChVector3d(2.0, 2.0, 2.0));
+        terrain.AddActiveDomain(rock_3, VNULL, ChVector3d(2.0, 2.0, 2.0));
+        terrain.AddActiveDomain(rock_4, VNULL, ChVector3d(2.0, 2.0, 2.0));
+        terrain.AddActiveDomain(rock_5, VNULL, ChVector3d(2.0, 2.0, 2.0));
+        terrain.AddActiveDomain(rock_6, VNULL, ChVector3d(2.0, 2.0, 2.0));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.

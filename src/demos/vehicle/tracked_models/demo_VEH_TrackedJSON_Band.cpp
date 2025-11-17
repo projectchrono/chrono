@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
     integrator->SetVerbose(verbose_integrator);
 
     // ---------------
@@ -457,7 +457,6 @@ int main(int argc, char* argv[]) {
 
         cout << "Step: " << step_number;
         cout << "   Time: " << time;
-        cout << "   Number of Iterations: " << integrator->GetNumIterations();
         cout << "   Step Time: " << step_timing;
         cout << "   Total Time: " << total_timing;
         cout << endl;

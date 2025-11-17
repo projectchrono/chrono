@@ -30,7 +30,6 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 

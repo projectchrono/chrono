@@ -1,14 +1,3 @@
-# Enable C# language
-include(CheckLanguage)
-check_language(CSharp)
-
-if(NOT CMAKE_CSharp_COMPILER)
-  message("WARNING: The C# demos require a C# compiler, but none was found; disabling C# demos")
-  return()
-endif()
-
-enable_language(CSharp)
-
 # ----------------------------------------------------------------------
 
 function(FindDuplicates out_list list1 list2)
@@ -43,7 +32,7 @@ function(CollectCSharpFiles out_list module_list)
   # Core module
   list (FIND module_list "core" index)
   if (${index} GREATER -1)
-    set(Chrono_CSHARP_CORE_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/core")
+    set(Chrono_CSHARP_CORE_DIR "${PROJECT_BINARY_DIR}/../chrono_csharp/core")
     file(GLOB Chrono_CSHARP_CORE_SOURCES 
          LIST_DIRECTORIES false 
          RELATIVE "${Chrono_CSHARP_CORE_DIR}" 
@@ -57,7 +46,7 @@ function(CollectCSharpFiles out_list module_list)
   # Irrlict module
   list (FIND module_list "irrlicht" index)
   if (${index} GREATER -1)
-    set(Chrono_CSHARP_IRRLICHT_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/irrlicht")
+    set(Chrono_CSHARP_IRRLICHT_DIR "${PROJECT_BINARY_DIR}/../chrono_csharp/irrlicht")
     file(GLOB Chrono_CSHARP_IRRLICHT_SOURCES
          LIST_DIRECTORIES false
          RELATIVE "${Chrono_CSHARP_IRRLICHT_DIR}"
@@ -74,7 +63,7 @@ function(CollectCSharpFiles out_list module_list)
   # VSG module
   list (FIND module_list "vsg" index)
   if (${index} GREATER -1)
-    set(Chrono_CSHARP_VSG_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/vsg")
+    set(Chrono_CSHARP_VSG_DIR "${PROJECT_BINARY_DIR}/../chrono_csharp/vsg")
     file(GLOB Chrono_CSHARP_VSG_SOURCES
          LIST_DIRECTORIES false
          RELATIVE "${Chrono_CSHARP_VSG_DIR}"
@@ -91,7 +80,7 @@ function(CollectCSharpFiles out_list module_list)
   # Postprocess module
   list (FIND module_list "postprocess" index)
   if (${index} GREATER -1)
-    set(Chrono_CSHARP_POSTPROCESS_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/postprocess")
+    set(Chrono_CSHARP_POSTPROCESS_DIR "${PROJECT_BINARY_DIR}/../chrono_csharp/postprocess")
     file(GLOB Chrono_CSHARP_POSTPROCESS_SOURCES 
          LIST_DIRECTORIES false 
          RELATIVE "${Chrono_CSHARP_POSTPROCESS_DIR}" 
@@ -108,7 +97,7 @@ function(CollectCSharpFiles out_list module_list)
   # Vehicle module
   list (FIND module_list "vehicle" index)
   if (${index} GREATER -1)
-    set(Chrono_CSHARP_VEHICLE_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/vehicle")
+    set(Chrono_CSHARP_VEHICLE_DIR "${PROJECT_BINARY_DIR}/../chrono_csharp/vehicle")
     file(GLOB Chrono_CSHARP_VEHICLE_SOURCES
          LIST_DIRECTORIES false
          RELATIVE "${Chrono_CSHARP_VEHICLE_DIR}"
@@ -127,9 +116,27 @@ endfunction()
 
 # ----------------------------------------------------------------------
 
+cmake_minimum_required(VERSION 3.18)
+project(Csharp_demos )
+
+# Enable C# language
+include(CheckLanguage)
+check_language(CSharp)
+
+if(NOT CMAKE_CSharp_COMPILER)
+  message("WARNING: The C# demos require a C# compiler, but none was found; disabling C# demos")
+  return()
+endif()
+
+enable_language(CSharp)
 
 # Traverse subdirectories
-message(STATUS "Add demo programs for C# module")
+message(STATUS "Configure C# demo programs")
+message(STATUS "  VEHICLE module enabled?     ${CH_ENABLE_MODULE_VEHICLE}")
+message(STATUS "  POSTPROCESS module enabled? ${CH_ENABLE_MODULE_POSTPROCESS}")
+message(STATUS "  IRRLICHT module enabled?    ${CH_ENABLE_MODULE_IRRLICHT}")
+message(STATUS "  VSG module enabled?         ${CH_ENABLE_MODULE_VSG}")
+message(STATUS "  Runtime output directory:   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 add_subdirectory(core)
 add_subdirectory(mbs)

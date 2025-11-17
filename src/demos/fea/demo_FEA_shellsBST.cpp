@@ -21,7 +21,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono/fea/ChElementShellBST.h"
@@ -382,9 +381,9 @@ int main(int argc, char* argv[]) {
     // time step, so each time step has less CPU overhead, but this comes at a cost: very short time steps must
     // be used otherwise the integration will diverge - especially if the system has high stiffness and/or low masses.
     // For the case of the falling cloth, we succesfully tested
-    //   ChTimestepperEulerExplIIorder  timestep = 0.00002  (not suggested, better use higher order)
+    //   ChTimestepperEulerExplicitIIorder  timestep = 0.00002  (not suggested, better use higher order)
     //   ChTimestepperHeun              timestep = 0.0001   (Heun is like a 2nd order Runge Kutta)
-    //   ChTimestepperRungeKuttaExpl    timestep = 0.0005   (the famous 4th order Runge Kutta, of course slower)
+    //   ChTimestepperRungeKutta    timestep = 0.0005   (the famous 4th order Runge Kutta, of course slower)
     //
     // You will see that the explicit integrator does not introduce numerical damping unlike implicit integrators,
     // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add �

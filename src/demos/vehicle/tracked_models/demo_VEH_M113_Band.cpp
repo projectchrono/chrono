@@ -65,10 +65,10 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Band track type (BAND_BUSHING or BAND_ANCF)
-TrackShoeType shoe_type = TrackShoeType::BAND_BUSHING;
+TrackShoeType shoe_type = TrackShoeType::BAND_ANCF;
 
 // ANCF element type for BAND_ANCF (ANCF_4 or ANCF_8)
-ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_8;
+ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_4;
 
 // Number of ANCF elements in one track shoe web mesh
 int num_elements_length = 1;
@@ -82,11 +82,11 @@ double step_size = 5e-5;
 double t_end = 10.0;
 
 // Linear solver (SPARSE_QR, SPARSE_LU, MUMPS, or PARDISO_MKL)
-ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
+ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
 // Verbose level
 bool verbose_solver = false;
-bool verbose_integrator = false;
+bool verbose_integrator = true;
 
 // Output
 bool output = false;
@@ -114,6 +114,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+
     const std::string out_dir = GetChronoOutputPath() + "M113_BAND";
     const std::string img_dir = out_dir + "/IMG";
     const std::string vtk_dir = out_dir + "/VTK";
@@ -175,11 +176,6 @@ int main(int argc, char* argv[]) {
             std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::LEFT))->GetMesh();
         meshR =
             std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::RIGHT))->GetMesh();
-
-        cout << "[FEA mesh left]  n_nodes = " << meshL->GetNumNodes() << " n_elements = " << meshL->GetNumElements()
-             << endl;
-        cout << "[FEA mesh right] n_nodes = " << meshR->GetNumNodes() << " n_elements = " << meshR->GetNumElements()
-             << endl;
     }
 
     // Set visualization type for vehicle components.
@@ -276,6 +272,17 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization
     // -----------------------------------------
 
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::string title = std::string("M113 Band-track Vehicle - ") +
+                        (shoe_type == TrackShoeType::BAND_BUSHING ? " - BUSHINGS" : " - ANCF MESH");
     std::shared_ptr<ChVehicleVisualSystem> vis;
 
     switch (vis_type) {
@@ -283,7 +290,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("M113 Band-track Vehicle Demo");
+            vis_irr->SetWindowTitle(title);
+            vis_irr->SetWindowSize(1200, 800);
             vis_irr->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
             vis_irr->SetChaseCameraMultipliers(1e-4, 10);
             vis_irr->Initialize();
@@ -301,10 +309,11 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("M113 Band-track Vehicle Demo");
+            vis_vsg->SetWindowTitle(title);
+            vis_vsg->SetWindowSize(1200, 800);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
             vis_vsg->AttachVehicle(&m113.GetVehicle());
-            ////vis_vsg->ShowAllCoGs(0.3);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
             vis_vsg->Initialize();
@@ -346,44 +355,46 @@ int main(int argc, char* argv[]) {
         solver_type = ChSolver::Type::SPARSE_QR;
 #endif
 
+    std::shared_ptr<ChDirectSolverLS> solver;
     switch (solver_type) {
         case ChSolver::Type::SPARSE_QR: {
             std::cout << "Using SparseQR solver" << std::endl;
-            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
-            solver->UseSparsityPatternLearner(true);
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(false);
-            sys->SetSolver(solver);
+            auto solver_qr = chrono_types::make_shared<ChSolverSparseQR>();
+            solver_qr->UseSparsityPatternLearner(true);
+            solver_qr->LockSparsityPattern(true);
+            solver_qr->SetVerbose(verbose_solver);
+            solver = solver_qr;
             break;
         }
         case ChSolver::Type::SPARSE_LU: {
             std::cout << "Using SparseLU solver" << std::endl;
-            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
-            solver->UseSparsityPatternLearner(true);
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(false);
-            sys->SetSolver(solver);
+            auto solver_lu = chrono_types::make_shared<ChSolverSparseLU>();
+            solver_lu->UseSparsityPatternLearner(true);
+            solver_lu->LockSparsityPattern(true);
+            solver_lu->SetVerbose(verbose_solver);
+            solver = solver_lu;
             break;
         }
         case ChSolver::Type::MUMPS: {
 #ifdef CHRONO_MUMPS
             std::cout << "Using MUMPS solver" << std::endl;
-            auto solver = chrono_types::make_shared<ChSolverMumps>();
-            solver->LockSparsityPattern(true);
-            solver->EnableNullPivotDetection(true);
-            solver->GetMumpsEngine().SetICNTL(14, 50);
-            solver->SetVerbose(verbose_solver);
-            sys->SetSolver(solver);
+            auto solver_mumps = chrono_types::make_shared<ChSolverMumps>();
+            solver_mumps->LockSparsityPattern(true);
+            solver_mumps->EnableNullPivotDetection(true);
+            solver_mumps->GetMumpsEngine().SetICNTL(14, 50);
+            solver_mumps->SetVerbose(verbose_solver);
+            solver = solver_mumps;
 #endif
             break;
         }
         case ChSolver::Type::PARDISO_MKL: {
 #ifdef CHRONO_PARDISO_MKL
             std::cout << "Using PardisoMKL solver" << std::endl;
-            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(verbose_solver);
-            sys->SetSolver(solver);
+            auto solver_pardiso = chrono_types::make_shared<ChSolverPardisoMKL>();
+            solver_pardiso->UseSparsityPatternLearner(true);
+            solver_pardiso->LockSparsityPattern(true);
+            solver_pardiso->SetVerbose(verbose_solver);
+            solver = solver_pardiso;
 #endif
             break;
         }
@@ -393,15 +404,18 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
+    sys->SetSolver(solver);
 
     // Integrator
     sys->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxIters(20);
+    integrator->SetRelTolerance(1e-2);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(true);
+    integrator->AcceptTerminatedStep(false);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     integrator->SetVerbose(verbose_integrator);
 
     // OpenMP threads
@@ -500,6 +514,12 @@ int main(int argc, char* argv[]) {
         if (vis)
             vis->Synchronize(time, driver_inputs);
 
+        // Adjust solver and integrator settings after initial settling period
+        if (step_number == 10) {
+            integrator->SetMaxIters(10);
+            integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
+        }
+
         // Advance simulation for one timestep for all modules
         if (step_number == 140) {
             step_size = 1e-4;
@@ -522,11 +542,13 @@ int main(int argc, char* argv[]) {
         double step_timing = sys->GetTimerStep();
         total_timing += step_timing;
 
-        cout << "Step: " << step_number;
-        cout << "   Time: " << time;
-        cout << "   Number of Iterations: " << integrator->GetNumIterations();
-        cout << "   Step Time: " << step_timing;
-        cout << "   Total Time: " << total_timing;
+        cout << step_number;
+        cout << "  | time: " << time;
+        cout << "  | Newton iterations: " << integrator->GetNumStepIterations();
+        cout << "  | step timer: " << step_timing;
+        cout << "  setup timer: " << sys->GetTimerLSsetup();
+        cout << "  solve timer: " << sys->GetTimerLSsolve();
+        cout << "   total timer: " << total_timing;
         cout << endl;
     }
 
