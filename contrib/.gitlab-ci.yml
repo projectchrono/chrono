@@ -173,7 +173,7 @@ linux:ubuntu22.04-clang:test:
   tags:
     - linux
   image:
-      name: uwsbel/packages:ubuntu
+      name: uwsbel/packages:cuda12.8.1
   before_script:
     # this script overwrites the default ubuntu script to include conda preparations
     - uname -a
