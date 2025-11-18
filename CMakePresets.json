@@ -179,6 +179,7 @@
 			    "CH_ENABLE_OPENCRG": "ON",
 			    "CH_USE_SPH_DOUBLE": "OFF",
 			    "EIGEN3_INCLUDE_DIR": "C:/Users/builder/Documents/Eigen3",
+				"HDF5_DIR": "C:/Program Files/HDF_Group/HDF5/1.14.6/cmake/",
 			    "MKL_DIR": "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/lib/cmake/mkl",
 			    "Irrlicht_ROOT": "C:/Users/builder/Documents/irrlicht-1.8.5",
 			    "blaze_INCLUDE_DIR": "C:/Users/builder/Documents/blaze-3.8.1",
