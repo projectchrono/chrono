@@ -32,8 +32,8 @@ requirements:
     - libxxf86vm-devel-cos7-x86_64 # [linux]
     - mkl-devel ==2025.2.0 # [not arm64]
     - irrlicht
-    - opencascade ==7.4.0 # [not arm64]
-    - numpy >=1.24.0
+    - occt ==7.9.2
+    - numpy
     - glew
     - glfw
     - eigen ==3.4.0
@@ -53,9 +53,9 @@ requirements:
   run:
     - python
     - mkl ==2025.2.0 # [not arm64]
-    - numpy >=1.24.0
+    - numpy
     - irrlicht
-    - opencascade ==7.4.0 # [not arm64]
+    - occt ==7.9.2
     - glew
     - glfw
     - eigen ==3.4.0
