@@ -1436,7 +1436,9 @@ if(UNIX)
 endif()
 
 if(HDF5_FOUND)
-    if(TARGET hdf5-static)
+    if(TARGET hdf5-static AND (NOT APPLE))
+      # There are some issues with the static version of HDF5 on macOS
+      # See https://autotwin.github.io/automesh/installation.html#zlib-target-not-found
       message(STATUS "Linking static libraries hdf5-static")
       target_link_libraries(Chrono_core PUBLIC hdf5-static)
       target_link_libraries(Chrono_core PUBLIC hdf5_cpp-static)

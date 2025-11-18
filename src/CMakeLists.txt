@@ -393,8 +393,6 @@ option(CH_ENABLE_HDF5 "Enable HDF5 support" OFF)
 
 if(CH_ENABLE_HDF5)
     message(STATUS "Searching for HDF5...")
-    find_package(ZLIB)
-    find_package(libaec)
     find_package(HDF5 COMPONENTS CXX)
 
     if (HDF5_FOUND)
