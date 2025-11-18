@@ -53,7 +53,7 @@ requirements:
   run:
     - python
     - mkl ==2025.2.0 # [not arm64]
-    - numpy >=1.24.0
+    - numpy
     - irrlicht
     - occt ==7.9.2
     - glew
