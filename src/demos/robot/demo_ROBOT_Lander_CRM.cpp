@@ -45,6 +45,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -61,6 +62,8 @@ using namespace chrono::vehicle;
 
 // Lunar gravity acceleration (m/s^2)
 const double LUNAR_GRAVITY = 1.62;
+const double EARTH_GRAVITY = 9.81;
+const double MARS_GRAVITY = 3.71;
 
 // Platform parameters
 const double TERRAIN_SIZE_X = 6.0;  // meters
@@ -85,12 +88,15 @@ const double INITIAL_VELOCITY = -1.0;  // m/s downward
 
 // Clearance above ground when starting simulation (m)
 const double GROUND_CLEARANCE = 0.05;  // meters
-const double t_end = 2;
+const double t_end = 1.2;
 const bool USE_ACTIVE_DOMAIN = true;
 
 // Output parameters
 const double output_fps = 100.0;  // Output FPS for CSV and snapshots
 const bool snapshots = true;      // Enable snapshot saving
+
+const bool ADD_LANDERBODY_BCE = true;
+const bool ADD_LANDERLEGS_BCE = true;
 
 class SPHPropertiesCallbackWithPressureScale : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
@@ -122,13 +128,21 @@ int main(int argc, char* argv[]) {
     double lambda = 0.04;
     double pre_pressure_scale = 2.0;
     bool no_vis = false;
+    double gravity_polar_deg = 0.0;
+    double gravity_azimuth_deg = 0.0;
+    double gravity_magnitude = LUNAR_GRAVITY;
 
     cli.AddOption<std::string>("Physics", "rheology_model_crm", "Rheology model (MU_OF_I/MCC)", rheology_model_crm);
     cli.AddOption<double>("Physics", "pre_pressure_scale", "Pre-pressure scale", std::to_string(pre_pressure_scale));
     cli.AddOption<double>("Physics", "kappa", "kappa", std::to_string(kappa));
     cli.AddOption<double>("Physics", "lambda", "lambda", std::to_string(lambda));
     cli.AddOption<bool>("Visualization", "no_vis", "Disable visualization", "false");
-
+    cli.AddOption<double>("Physics", "gravity_polar_deg", "Gravity polar angle (degrees)",
+                          std::to_string(gravity_polar_deg));
+    cli.AddOption<double>("Physics", "gravity_azimuth_deg", "Gravity azimuth angle (degrees)",
+                          std::to_string(gravity_azimuth_deg));
+    std::string gravity_planet = "moon";
+    cli.AddOption<std::string>("Physics", "gravity_planet", "Gravity planet (earth/mars/moon)", gravity_planet);
     if (!cli.Parse(argc, argv))
         return 1;
 
@@ -137,8 +151,21 @@ int main(int argc, char* argv[]) {
     kappa = cli.GetAsType<double>("kappa");
     lambda = cli.GetAsType<double>("lambda");
     no_vis = cli.GetAsType<bool>("no_vis");
-
+    gravity_polar_deg = cli.GetAsType<double>("gravity_polar_deg");
+    gravity_azimuth_deg = cli.GetAsType<double>("gravity_azimuth_deg");
+    gravity_planet = cli.GetAsType<std::string>("gravity_planet");
     bool enable_vis = !no_vis;
+
+    // Convert to lowercase for case-insensitive comparison
+    std::transform(gravity_planet.begin(), gravity_planet.end(), gravity_planet.begin(), ::tolower);
+
+    if (gravity_planet == "earth") {
+        gravity_magnitude = EARTH_GRAVITY;
+    } else if (gravity_planet == "mars") {
+        gravity_magnitude = MARS_GRAVITY;
+    } else if (gravity_planet == "moon") {
+        gravity_magnitude = LUNAR_GRAVITY;
+    }
 
     // Create the physical system
     ChSystemNSC sys;
@@ -152,7 +179,12 @@ int main(int argc, char* argv[]) {
     SetChronoSolver(sys, ChSolver::Type::BARZILAIBORWEIN, ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     // Set lunar gravity (downward in Z direction)
-    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -LUNAR_GRAVITY));
+    double gravity_x = -gravity_magnitude * std::sin(gravity_polar_deg * CH_PI / 180.0) *
+                       std::cos(gravity_azimuth_deg * CH_PI / 180.0);
+    double gravity_y = -gravity_magnitude * std::sin(gravity_polar_deg * CH_PI / 180.0) *
+                       std::sin(gravity_azimuth_deg * CH_PI / 180.0);
+    double gravity_z = -gravity_magnitude * std::cos(gravity_polar_deg * CH_PI / 180.0);
+    sys.SetGravitationalAcceleration(ChVector3d(gravity_x, gravity_y, gravity_z));
 
     // Create contact material
     auto contact_material = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -199,8 +231,7 @@ int main(int argc, char* argv[]) {
     auto sysFSI = fsi.GetFsiSystemSPH();
 
     // Set gravitational acceleration
-    const ChVector3d gravity(0, 0, -LUNAR_GRAVITY);
-    fsi.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(ChVector3d(gravity_x, gravity_y, gravity_z));
 
     // Set integration step size
     fsi.SetStepSizeCFD(step_size);
@@ -254,6 +285,7 @@ int main(int argc, char* argv[]) {
 
     // Add the footpads as FSI bodies
     auto footpads = lander.GetFootpads();
+
     // This is pretty inconvient
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1),
@@ -261,11 +293,40 @@ int main(int argc, char* argv[]) {
     for (auto& footpad : footpads) {
         fsi.AddRigidBody(footpad, geometry, false);
     }
-    if (USE_ACTIVE_DOMAIN)
-        fsi.SetActiveDomain(active_box_dim);
+    if (ADD_LANDERLEGS_BCE) {
+        auto leg_length = lander.GetLegLength();
+        auto leg_radius = lander.GetLegRadius();
+        auto leg_geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        leg_geometry->coll_cylinders.push_back(
+            utils::ChBodyGeometry::CylinderShape(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), leg_radius, leg_length));
+        auto legs = lander.GetLegs();
+        for (auto& leg : legs) {
+            fsi.AddRigidBody(leg, leg_geometry, false);
+        }
+    }
+    if (ADD_LANDERBODY_BCE) {
+        auto cylinder_length = lander.GetCylinderLength();
+        auto cylinder_radius = lander.GetCylinderRadius();
+        auto cylinder_geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        cylinder_geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(
+            ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), cylinder_radius, cylinder_length));
+        auto lander_body = lander.GetBody();
+        fsi.AddRigidBody(lander_body, cylinder_geometry, false);
+    }
+    if (USE_ACTIVE_DOMAIN) {
+        if (ADD_LANDERBODY_BCE) {
+            // Make box bigger
+            auto cylinder_length = lander.GetCylinderLength();
+            active_box_dim.z() = cylinder_length;
+            fsi.SetActiveDomain(active_box_dim);
+        } else {
+            fsi.SetActiveDomain(active_box_dim);
+        }
+    }
 
     std::cout << "Constructing terrain..." << std::endl;
     // fsi.Construct(ChVector3d(TERRAIN_SIZE_X, TERRAIN_SIZE_Y, TERRAIN_SIZE_Z), ChVector3d(0, 0, 0), BoxSide::Z_NEG);
+
     std::string terrain_dir = "terrain/sph/cube";
     std::string sph_file = vehicle::GetDataFile(terrain_dir + "/fluid0.txt");
     std::string bce_file = vehicle::GetDataFile(terrain_dir + "/boundary0.txt");
@@ -284,6 +345,9 @@ int main(int argc, char* argv[]) {
     ss << std::fixed;
     ss << base_dir << "ROBOT_Lander_CRM";
     ss << "_" << rheology_model_crm;
+    ss << "_gravity_planet_" << gravity_planet;
+    ss << "_gravity_polar_deg_" << gravity_polar_deg;
+    ss << "_gravity_azimuth_deg_" << gravity_azimuth_deg;
     if (rheology_model_crm == "MCC") {
         ss << "_pre_pressure_scale_" << std::setprecision(2) << pre_pressure_scale;
         ss << "_kappa_" << std::setprecision(2) << kappa;
@@ -389,16 +453,8 @@ int main(int argc, char* argv[]) {
     double t = 0;
     int render_frame = 0;
     int csv_frame = 0;
-    bool first_step_written = false;
 
     while (t < t_end) {
-        // Write SPH particles and BCE markers after the first time step
-        if (!first_step_written) {
-            std::cout << "Writing SPH particles and BCE markers at t = " << t << std::endl;
-            sysSPH->SaveParticleData(out_dir + "particles");
-            sysSPH->SaveSolidData(out_dir + "fsi", t);
-            first_step_written = true;
-        }
         // Write CSV data at output FPS
         if (t >= csv_frame / output_fps) {
             ChVector3d pos = lander.GetBody()->GetPos();
