@@ -23,7 +23,7 @@
 #include <iomanip>
 
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "FMU_WheeledVehiclePtrain.h"
@@ -192,7 +192,7 @@ void FmuComponent::CreateVehicle() {
     std::cout << " Initial location:  " << init_loc << std::endl;
     std::cout << " Initial yaw:       " << init_yaw << std::endl;
 
-    vehicle::SetDataPath(data_path);
+    vehicle::SetVehicleDataPath(data_path);
 
     // Create the vehicle system
     vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle_JSON,

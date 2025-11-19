@@ -297,6 +297,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     mystepper->SetMaxIters(40);
     mystepper->SetAbsTolerances(1e-2, 1e-1);
     mystepper->SetVerbose(false);
+
     auto container = chrono_types::make_shared<MyContactContainer>();
     //    auto contacts = chrono_types::make_shared<MyContacts>();
 

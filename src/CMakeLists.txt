@@ -135,13 +135,23 @@ endif()
 #-----------------------------------------------------------------------------
 
 message(STATUS "Searching for Eigen3")
-find_package(Eigen3 3.3 QUIET)
-if(EIGEN3_FOUND)
-  message(STATUS "  Eigen3 found. EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+
+# Look first for Eigen 5.0, then 3.3
+find_package(Eigen3 5.0 QUIET)
+if(NOT Eigen3_FOUND)
+   find_package(Eigen3 3.3)
+endif()
+
+if(Eigen3_FOUND)
+  message(STATUS "Eigen3 found")
+  message(STATUS "  Eigen3 version:     ${EIGEN3_VERSION}")
+  message(STATUS "  Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
   mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
 else()
-  message(ERROR "  Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or the envvar Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
+  message(ERROR "Eigen3 cannot be found.\n"
+          "  Provide Eigen3_DIR (location of Eigen3Config.cmake) or else\n" 
+          "  set either EIGEN3_INCLUDE_DIR or the envvar Eigen3_ROOT to the location of Eigen library.")
   set(EIGEN3_INCLUDE_DIR "" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
   set(Eigen3_DIR "" CACHE PATH "Path to Eigen3 config file (should contain the \"Eigen3Config.cmake\" file")
   mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
@@ -383,6 +393,8 @@ option(CH_ENABLE_HDF5 "Enable HDF5 support" OFF)
 
 if(CH_ENABLE_HDF5)
     message(STATUS "Searching for HDF5...")
+    find_package(ZLIB)
+    find_package(libaec)
     find_package(HDF5 COMPONENTS CXX)
 
     if (HDF5_FOUND)
@@ -692,6 +704,12 @@ else()
   set(CHRONO_HAS_THRUST "#undef CHRONO_HAS_THRUST")
   set(CHRONO_THRUST_VERSION "#undef CHRONO_THRUST_VERSION")
   set(CHRONO_COLLISION "#undef CHRONO_COLLISION")
+endif()
+
+if(CH_CXX17)
+    set(CHRONO_HAS_CXX17 "#define CHRONO_HAS_CXX17")
+else()
+    set(CHRONO_HAS_CXX17 "#undef CHRONO_HAS_CXX17")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"

@@ -34,9 +34,10 @@
     This module provides support for modeling multi-phase systems for fluid-solid interaction problems.
     Currently, this module consists of the following libraries:
     - Chrono_fsi implements a generic interface between a Chrono mutibody system and an arbitraru FSI-capable fluid solver.
-    - Chrono_fsisph implements a concrete, SPH-based version of the FSI interface.
+    - Chrono_fsisph implements a concrete, SPH-based FSI fluid solver.
     and granular-solid interaction problems.
     - Chrono_fsisph_vsg implements a customized Chrono::VSG run-time visualization system for SPH FSI problems.
+    - Chrono_fsitdpf implements a concrete fluid solver, based on the time-dependent potential flow solver in HydroChrono.
 
     For additional information, see:
     - the [Installation guide](@ref module_fsi_installation)
@@ -47,12 +48,18 @@
         @brief Base classes for a generic FSI Chrono interface
         @defgroup fsisph SPH-based FSI module
         @brief SPH-based fluid solver and FSI interface
+        This sub-module provides a Smoothed Particle Hydrodynamics fluid solver with support for:
+        - incompressible Navier-Stokes, and
+        - continuous representation model for terramechanics.
         @{
           @defgroup fsisph_physics Physics objects
           @defgroup fsisph_math Math support
           @defgroup fsisph_utils Utilities
           @defgroup fsisph_visualization Visualization
         @}
+        @defgroup fsitdpf TDPF-based FSI module
+        @brief TDPF-based fluid solver and FSI interface
+        This sub-module provides a Time-Dependent Potential Flow fluid solver for FSI problems.
     @}
 */
 
@@ -66,6 +73,9 @@ namespace fsi {
 
 /// Namespace with internal classes for the SPH-based FSI submodule.
 namespace sph {}
+
+/// Namespace with internal classes for the TDPF-based FSI submodule.
+namespace tdpf {}
 
 }  // namespace fsi
 

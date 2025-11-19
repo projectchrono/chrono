@@ -18,6 +18,9 @@
 
 #include "chrono/solver/ChDirectSolverLS.h"
 
+using std::cout;
+using std::endl;
+
 #define SPM_DEF_SPARSITY 0.9  ///< default predicted sparsity (in [0,1])
 
 namespace chrono {
@@ -42,32 +45,23 @@ void ChDirectSolverLS::ResetTimers() {
     m_timer_solve_solvercall.reset();
 }
 
-bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
+bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     m_timer_setup_assembly.start();
 
     // Calculate problem size.
     // Note that ChSystemDescriptor::UpdateCountsAndOffsets was already called at the beginning of the step.
     m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 
-    // If use of the sparsity pattern learner is enabled, call it if:
-    // (a) an explicit update was requested (by default this is true at the first call), or
-    // (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
-    bool call_learner = m_use_learner && (m_force_update || !m_lock);
+    // If the sparsity pattern learner is enabled and a full setup is required (analyze=true), call the learner if:
+    //  (a) an explicit update was requested (by default this is true at the first call), or
+    //  (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
+    bool call_learner = m_use_learner && analyze && (m_force_update || !m_lock);
 
-    // If use of the sparsity pattern learner is disabled, reserve space for nonzeros,
-    // using the current sparsity level estimate, if:
-    // (a) this is the first call to setup, or
-    // (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
-    bool call_reserve = !m_use_learner && (m_setup_call == 0 || !m_lock);
-
-    if (verbose) {
-        std::cout << "Solver setup" << std::endl;
-        std::cout << "  call number:    " << m_setup_call << std::endl;
-        std::cout << "  use learner?    " << m_use_learner << std::endl;
-        std::cout << "  pattern locked? " << m_lock << std::endl;
-        std::cout << "  CALL learner:   " << call_learner << std::endl;
-        std::cout << "  CALL reserve:   " << call_reserve << std::endl;
-    }
+    // If the sparsity pattern learner is disabled and a full setup is required (analyze=true), reserve space for
+    // nonzeros, using the current sparsity level estimate, if:
+    //  (a) this is the first call to setup, or
+    //  (b) the sparsity pattern is not locked and so has to be re-evaluated at each call
+    bool call_reserve = !m_use_learner && analyze && (m_setup_call == 0 || !m_lock);
 
     if (call_learner) {
         ChSparsityPatternLearner sparsity_pattern(m_dim, m_dim);
@@ -93,25 +87,28 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
 
     // Let the concrete solver perform the facorization
     m_timer_setup_solvercall.start();
-    bool result = FactorizeMatrix();
+    bool result = FactorizeMatrix(analyze);
     m_timer_setup_solvercall.stop();
 
     if (write_matrix)
         WriteMatrix("LS_" + frame_id + "_F.dat", m_mat);
 
     if (verbose) {
-        std::cout << " Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
-                  << std::endl;
-        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << "s\n"
-                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s"
-                  << std::endl;
+        cout << "  Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << endl;
+        cout << "     analyze?        " << analyze << endl;
+        cout << "     use learner?    " << m_use_learner << endl;
+        cout << "     pattern locked? " << m_lock << endl;
+        cout << "     call learner?   " << call_learner << endl;
+        cout << "     call reserve?   " << call_reserve << endl;
+        cout << "     timer assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << " s" << endl;
+        cout << "     timer analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s" << endl;
     }
 
     m_setup_call++;
 
     if (!result) {
         // If the factorization failed, let the concrete solver display an error message.
-        std::cerr << "Solver setup failed" << std::endl;
+        std::cerr << "Solver setup failed" << endl;
         PrintErrorMessage();
     }
 
@@ -143,16 +140,16 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
 
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
-        std::cout << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << std::endl << std::endl;
-        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << "s\n"
-                  << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << std::endl;
+        cout << "  Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << endl;
+        ////cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << " s" << endl;
+        ////cout << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << " s" << endl;
     }
 
     m_solve_call++;
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
-        std::cerr << "Solver solve failed" << std::endl;
+        std::cerr << "Solver solve failed" << endl;
         PrintErrorMessage();
     }
 
@@ -169,22 +166,20 @@ bool ChDirectSolverLS::SetupCurrent() {
 
     // Let the concrete solver perform the factorization
     m_timer_setup_solvercall.start();
-    bool result = FactorizeMatrix();
+    bool result = FactorizeMatrix(true);
     m_timer_setup_solvercall.stop();
 
     if (verbose) {
-        std::cout << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim
-                  << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
-        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << "s\n"
-                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s"
-                  << std::endl;
+        cout << "  Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << endl;
+        ////cout << "   timer assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << " s" << endl;
+        ////cout << "   timer analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s" << endl;
     }
 
     m_setup_call++;
 
     if (!result) {
         // If the factorization failed, let the concrete solver display an error message.
-        std::cerr << "Solver SetupCurrent() failed" << std::endl;
+        std::cerr << "Solver SetupCurrent() failed" << endl;
         PrintErrorMessage();
     }
 
@@ -203,17 +198,16 @@ double ChDirectSolverLS::SolveCurrent() {
 
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
-        std::cout << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << std::endl
-                  << std::endl;
-        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << "s\n"
-                  << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << std::endl;
+        cout << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << endl;
+        ////cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << " s" << endl;
+        ////cout << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << " s" << endl;
     }
 
     m_solve_call++;
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
-        std::cerr << "Solver SolveCurrent() failed" << std::endl;
+        std::cerr << "Solver SolveCurrent() failed" << endl;
         PrintErrorMessage();
     }
 
@@ -222,6 +216,20 @@ double ChDirectSolverLS::SolveCurrent() {
 
 // ---------------------------------------------------------------------------
 
+std::string ChDirectSolverLS::ComputationInfoString(Eigen::ComputationInfo info) {
+    switch (info) {
+        case Eigen::Success:
+            return "Success";
+        case Eigen::NumericalIssue:
+            return "NumericalIssue";
+        case Eigen::NoConvergence:
+            return "NoConvergence";
+        case Eigen::InvalidInput:
+            return "InvalidInput";
+    }
+    return "";
+}
+
 void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMatrix& M) {
     std::ofstream file(filename);
     file << std::setprecision(12) << std::scientific;
@@ -229,7 +237,7 @@ void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMa
         for (int j = 0; j < M.cols(); j++) {
             double elVal = M.coeff(i, j);
             if (elVal || (i == M.rows() - 1 && j == M.cols() - 1)) {
-                file << i + 1 << " " << j + 1 << " " << elVal << std::endl;
+                file << i + 1 << " " << j + 1 << " " << elVal << endl;
             }
         }
     }
@@ -239,10 +247,8 @@ void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDy
     std::ofstream file(filename);
     file << std::setprecision(12) << std::scientific;
     for (int i = 0; i < v.size(); i++)
-        file << v(i) << std::endl;
+        file << v(i) << endl;
 }
-
-// ---------------------------------------------------------------------------
 
 void ChDirectSolverLS::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -274,9 +280,20 @@ void ChDirectSolverLS::ArchiveIn(ChArchiveIn& archive_in) {
 
 // ---------------------------------------------------------------------------
 
-bool ChSolverSparseLU::FactorizeMatrix() {
-    m_engine.compute(m_mat);
-    return (m_engine.info() == Eigen::Success);
+bool ChSolverSparseLU::FactorizeMatrix(bool analyze) {
+    if (analyze) {
+        m_engine.analyzePattern(m_mat);
+        // Note: Eigen does not set info after the analyzePattern call -> no possible failure here
+    }
+
+    m_engine.factorize(m_mat);
+    auto err_F = m_engine.info();
+    if (err_F != Eigen::Success) {
+        std::cerr << "SparseLU FACTORIZE failed with error code " << ComputationInfoString(err_F) << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 bool ChSolverSparseLU::SolveSystem() {
@@ -288,13 +305,13 @@ void ChSolverSparseLU::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            std::cout << "computation was successful" << std::endl;
+            cout << "computation was successful" << endl;
             break;
         case Eigen::NumericalIssue:
-            std::cout << "LU factorization reported a problem, zero diagonal for instance" << std::endl;
+            cout << "LU factorization reported a problem, zero diagonal for instance" << endl;
             break;
         case Eigen::InvalidInput:
-            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
+            cout << "inputs are invalid, or the algorithm has been improperly called" << endl;
             break;
         default:
             break;
@@ -303,9 +320,20 @@ void ChSolverSparseLU::PrintErrorMessage() {
 
 // ---------------------------------------------------------------------------
 
-bool ChSolverSparseQR::FactorizeMatrix() {
-    m_engine.compute(m_mat);
-    return (m_engine.info() == Eigen::Success);
+bool ChSolverSparseQR::FactorizeMatrix(bool analyze) {
+    if (analyze) {
+        m_engine.analyzePattern(m_mat);
+        // Note: Eigen does not set info after the analyzePattern call -> no possible failure here
+    }
+
+    m_engine.factorize(m_mat);
+    auto err_F = m_engine.info();
+    if (err_F != Eigen::Success) {
+        std::cerr << "SparseQR FACTORIZE failed with error code " << ComputationInfoString(err_F) << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 bool ChSolverSparseQR::SolveSystem() {
@@ -317,13 +345,13 @@ void ChSolverSparseQR::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            std::cout << "computation was successful" << std::endl;
+            cout << "computation was successful" << endl;
             break;
         case Eigen::NumericalIssue:
-            std::cout << "QR factorization reported a problem" << std::endl;
+            cout << "QR factorization reported a problem" << endl;
             break;
         case Eigen::InvalidInput:
-            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
+            cout << "inputs are invalid, or the algorithm has been improperly called" << endl;
             break;
         default:
             break;

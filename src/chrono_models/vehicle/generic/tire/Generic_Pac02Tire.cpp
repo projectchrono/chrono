@@ -20,7 +20,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/generic/tire/Generic_Pac02Tire.h"
 
 namespace chrono {
@@ -42,7 +42,7 @@ void Generic_Pac02Tire::SetMFParams() {
 
     tir_file = "generic/tire/Generic_Pac02Tire.tir";
 
-    SetMFParamsByFile(vehicle::GetDataFile(tir_file));
+    SetMFParamsByFile(GetVehicleDataFile(tir_file));
 }
 
 // -----------------------------------------------------------------------------

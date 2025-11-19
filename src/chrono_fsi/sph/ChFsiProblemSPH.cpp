@@ -73,7 +73,8 @@ ChFsiProblemSPH::ChFsiProblemSPH(double spacing, ChSystem* sys)
 }
 
 void ChFsiProblemSPH::AttachMultibodySystem(ChSystem* sys) {
-    m_sysFSI->AtachMultibodySystem(sys);
+    m_sysMBS = sys;
+    m_sysFSI->AttachMultibodySystem(sys);
 }
 
 void ChFsiProblemSPH::SetVerbose(bool verbose) {
@@ -195,10 +196,9 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
 // ----------------------------------------------------------------------------
 
 void ChFsiProblemSPH::Initialize() {
-    ChAssertAlways(m_sysMBS);
-
     // Add ground body to MBS system
-    m_sysMBS->AddBody(m_ground);
+    if (m_sysMBS)
+        m_sysMBS->AddBody(m_ground);
 
     // Prune SPH particles at grid locations that overlap with obstacles
     if (!m_sysSPH->m_bodies.empty()) {
@@ -279,20 +279,6 @@ void ChFsiProblemSPH::Initialize() {
     // (ATTENTION: BCE markers must be created after the SPH particles!)
     m_sysSPH->AddBCEBoundary(bce_points, m_ground->GetFrameRefToAbs());
 
-    // Update AABB using geometry of FSI solids
-    for (const auto& b : m_sysSPH->m_bodies) {
-        auto body_aabb = b.fsi_body->geometry->CalculateAABB();
-        aabb += body_aabb.Transform(b.fsi_body->body->GetFrameRefToAbs());
-    }
-    for (const auto& m : m_sysSPH->m_meshes1D) {
-        auto mesh_aabb = m.fsi_mesh->contact_surface->GetAABB();
-        aabb += mesh_aabb;
-    }
-    for (const auto& m : m_sysSPH->m_meshes2D) {
-        auto mesh_aabb = m.fsi_mesh->contact_surface->GetAABB();
-        aabb += mesh_aabb;
-    }
-
     if (m_verbose) {
         cout << "AABB of SPH particles:" << endl;
         cout << "  min: " << m_sph_aabb.min << endl;
@@ -322,12 +308,12 @@ void ChFsiProblemSPH::Initialize() {
     m_initialized = true;
 }
 
-void ChFsiProblemSPH::PrintFSIStats() const {
-    m_sysSPH->PrintFluidSystemSPHStats();
+void ChFsiProblemSPH::PrintStats() const {
+    m_sysSPH->PrintStats();
 }
 
-void ChFsiProblemSPH::PrintFluidSystemSPHTimeSteps(const std::string& path) const {
-    m_sysSPH->PrintFluidSystemSPHTimeSteps(path);
+void ChFsiProblemSPH::PrintTimeSteps(const std::string& path) const {
+    m_sysSPH->PrintTimeSteps(path);
 }
 
 // Check if specified point is inside a primitive shape of the given geometry.
@@ -1234,66 +1220,71 @@ std::shared_ptr<ChBody> ChFsiProblemWavetank::ConstructWaveTank(
     */
 
     // Create wavemaker body
-    std::shared_ptr<ChBody> body;
-    ChVector3d body_size(thickness, box_size.y(), box_size.z());
-    ChVector3d body_pos(-box_size.x() / 2 - thickness / 2 - m_spacing, 0, box_size.z() / 2);
-
-    ChSystem& sysMBS = m_sysFSI->GetMultibodySystem();
+    m_wavemaker_size = ChVector3d(thickness, box_size.y(), box_size.z());
+    m_wavemaker_pos = ChVector3d(-box_size.x() / 2 - thickness / 2 - m_spacing, 0, box_size.z() / 2);
 
     switch (type) {
         case WavemakerType::PISTON: {
             // Create the piston body and a linear motor
-            body = chrono_types::make_shared<ChBody>();
-            body->SetName("Wavemaker Piston");
-            body->SetPos(pos + body_pos);
-            body->SetRot(QUNIT);
-            body->SetFixed(false);
-            body->EnableCollision(false);
-            sysMBS.AddBody(body);
+            m_wavemaker_body = chrono_types::make_shared<ChBody>();
+            m_wavemaker_body->SetName("internal_wavemaker_piston");
+            m_wavemaker_body->SetPos(pos + m_wavemaker_pos);
+            m_wavemaker_body->SetRot(QUNIT);
+            m_wavemaker_body->SetFixed(false);
+            m_wavemaker_body->EnableCollision(false);
 
-            auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-            motor->Initialize(body, m_ground, ChFramed(body->GetPos(), Q_ROTATE_Z_TO_X));
-            motor->SetMotorFunction(actuation);
-            sysMBS.AddLink(motor);
+            m_wavemaker_motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+            m_wavemaker_motor->Initialize(m_wavemaker_body, m_ground,
+                                          ChFramed(m_wavemaker_body->GetPos(), Q_ROTATE_Z_TO_X));
+            m_wavemaker_motor->SetMotorFunction(actuation);
 
             break;
         }
         case WavemakerType::FLAP: {
             // Create the flap body and a rotational motor
-            auto rev_pos = pos + body_pos - ChVector3d(0, 0, box_size.z() / 2);
+            auto rev_pos = pos + m_wavemaker_pos - ChVector3d(0, 0, box_size.z() / 2);
 
-            body_pos.z() -= thickness / 2;
-            body_size.z() += thickness;
+            m_wavemaker_pos.z() -= thickness / 2;
+            m_wavemaker_size.z() += thickness;
 
-            body = chrono_types::make_shared<ChBody>();
-            body->SetName("Wavemaker Flap");
-            body->SetPos(pos + body_pos);
-            body->SetRot(QUNIT);
-            body->SetFixed(false);
-            body->EnableCollision(false);
-            sysMBS.AddBody(body);
+            m_wavemaker_body = chrono_types::make_shared<ChBody>();
+            m_wavemaker_body->SetName("internal_wavemaker_flap");
+            m_wavemaker_body->SetPos(pos + m_wavemaker_pos);
+            m_wavemaker_body->SetRot(QUNIT);
+            m_wavemaker_body->SetFixed(false);
+            m_wavemaker_body->EnableCollision(false);
 
-            auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            motor->Initialize(body, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
-            motor->SetMotorFunction(actuation);
-            sysMBS.AddLink(motor);
+            m_wavemaker_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+            m_wavemaker_motor->Initialize(m_wavemaker_body, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
+            m_wavemaker_motor->SetMotorFunction(actuation);
 
             break;
         }
     }
 
-    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, body_size));
-    geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
-
-    // Add wavemaker body as FSI body
-    AddRigidBody(body, geometry, true);
-
     if (m_verbose) {
-        cout << "  Body initialized at:   " << body->GetPos() << endl;
+        cout << "  Body initialized at:   " << m_wavemaker_body->GetPos() << endl;
     }
 
-    return body;
+    return m_wavemaker_body;
+}
+
+void ChFsiProblemWavetank::Initialize() {
+    if (m_sysMBS) {
+        // Add wavemaker body and motor to multibody system
+        m_sysMBS->AddBody(m_wavemaker_body);
+        m_sysMBS->AddLink(m_wavemaker_motor);
+
+        // Add wavemaker body as FSI body
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, m_wavemaker_size));
+        geometry->CreateVisualizationAssets(m_wavemaker_body, VisualizationType::COLLISION);
+
+        AddRigidBody(m_wavemaker_body, geometry, true);
+    }
+
+    // Complete initialization of the FSI problem
+    ChFsiProblemSPH::Initialize();
 }
 
 // ============================================================================

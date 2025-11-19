@@ -29,7 +29,7 @@ set(Chrono_core_SOURCES
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
     core/ChRandom.cpp
-    core/ChGlobal.cpp
+    core/ChDataPath.cpp
     )
 set(Chrono_core_HEADERS
     core/ChApiCE.h
@@ -57,7 +57,7 @@ set(Chrono_core_HEADERS
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
     core/ChCubicSpline.h
-    core/ChGlobal.h
+    core/ChDataPath.h
     core/ChTypes.h
     core/ChTensors.h
     )
@@ -108,6 +108,7 @@ set(Chrono_physics_SOURCES
     physics/ChExternalDynamicsODE.cpp
     physics/ChExternalDynamicsDAE.cpp
     physics/ChAssembly.cpp
+    physics/ChMassProperties.cpp
     )
 set(Chrono_physics_HEADERS
     physics/ChBodyFrame.h
@@ -132,7 +133,7 @@ set(Chrono_physics_HEADERS
     physics/ChExternalDynamicsODE.h
     physics/ChExternalDynamicsDAE.h
     physics/ChAssembly.h
-    physics/ChInertiaUtils.h
+    physics/ChMassProperties.h
     )
 source_group(physics FILES ${Chrono_physics_SOURCES} ${Chrono_physics_HEADERS})
 
@@ -891,6 +892,8 @@ source_group(particlefactory FILES ${Chrono_particlefactory_SOURCES} ${Chrono_pa
 set(Chrono_timestepper_SOURCES
     timestepper/ChIntegrable.cpp
     timestepper/ChTimestepper.cpp
+    timestepper/ChTimestepperExplicit.cpp
+    timestepper/ChTimestepperImplicit.cpp
     timestepper/ChTimestepperHHT.cpp
     timestepper/ChStaticAnalysis.cpp
     timestepper/ChAssemblyAnalysis.cpp
@@ -899,6 +902,8 @@ set(Chrono_timestepper_HEADERS
     timestepper/ChState.h
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
+    timestepper/ChTimestepperExplicit.h
+    timestepper/ChTimestepperImplicit.h
     timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
     timestepper/ChAssemblyAnalysis.h
@@ -1091,7 +1096,6 @@ set(Chrono_utils_SOURCES
     utils/ChProfiler.cpp
     utils/ChControllers.cpp
     utils/ChFilters.cpp
-    utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
     utils/ChForceFunctors.cpp
@@ -1112,7 +1116,6 @@ set(Chrono_utils_HEADERS
     utils/ChProfiler.h
     utils/ChControllers.h
     utils/ChFilters.h
-    utils/ChCompositeInertia.h
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
     utils/ChForceFunctors.h
@@ -1142,8 +1145,6 @@ if (HDF5_FOUND)
     )
 endif()
 source_group(output FILES ${Chrono_output_SOURCES} ${Chrono_output_HEADERS})
-
-
 
 # -------------------------------------------------------------------------------------------------
 # Third-party files
@@ -1258,6 +1259,11 @@ set(Chrono_libstl_FILES
 )
 source_group(utils\\libstl FILES ${Chrono_libstl_FILES})
 
+# Chrono configuration and version files
+set(Chrono_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono/ChConfig.h)
+set(Chrono_VERSION_FILE ${PROJECT_BINARY_DIR}/chrono/ChVersion.h)
+source_group("" FILES ${Chrono_CONFIG_FILE} ${Chrono_VERSION_FILE})
+
 # -------------------------------------------------------------------------------------------------
 # Collect all source and header files for the Chrono core library
 # -------------------------------------------------------------------------------------------------
@@ -1337,6 +1343,8 @@ set(Chrono_FILES
     ${Chrono_SOURCES}
     ${Chrono_HEADERS}
     ${Chrono_thirdparty_FILES}
+    ${Chrono_CONFIG_FILE}
+    ${Chrono_VERSION_FILE}
 )
 
 # -------------------------------------------------------------------------------------------------

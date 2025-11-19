@@ -37,7 +37,7 @@ cbtBarrelShape::cbtBarrelShape(cbtScalar sY_low, cbtScalar sY_high, cbtScalar sR
 	cbtVector3 supVec(0,0,0);
 	cbtVector3 supVecD;
 
-	// suppport point on the lathed ellipse?
+	// support point on the lathed ellipse?
 	cbtScalar pY = vec0.y();
 	cbtScalar pR = std::sqrt(vec0.z()*vec0.z() + vec0.x()*vec0.x());
 	cbtScalar pH = pR;

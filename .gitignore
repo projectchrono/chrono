@@ -98,6 +98,7 @@ slprj/
 ##---------------------------------------------------
 ## Website
 ##---------------------------------------------------
+
 _site
 .sass-cache
 doxygen/documentation/images/chronoStructure2016.png
@@ -105,3 +106,9 @@ build_chrono_website.sh
 .htaccess
 refman.pdf
 src/chrono_granular/DoxyGenDocs/
+
+##---------------------------------------------------
+## Python demo output
+##---------------------------------------------------
+
+src/demos/python/DEMO_OUTPUT

@@ -44,14 +44,14 @@ class ChApi ChContactMaterial {
 
     virtual ChContactMethod GetContactMethod() const = 0;
 
-    /// Set the static friction coefficient.
-    /// Usually in 0..1 range, rarely above. Default 0.6.
+    /// Set the static friction coefficient (default 0.6).
+    /// Usually in the range [0, 1], rarely above.
     void SetStaticFriction(float val) { static_friction = val; }
 
     /// Get the static friction coefficient.
     float GetStaticFriction() const { return static_friction; }
 
-    /// Set the sliding (kinetic) friction coefficient.
+    /// Set the sliding (kinetic) friction coefficient (default: 0.6).
     void SetSlidingFriction(float val) { sliding_friction = val; }
 
     /// Get the sliding friction coefficient.
@@ -74,8 +74,8 @@ class ChApi ChContactMaterial {
     /// Get the roliung friction coefficient.
     float GetSpinningFriction() const { return spinning_friction; }
 
-    /// Set the ormal coefficient of restitution (default: 0).
-    /// In the range [0,1].
+    /// Set the normal coefficient of restitution (default: 0.4).
+    /// In the range [0, 1].
     void SetRestitution(float val) { restitution = val; }
 
     /// Get the coefficient of restitution.

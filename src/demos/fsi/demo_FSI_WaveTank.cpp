@@ -402,7 +402,7 @@ int main(int argc, char* argv[]) {
     double output_fps = 20;
     bool render = true;
     double render_fps = 400;
-    bool snapshots = true;
+    bool snapshots = false;
     int ps_freq = 1;
     std::string boundary_method = "adami";
     bool use_variable_time_step = true;
@@ -710,8 +710,8 @@ int main(int argc, char* argv[]) {
     rtf_file.close();
 
     if (use_variable_time_step) {
-        fsi.PrintFSIStats();
-        fsi.PrintFluidSystemSPHTimeSteps(out_dir + "/time_steps.txt");
+        fsi.PrintStats();
+        fsi.PrintTimeSteps(out_dir + "/time_steps.txt");
     }
 
 #ifdef CHRONO_POSTPROCESS

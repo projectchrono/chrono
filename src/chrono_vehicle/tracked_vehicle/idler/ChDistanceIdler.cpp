@@ -16,7 +16,7 @@
 // An idler consists of the idler wheel and a carrier body. The carrier body is
 // connected to the chassis and the idler wheel to the carrier. A linear
 // actuator connects the carrier body and a link body (the chassis or a
-// supsension arm).
+// suspension arm).
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -127,7 +127,7 @@ void ChDistanceIdler::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_carrier->GetFrameCOMToAbs(), m_carrier->GetMass(), m_carrier->GetInertia());
     composite.AddComponent(m_idler_wheel->GetBody()->GetFrameCOMToAbs(), m_idler_wheel->GetBody()->GetMass(),
                            m_idler_wheel->GetBody()->GetInertia());

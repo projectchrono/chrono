@@ -20,12 +20,47 @@
 using System;
 using static ChronoGlobals;
 using static chrono_vehicle;
+using static chrono;
 
 namespace ChronoDemo
 {
 
     internal class Program
     {
+        // Helper method to create vehicle visualisation system based on compiled modules
+        static ChVehicleVisualSystem CreateVehicleVisualizationSystem(ChWheeledVehicle vehicle)
+        {
+#if CHRONO_VSG
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Semi-trailer truck :: Open Loop");
+            vis.SetChaseCamera(new ChVector3d(-18, 0.0, 3.75), 5, 0.25);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyBox();
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
+            vis.AttachVehicle(vehicle);  // Must attach vehicle BEFORE Initialize()
+            vis.Initialize();
+            
+            Console.WriteLine("Using VSG visualization");
+            return vis;
+#elif CHRONO_IRRLICHT
+            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
+            vis.SetWindowTitle("Semi-trailer truck :: Open Loop");
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 6, 0.5);
+            vis.Initialize();
+            vis.AddLightDirectional();
+            vis.AddSkyBox();
+            vis.AddLogo();
+            vis.AttachVehicle(vehicle);
+            
+            Console.WriteLine("Using Irrlicht visualization");
+            return vis;
+#else
+            Console.WriteLine("Error: No visualization system available!");
+            Environment.Exit(1);
+            return null;
+#endif
+        }
 
         static void Main(string[] args)
         {
@@ -34,7 +69,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Rigid terrain dimensions
             double terrainLength = 100.0;  // size in X direction
@@ -73,7 +108,7 @@ namespace ChronoDemo
 
             // Create the terrain
             // (not yet patch terrain)
-            //RigidTerrain terrain = new RigidTerrain(system, GetDataFile("terrain/RigidPlane.json"));
+            //RigidTerrain terrain = new RigidTerrain(system, GetVehicleDataFile("terrain/RigidPlane.json"));
             //terrain.Initialize();
 
             // Create the terrain
@@ -82,8 +117,7 @@ namespace ChronoDemo
             patch_mat.SetFriction(0.9f);
             patch_mat.SetRestitution(0.01f);
             var patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, terrainLength, terrainWidth);
-            patch.SetColor(new ChColor(0.5f, 0.5f, 1));
-            patch.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
             terrain.Initialize();
 
             // Create the interactive Irrlicht driver system
@@ -96,18 +130,11 @@ namespace ChronoDemo
             driver.SetBrakingDelta(render_step_size / braking_time);
             driver.Initialize();
 
-            // Create the vehicle Irrlicht interface
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Semi-trailer truck :: Open Loop");
-            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 6, 0.5);
-            vis.Initialize();
-            vis.AddLightDirectional();
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(truck.GetTractor());
+            // Create the vehicle visualisation interface
+            ChVehicleVisualSystem vis = CreateVehicleVisualizationSystem(truck.GetTractor());
             vis.AttachDriver(driver);
 
-            // Number of simulation steps between two 3D view render frames
+            // Number of simulation steps between render frames
             int render_steps = (int)Math.Ceiling(render_step_size / step_size);
 
             // Initialize simulation frame counter
@@ -115,6 +142,10 @@ namespace ChronoDemo
 
 
             truck.GetTractor().EnableRealtime(true);
+            
+            // Cache system reference to avoid repeated GetSystem() calls
+            ChSystem sys = truck.GetSystem();
+            
             while (vis.Run())
             {
                 // Render scene
@@ -125,11 +156,11 @@ namespace ChronoDemo
                     vis.EndScene();
                 }
 
-                // Get driver inputs
+                // Get driver inputs and time once per step
                 DriverInputs driver_inputs = driver.GetInputs();
+                double time = sys.GetChTime();
 
                 // Update modules (process inputs from other modules)
-                double time = truck.GetSystem().GetChTime();
                 driver.Synchronize(time);
                 truck.Synchronize(time, driver_inputs, terrain);
                 terrain.Synchronize(time);
@@ -144,6 +175,8 @@ namespace ChronoDemo
                 // Increment frame number
                 step_number++;
             }
+            
+            // On exit with VSG, Win32 window destruction warning from VSG window is expected and is a garbage cleanup VSG issue
         }
 
     }

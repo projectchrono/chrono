@@ -22,9 +22,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_sensor/sensors/ChLidarSensor.h"

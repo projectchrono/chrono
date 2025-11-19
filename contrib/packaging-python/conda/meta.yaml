@@ -21,7 +21,7 @@ requirements:
     - cmake >=4
     - ninja   # [linux or osx]
     - jinja2  # [linux]
-    - swig ==4.0.2
+    - swig ==4.2.1
     - git
     - openmpi
     - intel-openmp ==2025.2.0 # [win]
@@ -48,6 +48,8 @@ requirements:
     - libnpp-dev # [not osx]
     - cuda-nvrtc-dev # [not osx]
     - libcurand-dev # [not osx]
+    - libcublas-dev # [not osx]
+    - libcusparse-dev # [not osx]
   run:
     - python
     - mkl ==2025.2.0 # [not arm64]
@@ -63,6 +65,7 @@ requirements:
     - libgl # [linux]
     - openmpi
     - yaml
+    - tinyxml2
 
 about:
   home: https://github.com/projectchrono/chrono

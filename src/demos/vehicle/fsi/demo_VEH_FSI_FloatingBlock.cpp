@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChBodyGeometry.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
@@ -393,7 +393,7 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
     std::string tire_json = "Polaris/Polaris_RigidTire.json";
 
     // Create and initialize the vehicle
-    auto vehicle = chrono_types::make_shared<WheeledVehicle>(&sys, vehicle::GetDataFile(vehicle_json));
+    auto vehicle = chrono_types::make_shared<WheeledVehicle>(&sys, GetVehicleDataFile(vehicle_json));
     vehicle->Initialize(init_pos);
     vehicle->GetChassis()->SetFixed(false);
     vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -402,15 +402,15 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
     vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(engine_json));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(transmission_json));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle->InitializePowertrain(powertrain);
 
     // Create and initialize the tires
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+            auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
             vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
         }
     }
@@ -419,7 +419,7 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
     cmaterial->SetYoungModulus(1e8);
     cmaterial->SetFriction(0.9f);
     cmaterial->SetRestitution(0.4f);
-    std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
+    std::string mesh_filename = GetVehicleDataFile("Polaris/meshes/Polaris_tire_collision.obj");
 
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     double scale_ratio = 1.0;

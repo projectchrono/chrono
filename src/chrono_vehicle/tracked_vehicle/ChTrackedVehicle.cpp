@@ -32,8 +32,6 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChContactMethod contact_method)
     : ChVehicle(name, contact_method) {
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
@@ -45,12 +43,9 @@ ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChSystem* system) : 
 
 ChTrackedVehicle::~ChTrackedVehicle() {}
 
-// -----------------------------------------------------------------------------
-// Initialize this vehicle at the specified global location and orientation.
-// This base class implementation only initializes the main chassis subsystem.
-// Derived classes must extend this function to initialize all other tracked
+// Initialize this vehicle at the specified global location and orientation. This base class implementation only
+// initializes the main chassis subsystem. Derived classes must extend this function to initialize all other tracked
 // vehicle subsystems (the two track assemblies and the driveline).
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     auto chassis_ct_model = m_chassis->GetBody()->GetCollisionModel();
     if (chassis_ct_model) {
@@ -62,17 +57,10 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
     ChVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
-// -----------------------------------------------------------------------------
-// Update the state of this vehicle at the current time.
-// The vehicle system is provided the current driver inputs (throttle between 0
-// and 1, steering between -1 and +1, braking between 0 and 1).
-// The first version is used when the track-terrain interaction is handled by
-// Chrono, within the same ChSystem. In this case, the track-terrain interaction
+// Update the state of this vehicle at the current time. The vehicle system is provided the current driver inputs
+// (throttle between 0 and 1, steering between -1 and +1, braking between 0 and 1). This version is used when the
+// track-terrain interaction is handled by Chrono, within the same ChSystem. In this case, the track-terrain interaction
 // occurs through the internal Chrono collision and contact mechanism.
-// The second version is used in a co-simulation framework and provides the
-// terrain forces on the track shoes (assumed to be expressed in the global
-// reference frame).
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::Synchronize(double time, const DriverInputs& driver_inputs) {
     // Let the driveline combine driver inputs if needed
     double braking_left = 0;
@@ -111,6 +99,12 @@ void ChTrackedVehicle::Synchronize(double time, const DriverInputs& driver_input
         m_collision_manager->Reset();
 }
 
+void ChTrackedVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
+    Synchronize(time, driver_inputs);
+}
+
+// Update the state of this vehicle at the current time. This version is used in a co-simulation framework and provides
+// the terrain forces on the track shoes (assumed to be expressed in the global reference frame).
 void ChTrackedVehicle::Synchronize(double time,
                                    const DriverInputs& driver_inputs,
                                    const TerrainForces& shoe_forces_left,
@@ -152,9 +146,7 @@ void ChTrackedVehicle::Synchronize(double time,
         m_collision_manager->Reset();
 }
 
-// -----------------------------------------------------------------------------
 // Advance the state of this vehicle by the specified time step.
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::Advance(double step) {
     // Advance state of the associated powertrain (if one is attached)
     if (m_powertrain_assembly) {
@@ -183,9 +175,7 @@ void ChTrackedVehicle::DisconnectDriveline() {
         m_driveline->Disconnect();
 }
 
-// -----------------------------------------------------------------------------
 // Set visualization type for the various subsystems
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::SetSprocketVisualizationType(VisualizationType vis) {
     m_tracks[0]->SetSprocketVisualizationType(vis);
     m_tracks[1]->SetSprocketVisualizationType(vis);
@@ -221,16 +211,12 @@ void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
     m_tracks[1]->SetTrackShoeVisualizationType(vis);
 }
 
-// -----------------------------------------------------------------------------
 // Enable/disable output for the various subsystems
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::SetTrackAssemblyOutput(VehicleSide side, bool state) {
     m_tracks[side]->SetOutput(state);
 }
 
-// -----------------------------------------------------------------------------
 // Enable/disable collision for the various subsystems
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::SetSprocketCollide(bool state) {
     m_tracks[0]->GetSprocket()->EnableCollision(state);
     m_tracks[1]->GetSprocket()->EnableCollision(state);
@@ -262,9 +248,7 @@ void ChTrackedVehicle::SetTrackShoeCollide(bool state) {
         m_tracks[1]->GetTrackShoe(i)->EnableCollision(state);
 }
 
-// -----------------------------------------------------------------------------
 // Override collision flags for various subsystems
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::EnableCollision(int flags) {
     m_chassis->EnableCollision((flags & static_cast<int>(TrackedCollisionFlag::CHASSIS)) != 0);
 
@@ -299,12 +283,8 @@ void ChTrackedVehicle::EnableCollision(int flags) {
         m_tracks[1]->GetTrackShoe(i)->EnableCollision(collide_shoesR);
 }
 
-// -----------------------------------------------------------------------------
-// Enable/disable collision between the chassis and all other vehicle
-// subsystems. This only controls collisions between the chassis and the
-// track shoes.  All other internal collisions involving the chassis are
-// always ignored.
-// -----------------------------------------------------------------------------
+// Enable/disable collision between the chassis and all other vehicle subsystems. This only controls collisions between
+// the chassis and the track shoes.  All other internal collisions involving the chassis are always ignored.
 void ChTrackedVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with track shoes
@@ -319,10 +299,7 @@ void ChTrackedVehicle::SetChassisVehicleCollide(bool state) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// Enable user-defined contact forces between track shoes and idlers and/or
-// road-wheels and/or ground.
-// -----------------------------------------------------------------------------
+// Enable user-defined contact forces between track shoes and idlers and/or road-wheels and/or ground.
 void ChTrackedVehicle::EnableCustomContact(std::shared_ptr<ChTrackCustomContact> callback) {
     bool idler_shoe = callback->OverridesIdlerContact();
     bool wheel_shoe = callback->OverridesWheelContact();
@@ -343,9 +320,7 @@ void ChTrackedVehicle::EnableCustomContact(std::shared_ptr<ChTrackCustomContact>
     m_system->Add(callback);
 }
 
-// -----------------------------------------------------------------------------
 // Calculate the total vehicle mass
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::InitializeInertiaProperties() {
     m_mass = 0;
 
@@ -358,9 +333,7 @@ void ChTrackedVehicle::InitializeInertiaProperties() {
     m_tracks[1]->AddMass(m_mass);
 }
 
-// -----------------------------------------------------------------------------
 // Calculate current vehicle inertia properties
-// -----------------------------------------------------------------------------
 void ChTrackedVehicle::UpdateInertiaProperties() {
     // 1. Calculate the vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
@@ -383,7 +356,7 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
     const ChMatrix33<>& A = GetTransform().GetRotMat();
-    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;
+    m_inertia = A.transpose() * (inertia - CompositeInertia::InertiaShiftMatrix(com)) * A;
 }
 
 // -----------------------------------------------------------------------------

@@ -34,7 +34,7 @@
 #include "chrono/physics/ChContactMaterialSMC.h"
 
 #include "chrono/utils/ChBodyGeometry.h"
-#include "chrono/utils/ChCompositeInertia.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono/output/ChOutput.h"
 
@@ -196,7 +196,7 @@ class CH_VEHICLE_API ChPart {
     static void RemoveVisualizationAsset(std::shared_ptr<ChPhysicsItem> item, std::shared_ptr<ChVisualShape> shape);
 
     std::string m_name;  ///< subsystem name
-    bool m_initialized;  ///< specifies whether ot not the part is fully constructed
+    bool m_initialized;  ///< specifies whether or not the part is fully constructed
     bool m_output;       ///< specifies whether or not output is generated for this subsystem
 
     std::shared_ptr<ChPart> m_parent;  ///< parent subsystem (empty if parent is vehicle)

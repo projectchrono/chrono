@@ -63,8 +63,9 @@ AssemblyAnalysis::ExitFlag ChAssemblyAnalysis::AssemblyAnalysis(int action, doub
                                              0,        // factor for dF/dx (the stiffness matrix)
                                              X, V, T,  // not needed
                                              false,    // do not scatter Xnew Vnew T+dt before computing correction
-                                             false,    // full update? (not used, since no scatter)
-                                             true      // force a call to the solver's Setup function
+                                             false,    // no need for full update, since no scatter
+                                             true,     // call the solver's Setup function
+                                             true      // call the solver's Setup analyze phase
             );
 
             X += Dx;
@@ -127,8 +128,9 @@ AssemblyAnalysis::ExitFlag ChAssemblyAnalysis::AssemblyAnalysis(int action, doub
                                          -dt * dt,      // factor for  dF/dx
                                          X, V, T + dt,  // not needed
                                          false,         // do not scatter Xnew Vnew T+dt before computing correction
-                                         false,         // full update? (not used, since no scatter)
-                                         true           // force a call to the solver's Setup() function
+                                         false,         // no need for full update, since no scatter
+                                         true,          // call the solver's Setup function
+                                         true           // call the solver's Setup analyze phase
         );
 
         integrable->StateScatter(X, V, T, true);  // state -> system

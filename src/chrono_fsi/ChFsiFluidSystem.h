@@ -95,9 +95,6 @@ class CH_FSI_API ChFsiFluidSystem {
     /// Get the step size.
     virtual double GetVariableStepSize() = 0;
 
-    /// Print the FSI statistics
-    virtual void PrintFluidSystemSPHStats() const = 0;
-
   protected:
     ChFsiFluidSystem();
 

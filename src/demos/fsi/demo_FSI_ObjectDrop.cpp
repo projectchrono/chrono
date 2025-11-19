@@ -73,16 +73,6 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-#ifdef CHRONO_VSG
-class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVisibilityCallback {
-  public:
-    MarkerPositionVisibilityCallback() {}
-    virtual bool get(unsigned int n) const override { return pos[n].x < 0 || pos[n].y < 0; }
-};
-#endif
-
-// -----------------------------------------------------------------------------
-
 bool GetProblemSpecs(int argc,
                      char** argv,
                      double& t_end,
@@ -379,13 +369,21 @@ int main(int argc, char* argv[]) {
         ////auto col_callback = chrono_types::make_shared<ParticleDensityColorCallback>(995, 1005);
         auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(-1000, 12000, true);
 
+        std::vector<MarkerPlanesVisibilityCallback::Plane> planes = {
+            {VNULL, ChVector3d(1, 0, 0)},
+            {VNULL, ChVector3d(0, 1, 0)},
+        };
+        auto mode = MarkerPlanesVisibilityCallback::Mode::ALL;
+        auto vis_callback_SPH = chrono_types::make_shared<MarkerPlanesVisibilityCallback>(planes, mode);
+        auto vis_callback_BCE = chrono_types::make_shared<MarkerPlanesVisibilityCallback>(planes, mode);
+
         auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
         visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::RED_BLUE);
-        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->SetSPHVisibilityCallback(vis_callback_SPH);
+        visFSI->SetBCEVisibilityCallback(vis_callback_BCE);
 
         // VSG visual system (attach visFSI as plugin)
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
@@ -488,8 +486,8 @@ int main(int argc, char* argv[]) {
     rtf_file.close();
 
     if (use_variable_time_step) {
-        fsi.PrintFSIStats();
-        fsi.PrintFluidSystemSPHTimeSteps(out_dir + "/time_steps.txt");
+        fsi.PrintStats();
+        fsi.PrintTimeSteps(out_dir + "/time_steps.txt");
     }
 
 #ifdef CHRONO_POSTPROCESS

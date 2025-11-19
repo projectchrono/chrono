@@ -352,6 +352,7 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChMassProperties.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"

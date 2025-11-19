@@ -17,7 +17,10 @@ import errno
 import os
 import copy
 
-out_dir = chrono.GetChronoOutputPath() + "FEA_LOADS"  # Output directory
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
+out_dir = chrono.GetChronoOutputPath() + "FEA_Loads_Dynamic/"
 
 print("Copyright (c) 2017 projectchrono.org ")
 

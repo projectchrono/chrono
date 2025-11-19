@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketSinglePin.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -102,7 +102,7 @@ class CH_MODELS_API Marder_SprocketSinglePinLeft : public Marder_SprocketSingleP
     Marder_SprocketSinglePinLeft() : Marder_SprocketSinglePin("Marder_SprocketLeft") {}
     ~Marder_SprocketSinglePinLeft() {}
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;
@@ -114,7 +114,7 @@ class CH_MODELS_API Marder_SprocketSinglePinRight : public Marder_SprocketSingle
     Marder_SprocketSinglePinRight() : Marder_SprocketSinglePin("Marder_SprocketRight") {}
     ~Marder_SprocketSinglePinRight() {}
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;

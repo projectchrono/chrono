@@ -122,7 +122,9 @@ using namespace chrono::sensor;
 %include "typemaps.i"
 %include "wchar.i"
 %include "python/cwstring.i"
+#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
+#endif              // --------------------------------------------------------------------- PYTHON
 %include "stdint.i"
 %include "numpy.i"
 %include "cpointer.i"

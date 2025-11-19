@@ -19,7 +19,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/sedan/Sedan_Pac02Tire.h"
 
 namespace chrono {
@@ -41,7 +41,7 @@ void Sedan_Pac02Tire::SetMFParams() {
 
     tir_file = "sedan/tire/Sedan_Pac02Tire.tir";
 
-    SetMFParamsByFile(vehicle::GetDataFile(tir_file));
+    SetMFParamsByFile(GetVehicleDataFile(tir_file));
 }
 
 // -----------------------------------------------------------------------------

@@ -78,7 +78,7 @@ class ChApi ChTriangle : public ChGeometry {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Return the bounding box of a triangle with given vertices.
-    static ChAABB GetBoundingBox(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3);
+    static ChAABB CalcBoundingBox(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3);
 
     /// Static utility function to calculate the normal of a triangle in the provided output vector.
     /// Return 'false' if the triangle is degenerated.

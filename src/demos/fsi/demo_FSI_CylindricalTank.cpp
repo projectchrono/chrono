@@ -140,8 +140,8 @@ int main(int argc, char* argv[]) {
 
     // Create a rigid body
     double radius = 0.12;
-    double mass = density * ChSphere::GetVolume(radius);
-    ChMatrix33d inertia = mass * ChSphere::GetGyration(radius);
+    double mass = density * ChSphere::CalcVolume(radius);
+    ChMatrix33d inertia = mass * ChSphere::CalcGyration(radius);
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetName("ball");

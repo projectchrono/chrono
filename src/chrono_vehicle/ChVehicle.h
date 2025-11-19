@@ -122,13 +122,13 @@ class CH_VEHICLE_API ChVehicle {
     ChQuaternion<> GetRot() const { return m_chassis->GetRot(); }
 
     /// Get vehicle roll angle.
-    /// This version returns the roll angle with respect to the absolte frame; as such, this is a proper representation
+    /// This version returns the roll angle with respect to the absolute frame; as such, this is a proper representation
     /// of vehicle roll only on flat horizontal terrain. In the ISO frame convention, a positive roll angle corresponds
     /// to the vehicle left side lifting (e.g., in a turn to the left).
     double GetRoll() const;
 
     /// Get vehicle pitch angle.
-    /// This version returns the pitch angle with respect to the absolte frame; as such, this is a proper representation
+    /// This version returns the pitch angle with respect to the absolute frame; as such, this is a proper representation
     /// of vehicle pitch only on flat horizontal terrain. In the ISO frame convention, a positive pitch angle
     /// corresponds to the vehicle front dipping (e.g., during braking).
     double GetPitch() const;
@@ -152,7 +152,7 @@ class CH_VEHICLE_API ChVehicle {
     double GetSpeed() const { return m_chassis->GetSpeed(); }
 
     /// Get the vehicle slip angle.
-    /// This represents the angle betwwen the forward vehicle X axis and the vehicle velocity vector (calculated at the
+    /// This represents the angle between the forward vehicle X axis and the vehicle velocity vector (calculated at the
     /// origin of the vehicle frame). The return value is in radians with a positive sign for a left turn and a negative
     /// sign for a right turn.
     double GetSlipAngle() const;
@@ -265,9 +265,24 @@ class CH_VEHICLE_API ChVehicle {
     /// Return true if the vehicle model contains bushings.
     bool HasBushings() const { return m_chassis->HasBushings(); }
 
+    /// Update the state of this vehicle at the current time.
+    /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
+    /// braking between 0 and 1).
+    virtual void Synchronize(double time,                       ///< [in] current time
+                             const DriverInputs& driver_inputs  ///< [in] current driver inputs
+    ) {}
+
+    /// Update the state of this vehicle at the current time.
+    /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
+    /// braking between 0 and 1), and a reference to the terrain system.
+    virtual void Synchronize(double time,                        ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             const ChTerrain& terrain            ///< [in] reference to the terrain system
+    ) {}
+
     /// Advance the state of this vehicle by the specified time step.
     /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.
-    /// Otherwise, the caller is responsible for advancing the sate of the entire system.
+    /// Otherwise, the caller is responsible for advancing the state of the entire system.
     virtual void Advance(double step);
 
     /// Log current constraint violations.

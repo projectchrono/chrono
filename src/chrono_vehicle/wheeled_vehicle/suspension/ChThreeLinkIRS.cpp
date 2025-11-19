@@ -281,7 +281,7 @@ void ChThreeLinkIRS::UpdateInertiaProperties() {
     ChMatrix33<> inertiaLower(getLowerLinkInertia());
     ChMatrix33<> inertiaUpper(getUpperLinkInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_arm[LEFT]->GetFrameCOMToAbs(), getArmMass(), inertiaArm);

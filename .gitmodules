@@ -10,3 +10,6 @@
 [submodule "src/chrono_thirdparty/fmu-forge"]
 	path = src/chrono_thirdparty/fmu-forge
 	url = https://github.com/projectchrono/fmu-forge.git
+[submodule "src/chrono_thirdparty/HydroChrono"]
+	path = src/chrono_thirdparty/HydroChrono
+	url = https://github.com/Project-SEA-Stack/HydroChrono.git

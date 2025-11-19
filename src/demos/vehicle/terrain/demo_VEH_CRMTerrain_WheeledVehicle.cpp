@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChVisualSystem.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
@@ -221,8 +221,8 @@ int main(int argc, char* argv[]) {
                                     ChVector3d(terrain_length, 0, vehicle_init_height), 1);
             break;
         case PatchType::HEIGHT_MAP:
-            // Create a patch from a heigh field map image
-            terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+            // Create a patch from a height field map image
+            terrain.Construct(GetVehicleDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                               terrain_length, terrain_width,                           // length (X) and width (Y)
                               {0, 0.3},                                                // height range
                               0.25,                                                    // depth
@@ -236,8 +236,8 @@ int main(int argc, char* argv[]) {
             break;
         case PatchType::MARKER_DATA:
             // Create a patch using SPH particles and BCE markers from files
-            terrain.Construct(vehicle::GetDataFile("terrain/sph/S-lane_RMS/sph_particles.txt"),  // SPH marker locations
-                              vehicle::GetDataFile("terrain/sph/S-lane_RMS/bce_markers.txt"),    // BCE marker locations
+            terrain.Construct(GetVehicleDataFile("terrain/sph/S-lane_RMS/sph_particles.txt"),  // SPH marker locations
+                              GetVehicleDataFile("terrain/sph/S-lane_RMS/bce_markers.txt"),    // BCE marker locations
                               VNULL);
             // Create path from data file
             path = CreatePath("terrain/sph/S-lane_RMS/path.txt");
@@ -402,7 +402,7 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool
     fea_tires = false;
 
     // Create and initialize the vehicle
-    auto vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(vehicle_json), ChContactMethod::SMC);
+    auto vehicle = chrono_types::make_shared<WheeledVehicle>(GetVehicleDataFile(vehicle_json), ChContactMethod::SMC);
     vehicle->Initialize(init_pos);
     vehicle->GetChassis()->SetFixed(false);
     vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -411,15 +411,15 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool
     vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(engine_json));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(transmission_json));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle->InitializePowertrain(powertrain);
 
     // Create and initialize the tires
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+            auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
             vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
             if (std::dynamic_pointer_cast<ChDeformableTire>(tire))
                 fea_tires = true;
@@ -430,7 +430,7 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool
 }
 
 void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain) {
-    std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
+    std::string mesh_filename = GetVehicleDataFile("Polaris/meshes/Polaris_tire_collision.obj");
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     geometry->materials.push_back(ChContactMaterialData());
     geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL));
@@ -460,7 +460,7 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
 
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
     // Open input file
-    std::ifstream ifile(vehicle::GetDataFile(path_file));
+    std::ifstream ifile(GetVehicleDataFile(path_file));
     std::string line;
 
     // Read number of knots and type of curve

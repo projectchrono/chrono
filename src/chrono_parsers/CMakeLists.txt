@@ -33,6 +33,8 @@ set(Chrono_PARSERS_FILES
 source_group("" FILES ${Chrono_PARSERS_FILES})
 
 set(Chrono_PARSERS_YAML_FILES
+    yaml/ChParserYAML.h
+    yaml/ChParserYAML.cpp
     yaml/ChParserMbsYAML.h
     yaml/ChParserMbsYAML.cpp
 )
@@ -42,9 +44,25 @@ if(CH_ENABLE_MODULE_FSI)
         yaml/ChParserFsiYAML.cpp
         yaml/ChParserCfdYAML.h
         yaml/ChParserCfdYAML.cpp
+    )
+endif()
+if(CH_ENABLE_MODULE_FSI_SPH)
+    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
         yaml/ChParserSphYAML.h
         yaml/ChParserSphYAML.cpp
-)
+    )
+endif()
+if(CH_ENABLE_MODULE_FSI_TDPF)
+    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+#        yaml/ChParserTdpfYAML.h
+#        yaml/ChParserTdpfYAML.cpp
+    )
+endif()
+if(CH_ENABLE_MODULE_VEHICLE)
+    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+        yaml/ChParserVehicleYAML.h
+        yaml/ChParserVehicleYAML.cpp
+    )
 endif()
 source_group("yaml" FILES ${Chrono_PARSERS_YAML_FILES})
 
@@ -86,7 +104,19 @@ if(CH_ENABLE_MODULE_ROS)
   list (APPEND DEPENDENCIES_PARSERS "ROS")
 endif()
 if(CH_ENABLE_MODULE_FSI)
-  list (APPEND DEPENDENCIES_PARSERS "FSISPH")
+  list (APPEND DEPENDENCIES_PARSERS "FSI")
+endif()
+if(CH_ENABLE_MODULE_FSI_SPH)
+  list (APPEND DEPENDENCIES_PARSERS "FSI_SPH")
+endif()
+if(CH_ENABLE_MODULE_FSI_TDPF)
+  list (APPEND DEPENDENCIES_PARSERS "FSI_TDPF")
+endif()
+if(CH_ENABLE_MODULE_VEHICLE)
+  list (APPEND DEPENDENCIES_PARSERS "VEHICLE")
+endif()
+if(CH_ENABLE_MODULE_VSG)
+  list (APPEND DEPENDENCIES_PARSERS "VSG")
 endif()
 
 set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
@@ -117,18 +147,36 @@ target_compile_definitions(Chrono_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_A
 
 target_link_libraries(Chrono_parsers PRIVATE Chrono_core)
 target_link_libraries(Chrono_parsers PUBLIC yaml-cpp::yaml-cpp)
+
 if(CH_ENABLE_MODULE_PARDISO_MKL)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_pardisomkl)
 endif()
+
 if(CH_ENABLE_MODULE_MUMPS)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_mumps)
 endif()
 
 if(CH_ENABLE_MODULE_FSI)
+  target_link_libraries(Chrono_parsers PRIVATE Chrono_fsi)
+endif()
+
+if(CH_ENABLE_MODULE_FSI_SPH)
   target_link_libraries(Chrono_parsers PRIVATE Chrono_fsisph)
   if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(Chrono_parsers PRIVATE Chrono_fsisph_vsg)
   endif()
+endif()
+
+if(CH_ENABLE_MODULE_FSI_TDPF)
+  target_link_libraries(Chrono_parsers PRIVATE Chrono_fsitdpf)
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE)
+  target_link_libraries(Chrono_parsers PRIVATE Chrono_vehicle)
+endif()
+
+if(CH_ENABLE_MODULE_VSG)
+  target_link_libraries(Chrono_parsers PRIVATE Chrono_vsg)
 endif()
 
 # Include URDF parser if found --------------------------------------------

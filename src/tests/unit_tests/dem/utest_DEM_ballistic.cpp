@@ -18,7 +18,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono_dem/physics/ChSystemDem.h"
 
 #include "ut_dem_utils.h"

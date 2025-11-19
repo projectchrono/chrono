@@ -175,11 +175,11 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Complete construction of the FSI problem and initialize the FSI system.
     /// After this call, no additional solid bodies should be added to the FSI problem.
-    void Initialize();
+    virtual void Initialize();
 
     /// Print the FSI statistics
-    void PrintFSIStats() const;
-    void PrintFluidSystemSPHTimeSteps(const std::string& path) const;
+    void PrintStats() const;
+    void PrintTimeSteps(const std::string& path) const;
 
     /// Advance the dynamics of the underlying FSI system by the specified step.
     void DoStepDynamics(double step);
@@ -426,10 +426,18 @@ class CH_FSI_API ChFsiProblemWavetank : public ChFsiProblemCartesian {
                                               std::shared_ptr<ChFunction> actuation  ///< actuation function
     );
 
+    /// Complete construction of the FSI problem and initialize the FSI system.
+    /// After this call, no additional solid bodies should be added to the FSI problem.
+    virtual void Initialize() override;
+
   private:
     bool m_periodic_BC;
     bool m_end_wall;
     std::shared_ptr<Profile> m_profile;
+    std::shared_ptr<ChBody> m_wavemaker_body;
+    std::shared_ptr<ChLinkMotor> m_wavemaker_motor;
+    ChVector3d m_wavemaker_size;
+    ChVector3d m_wavemaker_pos;
 };
 
 // ----------------------------------------------------------------------------

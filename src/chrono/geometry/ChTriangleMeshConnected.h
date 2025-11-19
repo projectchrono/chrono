@@ -21,6 +21,7 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChVector2.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/geometry/ChProperty.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 
@@ -128,15 +129,23 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Compute bounding box of this triangle mesh.
     virtual ChAABB GetBoundingBox() const override;
 
-    /// Compute barycenter, mass, inertia tensor.
+    /// Compute and load mass, barycenter, and inertia tensor.
+    /// If body_ccords=true, the inertia is calculated relative to the center of mass.
     /// This function assumes the object has a constant density of 1. To use a density value `rho`, multiply the output
-    /// mass by `rho` and the output inertia by `rho`. The output results are scaled by scale^3 (for the mass) and by
-    /// scale^5 for inertia.
-    void ComputeMassProperties(bool bodyCoords,
+    /// mass by `rho` and the output inertia by `rho`.
+    /// The output results are scaled by scale^3 (for the mass) and by scale^5 for inertia.
+    void ComputeMassProperties(bool body_coords,
                                double& mass,
                                ChVector3d& center,
                                ChMatrix33<>& inertia,
                                double scale = 1.0) const;
+
+    /// Compute and return mass, barycenter, and inertia tensor.
+    /// If body_ccords=true, the inertia is calculated relative to the center of mass.
+    /// This function assumes the object has a constant density of 1. To use a density value `rho`, multiply the output
+    /// mass by `rho` and the output inertia by `rho`.
+    /// The output results are scaled by scale^3 (for the mass) and by scale^5 for inertia.
+    ChMassProperties ComputeMassProperties(bool body_coords, double scale = 1.0) const;
 
     /// Get the filename of the triangle mesh.
     const std::string& GetFileName() const { return m_filename; }
@@ -237,7 +246,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual Type GetType() const override { return Type::TRIANGLEMESH_CONNECTED; }
 
     /// Return the bounding box of a triangle mesh with given vertices.
-    static ChAABB GetBoundingBox(std::vector<ChVector3d> vertices);
+    static ChAABB CalcBoundingBox(std::vector<ChVector3d> vertices);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

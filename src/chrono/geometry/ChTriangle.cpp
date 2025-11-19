@@ -40,7 +40,7 @@ ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
     return *this;
 }
 
-ChAABB ChTriangle::GetBoundingBox(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3) {
+ChAABB ChTriangle::CalcBoundingBox(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3) {
     ChAABB bbox;
     bbox.min.x() = std::min(std::min(P1.x(), P2.x()), P3.x());
     bbox.min.y() = std::min(std::min(P1.y(), P2.y()), P3.y());
@@ -53,7 +53,7 @@ ChAABB ChTriangle::GetBoundingBox(const ChVector3d& P1, const ChVector3d& P2, co
 }
 
 ChAABB ChTriangle::GetBoundingBox() const {
-    return GetBoundingBox(p1, p2, p3);
+    return CalcBoundingBox(p1, p2, p3);
 }
 
 ChVector3d ChTriangle::Baricenter() const {

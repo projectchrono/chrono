@@ -17,24 +17,28 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
 #endif
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
+
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -210,11 +214,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize(width, length, mesh_resolution);
 
     // Or use a height map:
-    ////terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
+    ////terrain.Initialize(GetVehicleDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
     ///mesh_resolution);
 
     // Or use a mesh:
-    ////terrain.Initialize(vehicle::GetDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
+    ////terrain.Initialize(GetVehicleDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
 
     // Set the soil terramechanical parameters
     if (var_params) {
@@ -261,7 +265,7 @@ int main(int argc, char* argv[]) {
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     
-    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+    ////terrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
@@ -349,7 +353,7 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxIters(8);
         integrator->SetAbsTolerances(1e-1, 10);
-        integrator->SetModifiedNewton(true);
+        integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
         integrator->SetVerbose(true);
     */
     /*

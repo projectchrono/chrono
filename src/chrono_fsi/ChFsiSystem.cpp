@@ -61,7 +61,7 @@ void ChFsiSystem::AttachFluidSystem(ChFsiFluidSystem* sys) {
     m_sysCFD->SetVerbose(m_verbose);
 }
 
-void ChFsiSystem::AtachMultibodySystem(ChSystem* sys) {
+void ChFsiSystem::AttachMultibodySystem(ChSystem* sys) {
     m_sysMBS = sys;
     m_fsi_interface->AttachMultibodySystem(sys);
 }
@@ -254,12 +254,6 @@ void ChFsiSystem::AdvanceMBS(double step, double threshold) {
         }
     }
     m_timer_MBD = m_sysMBS->GetTimerStep();
-}
-
-void ChFsiSystem::PrintFSIStats() const {
-    if (!m_sysCFD)
-        return;
-    m_sysCFD->PrintFluidSystemSPHStats();
 }
 
 void ChFsiSystem::DoStepDynamics(double step) {

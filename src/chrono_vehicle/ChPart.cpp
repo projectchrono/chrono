@@ -87,7 +87,7 @@ void ChPart::AddInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
     // Shift inertia away from COM (parallel axis theorem)
     // Express inertia relative to global frame.
     inertia += com_abs.GetRotMat() * m_inertia * com_abs.GetRotMat().transpose() +
-               GetMass() * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
+               GetMass() * CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
 }
 
 // -----------------------------------------------------------------------------

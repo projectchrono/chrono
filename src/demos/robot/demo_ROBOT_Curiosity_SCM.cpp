@@ -23,13 +23,13 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -74,8 +74,14 @@ CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel;
 // Simulation time step
 double time_step = 5e-4;
 
+// Rendering frequency
+double render_fps = 120;
+
 // Enable/disable output
 bool output = false;
+
+// Enable/disable run-time visualization snapshots
+bool snapshots = false;
 
 // -----------------------------------------------------------------------------
 
@@ -112,9 +118,10 @@ int main(int argc, char* argv[]) {
         0.45, 0.45   //
     };
     double rock_density = 8000;
+    int num_rocks = 6;
     std::shared_ptr<ChContactMaterial> rock_mat = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < num_rocks; i++) {
         auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(rock_meshfile[i]), false, true);
         mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(rock_scale[i]));
 
@@ -184,12 +191,14 @@ int main(int argc, char* argv[]) {
             terrain.AddActiveDomain(wheel->GetBody(), VNULL, ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
 
         // add active domain for each obstacles
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < num_rocks; i++)
             terrain.AddActiveDomain(rock[i], VNULL, ChVector3d(2.0, 2.0, 2.0));
     }
 
     // Set some visualization parameters
-    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 20000);
+    terrain.SetColormap(ChColormap::Type::COPPER);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 20000);
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, -0.01, 0.04);
     terrain.GetMesh()->SetWireframe(true);
 
     // Create the run-time visualization interface
@@ -209,7 +218,7 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(&sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Y);
-            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowSize(1280, 720);
             vis_irr->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
             vis_irr->Initialize();
             vis_irr->AddLogo();
@@ -229,10 +238,14 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowSize(1152, 648);
             vis_vsg->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
-            vis_vsg->AddCamera(ChVector3d(-1.0, 1.0, 3.0), ChVector3d(-5.0, 0.0, 0.0));
+            vis_vsg->SetBackgroundColor(ChColor(0.2f, 0.2f, 0.2f));
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(-1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->EnableShadows();
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->AddCamera(ChVector3d(0.0, 1.5, -4.0), ChVector3d(-5.0, 0.0, 0.0));
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -243,19 +256,45 @@ int main(int argc, char* argv[]) {
 
     // Initialize output
     const std::string out_dir = GetChronoOutputPath() + "CURIOSITY_SCM";
-    if (output) {
+    if (output || snapshots) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
+        if (snapshots) {
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
+                return 1;
+            }
+        }
     }
+
     utils::ChWriterCSV csv(" ");
 
     // Simulation loop
+    double time = 0;
+    double time_end = 14;
+    int render_frame = 0;
+    
     while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        time = sys.GetChTime();
+        if (time >= time_end)
+            break;
+
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->SetCameraTarget(rover.GetChassisPos());
+            vis->Render();
+            vis->EndScene();
+
+            if (snapshots) {
+                std::ostringstream filename;
+                filename << out_dir << "/snapshots/" << std::setw(5) << std::setfill('0') << render_frame << ".jpg";
+                vis->WriteImageToFile(filename.str());
+            }
+
+            render_frame++;
+        }
 
         if (output) {
             // write drive torques of all six wheels into file

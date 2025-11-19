@@ -15,7 +15,7 @@ simulation:
      delta_sph_coefficient: 0.1
      max_velocity: 1.0
      min_distance_coefficient: 0.01
-     density_reinit_steps: 2e8
+     density_reinit_steps: 200000
      use_density_based_projection: false
 
   kernel:
@@ -53,7 +53,7 @@ simulation:
      artificial_viscosity: 0.02
   
   output:
-      type: HDF5
+      type: NONE
       mode: FRAMES
       fps: 20
       output_directory: "."

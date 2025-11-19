@@ -26,6 +26,47 @@ namespace ChronoDemo
 {
     class FlexibleBushingDemo
     {
+        // Helper method to create visualisation system based on compiled modules
+        static ChVisualSystem CreateVisualizationSystem(ChSystemNSC sys)
+        {
+#if CHRONO_VSG
+            // VSG visualisation (preferred if available)
+            ChVisualSystemVSG vis = new ChVisualSystemVSG();
+            vis.AttachSystem(sys);
+            vis.SetCameraVertical(CameraVerticalDir.Z);
+            vis.SetWindowSize(new ChVector2i(800, 600));
+            vis.SetWindowPosition(new ChVector2i(100, 100));
+            vis.SetWindowTitle("ChLinkBushing");
+            vis.AddCamera(new ChVector3d(3, 3, 0), new ChVector3d(0, 0, 0));
+            vis.SetLightIntensity(1.0f);
+            vis.SetLightDirection(1.5 * chrono.CH_PI_2, chrono.CH_PI_4);
+            vis.EnableSkyBox();
+            vis.Initialize();
+            
+            Console.WriteLine("Using VSG visualization");
+            return vis;
+#elif CHRONO_IRRLICHT
+            // Irrlicht visualization (fallback)
+            ChVisualSystemIrrlicht vis = new ChVisualSystemIrrlicht();
+            vis.AttachSystem(sys);
+            vis.SetCameraVertical(CameraVerticalDir.Z);
+            vis.SetWindowSize(800, 600);
+            vis.SetWindowTitle("ChLinkBushing");
+            vis.Initialize();
+            vis.AddLogo();
+            vis.AddSkyBox();
+            vis.AddCamera(new ChVector3d(3, 3, 0));
+            vis.AddTypicalLights();
+            
+            Console.WriteLine("Using Irrlicht visualization");
+            return vis;
+#else
+            Console.WriteLine("Error: No visualization system available!");
+            Environment.Exit(1);
+            return null;
+#endif
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Copyright (c) 2017 projectchrono.org");
@@ -205,19 +246,8 @@ namespace ChronoDemo
             var force = new ChLoadBodyForce(body, new ChVector3d(0, 0, -8e3), false, new ChVector3d(1, 0, 0));
             load_container.Add(force);
 
-            // Create the Irrlicht visualization sys
-            var vis = new ChVisualSystemIrrlicht();
-            vis.AttachSystem(sys);
-            vis.SetCameraVertical(CameraVerticalDir.Z);
-            vis.SetWindowSize(800, 600);
-            vis.SetWindowTitle("ChLinkBushing");
-            vis.Initialize();
-            vis.AddLogo();
-            vis.AddSkyBox();
-            vis.AddCamera(new ChVector3d(3, 3, 0));
-            vis.AddTypicalLights();
-
-            vis.EnableBodyFrameDrawing(true);
+            // Create visualisation system with thte helper
+            ChVisualSystem vis = CreateVisualizationSystem(sys);
 
             // Change some solver settings
 
@@ -243,6 +273,7 @@ namespace ChronoDemo
                 vis.EndScene();
                 sys.DoStepDynamics(1e-4);
             }
+            // On exit with VSG, Win32 window destruction warning from VSG window is expected and is a garbage cleanup VSG issue
 
             return;
         }

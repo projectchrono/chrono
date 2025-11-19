@@ -22,7 +22,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
@@ -443,7 +442,7 @@ int main(int argc, char* argv[]) {
     // sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
 
-    if (auto mint = std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(sys.GetTimestepper())) {
+    if (auto mint = std::dynamic_pointer_cast<ChTimestepperImplicit>(sys.GetTimestepper())) {
         mint->SetMaxIters(5);
         mint->SetAbsTolerances(1e-12, 1e-12);
     }

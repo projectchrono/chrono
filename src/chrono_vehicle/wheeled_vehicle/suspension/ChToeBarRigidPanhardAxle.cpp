@@ -429,7 +429,7 @@ void ChToeBarRigidPanhardAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
     ChMatrix33<> inertiaKnuckle(getKnuckleInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_axleTubeBody->GetFrameCOMToAbs(), getAxleTubeMass(),

@@ -37,9 +37,20 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::cascade;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::NONE;
 
 int main(int argc, char* argv[]) {
+#ifdef CHRONO_IRRLICHT
+    vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+#ifdef CHRONO_VSG
+    vis_type = ChVisualSystem::Type::VSG;
+#endif
+    // Check for valid visualization system
+    if(vis_type == ChVisualSystem::Type::NONE) {
+        std::cout << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
+        return 99;
+    }
     // Create a Chrono physical system: all bodies and constraints
     // will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
@@ -260,11 +271,8 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector3d(0.2, 0.2, -2.3));
+            vis_irr->AddCamera(ChVector3d(0.2, 0.2, -4.3));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(1.5, 5.5, -3.5), ChVector3d(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
-                                        ChColor(0.8f, 0.8f, 0.8f));
-            vis_irr->EnableShadows();
 
             vis = vis_irr;
 #endif

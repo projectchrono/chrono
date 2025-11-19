@@ -35,16 +35,17 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
-// #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
-const double ABS_ERR = 1e-5;
+#include "chrono_thirdparty/filesystem/path.h"
 
-enum class ArchiveType { BINARY, JSON, XML };
-
-// Use the namespaces of Chrono
 using namespace chrono;
+
+const double ABS_ERR = 1e-5;
+enum class ArchiveType { BINARY, JSON, XML };
+const std::string val_dir = "../RESULTS/";
+const std::string out_dir = val_dir + "ch_archive/";
 
 void assemble_fourbar(ChSystemNSC& system) {
     system.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
@@ -212,12 +213,23 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
 void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
                  ArchiveType outtype,
                  std::string outputfilename = "") {
+    if (!filesystem::create_directory(filesystem::path(val_dir))) {
+        std::cout << "Error creating directory " << val_dir << std::endl;
+        return;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+
     std::string outputfile;
     if (outputfilename.compare("") == 0)
         outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" +
                      std::string(::testing::UnitTest::GetInstance()->current_test_info()->name());
     else
         outputfile = outputfilename;
+
+    outputfile = out_dir + outputfile;
 
     std::string extension;
     switch (outtype) {
@@ -305,7 +317,15 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
 }
 
 TEST(ChArchiveJSON, Pendulum) {
-    // int main(){
+    if (!filesystem::create_directory(filesystem::path(val_dir))) {
+        std::cout << "Error creating directory " << val_dir << std::endl;
+        return;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+
     double timestep = 0.01;
     int step_num = 2000;
 
@@ -328,7 +348,7 @@ TEST(ChArchiveJSON, Pendulum) {
         moving_body->SetTag(101);
         system.Add(moving_body);
 
-        std::ofstream mfileo("ChArchiveJSON_Pendulum.json");
+        std::ofstream mfileo(out_dir + "ChArchiveJSON_Pendulum.json");
         ChArchiveOutJSON archive_out(mfileo);
         archive_out << CHNVP(system);
 
@@ -343,7 +363,7 @@ TEST(ChArchiveJSON, Pendulum) {
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
 
-    std::ifstream mfilei("ChArchiveJSON_Pendulum.json");
+    std::ifstream mfilei(out_dir + "ChArchiveJSON_Pendulum.json");
     ChArchiveInJSON archive_in(mfilei);
     archive_in.TryTolerateMissingTokens(true);
 
@@ -388,10 +408,20 @@ TEST(ChArchiveBinary, Fourbar) {
 }
 
 TEST(ChArchiveJSON, Solver) {
+    if (!filesystem::create_directory(filesystem::path(val_dir))) {
+        std::cout << "Error creating directory " << val_dir << std::endl;
+        return;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+
     std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" +
                              std::string(::testing::UnitTest::GetInstance()->current_test_info()->name());
-    // int main(){
-    // std::string outputfile = "ChArchiveJSON_Solver";
+
+    outputfile = out_dir + outputfile;
+
     {
         ChSolverPSOR* solverPSOR_ptr = new ChSolverPSOR();
         // ChIterativeSolverVI* solverISVI_ptr = solverPSOR_ptr;
@@ -427,8 +457,19 @@ TEST(ChArchiveJSON, Solver) {
 }
 
 TEST(ChArchiveJSON, nullpointers) {
+    if (!filesystem::create_directory(filesystem::path(val_dir))) {
+        std::cout << "Error creating directory " << val_dir << std::endl;
+        return;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+
     std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" +
                              std::string(::testing::UnitTest::GetInstance()->current_test_info()->name());
+
+    outputfile = out_dir + outputfile;
 
     {
         std::ofstream mfileo(outputfile + ".json");
@@ -549,9 +590,21 @@ TEST(ChArchiveJSON, nullpointers) {
 // }
 
 TEST(ChArchiveJSON, ChVectorDynamicTest) {
+    if (!filesystem::create_directory(filesystem::path(val_dir))) {
+        std::cout << "Error creating directory " << val_dir << std::endl;
+        return;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+
     std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" +
                              std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) +
                              std::string(".json");
+
+    outputfile = out_dir + outputfile;
+
     ChVectorDynamic<> myVect_before;
     {
         ChVectorDynamic<> myVect;

@@ -23,7 +23,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/robot/viper/Viper.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"
@@ -32,7 +32,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -170,8 +170,8 @@ int main(int argc, char* argv[]) {
             );
             break;
         case PatchType::HEIGHT_MAP:
-            // Create a patch from a heigh field map image
-            terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+            // Create a patch from a height field map image
+            terrain.Construct(GetVehicleDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                               terrain_length, terrain_width,                           // length (X) and width (Y)
                               {0.25, 0.55},                                            // height range
                               0.25,                                                    // depth
@@ -242,13 +242,13 @@ int main(int argc, char* argv[]) {
         sim_frame++;
     }
 
-    terrain.PrintFSIStats();
+    terrain.PrintStats();
     std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_CRM/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    terrain.PrintFluidSystemSPHTimeSteps(out_dir + "time_steps.txt");
+    terrain.PrintTimeSteps(out_dir + "time_steps.txt");
 
     return 0;
 }

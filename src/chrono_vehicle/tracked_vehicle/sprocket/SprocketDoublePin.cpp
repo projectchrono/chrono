@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/SprocketDoublePin.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -88,7 +88,7 @@ void SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_method) {
 // -----------------------------------------------------------------------------
 void SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_meshFile), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());

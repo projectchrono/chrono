@@ -20,7 +20,7 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -353,7 +353,7 @@ void ChTrackShoeBandANCF::UpdateInertiaProperties() {
     m_web_mesh->ComputeMassProperties(mesh_mass, mesh_com, mesh_inertia);
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     composite.AddComponent(ChFrame<>(mesh_com, QUNIT), mesh_mass, mesh_inertia);
 

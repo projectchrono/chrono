@@ -18,14 +18,11 @@ import errno
 import os
 
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
-out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
-
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
+out_dir = chrono.GetChronoOutputPath() + "FEA_Shells_BST/"
 
 # Create (if needed) output directory
 try:

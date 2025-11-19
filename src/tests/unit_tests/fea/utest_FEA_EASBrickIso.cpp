@@ -273,7 +273,6 @@ int main(int argc, char* argv[]) {
         out.WriteToFile("../TEST_Brick/tip_position.txt");
     } else {
         // Initialize total number of iterations and timer.
-        int Iterations = 0;
         double start = std::clock();
         int stepNo = 0;
         double AbsVal = 0.0;
@@ -293,11 +292,11 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             stepNo++;
-            Iterations += mystepper->GetNumIterations();
         }
         // Report run time and total number of iterations.
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        std::cout << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
+        std::cout << "Computation Time: " << duration << "   Number of iterations: " << mystepper->GetNumIterations()
+                  << "\n";
         std::cout << "Unit test check succeeded \n";
     }
 

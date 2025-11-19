@@ -12,8 +12,8 @@
 // Authors: Huzaifa Unjhawala
 // =============================================================================
 //
-// Utilities for performance benchmarking of Chrono FSI simulations using the Google
-// benchmark framework.
+// Utilities for performance benchmarking of Chrono FSI simulations using the
+// Google benchmark framework.
 //
 // =============================================================================
 
@@ -21,7 +21,7 @@
 #define CH_BENCHMARK_H
 
 #include "chrono_thirdparty/googlebenchmark/include/benchmark/benchmark.h"
-#include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/ChFsiSystem.h"
 
 namespace chrono {
 namespace fsi {
@@ -48,6 +48,7 @@ class ChBenchmarkTest {
     double m_timer_step;  ///< time for both CFD and MBS
     double m_timer_CFD;   ///< time for CFD
     double m_timer_MBS;   ///< time for MBS
+
     // MBS specific timers
     double m_timer_collision;         ///< time for collision detection
     double m_timer_collision_broad;   ///< time for broad-phase collision

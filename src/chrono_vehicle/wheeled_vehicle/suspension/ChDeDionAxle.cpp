@@ -313,7 +313,7 @@ void ChDeDionAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaWattCenter(getWattCenterInertia());
     ChMatrix33<> inertiaWattSide(getWattSideInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));

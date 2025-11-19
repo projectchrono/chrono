@@ -188,7 +188,7 @@ void ChDoubleWishboneReduced::UpdateInertiaProperties() {
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
     ChMatrix33<> inertiaUpright(getUprightInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_upright[LEFT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);

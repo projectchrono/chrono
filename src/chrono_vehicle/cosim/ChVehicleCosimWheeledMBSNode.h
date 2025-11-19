@@ -125,7 +125,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     virtual void PostAdvance(double step_size) {}
 
     /// Perform additional output at the specified frame (called from within OutputData).
-    /// For example, output mechanism-specific data for post-procesing.
+    /// For example, output mechanism-specific data for post-processing.
     virtual void OnOutputData(int frame) {}
 
     /// Apply the provided force to the i-th spindle body.

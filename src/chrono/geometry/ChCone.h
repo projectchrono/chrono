@@ -65,16 +65,16 @@ class ChApi ChCone : public ChVolume {
     double GetHeight() const { return h; }
 
     /// Return the volume of this type of solid with given dimensions.
-    static double GetVolume(double radius, double height);
+    static double CalcVolume(double radius, double height);
 
     /// Return the gyration matrix of this type of solid with given dimensions.
-    static ChMatrix33<> GetGyration(double radius, double height);
+    static ChMatrix33<> CalcGyration(double radius, double height);
 
     /// Return the bounding box of this type of solid with given dimensions.
-    static ChAABB GetBoundingBox(double radius, double height);
+    static ChAABB CalcBoundingBox(double radius, double height);
 
     /// Return the radius of a bounding sphere.
-    static double GetBoundingSphereRadius(double radius, double height);
+    static double CalcBoundingSphereRadius(double radius, double height);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

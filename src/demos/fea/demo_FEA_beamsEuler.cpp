@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"

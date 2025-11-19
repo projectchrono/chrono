@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/gclass/G500_RigidTire.h"
 
 namespace chrono {
@@ -41,7 +41,7 @@ const std::string G500_RigidTire::m_meshFile = "gclass/gd250_tire_fine.obj";
 // -----------------------------------------------------------------------------
 G500_RigidTire::G500_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("uaz/uaz_tire_fine.obj"), 0.005);
+        SetMeshFilename(GetVehicleDataFile("uaz/uaz_tire_fine.obj"), 0.005);
     }
 }
 

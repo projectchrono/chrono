@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#ifndef CH_CFD_PARSER_YAML_H
-#define CH_CFD_PARSER_YAML_H
+#ifndef CH_PARSER_CFD_YAML_H
+#define CH_PARSER_CFD_YAML_H
 
 #include <string>
 
-#include "chrono_parsers/ChApiParsers.h"
+#include "chrono_parsers/yaml/ChParserYAML.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -32,18 +32,12 @@ namespace parsers {
 /// @{
 
 /// Base class for YAML parsers for fluid systems.
-class ChApiParsers ChParserCfdYAML {
+class ChApiParsers ChParserCfdYAML : public ChParserYAML {
   public:
     enum class FluidSystemType { SPH, BEM };
 
     ChParserCfdYAML(bool verbose = false);
     virtual ~ChParserCfdYAML() {}
-
-    /// Set verbose terminal output (default: false).
-    void SetVerbose(bool verbose) { m_verbose = verbose; }
-
-    /// Set root output directory (default: "").
-    void SetOutputDir(const std::string& out_dir) { m_output_dir = out_dir; }
 
     /// Return the fluid system type.
     FluidSystemType GetType() const { return m_type; }
@@ -53,28 +47,12 @@ class ChApiParsers ChParserCfdYAML {
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const { return nullptr; }
 #endif
 
-    /// Return true if generating output.
-    virtual bool Output() const = 0;
-
-    /// Save simulation output results at the current time.
-    virtual void SaveOutput(int frame) {}
-
-    // Utility functions
-
-    /// Check version in YAML file against the Chrono version.
-    static void CheckVersion(const YAML::Node& a);
-
-    /// Convert string to upper case.
-    static std::string ToUpper(std::string in);
-
     /// Peek in specified YAML file and read the fluid system type.
     /// Throws a runtime error if the type is unknown.
     static FluidSystemType ReadFluidSystemType(const std::string& yaml_filename);
 
   protected:
-    bool m_verbose;
     FluidSystemType m_type;
-    std::string m_output_dir;
 };
 
 /// @} parsers_module

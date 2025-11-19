@@ -285,7 +285,7 @@ void ChRigidPanhardAxle::UpdateInertiaProperties() {
     // Calculate COM and inertia expressed in global frame
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_axleTubeBody->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));

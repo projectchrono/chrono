@@ -24,7 +24,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------
 
     // Create the vehicle system
-    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::SMC);
+    TrackedVehicle vehicle(GetVehicleDataFile(vehicle_file), ChContactMethod::SMC);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
@@ -178,15 +178,15 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     // ------------------
 
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile(rigidterrain_file));
     terrain.Initialize();
 
     // ----------------------------
     // Create the powertrain system
     // ----------------------------
 
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_file));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_file));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(engine_file));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(transmission_file));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
     integrator->SetVerbose(verbose_integrator);
 
     // ---------------
@@ -457,7 +457,6 @@ int main(int argc, char* argv[]) {
 
         cout << "Step: " << step_number;
         cout << "   Time: " << time;
-        cout << "   Number of Iterations: " << integrator->GetNumIterations();
         cout << "   Step Time: " << step_timing;
         cout << "   Total Time: " << total_timing;
         cout << endl;

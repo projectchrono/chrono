@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChMarker.h"
 

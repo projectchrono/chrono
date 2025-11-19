@@ -29,7 +29,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
 #include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
@@ -160,9 +160,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
         auto sph_filename = d["Patch data files"]["SPH particles file"].GetString();
         auto bce_filename = d["Patch data files"]["BCE markers file"].GetString();
         auto path_filename = d["Patch data files"]["Path file"].GetString();
-        m_sph_filename = vehicle::GetDataFile(sph_filename);
-        m_bce_filename = vehicle::GetDataFile(bce_filename);
-        m_path_points = SetPathFromSpecfile(vehicle::GetDataFile(path_filename));
+        m_sph_filename = GetVehicleDataFile(sph_filename);
+        m_bce_filename = GetVehicleDataFile(bce_filename);
+        m_path_points = SetPathFromSpecfile(GetVehicleDataFile(path_filename));
         m_depth = 0;
         m_terrain_type = ConstructionMethod::FILES;
     } else {

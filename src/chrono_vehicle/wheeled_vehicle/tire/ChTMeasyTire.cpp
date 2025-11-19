@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Template for the "Tire Model made Easy". Our implementation is a basic version
-// of the algorithms in http://www.tmeasy.de/, a comercial tire simulation code
+// of the algorithms in http://www.tmeasy.de/, a commercial tire simulation code
 // developed by Prof. Dr. Georg Rill.
 //
 //
@@ -24,7 +24,7 @@
 //      Georg Rill, "Simulation von Kraftfahrzeugen",
 //          https://www.researchgate.net/publication/317037037_Simulation_von_Kraftfahrzeugen
 //
-// Known differences to the comercial version:
+// Known differences to the commercial version:
 //  - No parking slip calculations
 //  - No dynamic parking torque
 //  - No dynamic tire inflation pressure
@@ -44,7 +44,7 @@
 #include <cmath>
 #include <iomanip>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
@@ -278,7 +278,7 @@ void ChTMeasyTire::Advance(double step) {
 void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
     ChVector2d F;
     /*
-     The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+     The Dahl Friction Model elastic tread blocks represented by a single bristle. At tire stand still it acts
      like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
      have been added to calm down the oscillations of the pure spring.
 
@@ -290,7 +290,7 @@ void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, doub
      differential equation:
          dz/dt = v - sigma0*z*abs(v)/fc
 
-     When z is known, the friction force F can be calulated to:
+     When z is known, the friction force F can be calculated to:
         F = sigma0 * z
 
      For practical use some damping is needed, that leads to:
@@ -627,7 +627,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_par.sqe_p2n = 1.0714;
 }
 
-// Do some rough constency checks
+// Do some rough consistency checks
 bool ChTMeasyTire::CheckParameters() {
     // Nominal Load set?
     if (m_par.pn < GetTireMaxLoad(0)) {

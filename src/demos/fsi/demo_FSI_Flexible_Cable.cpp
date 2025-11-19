@@ -537,9 +537,9 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         double length = 0.1;
         double radius = 0.05;
         double density = 200;
-        double volume = ChCylinder::GetVolume(radius, length);
+        double volume = ChCylinder::CalcVolume(radius, length);
         double mass = density * volume;
-        auto gyration = ChCylinder::GetGyration(radius, length).diagonal();
+        auto gyration = ChCylinder::CalcGyration(radius, length).diagonal();
 
         auto cylinder = chrono_types::make_shared<ChBody>();
         cylinder->SetName("CylinderFree");

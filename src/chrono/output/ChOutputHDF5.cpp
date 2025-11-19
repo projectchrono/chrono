@@ -100,16 +100,16 @@ class ChOutputHDF5_frames : public ChOutputHDF5_impl {
     H5::Group* m_frame_group;
     H5::Group* m_section_group;
 
-    static H5::CompType* m_body_type;
-    static H5::CompType* m_shaft_type;
-    static H5::CompType* m_marker_type;
-    static H5::CompType* m_joint_type;
-    static H5::CompType* m_couple_type;
-    static H5::CompType* m_linspring_type;
-    static H5::CompType* m_rotspring_type;
-    static H5::CompType* m_bodyload_type;
-    static H5::CompType* m_linmotor_type;
-    static H5::CompType* m_rotmotor_type;
+    H5::CompType* m_body_type;
+    H5::CompType* m_shaft_type;
+    H5::CompType* m_marker_type;
+    H5::CompType* m_joint_type;
+    H5::CompType* m_couple_type;
+    H5::CompType* m_linspring_type;
+    H5::CompType* m_rotspring_type;
+    H5::CompType* m_bodyload_type;
+    H5::CompType* m_linmotor_type;
+    H5::CompType* m_rotmotor_type;
 };
 
 // -----------------------------------------------------------------------------
@@ -129,6 +129,7 @@ ChOutputHDF5::ChOutputHDF5(const std::string& filename, Mode mode) : m_mode(mode
 
 ChOutputHDF5::~ChOutputHDF5() {
     m_fileHDF5->close();
+    delete m_fileHDF5;
 }
 
 void ChOutputHDF5::Initialize() {
@@ -257,17 +258,6 @@ struct rotmotor_info {
     double t;      // motor torque
 };
 
-H5::CompType* ChOutputHDF5_frames::m_body_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_shaft_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_marker_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_joint_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_couple_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_linspring_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_rotspring_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_bodyload_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_linmotor_type = nullptr;
-H5::CompType* ChOutputHDF5_frames::m_rotmotor_type = nullptr;
-
 // -----------------------------------------------------------------------------
 
 ChOutputHDF5_frames::ChOutputHDF5_frames(H5::H5File* fileHDF5)
@@ -354,14 +344,14 @@ ChOutputHDF5_frames::ChOutputHDF5_frames(H5::H5File* fileHDF5)
 }
 
 ChOutputHDF5_frames::~ChOutputHDF5_frames() {
-    if (m_section_group)
+    if (m_section_group) {
         m_section_group->close();
-    if (m_frame_group)
+        delete m_section_group;
+    }
+    if (m_frame_group) {
         m_frame_group->close();
-
-    delete m_section_group;
-    delete m_frame_group;
-    delete m_fileHDF5;
+        delete m_frame_group;
+    }
 
     delete m_body_type;
     delete m_shaft_type;

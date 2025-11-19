@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
@@ -188,7 +188,7 @@ void ChTrackShoeDoublePin::UpdateInertiaProperties() {
     m_xform = m_shoe->GetFrameRefToAbs();
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:

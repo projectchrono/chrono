@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionSimpleCVT : public ChAutomaticTransm
     virtual double GetOutputDriveshaftTorque() const override { return m_driveshaft_torque; }
 
     /// Return the transmission output speed of the motorshaft.
-    /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
+    /// This represents the output from the transmission subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const override { return m_motorshaft_speed; }
 
     /// Set the operation range
@@ -71,7 +71,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionSimpleCVT : public ChAutomaticTransm
                            double ratio_start,              // () smallest possible gear ratio
                            double driveshaft_speed_end,     // (rad/sec), end gear variation
                            double ratio_end,                // () greatest possible gear ratio
-                           double gearbox_efficiency = 1.0  // optional efficency setting
+                           double gearbox_efficiency = 1.0  // optional efficiency setting
     );
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).

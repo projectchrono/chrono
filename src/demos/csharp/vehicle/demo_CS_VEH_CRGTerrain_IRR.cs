@@ -149,7 +149,7 @@ namespace ChronoDemo
 
                         // Driver model read from JSON file
                         //// var driverHUMAN = new ChHumanDriver(
-                        ////    GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
+                        ////    GetVehicleDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
                         ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
 
                         var driverHUMAN = new ChHumanDriver(vehicle, path, "my_path", roadWidth, vehicle.GetMaxSteeringAngle(), 3.2);
@@ -214,7 +214,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Simulation specs
             double stepSize = 3e-3;

@@ -402,7 +402,7 @@ void ChSolidBellcrankThreeLinkAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaLink(getLinkInertia());
     ChMatrix33<> inertiaTierod(getTierodInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
@@ -481,13 +481,13 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationAssets(VisualizationType vis
     // visualize the axle tube
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
-    // visualize the trangle body
+    // visualize the triangle body
     AddVisualizationLink(m_triangleBody, m_triangle_sph_point, m_triangle_left_point, getAxleTubeRadius() / 2.0,
                          ChColor(0.7f, 0.3f, 0.8f));
     AddVisualizationLink(m_triangleBody, m_triangle_sph_point, m_triangle_right_point, getAxleTubeRadius() / 2.0,
                          ChColor(0.7f, 0.3f, 0.8f));
 
-    // visualize the trangle body
+    // visualize the triangle body
     AddVisualizationLink(m_linkBody[LEFT], m_link_axleL, m_link_chassisL, getAxleTubeRadius() / 2.0,
                          ChColor(0.3f, 0.3f, 0.8f));
     AddVisualizationLink(m_linkBody[RIGHT], m_link_axleR, m_link_chassisR, getAxleTubeRadius() / 2.0,

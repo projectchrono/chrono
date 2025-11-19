@@ -20,7 +20,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandANCF.h"
 
@@ -97,7 +97,7 @@ M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name,
 void M113_TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         auto trimesh =
-            ChTriangleMeshConnected::CreateFromWavefrontFile(GetDataFile(m_meshFile), false, false);
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());

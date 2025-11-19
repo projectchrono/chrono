@@ -327,7 +327,7 @@ void ChMacPhersonStrut::UpdateInertiaProperties() {
     ChMatrix33<> inertiaLCA(getLCAInertia());
     ChMatrix33<> inertiaUpright(getUprightInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_strut[LEFT]->GetFrameCOMToAbs(), getStrutMass(), inertiaStruct);

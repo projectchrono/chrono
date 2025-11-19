@@ -23,7 +23,7 @@ if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_V
 endif()
 
 # Demos that require tensorrt
-if(CH_USE_TENSOR_RT)
+if(CH_USE_SENSOR_TENSORRT)
     set(DEMOS ${DEMOS}
       demo_SEN_NNCamera
     )

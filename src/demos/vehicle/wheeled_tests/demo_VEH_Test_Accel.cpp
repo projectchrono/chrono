@@ -27,7 +27,7 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
             patch_mat->SetPoissonRatio(0.3f);
             auto patch = rigid_terrain->AddPatch(patch_mat, ChCoordsys<>(), terrainLength, 5);
             patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 5);
             rigid_terrain->Initialize();
             terrain = rigid_terrain;
             break;

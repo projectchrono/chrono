@@ -222,28 +222,28 @@ double ChMixtureIngredient::GetDensity() {
 void ChMixtureIngredient::CalcGeometricProps(const ChVector3d& size, double& volume, ChVector3d& gyration) {
     switch (m_type) {
         case MixtureType::SPHERE:
-            volume = ChSphere::GetVolume(size.x());
-            gyration = ChSphere::GetGyration(size.x()).diagonal();
+            volume = ChSphere::CalcVolume(size.x());
+            gyration = ChSphere::CalcGyration(size.x()).diagonal();
             break;
         case MixtureType::ELLIPSOID:
-            volume = ChEllipsoid::GetVolume(size);
-            gyration = ChEllipsoid::GetGyration(size).diagonal();
+            volume = ChEllipsoid::CalcVolume(size);
+            gyration = ChEllipsoid::CalcGyration(size).diagonal();
             break;
         case MixtureType::BOX:
-            volume = ChBox::GetVolume(size);
-            gyration = ChBox::GetGyration(size).diagonal();
+            volume = ChBox::CalcVolume(size);
+            gyration = ChBox::CalcGyration(size).diagonal();
             break;
         case MixtureType::CYLINDER:
-            volume = ChCylinder::GetVolume(size.x(), size.y());
-            gyration = ChCylinder::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCylinder::CalcVolume(size.x(), size.y());
+            gyration = ChCylinder::CalcGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CONE:
-            volume = ChCone::GetVolume(size.x(), size.y());
-            gyration = ChCone::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCone::CalcVolume(size.x(), size.y());
+            gyration = ChCone::CalcGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CAPSULE:
-            volume = ChCapsule::GetVolume(size.x(), size.y());
-            gyration = ChCapsule::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCapsule::CalcVolume(size.x(), size.y());
+            gyration = ChCapsule::CalcGyration(size.x(), size.y()).diagonal();
             break;
     }
 }

@@ -119,26 +119,19 @@ def main() :
 
 # =============================================================================
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Terain JSON specification file
-rigidterrain_file = veh.GetDataFile('terrain/RigidPlane.json')
+rigidterrain_file = veh.GetVehicleDataFile('terrain/RigidPlane.json')
 
 # HMMWV specification files (vehicle, powertrain, and tire models)
-vehicle_file = veh.GetDataFile('hmmwv/vehicle/HMMWV_Vehicle.json')
-engine_file = veh.GetDataFile('hmmwv/powertrain/HMMWV_EngineShafts.json')
-transmission_file = veh.GetDataFile('hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json')
-tire_file = veh.GetDataFile('hmmwv/tire/HMMWV_Pac02Tire.json')
+vehicle_file = veh.GetVehicleDataFile('hmmwv/vehicle/HMMWV_Vehicle.json')
+engine_file = veh.GetVehicleDataFile('hmmwv/powertrain/HMMWV_EngineShafts.json')
+transmission_file = veh.GetVehicleDataFile('hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json')
+tire_file = veh.GetVehicleDataFile('hmmwv/tire/HMMWV_Pac02Tire.json')
 
 # ACV specification files (vehicle, powertrain, and tire models)
-#vehicle_file = veh.GetDataFile('articulated_chassis/ACV_Vehicle.json')
-#powertrain_file = veh.GetDataFile('articulated_chassis/ACV_SimplePowertrain.json')
-#tire_file = veh.GetDataFile('articulated_chassis/ACV_RigidTire.json')
+#vehicle_file = veh.GetVehicleDataFile('articulated_chassis/ACV_Vehicle.json')
+#powertrain_file = veh.GetVehicleDataFile('articulated_chassis/ACV_SimplePowertrain.json')
+#tire_file = veh.GetVehicleDataFile('articulated_chassis/ACV_RigidTire.json')
 
 # Initial vehicle position
 initLoc = chrono.ChVector3d(0, 0, 0.5)
@@ -151,9 +144,12 @@ step_size = 2e-3
 
 # Time interval between two render frames
 render_step_size = 1.0 / 50  # FPS = 50
+    
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # Output directories
-out_dir =  './WHEELED_JSON';
+out_dir = chrono.GetChronoOutputPath() + "Wheeled_JSON/"
 
 # Run-time visualization type (VSG or Irrlicht)
 vis_type = chrono.ChVisualSystem.Type_VSG;

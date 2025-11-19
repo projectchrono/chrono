@@ -162,7 +162,7 @@ class ChApi ChConstraint {
     ///  - the Eq_a and Eq_b matrices
     ///  - the g_i product
     /// This function is often called by solvers at the beginning of the solution process.
-    /// Note: This function *must* be overriden by specialized derived classes, which have some Jacobians.
+    /// Note: This function *must* be overridden by specialized derived classes, which have some Jacobians.
     virtual void UpdateAuxiliary() {}
 
     /// Return the 'g_i' product, that is [Cq_i]*[invM_i]*[Cq_i]' (+cfm)

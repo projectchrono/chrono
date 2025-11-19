@@ -25,7 +25,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
@@ -166,7 +166,7 @@ std::shared_ptr<ChSuspensionTestRig> CreateFromVehicleModel() {
 
     // Create the vehicle
     auto vehicle =
-        chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(setup.VehicleJSON()), ChContactMethod::SMC);
+        chrono_types::make_shared<WheeledVehicle>(GetVehicleDataFile(setup.VehicleJSON()), ChContactMethod::SMC);
 
     // Create the suspension test rig
     std::shared_ptr<ChSuspensionTestRig> rig;
@@ -200,10 +200,10 @@ std::shared_ptr<ChSuspensionTestRig> CreateFromSpecFile() {
         default:
         case RigMode::PLATFORM:
             return chrono_types::make_shared<ChSuspensionTestRigPlatform>(
-                vehicle::GetDataFile(setup.SuspensionRigJSON()));
+                GetVehicleDataFile(setup.SuspensionRigJSON()));
         case RigMode::PUSHROD:
             return chrono_types::make_shared<ChSuspensionTestRigPushrod>(
-                vehicle::GetDataFile(setup.SuspensionRigJSON()));
+                GetVehicleDataFile(setup.SuspensionRigJSON()));
     }
 }
 
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
         auto axle = rig->GetVehicle().GetAxle(ia);
         for (auto& wheel : axle->GetWheels()) {
             if (!wheel->GetTire()) {
-                auto tire = ReadTireJSON(vehicle::GetDataFile(setup.TireJSON()));
+                auto tire = ReadTireJSON(GetVehicleDataFile(setup.TireJSON()));
                 rig->GetVehicle().InitializeTire(tire, wheel, VisualizationType::NONE);
             }
         }
@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
     switch (driver_mode) {
         case DriverMode::DATA_FILE: {
             auto driver =
-                chrono_types::make_shared<ChSuspensionTestRigDataDriver>(vehicle::GetDataFile(setup.DataDriverFile()));
+                chrono_types::make_shared<ChSuspensionTestRigDataDriver>(GetVehicleDataFile(setup.DataDriverFile()));
             rig->SetDriver(driver);
             break;
         }

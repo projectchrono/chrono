@@ -18,12 +18,6 @@ import math as m
 
 print (" Demo of using the assets sys to create shapes for Irrlicht visualization")
 
-
-# The path to the Chrono directory containing various assets(meshes, textures, data files)
-# is automatically set, relative to the default lcoation of this demo.
-# If running from a different directory, you must change the path to the data directory with:
-# chrono.SetChronoDataPath('relative/path/to/data/directory')
-
 # Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)

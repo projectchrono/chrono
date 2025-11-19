@@ -199,6 +199,9 @@ class ChVector3 {
     /// Scale this vector by a scalar: this *= s
     void Scale(Real s);
 
+    /// Set this vector to its component-wise absolute values.
+    void Abs();
+
     /// Set this vector to the cross product of A and B: this = A x B
     void Cross(const ChVector3<Real>& A, const ChVector3<Real>& B);
 
@@ -823,6 +826,13 @@ inline void ChVector3<Real>::Scale(Real s) {
     m_data[0] *= s;
     m_data[1] *= s;
     m_data[2] *= s;
+}
+
+template <class Real>
+inline void ChVector3<Real>::Abs() {
+    m_data[0] = std::abs(m_data[0]);
+    m_data[1] = std::abs(m_data[1]);
+    m_data[2] = std::abs(m_data[2]);
 }
 
 template <class Real>

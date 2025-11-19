@@ -24,8 +24,51 @@ using static ChronoGlobals;
 
 namespace ChronoDemo
 {
-    class FlexibleBushingDemo
+    class EarthquakeDemo
     {
+        // Helper method to create visualisation system based on compiled modules
+        static ChVisualSystem CreateVisualizationSystem(ChSystemNSC sys)
+        {
+#if CHRONO_VSG
+            ChVisualSystemVSG vis = new ChVisualSystemVSG();
+            vis.AttachSystem(sys);
+            vis.SetCameraVertical(CameraVerticalDir.Y);
+            vis.SetWindowSize(new ChVector2i(800, 600));
+            vis.SetWindowPosition(new ChVector2i(100, 100));
+            vis.SetWindowTitle("Collisions between objects");
+            vis.AddCamera(new ChVector3d(1, 3, -10), new ChVector3d(0, 0, 0));
+            vis.SetLightIntensity(1.0f);
+            vis.SetLightDirection(1.5 * chrono.CH_PI_2, chrono.CH_PI_4);
+            vis.EnableSkyBox();
+            vis.EnableShadows();
+            vis.Initialize();
+            
+            Console.WriteLine("Using VSG visualization");
+            return vis;
+#elif CHRONO_IRRLICHT
+            ChVisualSystemIrrlicht vis = new ChVisualSystemIrrlicht();
+            vis.AttachSystem(sys);
+            vis.SetCameraVertical(CameraVerticalDir.Y);
+            vis.SetWindowSize(800, 600);
+            vis.SetWindowTitle("Collisions between objects");
+            vis.Initialize();
+            vis.AddLogo();
+            vis.AddSkyBox();
+            vis.AddCamera(new ChVector3d(1, 3, -10));
+            vis.AddTypicalLights();
+            vis.AddLightWithShadow(new ChVector3d(1.0, 25.0, -5.0), new ChVector3d(0, 0, 0), 35, 0.2, 35, 35, 512,
+                        new ChColor(0.6f, 0.8f, 1.0f));
+            vis.EnableShadows();
+            
+            Console.WriteLine("Using Irrlicht visualization");
+            return vis;
+#else
+            Console.WriteLine("Error: No visualization system available!");
+            Environment.Exit(1);
+            return null;
+#endif
+        }
+
         static void Main(string[] args)
         {
             // Create a tapered column segment as a faceted convex hull.
@@ -145,23 +188,9 @@ namespace ChronoDemo
                 }
             }
 
-            // Create the Irrlicht visualization sys
-            var vis = new ChVisualSystemIrrlicht();
-            vis.AttachSystem(sys);
-            vis.SetCameraVertical(CameraVerticalDir.Y);
-            vis.SetWindowSize(800, 600);
-            vis.SetWindowTitle("Collisions between objects");
-            vis.Initialize();
-            vis.AddLogo();
-            vis.AddSkyBox();
-            vis.AddCamera(new ChVector3d(1, 3, -10));
-            vis.AddTypicalLights();
-            vis.AddLightWithShadow(new ChVector3d(1.0, 25.0, -5.0), new ChVector3d(0, 0, 0), 35, 0.2, 35, 35, 512,
-                        new ChColor(0.6f, 0.8f, 1.0f));
-            vis.EnableShadows();
-
-            vis.EnableBodyFrameDrawing(true);
-
+            // Create visualisation system with the helper
+            ChVisualSystem vis = CreateVisualizationSystem(sys);
+           
             // Modify some setting of the physical system for the simulation
             sys.SetSolverType(ChSolver.Type.PSOR);
             sys.GetSolver().AsIterative().SetMaxIterations(50);
@@ -178,6 +207,7 @@ namespace ChronoDemo
                 sys.DoStepDynamics(timestep);
                 m_realtime_timer.Spin(timestep);
             }
+            // On exit with VSG, Win32 window destruction warning from VSG window is expected and is a garbage cleanup VSG issue
 
             return;
 

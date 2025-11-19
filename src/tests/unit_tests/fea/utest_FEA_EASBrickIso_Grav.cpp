@@ -54,7 +54,7 @@ double precision = 1e-7;        // Precision value used to assess results
 const int num_steps_UT = 40;    // Number of time steps for unit test (range 1 to 2000)
 
 int main(int argc, char* argv[]) {
-    bool output = 0;  // Determines whether it tests (0) or generates golden file (1)
+    bool output = false;  // Determines whether it tests (0) or generates golden file (1)
 
     ChMatrixDynamic<> FileInputMat(2000, 2);
     if (output) {
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_PARDISO_MKL
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
-        mkl_solver->SetVerbose(true);
+        mkl_solver->SetVerbose(false);
         sys.SetSolver(mkl_solver);
 #endif
     } else {
@@ -265,17 +265,15 @@ int main(int argc, char* argv[]) {
         utils::ChWriterCSV out("\t");
         out.Stream().setf(std::ios::scientific | std::ios::showpos);
         out.Stream().precision(7);
-        int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
         while (sys.GetChTime() < sim_time) {
             sys.DoStepDynamics(step_size);
-            Iterations += mystepper->GetNumIterations();
             out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
             std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
-                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
+                      << nodetip->GetForce().z() << "\t" << mystepper->GetNumIterations() << "\n";
         }
         // Write results to output file.
-        out.WriteToFile("../TEST_Brick/UT_EASBrickIso_Grav.txt.txt");
+        out.WriteToFile("../TEST_Brick/UT_EASBrickIso_Grav.txt");
     } else {
         double max_err = 0;
         for (unsigned int it = 0; it < num_steps_UT; it++) {

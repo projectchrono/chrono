@@ -23,9 +23,53 @@ IF("${isSystemDir}" STREQUAL "-1")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
+
+# Enable creation of "application bundles" on MacOSX, necessary for Irrlicht-based demos.
+# For simplicity and consistency, we enable here MACOSX_BUNDLE for all subsequent programs.
+
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE OFF)
+    set(MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in")
+endif()
+
+#--------------------------------------------------------------
 # Add path to google benchmark
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/include)
+
+#--------------------------------------------------------------
+
+# Convenience function to build and install benchmark tests from a list
+function(build_btests TESTS LIBS)
+
+    # Get optional list of additional files
+    if(${ARGC} GREATER 2)
+      set(EXTRA_FILES ${ARGV2})
+    else()
+      set(EXTRA_FILES "")
+    endif()
+    
+    # Build all tests in the list TESTS, linking to LIBS
+    foreach(PROGRAM ${TESTS})
+        add_executable(${PROGRAM} ${PROGRAM}.cpp ${EXTRA_FILES})
+        source_group(""  FILES ${PROGRAM}.cpp ${EXTRA_FILES})
+    
+        set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
+        if(APPLE)
+          set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+        endif()
+        if(MSVC)
+          set_target_properties(${PROGRAM} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+          set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+        endif()
+
+        target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+        target_link_libraries(${PROGRAM} ${LIBS} benchmark_main)
+        
+        install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+    endforeach()
+
+endfunction()
 
 #--------------------------------------------------------------
 # Propagate to subdirectories

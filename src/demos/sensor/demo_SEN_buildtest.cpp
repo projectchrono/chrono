@@ -27,7 +27,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/core/ChRandom.h"
 

@@ -399,15 +399,16 @@ void SphCollisionSystem::NeighborSearch(std::shared_ptr<SphMarkerDataD> sortedSp
     // In-place exclusive scan for num of neighbors
     thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(),
                            m_data_mgr.numNeighborsPerPart.begin());
+    if (m_data_mgr.numNeighborsPerPart.back() > 0) {
+        m_data_mgr.neighborList.resize(m_data_mgr.numNeighborsPerPart.back());
+        thrust::fill(m_data_mgr.neighborList.begin(), m_data_mgr.neighborList.end(), 0);
 
-    m_data_mgr.neighborList.resize(m_data_mgr.numNeighborsPerPart.back());
-    thrust::fill(m_data_mgr.neighborList.begin(), m_data_mgr.neighborList.end(), 0);
-
-    // second pass
-    neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
-        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList));
+        // second pass
+        neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
+            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+            U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
+            numActive, U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList));
+    }
 }
 
 }  // namespace sph

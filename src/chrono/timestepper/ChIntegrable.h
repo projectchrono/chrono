@@ -65,7 +65,7 @@ class ChApi ChIntegrable {
     /// Return the number of coordinates at the acceleration level.
     virtual unsigned int GetNumCoordsAccLevel() { return GetNumCoordsVelLevel(); }
 
-    /// Return the number of lagrangian multipliers i.e. of scalar constraints.
+    /// Return the number of Lagrange multipliers i.e. of scalar constraints.
     virtual unsigned int GetNumConstraints() { return 0; }
 
     /// Set up the system state.
@@ -115,14 +115,13 @@ class ChApi ChIntegrable {
     ///
     /// This function must return true if successful and false otherwise.
     virtual bool StateSolve(ChStateDelta& Dydt,                ///< result: computed Dydt
-                            ChVectorDynamic<>& L,              ///< result: computed lagrangian multipliers, if any
+                            ChVectorDynamic<>& L,              ///< result: computed Lagrange multipliers
                             const ChState& y,                  ///< current state y
                             const double T,                    ///< current time T
-                            const double dt,                   ///< timestep (if needed, ex. in DVI)
+                            const double dt,                   ///< timestep (if needed, e.g. in NSC)
                             bool force_state_scatter,          ///< if false, y and T are not scattered to the system
                             bool full_update,                  ///< if true, perform a full update during scatter
-                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a
-                                                               ///< mass matrix, and uses penalty for constraints.
+                            ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
                             ) = 0;
 
     /// Increment state array: y_new = y + Dy.
@@ -139,6 +138,10 @@ class ChApi ChIntegrable {
     //
     // Functions required by implicit integration schemes
     //
+
+    /// Return true if the number of states or Jacobian structure has changed.
+    /// In such cases, an implicit integrator should force a Jacobian re-evaluation.
+    virtual bool StateModified() const { return false; }
 
     /// Assuming an explicit ODE
     /// <pre>
@@ -162,23 +165,23 @@ class ChApi ChIntegrable {
     ///  |-DL|   [ Cq  0   ]      |-Qc|
     /// </pre>
     /// where R and Qc are given residuals, and dF/dy is the Jacobian of F.
-    /// Note the sign of DL (the method returns DL, not -DL) and the sign of Qc
-    /// (the method expects Qc, not -Qc), because the linear system uses them with flipped signs.
+    /// Note the sign of DL (the method returns DL, not -DL) and the sign of Qc  (the method expects Qc, not -Qc), 
+    /// because the linear system uses them with flipped signs.
     ///
     /// This function must return true if successful and false otherwise.
-    virtual bool StateSolveCorrection(
-        ChStateDelta& Dy,             ///< result: computed Dy
-        ChVectorDynamic<>& DL,        ///< result: computed DL lagrangian multipliers. Note the sign.
-        const ChVectorDynamic<>& R,   ///< the R residual
-        const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign.
-        const double a,               ///< the factor in c_a*H
-        const double b,               ///< the factor in c_b*dF/dy
-        const ChState& y,             ///< current state y
-        const double T,               ///< current time T
-        const double dt,              ///< timestep (if needed)
-        bool force_state_scatter,     ///< if false, y is not scattered to the system
-        bool full_update,             ///< if true, perform a full update during scatter
-        bool force_setup              ///< if true, call the solver's Setup() function
+    virtual bool StateSolveCorrection(ChStateDelta& Dy,             ///< result: computed Dy
+                                      ChVectorDynamic<>& DL,        ///< result: computed DL Lagrange multipliers
+                                      const ChVectorDynamic<>& R,   ///< the R residual
+                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual
+                                      const double a,               ///< the factor in c_a*H
+                                      const double b,               ///< the factor in c_b*dF/dy
+                                      const ChState& y,             ///< current state y
+                                      const double T,               ///< current time T
+                                      const double dt,              ///< time step (if needed)
+                                      bool force_state_scatter,     ///< if true, scatter x and v to the system
+                                      bool full_update,             ///< if true, perform a full update during scatter
+                                      bool call_setup,              ///< if true, call the solver's Setup function
+                                      bool call_analyze             ///< if true, call the solver's Setup analyze phase
     ) {
         throw std::runtime_error("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
     }
@@ -264,9 +267,9 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// Optional: the integrable object might contain last computed state derivative, some integrators might use it.
     virtual void StateScatterAcceleration(const ChStateDelta& a) {}
 
-    /// Solve for accelerations: a = f(x,v,t)
-    /// Given current state y={x,v} , computes acceleration a in the state derivative dy/dt={v,a} and
-    /// lagrangian multipliers L (if any).
+    /// Solve for accelerations: a = f(x,v,t).
+    /// Given current state y={x,v}, computes acceleration a in the state derivative dy/dt={v,a} and
+    /// Lagrange multipliers L (if any).
     /// NOTES
     ///  - some solvers (ex in DVI) cannot compute a classical derivative dy/dt when v is a function
     ///    of bounded variation, and f or L are distributions (e.g., when there are impulses and
@@ -284,15 +287,14 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// WARNING: this implementation avoids the computation of the analytical expression for Qc, but
     /// at the cost of three StateScatter updates (always complete updates).
     virtual bool StateSolveA(ChStateDelta& Dvdt,                ///< result: computed a for a=dv/dt
-                             ChVectorDynamic<>& L,              ///< result: computed lagrangian multipliers, if any
+                             ChVectorDynamic<>& L,              ///< result: computed Lagrange multipliers
                              const ChState& x,                  ///< current state, x
                              const ChStateDelta& v,             ///< current state, v
                              const double T,                    ///< current time T
-                             const double dt,                   ///< timestep (if needed)
-                             bool force_state_scatter,          ///< if false, x,v and T are not scattered to the system
+                             const double dt,                   ///< time step (if needed)
+                             bool force_state_scatter,          ///< if true, scatter x and v to the system
                              bool full_update,                  ///< if true, perform a full update during scatter
-                             ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting
-                                                                ///< a mass matrix, and uses penalty for constraints.
+                             ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
     );
 
     /// Increment state array:  x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -337,7 +339,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     ///
     /// This function must return true if successful and false otherwise.
     virtual bool StateSolveCorrection(ChStateDelta& Dv,             ///< result: computed Dv
-                                      ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
+                                      ChVectorDynamic<>& L,         ///< result: computed Lagrange multipliers
                                       const ChVectorDynamic<>& R,   ///< the R residual
                                       const ChVectorDynamic<>& Qc,  ///< the Qc residual
                                       const double c_a,             ///< the factor in c_a*M
@@ -346,9 +348,10 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                       const ChState& x,             ///< current state, x part
                                       const ChStateDelta& v,        ///< current state, v part
                                       const double T,               ///< current time T
-                                      bool force_state_scatter,  ///< if false, x and v are not scattered to the system
-                                      bool full_update,          ///< if true, perform a full update during scatter
-                                      bool force_setup           ///< if true, call the solver's Setup() function
+                                      bool force_state_scatter,     ///< if true, scatter x and v to the system
+                                      bool full_update,             ///< if true, perform a full update during scatter
+                                      bool call_setup,              ///< if true, call the solver's Setup function
+                                      bool call_analyze             ///< if true, call the solver's Setup analyze phase
     ) {
         throw std::runtime_error("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
     }
@@ -479,20 +482,19 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
     /// compatibility with 1st order integrators.
     virtual bool StateSolve(ChStateDelta& dydt,                ///< result: computed dydt
-                            ChVectorDynamic<>& L,              ///< result: computed lagrangian multipliers, if any
+                            ChVectorDynamic<>& L,              ///< result: computed Lagrange multipliers
                             const ChState& y,                  ///< current state y
                             const double T,                    ///< current time T
-                            const double dt,                   ///< timestep (if needed, ex. in DVI)
-                            bool force_state_scatter,          ///< if false, y and T are not scattered to the system
+                            const double dt,                   ///< time step (if needed, e.g. in NSC)
+                            bool force_state_scatter,          ///< if true, scatter x and v to the system
                             bool full_update,                  ///< if true, perform a full update during scatter
-                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a
-                                                               ///< mass matrix, and uses penalty for constraints.
+                            ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
                             ) override;
 
     /// Override of method for Ist order implicit integrators.
     /// This is disabled here because implicit integrators for Ist order cannot be used for a IInd order system.
     virtual bool StateSolveCorrection(ChStateDelta& Dy,
-                                      ChVectorDynamic<>& L,
+                                      ChVectorDynamic<>& DL,
                                       const ChVectorDynamic<>& R,
                                       const ChVectorDynamic<>& Qc,
                                       const double a,
@@ -502,7 +504,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                       const double dt,
                                       bool force_state_scatter,
                                       bool full_update,
-                                      bool force_setup) override final {
+                                      bool call_setup,
+                                      bool call_analyze) override final {
         throw std::runtime_error(
             "StateSolveCorrection() not implemented for ChIntegrableIIorder, implicit integrators for Ist order cannot "
             "be used. ");

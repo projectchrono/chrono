@@ -20,7 +20,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
         hht->SetAlpha(-0.2);
         hht->SetMaxIters(5);
         hht->SetAbsTolerances(1e-2);
-        hht->SetModifiedNewton(true);
+        hht->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
         hht->SetStepControl(false);
         hht->SetMinStepSize(1e-4);
         ////hht->SetVerbose(true);
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     wheel->SetVisualizationType(VisualizationType::NONE);
 
     // Create the tire
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
     auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire);
     if (!tire_def) {
         cerr << "ERROR: Incorrect tire specification JSON file" << endl;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
             auto terrain_rigid = chrono_types::make_shared<RigidTerrain>(&sys);
             auto patch = terrain_rigid->AddPatch(mat, ChCoordsys<>(ChVector3d(0, 0, -radius - 0.01), QUNIT), 4 * radius,
                                                  4 * radius);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 10, 5);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 10, 5);
             terrain_rigid->Initialize();
 
             terrain = terrain_rigid;
@@ -317,6 +317,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, -1.5, 0), VNULL);
+            vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
             vis = vis_irr;
 #endif
@@ -350,6 +351,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
+            vis_vsg->SetContactNormalsVisibility(true, -1);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

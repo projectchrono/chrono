@@ -369,7 +369,7 @@ inline __device__ void findNewLocalCoords(ChSystemDem_impl::GranSphereDataPtr sp
             (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, (float)gran_params->BD_frame_X * l_unit,
             (float)gran_params->BD_frame_Y * l_unit, (float)gran_params->BD_frame_Z * l_unit);
         __threadfence();
-        cub::ThreadTrap();
+        cuda::std::terminate();
     }
 
     // write local pos back to global memory

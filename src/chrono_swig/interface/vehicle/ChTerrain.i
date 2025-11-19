@@ -20,6 +20,13 @@
 #if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
     #include "chrono_vehicle/terrain/CRGTerrain.h"
 #endif
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI
+#include "chrono_vehicle/terrain/CRMTerrain.h"
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
 
@@ -57,11 +64,19 @@
 %shared_ptr(chrono::vehicle::SCMTerrain)
 %shared_ptr(chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI
+%shared_ptr(chrono::vehicle::CRMTerrain)
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
 #if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
 %shared_ptr(chrono::vehicle::CRGTerrain)
 #endif
 
 %template(ChPatchList) std::vector<std::shared_ptr<chrono::vehicle::RigidTerrain::Patch>>;
+%template(ChSCMTerrainNodeLevel) std::pair<chrono::ChVector2i, double>;
+%template(ChSCMTerrainNodeLevelList) std::vector<std::pair<chrono::ChVector2i, double>>; // To support SCMTerrain::Get/SetModifiedNodes
 
 // Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/ChTerrain.h"    
@@ -74,6 +89,12 @@
 %pointer_functions(int, intp)
 %pointer_functions(double, doublep)
 %include "../../../chrono_vehicle/terrain/SCMTerrain.h"
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI
+%include "../../../chrono_vehicle/terrain/CRMTerrain.h"
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
 
 #if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
 %include "../../../chrono_vehicle/terrain/CRGTerrain.h"

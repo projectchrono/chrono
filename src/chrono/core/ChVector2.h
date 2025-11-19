@@ -155,6 +155,9 @@ class ChVector2 {
     /// Scale this vector by a scalar: this *= s
     void Scale(const Real s);
 
+    /// Set this vector to its component-wise absolute values.
+    void Abs();
+
     /// Return the dot product with another vector: result = this ^ B
     Real Dot(const ChVector2<Real>& B) const;
 
@@ -604,6 +607,12 @@ template <class Real>
 inline void ChVector2<Real>::Scale(const Real s) {
     m_data[0] *= s;
     m_data[1] *= s;
+}
+
+template <class Real>
+inline void ChVector2<Real>::Abs() {
+    m_data[0] = std::abs(m_data[0]);
+    m_data[1] = std::abs(m_data[1]);
 }
 
 template <class Real>

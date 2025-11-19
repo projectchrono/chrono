@@ -21,7 +21,7 @@ simulation:
       sharpness_factor: 1.0
   
   output:
-      type: HDF5
+      type: NONE
       fps: 20
       output_directory: "."
 

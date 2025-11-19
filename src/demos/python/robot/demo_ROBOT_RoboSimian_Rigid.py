@@ -15,6 +15,7 @@
 # RoboSimian on rigid terrain
 #
 # =============================================================================
+
 import errno
 import os
 import math
@@ -25,6 +26,10 @@ try:
    from pychrono import irrlicht as chronoirr
 except:
    print('Could not import ChronoIrrlicht')
+
+    
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 time_step = 1e-3
 
@@ -47,7 +52,7 @@ output_fps = 100
 render_fps = 60
 
 # Output directories
-out_dir = "./ROBOSIMIAN_RIGID"
+out_dir = chrono.GetChronoOutputPath() + "ROBOSIMIAN_Rigid/"
 pov_dir = out_dir + "/POVRAY"
 img_dir = out_dir + "/IMG"
 
@@ -151,6 +156,10 @@ def SetContactProperties(robot):
         wheel_matSMC.SetYoungModulus(Y)    
     
 # =============================================================================
+
+
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # ------------
 # Timed events

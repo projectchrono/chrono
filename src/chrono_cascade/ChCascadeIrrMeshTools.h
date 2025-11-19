@@ -20,28 +20,13 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 
-#include <TopoDS_Shape.hxx>
-#include <TopoDS.hxx>
-#include <TopoDS_HShape.hxx>
-#include <TopoDS_Edge.hxx>
-#include <TopoDS_Face.hxx>
-#include <TopoDS_Compound.hxx>
-#include <BRep_Builder.hxx>
-#include <BRepTools.hxx>
+#include <BRepAdaptor_Surface.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeVertex.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopLoc_Location.hxx>
-#include <TopoDS_Iterator.hxx>
-#include <BRepAdaptor_HSurface.hxx>
+#include <BRepTools.hxx>
 #include <Poly.hxx>
-#include <Poly_Connect.hxx>
-#include <Poly_Triangle.hxx>
-#include <Poly_Triangulation.hxx>
-#include <TColgp_Array1OfDir.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
-#include <TShort_Array1OfShortReal.hxx>
 
 namespace chrono {
 namespace cascade {
@@ -53,13 +38,13 @@ namespace cascade {
 class ChCascadeIrrMeshTools {
   public:
     /// Function to convert an OpenCASCADE face into a Irrlicht mesh for visualization.
-    static void fillIrrlichtMeshFromCascadeFace(irr::scene::IMesh* pMesh,
+    static void FillIrrlichtMeshFromCascadeFace(irr::scene::IMesh* pMesh,
                                                 const TopoDS_Face& F,
                                                 irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255)) {
         BRepAdaptor_Surface BS(F, Standard_False);
-        Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
+        opencascade::handle<BRepAdaptor_Surface> gFace = new BRepAdaptor_Surface(BS);
 
-        Handle(Poly_Triangulation) T;
+        opencascade::handle<Poly_Triangulation> T;
         TopLoc_Location theLocation;
         T = BRep_Tool::Triangulation(F, theLocation);
 
@@ -69,19 +54,19 @@ class ChCascadeIrrMeshTools {
             buffer->Vertices.set_used(T->NbNodes());
             buffer->Indices.set_used(T->NbTriangles() * 3);
 
-            const TColgp_Array1OfPnt& mNodes = T->Nodes();
+            const Poly_ArrayOfNodes& mNodes = T->InternalNodes();
 
             Poly::ComputeNormals(T);
-            const TShort_Array1OfShortReal& mNormals = T->Normals();
+            const auto& mNormals = T->InternalNormals();
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
                 gp_Pnt p;
                 gp_Dir pn;
-                p = mNodes(j).Transformed(theLocation.Transformation());
+                p = mNodes.Value(j).Transformed(theLocation.Transformation());
 
                 chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector3d nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
+                chrono::ChVector3d nor(mNormals.Value(j).x(), mNormals.Value(j).y(), mNormals.Value(j).z());
                 if (F.Orientation() == TopAbs_REVERSED)
                     nor *= -1;
 
@@ -92,12 +77,12 @@ class ChCascadeIrrMeshTools {
             }
 
             int itri = 0;
-            for (int j = T->Triangles().Lower(); j <= T->Triangles().Upper(); j++) {
+            for (int j = 1; j <= T->NbTriangles(); ++j) {  // NB: opencascade indexing is [1, last]
                 Standard_Integer n[3];
                 if (F.Orientation() == TopAbs_REVERSED)
-                    T->Triangles()(j).Get(n[0], n[2], n[1]);
+                    T->Triangle(j).Get(n[0], n[2], n[1]);
                 else
-                    T->Triangles()(j).Get(n[0], n[1], n[2]);
+                    T->Triangle(j).Get(n[0], n[1], n[2]);
                 int ia = (n[0]) - 1;
                 int ib = (n[1]) - 1;
                 int ic = (n[2]) - 1;
@@ -116,7 +101,7 @@ class ChCascadeIrrMeshTools {
     }
 
     /// Function to convert an OpenCASCADE shape into a Irrlicht mesh, for visualization.
-    static void fillIrrlichtMeshFromCascade(irr::scene::IMesh* pMesh,
+    static void FillIrrlichtMeshFromCascade(irr::scene::IMesh* pMesh,
                                             const TopoDS_Shape& mshape,
                                             double deflection = 1,
                                             bool relative_deflection = false,
@@ -130,7 +115,7 @@ class ChCascadeIrrMeshTools {
         TopExp_Explorer ex;
         for (ex.Init(mshape, TopAbs_FACE); ex.More(); ex.Next()) {
             const TopoDS_Face& F = TopoDS::Face(ex.Current());
-            fillIrrlichtMeshFromCascadeFace(pMesh, F, clr);
+            FillIrrlichtMeshFromCascadeFace(pMesh, F, clr);
         }
     }
 };

@@ -21,7 +21,7 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -59,7 +59,7 @@ ChTrackShoeBand::ChTrackShoeBand(const std::string& name) : ChTrackShoe(name) {}
 void ChTrackShoeBand::Construct(std::shared_ptr<ChChassis> chassis,
                                 const ChVector3d& location,
                                 const ChQuaternion<>& rotation) {
-    // Cache the postive (+x) tooth arc position and arc starting and ending angles
+    // Cache the positive (+x) tooth arc position and arc starting and ending angles
     ChVector2d tooth_base_p(GetToothBaseLength() / 2, GetWebThickness() / 2);
     ChVector2d tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
     m_center_p = CalcCircleCenter(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
@@ -188,7 +188,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
 }
 
 // -----------------------------------------------------------------------------
-// Utilties for writing/exporting the tooth visualization mesh
+// Utilities for writing/exporting the tooth visualization mesh
 // -----------------------------------------------------------------------------
 void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);

@@ -33,7 +33,7 @@ unset(IRRLICHT_DLL)
 # ----------------------------------------------------------------------------------------------------
 # 1. Look for Irrlicht using Irrlicht_INCLUDE_DIR and Irrlicht_LIBRARY if both provided
 # ----------------------------------------------------------------------------------------------------
-message(STATUS "Looking for Irrlicht...")
+
 if(NOT "${Irrlicht_INCLUDE_DIR}" STREQUAL "" AND NOT "${Irrlicht_LIBRARY}" STREQUAL "")
   find_path(IRRLICHT_INCLUDE_DIR NAMES irrlicht.h PATHS ${Irrlicht_INCLUDE_DIR} NO_CACHE NO_PACKAGE_ROOT_PATH)
 

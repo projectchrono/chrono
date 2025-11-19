@@ -50,7 +50,7 @@ class CH_FSI_API ChFsiSystem {
     void AttachFluidSystem(ChFsiFluidSystem* sys);
 
     /// Attach a MBS system.
-    void AtachMultibodySystem(ChSystem* sys);
+    void AttachMultibodySystem(ChSystem* sys);
 
     /// Access the associated fluid system.
     ChFsiFluidSystem& GetFluidSystem() const;
@@ -77,7 +77,6 @@ class CH_FSI_API ChFsiSystem {
     void SetStepsizeMBD(double step);
 
     /// Add a rigid body to the FSI system.
-    /// BCE markers are created based on the provided geometry.
     std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChBodyGeometry> geometry,
                                         bool check_embedded);
@@ -194,9 +193,6 @@ class CH_FSI_API ChFsiSystem {
     /// Return the FSI applied torque on the body with specified index (as returned by AddFsiBody).
     /// The torque is expressed in the absolute frame.
     const ChVector3d& GetFsiBodyTorque(size_t i) const;
-
-    /// Print the FSI statistics
-    void PrintFSIStats() const;
 
     //// TODO: add functions to get force on FEA nodes
 
