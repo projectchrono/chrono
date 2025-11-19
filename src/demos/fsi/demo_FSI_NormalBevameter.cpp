@@ -485,7 +485,7 @@ void SimulateMaterial(int i, const SimParams& params) {
     double plate_mass = params.density * plate_area * cyl_length;
     std::cout << "plate_mass: " << plate_mass << std::endl;
     plate->SetMass(plate_mass);
-    ChMatrix33<> plate_inertia = plate_mass * ChCylinder::GetGyration(params.plate_diameter / 2, cyl_length);
+    ChMatrix33<> plate_inertia = plate_mass * ChCylinder::CalcGyration(params.plate_diameter / 2, cyl_length);
     plate->SetInertia(plate_inertia);
     sysMBS.AddBody(plate);
 

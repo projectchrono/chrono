@@ -196,9 +196,9 @@ void CalculateConeProperties(const double length,
                              double& cone_z_vel,
                              double& cone_length,
                              double& cone_diameter) {
-    volume = ChCone::GetVolume(length, diameter);
+    volume = ChCone::CalcVolume(length, diameter);
     cone_mass = mass;
-    inertia = mass * ChCone::GetGyration(length, diameter);
+    inertia = mass * ChCone::CalcGyration(length, diameter);
     double impact_vel = std::sqrt(2 * Hdrop * length * g);
     cone_z_pos = fzDim + length + 0.5 * initial_spacing;
     cone_z_vel = impact_vel;

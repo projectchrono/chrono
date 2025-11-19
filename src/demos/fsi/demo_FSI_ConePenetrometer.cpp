@@ -721,12 +721,12 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
 
     cone->SetRot(cone_rot);
 
-    double volume = ChCone::GetVolume(coneProp.diameter / 2, coneProp.length);
+    double volume = ChCone::CalcVolume(coneProp.diameter / 2, coneProp.length);
     double cone_mass = coneProp.density * volume;
     std::cout << "cone_mass: " << cone_mass << std::endl;
     cone->SetMass(cone_mass / 2);
     // Mass/2 because we also have a cylinder that takes up half the mass
-    ChMatrix33<> inertia = cone_mass / 2 * ChCone::GetGyration(coneProp.diameter / 2, coneProp.length);
+    ChMatrix33<> inertia = cone_mass / 2 * ChCone::CalcGyration(coneProp.diameter / 2, coneProp.length);
     cone->SetInertia(inertia);
     cone->SetFixed(false);
     sysMBS.AddBody(cone);
@@ -754,7 +754,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     double cyl_volume = CH_PI * cyl_radius * cyl_radius * cyl_length;
     double cyl_mass = coneProp.density * cyl_volume;
     cyl->SetMass(cone_mass / 2);  // *10 because we fake the length compared to DEM
-    ChMatrix33<> cyl_inertia = cyl_mass * ChCylinder::GetGyration(cyl_radius, cyl_length);
+    ChMatrix33<> cyl_inertia = cyl_mass * ChCylinder::CalcGyration(cyl_radius, cyl_length);
     cyl->SetInertia(cyl_inertia);
     sysMBS.AddBody(cyl);
     chrono::utils::AddCylinderGeometry(cyl.get(), cmaterial, cyl_radius, cyl_length, ChVector3d(0, 0, 0), QUNIT, false,

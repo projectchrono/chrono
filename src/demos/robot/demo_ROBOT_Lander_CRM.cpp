@@ -37,7 +37,7 @@
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -328,8 +328,8 @@ int main(int argc, char* argv[]) {
     // fsi.Construct(ChVector3d(TERRAIN_SIZE_X, TERRAIN_SIZE_Y, TERRAIN_SIZE_Z), ChVector3d(0, 0, 0), BoxSide::Z_NEG);
 
     std::string terrain_dir = "terrain/sph/cube";
-    std::string sph_file = vehicle::GetDataFile(terrain_dir + "/fluid0.txt");
-    std::string bce_file = vehicle::GetDataFile(terrain_dir + "/boundary0.txt");
+    std::string sph_file = vehicle::GetVehicleDataFile(terrain_dir + "/fluid0.txt");
+    std::string bce_file = vehicle::GetVehicleDataFile(terrain_dir + "/boundary0.txt");
     fsi.Construct(sph_file, bce_file, ChVector3d(0, 0, 0), false);
 
     fsi.Initialize();
