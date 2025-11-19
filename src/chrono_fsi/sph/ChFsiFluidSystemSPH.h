@@ -65,6 +65,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double mcc_M;                // CSL line slope
         double mcc_kappa;            // Compression index
         double mcc_lambda;           // Swelling index
+        double mcc_v_lambda;         // Specific volume at reference pressure of 1000 Pa
 
         ElasticMaterialProperties();
     };

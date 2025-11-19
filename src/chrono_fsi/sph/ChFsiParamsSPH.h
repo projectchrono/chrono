@@ -171,9 +171,10 @@ struct ChFsiParamsSPH {
     ///< field is computed and compared to this threshold. Particles with divergence
     ///< less than this threshold are considered free surface particles (CRM only,
     ///< default: 2.0)
-    Real mcc_M;       ///< CSL line slope
-    Real mcc_kappa;   ///< Compression index
-    Real mcc_lambda;  ///< Swelling index
+    Real mcc_M;         ///< CSL line slope
+    Real mcc_kappa;     ///< Compression index
+    Real mcc_lambda;    ///< Swelling index
+    Real mcc_v_lambda;  ///< Specific volume at reference pressure of 1000 Pa
 
     Real boxDimX;  ///< Dimension of the space domain - X
     Real boxDimY;  ///< Dimension of the space domain - Y

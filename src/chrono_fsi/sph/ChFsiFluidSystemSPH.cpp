@@ -445,7 +445,8 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       rheology_model(RheologyCRM::MU_OF_I),
       mcc_M(0),
       mcc_kappa(0),
-      mcc_lambda(0) {}
+      mcc_lambda(0),
+      mcc_v_lambda(2.0) {}
 
 void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
     m_paramsH->elastic_SPH = true;
@@ -472,10 +473,14 @@ void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_pro
         m_paramsH->mcc_M = Real(mat_props.mcc_M);
         m_paramsH->mcc_kappa = Real(mat_props.mcc_kappa);
         m_paramsH->mcc_lambda = Real(mat_props.mcc_lambda);
+        m_paramsH->mcc_v_lambda = Real(mat_props.mcc_v_lambda);
 
-        if (m_paramsH->mcc_M == 0 || m_paramsH->mcc_kappa == 0 || m_paramsH->mcc_lambda == 0) {
-            std::cout << "MCC rheology model is used, but mcc_M, mcc_kappa, and mcc_lambda are not set" << std::endl;
-            throw std::runtime_error("MCC rheology model is used, but mcc_M, mcc_kappa, and mcc_lambda are not set");
+        if (m_paramsH->mcc_M == 0 || m_paramsH->mcc_kappa == 0 || m_paramsH->mcc_lambda == 0 ||
+            m_paramsH->mcc_v_lambda == 0) {
+            std::cout << "MCC rheology model is used, but mcc_M, mcc_kappa,mcc_lambda, and mcc_v_lambda are not set"
+                      << std::endl;
+            throw std::runtime_error(
+                "MCC rheology model is used, but mcc_M, mcc_kappa,mcc_lambda, and mcc_v_lambda are not set");
         }
     }
 }
@@ -876,6 +881,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  mcc_M: " << params.mcc_M << endl;
     cout << "  mcc_kappa: " << params.mcc_kappa << endl;
     cout << "  mcc_lambda: " << params.mcc_lambda << endl;
+    cout << "  mcc_v_lambda: " << params.mcc_v_lambda << endl;
     cout << "  HB_k: " << params.HB_k << endl;
     cout << "  HB_n: " << params.HB_n << endl;
     cout << "  HB_tau0: " << params.HB_tau0 << endl;
