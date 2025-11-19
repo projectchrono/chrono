@@ -1319,7 +1319,6 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
     Real G_i[9] = {G_i0, G_i1, G_i2, G_i3, G_i4, G_i5, G_i6, G_i7, G_i8};
 
     // TODO(Huzaifa): Make sure that this use of volume0 here is correct
-    Real sum_w_i = W3h(kernelType, 0, ooh) * paramsD.volume0;
     Real nabla_r = 0;
     Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
     Real max_vel_diff = 0;
@@ -1345,7 +1344,7 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
         Real w_AB = W3h(kernelType, d, ooh);
         Real3 gradW = GradW3h(kernelType, dist3, ooh);
 
-        // Accumulate support metric (nabla_r) as in diffusion-based shifting
+        // Accumulate divergence of the position field to compute free surface particles
         // Uses neighbor volume approximation markerMass / rho_j
         nabla_r += paramsD.markerMass / paramsD.rho0 * dot(-dist3, gradW);
 
@@ -1393,19 +1392,11 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
             dTauxz += twoG * exz - (tauxx * wxz + tauxy * wyz) + (wxy * tauyz + wxz * tauzz);
             dTauyz += twoG * eyz - (tauxy * wxz + tauyy * wyz) - (wxy * tauxz - wyz * tauzz);
         }
-
-        if (d > paramsD.h * 1.0e-9f) {
-            Real Wab = W3h(kernelType, d, ooh);
-            // Integration of the kernel function
-            // TODO(Huzaifa): Make sure that this use of volume0 here is correct
-            sum_w_i += Wab * paramsD.volume0;
-        }
     }
 
     // Identify free-surface particles using implicit metric (nabla_r) and AFST threshold
     // Consistent with diffusion-based shifting logic
-    // if(sum_w_i  < paramsD.free_surface_threshold) {
-    if (nabla_r < paramsD.shifting_diffusion_AFST) {
+    if (nabla_r < paramsD.free_surface_threshold) {
         sortedFreeSurfaceIdD[index] = 1;
     } else {
         sortedFreeSurfaceIdD[index] = 0;
@@ -1478,9 +1469,6 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
     const Real ooh = paramsD.ooh;
     const Real d0 = paramsD.d0;
 
-    // TODO(Huzaifa): Make sure that this use of volume0 here is correct
-    Real sum_w_i = W3h(kernelType, 0, ooh) * paramsD.volume0;
-    // Real sum_w_i = W3h(kernelType, 0, ooh) * paramsD.markerMass / rhoPresMuA.x;
     Real nabla_r = 0;
     Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
     Real max_vel_diff = 0;
@@ -1508,10 +1496,11 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
         Real w_AB = W3h(kernelType, d, ooh);
         Real3 gradW = GradW3h(kernelType, dist3, ooh);
 
-        // Accumulate support metric (nabla_r) as in diffusion-based shifting
+        // Accumulate divergence of the position field to compute free surface particles
         // Uses neighbor volume approximation markerMass / rho_j
-        // nabla_r += paramsD.markerMass / paramsD.rho0 * dot(-dist3, gradW);
-        nabla_r += volumej * dot(-dist3, gradW);
+        if (d > paramsD.h * 1.0e-9f) {
+            nabla_r += volumej * dot(-dist3, gradW);
+        }
 
         // Calculate dv/dt
         // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
@@ -1520,26 +1509,17 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
                     rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
         if (isFluid) {
             Real3 vBA = velMasB - velMasA;
-            // Real Vj = paramsD.volume0;
-            Real Vj = volumej;
 
             // accumulate velocity gradient
-            Lxx += Vj * vBA.x * gradW.x;
-            Lxy += Vj * vBA.x * gradW.y;
-            Lxz += Vj * vBA.x * gradW.z;
-            Lyx += Vj * vBA.y * gradW.x;
-            Lyy += Vj * vBA.y * gradW.y;
-            Lyz += Vj * vBA.y * gradW.z;
-            Lzx += Vj * vBA.z * gradW.x;
-            Lzy += Vj * vBA.z * gradW.y;
-            Lzz += Vj * vBA.z * gradW.z;
-        }
-
-        if (d > paramsD.h * 1.0e-9f) {
-            Real Wab = W3h(kernelType, d, ooh);
-            // Integration of the kernel function
-            // TODO(Huzaifa): Make sure that this use of volume0 here is correct
-            sum_w_i += Wab * paramsD.volume0;
+            Lxx += volumej * vBA.x * gradW.x;
+            Lxy += volumej * vBA.x * gradW.y;
+            Lxz += volumej * vBA.x * gradW.z;
+            Lyx += volumej * vBA.y * gradW.x;
+            Lyy += volumej * vBA.y * gradW.y;
+            Lyz += volumej * vBA.y * gradW.z;
+            Lzx += volumej * vBA.z * gradW.x;
+            Lzy += volumej * vBA.z * gradW.y;
+            Lzz += volumej * vBA.z * gradW.z;
         }
     }
     // Split into D and W
@@ -1555,11 +1535,11 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
 
     Real trD = Dxx + Dyy + Dzz;
     Real edia = 1.0f / 3.0f * trD;
-    // Save the volumetric strain to use in constitutive model
-    sortedPcEvSv[index].y = -trD;
     Real twoG = 0;
     Real threeK = 0;
     if (paramsD.rheology_model_crm == RheologyCRM::MCC) {
+        // Save the volumetric strain to use in constitutive model (MCC only)
+        sortedPcEvSv[index].y = -trD;
         Real p_n = -CH_1_3 * (tauxx + tauyy + tauzz);
         // Floor Pressure (Pa) to prevent K -> 0 near free surface
         // Real p_eff = fmax(p_n, Real(1000.0));
@@ -1573,7 +1553,6 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
         // Shear
         Real G_cand = (3.0 * K_clamped * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
         Real G_clamped = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(1.0) * paramsD.G_shear);
-        // Real G_clamped = 250000;  // 250 Kpa
 
         twoG = 2 * G_clamped;
         threeK = 3 * K_clamped;
@@ -1591,10 +1570,8 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
     Real dTauxy = twoG * Dxy - (tauxx * Wxy - tauxz * Wyz) + (Wxy * tauyy + Wxz * tauyz);
     Real dTauxz = twoG * Dxz - (tauxx * Wxz + tauxy * Wyz) + (Wxy * tauyz + Wxz * tauzz);
     Real dTauyz = twoG * Dyz - (tauxy * Wxz + tauyy * Wyz) - (Wxy * tauxz - Wyz * tauzz);
-    // Identify free-surface particles using implicit metric (nabla_r) and AFST threshold
-    // Consistent with diffusion-based shifting logic
-    // if(sum_w_i  < paramsD.free_surface_threshold) {
-    if (nabla_r < paramsD.shifting_diffusion_AFST) {
+    // Identify free-surface particles using the divergence of the position field
+    if (nabla_r < paramsD.free_surface_threshold) {
         sortedFreeSurfaceIdD[index] = 1;
     } else {
         sortedFreeSurfaceIdD[index] = 0;

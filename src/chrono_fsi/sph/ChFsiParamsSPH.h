@@ -167,10 +167,13 @@ struct ChFsiParamsSPH {
     Real Nu_poisson;              ///< Poisson's ratio
     Real artificial_viscosity;    ///< Artifical viscosity coefficient
     Real Coh_coeff;               ///< Cohesion coefficient
-    Real free_surface_threshold;  ///< Threshold of the integration of the kernel function
-    Real mcc_M;                   ///< CSL line slope
-    Real mcc_kappa;               ///< Compression index
-    Real mcc_lambda;              ///< Swelling index
+    Real free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
+    ///< field is computed and compared to this threshold. Particles with divergence
+    ///< less than this threshold are considered free surface particles (CRM only,
+    ///< default: 2.0)
+    Real mcc_M;       ///< CSL line slope
+    Real mcc_kappa;   ///< Compression index
+    Real mcc_lambda;  ///< Swelling index
 
     Real boxDimX;  ///< Dimension of the space domain - X
     Real boxDimY;  ///< Dimension of the space domain - Y

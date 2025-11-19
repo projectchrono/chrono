@@ -411,7 +411,7 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_xsph_eps = 0.5;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
-    sph_params.free_surface_threshold = 0.8;
+    sph_params.free_surface_threshold = 2.0;
     sph_params.num_proximity_search_steps = ps_freq;
     if (kernel_type == "cubic") {
         sph_params.kernel_type = KernelType::CUBIC_SPLINE;

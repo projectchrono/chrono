@@ -147,7 +147,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->ClampPressure = false;
 
     // Elastic SPH
-    m_paramsH->free_surface_threshold = Real(0.8);
+    m_paramsH->free_surface_threshold = Real(2.0);
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
@@ -171,7 +171,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
 
-    m_paramsH->num_proximity_search_steps = 4;
+    m_paramsH->num_proximity_search_steps = 1;
     m_paramsH->use_variable_time_step = false;
 }
 
@@ -504,8 +504,8 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
-      free_surface_threshold(0.8),
-      num_proximity_search_steps(4),
+      free_surface_threshold(2.0),
+      num_proximity_search_steps(1),
       eos_type(EosType::ISOTHERMAL),
       use_variable_time_step(false) {}
 
@@ -1600,15 +1600,14 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Update particle activity
     m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D, time);
 
-    // Resize arrays
-    bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();
-    if (m_frame == 0 || resize_arrays) {
-        m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
-    }
-
     // Perform proximity search
     bool proximity_search = m_frame % m_paramsH->num_proximity_search_steps == 0 || m_force_proximity_search;
     if (proximity_search) {
+        // Resize arrays
+        bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();
+        if (m_frame == 0 || resize_arrays) {
+            m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
+        }
         m_fluid_dynamics->ProximitySearch();
     }
 

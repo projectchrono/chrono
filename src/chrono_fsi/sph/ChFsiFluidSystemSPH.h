@@ -96,7 +96,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double artificial_viscosity;                   ///< artificial viscosity coefficient (default: 0.02)
         bool use_delta_sph;                            ///< use delta SPH (default: true)
         double delta_sph_coefficient;                  ///< delta SPH coefficient (default: 0.1)
-        double free_surface_threshold;   ///< threshold for identifying free surface (CRM only, default: 0.8)
+        double free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
+                                        ///< field is computed and compared to this threshold. Particles with divergence
+                                        ///< less than this threshold are considered free surface particles (CRM only,
+                                        ///< default: 2.0)
         int num_proximity_search_steps;  ///< number of steps between updates to neighbor lists (default: 4)
         bool use_variable_time_step;     ///< use variable time step (default: false)
 

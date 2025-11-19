@@ -71,9 +71,12 @@ void SphFluidDynamics::ProximitySearch() {
 
 void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
                                          std::shared_ptr<SphMarkerDataD>& out) {
-    thrust::copy(in->posRadD.begin(), in->posRadD.end(), out->posRadD.begin());
-    thrust::copy(in->velMasD.begin(), in->velMasD.end(), out->velMasD.begin());
-    thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.end(), out->rhoPresMuD.begin());
+    thrust::copy(in->posRadD.begin(), in->posRadD.begin() + m_data_mgr.countersH->numExtendedParticles,
+                 out->posRadD.begin());
+    thrust::copy(in->velMasD.begin(), in->velMasD.begin() + m_data_mgr.countersH->numExtendedParticles,
+                 out->velMasD.begin());
+    thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.begin() + m_data_mgr.countersH->numExtendedParticles,
+                 out->rhoPresMuD.begin());
     if (m_data_mgr.paramsH->elastic_SPH) {
         thrust::copy(in->tauXxYyZzD.begin(), in->tauXxYyZzD.end(), out->tauXxYyZzD.begin());
         thrust::copy(in->tauXyXzYzD.begin(), in->tauXyXzYzD.end(), out->tauXyXzYzD.begin());
@@ -672,9 +675,11 @@ void SphFluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
 
     if (m_check_errors) {
         cudaCheckError();
-        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
+        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.begin() + numActive,
+                           check_infinite<Real4>()))
             cudaThrowError("A particle position is NaN");
-        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
+        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.begin() + numActive,
+                           check_infinite<Real4>()))
             cudaThrowError("A particle density is NaN");
         // Even if one particle has this problem, we can't proceed
         if (error_occurred)

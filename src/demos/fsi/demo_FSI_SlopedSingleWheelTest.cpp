@@ -626,7 +626,7 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_xsph_eps = 0.5;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
-    sph_params.free_surface_threshold = 0.8;
+    sph_params.free_surface_threshold = 2.0;
     sph_params.num_proximity_search_steps = params.ps_freq;
     sph_params.use_variable_time_step = params.use_variable_time_step;
 
