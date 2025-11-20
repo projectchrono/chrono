@@ -323,7 +323,7 @@ void SimulateMaterial(int i, const SimParams& params) {
     std::cout << "t_end: " << t_end << std::endl;
 
     // double container_diameter = params.plate_diameter * 1.5;  // Plate is 20 cm in diameter
-    double container_diameter = 0.15;                   // Plate is 10 cm in diameter
+    double container_diameter = 0.3;                    // Plate is 10 cm in diameter
     double container_height = params.container_height;  // configurable via CLI
     double cyl_length = 0.018;                          // To prevent effect of sand falling on top of the plate
 

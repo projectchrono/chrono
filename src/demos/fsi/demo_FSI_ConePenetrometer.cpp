@@ -556,7 +556,7 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     double t_end = params.penetration_depth / penetration_velocity;
     std::cout << "t_end: " << t_end << std::endl;
 
-    double container_diameter = 0.1;                    // container diameter (m)
+    double container_diameter = 0.3;                    // container diameter (m)
     double container_height = params.container_height;  // configurable via CLI
     double cyl_length = 0.2;
 
@@ -597,8 +597,8 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
         double angle_mus = std::atan(params.mu_s);
         // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
         mat_props.mcc_M = 1.34;
-        mat_props.mcc_kappa = 0.01;
-        mat_props.mcc_lambda = 0.04;
+        mat_props.mcc_kappa = 0.0125;
+        mat_props.mcc_lambda = 0.075;
     }
 
     sysSPH.SetElasticSPH(mat_props);
