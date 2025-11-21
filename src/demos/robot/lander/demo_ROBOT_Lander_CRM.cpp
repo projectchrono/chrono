@@ -333,7 +333,7 @@ int main(int argc, char* argv[]) {
     // std::string terrain_dir = "terrain/sph/cube";
     // std::string sph_file = vehicle::GetVehicleDataFile(terrain_dir + "/fluid0.txt");
     // std::string bce_file = vehicle::GetVehicleDataFile(terrain_dir + "/boundary0.txt");
-    fsi.Construct(sph_file, bce_file, ChVector3d(0, 0, 0), false);
+    // fsi.Construct(sph_file, bce_file, ChVector3d(0, 0, 0), false);
 
     fsi.Initialize();
 
