@@ -2243,6 +2243,12 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
 }
 
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad, double height, bool polar) const {
+    return CreatePointsTruncatedConeInterior(rad, 0, height, polar);
+}
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeInterior(double rad,
+                                                                               double rad_tip,
+                                                                               double height,
+                                                                               bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2254,9 +2260,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 
     // Use polar coordinates
     if (polar) {
-        for (int iz = 0; iz < np_h - 1; iz++) {
+        for (int iz = 0; iz < np_h; iz++) {
             double z = iz * delta_h;
-            double rz = rad * (height - z) / height;
+            // Interpolate between rad_tip and rad based on the height
+            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
             double rad_out = rz;
             double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
             if (iz >= np_h - num_layers)
@@ -2276,7 +2283,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
             }
         }
 
-        // bce.push_back({0.0, 0.0, height});
+        // Add tip point only for a true cone (rad_tip = 0)
+        if (rad_tip < std::numeric_limits<double>::epsilon()) {
+            bce.push_back({0.0, 0.0, height});
+        }
 
         //// TODO: add cap
 
@@ -2289,7 +2299,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 
     for (int iz = 0; iz <= np_h; iz++) {
         double z = iz * delta_h;
-        double rz = rad * (height - z) / height;
+        // Interpolate between rad_tip and rad based on the height
+        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
         double rad_out = rz;
         double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
         double r_out2 = rad_out * rad_out;
@@ -2312,6 +2323,12 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 }
 
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad, double height, bool polar) const {
+    return CreatePointsTruncatedConeExterior(rad, 0, height, polar);
+}
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(double rad,
+                                                                               double rad_tip,
+                                                                               double height,
+                                                                               bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2329,7 +2346,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
     if (polar) {
         for (int iz = 0; iz < np_h; iz++) {
             double z = iz * delta_h;
-            double rz = rad * (height - z) / height;
+            // Interpolate between rad_tip and rad based on the height
+            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
             double rad_out = rz + num_layers * spacing;
             double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
             if (iz >= np_h - num_layers)
@@ -2349,7 +2367,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
             }
         }
 
-        bce.push_back({0.0, 0.0, height});
+        // Add tip point only for a true cone (rad_tip = 0)
+        if (rad_tip < std::numeric_limits<double>::epsilon()) {
+            bce.push_back({0.0, 0.0, height});
+        }
 
         //// TODO: add cap
 
@@ -2362,7 +2383,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
 
     for (int iz = 0; iz <= np_h; iz++) {
         double z = iz * delta_h;
-        double rz = rad * (height - z) / height;
+        // Interpolate between rad_tip and rad based on the height
+        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
         double rad_out = rz + num_layers * spacing;
         double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
         double r_out2 = rad_out * rad_out;

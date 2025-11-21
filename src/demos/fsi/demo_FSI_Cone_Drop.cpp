@@ -536,7 +536,15 @@ int main(int argc, char* argv[]) {
     cone->GetCollisionModel()->SetSafeMargin(initial_spacing);
 
     // Register cone as FSI body with explicit BCE points
-    auto cone_bce = sysSPH.CreatePointsConeInterior(cone_diameter / 2, cone_length, true);
+    // We use the Truncated Cone to improve stability as the single point at the cone tip causes instability
+    // This would make the cone a bit bigger than it actually is and thus to keep the cone profile the same, we reduce
+    // the length
+    // auto cone_bce = sysSPH.CreatePointsConeInterior(cone_diameter / 2, cone_length, true);
+    int np_h = (int)std::round(cone_length / initial_spacing);
+    double delta_h = cone_length / np_h;
+    double cone_tip_radius = cone_diameter / 2 * delta_h / cone_length;
+    auto cone_bce = sysSPH.CreatePointsTruncatedConeInterior(cone_diameter / 2, cone_tip_radius,
+                                                             cone_length - initial_spacing, true);
     sysFSI.AddFsiBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
 
     sysFSI.Initialize();

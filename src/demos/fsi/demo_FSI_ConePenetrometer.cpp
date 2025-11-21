@@ -736,7 +736,15 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     cone->GetCollisionModel()->SetSafeMargin(params.initial_spacing);
 
     // Register cone as FSI body with explicit BCE points
-    auto cone_bce = sysSPH.CreatePointsConeInterior(coneProp.diameter / 2, coneProp.length, true);
+    // We use the Truncated Cone to improve stability as the single point at the cone tip causes instability
+    // This would make the cone a bit bigger than it actually is and thus to keep the cone profile the same, we reduce
+    // the length
+    // auto cone_bce = sysSPH.CreatePointsConeInterior(coneProp.diameter / 2, coneProp.length, true);
+    int np_h = (int)std::round(coneProp.length / params.initial_spacing);
+    double delta_h = coneProp.length / np_h;
+    double cone_tip_radius = coneProp.diameter / 2 * delta_h / coneProp.length;
+    auto cone_bce = sysSPH.CreatePointsTruncatedConeInterior(coneProp.diameter / 2, cone_tip_radius,
+                                                             coneProp.length - params.initial_spacing, true);
     sysFSI.AddFsiBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
     // Create the linear motor to move the cone at the prescribed velocity
     auto motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
