@@ -1196,6 +1196,230 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     return mR4(derivVx, derivVy, derivVz, derivRho);
 }
 
+// __global__ void CrmRHSOld(const Real4* __restrict__ sortedPosRad,
+//                           const Real3* sortedVelMas,
+//                           const Real4* __restrict__ sortedRhoPreMu,
+//                           const Real3* __restrict__ sortedTauXxYyZz,
+//                           const Real3* __restrict__ sortedTauXyXzYz,
+//                           const uint* __restrict__ numNeighborsPerPart,
+//                           const uint* __restrict__ neighborList,
+//                           const uint numActive,
+//                           Real4* __restrict__ sortedDerivVelRho,
+//                           Real3* __restrict__ sortedDerivTauXxYyZz,
+//                           Real3* __restrict__ sortedDerivTauXyXzYz,
+//                           Real3* __restrict__ sortedPcEvSv,
+//                           uint* __restrict__ sortedFreeSurfaceIdD,
+//                           Real* __restrict__ courantViscousTimeStepD,
+//                           Real* __restrict__ accelerationTimeStepD) {
+//     uint id = blockIdx.x * blockDim.x + threadIdx.x;
+//     if (id >= numActive)
+//         return;
+
+//     uint index = id;
+
+//     if (IsBceWallMarker(sortedRhoPreMu[index].w))
+//         return;
+
+//     Real3 posRadA = mR3(sortedPosRad[index]);
+//     Real3 velMasA = sortedVelMas[index];
+//     Real4 rhoPresMuA = sortedRhoPreMu[index];
+//     Real3 TauXxYyZzA = sortedTauXxYyZz[index];
+//     Real3 TauXyXzYzA = sortedTauXyXzYz[index];
+//     Real4 derivVelRho = mR4(0);
+//     Real3 deltaV = mR3(0);
+
+//     Real tauxx = sortedTauXxYyZz[index].x;
+//     Real tauyy = sortedTauXxYyZz[index].y;
+//     Real tauzz = sortedTauXxYyZz[index].z;
+//     Real tauxy = sortedTauXyXzYz[index].x;
+//     Real tauxz = sortedTauXyXzYz[index].y;
+//     Real tauyz = sortedTauXyXzYz[index].z;
+//     Real dTauxx = 0;
+//     Real dTauyy = 0;
+//     Real dTauzz = 0;
+//     Real dTauxy = 0;
+//     Real dTauxz = 0;
+//     Real dTauyz = 0;
+//     uint NLStart = numNeighborsPerPart[index];
+//     uint NLEnd = numNeighborsPerPart[index + 1];
+
+//     // Initialize correction matrix to identity (3x3)
+//     Real G_i0 = 1, G_i1 = 0, G_i2 = 0;
+//     Real G_i3 = 0, G_i4 = 1, G_i5 = 0;
+//     Real G_i6 = 0, G_i7 = 0, G_i8 = 1;
+//     // Cache constant parameters in registers
+//     const KernelType kernelType = paramsD.kernel_type;
+//     const Real ooh = paramsD.ooh;
+//     const Real d0 = paramsD.d0;
+
+//     // Only perform the consistent discretization if the flag is set.
+//     if (paramsD.use_consistent_gradient_discretization) {
+//         // Initialize accumulators for mGi[9] using scalar registers.
+//         Real mGi0 = 0, mGi1 = 0, mGi2 = 0;
+//         Real mGi3 = 0, mGi4 = 0, mGi5 = 0;
+//         Real mGi6 = 0, mGi7 = 0, mGi8 = 0;
+
+//         // Loop over all neighbors
+//         for (uint n = NLStart + 1; n < NLEnd; n++) {
+//             uint j = neighborList[n];
+//             // Real volumej = paramsD.markerMass / sortedRhoPreMu[j].x;
+
+//             // Load neighbor position and compute the distance vector
+//             Real3 posRadB = mR3(sortedPosRad[j]);
+//             Real3 rij = Distance(posRadA, posRadB);
+
+//             // Compute the gradient of the kernel at this neighbor distance
+//             Real3 grad_i_wij = GradW3h(kernelType, rij, ooh);
+
+//             // Multiply by the neighbor's volume
+//             Real3 grw_vj;
+//             // grw_vj.x = grad_i_wij.x * volumej;
+//             // grw_vj.y = grad_i_wij.y * volumej;
+//             // grw_vj.z = grad_i_wij.z * volumej;
+
+//             grw_vj.x = grad_i_wij.x * paramsD.volume0;
+//             grw_vj.y = grad_i_wij.y * paramsD.volume0;
+//             grw_vj.z = grad_i_wij.z * paramsD.volume0;
+
+//             // Accumulate the nine terms (using the fact that we subtract the product)
+//             mGi0 -= rij.x * grw_vj.x;
+//             mGi1 -= rij.x * grw_vj.y;
+//             mGi2 -= rij.x * grw_vj.z;
+
+//             mGi3 -= rij.y * grw_vj.x;
+//             mGi4 -= rij.y * grw_vj.y;
+//             mGi5 -= rij.y * grw_vj.z;
+
+//             mGi6 -= rij.z * grw_vj.x;
+//             mGi7 -= rij.z * grw_vj.y;
+//             mGi8 -= rij.z * grw_vj.z;
+//         }
+
+//         // Compute the determinant of the matrix mGi
+//         Real Det = mGi0 * (mGi4 * mGi8 - mGi5 * mGi7) - mGi1 * (mGi3 * mGi8 - mGi5 * mGi6) +
+//                    mGi2 * (mGi3 * mGi7 - mGi4 * mGi6);
+
+//         // If the determinant is sufficiently non-zero, compute the inverse
+//         if (fabs(Det) > 0.01) {
+//             Real OneOverDet = 1 / Det;
+//             G_i0 = (mGi4 * mGi8 - mGi5 * mGi7) * OneOverDet;
+//             G_i1 = -(mGi1 * mGi8 - mGi2 * mGi7) * OneOverDet;
+//             G_i2 = (mGi1 * mGi5 - mGi2 * mGi4) * OneOverDet;
+
+//             G_i3 = -(mGi3 * mGi8 - mGi5 * mGi6) * OneOverDet;
+//             G_i4 = (mGi0 * mGi8 - mGi2 * mGi6) * OneOverDet;
+//             G_i5 = -(mGi0 * mGi5 - mGi2 * mGi3) * OneOverDet;
+
+//             G_i6 = (mGi3 * mGi7 - mGi4 * mGi6) * OneOverDet;
+//             G_i7 = -(mGi0 * mGi7 - mGi1 * mGi6) * OneOverDet;
+//             G_i8 = (mGi0 * mGi4 - mGi1 * mGi3) * OneOverDet;
+//         }
+//     }
+
+//     Real G_i[9] = {G_i0, G_i1, G_i2, G_i3, G_i4, G_i5, G_i6, G_i7, G_i8};
+
+//     // TODO(Huzaifa): Make sure that this use of volume0 here is correct
+//     Real nabla_r = 0;
+//     Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
+//     Real max_vel_diff = 0;
+
+//     // Get the interaction from neighbor particles
+//     // NLStart + 1 because the first element in neighbor list is the particle itself
+//     for (int n = NLStart + 1; n < NLEnd; n++) {
+//         uint j = neighborList[n];
+//         Real4 rhoPresMuB = sortedRhoPreMu[j];
+//         // Real volumej = paramsD.markerMass / rhoPresMuB.x;
+//         if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
+//             continue;  // No BCE-BCE interaction
+
+//         Real3 posRadB = mR3(sortedPosRad[j]);
+//         Real3 dist3 = Distance(posRadA, posRadB);
+//         Real d = length(dist3);
+//         Real invd = 1 / d;
+//         Real3 velMasB = sortedVelMas[j];
+//         Real3 TauXxYyZzB = sortedTauXxYyZz[j];
+//         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
+
+//         // Correct the kernel function gradient
+//         Real w_AB = W3h(kernelType, d, ooh);
+//         Real3 gradW = GradW3h(kernelType, dist3, ooh);
+
+//         // Accumulate divergence of the position field to compute free surface particles
+//         // Uses neighbor volume approximation markerMass / rho_j
+//         nabla_r += paramsD.markerMass / paramsD.rho0 * dot(-dist3, gradW);
+
+//         // Calculate dv/dt
+//         // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
+//         derivVelRho +=
+//             crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB,
+//                     rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
+//         // Modify the gradW for stress equation if we decide to use consistent discretization
+//         if (paramsD.use_consistent_gradient_discretization) {
+//             Real3 gradW_new;
+//             gradW_new.x = G_i[0] * gradW.x + G_i[1] * gradW.y + G_i[2] * gradW.z;
+//             gradW_new.y = G_i[3] * gradW.x + G_i[4] * gradW.y + G_i[5] * gradW.z;
+//             gradW_new.z = G_i[6] * gradW.x + G_i[7] * gradW.y + G_i[8] * gradW.z;
+//             gradW = gradW_new;
+//         }
+
+//         // Calculate dsigma/dt
+//         if (IsFluidParticle(sortedRhoPreMu[index].w)) {
+//             // start to calculate the stress rate
+//             Real3 vAB = velMasA - velMasB;
+//             // Real3 vAB_h = 0.5f * vAB * volumej;
+//             Real3 vAB_h = 0.5f * vAB * paramsD.volume0;
+//             // entries of strain rate tensor
+//             Real exx = -2.0f * vAB_h.x * gradW.x;
+//             Real eyy = -2.0f * vAB_h.y * gradW.y;
+//             Real ezz = -2.0f * vAB_h.z * gradW.z;
+//             Real exy = -vAB_h.x * gradW.y - vAB_h.y * gradW.x;
+//             Real exz = -vAB_h.x * gradW.z - vAB_h.z * gradW.x;
+//             Real eyz = -vAB_h.y * gradW.z - vAB_h.z * gradW.y;
+//             // entries of rotation rate (spin) tensor
+//             Real wxy = -vAB_h.x * gradW.y + vAB_h.y * gradW.x;
+//             Real wxz = -vAB_h.x * gradW.z + vAB_h.z * gradW.x;
+//             Real wyz = -vAB_h.y * gradW.z + vAB_h.z * gradW.y;
+
+//             Real edia = 0.3333333333333f * (exx + eyy + ezz);
+//             // Store as the volumetric strain rate which is required in the mcc constitutive model
+//             sortedPcEvSv[index].y = -(exx + eyy + ezz);
+//             Real twoG = 2 * paramsD.G_shear;
+//             Real K_edia = paramsD.K_bulk * 1 * edia;
+//             dTauxx += twoG * (exx - edia) + 2.0f * (tauxy * wxy + tauxz * wxz) + K_edia;
+//             dTauyy += twoG * (eyy - edia) - 2.0f * (tauxy * wxy - tauyz * wyz) + K_edia;
+//             dTauzz += twoG * (ezz - edia) - 2.0f * (tauxz * wxz + tauyz * wyz) + K_edia;
+//             dTauxy += twoG * exy - (tauxx * wxy - tauxz * wyz) + (wxy * tauyy + wxz * tauyz);
+//             dTauxz += twoG * exz - (tauxx * wxz + tauxy * wyz) + (wxy * tauyz + wxz * tauzz);
+//             dTauyz += twoG * eyz - (tauxy * wxz + tauyy * wyz) - (wxy * tauxz - wyz * tauzz);
+//         }
+//     }
+
+//     // Identify free-surface particles using implicit metric (nabla_r) and AFST threshold
+//     // Consistent with diffusion-based shifting logic
+//     if (nabla_r < paramsD.free_surface_threshold) {
+//         sortedFreeSurfaceIdD[index] = 1;
+//     } else {
+//         sortedFreeSurfaceIdD[index] = 0;
+//     }
+
+//     // Add gravity and other body force to fluid markers
+//     if (IsSphParticle(rhoPresMuA.w)) {
+//         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
+//         derivVelRho += mR4(totalFluidBodyForce3, 0);
+//     }
+
+//     if (IsFluidParticle(rhoPresMuA.w)) {
+//         courantViscousTimeStepD[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
+//         Real intermediate =
+//             sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
+//         Real accT = sqrtf(paramsD.h / intermediate);
+//         accelerationTimeStepD[index] = accT;
+//     }
+//     sortedDerivVelRho[index] = derivVelRho;
+//     sortedDerivTauXxYyZz[index] = mR3(dTauxx, dTauyy, dTauzz);
+//     sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
+// }
+
 __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
                        const Real3* sortedVelMas,
                        const Real4* __restrict__ sortedRhoPreMu,
@@ -1211,230 +1435,6 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
                        uint* __restrict__ sortedFreeSurfaceIdD,
                        Real* __restrict__ courantViscousTimeStepD,
                        Real* __restrict__ accelerationTimeStepD) {
-    uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numActive)
-        return;
-
-    uint index = id;
-
-    if (IsBceWallMarker(sortedRhoPreMu[index].w))
-        return;
-
-    Real3 posRadA = mR3(sortedPosRad[index]);
-    Real3 velMasA = sortedVelMas[index];
-    Real4 rhoPresMuA = sortedRhoPreMu[index];
-    Real3 TauXxYyZzA = sortedTauXxYyZz[index];
-    Real3 TauXyXzYzA = sortedTauXyXzYz[index];
-    Real4 derivVelRho = mR4(0);
-    Real3 deltaV = mR3(0);
-
-    Real tauxx = sortedTauXxYyZz[index].x;
-    Real tauyy = sortedTauXxYyZz[index].y;
-    Real tauzz = sortedTauXxYyZz[index].z;
-    Real tauxy = sortedTauXyXzYz[index].x;
-    Real tauxz = sortedTauXyXzYz[index].y;
-    Real tauyz = sortedTauXyXzYz[index].z;
-    Real dTauxx = 0;
-    Real dTauyy = 0;
-    Real dTauzz = 0;
-    Real dTauxy = 0;
-    Real dTauxz = 0;
-    Real dTauyz = 0;
-    uint NLStart = numNeighborsPerPart[index];
-    uint NLEnd = numNeighborsPerPart[index + 1];
-
-    // Initialize correction matrix to identity (3x3)
-    Real G_i0 = 1, G_i1 = 0, G_i2 = 0;
-    Real G_i3 = 0, G_i4 = 1, G_i5 = 0;
-    Real G_i6 = 0, G_i7 = 0, G_i8 = 1;
-    // Cache constant parameters in registers
-    const KernelType kernelType = paramsD.kernel_type;
-    const Real ooh = paramsD.ooh;
-    const Real d0 = paramsD.d0;
-
-    // Only perform the consistent discretization if the flag is set.
-    if (paramsD.use_consistent_gradient_discretization) {
-        // Initialize accumulators for mGi[9] using scalar registers.
-        Real mGi0 = 0, mGi1 = 0, mGi2 = 0;
-        Real mGi3 = 0, mGi4 = 0, mGi5 = 0;
-        Real mGi6 = 0, mGi7 = 0, mGi8 = 0;
-
-        // Loop over all neighbors
-        for (uint n = NLStart + 1; n < NLEnd; n++) {
-            uint j = neighborList[n];
-            // Real volumej = paramsD.markerMass / sortedRhoPreMu[j].x;
-
-            // Load neighbor position and compute the distance vector
-            Real3 posRadB = mR3(sortedPosRad[j]);
-            Real3 rij = Distance(posRadA, posRadB);
-
-            // Compute the gradient of the kernel at this neighbor distance
-            Real3 grad_i_wij = GradW3h(kernelType, rij, ooh);
-
-            // Multiply by the neighbor's volume
-            Real3 grw_vj;
-            // grw_vj.x = grad_i_wij.x * volumej;
-            // grw_vj.y = grad_i_wij.y * volumej;
-            // grw_vj.z = grad_i_wij.z * volumej;
-
-            grw_vj.x = grad_i_wij.x * paramsD.volume0;
-            grw_vj.y = grad_i_wij.y * paramsD.volume0;
-            grw_vj.z = grad_i_wij.z * paramsD.volume0;
-
-            // Accumulate the nine terms (using the fact that we subtract the product)
-            mGi0 -= rij.x * grw_vj.x;
-            mGi1 -= rij.x * grw_vj.y;
-            mGi2 -= rij.x * grw_vj.z;
-
-            mGi3 -= rij.y * grw_vj.x;
-            mGi4 -= rij.y * grw_vj.y;
-            mGi5 -= rij.y * grw_vj.z;
-
-            mGi6 -= rij.z * grw_vj.x;
-            mGi7 -= rij.z * grw_vj.y;
-            mGi8 -= rij.z * grw_vj.z;
-        }
-
-        // Compute the determinant of the matrix mGi
-        Real Det = mGi0 * (mGi4 * mGi8 - mGi5 * mGi7) - mGi1 * (mGi3 * mGi8 - mGi5 * mGi6) +
-                   mGi2 * (mGi3 * mGi7 - mGi4 * mGi6);
-
-        // If the determinant is sufficiently non-zero, compute the inverse
-        if (fabs(Det) > 0.01) {
-            Real OneOverDet = 1 / Det;
-            G_i0 = (mGi4 * mGi8 - mGi5 * mGi7) * OneOverDet;
-            G_i1 = -(mGi1 * mGi8 - mGi2 * mGi7) * OneOverDet;
-            G_i2 = (mGi1 * mGi5 - mGi2 * mGi4) * OneOverDet;
-
-            G_i3 = -(mGi3 * mGi8 - mGi5 * mGi6) * OneOverDet;
-            G_i4 = (mGi0 * mGi8 - mGi2 * mGi6) * OneOverDet;
-            G_i5 = -(mGi0 * mGi5 - mGi2 * mGi3) * OneOverDet;
-
-            G_i6 = (mGi3 * mGi7 - mGi4 * mGi6) * OneOverDet;
-            G_i7 = -(mGi0 * mGi7 - mGi1 * mGi6) * OneOverDet;
-            G_i8 = (mGi0 * mGi4 - mGi1 * mGi3) * OneOverDet;
-        }
-    }
-
-    Real G_i[9] = {G_i0, G_i1, G_i2, G_i3, G_i4, G_i5, G_i6, G_i7, G_i8};
-
-    // TODO(Huzaifa): Make sure that this use of volume0 here is correct
-    Real nabla_r = 0;
-    Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
-    Real max_vel_diff = 0;
-
-    // Get the interaction from neighbor particles
-    // NLStart + 1 because the first element in neighbor list is the particle itself
-    for (int n = NLStart + 1; n < NLEnd; n++) {
-        uint j = neighborList[n];
-        Real4 rhoPresMuB = sortedRhoPreMu[j];
-        // Real volumej = paramsD.markerMass / rhoPresMuB.x;
-        if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
-            continue;  // No BCE-BCE interaction
-
-        Real3 posRadB = mR3(sortedPosRad[j]);
-        Real3 dist3 = Distance(posRadA, posRadB);
-        Real d = length(dist3);
-        Real invd = 1 / d;
-        Real3 velMasB = sortedVelMas[j];
-        Real3 TauXxYyZzB = sortedTauXxYyZz[j];
-        Real3 TauXyXzYzB = sortedTauXyXzYz[j];
-
-        // Correct the kernel function gradient
-        Real w_AB = W3h(kernelType, d, ooh);
-        Real3 gradW = GradW3h(kernelType, dist3, ooh);
-
-        // Accumulate divergence of the position field to compute free surface particles
-        // Uses neighbor volume approximation markerMass / rho_j
-        nabla_r += paramsD.markerMass / paramsD.rho0 * dot(-dist3, gradW);
-
-        // Calculate dv/dt
-        // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
-        derivVelRho +=
-            crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB,
-                    rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
-        // Modify the gradW for stress equation if we decide to use consistent discretization
-        if (paramsD.use_consistent_gradient_discretization) {
-            Real3 gradW_new;
-            gradW_new.x = G_i[0] * gradW.x + G_i[1] * gradW.y + G_i[2] * gradW.z;
-            gradW_new.y = G_i[3] * gradW.x + G_i[4] * gradW.y + G_i[5] * gradW.z;
-            gradW_new.z = G_i[6] * gradW.x + G_i[7] * gradW.y + G_i[8] * gradW.z;
-            gradW = gradW_new;
-        }
-
-        // Calculate dsigma/dt
-        if (IsFluidParticle(sortedRhoPreMu[index].w)) {
-            // start to calculate the stress rate
-            Real3 vAB = velMasA - velMasB;
-            // Real3 vAB_h = 0.5f * vAB * volumej;
-            Real3 vAB_h = 0.5f * vAB * paramsD.volume0;
-            // entries of strain rate tensor
-            Real exx = -2.0f * vAB_h.x * gradW.x;
-            Real eyy = -2.0f * vAB_h.y * gradW.y;
-            Real ezz = -2.0f * vAB_h.z * gradW.z;
-            Real exy = -vAB_h.x * gradW.y - vAB_h.y * gradW.x;
-            Real exz = -vAB_h.x * gradW.z - vAB_h.z * gradW.x;
-            Real eyz = -vAB_h.y * gradW.z - vAB_h.z * gradW.y;
-            // entries of rotation rate (spin) tensor
-            Real wxy = -vAB_h.x * gradW.y + vAB_h.y * gradW.x;
-            Real wxz = -vAB_h.x * gradW.z + vAB_h.z * gradW.x;
-            Real wyz = -vAB_h.y * gradW.z + vAB_h.z * gradW.y;
-
-            Real edia = 0.3333333333333f * (exx + eyy + ezz);
-            // Store as the volumetric strain rate which is required in the mcc constitutive model
-            sortedPcEvSv[index].y = -(exx + eyy + ezz);
-            Real twoG = 2 * paramsD.G_shear;
-            Real K_edia = paramsD.K_bulk * 1 * edia;
-            dTauxx += twoG * (exx - edia) + 2.0f * (tauxy * wxy + tauxz * wxz) + K_edia;
-            dTauyy += twoG * (eyy - edia) - 2.0f * (tauxy * wxy - tauyz * wyz) + K_edia;
-            dTauzz += twoG * (ezz - edia) - 2.0f * (tauxz * wxz + tauyz * wyz) + K_edia;
-            dTauxy += twoG * exy - (tauxx * wxy - tauxz * wyz) + (wxy * tauyy + wxz * tauyz);
-            dTauxz += twoG * exz - (tauxx * wxz + tauxy * wyz) + (wxy * tauyz + wxz * tauzz);
-            dTauyz += twoG * eyz - (tauxy * wxz + tauyy * wyz) - (wxy * tauxz - wyz * tauzz);
-        }
-    }
-
-    // Identify free-surface particles using implicit metric (nabla_r) and AFST threshold
-    // Consistent with diffusion-based shifting logic
-    if (nabla_r < paramsD.free_surface_threshold) {
-        sortedFreeSurfaceIdD[index] = 1;
-    } else {
-        sortedFreeSurfaceIdD[index] = 0;
-    }
-
-    // Add gravity and other body force to fluid markers
-    if (IsSphParticle(rhoPresMuA.w)) {
-        Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
-        derivVelRho += mR4(totalFluidBodyForce3, 0);
-    }
-
-    if (IsFluidParticle(rhoPresMuA.w)) {
-        courantViscousTimeStepD[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
-        Real intermediate =
-            sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
-        Real accT = sqrtf(paramsD.h / intermediate);
-        accelerationTimeStepD[index] = accT;
-    }
-    sortedDerivVelRho[index] = derivVelRho;
-    sortedDerivTauXxYyZz[index] = mR3(dTauxx, dTauyy, dTauzz);
-    sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
-}
-
-__global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
-                              const Real3* sortedVelMas,
-                              const Real4* __restrict__ sortedRhoPreMu,
-                              const Real3* __restrict__ sortedTauXxYyZz,
-                              const Real3* __restrict__ sortedTauXyXzYz,
-                              const uint* __restrict__ numNeighborsPerPart,
-                              const uint* __restrict__ neighborList,
-                              const uint numActive,
-                              Real4* __restrict__ sortedDerivVelRho,
-                              Real3* __restrict__ sortedDerivTauXxYyZz,
-                              Real3* __restrict__ sortedDerivTauXyXzYz,
-                              Real3* __restrict__ sortedPcEvSv,
-                              uint* __restrict__ sortedFreeSurfaceIdD,
-                              Real* __restrict__ courantViscousTimeStepD,
-                              Real* __restrict__ accelerationTimeStepD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -1598,7 +1598,7 @@ __global__ void CrmRHSRewrite(const Real4* __restrict__ sortedPosRad,
 void SphForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
-    CrmRHSRewrite<<<numBlocks, numThreads>>>(
+    CrmRHS<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
