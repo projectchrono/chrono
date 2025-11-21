@@ -87,11 +87,13 @@ class CH_VEHICLE_API ChTireTestRig {
     };
 
     struct TerrainParamsCRM {
+#ifdef CHRONO_FSI
         fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;  ///< soil properties
-        double radius;                                                       ///< particle radius
-        double length;                                                       ///< patch length
-        double width;                                                        ///< patch width
-        double depth;                                                        ///< patch depth
+#endif
+        double radius;  ///< particle radius
+        double length;  ///< patch length
+        double width;   ///< patch width
+        double depth;   ///< patch depth
     };
 
     /// Construct a tire test rig within the specified system.
