@@ -24,7 +24,7 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
-#include "chrono_models/robot/lander/Lander.h"
+#include "Lander.h"
 
 namespace chrono {
 namespace lander {
@@ -304,4 +304,3 @@ void Lander::Initialize(const ChFrame<>& pos, double ground_clearance) {
 
 }  // namespace lander
 }  // namespace chrono
-

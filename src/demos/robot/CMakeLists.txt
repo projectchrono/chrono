@@ -20,7 +20,6 @@ if(CH_ENABLE_MODULE_VEHICLE)
         demo_ROBOT_Turtlebot_Rigid
         demo_ROBOT_Viper_Rigid
         demo_ROBOT_Viper_SCM
-        demo_ROBOT_Lander
     )
 
     if(CH_ENABLE_MODULE_SENSOR)
@@ -34,7 +33,6 @@ if(CH_ENABLE_MODULE_VEHICLE)
   if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_ROBOT_Viper_CRM
-        demo_ROBOT_Lander_CRM
     )
   endif()
 
@@ -105,3 +103,4 @@ endforeach()
 
 add_subdirectory(industrial)
 add_subdirectory(robosimian)
+add_subdirectory(lander)

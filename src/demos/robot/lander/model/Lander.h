@@ -31,8 +31,6 @@
 #include "chrono/physics/ChContactMaterial.h"
 #include "chrono/assets/ChColor.h"
 
-#include "chrono_models/ChApiModels.h"
-
 namespace chrono {
 
 /// Namespace with classes for the Lander model.
@@ -46,7 +44,7 @@ namespace lander {
 /// Lunar Lander model.
 /// The lander model consists of a cylindrical body with four rigidly attached legs
 /// and optional footpads at the end of each leg.
-class CH_MODELS_API Lander {
+class Lander {
   public:
     /// Construct a Lander within the specified Chrono system.
     Lander(ChSystem* system,  ///< containing system
@@ -228,4 +226,3 @@ class CH_MODELS_API Lander {
 }  // namespace chrono
 
 #endif
-

@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/robot/lander/Lander.h"
+#include "model/Lander.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"

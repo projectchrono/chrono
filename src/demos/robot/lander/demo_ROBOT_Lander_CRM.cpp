@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/robot/lander/Lander.h"
+#include "model/Lander.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
@@ -325,11 +325,14 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Constructing terrain..." << std::endl;
-    // fsi.Construct(ChVector3d(TERRAIN_SIZE_X, TERRAIN_SIZE_Y, TERRAIN_SIZE_Z), ChVector3d(0, 0, 0), BoxSide::Z_NEG);
+    // NOTE: The function below will take a very long time to run, instead use the commented out code below after
+    // generating txt files for the terrain These txt files can be generated easily by calling the below construct once
+    // and saving the csv files at the first time step.
+    fsi.Construct(ChVector3d(TERRAIN_SIZE_X, TERRAIN_SIZE_Y, TERRAIN_SIZE_Z), ChVector3d(0, 0, 0), BoxSide::Z_NEG);
 
-    std::string terrain_dir = "terrain/sph/cube";
-    std::string sph_file = vehicle::GetVehicleDataFile(terrain_dir + "/fluid0.txt");
-    std::string bce_file = vehicle::GetVehicleDataFile(terrain_dir + "/boundary0.txt");
+    // std::string terrain_dir = "terrain/sph/cube";
+    // std::string sph_file = vehicle::GetVehicleDataFile(terrain_dir + "/fluid0.txt");
+    // std::string bce_file = vehicle::GetVehicleDataFile(terrain_dir + "/boundary0.txt");
     fsi.Construct(sph_file, bce_file, ChVector3d(0, 0, 0), false);
 
     fsi.Initialize();
