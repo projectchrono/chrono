@@ -225,8 +225,7 @@ void FsiDataManager::AddSphParticle(Real3 pos,
     //// TODO: do this only for elasticSPH!
     sphMarkers_H->tauXyXzYzH.push_back(tauXyXzYz);
     sphMarkers_H->tauXxYyZzH.push_back(tauXxYyZz);
-    //// TODO: Figure out how to initialize the correct Sv without putting the burden on the user
-    // Equation for this initial condition from -
+    // Initial condition from -
     // https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
     //// TODO: Make sure that the parameter is set (creates dependency on when AddSphParticle is called)
     Real confining_stress = pres;

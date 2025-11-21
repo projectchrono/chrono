@@ -456,32 +456,28 @@ void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_pro
 
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
-    m_paramsH->mu_I0 = Real(mat_props.mu_I0);
-    m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
-    m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+
     m_paramsH->ave_diam = Real(mat_props.average_diam);
-    m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
 
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
 
-    if (m_paramsH->rheology_model_crm == RheologyCRM::MCC) {
-        std::cout << "MCC rheology model is used, if you set mu_fric_s, mu_fric_2, ave_diam, Coh_coeff and mu_I0, they "
-                     "will be unused"
-                  << std::endl;
-        m_paramsH->mcc_M = Real(mat_props.mcc_M);
-        m_paramsH->mcc_kappa = Real(mat_props.mcc_kappa);
-        m_paramsH->mcc_lambda = Real(mat_props.mcc_lambda);
-        m_paramsH->mcc_v_lambda = Real(mat_props.mcc_v_lambda);
-
-        if (m_paramsH->mcc_M == 0 || m_paramsH->mcc_kappa == 0 || m_paramsH->mcc_lambda == 0 ||
-            m_paramsH->mcc_v_lambda == 0) {
-            std::cout << "MCC rheology model is used, but mcc_M, mcc_kappa,mcc_lambda, and mcc_v_lambda are not set"
-                      << std::endl;
-            throw std::runtime_error(
-                "MCC rheology model is used, but mcc_M, mcc_kappa,mcc_lambda, and mcc_v_lambda are not set");
-        }
+    switch (m_paramsH->rheology_model_crm) {
+        case RheologyCRM::MCC:
+            m_paramsH->mcc_M = Real(mat_props.mcc_M);
+            m_paramsH->mcc_kappa = Real(mat_props.mcc_kappa);
+            m_paramsH->mcc_lambda = Real(mat_props.mcc_lambda);
+            m_paramsH->mcc_v_lambda = Real(mat_props.mcc_v_lambda);
+            break;
+        case RheologyCRM::MU_OF_I:
+            m_paramsH->mu_I0 = Real(mat_props.mu_I0);
+            m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
+            m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+            m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
+            break;
+        default:
+            throw std::runtime_error("Invalid rheology model");
     }
 }
 

@@ -595,8 +595,8 @@ void SimulateMaterial(int i, const SimParams& params, const ConeProperties& cone
     } else {
         mat_props.rheology_model = RheologyCRM::MCC;
         double angle_mus = std::atan(params.mu_s);
-        // mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
-        mat_props.mcc_M = 1.34;
+        mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
+        // mat_props.mcc_M = 1.34;
         mat_props.mcc_kappa = 0.0125;
         mat_props.mcc_lambda = 0.075;
     }
