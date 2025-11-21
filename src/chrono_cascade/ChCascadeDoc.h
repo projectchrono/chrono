@@ -100,6 +100,9 @@ class ChApiCASCADE ChCascadeDoc {
     /// Convert Chrono coordinates into OpenCascade coordinates.
     static void ConvertFrameChronoToCascade(const ChFramed& from_coord, TopLoc_Location& to_coord);
 
+    /// Get internal OCAF document.
+    opencascade::handle<TDocStd_Document>* GetDocument() const { return doc; }
+
   private:
     /// Cascade OCAF doc handle.
     /// NOTE: if simply using 'Handle(TDocStd_Document) doc' (ie. with no pointer to handle), it crashes.
