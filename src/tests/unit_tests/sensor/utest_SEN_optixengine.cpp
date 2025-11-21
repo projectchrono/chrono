@@ -189,6 +189,41 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
     ASSERT_TRUE(success);
 }
 
+TEST(ChOptixEngine, destruct) {
+    ChSystemNSC sys;
+
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box->SetFixed(true);
+    sys.Add(box);
+
+    auto manager = new ChSensorManager(&sys);
+
+    auto cam = chrono_types::make_shared<ChCameraSensor>(
+        box,                                                                   // body camera is attached to
+        10.0f,                                                                 // update rate in Hz
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+        1,                                                                     // image width
+        1,                                                                     // image height
+        (float)CH_PI / 3                                                       // FOV
+    );
+    cam->SetName("Camera Sensor");
+    manager->AddSensor(cam);
+
+    Background b;
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
+    manager->scene->SetBackground(b);
+
+    while ((float)sys.GetChTime() < end_time) {
+        manager->Update();
+        sys.DoStepDynamics(0.01);
+    }
+    delete manager;
+
+    ASSERT_TRUE(true);
+}
+
+
 TEST(ChOptixEngine, lights) {
     ChSystemNSC sys;
 
