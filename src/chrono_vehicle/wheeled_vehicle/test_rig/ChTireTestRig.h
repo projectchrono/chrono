@@ -33,6 +33,9 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+#ifdef CHRONO_FSI
+    #include "chrono_vehicle/terrain/CRMTerrain.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -84,12 +87,13 @@ class CH_VEHICLE_API ChTireTestRig {
     };
 
     struct TerrainParamsCRM {
-        double radius;    ///< particle radius
-        double density;   ///< Terrain bulk density (kg/m3)
-        double cohesion;  ///< Terrain artificial cohesion (Pa)
-        double length;    ///< patch length
-        double width;     ///< patch width
-        double depth;     ///< patch depth
+#ifdef CHRONO_FSI
+        fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;  ///< soil properties
+#endif
+        double radius;  ///< particle radius
+        double length;  ///< patch length
+        double width;   ///< patch width
+        double depth;   ///< patch depth
     };
 
     /// Construct a tire test rig within the specified system.
@@ -193,6 +197,8 @@ class CH_VEHICLE_API ChTireTestRig {
     // The radius here is the radius of the SPH markers (SPH is the underlying solver for the continuum PDEs)
     void SetTerrainCRM(double radius,
                        double density,
+                       double Young_modulus,
+                       double friction,
                        double cohesion,
                        double terrain_length = 10,
                        double terrain_width = 1,

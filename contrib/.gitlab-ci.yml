@@ -173,7 +173,7 @@ linux:ubuntu22.04-clang:test:
   tags:
     - linux
   image:
-      name: uwsbel/packages:ubuntu
+      name: uwsbel/packages:cuda12.8.1
   before_script:
     # this script overwrites the default ubuntu script to include conda preparations
     - uname -a
@@ -209,7 +209,7 @@ linux:ubuntu22.04:deploy-python3.12:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge -c dlr-sc --python=3.12
+    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge --python=3.12
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
@@ -219,7 +219,7 @@ linux:ubuntu22.04:deploy-python3.13:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge -c dlr-sc --python=3.13
+    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge --python=3.13
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
@@ -320,7 +320,7 @@ windows:deploy-python3.12:
   extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.12
-    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge -c dlr-sc --python=3.12
+    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge --python=3.12
     - conda install --yes conda-build "anaconda-client>=1.13.1"
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
@@ -343,7 +343,7 @@ windows:deploy-python3.13:
   extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.13
-    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge -c dlr-sc --python=3.13
+    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge --python=3.13
     - conda install --yes conda-build "anaconda-client>=1.13.1"
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
@@ -474,9 +474,6 @@ macos-apple:sonoma:test:
     - conda config --set show_channel_urls true
     - conda install --yes conda-build "anaconda-client>=1.13.1"
     - conda config --add channels conda-forge
-    - conda config --add channels dlr-sc
-    #- conda install -c dlr-sc opencascade --yes
-    #- conda install -c intel mkl-devel --yes
     - ls $HOME/miniconda/lib/
     - conda build purge-all
     # this command is needed to get the git describe data needed by the numbering
@@ -484,7 +481,6 @@ macos-apple:sonoma:test:
     - clang --version
     # conda build uses "build.sh" for both Linux and MacOS. Since we do things differently, we do the following workaround
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
-    - conda install -c conda-forge llvm-openmp --yes
   environment:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
@@ -504,7 +500,7 @@ macos-apple:macos-deploy-python3.12:
   script:
     - echo "Build PyChrono 3.12 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --python=3.12
+    - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.12
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:
@@ -519,7 +515,7 @@ macos-apple:macos-deploy-python3.13:
   script:
     - echo "Build PyChrono 3.13 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --python=3.13
+    - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.13
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:

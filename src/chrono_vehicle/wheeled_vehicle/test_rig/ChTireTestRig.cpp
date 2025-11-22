@@ -28,15 +28,14 @@
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
-#ifdef CHRONO_FSI
-    #include "chrono_vehicle/terrain/CRMTerrain.h"
-using namespace chrono::fsi;
-using namespace chrono::fsi::sph;
-#endif
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
+
+#ifdef CHRONO_FSI
+using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -180,6 +179,8 @@ void ChTireTestRig::SetTerrainGranular(double radius,
 
 void ChTireTestRig::SetTerrainCRM(double radius,
                                   double density,
+                                  double Young_modulus,
+                                  double friction,
                                   double cohesion,
                                   double terrain_length,
                                   double terrain_width,
@@ -193,8 +194,16 @@ void ChTireTestRig::SetTerrainCRM(double radius,
     m_terrain_type = TerrainType::CRM;
 
     m_params_crm.radius = radius;
-    m_params_crm.density = density;
-    m_params_crm.cohesion = cohesion;
+
+    m_params_crm.mat_props.density = density;
+    m_params_crm.mat_props.cohesion_coeff = cohesion;
+    m_params_crm.mat_props.Young_modulus = Young_modulus;
+    m_params_crm.mat_props.Poisson_ratio = 0.3;
+    m_params_crm.mat_props.mu_I0 = 0.03;
+    m_params_crm.mat_props.mu_fric_s = friction;
+    m_params_crm.mat_props.mu_fric_2 = friction;
+    m_params_crm.mat_props.average_diam = 0.0614;
+
     m_params_crm.length = terrain_length;
     m_params_crm.width = terrain_width;
     m_params_crm.depth = terrain_depth;
@@ -496,10 +505,10 @@ void ChTireTestRig::CreateTerrainSCM() {
 
     auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(m_system);
     terrain->SetReferenceFrame(ChCoordsys<>(location));
-    terrain->SetSoilParameters(m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,  //
-                               m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction,
-                               m_params_SCM.Janosi_shear,  //
-                               E_elastic, damping);
+    terrain->SetSoilParameters(                                                             //
+        m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,            //
+        m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction, m_params_SCM.Janosi_shear,  //
+        E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
     terrain->Initialize(m_params_SCM.length, m_params_SCM.width, m_params_SCM.grid_spacing);
     terrain->AddActiveDomain(m_chassis_body, ChVector3d(0, 0, 0),
@@ -590,22 +599,13 @@ void ChTireTestRig::CreateTerrainCRM() {
     terrain->SetStepSizeCFD(m_tire_step);
 
     terrain->SetStepsizeMBD(m_tire_step);
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
-    mat_props.density = m_params_crm.density;
-    mat_props.Young_modulus = 2e6;
-    mat_props.Poisson_ratio = 0.3;
-    mat_props.mu_I0 = 0.03;
-    mat_props.mu_fric_s = 0.7;
-    mat_props.mu_fric_2 = 0.7;
-    mat_props.average_diam = 0.0614;
-    mat_props.cohesion_coeff = m_params_crm.cohesion;
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initSpace0;
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;  // Apply both PPST and XSPH shifting
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
     sph_params.shifting_xsph_eps = 0.25;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
@@ -616,7 +616,7 @@ void ChTireTestRig::CreateTerrainCRM() {
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
 
-    terrain->SetElasticSPH(mat_props);
+    terrain->SetElasticSPH(m_params_crm.mat_props);
     terrain->SetSPHParameters(sph_params);
 
     double loc_z = m_terrain_height - m_params_crm.depth;

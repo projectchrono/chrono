@@ -149,8 +149,9 @@ int main() {
 
     ChTireTestRig::TerrainParamsCRM params;
     params.radius = 0.01;
-    params.density = 1700;
-    params.cohesion = 1e2;
+    params.mat_props.density = 1700;
+    params.mat_props.Young_modulus = 2e6;
+    params.mat_props.cohesion_coeff = 1e2;
     params.length = 10;
     params.width = 1;
     params.depth = 0.2;

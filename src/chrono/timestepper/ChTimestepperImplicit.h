@@ -148,7 +148,7 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 
   public:
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive) {
+    virtual void ArchiveOut(ChArchiveOut& archive) override {
         // version number
         archive.VersionWrite(1);
         // serialize all member data:
@@ -159,7 +159,7 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     }
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive) {
+    virtual void ArchiveIn(ChArchiveIn& archive) override {
         // version number
         /*int version =*/archive.VersionRead();
         // stream in all member data:

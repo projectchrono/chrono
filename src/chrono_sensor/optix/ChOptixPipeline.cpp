@@ -430,7 +430,7 @@ void ChOptixPipeline::UpdateBackground(Background b) {
         if (md_miss_texture_sampler) {
             CUDA_ERROR_CHECK(cudaDestroyTextureObject(md_miss_texture_sampler));
         }
-        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex, false, false);
+        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex, false, true);
         miss_rec.data.camera_miss.env_map = md_miss_texture_sampler;
     }
 
