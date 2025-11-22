@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -24,12 +24,9 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
-#include "Lander.h"
+#include "model/Lander.h"
 
-namespace chrono {
-namespace lander {
-
-// =============================================================================
+using namespace chrono;
 
 Lander::Lander(ChSystem* system, std::shared_ptr<ChContactMaterial> contact_material)
     : m_system(system),
@@ -120,8 +117,8 @@ void Lander::Initialize(const ChFrame<>& pos, double ground_clearance) {
     double lander_density = m_lander_mass / lander_volume;
 
     // Create cylinder using ChBodyEasyCylinder (automatically calculates inertia)
-    m_lander_body = chrono_types::make_shared<ChBodyEasyCylinder>(
-        ChAxis::Z, m_cylinder_radius, m_cylinder_length, lander_density, m_contact_material);
+    m_lander_body = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Z, m_cylinder_radius, m_cylinder_length,
+                                                                  lander_density, m_contact_material);
     m_lander_body->SetName("LanderBody");
 
     // Calculate the lowest point of the lander (footpad bottom or leg end)
@@ -134,14 +131,14 @@ void Lander::Initialize(const ChFrame<>& pos, double ground_clearance) {
     // The position frame specifies where the lowest point should be (in global coordinates)
     ChVector3d lowest_point_global = pos.GetPos();
     lowest_point_global.z() += ground_clearance;
-    
+
     // Calculate cylinder center position in global coordinates
     // The cylinder center is above the lowest point by: total_extension + cylinder_length/2
     double cylinder_center_offset_z = total_extension_below_cylinder + m_cylinder_length / 2.0;
-    
+
     // Create a frame at the lowest point with the same orientation as pos
     ChFrame<> lowest_point_frame(lowest_point_global, pos.GetRot());
-    
+
     // Apply the offset in the local frame (z-direction of the pos frame)
     ChVector3d cylinder_center_offset_local(0, 0, cylinder_center_offset_z);
     ChVector3d cylinder_center_global = lowest_point_frame.TransformPointLocalToParent(cylinder_center_offset_local);
@@ -167,9 +164,9 @@ void Lander::Initialize(const ChFrame<>& pos, double ground_clearance) {
     // Positions relative to cylinder center (in local frame)
     ChVector3d leg_attach_local[4] = {
         ChVector3d(m_leg_spread, 0, -m_cylinder_length / 2.0),   // +X direction
-        ChVector3d(-m_leg_spread, 0, -m_cylinder_length / 2.0),    // -X direction
-        ChVector3d(0, m_leg_spread, -m_cylinder_length / 2.0),    // +Y direction
-        ChVector3d(0, -m_leg_spread, -m_cylinder_length / 2.0)    // -Y direction
+        ChVector3d(-m_leg_spread, 0, -m_cylinder_length / 2.0),  // -X direction
+        ChVector3d(0, m_leg_spread, -m_cylinder_length / 2.0),   // +Y direction
+        ChVector3d(0, -m_leg_spread, -m_cylinder_length / 2.0)   // -Y direction
     };
 
     // Leg directions: extend outward and downward from attachment point
@@ -179,8 +176,8 @@ void Lander::Initialize(const ChFrame<>& pos, double ground_clearance) {
 
     ChVector3d leg_directions[4] = {
         ChVector3d(leg_horizontal, 0, leg_vertical).GetNormalized(),   // +X direction
-        ChVector3d(-leg_horizontal, 0, leg_vertical).GetNormalized(),   // -X direction
-        ChVector3d(0, leg_horizontal, leg_vertical).GetNormalized(),    // +Y direction
+        ChVector3d(-leg_horizontal, 0, leg_vertical).GetNormalized(),  // -X direction
+        ChVector3d(0, leg_horizontal, leg_vertical).GetNormalized(),   // +Y direction
         ChVector3d(0, -leg_horizontal, leg_vertical).GetNormalized()   // -Y direction
     };
 
@@ -299,8 +296,3 @@ void Lander::Initialize(const ChFrame<>& pos, double ground_clearance) {
 
     m_initialized = true;
 }
-
-// =============================================================================
-
-}  // namespace lander
-}  // namespace chrono

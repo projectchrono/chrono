@@ -20,7 +20,6 @@
 //
 // =============================================================================
 
-#include "model/Lander.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
@@ -35,8 +34,9 @@ using namespace chrono::vsg3d;
 
 #include "demos/SetChronoSolver.h"
 
+#include "model/Lander.h"
+
 using namespace chrono;
-using namespace chrono::lander;
 
 // Lunar gravity acceleration (m/s^2)
 const double LUNAR_GRAVITY = 1.62;

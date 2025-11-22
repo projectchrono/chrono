@@ -20,7 +20,11 @@
 //
 // =============================================================================
 
-#include "model/Lander.h"
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+#include <algorithm>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
@@ -35,30 +39,23 @@
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
-#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
-
-#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
-#include <iomanip>
-#include <sstream>
-#include <fstream>
-#include <algorithm>
-
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 using namespace chrono::vsg3d;
 #endif
 
 #include "demos/SetChronoSolver.h"
 
+#include "model/Lander.h"
+
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
-using namespace chrono::lander;
-using namespace chrono::vehicle;
 
 // Lunar gravity acceleration (m/s^2)
 const double LUNAR_GRAVITY = 1.62;
@@ -325,15 +322,11 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Constructing terrain..." << std::endl;
-    // NOTE: The function below will take a very long time to run, instead use the commented out code below after
-    // generating txt files for the terrain These txt files can be generated easily by calling the below construct once
-    // and saving the csv files at the first time step.
     fsi.Construct(ChVector3d(TERRAIN_SIZE_X, TERRAIN_SIZE_Y, TERRAIN_SIZE_Z), ChVector3d(0, 0, 0), BoxSide::Z_NEG);
 
-    // std::string terrain_dir = "terrain/sph/cube";
-    // std::string sph_file = vehicle::GetVehicleDataFile(terrain_dir + "/fluid0.txt");
-    // std::string bce_file = vehicle::GetVehicleDataFile(terrain_dir + "/boundary0.txt");
-    // fsi.Construct(sph_file, bce_file, ChVector3d(0, 0, 0), false);
+    // The function above may take very long to run (for a large terrain patch).
+    // Optionally, use the Construct function above once and save the csv files at the first step. Then use:
+    ////fsi.Construct(sph_file, bce_file, ChVector3d(0, 0, 0), false);
 
     fsi.Initialize();
 

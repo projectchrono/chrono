@@ -2,85 +2,59 @@
 # CMake configuration file for the ROBOT lander demos.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_VEHICLE)
-    return()
+set(DEMOS demo_ROBOT_Lander)
+if(CH_ENABLE_MODULE_FSI)
+   set(DEMOS ${DEMOS} demo_ROBOT_Lander_CRM)
 endif()
-
-#--------------------------------------------------------------
-# List model files shared by the lander demos
 
 set(MODEL_FILES
     model/Lander.cpp
     model/Lander.h
 )
 
-set(LANDER_PROGRAM demo_ROBOT_Lander)
-set(LANDER_CRM_PROGRAM demo_ROBOT_Lander_CRM)
-
-source_group("model" FILES ${MODEL_FILES})
-
-#--------------------------------------------------------------
-# Common include directories
-
-set(LANDER_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/model
-)
-
 #--------------------------------------------------------------
 
+list(APPEND LIBS Chrono_core)
+
+if(CH_ENABLE_MODULE_FSI_SPH)
+    list(APPEND LIBS Chrono_fsisph)
+endif()
 
 if(CH_ENABLE_MODULE_VSG)
-    add_executable(${LANDER_PROGRAM} ${LANDER_PROGRAM}.cpp ${MODEL_FILES})
-    source_group("" FILES ${LANDER_PROGRAM}.cpp)
-
-    target_include_directories(${LANDER_PROGRAM} PRIVATE ${LANDER_INCLUDES})
-    target_link_libraries(${LANDER_PROGRAM}
-        Chrono_core
-        ChronoModels_robot
-        Chrono_vehicle
-        Chrono_vsg
-        Chrono_vehicle_vsg
-    )
-
-    set_target_properties(${LANDER_PROGRAM} PROPERTIES FOLDER demos)
-    if(APPLE)
-        set_target_properties(${LANDER_PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    list(APPEND LIBS Chrono_vsg)
+    if(CH_ENABLE_MODULE_FSI_SPH)
+        list(APPEND LIBS Chrono_fsisph_vsg)
     endif()
-    if(MSVC)
-        set_target_properties(${LANDER_PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-    set_property(TARGET ${LANDER_PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${LANDER_PROGRAM}>")
+endif()
 
-    install(TARGETS ${LANDER_PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+if(CH_ENABLE_MODULE_PARDISO_MKL)
+    list(APPEND LIBS Chrono_pardisomkl)
+endif()
+
+if(CH_ENABLE_MODULE_MUMPS)
+    list(APPEND LIBS Chrono_mumps)
 endif()
 
 #--------------------------------------------------------------
-# CRM lander demo (requires FSI + VSG)
 
-if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_VSG)
-    add_executable(${LANDER_CRM_PROGRAM} ${LANDER_CRM_PROGRAM}.cpp ${MODEL_FILES})
-    source_group("" FILES ${LANDER_CRM_PROGRAM}.cpp)
+foreach(PROGRAM ${DEMOS})
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
+    source_group("" FILES ${PROGRAM}.cpp)
+    source_group("model" FILES ${MODEL_FILES})
 
-    target_include_directories(${LANDER_CRM_PROGRAM} PRIVATE ${LANDER_INCLUDES})
-    target_link_libraries(${LANDER_CRM_PROGRAM}
-        Chrono_core
-        ChronoModels_robot
-        Chrono_vehicle
-        Chrono_vsg
-        Chrono_vehicle_vsg
-        Chrono_fsisph
-        Chrono_fsisph_vsg
-    )
+    target_include_directories(${PROGRAM} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-    set_target_properties(${LANDER_CRM_PROGRAM} PROPERTIES FOLDER demos)
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
     if(APPLE)
-        set_target_properties(${LANDER_CRM_PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+        set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()
     if(MSVC)
-        set_target_properties(${LANDER_CRM_PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+        set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
-    set_property(TARGET ${LANDER_CRM_PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${LANDER_CRM_PROGRAM}>")
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
-    install(TARGETS ${LANDER_CRM_PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
-endif()
+    target_link_libraries(${PROGRAM} ${LIBS})
+
+    install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+
+endforeach()
