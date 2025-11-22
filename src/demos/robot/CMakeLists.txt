@@ -103,3 +103,4 @@ endforeach()
 
 add_subdirectory(industrial)
 add_subdirectory(robosimian)
+add_subdirectory(lander)

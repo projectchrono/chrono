@@ -94,6 +94,12 @@ struct SimParams {
     int sim_number;
     bool snapshots;  // Whether to save snapshot image files
 
+    // Rheology model parameters
+    std::string rheology_model_crm;
+    double pre_pressure_scale;
+    double kappa;
+    double lambda;
+
     // Output parameters
     bool output;
     double out_fps;
@@ -142,20 +148,33 @@ void CreateBCE_On_Wheel_Grouser(std::vector<ChVector3d>& posRadBCE,
     int num_layers = (int)std::floor(1.00001 * wheel_w / spacing) + 1;
     for (size_t si = 0; si < num_layers; si++) {
         Real s = -0.5 * wheel_w + spacing * si;
-        if (cartesian)
+        if (cartesian) {
+            // wheel - only 4 layers from outer radius
+            const int num_radial_layers = 4;
+            Real inner_radius = wheel_rad - (num_radial_layers - 1) * spacing;
+            if (inner_radius < 0)
+                inner_radius = 0;
+            Real inner_radius_sq = inner_radius * inner_radius;
+            Real outer_radius_sq = wheel_rad * wheel_rad;
             for (Real x = -wheel_rad; x <= wheel_rad; x += spacing) {
                 for (Real y = -wheel_rad; y <= wheel_rad; y += spacing) {
-                    if (x * x + y * y <= wheel_rad * wheel_rad)
+                    Real r_sq = x * x + y * y;
+                    if (r_sq <= outer_radius_sq && r_sq >= inner_radius_sq)
                         posRadBCE.push_back(ChVector3d(x, s, y));
                 }
             }
-        else {
+        } else {
             ChVector3d centerPointLF = {0, s, 0};
-            posRadBCE.push_back(ChVector3d(0, s, 0));
-            // wheel
-            int numr = (int)std::floor(1.00001 * wheel_rad / spacing);
+            // wheel - only 4 layers from outer radius
+            const int num_radial_layers = 6;
+            Real inner_radius = wheel_rad - (num_radial_layers - 1) * spacing;
+            if (inner_radius < 0)
+                inner_radius = 0;
+            int numr = num_radial_layers;
             for (size_t ir = 0; ir < numr; ir++) {
-                Real r = spacing + ir * spacing;
+                Real r = inner_radius + ir * spacing;
+                if (r > wheel_rad)
+                    r = wheel_rad;
                 int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
                 for (size_t t = 0; t < numTheta; t++) {
                     double teta = t * 2 * 3.1415 / numTheta;
@@ -221,7 +240,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
 
     // Add BCE particles attached on the walls into FSI system
     auto ground_bce =
-        sysSPH.CreatePointsBoxContainer(ChVector3d(multiplier * bxDim, multiplier * byDim, bzDim), {2, 0, -1});
+        sysSPH.CreatePointsBoxContainer(ChVector3d(multiplier * bxDim, multiplier * byDim, 1.3 * bzDim), {2, 0, -1});
     sysFSI.AddFsiBoundary(ground_bce, ChFrame<>(ChVector3d(0., 0., 0.), QUNIT));
 
     // Create the wheel -- always SECOND body in the system
@@ -360,6 +379,12 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     cli.AddOption<double>("Physics", "gravity_G", "Gravity", std::to_string(params.gravity_G));
     cli.AddOption<double>("Physics", "grouser_height", "Grouser height", std::to_string(params.grouser_height));
     cli.AddOption<int>("Simulation", "sim_number", "Simulation number", std::to_string(params.sim_number));
+    cli.AddOption<std::string>("Physics", "rheology_model_crm", "Rheology model (MU_OF_I/MCC)",
+                               params.rheology_model_crm);
+    cli.AddOption<double>("Physics", "pre_pressure_scale", "Pre-pressure scale",
+                          std::to_string(params.pre_pressure_scale));
+    cli.AddOption<double>("Physics", "kappa", "kappa", std::to_string(params.kappa));
+    cli.AddOption<double>("Physics", "lambda", "lambda", std::to_string(params.lambda));
     std::string snapshots_str = params.snapshots ? "true" : "false";
     cli.AddOption<std::string>("Visualization", "snapshots", "Enable writing snapshot image files",
                                params.snapshots ? "true" : "false");
@@ -392,6 +417,10 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     params.gravity_G = cli.GetAsType<double>("gravity_G");
     params.grouser_height = cli.GetAsType<double>("grouser_height");
     params.sim_number = cli.GetAsType<int>("sim_number");
+    params.rheology_model_crm = cli.GetAsType<std::string>("rheology_model_crm");
+    params.pre_pressure_scale = cli.GetAsType<double>("pre_pressure_scale");
+    params.kappa = cli.GetAsType<double>("kappa");
+    params.lambda = cli.GetAsType<double>("lambda");
     params.snapshots = parse_bool(cli.GetAsType<std::string>("snapshots"));
     params.output = parse_bool(cli.GetAsType<std::string>("output"));
     params.out_fps = cli.GetAsType<double>("out_fps");
@@ -427,7 +456,7 @@ int main(int argc, char* argv[]) {
                         /*artificial_viscosity*/ 0.05,
                         /*integration_scheme*/ "rk2",
                         /*total_time*/ 10.0,
-                        /*use_variable_time_step*/ false,
+                        /*use_variable_time_step*/ true,
                         /*total_mass*/ 100,
                         /*slope_angle*/ 0.0,
                         /*wheel_AngVel*/ 0.1,
@@ -435,11 +464,15 @@ int main(int argc, char* argv[]) {
                         /*grouser_height*/ 0.01,
                         /*sim_number*/ 0,
                         /*snapshots*/ false,
+                        /*rheology_model_crm*/ "MU_OF_I",
+                        /*pre_pressure_scale*/ 2,
+                        /*kappa*/ 0.01,
+                        /*lambda*/ 0.04,
                         /*output*/ true,
                         /*out_fps*/ 100,
                         /*write_marker_files*/ false,
                         /*print_fps*/ 100,
-                        /*render*/ true,
+                        /*render*/ false,
                         /*render_fps*/ 100};
 
     if (!GetProblemSpecs(argc, argv, params)) {
@@ -462,6 +495,9 @@ int main(int argc, char* argv[]) {
     std::cout << "artificial_viscosity: " << params.artificial_viscosity << std::endl;
     std::cout << "integration_scheme: " << params.integration_scheme << std::endl;
     std::cout << "snapshots: " << (params.snapshots ? "true" : "false") << std::endl;
+    std::cout << "rheology_model_crm: " << params.rheology_model_crm << std::endl;
+    std::cout << "kappa: " << params.kappa << std::endl;
+    std::cout << "lambda: " << params.lambda << std::endl;
 
     sysFSI.SetVerbose(true);
 
@@ -487,7 +523,13 @@ int main(int argc, char* argv[]) {
     ss << GetChronoOutputPath() + "FSI_SlopedSingleWheelTest/ps_" << params.ps_freq;
     ss << "_s_" << std::setprecision(3) << params.initial_spacing;
     ss << "_d0_" << std::setprecision(1) << params.d0_multiplier;
-    ss << "_av_" << std::setprecision(2) << params.artificial_viscosity << "/";
+    ss << "_av_" << std::setprecision(2) << params.artificial_viscosity;
+    if (params.rheology_model_crm == "MCC") {
+        ss << "_pre_pressure_scale_" << std::setprecision(1) << params.pre_pressure_scale;
+        ss << "_kappa_" << std::setprecision(2) << params.kappa;
+        ss << "_lambda_" << std::setprecision(2) << params.lambda;
+    }
+    ss << "/";
     out_dir = ss.str();
 
     if (params.output) {
@@ -536,7 +578,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSizeCFD(params.time_step);
     sysFSI.SetStepsizeMBD(params.time_step);
 
-     // Meta-step (communication interval)
+    // Meta-step (communication interval)
     double meta_time_step = 5 * params.time_step;
 
     // We simulate slope by just tilting the gravity vector
@@ -552,11 +594,22 @@ int main(int argc, char* argv[]) {
     mat_props.density = density;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
-    mat_props.mu_I0 = 0.04;
-    mat_props.mu_fric_s = 0.793;
-    mat_props.mu_fric_2 = 0.793;
-    mat_props.average_diam = 0.005;
-    mat_props.cohesion_coeff = 0;
+    if (params.rheology_model_crm == "MU_OF_I") {
+        mat_props.rheology_model = RheologyCRM::MU_OF_I;
+        mat_props.mu_I0 = 0.04;
+        mat_props.mu_fric_s = 0.793;
+        mat_props.mu_fric_2 = 0.793;
+        mat_props.average_diam = 0.005;
+        mat_props.cohesion_coeff = 0;
+    } else {
+        mat_props.rheology_model = RheologyCRM::MCC;
+        double mu_s = 0.793;
+        double angle_mus = std::atan(mu_s);
+        mat_props.mcc_M = (6 * std::sin(angle_mus)) / (3 - std::sin(angle_mus));
+        std::cout << "MCC M: " << mat_props.mcc_M << std::endl;
+        mat_props.mcc_kappa = params.kappa;
+        mat_props.mcc_lambda = params.lambda;
+    }
 
     sysSPH.SetElasticSPH(mat_props);
 
@@ -573,7 +626,7 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_xsph_eps = 0.5;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
-    sph_params.free_surface_threshold = 0.8;
+    sph_params.free_surface_threshold = 2.0;
     sph_params.num_proximity_search_steps = params.ps_freq;
     sph_params.use_variable_time_step = params.use_variable_time_step;
 
@@ -601,7 +654,7 @@ int main(int argc, char* argv[]) {
     double kernelLength = params.initial_spacing * params.d0_multiplier;
 
     // Initial Position of wheel
-    ChVector3d wheel_IniPos(-bxDim / 2 + wheel_radius * 2.0, 0.0, wheel_radius + 10 * iniSpacing);
+    ChVector3d wheel_IniPos(-bxDim / 2 + wheel_radius * 2.0, 0.0, wheel_radius + 3 * iniSpacing + bzDim / 2);
     ChVector3d wheel_IniVel(0.0, 0.0, 0.0);
 
     // Set the computational domain limits
@@ -617,16 +670,24 @@ int main(int argc, char* argv[]) {
     size_t numPart = (int)points.size();
     double gz = params.gravity_G;
     for (int i = 0; i < numPart; i++) {
-        double pre_ini = sysSPH.GetDensity() * gz * (-points[i].z() + bzDim);
-        double rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
-        sysSPH.AddSPHParticle(points[i], rho_ini, pre_ini, sysSPH.GetViscosity());
+        auto rho_ini = sysSPH.GetDensity();
+        double pre_ini = rho_ini * gz * (-points[i].z() + bzDim);
+        double preconsidation_pressure = pre_ini * params.pre_pressure_scale;
+        if (params.rheology_model_crm == "MCC") {
+            sysSPH.AddSPHParticle(points[i], rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
+                                  ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0),
+                                  preconsidation_pressure);
+        } else {
+            double rho_ini_calc = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
+            sysSPH.AddSPHParticle(points[i], rho_ini_calc, pre_ini, sysSPH.GetViscosity());
+        }
     }
 
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysFSI, wheel_IniPos, wheel_IniVel, params.wheel_AngVel, params.render, params.grouser_height,
                      kernelLength, params.total_mass, params.initial_spacing);
 
-    sysSPH.SetActiveDomain(ChVector3d(0.6, 0.6, 0.8));
+    sysSPH.SetActiveDomain(ChVector3d(0.9, 0.8, 0.9));
     sysSPH.SetActiveDomainDelay(1.0);
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();

@@ -621,6 +621,36 @@ void Cone() {
 
     {
         auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(+0.5, 0, -0.5));
+        body->SetName("truncated exterior polar");
+
+        auto bce = sysSPH.CreatePointsTruncatedConeExterior(cone_radius, cone_radius / 2, cone_height, true);
+        fbce.open((out_dir + "/cone_bndry_truncated_polar.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+        fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body, bce, frame, false);
+    }
+
+    {
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(+0.5, 0, -0.5));
+        body->SetName("truncated exterior Cartesian");
+
+        auto bce = sysSPH.CreatePointsTruncatedConeExterior(cone_radius, cone_radius / 2, cone_height, false);
+        fbce.open((out_dir + "/cone_bndry_truncated_cartesian.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+        fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body, bce, frame, false);
+    }
+
+    {
+        auto body = chrono_types::make_shared<ChBody>();
         body->SetPos(ChVector3d(-0.5, 0, +0.5));
         body->SetName("interior Cartesian");
 
@@ -644,6 +674,35 @@ void Cone() {
         for (const auto& p : bce)
             fbce << p << endl;
         fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body, bce, frame, false);
+    }
+
+    {
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(+0.5, 0, +0.5));
+        body->SetName("truncated interior polar");
+
+        auto bce = sysSPH.CreatePointsTruncatedConeInterior(cone_radius, cone_radius / 2, cone_height, true);
+        fbce.open((out_dir + "/cone_solid_truncated_polar.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+        fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body, bce, frame, false);
+    }
+
+    {
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(+0.5, 0, +0.5));
+        body->SetName("truncated interior Cartesian");
+
+        auto bce = sysSPH.CreatePointsTruncatedConeInterior(cone_radius, cone_radius / 2, cone_height, false);
+        fbce.open((out_dir + "/cone_solid_truncated_cartesian.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
 
         sysMBS.AddBody(body);
         sysFSI.AddFsiBody(body, bce, frame, false);

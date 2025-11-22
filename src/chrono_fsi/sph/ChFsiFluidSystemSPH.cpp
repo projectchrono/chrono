@@ -147,7 +147,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->ClampPressure = false;
 
     // Elastic SPH
-    m_paramsH->free_surface_threshold = Real(0.8);
+    m_paramsH->free_surface_threshold = Real(2.0);
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
@@ -163,7 +163,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     // Elastic SPH
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
-    m_paramsH->elastic_SPH = false;        // default: fluid dynamics
+    m_paramsH->elastic_SPH = false;                // default: fluid dynamics
     m_paramsH->artificial_viscosity = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
@@ -171,7 +171,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
 
-    m_paramsH->num_proximity_search_steps = 4;
+    m_paramsH->num_proximity_search_steps = 1;
     m_paramsH->use_variable_time_step = false;
 }
 
@@ -441,24 +441,44 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mu_fric_s(0.7),
       mu_fric_2(0.7),
       average_diam(0.005),
-      cohesion_coeff(0) {}
+      cohesion_coeff(0),
+      rheology_model(RheologyCRM::MU_OF_I),
+      mcc_M(0),
+      mcc_kappa(0),
+      mcc_lambda(0),
+      mcc_v_lambda(2.0) {}
 
 void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
     m_paramsH->elastic_SPH = true;
 
     SetDensity(mat_props.density);
+    m_paramsH->rheology_model_crm = mat_props.rheology_model;
 
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
-    m_paramsH->mu_I0 = Real(mat_props.mu_I0);
-    m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
-    m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+
     m_paramsH->ave_diam = Real(mat_props.average_diam);
-    m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
 
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
+
+    switch (m_paramsH->rheology_model_crm) {
+        case RheologyCRM::MCC:
+            m_paramsH->mcc_M = Real(mat_props.mcc_M);
+            m_paramsH->mcc_kappa = Real(mat_props.mcc_kappa);
+            m_paramsH->mcc_lambda = Real(mat_props.mcc_lambda);
+            m_paramsH->mcc_v_lambda = Real(mat_props.mcc_v_lambda);
+            break;
+        case RheologyCRM::MU_OF_I:
+            m_paramsH->mu_I0 = Real(mat_props.mu_I0);
+            m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
+            m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+            m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
+            break;
+        default:
+            throw std::runtime_error("Invalid rheology model");
+    }
 }
 
 ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
@@ -485,8 +505,8 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
-      free_surface_threshold(0.8),
-      num_proximity_search_steps(4),
+      free_surface_threshold(2.0),
+      num_proximity_search_steps(1),
       eos_type(EosType::ISOTHERMAL),
       use_variable_time_step(false) {}
 
@@ -790,7 +810,14 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             cout << "  Integration scheme: Implicit SPH" << endl;
             break;
     }
-
+    switch (params.rheology_model_crm) {
+        case RheologyCRM::MU_OF_I:
+            cout << "  Rheology model: MU_OF_I" << endl;
+            break;
+        case RheologyCRM::MCC:
+            cout << "  Rheology model: MCC" << endl;
+            break;
+    }
     cout << "  num_neighbors: " << params.num_neighbors << endl;
     cout << "  rho0: " << params.rho0 << endl;
     cout << "  invrho0: " << params.invrho0 << endl;
@@ -847,6 +874,10 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  mu_fric_2: " << params.mu_fric_2 << endl;
     cout << "  mu_I0: " << params.mu_I0 << endl;
     cout << "  mu_I_b: " << params.mu_I_b << endl;
+    cout << "  mcc_M: " << params.mcc_M << endl;
+    cout << "  mcc_kappa: " << params.mcc_kappa << endl;
+    cout << "  mcc_lambda: " << params.mcc_lambda << endl;
+    cout << "  mcc_v_lambda: " << params.mcc_v_lambda << endl;
     cout << "  HB_k: " << params.HB_k << endl;
     cout << "  HB_n: " << params.HB_n << endl;
     cout << "  HB_tau0: " << params.HB_tau0 << endl;
@@ -1571,15 +1602,14 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Update particle activity
     m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D, time);
 
-    // Resize arrays
-    bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();
-    if (m_frame == 0 || resize_arrays) {
-        m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
-    }
-
     // Perform proximity search
     bool proximity_search = m_frame % m_paramsH->num_proximity_search_steps == 0 || m_force_proximity_search;
     if (proximity_search) {
+        // Resize arrays
+        bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();
+        if (m_frame == 0 || resize_arrays) {
+            m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
+        }
         m_fluid_dynamics->ProximitySearch();
     }
 
@@ -1647,15 +1677,17 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          double mu,
                                          const ChVector3d& vel,
                                          const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz) {
-    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz));
+                                         const ChVector3d& tauXyXzYz,
+                                         const double pc) {
+    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
 }
 
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          const ChVector3d& vel,
                                          const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz) {
-    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
+                                         const ChVector3d& tauXyXzYz,
+                                         const double pc) {
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz, pc);
 }
 
 void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
@@ -1667,9 +1699,10 @@ void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
-                       ChVector3d(0),   // initial velocity
-                       ChVector3d(0),   // tauxxyyzz
-                       ChVector3d(0));  // tauxyxzyz
+                       ChVector3d(0),  // initial velocity
+                       ChVector3d(0),  // tauxxyyzz
+                       ChVector3d(0),  // tauxyxzyz
+                       0);             // pc
     }
 }
 
@@ -2210,6 +2243,12 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
 }
 
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad, double height, bool polar) const {
+    return CreatePointsTruncatedConeInterior(rad, 0, height, polar);
+}
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeInterior(double rad,
+                                                                               double rad_tip,
+                                                                               double height,
+                                                                               bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2223,7 +2262,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
     if (polar) {
         for (int iz = 0; iz < np_h; iz++) {
             double z = iz * delta_h;
-            double rz = rad * (height - z) / height;
+            // Interpolate between rad_tip and rad based on the height
+            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
             double rad_out = rz;
             double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
             if (iz >= np_h - num_layers)
@@ -2243,7 +2283,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
             }
         }
 
-        bce.push_back({0.0, 0.0, height});
+        // Add tip point only for a true cone (rad_tip = 0)
+        if (rad_tip < std::numeric_limits<double>::epsilon()) {
+            bce.push_back({0.0, 0.0, height});
+        }
 
         //// TODO: add cap
 
@@ -2256,7 +2299,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 
     for (int iz = 0; iz <= np_h; iz++) {
         double z = iz * delta_h;
-        double rz = rad * (height - z) / height;
+        // Interpolate between rad_tip and rad based on the height
+        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
         double rad_out = rz;
         double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
         double r_out2 = rad_out * rad_out;
@@ -2279,6 +2323,12 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 }
 
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad, double height, bool polar) const {
+    return CreatePointsTruncatedConeExterior(rad, 0, height, polar);
+}
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(double rad,
+                                                                               double rad_tip,
+                                                                               double height,
+                                                                               bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2296,7 +2346,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
     if (polar) {
         for (int iz = 0; iz < np_h; iz++) {
             double z = iz * delta_h;
-            double rz = rad * (height - z) / height;
+            // Interpolate between rad_tip and rad based on the height
+            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
             double rad_out = rz + num_layers * spacing;
             double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
             if (iz >= np_h - num_layers)
@@ -2316,7 +2367,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
             }
         }
 
-        bce.push_back({0.0, 0.0, height});
+        // Add tip point only for a true cone (rad_tip = 0)
+        if (rad_tip < std::numeric_limits<double>::epsilon()) {
+            bce.push_back({0.0, 0.0, height});
+        }
 
         //// TODO: add cap
 
@@ -2329,7 +2383,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
 
     for (int iz = 0; iz <= np_h; iz++) {
         double z = iz * delta_h;
-        double rz = rad * (height - z) / height;
+        // Interpolate between rad_tip and rad based on the height
+        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
         double rad_out = rz + num_layers * spacing;
         double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
         double r_out2 = rad_out * rad_out;

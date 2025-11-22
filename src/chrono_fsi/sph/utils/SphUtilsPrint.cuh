@@ -62,6 +62,7 @@ void saveParticleDataCRM(const std::string& dir,
                          const thrust::device_vector<Real4>& rhoPresMuD,
                          const thrust::device_vector<Real3>& tauXxYyZzD,
                          const thrust::device_vector<Real3>& tauXyXzYzD,
+                         const thrust::device_vector<Real3>& pcEvSvD,
                          const thrust::host_vector<int4>& referenceArray,
                          const thrust::host_vector<int4>& referenceArrayFEA);
 
@@ -95,8 +96,8 @@ void writeParticleFileCSV(const std::string& filename,
 /// Write particle positions.
 void writeParticleFileJSON(const std::string& filename, FsiDataManager& data_mgr);
 void writeParticleFileJSON(const std::string& filename,
-                          thrust::device_vector<Real4>& posRadD,
-                          thrust::host_vector<int4>& referenceArray);
+                           thrust::device_vector<Real4>& posRadD,
+                           thrust::host_vector<int4>& referenceArray);
 
 /// @} fsisph_utils
 

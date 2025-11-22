@@ -19,6 +19,10 @@ set(DEMOS ${DEMOS}
    demo_FSI_AngleRepose
    demo_FSI_Cratering
    demo_FSI_RassorDrum
+   demo_FSI_NormalBevameter
+   demo_FSI_ConePenetrometer
+   demo_FSI_Hydrostatic
+   demo_FSI_Cone_Drop
 )
 
 if(CH_ENABLE_MODULE_VSG)
