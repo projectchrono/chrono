@@ -390,11 +390,15 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
         ChColor col;
     };
 
-    std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
-    std::vector<GridData> m_grids;                      ///< list of visualization grids
-
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;  ///< scene nodes for physics items
     std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models
+
+    // WARNING: by moving the declaration of these two vectors (m_cameras, m_grids) on top of m_nodes it triggers a very
+    // awkward behaviour for which the Children of CEmptySceneNode gets invalidated, thus triggering an exception when
+    // the destructor of CEmptySceneNode is later called during deletion of the m_device, usually triggered by m_cameras
+    // (if this order is preserved).
+    std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
+    std::vector<GridData> m_grids;                      ///< list of visualization grids
 
     bool m_yup;                                        ///< use Y-up if true, Z-up if false
     std::string m_win_title;                           ///< window title
