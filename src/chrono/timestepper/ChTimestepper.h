@@ -79,7 +79,10 @@ class ChApi ChTimestepper {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive);
 
-    /// Return the integrator type as a string.
+    /// Return this integrator's type as a string.
+    std::string GetTypeAsString() const { return GetTypeAsString(GetType()); }
+
+    /// Return the provided integrator type as a string.
     static std::string GetTypeAsString(Type type);
 
   protected:
