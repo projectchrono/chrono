@@ -36,6 +36,14 @@ ChSystemDescriptor::~ChSystemDescriptor() {
     m_KRMblocks.clear();
 }
 
+bool ChSystemDescriptor::HasKRBlocks() {
+    for (const auto& KRMBlock : m_KRMblocks) {
+        if (KRMBlock->HasKRComponents())
+            return true;
+    }
+    return false;
+}
+
 void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolation, double& resulting_feasability) {
     resulting_maxviolation = 0;
     resulting_feasability = 0;
@@ -95,15 +103,14 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
 void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z,
                                                 unsigned int start_row,
                                                 unsigned int start_col) const {
-
-    //// Contribution of mass or rigid bodies and node-concentrated masses
+    // Contribution of mass or rigid bodies and node-concentrated masses
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
             var->PasteMassInto(Z, start_row, start_col, c_a);
         }
     }
 
-    // Contribution of stiffness, damping and mass matrices
+    // Contribution of stiffness, damping, and mass matrices
     for (const auto& KRMBlock : m_KRMblocks) {
         KRMBlock->PasteMatrixInto(Z, start_row, start_col, false);
     }
@@ -431,33 +438,33 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
 
     result.setZero(n_q + n_c);
 
-    // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
+    // 1) First row: result.q =  [M + K]*x.q + [Cq']*x.l
 
-    // 1.1)  do  M*x.q
+    // 1.1)  add M*x.q
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
             var->AddMassTimesVectorInto(result, x, c_a);
         }
     }
 
-    // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
+    // 1.2)  add also K*x.q  (NOT straight parallelizable - risk of concurrency in writing)
     for (const auto& krm_block : m_KRMblocks) {
         krm_block->AddMatrixTimesVectorInto(result, x);
     }
 
-    // 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
+    // 1.3)  add also [Cq]'*x.l  (NOT straight parallelizable - risk of concurrency in writing)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             constr->AddJacobianTransposedTimesScalarInto(result, x(constr->GetOffset() + n_q));
         }
     }
 
-    // 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
+    // 2) Second row: result.l =  [C_q]*x.q + [E]*x.l
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             int s_c = constr->GetOffset() + n_q;
-            constr->AddJacobianTimesVectorInto(result(s_c), x);  // result.l_i += [C_q_i]*x.q
-            result(s_c) += constr->GetComplianceTerm() * x(s_c);         // result.l_i += [E]*x.l_i
+            constr->AddJacobianTimesVectorInto(result(s_c), x);   // result.l_i += [C_q_i]*x.q
+            result(s_c) += constr->GetComplianceTerm() * x(s_c);  // result.l_i += [E]*x.l_i
         }
     }
 }

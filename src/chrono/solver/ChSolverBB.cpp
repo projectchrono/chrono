@@ -15,6 +15,10 @@
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChConstants.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -26,9 +30,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
-    if (sysd.GetKRMBlocks().size() > 0) {
-        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices."
-                  << std::endl;
+    if (sysd.HasKRBlocks()) {
+        cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices." << endl;
         throw std::runtime_error("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
     }
 
@@ -52,7 +55,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
-        std::cout << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << std::endl;
+        cout << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << endl;
 
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> ml_candidate(nc);
@@ -223,7 +226,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 double lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
                 lambda = std::max(sigma_min * lambda, std::min(sigma_max * lambda, lambdanew));
                 if (verbose)
-                    std::cout << " Repeat Armijo, new lambda=" << lambda << std::endl;
+                    cout << " Repeat Armijo, new lambda=" << lambda << endl;
             } else {
                 armijo_repeat = false;
             }
@@ -307,21 +310,20 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         // METRICS - convergence, plots, etc
 
         double maxdeltalambda = ms.lpNorm<Eigen::Infinity>();
-        double maxd = lastgoodres/mg_p_init_norm;
+        double maxd = lastgoodres / mg_p_init_norm;
 
         // For recording into correction/residuals/violation history, if debugging
         if (this->record_violation_history)
             AtIterationEnd(maxd, maxdeltalambda, iter);
 
         if (verbose)
-            std::cout << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda
-                      << std::endl;
+            cout << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda << endl;
 
         m_iterations++;
 
         if (maxd < m_tolerance) {
             if (verbose)
-                std::cout << "Converged at iter: " << iter << " with residual: " << maxd << std::endl;
+                cout << "Converged at iter: " << iter << " with residual: " << maxd << endl;
             break;
         }
     }
@@ -346,7 +348,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     }
 
     if (verbose)
-        std::cout << "-----" << std::endl;
+        cout << "-----" << endl;
 
     return lastgoodres;
 }
