@@ -237,6 +237,18 @@ class CH_VEHICLE_API ChTireTestRig {
     /// This is the reaction force in the linear motor used to enforce the specified rig longitudinal speed.
     double GetDBP() const;
 
+    /// Get current tire longitudinal slip.
+    /// This value is calculated from the horizontal speed of the spindle body and its angular rotation speed.
+    double GetLongitudinalSlip() const;
+
+    /// Get current tire slip angle.
+    /// This value is calculated from the current spindle normal direction.
+    double GetSlipAngle() const;
+
+    /// Get current tire camber angle.
+    /// This value is calculated from the current spindle normal direction.
+    double GetCamberAngle() const;
+
   private:
     enum class TerrainType { SCM, RIGID, CRG, GRANULAR, CRM, NONE };
 

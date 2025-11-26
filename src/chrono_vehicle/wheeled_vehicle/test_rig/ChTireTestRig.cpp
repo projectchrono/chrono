@@ -677,10 +677,40 @@ TerrainForce ChTireTestRig::ReportTireForce() const {
     return m_tire->ReportTireForce(m_terrain.get());
 }
 
-// -----------------------------------------------------------------------------
-
 double ChTireTestRig::GetDBP() const {
     return -m_lin_motor->GetMotorForce();
+}
+
+double ChTireTestRig::GetLongitudinalSlip() const {
+    if (m_system->GetChTime() < m_time_delay)
+        return 0;
+
+    double r = m_tire->GetRadius();                        // current tire effective radius
+    double o = m_spindle->GetAngVelLocal().y();            // spindle rotation angular speed (local)
+    auto v = m_spindle->GetPosDt();                        // spindle 3D velocity (global)
+    double vx = std::sqrt(v.x() * v.x() + v.y() * v.y());  // spindle horizontal speed (global)
+    double abs_vx = std::abs(vx);
+
+    double long_slip = (abs_vx > 1e-4) ? (r * o - vx) / abs_vx : 0.0;
+    return long_slip;
+}
+
+double ChTireTestRig::GetSlipAngle() const {
+    if (m_system->GetChTime() < m_time_delay)
+        return 0;
+
+    auto dir = m_spindle->GetRotMat().GetAxisY();
+    double slip_angle = std::atan(dir.x() / dir.y());
+    return slip_angle;
+}
+
+double ChTireTestRig::GetCamberAngle() const {
+    if (m_system->GetChTime() < m_time_delay)
+        return 0;
+
+    auto dir = m_spindle->GetRotMat().GetAxisY();
+    double camber_angle = std::atan(-dir.z());
+    return camber_angle;
 }
 
 }  // end namespace vehicle
