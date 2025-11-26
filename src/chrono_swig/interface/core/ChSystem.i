@@ -29,12 +29,26 @@ void SetSolver(std::shared_ptr<ChSolverBiCGSTAB> solver) {$self->SetSolver(std::
 void SetSolver(std::shared_ptr<ChSolverMINRES> solver)   {$self->SetSolver(std::static_pointer_cast<ChSolver>(solver));}
 }
 
+// SetTimestepper overloads for implicit timesteppers (multiple inheritance workaround) use dynamic_pointer_cast for the multi-inheritance robustness
+// Recommend to use settimesteppertype() and 'gettimestepper() as XXXX' instead where possible to create new timesteppers
+%extend chrono::ChSystem
+{
+void SetTimestepper(std::shared_ptr<ChTimestepperEulerImplicit> stepper)           {$self->SetTimestepper(std::dynamic_pointer_cast<ChTimestepper>(stepper));}
+void SetTimestepper(std::shared_ptr<ChTimestepperEulerImplicitLinearized> stepper) {$self->SetTimestepper(std::dynamic_pointer_cast<ChTimestepper>(stepper));}
+void SetTimestepper(std::shared_ptr<ChTimestepperEulerImplicitProjected> stepper)  {$self->SetTimestepper(std::dynamic_pointer_cast<ChTimestepper>(stepper));}
+void SetTimestepper(std::shared_ptr<ChTimestepperTrapezoidal> stepper)             {$self->SetTimestepper(std::dynamic_pointer_cast<ChTimestepper>(stepper));}
+void SetTimestepper(std::shared_ptr<ChTimestepperTrapezoidalLinearized> stepper)   {$self->SetTimestepper(std::dynamic_pointer_cast<ChTimestepper>(stepper));}
+void SetTimestepper(std::shared_ptr<ChTimestepperNewmark> stepper)                 {$self->SetTimestepper(std::dynamic_pointer_cast<ChTimestepper>(stepper));}
+void SetTimestepper(std::shared_ptr<ChTimestepperHHT> stepper)                     {$self->SetTimestepper(std::dynamic_pointer_cast<ChTimestepper>(stepper));}
+}
+
 #endif             // --------------------------------------------------------------------- CSHARP
 
 %{
 #include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperImplicit.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 
 using namespace chrono;
