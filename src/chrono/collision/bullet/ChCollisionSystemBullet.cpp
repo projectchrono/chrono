@@ -388,7 +388,7 @@ bool ChCollisionSystemBullet::RayHit(const ChVector3d& from,
     int hit = -1;
     cbtScalar fraction = 1;
     for (int i = 0; i < rayCallback.m_collisionObjects.size(); ++i) {
-        auto bt_model = static_cast<ChCollisionModelBullet*>(rayCallback.m_collisionObject->getUserPointer());
+        auto bt_model = static_cast<ChCollisionModelBullet*>(rayCallback.m_collisionObjects[i]->getUserPointer());
         if (bt_model->model == model && rayCallback.m_hitFractions[i] < fraction) {
             hit = i;
             fraction = rayCallback.m_hitFractions[i];
