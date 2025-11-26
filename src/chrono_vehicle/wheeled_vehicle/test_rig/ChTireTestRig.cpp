@@ -58,6 +58,7 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_terrain_offset(0),
       m_terrain_height(0),
       m_tire_step(1e-3),
+      m_tire_BCE(true),
       m_tire_vis(VisualizationType::PRIMITIVES) {
     // Default motion function for slip angle control
     m_sa_fun = chrono_types::make_shared<ChFunctionConst>(0);
@@ -624,20 +625,23 @@ void ChTireTestRig::CreateTerrainCRM() {
     terrain->Construct({m_params_crm.length, m_params_crm.width, m_params_crm.depth}, location,
                        BoxSide::ALL & ~BoxSide::Z_POS);
 
-    // Guesstimate of reasonable active domain size
+    // Estimate a reasonable active domain size
     terrain->SetActiveDomain(ChVector3d(4 * m_tire->GetRadius(), 4 * m_tire->GetWidth(), 4 * m_tire->GetRadius()));
 
-    if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
-        std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
-        auto mesh = fea_tire->GetMesh();
-        terrain->AddFeaMesh(mesh, false);
-    } else {
-        auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
-        assert(rgd_tire->UseContactMesh());
-        auto trimesh = rgd_tire->GetContactMesh();
-        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
-        terrain->AddRigidBody(m_spindle, geometry, false);
+    // Create tire BCE markers
+    if (m_tire_BCE) {
+        if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
+            std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
+            auto mesh = fea_tire->GetMesh();
+            terrain->AddFeaMesh(mesh, false);
+        } else {
+            auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
+            assert(rgd_tire->UseContactMesh());
+            auto trimesh = rgd_tire->GetContactMesh();
+            auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+            geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
+            terrain->AddRigidBody(m_spindle, geometry, false);
+        }
     }
 
     terrain->Initialize();
