@@ -19,7 +19,6 @@
 #ifndef CH_ROS_CLOCK_HANDLER
 #define CH_ROS_CLOCK_HANDLER
 
-#include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChROSHandler.h"
 
 #include "rosgraph_msgs/msg/clock.hpp"

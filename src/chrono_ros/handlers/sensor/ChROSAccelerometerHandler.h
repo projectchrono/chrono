@@ -36,7 +36,7 @@ class ChROSIMUHandler;
 /// @{
 
 /// This handler is responsible for interfacing a ChAccelerometerSensor to ROS. Will publish sensor_msgs::msg::Imu.
-class ChROSAccelerometerHandler : public ChROSHandler {
+class CH_ROS_API ChROSAccelerometerHandler : public ChROSHandler {
   public:
     /// Constructor. The update rate is set to imu->GetUpdateRate().
     /// The update rate corresponds to the sensor's update rate.
