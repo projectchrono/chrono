@@ -129,6 +129,40 @@ if(NOT CMAKE_CSharp_COMPILER)
 endif()
 
 enable_language(CSharp)
+mark_as_advanced(CMAKE_CSharp_COMPILER)
+
+# Track whether the managed wrapper DLL is available so demos either reference it or fall back to using generated SWIG
+# sources directly in each demo
+set(CHRONO_CSHARP_USING_WRAPPER OFF)
+if(CH_BUILD_CSHARP_WRAPPER)
+  set(CHRONO_CSHARP_USING_WRAPPER ON)
+  if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    message(FATAL_ERROR "CMAKE_RUNTIME_OUTPUT_DIRECTORY must be provided when CH_BUILD_CSHARP_WRAPPER is ON")
+  endif()
+  if(NOT CMAKE_CFG_INTDIR)
+    set(CMAKE_CFG_INTDIR ".")
+  endif()
+  set(CHRONO_CSHARP_WRAPPER_REFERENCE
+      "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/chrono_csharp_wrapper.dll")
+  message(STATUS "  Using chrono_csharp_wrapper.dll: ${CHRONO_CSHARP_WRAPPER_REFERENCE}")
+endif()
+
+# function to inject chrono_csharp_wrapper.dll as a reference when the wrapper
+# has been published; keeps each exe's small / avoids embedding all SWIG sources directly in each demo exe
+function(chrono_configure_csharp_demo target_name)
+  if(CHRONO_CSHARP_USING_WRAPPER)
+    get_property(_existing_refs TARGET ${target_name} PROPERTY VS_DOTNET_REFERENCES)
+    if(NOT _existing_refs)
+      set(_existing_refs "")
+    endif()
+    list(APPEND _existing_refs "chrono_csharp_wrapper")
+    list(REMOVE_DUPLICATES _existing_refs)
+    list(JOIN _existing_refs ";" _refs_string)
+    set_property(TARGET ${target_name} PROPERTY VS_DOTNET_REFERENCES "${_refs_string}")
+    set_property(TARGET ${target_name} PROPERTY VS_DOTNET_REFERENCE_chrono_csharp_wrapper "${CHRONO_CSHARP_WRAPPER_REFERENCE}")
+    set_property(TARGET ${target_name} PROPERTY VS_DOTNET_REFERENCEPROPERTY_chrono_csharp_wrapper_CopyLocal "True")
+  endif()
+endfunction()
 
 # Traverse subdirectories
 message(STATUS "Configure C# demo programs")
