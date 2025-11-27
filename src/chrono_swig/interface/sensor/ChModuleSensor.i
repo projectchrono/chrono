@@ -10,12 +10,6 @@
 
 
 
-// Define the module to be used in Python when typing
-//  'import pychrono.sensor'
-
-
-%module(directors="1") sensor
-
 
 // Turn on the documentation of members, for more intuitive IDE typing
 
@@ -116,22 +110,26 @@ using namespace chrono::sensor;
 // different c++ class, when possible.
 
 %include "std_string.i"
+%include "std_wstring.i"
 %include "std_vector.i"
 %include "std_list.i"
 %include "carrays.i"
 %include "typemaps.i"
 %include "wchar.i"
-%include "python/cwstring.i"
 #ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
+%include "python/cwstring.i"
 %include "cstring.i"
+%include "numpy.i"
 #endif              // --------------------------------------------------------------------- PYTHON
 %include "stdint.i"
-%include "numpy.i"
 %include "cpointer.i"
 
+#ifdef SWIGPYTHON
 %init %{
     import_array();
 %}
+#endif
+
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);
