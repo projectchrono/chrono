@@ -694,6 +694,7 @@ if(CH_BUILD_CSHARP_WRAPPER)
 
   set(CHRONO_CSHARP_CORE_SOURCE_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/core")
   set(CHRONO_CSHARP_MODULE_SOURCE_DIRS)
+  list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/robot")
   if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/irrlicht")
   endif()
@@ -705,6 +706,9 @@ if(CH_BUILD_CSHARP_WRAPPER)
   endif()
   if(CH_ENABLE_MODULE_VEHICLE)
     list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/vehicle")
+  endif()
+  if(CH_ENABLE_MODULE_SENSOR)
+    list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/sensor")
   endif()
 
   set(_chrono_csharp_module_dirs_arg "")
@@ -723,16 +727,17 @@ if(CH_BUILD_CSHARP_WRAPPER)
             -DCORE_SOURCE_DIR=${CHRONO_CSHARP_CORE_SOURCE_DIR}
             -DMODULE_SOURCE_DIRS=${_chrono_csharp_module_dirs_arg}
             -P ${CHRONO_CSHARP_COLLECT_SCRIPT}
-      COMMAND ${CMAKE_COMMAND} -E make_directory "${CHRONO_CSHARP_WRAPPER_OUTPUT_ROOT}/$<CONFIG>"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CHRONO_CSHARP_WRAPPER_OUTPUT_ROOT}/$<CONFIG>"
     COMMAND ${DOTNET_EXE} publish ${CHRONO_CSHARP_WRAPPER_PROJECT}
             --configuration $<CONFIG>
             --runtime ${CHRONO_CSHARP_WRAPPER_RUNTIME_ID}
-        --output "${CHRONO_CSHARP_WRAPPER_OUTPUT_ROOT}/$<CONFIG>"
+            --output "${CHRONO_CSHARP_WRAPPER_OUTPUT_ROOT}/$<CONFIG>"
             --nologo
     COMMENT "Publishing chrono_csharp_wrapper.dll ($<CONFIG>)"
     VERBATIM)
 
   add_dependencies(Chrono_csharp_wrapper Chrono_csharp_core)
+  add_dependencies(Chrono_csharp_wrapper Chrono_csharp_robot)
   if(CH_ENABLE_MODULE_POSTPROCESS)
     add_dependencies(Chrono_csharp_wrapper Chrono_csharp_postprocess)
   endif()
@@ -744,6 +749,9 @@ if(CH_BUILD_CSHARP_WRAPPER)
   endif()
   if(CH_ENABLE_MODULE_VEHICLE)
     add_dependencies(Chrono_csharp_wrapper Chrono_csharp_vehicle)
+  endif()
+  if(CH_ENABLE_MODULE_SENSOR)
+    add_dependencies(Chrono_csharp_wrapper Chrono_csharp_sensor)
   endif()
 
   if(WIN32)
