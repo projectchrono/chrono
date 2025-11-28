@@ -460,6 +460,121 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
 endif()
 
+#-----------------------------------------------------------------------------
+# MODULE for the sensor csharp wrapper
+#-----------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_SENSOR)
+
+  message(STATUS "Add C# SENSOR module")
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/sensor")
+
+  # Interface files
+  set(INTERFACE_FILE_SENSOR ChModuleSensor_csharp.i)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${INTERFACE_FILE_SENSOR} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${INTERFACE_FILE_SENSOR} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${INTERFACE_FILE_SENSOR} PROPERTIES COMPILE_OPTIONS "-w401,503")
+  endif()
+
+  # Create the SWIG module
+  swig_add_library(Chrono_csharp_sensor LANGUAGE csharp SOURCES ${INTERFACE_FILE_SENSOR})
+  target_link_libraries(Chrono_csharp_sensor PRIVATE Chrono_core Chrono_sensor)
+
+  # Ensure that the library file is generated in the bin/ directory
+  set_target_properties(Chrono_csharp_sensor PROPERTIES
+                        PROJECT_LABEL "Chrono_csharp_sensor"
+                        OUTPUT_NAME   "Chrono_csharp_sensor"
+                        LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
+                        SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+                        )
+
+  target_compile_definitions(Chrono_csharp_sensor PRIVATE "CH_IGNORE_DEPRECATED")
+  target_compile_definitions(Chrono_csharp_sensor PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(Chrono_csharp_sensor Chrono_core)
+  add_dependencies(Chrono_csharp_sensor Chrono_sensor)
+  add_dependencies(Chrono_csharp_sensor Chrono_csharp_core)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(TARGETS Chrono_csharp_sensor
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
+  else()
+    install(TARGETS Chrono_csharp_sensor
+            EXPORT ChronoTargets
+            LIBRARY DESTINATION lib)
+  endif()
+
+  if (DBG_SCRIPT)
+    message("Module name:     Chrono_csharp_sensor")
+    message("SWIG_REAL_NAME:  Chrono_csharp_sensor")
+  endif()
+
+endif()
+
+#-----------------------------------------------------------------------------
+# Module for the robot models
+#-----------------------------------------------------------------------------
+
+message(STATUS "Add C# ROBOT module")
+
+set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/robot")
+
+# Interface files
+set(INTERFACE_FILE_ROBOT ChModuleRobot_csharp.i)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set_source_files_properties(${INTERFACE_FILE_ROBOT} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+endif()
+set_source_files_properties(${INTERFACE_FILE_ROBOT} PROPERTIES CPLUSPLUS ON)
+if(MSVC)
+  set_source_files_properties(${INTERFACE_FILE_ROBOT} PROPERTIES COMPILE_OPTIONS "-w401,503")
+endif()
+
+# Create the SWIG module
+swig_add_library(Chrono_csharp_robot LANGUAGE csharp SOURCES ${INTERFACE_FILE_ROBOT})
+target_link_libraries(Chrono_csharp_robot PRIVATE Chrono_core ChronoModels_robot)
+
+# Ensure that the library file is generated in the bin/ directory
+set_target_properties(Chrono_csharp_robot PROPERTIES
+                      PROJECT_LABEL "Chrono_csharp_robot"
+                      OUTPUT_NAME   "Chrono_csharp_robot"
+                      LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
+                      SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+                      )
+
+target_compile_definitions(Chrono_csharp_robot PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(Chrono_csharp_robot PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+add_dependencies(Chrono_csharp_robot Chrono_core)
+add_dependencies(Chrono_csharp_robot ChronoModels_robot)
+add_dependencies(Chrono_csharp_robot Chrono_csharp_core)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  install(TARGETS Chrono_csharp_robot
+          EXPORT ChronoTargets
+          RUNTIME DESTINATION bin
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib)
+else()
+  install(TARGETS Chrono_csharp_robot
+          EXPORT ChronoTargets
+          LIBRARY DESTINATION lib)
+endif()
+
+if (DBG_SCRIPT)
+  message("Module name:     Chrono_csharp_robot")
+  message("SWIG_REAL_NAME:  Chrono_csharp_robot")
+endif()
+
+
 #-------------------------------------------------------------------------------
 # Install files
 #-------------------------------------------------------------------------------
@@ -492,6 +607,17 @@ install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/vehicle/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
 endif()
+
+if(CH_ENABLE_MODULE_SENSOR)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/sensor/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
+
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/robot/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+
 
 # Template project
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

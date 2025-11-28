@@ -241,23 +241,28 @@ if(CH_ENABLE_MODULE_CSHARP)
     option(BUILD_DEMOS_CSHARP "Build demo programs for Csharp module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_CSHARP)
     if(BUILD_DEMOS_CSHARP)
-           # Configure the standalone C# demo sub-build, forwarding the wrapper flag so
-           # it knows when chrono_csharp_wrapper.dll should be referenced instead of raw .cs files
-           add_custom_target(Csharp_demos ALL
-                 COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}/csharp -B ${PROJECT_BINARY_DIR}/csharp
-                     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                     -DCH_ENABLE_MODULE_VEHICLE:BOOL=${CH_ENABLE_MODULE_VEHICLE}
-                     -DCH_ENABLE_MODULE_POSTPROCESS:BOOL=${CH_ENABLE_MODULE_POSTPROCESS}
-                     -DCH_ENABLE_MODULE_IRRLICHT:BOOL=${CH_ENABLE_MODULE_IRRLICHT}
-                            -DCH_ENABLE_MODULE_VSG:BOOL=${CH_ENABLE_MODULE_VSG}
-                            -DCH_BUILD_CSHARP_WRAPPER:BOOL=${CH_BUILD_CSHARP_WRAPPER}
-                 COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/csharp --config $<CONFIG>)
+       # Configure the standalone C# demo sub-build, forwarding the wrapper flag so
+       # it knows when chrono_csharp_wrapper.dll should be referenced instead of raw .cs files
+       add_custom_target(Csharp_demos ALL
+             COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}/csharp -B ${PROJECT_BINARY_DIR}/csharp
+                 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                 -DCH_ENABLE_MODULE_VEHICLE:BOOL=${CH_ENABLE_MODULE_VEHICLE}
+                 -DCH_ENABLE_MODULE_SENSOR:BOOL=${CH_ENABLE_MODULE_SENSOR}
+                 -DCH_ENABLE_MODULE_POSTPROCESS:BOOL=${CH_ENABLE_MODULE_POSTPROCESS}
+                 -DCH_ENABLE_MODULE_IRRLICHT:BOOL=${CH_ENABLE_MODULE_IRRLICHT}
+                 -DCH_ENABLE_MODULE_VSG:BOOL=${CH_ENABLE_MODULE_VSG}
+                 -DCH_BUILD_CSHARP_WRAPPER:BOOL=${CH_BUILD_CSHARP_WRAPPER}
+             COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/csharp --config $<CONFIG>)
        add_dependencies(Csharp_demos Chrono_csharp_core)
+       add_dependencies(Csharp_demos Chrono_csharp_robot)
         if(CH_BUILD_CSHARP_WRAPPER)
             add_dependencies(Csharp_demos Chrono_csharp_wrapper)
          endif()
        if(CH_ENABLE_MODULE_VEHICLE)
           add_dependencies(Csharp_demos Chrono_csharp_vehicle)
+       endif()
+       if(CH_ENABLE_MODULE_SENSOR)
+          add_dependencies(Csharp_demos Chrono_csharp_sensor)
        endif()
        if(CH_ENABLE_MODULE_POSTPROCESS)
           add_dependencies(Csharp_demos Chrono_csharp_postprocess)

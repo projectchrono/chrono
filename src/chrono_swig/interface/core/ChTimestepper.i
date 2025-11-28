@@ -6,6 +6,7 @@
 %{
 #include <cmath>
 #include <cstdlib>
+#include <memory>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/serialization/ChArchive.h"
@@ -16,11 +17,10 @@
 #include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
+#include "chrono/physics/ChSystem.h"
 
 using namespace chrono;
 %}
-
-// Tell SWIG about parent class in Python
 
 /* Parse the header file to generate wrappers */
 
@@ -55,83 +55,86 @@ using namespace chrono;
 %shared_ptr(chrono::ChStaticNonLinearRheonomicAnalysis)
 %shared_ptr(chrono::ChStaticNonLinearIncremental)
 
-// Special handling: C++ implicit timesteppers inherit from both ChTimestepperIIorder and ChTimestepperImplicit
-// ChTimestepperIIorder does NOT inherit from ChTimestepper, but ChTimestepperImplicit does but the problem is
-// SWIG picks the first base (ChTimestepperIIorder), breaking any expecting ChTimestepper
-// These typemaps must come after the %shared_ptr declarations and before includes
-//
-// shared_ptr in C++ (held by ChSystem) manages the lifetime so we setting swigCMemOwnDerived
-// to false to stop C# from trying to delete the c++ object
-// instead - just let the chsystem handle the timestepper on c++ side, and c# side just clears the handle at dispose
-
+// C++ implicit timesteppers use multiple inheritance:
+//   class ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChTimestepperImplicit
+// 
+// ChTimestepperIIorder does NOT inherit from ChTimestepper
+// ChTimestepperImplicit DOES inherit from ChTimestepper
+// 
 #ifdef SWIGCSHARP
+// Ensure ChSystem-derived integrables pass the actual system pointer into native code - detects when the
+// integrable is actually a ChSystem and returns ChSystem.getCPtr(sys) instead of the upcast base pointer that SWIG is defaulting to
+%typemap(cscode) chrono::ChIntegrableIIorder %{
+  internal static global::System.Runtime.InteropServices.HandleRef GetSystemAwareCPtr(ChIntegrableIIorder obj) {
+    if (obj == null) {
+      return new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
+    }
+    ChSystem sys = obj as ChSystem;
+    if (sys != null) {
+      return ChSystem.getCPtr(sys);
+    }
+    return ChIntegrableIIorder.getCPtr(obj);
+  }
+%}
 
-// Force correct base class for the implicit timesteppers
-%typemap(csbase, replace="1") chrono::ChTimestepperEulerImplicit "ChTimestepperImplicit"
-%typemap(csbase, replace="1") chrono::ChTimestepperEulerImplicitLinearized "ChTimestepperImplicit"
-%typemap(csbase, replace="1") chrono::ChTimestepperEulerImplicitProjected "ChTimestepperImplicit"
-%typemap(csbase, replace="1") chrono::ChTimestepperTrapezoidal "ChTimestepperImplicit"
-%typemap(csbase, replace="1") chrono::ChTimestepperTrapezoidalLinearized "ChTimestepperImplicit"
-%typemap(csbase, replace="1") chrono::ChTimestepperNewmark "ChTimestepperImplicit"
-%typemap(csbase, replace="1") chrono::ChTimestepperHHT "ChTimestepperImplicit"
+%typemap(csin) chrono::ChIntegrableIIorder * "ChIntegrableIIorder.GetSystemAwareCPtr($csinput)"
+%typemap(csin) const chrono::ChIntegrableIIorder * "ChIntegrableIIorder.GetSystemAwareCPtr($csinput)"
 
-// Macro to define complete typemap set for implicit timesteppers with forced base class
-// (ince we're forcing a different base class with csbase, we must override all dispose-related typemaps(
-// But since these are shared_ptr wrapped objects - C# must not try to garbage colleect/delete them
-// c++ shared_ptr (in ChSystem) manages the lifetime and handles deletion (csharp does not own the memory!)
-%define IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(CPPTYPE, CSTYPE)
+// Helper template to create C# accessibility for the implicit base shared_ptr conversions
+%define DECLARE_IMPLICIT_TIMESTEPPER_UPCAST(CLASSNAME)
+%inline %{
+std::shared_ptr<chrono::ChTimestepperImplicit>* CLASSNAME##_to_ChTimestepperImplicit(
+    std::shared_ptr<chrono::CLASSNAME>* ptr) {
+    if (!ptr)
+        return nullptr;
+    return new std::shared_ptr<chrono::ChTimestepperImplicit>(
+        std::static_pointer_cast<chrono::ChTimestepperImplicit>(*ptr));
+}
+%}
+%enddef
 
-// Body with derived pattern - calls base constructor with pointer
-// Note: No swigCMemOwn tracking needed - shared_ptr in C++ manages lifetime, not C#
-%typemap(csbody) CPPTYPE %{
+// Macro to fix the base class and constructor body for implicit timesteppers
+%define FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(CLASSNAME)
+DECLARE_IMPLICIT_TIMESTEPPER_UPCAST(CLASSNAME)
+%typemap(csbase, replace="1") chrono::CLASSNAME "ChTimestepperImplicit"
+%typemap(csbody) chrono::CLASSNAME %{
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
+  private bool swigCMemOwnDerived;
 
-  internal $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) : base(cPtr, false) {
+  internal $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) : base(chronoPINVOKE.$csclassname_to_ChTimestepperImplicit(new global::System.Runtime.InteropServices.HandleRef(null, cPtr)), true) {
+    swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
   }
 
   internal static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
     return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.swigCPtr;
   }
-%}
-
-// Suppress the default csdispose
-%typemap(csdispose) CPPTYPE ""
-// Suppress the default csdisposing
-%typemap(csdisposing, methodname="Dispose", methodmodifiers="protected override", parameters="bool disposing") CPPTYPE ""
-
-// Since shared_ptr owns the memory just clear the handle (avoid GB collection issues if any)
-%typemap(cscode) CPPTYPE %{
-  ~$csclassname() {
-    Dispose(false);
-  }
-
-  public new void Dispose() {
-    Dispose(true);
-    global::System.GC.SuppressFinalize(this);
-  }
 
   protected override void Dispose(bool disposing) {
     lock(this) {
       if (swigCPtr.Handle != global::System.IntPtr.Zero) {
-        // Do not delete - C++ owns the memory (since set up with a chrono_typres::make_shared)
+        if (swigCMemOwnDerived) {
+          swigCMemOwnDerived = false;
+          chronoPINVOKE.delete_$csclassname(swigCPtr);
+        }
         swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
       base.Dispose(disposing);
     }
   }
 %}
-
+%typemap(csdispose) chrono::CLASSNAME ""
+%typemap(csdisposing) chrono::CLASSNAME ""
+%typemap(csdisposing_derived) chrono::CLASSNAME ""
 %enddef
 
-// Apply the typemaps to all the implicit timesteppers
-IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(chrono::ChTimestepperEulerImplicit, ChTimestepperEulerImplicit)
-IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(chrono::ChTimestepperEulerImplicitLinearized, ChTimestepperEulerImplicitLinearized)
-IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(chrono::ChTimestepperEulerImplicitProjected, ChTimestepperEulerImplicitProjected)
-IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(chrono::ChTimestepperTrapezoidal, ChTimestepperTrapezoidal)
-IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(chrono::ChTimestepperTrapezoidalLinearized, ChTimestepperTrapezoidalLinearized)
-IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(chrono::ChTimestepperNewmark, ChTimestepperNewmark)
-IMPLICIT_TIMESTEPPER_CSHARP_TYPEMAPS(chrono::ChTimestepperHHT, ChTimestepperHHT)
+FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperEulerImplicit)
+FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperEulerImplicitLinearized)
+FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperEulerImplicitProjected)
+FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperTrapezoidal)
+FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperTrapezoidalLinearized)
+FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperNewmark)
+FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperHHT)
 
 #endif // SWIGCSHARP
 
