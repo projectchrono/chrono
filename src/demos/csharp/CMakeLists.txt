@@ -184,3 +184,4 @@ message(STATUS "  Runtime output directory:   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 add_subdirectory(core)
 add_subdirectory(mbs)
 add_subdirectory(vehicle)
+add_subdirectory(sensor)
