@@ -176,10 +176,10 @@ mark_as_advanced(CMAKE_CSharp_COMPILER)
 # Track whether the managed wrapper DLL is available so demos either reference it or fall back to using generated SWIG
 # sources directly in each demo
 set(CHRONO_CSHARP_USING_WRAPPER OFF)
-if(CH_BUILD_CSHARP_WRAPPER)
+if(CH_USE_CSHARP_WRAPPER)
   set(CHRONO_CSHARP_USING_WRAPPER ON)
   if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-    message(FATAL_ERROR "CMAKE_RUNTIME_OUTPUT_DIRECTORY must be provided when CH_BUILD_CSHARP_WRAPPER is ON")
+    message(FATAL_ERROR "CMAKE_RUNTIME_OUTPUT_DIRECTORY must be provided when CH_USE_CSHARP_WRAPPER is ON")
   endif()
   if(NOT CMAKE_CFG_INTDIR)
     set(CMAKE_CFG_INTDIR ".")

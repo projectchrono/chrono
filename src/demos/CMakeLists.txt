@@ -251,13 +251,13 @@ if(CH_ENABLE_MODULE_CSHARP)
                  -DCH_ENABLE_MODULE_POSTPROCESS:BOOL=${CH_ENABLE_MODULE_POSTPROCESS}
                  -DCH_ENABLE_MODULE_IRRLICHT:BOOL=${CH_ENABLE_MODULE_IRRLICHT}
                  -DCH_ENABLE_MODULE_VSG:BOOL=${CH_ENABLE_MODULE_VSG}
-                 -DCH_BUILD_CSHARP_WRAPPER:BOOL=${CH_BUILD_CSHARP_WRAPPER}
+                 -DCH_USE_CSHARP_WRAPPER:BOOL=${CH_USE_CSHARP_WRAPPER}
              COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/csharp --config $<CONFIG>)
        add_dependencies(Csharp_demos Chrono_csharp_core)
        add_dependencies(Csharp_demos Chrono_csharp_robot)
-        if(CH_BUILD_CSHARP_WRAPPER)
-            add_dependencies(Csharp_demos Chrono_csharp_wrapper)
-         endif()
+       if(CH_USE_CSHARP_WRAPPER)
+          add_dependencies(Csharp_demos Chrono_csharp_wrapper)
+          endif()
        if(CH_ENABLE_MODULE_VEHICLE)
           add_dependencies(Csharp_demos Chrono_csharp_vehicle)
        endif()
