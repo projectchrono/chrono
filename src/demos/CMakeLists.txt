@@ -245,13 +245,18 @@ if(CH_ENABLE_MODULE_CSHARP)
                          COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}/csharp -B ${PROJECT_BINARY_DIR}/csharp
                                  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                                  -DCH_ENABLE_MODULE_VEHICLE:BOOL=${CH_ENABLE_MODULE_VEHICLE}
+                                 -DCH_ENABLE_MODULE_SENSOR:BOOL=${CH_ENABLE_MODULE_SENSOR}
                                  -DCH_ENABLE_MODULE_POSTPROCESS:BOOL=${CH_ENABLE_MODULE_POSTPROCESS}
                                  -DCH_ENABLE_MODULE_IRRLICHT:BOOL=${CH_ENABLE_MODULE_IRRLICHT}
                                  -DCH_ENABLE_MODULE_VSG:BOOL=${CH_ENABLE_MODULE_VSG}
                          COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/csharp --config $<CONFIG>)
        add_dependencies(Csharp_demos Chrono_csharp_core)
+       add_dependencies(Csharp_demos Chrono_csharp_robot)
        if(CH_ENABLE_MODULE_VEHICLE)
           add_dependencies(Csharp_demos Chrono_csharp_vehicle)
+       endif()
+       if(CH_ENABLE_MODULE_SENSOR)
+          add_dependencies(Csharp_demos Chrono_csharp_sensor)
        endif()
        if(CH_ENABLE_MODULE_POSTPROCESS)
           add_dependencies(Csharp_demos Chrono_csharp_postprocess)
