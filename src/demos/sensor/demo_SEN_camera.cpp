@@ -337,6 +337,7 @@ int main(int argc, char* argv[]) {
                                                           image_width,   // image width
                                                           image_height,  // image height
                                                           fov,           // camera's horizontal field of view
+                                                          1000,          // maximum depth
                                                           lens_model);   // FOV
     depth->SetName("Depth Camera");
     depth->SetLag(lag);
