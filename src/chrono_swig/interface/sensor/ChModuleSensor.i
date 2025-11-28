@@ -179,6 +179,7 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::PixelRGBA8)
 %shared_ptr(chrono::sensor::GPSData)
 %shared_ptr(chrono::sensor::PixelDepth)
+%shared_ptr(chrono::sensor::PixelSemantic)
 
 %shared_ptr(chrono::sensor::SensorBuffer)
 %shared_ptr(chrono::sensor::SensorBufferT)
@@ -200,6 +201,7 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelHalf4[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDepth[]>>)
+%shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelSemantic[]>>)
 
 %shared_ptr(chrono::sensor::ChFilter)
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::AccelData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::AccelData [] > > > > )
@@ -213,6 +215,7 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelDepth [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelDepth [] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelSemantic [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelSemantic [] > > > > )
 
 %shared_ptr(chrono::sensor::ChFilterVisualizePointCloud)
 %shared_ptr(chrono::sensor::ChFilterVisualize)
@@ -283,6 +286,7 @@ using namespace chrono::sensor;
 //camera
 %template(UserR8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>;
 %template(UserRGBA8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>;
+%template(UserRGBA8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelSemantic[]>>;
 
 //lidar
 %template(UserDISensorBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>;
@@ -355,10 +359,12 @@ using namespace chrono::sensor;
 
 /// Filter acces templates instances
 // camera
-%template(ChFilterRGBA8Access) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>>>;
-%template(ChFilterR8Access) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>>>;
+%template(ChFilterRGBA8Access)      chrono::sensor::ChFilterAccess<  chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>,    std::shared_ptr< chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>    >  >;
+%template(ChFilterR8Access)         chrono::sensor::ChFilterAccess<  chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>,                          std::shared_ptr< chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>                          >  >;
+%template(ChFilterSemanticAccess)   chrono::sensor::ChFilterAccess<  chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelSemantic[]>>, std::shared_ptr< chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelSemantic[]>> >  >;
+
 %template(GetMostRecentRGBA8Buffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>> > ;
-%template(GetMostRecentR8Buffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>> > ;
+%template(GetMostRecentR8Buffer)    chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>> > ;
 
 //lidar 
 %template(ChFilterDIAccess) chrono::sensor::ChFilterAccess<chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>, std::shared_ptr<chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>>>;
