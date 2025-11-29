@@ -488,6 +488,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/ChMaterial3DStress.cpp
     fea/ChMaterial3DHyperelastic.cpp
     fea/ChMaterial3DStressStVenant.cpp
+    fea/ChMaterial3DStressKelvinVoigt.cpp
     fea/ChMaterial3DStressOgden.cpp
     fea/ChMaterial3DThermalStress.cpp
     fea/ChDomain.cpp
@@ -526,6 +527,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/ChMaterial3DStress.h
     fea/ChMaterial3DHyperelastic.h
     fea/ChMaterial3DStressStVenant.h
+    fea/ChMaterial3DStressKelvinVoigt.h
     fea/ChMaterial3DStressOgden.h
     fea/ChMaterial3DThermalStress.h
     fea/ChDomain.h
