@@ -55,7 +55,7 @@ public:
     };
 
     /// Implement interface to lower level stress material
-    virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, ///< output C tangent modulus, dP=C*dE
+    virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& C,         ///< output C tangent modulus, dP=C*dE
                                         const ChMatrix33d& F,               ///< current deformation gradient tensor
                                         const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                         ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point
@@ -66,7 +66,7 @@ public:
         ChMatrix33d C_deformation = F.transpose() * F;
 
         // Use the hyperelastic tangent modulus computation
-        ComputeElasticTangentModulus(StressStrainMatrix, C_deformation);
+        ComputeElasticTangentModulus(C, C_deformation);
     };
 
     /// Hyperelastic materials do not need info on the spatial velocity gradient  l=\nabla_x v ,

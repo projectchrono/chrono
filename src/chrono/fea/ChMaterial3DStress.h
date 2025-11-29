@@ -45,8 +45,8 @@ public:
     /// Compute elastic stress from finite strain, passed as 3x3 deformation gradient tensor F_def.
     /// Assuming stress is 2nd Piola-Kirchhoff tensor "S_stress", in Voigt notation.
     /// Some materials could also make use of spatial velocity gradient "l", ex. for damping effects,
-    /// and of the "data_per_point" auxiliary structure, tht could contain states like in plasticity.
-
+    /// and of the "data_per_point" auxiliary structure, that could contain states like in plasticity.
+    
     virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
                                 const ChMatrix33d& F_def,           ///< current deformation gradient tensor
                                 const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
@@ -58,7 +58,7 @@ public:
     /// between delta of 2nd Piola-Kirchhoff S and delta of Green Lagrange E, both in Voigt notation.
     /// Assuming current strain is a 3x3 deformation gradient tensor F_def. 
 
-    virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& StressStrainMatrix, ///< output C tangent modulus, as dS=C*dE
+    virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& C, ///< output C tangent modulus, as dS=C*dE
                                 const ChMatrix33d& F_def,       ///< current deformation gradient tensor
                                 const ChMatrix33d* l,           ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 ChFieldData* data_per_point,    ///< pointer to auxiliary data (ex states), if any, per quadrature point

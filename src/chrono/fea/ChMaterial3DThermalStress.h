@@ -77,8 +77,8 @@ public:
     // POSSIBLE SPEED OPTIMIZATION WE ASSUME IT IS UP TO THE ChDomainThermoDeformation THAT USES THIS COMPOUND MATERIAL
     // TO CALL SEPARATELY THE ChMaterial3DStress::ComputeStress() AND ChMaterial3DThermal::ComputeHeatFlux()
 
-    /// Compute {elastic stress, heat flux} from {finite strain, temperature}.
-    /// Assuming stress if Piola-Kirchhoff tensor S, in Voigt notation. Assuming finite strain passed via 
+    /// Compute {heat flux, stress} from {temperature, deformation}.
+    /// Assuming stress is Piola-Kirchhoff tensor S, in Voigt notation. Assuming finite strain passed via 
     /// a deformation gradient tensor F.
 
     virtual void ComputeStressAndFlux(ChStressTensor<>& S_stress_temp,      ///< output A: the PK stress
@@ -91,8 +91,8 @@ public:
         ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
     ) = 0;
 
-    /// Computes the tangent modulus for a given deformation F_def and temperature. The upper left 6x6 block is about
-    /// the tangent modulus for stress-strain realtion (assuming PK2 stress and Green-Lagrange strain), the lower right 3x3
+    /// Computes the tangent modulus for a given deformation F_def and temperature. The lower right 6x6 block is about
+    /// the tangent modulus for stress-strain relation (assuming PK2 stress and Green-Lagrange strain), the upper left 3x3
     /// block is about the tangent modulus for heat problem) 
 
     virtual void ComputeTangentModulus(ChMatrixNM<double, 9, 9>& tangentModulus, ///< output C tangent modulus
