@@ -175,7 +175,7 @@ void ChCheckpointASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& 
 void ChCheckpointASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     TestTypeComponent();
 
-    //// TODO - ChShaftsMotor
+    //// TODO - ChShaftsMotorSpeed
 }
 
 void ChCheckpointASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
@@ -202,13 +202,13 @@ void ChCheckpointASCII::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChL
 void ChCheckpointASCII::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
     TestTypeComponent();
 
-    //// TODO
+    //// TODO - ChLinkMotorLinearSpeed, ChLinkMotorLinearDriveline
 }
 
 void ChCheckpointASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
     TestTypeComponent();
 
-    //// TODO
+    //// TODO - ChLinkMotorRotationSpeed, ChLinkMotorRotationDriveline
 }
 
 }  // namespace chrono

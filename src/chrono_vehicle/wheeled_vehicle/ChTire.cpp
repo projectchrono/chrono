@@ -69,7 +69,7 @@ void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     wheel->GetSpindle()->SetInertiaXX(wheel->GetSpindle()->GetInertiaXX() + GetAddedInertia());
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

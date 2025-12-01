@@ -32,23 +32,27 @@ ChPitmanArmShafts::ChPitmanArmShafts(const std::string& name, bool vehicle_frame
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia), m_rigid(rigid_column) {}
 
 ChPitmanArmShafts::~ChPitmanArmShafts() {
+    if (!IsInitialized())
+        return;
+
     auto sys = m_arm->GetSystem();
-    if (sys) {
-        sys->Remove(m_arm);
-        sys->Remove(m_revolute);
-        sys->Remove(m_revsph);
-        sys->Remove(m_universal);
-        sys->Remove(m_shaft_A);
-        sys->Remove(m_shaft_C);
-        sys->Remove(m_shaft_A1);
-        sys->Remove(m_shaft_C1);
-        sys->Remove(m_shaft_arm);
-        sys->Remove(m_shaft_chassis);
-        sys->Remove(m_shaft_gear);
-        sys->Remove(m_shaft_motor);
-        sys->Remove(m_rigid_connection);
-        sys->Remove(m_spring_connection);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_arm);
+    sys->Remove(m_revolute);
+    sys->Remove(m_revsph);
+    sys->Remove(m_universal);
+    sys->Remove(m_shaft_A);
+    sys->Remove(m_shaft_C);
+    sys->Remove(m_shaft_A1);
+    sys->Remove(m_shaft_C1);
+    sys->Remove(m_shaft_arm);
+    sys->Remove(m_shaft_chassis);
+    sys->Remove(m_shaft_gear);
+    sys->Remove(m_shaft_motor);
+    sys->Remove(m_rigid_connection);
+    sys->Remove(m_spring_connection);
 }
 
 // -----------------------------------------------------------------------------
@@ -369,67 +373,26 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    bodies.push_back(m_arm);
-    ExportBodyList(jsonDocument, bodies);
+void ChPitmanArmShafts::PopulateComponentList() {
+    m_bodies.push_back(m_link);
+    m_bodies.push_back(m_arm);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_shaft_C);
-    shafts.push_back(m_shaft_C1);
-    shafts.push_back(m_shaft_A1);
-    shafts.push_back(m_shaft_A);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_shaft_C);
+    m_shafts.push_back(m_shaft_C1);
+    m_shafts.push_back(m_shaft_A1);
+    m_shafts.push_back(m_shaft_A);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_revsph);
-    joints.push_back(m_universal);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_revolute);
+    m_joints.push_back(m_revsph);
+    m_joints.push_back(m_universal);
 
-    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
-    couples.push_back(m_shaft_motor);
-    couples.push_back(m_shaft_gear);
+    m_couples.push_back(m_shaft_motor);
+    m_couples.push_back(m_shaft_gear);
     if (m_rigid)
-        couples.push_back(m_rigid_connection);
+        m_couples.push_back(m_rigid_connection);
     else
-        couples.push_back(m_spring_connection);
-    ExportCouplesList(jsonDocument, couples);
-}
-
-void ChPitmanArmShafts::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    bodies.push_back(m_arm);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_shaft_C);
-    shafts.push_back(m_shaft_C1);
-    shafts.push_back(m_shaft_A1);
-    shafts.push_back(m_shaft_A);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_revsph);
-    joints.push_back(m_universal);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
-    couples.push_back(m_shaft_motor);
-    couples.push_back(m_shaft_gear);
-    if (m_rigid)
-        couples.push_back(m_rigid_connection);
-    else
-        couples.push_back(m_spring_connection);
-    database.WriteCouples(couples);
+        m_couples.push_back(m_spring_connection);
 }
 
 }  // end namespace vehicle

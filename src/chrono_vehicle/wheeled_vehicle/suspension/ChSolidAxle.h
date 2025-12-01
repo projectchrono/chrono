@@ -304,9 +304,7 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
                                         double radius,
                                         const ChColor& color);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

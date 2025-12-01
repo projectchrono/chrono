@@ -96,6 +96,8 @@ class CH_VEHICLE_API ChAutomaticTransmissionSimpleCVT : public ChAutomaticTransm
     /// This function does nothing for this simplified model.
     virtual void Advance(double step) override {}
 
+    virtual void PopulateComponentList() override;
+
     double m_motorshaft_speed;   ///< current motorshaft speed (transmission output)
     double m_driveshaft_torque;  ///< current driveshaft torque (transmission output)
 

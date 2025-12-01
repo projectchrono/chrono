@@ -59,27 +59,6 @@ void ChRigidChassis::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAssets(m_body);
 }
 
-void ChRigidChassis::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_body);
-    ExportBodyList(jsonDocument, bodies);
-
-    ExportMarkerList(jsonDocument, m_markers);
-}
-
-void ChRigidChassis::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_body);
-    database.WriteBodies(bodies);
-
-    database.WriteMarkers(m_markers);
-}
-
 // -----------------------------------------------------------------------------
 
 ChRigidChassisRear::ChRigidChassisRear(const std::string& name) : ChChassisRear(name) {}
@@ -102,27 +81,6 @@ void ChRigidChassisRear::AddVisualizationAssets(VisualizationType vis) {
 
 void ChRigidChassisRear::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAssets(m_body);
-}
-
-void ChRigidChassisRear::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_body);
-    ExportBodyList(jsonDocument, bodies);
-
-    ExportMarkerList(jsonDocument, m_markers);
-}
-
-void ChRigidChassisRear::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_body);
-    database.WriteBodies(bodies);
-
-    database.WriteMarkers(m_markers);
 }
 
 }  // end namespace vehicle

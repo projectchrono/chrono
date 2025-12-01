@@ -267,9 +267,7 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
                                         const ChVector3d pt_T,
                                         double radius);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

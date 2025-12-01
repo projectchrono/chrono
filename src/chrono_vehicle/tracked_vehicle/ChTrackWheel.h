@@ -83,8 +83,6 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// Log current constraint violations.
     void LogConstraintViolations();
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
   protected:
     /// Construct a road-wheel subsystem with given name.
     ChTrackWheel(const std::string& name);
@@ -108,7 +106,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChBody> m_wheel;                 ///< track wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< wheel revolute joint

@@ -30,6 +30,7 @@
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono/output/ChOutputASCII.h"
+#include "chrono/output/ChCheckpointASCII.h"
 #ifdef CHRONO_HAS_HDF5
     #include "chrono/output/ChOutputHDF5.h"
 #endif
@@ -168,6 +169,12 @@ void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, std::ostream
 #endif
             break;
     }
+}
+
+void ChVehicle::ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
+    ChCheckpointASCII checkpoint_db(ChCheckpoint::Type::COMPONENT);
+    WriteCheckpoint(checkpoint_db);
+    checkpoint_db.WriteFile(filename, m_system->GetChTime());
 }
 
 // -----------------------------------------------------------------------------

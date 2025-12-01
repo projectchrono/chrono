@@ -45,7 +45,7 @@ void ChTrackShoe::Initialize(std::shared_ptr<ChChassis> chassis,
     Construct(chassis, location, rotation);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 }  // end namespace vehicle

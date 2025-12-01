@@ -103,6 +103,8 @@ class CH_VEHICLE_API ChManualTransmissionShafts : public ChManualTransmission {
     /// Perform any action required on placing the transmission in neutral.
     virtual void OnNeutralShift() override;
 
+    virtual void PopulateComponentList() override;
+
     std::shared_ptr<ChShaft> m_motorshaft;  ///< shaft connection to the transmission
     std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to driveline
 

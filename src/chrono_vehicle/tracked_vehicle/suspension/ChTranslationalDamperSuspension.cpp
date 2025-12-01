@@ -253,56 +253,18 @@ void ChTranslationalDamperSuspension::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTranslationalDamperSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChTrackSuspension::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm);
-    ExportBodyList(jsonDocument, bodies);
+void ChTranslationalDamperSuspension::PopulateComponentList() {
+    m_bodies.push_back(m_arm);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_joint->IsKinematic() ? joints.push_back(m_joint->GetAsLink()) : bushings.push_back(m_joint->GetAsBushing());
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
+    m_joint->IsKinematic() ? m_joints.push_back(m_joint->GetAsLink()) : m_body_loads.push_back(m_joint->GetAsBushing());
 
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    rot_springs.push_back(m_spring);
+    m_rsdas.push_back(m_spring);
     if (m_damper)
-        rot_springs.push_back(m_damper);
-    ExportRotSpringList(jsonDocument, rot_springs);
+        m_rsdas.push_back(m_damper);
 
     if (m_has_shock) {
-        std::vector<std::shared_ptr<ChLinkTSDA>> lin_springs;
-        lin_springs.push_back(m_shock);
-        ExportLinSpringList(jsonDocument, lin_springs);
-    }
-}
-
-void ChTranslationalDamperSuspension::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_joint->IsKinematic() ? joints.push_back(m_joint->GetAsLink()) : bushings.push_back(m_joint->GetAsBushing());
-    database.WriteJoints(joints);
-    database.WriteBodyBodyLoads(bushings);
-
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    rot_springs.push_back(m_spring);
-    if (m_damper)
-        rot_springs.push_back(m_damper);
-    database.WriteRotSprings(rot_springs);
-
-    if (m_has_shock) {
-        std::vector<std::shared_ptr<ChLinkTSDA>> lin_springs;
-        lin_springs.push_back(m_shock);
-        database.WriteLinSprings(lin_springs);
+        m_tsdas.push_back(m_shock);
     }
 }
 

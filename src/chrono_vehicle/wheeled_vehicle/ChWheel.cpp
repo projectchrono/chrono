@@ -87,7 +87,7 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     Construct(chassis, spindle, side, offset);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 void ChWheel::InitializeInertiaProperties() {

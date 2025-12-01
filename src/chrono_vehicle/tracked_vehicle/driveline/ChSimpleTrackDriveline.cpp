@@ -39,12 +39,12 @@ ChSimpleTrackDriveline::ChSimpleTrackDriveline(const std::string& name)
 void ChSimpleTrackDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                         std::shared_ptr<ChTrackAssembly> track_left,
                                         std::shared_ptr<ChTrackAssembly> track_right) {
-    // Create the driveshaft
-    ChDriveline::Initialize(chassis);
-
     // Grab handles to the sprocket shafts.
     m_shaft_left = track_left->GetSprocket()->GetAxle();
     m_shaft_right = track_right->GetSprocket()->GetAxle();
+
+    // Mark initialized
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

@@ -279,11 +279,11 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         std::size_t operator()(const PartKey& id) const;
     };
 
-    std::unordered_map<PartKey, Body, PartKeyHash> m_bodies;               ///< suspension bodies
-    std::unordered_map<PartKey, Joint, PartKeyHash> m_joints;              ///< suspension joints
-    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;                ///< suspension TSDA force elements
-    std::unordered_map<PartKey, RSDA, PartKeyHash> m_rsdas;                ///< suspension RSDA force elements
-    std::unordered_map<PartKey, DistanceConstraint, PartKeyHash> m_dists;  ///< suspension distance constraints
+    std::unordered_map<PartKey, Body, PartKeyHash> m_susp_bodies;               ///< suspension bodies
+    std::unordered_map<PartKey, Joint, PartKeyHash> m_susp_joints;              ///< suspension joints
+    std::unordered_map<PartKey, TSDA, PartKeyHash> m_susp_tsdas;                ///< suspension TSDA force elements
+    std::unordered_map<PartKey, RSDA, PartKeyHash> m_susp_rsdas;                ///< suspension RSDA force elements
+    std::unordered_map<PartKey, DistanceConstraint, PartKeyHash> m_susp_dists;  ///< suspension distance constraints
 
     /// Get the unique name of an item in this suspension subsystem.
     std::string Name(const PartKey& id) const;
@@ -302,8 +302,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-    virtual void Output(ChOutput& database) const override;
+
+    virtual void PopulateComponentList() override;
 };
 
 /// @} vehicle_wheeled_suspension

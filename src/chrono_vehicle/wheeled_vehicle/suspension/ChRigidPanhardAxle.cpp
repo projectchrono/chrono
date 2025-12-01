@@ -48,7 +48,7 @@ const std::string ChRigidPanhardAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C 
 ChRigidPanhardAxle::ChRigidPanhardAxle(const std::string& name) : ChSuspension(name) {}
 
 ChRigidPanhardAxle::~ChRigidPanhardAxle() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_axleTubeBody->GetSystem();
@@ -140,16 +140,16 @@ void ChRigidPanhardAxle::Construct(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_panhardRodBody);
 
     // connect the Panhard rod to the chassis
-    m_sphPanhardChassis = chrono_types::make_shared<ChJoint>(
-        ChJoint::Type::SPHERICAL, m_name + "_sphericalPanhardChassis", chassis->GetBody(), m_panhardRodBody,
-        ChFrame<>(m_panrodOuterC, QUNIT));
+    m_sphPanhardChassis =
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalPanhardChassis",
+                                           chassis->GetBody(), m_panhardRodBody, ChFrame<>(m_panrodOuterC, QUNIT));
     m_sphPanhardChassis->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphPanhardChassis);
 
     // connect the panhard rod to the axle tube
     m_sphPanhardAxle =
-        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalPanhardAxle",
-                                                  m_axleTubeBody, m_panhardRodBody, ChFrame<>(m_panrodOuterA, QUNIT));
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalPanhardAxle", m_axleTubeBody,
+                                           m_panhardRodBody, ChFrame<>(m_panrodOuterA, QUNIT));
     m_sphPanhardAxle->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphPanhardAxle);
 
@@ -268,9 +268,9 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
         m_revARBLeftRight->ForceRz().SetDampingCoefficient(getARBDamping());
     }
 
-    m_slideARB[side] = chrono_types::make_shared<ChJoint>(
-        ChJoint::Type::POINTPLANE, m_name + "_revARBslide" + suffix, m_arb[side], m_axleTubeBody,
-        ChFrame<>(m_ptARBAxle[side], chassisRot * QUNIT));
+    m_slideARB[side] =
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::POINTPLANE, m_name + "_revARBslide" + suffix, m_arb[side],
+                                           m_axleTubeBody, ChFrame<>(m_ptARBAxle[side], chassisRot * QUNIT));
     m_slideARB[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_slideARB[side]);
 }
@@ -397,60 +397,22 @@ void ChRigidPanhardAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChRigidPanhardAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTubeBody);
-    ExportBodyList(jsonDocument, bodies);
+void ChRigidPanhardAxle::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    m_bodies.push_back(m_axleTubeBody);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChRigidPanhardAxle::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTubeBody);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_spring[0]);
+    m_tsdas.push_back(m_spring[1]);
+    m_tsdas.push_back(m_shock[0]);
+    m_tsdas.push_back(m_shock[1]);
 }
 
 }  // end namespace vehicle

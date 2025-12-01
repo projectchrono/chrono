@@ -26,7 +26,7 @@ namespace vehicle {
 ChChassisConnectorTorsion::ChChassisConnectorTorsion(const std::string& name) : ChChassisConnector(name) {}
 
 ChChassisConnectorTorsion::~ChChassisConnectorTorsion() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_joint->GetSystem();
@@ -38,8 +38,6 @@ ChChassisConnectorTorsion::~ChChassisConnectorTorsion() {
 }
 
 void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
-    ChChassisConnector::Initialize(front, rear);
-
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
     to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
@@ -62,6 +60,13 @@ void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std
     auto cb = chrono_types::make_shared<utils::LinearSpringDamperTorque>(K, C, 0);
     m_spring->RegisterTorqueFunctor(cb);
     rear->GetBody()->GetSystem()->AddLink(m_spring);
+
+    ChPart::Initialize();
+}
+
+void ChChassisConnectorTorsion::PopulateComponentList() {
+    m_joints.push_back(m_joint);
+    m_rsdas.push_back(m_spring);
 }
 
 }  // end namespace vehicle

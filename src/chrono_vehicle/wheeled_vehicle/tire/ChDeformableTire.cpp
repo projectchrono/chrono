@@ -32,7 +32,7 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
     : ChTire(name), m_connection_enabled(true), m_pressure_enabled(true), m_contact_enabled(true) {}
 
 ChDeformableTire::~ChDeformableTire() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_mesh->GetSystem();

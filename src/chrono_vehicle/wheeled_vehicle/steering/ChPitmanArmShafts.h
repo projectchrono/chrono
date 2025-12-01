@@ -187,9 +187,7 @@ class CH_VEHICLE_API ChPitmanArmShafts : public ChSteering {
     std::shared_ptr<ChShaftsTorsionSpring> m_spring_connection;  ///< compliant connection between shaft_A1 and shaft_C1
 
   private:
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     bool m_rigid;  ///< true for a rigid steering column
 

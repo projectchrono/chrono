@@ -62,6 +62,11 @@ void ChPart::Create(const rapidjson::Document& d) {
     }
 }
 
+void ChPart::Initialize() {
+    PopulateComponentList();
+    m_initialized = true;
+}
+
 // -----------------------------------------------------------------------------
 void ChPart::SetVisualizationType(VisualizationType vis) {
     RemoveVisualizationAssets();
@@ -113,10 +118,7 @@ ChMatrix33<> ChPart::TransformInertiaMatrix(
 }
 
 // -----------------------------------------------------------------------------
-// Default implementation of the function ExportComponentList.
-// Derived classes should override this function and first invoke this base
-// class implementation, followed by calls to the various static Export***List
-// functions, as appropriate.
+// Implementation of the function ExportComponentList.
 // -----------------------------------------------------------------------------
 
 rapidjson::Value Vec2Val(const ChVector3d& vec, rapidjson::Document::AllocatorType& allocator) {
@@ -174,6 +176,17 @@ void ChPart::ExportComponentList(rapidjson::Document& jsonDocument) const {
     jsonDocument.AddMember("output", m_output, allocator);
     jsonDocument.AddMember("position", Vec2Val(frame.GetPos(), allocator), allocator);
     jsonDocument.AddMember("rotation", Quat2Val(frame.GetRot(), allocator), allocator);
+
+    ExportBodyList(jsonDocument, m_bodies);
+    ExportMarkerList(jsonDocument, m_markers);
+    ExportShaftList(jsonDocument, m_shafts);
+    ExportJointList(jsonDocument, m_joints);
+    ExportCouplesList(jsonDocument, m_couples);
+    ExportLinSpringList(jsonDocument, m_tsdas);
+    ExportRotSpringList(jsonDocument, m_rsdas);
+    ExportBodyLoadList(jsonDocument, m_body_loads);
+    ExportLinMotorList(jsonDocument, m_lin_motors);
+    ExportRotMotorList(jsonDocument, m_rot_motors);
 }
 
 rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson::Document::AllocatorType& allocator) {
@@ -418,6 +431,44 @@ void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument,
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("bushings", jsonArray, allocator);
+}
+
+void ChPart::ExportLinMotorList(rapidjson::Document& jsonDocument,
+                                std::vector<std::shared_ptr<ChLinkMotorLinear>> loads) const {
+    //// TODO
+}
+
+void ChPart::ExportRotMotorList(rapidjson::Document& jsonDocument,
+                                std::vector<std::shared_ptr<ChLinkMotorRotation>> loads) const {
+    //// TODO
+}
+
+void ChPart::Output(ChOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBodies(m_bodies);
+    database.WriteMarkers(m_markers);
+    database.WriteShafts(m_shafts);
+    database.WriteJoints(m_joints);
+    database.WriteCouples(m_couples);
+    database.WriteLinSprings(m_tsdas);
+    database.WriteRotSprings(m_rsdas);
+    database.WriteBodyBodyLoads(m_body_loads);
+    database.WriteLinMotors(m_lin_motors);
+    database.WriteRotMotors(m_rot_motors);
+}
+
+void ChPart::WriteCheckpoint(ChCheckpoint& database) const {
+    database.WriteBodies(m_bodies);
+    database.WriteShafts(m_shafts);
+    database.WriteJoints(m_joints);
+    database.WriteCouples(m_couples);
+    database.WriteLinSprings(m_tsdas);
+    database.WriteRotSprings(m_rsdas);
+    database.WriteBodyBodyLoads(m_body_loads);
+    database.WriteLinMotors(m_lin_motors);
+    database.WriteRotMotors(m_rot_motors);
 }
 
 void ChPart::RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item) {
