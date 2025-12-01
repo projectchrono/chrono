@@ -1132,9 +1132,12 @@ source_group(utils FILES ${Chrono_utils_SOURCES} ${Chrono_utils_HEADERS})
 set(Chrono_output_HEADERS
     output/ChOutput.h
     output/ChOutputASCII.h
+    output/ChCheckpoint.h
+    output/ChCheckpointASCII.h
 )
 set(Chrono_output_SOURCES
     output/ChOutputASCII.cpp
+    output/ChCheckpointASCII.cpp
 )
 if (HDF5_FOUND)
     set(Chrono_output_HEADERS ${Chrono_output_HEADERS}
