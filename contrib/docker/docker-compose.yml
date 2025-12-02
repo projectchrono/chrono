@@ -33,8 +33,10 @@ services:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              capabilities: [gpu]
+          - capabilities:
+            - gpu
+            count: all
+            driver: nvidia
   vnc:
     image: "camera/${COMPOSE_PROJECT_NAME}:vnc"
     hostname: "${COMPOSE_PROJECT_NAME}-vnc"
