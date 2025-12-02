@@ -19,10 +19,10 @@
 #ifndef CH_ROS_INTERFACE_H
 #define CH_ROS_INTERFACE_H
 
-#include "chrono_ros/ChApiROS.h"
-
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/executor.hpp"
+
+#include "chrono_ros/ChApiROS.h"
 
 #include <memory>
 #include <chrono>
