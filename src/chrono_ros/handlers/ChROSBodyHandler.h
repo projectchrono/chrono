@@ -51,6 +51,12 @@ class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
     /// Initializes the handler. This creates the three publishers for the pose, twist, and accel topics.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
+  public:
+    /// Get the body for IPC serialization (added for VSG compatibility)  
+    std::shared_ptr<ChBody> GetBody() const { return m_body; }
+    /// Get the topic prefix for IPC serialization (added for VSG compatibility)
+    const std::string& GetTopic() const { return m_topic; }
+
   protected:
     /// @brief Simply calls PublishPose, PublishTwist, and PublishAccel.
     /// @param time The time at which the current state of the simulation is.

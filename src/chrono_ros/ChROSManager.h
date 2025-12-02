@@ -28,11 +28,15 @@
 namespace chrono {
 namespace ros {
 
-/// @addtogroup ros_core
-/// @{
-
+// Forward declarations
 class ChROSInterface;
 class ChROSHandler;
+#ifdef CHRONO_VSG
+class ChROSIPCInterface;
+#endif
+
+/// @addtogroup ros_core
+/// @{
 
 /// Managers the ROS handlers and their registration/updates
 class CH_ROS_API ChROSManager {
@@ -58,6 +62,20 @@ class CH_ROS_API ChROSManager {
     std::shared_ptr<ChROSInterface> m_interface;
 
     std::vector<std::shared_ptr<ChROSHandler>> m_handlers;
+    
+#ifdef CHRONO_VSG
+    /// Serialize handler data for IPC transmission  
+    void SerializeHandlerData(std::shared_ptr<ChROSHandler> handler, double time, 
+                             std::shared_ptr<ChROSIPCInterface> ipc_interface);
+                             
+    /// Serialize body handler data
+    void SerializeBodyHandler(std::shared_ptr<class ChROSBodyHandler> handler, double time,
+                             std::shared_ptr<ChROSIPCInterface> ipc_interface);
+                             
+    /// Serialize TF handler data  
+    void SerializeTFHandler(std::shared_ptr<class ChROSTFHandler> handler, double time,
+                           std::shared_ptr<ChROSIPCInterface> ipc_interface);
+#endif
 };
 
 /// @}

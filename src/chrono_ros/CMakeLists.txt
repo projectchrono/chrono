@@ -90,6 +90,22 @@ set(CH_ROS_BASE_FILES
 )
 source_group("base" FILES ${CH_ROS_BASE_FILES})
 
+set(CH_ROS_IPC_FILES
+  ipc/ChROSIPCMessage.h
+  ipc/ChROSSharedMemory.h
+  ipc/ChROSSharedMemory.cpp
+  ipc/ChROSRingBuffer.h
+  ipc/ChROSRingBuffer.cpp
+  ipc/ChROSIPCChannel.h
+  ipc/ChROSIPCChannel.cpp
+  ipc/ChROSSubprocessManager.h
+  ipc/ChROSSubprocessManager.cpp
+  
+  ChROSIPCInterface.h
+  ChROSIPCInterface.cpp
+)
+source_group("ipc" FILES ${CH_ROS_IPC_FILES})
+
 set(CH_ROS_HANDLER_FILES
   ChROSHandler.h
   ChROSHandler.cpp
@@ -176,6 +192,7 @@ set(DEPENDENCIES_ROS ${DEPENDENCIES_ROS} PARENT_SCOPE)
 
 add_library(Chrono_ros SHARED
             ${CH_ROS_BASE_FILES}
+            ${CH_ROS_IPC_FILES}
             ${CH_ROS_HANDLER_FILES}
             ${CH_ROS_VEHICLE_HANDLER_FILES}
             ${CH_ROS_SENSOR_HANDLER_FILES}
@@ -233,6 +250,13 @@ if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   target_link_libraries(Chrono_ros PUBLIC Chrono_parsers)
 endif()
 
+# Enable IPC mode when VSG symbols will conflict with ROS
+# This happens when both PARSERS (which uses VSG) and VSG modules are enabled
+if (CH_ENABLE_MODULE_PARSERS AND CH_ENABLE_MODULE_VSG)
+  target_compile_definitions(Chrono_ros PRIVATE CHRONO_VSG)
+  message(STATUS "Chrono::ROS: VSG symbol collision detected - enabling IPC mode")
+endif()
+
 target_link_libraries(Chrono_ros PUBLIC ${ROS2_TARGETS})
 
 # Set some variables to be visible outside this directory
@@ -253,3 +277,31 @@ install(TARGETS Chrono_ros
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_ros
         FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
+
+#-----------------------------------------------------------------------------
+# Create the ROS node subprocess executable
+#-----------------------------------------------------------------------------
+
+add_executable(chrono_ros_node chrono_ros_node.cpp)
+
+target_link_libraries(chrono_ros_node 
+    ${ROS2_TARGETS}
+    Chrono_core
+)
+
+# Add the IPC source files directly to avoid circular dependencies
+target_sources(chrono_ros_node PRIVATE
+    ipc/ChROSSharedMemory.cpp
+    ipc/ChROSRingBuffer.cpp  
+    ipc/ChROSIPCChannel.cpp
+)
+
+target_include_directories(chrono_ros_node PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${PROJECT_BINARY_DIR}
+)
+
+install(TARGETS chrono_ros_node
+        EXPORT ChronoTargets
+        RUNTIME DESTINATION bin
+)
