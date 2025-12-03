@@ -21,12 +21,16 @@
 
 #include <cmath>
 
+#include "chrono/physics/ChSystemSMC.h"
+
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
@@ -61,14 +65,17 @@ RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double render_fps = 50;
 
 // Maximum simulation time
-double t_end = 20;
+double t_end = 20.0;
 
 // =============================================================================
 
-RigidTerrain CreateTerrain(ChSystem* sys, const ChVector3d& target) {
+RigidTerrain CreateTerrain(ChSystem* sys, const std::vector<ChVector3d>& targets, double height = 0) {
     // Terrain patch dimensions
     double x_size = 200;
     double y_size = 200;
+
+    // Terrain patch reference frame
+    ChCoordsysd csys(ChVector3d(0, 0, height), QUNIT);
 
     // Create the terrain
     RigidTerrain terrain(sys);
@@ -82,14 +89,14 @@ RigidTerrain CreateTerrain(ChSystem* sys, const ChVector3d& target) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, x_size, y_size);
+            patch = terrain.AddPatch(patch_mat, csys, x_size, y_size);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/height_maps/test64.bmp"), x_size,
+            patch = terrain.AddPatch(patch_mat, csys, GetVehicleDataFile("terrain/height_maps/test64.bmp"), x_size,
                                      y_size, 0, 4);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/meshes/test.obj"));
+            patch = terrain.AddPatch(patch_mat, csys, GetVehicleDataFile("terrain/meshes/test.obj"));
             break;
     }
     patch->SetTexture(GetChronoDataFile("textures/checker2.png"), 20, 20);
@@ -97,21 +104,23 @@ RigidTerrain CreateTerrain(ChSystem* sys, const ChVector3d& target) {
 
     terrain.Initialize();
 
-    // Add visualization for target location
+    // Add visualization for target locations
     auto target_shape = chrono_types::make_shared<ChVisualShapeCone>(0.5, 2.0);
     target_shape->SetColor(ChColor(1, 1, 0));
-    patch->GetGroundBody()->GetVisualModel()->AddShape(target_shape,
-                                                       ChFramed(target + ChVector3d(0, 0, 1), QuatFromAngleX(CH_PI)));
+    for (const auto target : targets) {
+        patch->GetGroundBody()->GetVisualModel()->AddShape(
+            target_shape, ChFramed(target + ChVector3d(0, 0, 1), QuatFromAngleX(CH_PI)));
+    }
 
     return terrain;
 }
 
 // =============================================================================
 
-bool simulate(std::shared_ptr<WheeledVehicleModel> vehicle_model,
-              const ChFrame<> target_pose,
-              double target_speed,
-              const std::string& dir) {
+void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
+                    const ChFrame<> target_pose,
+                    double target_speed,
+                    const std::string& dir) {
     cout << endl;
     cout << "Simulate single vehicle: " << vehicle_model->ModelName() << endl;
     cout << endl;
@@ -134,17 +143,11 @@ bool simulate(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     auto& vehicle = vehicle_model->GetVehicle();
     auto sys = vehicle.GetSystem();
 
-    // Set solver and integrator
-    double step_size = 2e-3;
-    auto solver_type = ChSolver::Type::BARZILAIBORWEIN;
-    auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    SetChronoSolver(*sys, solver_type, integrator_type);
-
-    // Create the terrain
-    RigidTerrain terrain = CreateTerrain(sys, target_pose.GetPos());
-
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(dir + "/component_list.json");
+
+    // Create the terrain
+    RigidTerrain terrain = CreateTerrain(sys, {target_pose.GetPos()});
 
     // Create the driver system
     ChPathFollowerDriver driver(vehicle, path, "my_path", target_speed);
@@ -154,18 +157,16 @@ bool simulate(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     driver.Initialize();
 
     // Create the vehicle run-time visualization
-    std::string title = "Simulate vehicle - " + vehicle_model->ModelName();
     std::shared_ptr<ChVehicleVisualSystem> vis;
 
 #ifdef CHRONO_VSG
     auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-    vis_vsg->SetWindowTitle(title);
+    vis_vsg->SetWindowTitle(vehicle_model->ModelName());
     vis_vsg->AttachVehicle(&vehicle);
     vis_vsg->AttachDriver(&driver);
     vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
                             vehicle_model->CameraHeight());
     vis_vsg->SetWindowSize(1280, 800);
-    vis_vsg->SetWindowPosition(100, 100);
     vis_vsg->EnableSkyBox();
     vis_vsg->SetCameraAngleDeg(40);
     vis_vsg->SetLightIntensity(1.0f);
@@ -175,6 +176,12 @@ bool simulate(std::shared_ptr<WheeledVehicleModel> vehicle_model,
 
     vis = vis_vsg;
 #endif
+
+    // Set solver and integrator
+    double step_size = 2e-3;
+    auto solver_type = ChSolver::Type::BARZILAIBORWEIN;
+    auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    SetChronoSolver(*sys, solver_type, integrator_type);
 
     // Simulation loop
     vehicle.EnableRealtime(true);
@@ -232,16 +239,144 @@ bool simulate(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     cout << "Final speed:  " << vehicle.GetSpeed() << endl;
     cout << endl;
 
-    // Checkpoint final vehicle state
+    // Checkpoint final vehicle and driver state
 
     cout << "Num. position-level states: " << sys->GetNumCoordsPosLevel() << endl;
     cout << "Num. velocity-level states: " << sys->GetNumCoordsVelLevel() << endl;
     cout << endl;
-    cout << "Output checkpoint file: " << dir + "/checkpoint.txt" << endl;
+    cout << "Output vehicle checkpoint file: " << dir + "/vehicle_checkpoint.txt" << endl;
+    cout << "Output driver checkpoint file:  " << dir + "/driver_checkpoint.txt" << endl;
     cout << endl;
-    vehicle.ExportCheckpoint(ChCheckpoint::Format::ASCII, dir + "/checkpoint.txt");
+    vehicle.ExportCheckpoint(ChCheckpoint::Format::ASCII, dir + "/vehicle_checkpoint.txt");
+    driver.ExportCheckpoint(ChCheckpoint::Format::ASCII, dir + "/driver_checkpoint.txt");
+}
 
-    return true;
+// =============================================================================
+
+void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
+                  std::shared_ptr<WheeledVehicleModel> vehicle_model_2,
+                  const std::string& dir_1,
+                  const std::string& dir_2) {
+    cout << endl;
+    cout << "Simulate two vehicle: " << vehicle_model_1->ModelName() << " and " << vehicle_model_2->ModelName() << endl;
+    cout << endl;
+
+    // Contact method
+    ChSystemSMC sys;
+    sys.SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
+
+    // Create the vehicle models and initialize from checkpoint files
+    vehicle_model_1->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    vehicle_model_1->Create(&sys, ChCoordsysd());
+    vehicle_model_2->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    vehicle_model_2->Create(&sys, ChCoordsysd());
+
+    auto& vehicle_1 = vehicle_model_1->GetVehicle();
+    auto& vehicle_2 = vehicle_model_2->GetVehicle();
+
+    ////vehicle_1.GetChassisBody()->SetFixed(true);
+    ////vehicle_2.GetChassisBody()->SetFixed(true);
+
+    vehicle_1.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/vehicle_checkpoint.txt");
+    vehicle_2.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/vehicle_checkpoint.txt");
+
+    // Create the terrain
+    const auto& pos_1 = vehicle_1.GetPos();
+    const auto& pos_2 = vehicle_2.GetPos();
+    cout << "Position 1: " << pos_1 << endl;
+    cout << "Position 2: " << pos_2 << endl;
+    RigidTerrain terrain = CreateTerrain(&sys, {pos_1, pos_2});
+
+    // Create the driver systems and initialize from checkpint files
+    ChDriver driver_1(vehicle_1);
+    ChDriver driver_2(vehicle_2);
+    driver_1.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/driver_checkpoint.txt");
+    driver_2.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/driver_checkpoint.txt");
+
+    // Set solver and integrator
+    double step_size = 2e-3;
+    auto solver_type = ChSolver::Type::BARZILAIBORWEIN;
+    auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    SetChronoSolver(sys, solver_type, integrator_type);
+
+    // Create the vehicle run-time visualization
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+
+#ifdef CHRONO_VSG
+    auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+    vis_vsg->SetWindowTitle(vehicle_model_1->ModelName() + " and " + vehicle_model_2->ModelName());
+    vis_vsg->AttachVehicle(&vehicle_1);
+    vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.5);
+    vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
+    vis_vsg->SetChaseCameraPosition(pos_1 + ChVector3d(-35, 0, 2.0));
+    vis_vsg->SetWindowSize(1280, 800);
+    vis_vsg->EnableSkyBox();
+    vis_vsg->SetCameraAngleDeg(40);
+    vis_vsg->SetLightIntensity(1.0f);
+    vis_vsg->SetLightDirection(1.8 * CH_PI_2, CH_PI_4);
+    vis_vsg->EnableShadows();
+    vis_vsg->Initialize();
+
+    vis = vis_vsg;
+#endif
+
+    // Simulation loop
+    vehicle_1.EnableRealtime(true);
+    vehicle_2.EnableRealtime(true);
+
+    int render_frame = 0;
+    double time0 = sys.GetChTime();
+    while (vis->Run()) {
+        double time = sys.GetChTime();
+
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
+
+        // Driver inputs
+        // overwrite steering inputs
+        DriverInputs driver_inputs_1 = driver_1.GetInputs();
+        DriverInputs driver_inputs_2 = driver_2.GetInputs();
+
+        double tau = time - time0;
+        double si_1 = driver_inputs_1.m_steering;
+        double si_2 = driver_inputs_2.m_steering;
+        double sf_1 = -0.5;
+        double sf_2 = +0.5;
+        double steering_1 = si_1;
+        double steering_2 = si_2;
+        if (tau > 1.0) {
+            steering_1 = sf_1;
+            steering_2 = sf_2;
+        } else if (tau > 0.5) {
+            steering_1 = (sf_1 - si_1) * (tau - 0.5) / 0.5 + si_1;
+            steering_2 = (sf_2 - si_2) * (tau - 0.5) / 0.5 + si_2;
+        }
+        driver_inputs_1.m_steering = steering_1;
+        driver_inputs_2.m_steering = steering_2;
+
+        // Update modules (process inputs from other modules)
+        driver_1.Synchronize(time);
+        driver_2.Synchronize(time);
+        vehicle_1.Synchronize(time, driver_inputs_1, terrain);
+        vehicle_2.Synchronize(time, driver_inputs_2, terrain);
+        terrain.Synchronize(time);
+        vis->Synchronize(time, driver_inputs_1);
+
+        // Advance simulation for one timestep for all modules.
+        driver_1.Advance(step_size);
+        driver_2.Advance(step_size);
+        vehicle_1.Advance(step_size);
+        vehicle_2.Advance(step_size);
+        terrain.Advance(step_size);
+        vis->Advance(step_size);
+
+        // Advance state of entire system (containing both vehicles)
+        sys.DoStepDynamics(step_size);
+    }
 }
 
 // =============================================================================
@@ -256,7 +391,7 @@ int main(int argc, char* argv[]) {
 
     auto v2 = chrono_types::make_shared<Gator_Model>();
     double speed2 = 5;
-    ChFramed pose2(ChVector3d(50, 48, 0), QuatFromAngleZ(CH_PI_4));
+    ChFramed pose2(ChVector3d(46, 46, 0), QuatFromAngleZ(CH_PI_4));
 
     // Create output directories
     std::string out_dir = GetChronoOutputPath() + "VEHICLE_CHECKPOINT";
@@ -277,11 +412,14 @@ int main(int argc, char* argv[]) {
         return false;
     }
 
-    // Simulate first vehicle to its end pose
-    simulate(v1, pose1, speed1, dir1);
+    // Simulate first vehicle to its end pose and save final checkpoint
+    SimulateSingle(v1, pose1, speed1, dir1);
 
-    // Simulate second vehicle to its end pose
-    simulate(v2, pose2, speed2, dir2);
+    // Simulate second vehicle to its end pose and save final checkpoint
+    SimulateSingle(v2, pose2, speed2, dir2);
+
+    // Initialize the two vehicles from checkpoints and simulate simultaneously
+    SimulateBoth(v1, v2, dir1, dir2);
 
     return 0;
 }
