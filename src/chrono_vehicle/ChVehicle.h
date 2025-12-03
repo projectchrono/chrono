@@ -299,8 +299,12 @@ class CH_VEHICLE_API ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const {}
 
     /// Checkpoint states of all modeling components in the vehicle system.
-    /// A vehicle checkpoint is of type ChCheckpoint::Type::COMPONENT.
+    /// A vehicle checkpoint is always of type ChCheckpoint::Type::COMPONENT.
     void ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const;
+
+    /// Initialize the vehicle system from the given checkpoint file.
+    /// A vehicle checkpoint is always of type ChCheckpoint::Type::COMPONENT.
+    void ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename);
 
   protected:
     /// Construct a vehicle system with an underlying ChSystem.
@@ -334,6 +338,9 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Checkpoint states of all modeling components in the vehicle system to the specified checkpoint database.
     virtual void WriteCheckpoint(ChCheckpoint& database) const {}
+
+    /// Import states of all modeling components in the vehicle system from the specified checkpoint database.
+    virtual void ReadCheckpoint(ChCheckpoint& database) {}
 
     std::string m_name;  ///< vehicle name
     ChSystem* m_system;  ///< pointer to the Chrono system

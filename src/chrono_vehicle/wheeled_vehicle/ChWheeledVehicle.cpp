@@ -647,5 +647,43 @@ void ChWheeledVehicle::WriteCheckpoint(ChCheckpoint& database) const {
     }
 }
 
+void ChWheeledVehicle::ReadCheckpoint(ChCheckpoint& database) {
+    m_chassis->ReadCheckpoint(database);
+
+    for (auto& c : m_chassis_rear) {
+        c->ReadCheckpoint(database);
+    }
+
+    for (auto& subchassis : m_subchassis) {
+        subchassis->ReadCheckpoint(database);
+    }
+
+    for (auto& steering : m_steerings) {
+        steering->ReadCheckpoint(database);
+    }
+
+    for (auto& axle : m_axles) {
+        axle->m_suspension->ReadCheckpoint(database);
+        if (axle->m_brake_left) {
+            axle->m_brake_left->ReadCheckpoint(database);
+        }
+        if (axle->m_brake_right) {
+            axle->m_brake_right->ReadCheckpoint(database);
+        }
+        if (axle->m_antirollbar) {
+            axle->m_antirollbar->ReadCheckpoint(database);
+        }
+    }
+
+    if (m_driveline)
+        m_driveline->ReadCheckpoint(database);
+
+    if (m_powertrain_assembly) {
+        GetEngine()->ReadCheckpoint(database);
+        GetTransmission()->ReadCheckpoint(database);
+    }
+}
+
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -369,6 +369,29 @@ void ChTrackAssembly::WriteCheckpoint(ChCheckpoint& database) const {
     }
 }
 
+void ChTrackAssembly::ReadCheckpoint(ChCheckpoint& database) {
+    ChPart::ReadCheckpoint(database);
+
+    GetSprocket()->ReadCheckpoint(database);
+
+    m_brake->ReadCheckpoint(database);
+
+    m_idler->ReadCheckpoint(database);
+
+    for (const auto& suspension : m_suspensions) {
+        suspension->ReadCheckpoint(database);
+        suspension->GetRoadWheel()->ReadCheckpoint(database);
+    }
+
+    for (const auto roller : m_rollers) {
+        roller->ReadCheckpoint(database);
+    }
+
+    for (int i = 0; i < GetNumTrackShoes(); i++) {
+        GetTrackShoe(0)->ReadCheckpoint(database);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------

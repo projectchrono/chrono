@@ -38,7 +38,7 @@ ChPart::ChPart(const std::string& name)
 
 uint16_t ChPart::GetVehicleTag() const {
     if (m_parent)
-      return m_parent->GetVehicleTag();
+        return m_parent->GetVehicleTag();
 
     // If no parent and an override is not provided, assume single "vehicle"
     return 0;
@@ -193,7 +193,7 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
     rapidjson::Value jsonArray(rapidjson::kArrayType);
 
     for (const auto& item : model->GetShapeInstances()) {
-        const auto& shape = item.shape;   // visual shape
+        const auto& shape = item.shape;  // visual shape
         const auto& frame = item.frame;  // shape position in model
 
         rapidjson::Value obj(rapidjson::kObjectType);
@@ -469,6 +469,18 @@ void ChPart::WriteCheckpoint(ChCheckpoint& database) const {
     database.WriteBodyBodyLoads(m_body_loads);
     database.WriteLinMotors(m_lin_motors);
     database.WriteRotMotors(m_rot_motors);
+}
+
+void ChPart::ReadCheckpoint(ChCheckpoint& database) {
+    database.ReadBodies(m_bodies);
+    database.ReadShafts(m_shafts);
+    database.ReadJoints(m_joints);
+    database.ReadCouples(m_couples);
+    database.ReadLinSprings(m_tsdas);
+    database.ReadRotSprings(m_rsdas);
+    database.ReadBodyBodyLoads(m_body_loads);
+    database.ReadLinMotors(m_lin_motors);
+    database.ReadRotMotors(m_rot_motors);
 }
 
 void ChPart::RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item) {

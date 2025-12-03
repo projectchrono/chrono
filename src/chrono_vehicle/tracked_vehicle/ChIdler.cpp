@@ -78,5 +78,11 @@ void ChIdler::WriteCheckpoint(ChCheckpoint& database) const {
     m_idler_wheel->WriteCheckpoint(database);
 }
 
+void ChIdler::ReadCheckpoint(ChCheckpoint& database) {
+    ChPart::ReadCheckpoint(database);
+
+    m_idler_wheel->ReadCheckpoint(database);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

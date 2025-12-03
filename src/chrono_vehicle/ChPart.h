@@ -121,13 +121,18 @@ class CH_VEHICLE_API ChPart {
 
     /// Output data for this subsystem's components to the specified output database.
     /// This base class implementation outputs information for component physical items.
-    /// An assembly of parts should override this function and invoke Output() for each component part. 
+    /// An assembly of parts should override this function and invoke Output() for each component part.
     virtual void Output(ChOutput& database) const;
 
-    /// Checkpoint states of this subsystem's components to the specified checkpoint database.
+    /// Write states of this subsystem's components to the specified checkpoint database.
     /// This base class implementation outputs states for component physical items.
     /// An assembly of parts should override this function and invoke WriteCheckpoint() for each component part.
     virtual void WriteCheckpoint(ChCheckpoint& database) const;
+
+    /// Read states of this subsystem's components from the specified checkpoint database.
+    /// This base class implementation imports states for component physical items.
+    /// An assembly of parts should override this function and invoke ReadCheckpoint() for each copmponent part.
+    virtual void ReadCheckpoint(ChCheckpoint& database);
 
     /// Utility function for transforming inertia tensors between centroidal frames.
     /// It converts an inertia matrix specified in a centroidal frame aligned with the

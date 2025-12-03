@@ -145,7 +145,7 @@ void ChVehicle::SetOutput(ChOutput::Type type,
         case ChOutput::Type::ASCII:
             m_output_db = new ChOutputASCII(out_dir + "/" + out_name + ".txt");
             break;
-        case ChOutput::Type::HDF5 :
+        case ChOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
             m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5", mode);
 #endif
@@ -176,6 +176,17 @@ void ChVehicle::ExportCheckpoint(ChCheckpoint::Format format, const std::string&
     checkpoint_db.WriteTime(m_system->GetChTime());
     WriteCheckpoint(checkpoint_db);
     checkpoint_db.WriteFile(filename);
+}
+
+void ChVehicle::ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
+    double time;
+
+    ChCheckpointASCII checkpoint_db(ChCheckpoint::Type::COMPONENT);
+    checkpoint_db.OpenFile(filename);
+    checkpoint_db.ReadTime(time);
+    ReadCheckpoint(checkpoint_db);
+
+    GetSystem()->SetChTime(time);
 }
 
 // -----------------------------------------------------------------------------
@@ -262,7 +273,7 @@ void ChVehicle::SetChassisOutput(bool state) {
 // -----------------------------------------------------------------------------
 
 double ChVehicle::GetRoll() const {
-    auto angles = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetCardanAnglesZYX(); 
+    auto angles = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetCardanAnglesZYX();
     return angles[1];
 }
 
@@ -332,8 +343,6 @@ double ChVehicle::GetSlipAngle() const {
 
     return slip_angle;
 }
-
-
 
 }  // end namespace vehicle
 }  // end namespace chrono
