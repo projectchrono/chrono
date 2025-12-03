@@ -37,7 +37,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
               irr::f32 zoomSpeed = 1.0f,
               irr::f32 translationSpeed = 0.003f);
 
-    ~RTSCamera() {}
+    virtual ~RTSCamera();
 
     // Events
     virtual void render() override;
@@ -65,7 +65,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     irr::f32 getZoomSpeed() const { return zoomSpeed; };
     irr::f32 getTranslateSpeed() const { return translateSpeed; };
     irr::f32 getRotationSpeed() const { return rotateSpeed; };
-     
+
     // Sets
     virtual void setNearValue(irr::f32 zn) override;
     virtual void setFarValue(irr::f32 zf) override;

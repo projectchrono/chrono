@@ -468,15 +468,15 @@ ChSphVisualizationVSG::ColorMode ChSphVisualizationVSG::DetermineColorMode() con
 bool ChSphVisualizationVSG::ShouldUseGpuColoring(size_t num_particles) const {
     // Only enable the compute path when we have data and a supported colouring callback, else dont
     if (!m_color_fun) {
-        std::cout << "GPU colouring disabled: no colour callback function set" << std::endl;
+        // GPU colouring disabled: no colour callback function set
         return false;
     }
     if (num_particles == 0) {
-        std::cout << "GPU colouring disabled: no particles to render" << std::endl;
+        // GPU colouring disabled: no particles to render
         return false;
     }
     if (DetermineColorMode() == ColorMode::NONE) {
-        std::cout << "GPU colouring disabled: unsupported colour mode" << std::endl;
+        // GPU colouring disabled: unsupported colour mode
         return false;
     }
     return true;

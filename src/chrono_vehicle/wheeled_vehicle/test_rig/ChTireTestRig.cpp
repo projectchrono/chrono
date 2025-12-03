@@ -58,6 +58,7 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_terrain_offset(0),
       m_terrain_height(0),
       m_tire_step(1e-3),
+      m_tire_BCE(true),
       m_tire_vis(VisualizationType::PRIMITIVES) {
     // Default motion function for slip angle control
     m_sa_fun = chrono_types::make_shared<ChFunctionConst>(0);
@@ -624,20 +625,23 @@ void ChTireTestRig::CreateTerrainCRM() {
     terrain->Construct({m_params_crm.length, m_params_crm.width, m_params_crm.depth}, location,
                        BoxSide::ALL & ~BoxSide::Z_POS);
 
-    // Guesstimate of reasonable active domain size
+    // Estimate a reasonable active domain size
     terrain->SetActiveDomain(ChVector3d(4 * m_tire->GetRadius(), 4 * m_tire->GetWidth(), 4 * m_tire->GetRadius()));
 
-    if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
-        std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
-        auto mesh = fea_tire->GetMesh();
-        terrain->AddFeaMesh(mesh, false);
-    } else {
-        auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
-        assert(rgd_tire->UseContactMesh());
-        auto trimesh = rgd_tire->GetContactMesh();
-        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
-        terrain->AddRigidBody(m_spindle, geometry, false);
+    // Create tire BCE markers
+    if (m_tire_BCE) {
+        if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
+            std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
+            auto mesh = fea_tire->GetMesh();
+            terrain->AddFeaMesh(mesh, false);
+        } else {
+            auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
+            assert(rgd_tire->UseContactMesh());
+            auto trimesh = rgd_tire->GetContactMesh();
+            auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+            geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
+            terrain->AddRigidBody(m_spindle, geometry, false);
+        }
     }
 
     terrain->Initialize();
@@ -677,10 +681,40 @@ TerrainForce ChTireTestRig::ReportTireForce() const {
     return m_tire->ReportTireForce(m_terrain.get());
 }
 
-// -----------------------------------------------------------------------------
-
 double ChTireTestRig::GetDBP() const {
     return -m_lin_motor->GetMotorForce();
+}
+
+double ChTireTestRig::GetLongitudinalSlip() const {
+    if (m_system->GetChTime() < m_time_delay)
+        return 0;
+
+    double r = m_tire->GetRadius();                        // current tire effective radius
+    double o = m_spindle->GetAngVelLocal().y();            // spindle rotation angular speed (local)
+    auto v = m_spindle->GetPosDt();                        // spindle 3D velocity (global)
+    double vx = std::sqrt(v.x() * v.x() + v.y() * v.y());  // spindle horizontal speed (global)
+    double abs_vx = std::abs(vx);
+
+    double long_slip = (abs_vx > 1e-4) ? (r * o - vx) / abs_vx : 0.0;
+    return long_slip;
+}
+
+double ChTireTestRig::GetSlipAngle() const {
+    if (m_system->GetChTime() < m_time_delay)
+        return 0;
+
+    auto dir = m_spindle->GetRotMat().GetAxisY();
+    double slip_angle = std::atan(dir.x() / dir.y());
+    return slip_angle;
+}
+
+double ChTireTestRig::GetCamberAngle() const {
+    if (m_system->GetChTime() < m_time_delay)
+        return 0;
+
+    auto dir = m_spindle->GetRotMat().GetAxisY();
+    double camber_angle = std::atan(-dir.z());
+    return camber_angle;
 }
 
 }  // end namespace vehicle

@@ -35,7 +35,7 @@ namespace ros {
 /// @{
 
 /// This handler is responsible for interfacing a ChGPSSensor to ROS. Will publish sensor_msgs::msg::NavSatFix.
-class ChROSGPSHandler : public ChROSHandler {
+class CH_ROS_API ChROSGPSHandler : public ChROSHandler {
   public:
     /// Constructor. The update rate is set to gps->GetUpdateRate().
     /// The update rate corresponds to the sensor's update rate.

@@ -39,7 +39,7 @@ namespace ros {
 /// update rate is set implicitly to a very large value. This effectively means it will only be published once. This is
 /// okay since we'll also set the QoS to be local transient, meaning late joiners will still receive the message even if
 /// it's already been published.
-class ChROSRobotModelHandler : public ChROSHandler {
+class CH_ROS_API ChROSRobotModelHandler : public ChROSHandler {
   public:
     /// Constructor.
     /// The topic name defaults to "/robot_description".

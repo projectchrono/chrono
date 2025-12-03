@@ -1,58 +1,34 @@
-if(NOT CH_ENABLE_MODULE_VEHICLE)
+if(NOT CH_ENABLE_MODULE_SENSOR)
   return()
 endif()
 
-set(DEMOS "")
+set(DEMOS
+  demo_CS_SEN_camera
+)
 
-if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
-  set(DEMOS ${DEMOS}
-      demo_CS_VEH_Kraz_OpenLoop
-      demo_CS_VEH_HMMWV_MeshTerrain
-  )
-endif()
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-  set(DEMOS ${DEMOS}
-      demo_CS_VEH_WheeledJSON
-      demo_CS_VEH_UAZBUS
-      demo_CS_VEH_HMMWV_Rollover
-      demo_CS_VEH_Gator_Accel
-      demo_CS_VEH_RigidTerrain_WheeledVehicle
-  )
-
-  if(CH_ENABLE_MODULE_POSTPROCESS)
+# Demos that combine sensor simulation with vehicle dynamics
+if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     set(DEMOS ${DEMOS}
-        demo_CS_VEH_Kraz_ClosedLoop
+      #demo_SEN_Gator
     )
-  endif()
-
-  if(HAVE_OPENCRG)
-    set(DEMOS ${DEMOS}
-        demo_CS_VEH_CRGTerrain_IRR
-    )
-  endif()
-
-endif()
-
-if(CH_ENABLE_MODULE_POSTPROCESS)
-  set(DEMOS ${DEMOS}
-      demo_CS_VEH_paths
-  )
 endif()
 
 # ----------------------------------------------------------------------
 
 set(MODULE_LIST)
 list(APPEND MODULE_LIST "core")
-list(APPEND MODULE_LIST "vehicle")
+list(APPEND MODULE_LIST "sensor")
+
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND MODULE_LIST "irrlicht")
+    list(APPEND MODULE_LIST "irrlicht")
 endif()
+
 if(CH_ENABLE_MODULE_VSG)
   list(APPEND MODULE_LIST "vsg")
 endif()
-if(CH_ENABLE_MODULE_POSTPROCESS)
-  list(APPEND MODULE_LIST "postprocess")
+
+if(CH_ENABLE_MODULE_VEHICLE) 
+    list(APPEND MODULE_LIST "vehicle")
 endif()
 
 set(CHRONO_CSHARP_SOURCES)
@@ -66,7 +42,7 @@ else()
   set(_chrono_csharp_source_desc "embedding ${NUM_CSHARP_FILES} SWIG sources")
 endif()
 
-message(STATUS "  C# vehicle demos; ${_chrono_csharp_source_desc}")
+message(STATUS "  C# sensor demos;  ${_chrono_csharp_source_desc}")
 
 # ----------------------------------------------------------------------
 

@@ -66,11 +66,6 @@ bool debug_output = false;
 bool gnuplot_output = true;
 bool blender_output = false;
 
-bool set_longitudinal_speed = false;
-bool set_angular_speed = true;
-bool set_slip_angle = false;
-
-double input_time_delay = 0.5;
 bool render = true;
 
 // -----------------------------------------------------------------------------
@@ -178,18 +173,18 @@ int main() {
     //   longitudinal speed: 0.2 m/s
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
-    if (set_longitudinal_speed)
-        rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
-    if (set_angular_speed)
-        rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
-    if (set_slip_angle)
-        rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
+    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
 
     // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
-    // Initialize the tire test rig
+    // Set delay before applying inputs (settling time)
+    double input_time_delay = 1.0;
     rig.SetTimeDelay(input_time_delay);
+
+    // Initialize the tire test rig
     ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
     rig.Initialize(ChTireTestRig::Mode::TEST);
@@ -286,16 +281,9 @@ int main() {
     ChFunctionInterp slip_angle_fct;
     ChFunctionInterp camber_angle_fct;
 
-    double time_offset = 0.5;
     timer.start();
     while (time < sim_time_max) {
         time = sys->GetChTime();
-
-        if ((debug_output || gnuplot_output) && time >= time_offset) {
-            long_slip_fct.AddPoint(time, tire->GetLongitudinalSlip());
-            slip_angle_fct.AddPoint(time, tire->GetSlipAngle() * CH_RAD_TO_DEG);
-            camber_angle_fct.AddPoint(time, tire->GetCamberAngle() * CH_RAD_TO_DEG);
-        }
 
         if (time >= render_frame / render_fps) {
             auto& loc = rig.GetPos();
@@ -315,11 +303,21 @@ int main() {
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
 
+                auto long_slip = rig.GetLongitudinalSlip();
+        auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
+        auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
+
+        if (gnuplot_output && time > input_time_delay) {
+            long_slip_fct.AddPoint(time, long_slip);
+            slip_angle_fct.AddPoint(time, slip_angle);
+            camber_angle_fct.AddPoint(time, camber_angle);
+        }
+
         if (debug_output) {
             cout << time << endl;
-            auto long_slip = tire->GetLongitudinalSlip();
-            auto slip_angle = tire->GetSlipAngle();
-            auto camber_angle = tire->GetCamberAngle();
+            auto long_slip = rig.GetLongitudinalSlip();
+            auto slip_angle = rig.GetSlipAngle();
+            auto camber_angle = rig.GetCamberAngle();
             cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
             auto tforce = rig.ReportTireForce();
             auto frc = tforce.force;
@@ -344,23 +342,26 @@ int main() {
     // Plot results
     // ------------
 
-    if (gnuplot_output && sys->GetChTime() > time_offset) {
+    if (gnuplot_output && sys->GetChTime() > input_time_delay) {
         postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
         gplot_long_slip.SetGrid();
         gplot_long_slip.SetLabelX("time (s)");
         gplot_long_slip.SetLabelY("Long. slip");
+        gplot_long_slip.SetRangeY(-2, +2);
         gplot_long_slip.Plot(long_slip_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
         postprocess::ChGnuPlot gplot_slip_angle(out_dir + "/tmp2.gpl");
         gplot_slip_angle.SetGrid();
         gplot_slip_angle.SetLabelX("time (s)");
-        gplot_slip_angle.SetLabelY("Slip angle");
+        gplot_slip_angle.SetLabelY("Slip angle (deg)");
+        gplot_slip_angle.SetRangeY(-25, +25);
         gplot_slip_angle.Plot(slip_angle_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
         postprocess::ChGnuPlot gplot_camber_angle(out_dir + "/tmp3.gpl");
         gplot_camber_angle.SetGrid();
         gplot_camber_angle.SetLabelX("time (s)");
-        gplot_camber_angle.SetLabelY("Camber angle");
+        gplot_camber_angle.SetLabelY("Camber angle (deg)");
+        gplot_camber_angle.SetRangeY(-5, +5);
         gplot_camber_angle.Plot(camber_angle_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
     }
 #endif

@@ -20,15 +20,24 @@ if(CH_ENABLE_MODULE_VSG)
   list(APPEND MODULE_LIST "vsg")
 endif()
 
-CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
-list(LENGTH CHRONO_CSHARP_SOURCES NUM_CSHARP_FILES)
+set(CHRONO_CSHARP_SOURCES)
+set(_chrono_csharp_source_desc "")
+# Wrapper DLL saves embedding .cs files into every exe
+if(CHRONO_CSHARP_USING_WRAPPER)
+  set(_chrono_csharp_source_desc "using chrono_csharp_wrapper.dll")
+else()
+  CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
+  list(LENGTH CHRONO_CSHARP_SOURCES NUM_CSHARP_FILES)
+  set(_chrono_csharp_source_desc "embedding ${NUM_CSHARP_FILES} SWIG sources")
+endif()
 
-message(STATUS "  C# mbs demos;     number C# sources: ${NUM_CSHARP_FILES}")
+message(STATUS "  C# mbs demos;     ${_chrono_csharp_source_desc}")
 
 # ----------------------------------------------------------------------
 
 foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
+  chrono_configure_csharp_demo(${PROGRAM})
   
   # Add preprocessor defines based on available visual modules
   if(CH_ENABLE_MODULE_IRRLICHT)

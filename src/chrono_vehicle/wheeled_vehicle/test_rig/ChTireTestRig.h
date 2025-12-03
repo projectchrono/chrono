@@ -189,12 +189,12 @@ class CH_VEHICLE_API ChTireTestRig {
     );
 
     /// Enable use of CRM terrain.
-    // The terrain subsystem is modelled through continuum with CRM.
-    // Other material and SPH parameters are left to CRM defaults
+    /// The terrain subsystem is modelled through continuum with CRM.
+    /// Other material and SPH parameters are left to CRM defaults
     void SetTerrainCRM(const TerrainParamsCRM& params);
 
-    // Enable use of CRM terrain.
-    // The radius here is the radius of the SPH markers (SPH is the underlying solver for the continuum PDEs)
+    /// Enable use of CRM terrain.
+    /// The radius here is the radius of the SPH markers (SPH is the underlying solver for the continuum PDEs)
     void SetTerrainCRM(double radius,
                        double density,
                        double Young_modulus,
@@ -203,6 +203,9 @@ class CH_VEHICLE_API ChTireTestRig {
                        double terrain_length = 10,
                        double terrain_width = 1,
                        double terrain_depth = 0.2);
+
+    /// Disable automatic generation of tire BCE markers (CRM terrain only).
+    void DisableTireBCEMarkers() { m_tire_BCE = false; }
 
     /// Set time delay before applying motion functions (default: 0 s).
     void SetTimeDelay(double delay) { m_time_delay = delay; }
@@ -237,6 +240,21 @@ class CH_VEHICLE_API ChTireTestRig {
     /// This is the reaction force in the linear motor used to enforce the specified rig longitudinal speed.
     double GetDBP() const;
 
+    /// Get current tire longitudinal slip.
+    /// This value is calculated from the horizontal speed of the spindle body and its angular rotation speed.
+    double GetLongitudinalSlip() const;
+
+    /// Get current tire slip angle.
+    /// This value is calculated from the current spindle normal direction.
+    double GetSlipAngle() const;
+
+    /// Get current tire camber angle.
+    /// This value is calculated from the current spindle normal direction.
+    double GetCamberAngle() const;
+
+    /// Get the spindle object.
+    std::shared_ptr<ChSpindle> GetSpindle() const { return m_spindle; }
+
   private:
     enum class TerrainType { SCM, RIGID, CRG, GRANULAR, CRM, NONE };
 
@@ -267,6 +285,7 @@ class CH_VEHICLE_API ChTireTestRig {
     TerrainParamsRigid m_params_rigid;        ///< rigid terrain contact material properties
     TerrainParamsGranular m_params_granular;  ///< granular terrain parameters
     TerrainParamsCRM m_params_crm;            ///< granular terrain parameters
+    bool m_tire_BCE;                          ///< generate tire BCE markers?
     double m_terrain_offset;                  ///< Y coordinate of tire center
     double m_terrain_height;                  ///< height coordinate for terrain subsystem
 

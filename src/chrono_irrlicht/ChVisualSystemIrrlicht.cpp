@@ -73,16 +73,19 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     capsuleMesh = createCapsuleMesh(1, 1, 32, 32);
     coneMesh = createConeMesh(1, 1, 32);
 
+    // when meshes are created their reference counter is already at one;
+    // no need to grab if we are the owner of the first pointer
+
     // if (sphereMesh)
     //  sphereMesh->grab();
-    if (cubeMesh)
-        cubeMesh->grab();
-    if (cylinderMesh)
-        cylinderMesh->grab();
-    if (capsuleMesh)
-        capsuleMesh->grab();
-    if (coneMesh)
-        coneMesh->grab();
+    // if (cubeMesh)
+    //    cubeMesh->grab();
+    // if (cylinderMesh)
+    //    cylinderMesh->grab();
+    // if (capsuleMesh)
+    //    capsuleMesh->grab();
+    // if (coneMesh)
+    //    coneMesh->grab();
 
     // Create default colormap (for colorbar display)
     m_colormap_type = ChColormap::Type::JET;
@@ -113,6 +116,8 @@ ChVisualSystemIrrlicht::~ChVisualSystemIrrlicht() {
         cylinderMesh->drop();
     if (capsuleMesh)
         capsuleMesh->drop();
+    if (coneMesh)
+        coneMesh->drop();
 
     if (m_device)
         m_device->drop();
@@ -202,7 +207,7 @@ void ChVisualSystemIrrlicht::Initialize() {
         }
     }
 
-    m_device->grab();
+    // m_device->grab();
 
     std::wstring title = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(m_win_title);
     m_device->setWindowCaption(title.c_str());
