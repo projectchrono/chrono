@@ -42,6 +42,7 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
 
     virtual void WriteState(ChSystem* sys) override;
 
+    virtual void WriteTime(double time) override;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;
@@ -52,7 +53,7 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
-    virtual void WriteFile(const std::string& filename, double time) override;
+    virtual void WriteFile(const std::string& filename) override;
 
     // Checkpoint import functions
 
@@ -60,9 +61,22 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
 
     virtual void ReadState(ChSystem* sys) override;
 
+    virtual void ReadTime(double& time) override;
+    virtual void ReadBodies(std::vector<std::shared_ptr<ChBody>>& bodies) override;
+    virtual void ReadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts) override;
+    virtual void ReadJoints(std::vector<std::shared_ptr<ChLink>>& joints) override;
+    virtual void ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
+    virtual void ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>& springs) override;
+    virtual void ReadRotSprings(std::vector<std::shared_ptr<ChLinkRSDA>>& springs) override;
+    virtual void ReadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
+    virtual void ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
+    virtual void ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
+
   private:
-    utils::ChWriterCSV m_csv;
-    std::ifstream m_ifile;
+    void TestOpen() const;
+
+    utils::ChWriterCSV m_csv;  ///< output checkpoint CSV
+    std::ifstream m_ifile;     ///< input checkpoint file
 
     size_t m_np;  ///< number of position-level states
     size_t m_nv;  ///< number of velocity-level states

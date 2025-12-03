@@ -42,6 +42,34 @@ namespace chrono {
 /// @{
 
 /// Base class for a Chrono checkpoint database.
+///
+/// To write a SYSTEM checkpoint file, call:
+///   <pre>
+///   WriteState(...);
+///   WriteFile(...);
+///   </pre>
+/// To write a COMPONENT checkpoint file, call:
+///   <pre>
+///   WriteTime(...);
+///   WriteBodies(...);
+///   WriteShafts(...);
+///   ...
+///   WriteFile(...);
+///   </pre>
+///
+/// To read a SYSTEM checkpoint file, call:
+///   <pre>
+///   OpenFile(...);
+///   ReadState(...);
+///   </pre>
+/// To read a COMPONENT checkpoint file, call:
+///   <pre>
+///   OpenFile(...);
+///   ReadTime(...);
+///   ReadBodies(...);
+///   ReadShafts(...);
+///   ...
+///   </pre>
 class ChApi ChCheckpoint {
   public:
     /// Checkpoint output format. Currently supported option is ASCII.
@@ -63,6 +91,7 @@ class ChApi ChCheckpoint {
 
     virtual void WriteState(ChSystem* sys) = 0;
 
+    virtual void WriteTime(double time) = 0;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;
@@ -73,13 +102,24 @@ class ChApi ChCheckpoint {
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
 
-    virtual void WriteFile(const std::string& filename, double time) = 0;
+    virtual void WriteFile(const std::string& filename) = 0;
 
     // Checkpoint import functions
 
     virtual void OpenFile(const std::string& filename) = 0;
 
     virtual void ReadState(ChSystem* sys) = 0;
+
+    virtual void ReadTime(double& time) = 0;
+    virtual void ReadBodies(std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
+    virtual void ReadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
+    virtual void ReadJoints(std::vector<std::shared_ptr<ChLink>>& joints) = 0;
+    virtual void ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
+    virtual void ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>& springs) = 0;
+    virtual void ReadRotSprings(std::vector<std::shared_ptr<ChLinkRSDA>>& springs) = 0;
+    virtual void ReadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
+    virtual void ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
+    virtual void ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
 
     // Print utilities
 

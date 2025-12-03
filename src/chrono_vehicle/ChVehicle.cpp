@@ -173,8 +173,9 @@ void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, std::ostream
 
 void ChVehicle::ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
     ChCheckpointASCII checkpoint_db(ChCheckpoint::Type::COMPONENT);
+    checkpoint_db.WriteTime(m_system->GetChTime());
     WriteCheckpoint(checkpoint_db);
-    checkpoint_db.WriteFile(filename, m_system->GetChTime());
+    checkpoint_db.WriteFile(filename);
 }
 
 // -----------------------------------------------------------------------------

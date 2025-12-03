@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
                 {
                     ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
                     cp.WriteState(&sys1);
-                    cp.WriteFile(cp_filename, sys1.GetChTime());
+                    cp.WriteFile(cp_filename);
                 }
                 {
                     ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
