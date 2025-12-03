@@ -32,19 +32,16 @@ namespace ros {
 // Forward declarations
 class ChROSInterface;
 class ChROSHandler;
-
-#ifdef CHRONO_VSG
 class ChROSIPCInterface;
 namespace ipc {
     enum class MessageType : uint32_t;
 }
-#endif
 
 /// @addtogroup ros_core
 /// @{
 
 /// Manages the ROS handlers and their registration/updates.
-/// In IPC mode (with VSG), handlers are not initialized in the main process.
+/// Uses IPC mode: handlers are not initialized in the main process.
 /// Instead, their data is extracted and sent to a subprocess via IPC.
 class CH_ROS_API ChROSManager {
   public:
@@ -69,11 +66,9 @@ class CH_ROS_API ChROSManager {
     std::shared_ptr<ChROSInterface> m_interface;
     std::vector<std::shared_ptr<ChROSHandler>> m_handlers;
     
-#ifdef CHRONO_VSG
     /// Determine the IPC message type for a given handler
     /// This is the central place for handler type identification
     ipc::MessageType GetHandlerMessageType(std::shared_ptr<ChROSHandler> handler);
-#endif
 };
 
 /// @}
