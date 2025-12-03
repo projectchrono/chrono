@@ -44,9 +44,6 @@ source_group("" FILES ${FSITDPF_BASE_FILES})
 # --------------- HydroChrono FILES
 
 set(FSITDPF_HC_FILES
-    ${CH_HYDROCHRONO_DIR}/include/hydroc/h5fileinfo.h
-    ${CH_HYDROCHRONO_DIR}/include/hydroc/chloadaddedmass.h
-    ${CH_HYDROCHRONO_DIR}/src/chloadaddedmass.cpp
 )
 source_group("tdpf" FILES ${FSITDPF_HC_FILES})
 
