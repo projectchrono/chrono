@@ -27,6 +27,9 @@
 #include "rclcpp/subscription.hpp"
 #include "chrono_ros_interfaces/msg/viper_dc_motor_control.hpp"
 
+// IPC data structure (separate header - safe for subprocess to include)
+#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler_ipc.h"
+
 #include <mutex>
 
 namespace chrono {
@@ -46,10 +49,22 @@ class CH_ROS_API ChROSViperDCMotorControlHandler : public ChROSHandler {
 
     /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+    
+    /// Apply motor control inputs received from ROS (used in IPC mode)
+    void ApplyInputs(const chrono_ros_interfaces::msg::ViperDCMotorControl& msg);
+    
+    /// Handle incoming IPC message from ROS subscriber (bidirectional)
+    virtual void HandleIncomingMessage(const ipc::Message& msg) override;
+    
+    /// This handler receives incoming messages
+    virtual bool SupportsIncomingMessages() const override { return true; }
 
   protected:
     /// Updates the driver with stored inputs data from Callback
     virtual void Tick(double time) override;
+    
+    /// For IPC mode: sends topic name to subprocess once to create subscriber
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
   private:
     /// NOTE: This will only update the local m_inputs variable. The driver will receive
@@ -63,6 +78,7 @@ class CH_ROS_API ChROSViperDCMotorControlHandler : public ChROSHandler {
     chrono_ros_interfaces::msg::ViperDCMotorControl m_msg;  ///< message to publish
     rclcpp::Subscription<chrono_ros_interfaces::msg::ViperDCMotorControl>::SharedPtr
         m_subscription;  ///< the publisher for the imu message
+    bool m_subscriber_setup_sent;  ///< tracks if setup message was sent to subprocess
 
     std::mutex m_mutex;
 };

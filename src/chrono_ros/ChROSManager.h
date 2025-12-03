@@ -24,6 +24,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace chrono {
 namespace ros {
@@ -31,14 +32,20 @@ namespace ros {
 // Forward declarations
 class ChROSInterface;
 class ChROSHandler;
+
 #ifdef CHRONO_VSG
 class ChROSIPCInterface;
+namespace ipc {
+    enum class MessageType : uint32_t;
+}
 #endif
 
 /// @addtogroup ros_core
 /// @{
 
-/// Managers the ROS handlers and their registration/updates
+/// Manages the ROS handlers and their registration/updates.
+/// In IPC mode (with VSG), handlers are not initialized in the main process.
+/// Instead, their data is extracted and sent to a subprocess via IPC.
 class CH_ROS_API ChROSManager {
   public:
     /// Constructor for the ChROSManager creates a single ChROSInterface. To use multiple ChROSInterfaces, multiple
@@ -60,21 +67,12 @@ class CH_ROS_API ChROSManager {
 
   private:
     std::shared_ptr<ChROSInterface> m_interface;
-
     std::vector<std::shared_ptr<ChROSHandler>> m_handlers;
     
 #ifdef CHRONO_VSG
-    /// Serialize handler data for IPC transmission  
-    void SerializeHandlerData(std::shared_ptr<ChROSHandler> handler, double time, 
-                             std::shared_ptr<ChROSIPCInterface> ipc_interface);
-                             
-    /// Serialize body handler data
-    void SerializeBodyHandler(std::shared_ptr<class ChROSBodyHandler> handler, double time,
-                             std::shared_ptr<ChROSIPCInterface> ipc_interface);
-                             
-    /// Serialize TF handler data  
-    void SerializeTFHandler(std::shared_ptr<class ChROSTFHandler> handler, double time,
-                           std::shared_ptr<ChROSIPCInterface> ipc_interface);
+    /// Determine the IPC message type for a given handler
+    /// This is the central place for handler type identification
+    ipc::MessageType GetHandlerMessageType(std::shared_ptr<ChROSHandler> handler);
 #endif
 };
 

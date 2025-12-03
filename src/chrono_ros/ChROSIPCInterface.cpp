@@ -109,6 +109,10 @@ bool ChROSIPCInterface::SendHandlerData(ipc::MessageType message_type, const voi
     return result;
 }
 
+bool ChROSIPCInterface::ReceiveMessage(ipc::Message& message) {
+    return m_subprocess_manager->ReceiveMessage(message);
+}
+
 std::string ChROSIPCInterface::GenerateChannelName() const {
     std::stringstream ss;
     

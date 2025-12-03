@@ -25,6 +25,9 @@
 
 #include "chrono_vehicle/ChDriver.h"
 
+// IPC data structure (separate header - safe for subprocess to include)
+#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler_ipc.h"
+
 #include <mutex>
 
 namespace chrono {
@@ -33,31 +36,84 @@ namespace ros {
 /// @addtogroup ros_vehicle_handlers
 /// @{
 
-/// This handler is responsible for interfacing a ChDriver to ROS. Will instantiate a subscriber to
-/// chrono_ros_interfaces::msg::DriverInputs 
+// =============================================================================
+// HANDLER CLASS (main process)
+// =============================================================================
+
+/// Handler for interfacing a ChDriver to ROS via bidirectional IPC communication.
+///
+/// BIDIRECTIONAL SUBSCRIBER PATTERN:
+/// - Main process: Calls GetSerializedData() once to send topic name → subprocess creates subscriber
+/// - Subprocess: ROS message arrives → packs IPC data → sends back to main process
+/// - Main process: Receives IPC → calls HandleIncomingMessage() → applies data to Chrono object
+///
+/// Data flow:
+/// External ROS → Subprocess subscriber → IPC channel → Main process → ChDriver
+///
+/// Implementation files:
+/// - ChROSDriverInputsHandler.cpp: Main process logic (ApplyInputs, HandleIncomingMessage)
+/// - ChROSDriverInputsHandler_ros.cpp: Subprocess ROS subscriber (compiled into chrono_ros_node)
+///
+/// To implement a similar bidirectional subscriber:
+/// 1. Define IPC struct in handler header under namespace ipc (plain C++ types)
+/// 2. Override SupportsIncomingMessages() to return true
+/// 3. Override HandleIncomingMessage() to extract IPC data and apply to Chrono object
+/// 4. Implement GetSerializedData() to send topic name once (empty afterwards)
+/// 5. Create YourHandler_ros.cpp with subscriber callback that sends IPC back
+/// 6. Register with CHRONO_ROS_REGISTER_HANDLER(YOUR_MESSAGE_TYPE, YourSetupFunction)
+/// 7. Add YOUR_MESSAGE_TYPE to MessageType enum in ChROSIPCMessage.h
+/// 8. Add handler recognition to ChROSManager::GetHandlerMessageType()
 class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
   public:
-    /// Convenience constructor. Will set the update rate to 0, which means the Tick()
-    /// function will update on each update call.
+    /// Constructor with default update rate
+    /// @param driver Chrono vehicle driver to update with ROS commands
+    /// @param topic_name ROS topic to subscribe to for driver inputs
     ChROSDriverInputsHandler(std::shared_ptr<chrono::vehicle::ChDriver> driver, const std::string& topic_name);
 
-    /// Constructor for the ChROSDriverInputsHandler class. Takes a ChDriver. A subscriber will listen for data, store
-    /// received data, and update the driver only during the Ticks.
+    /// Constructor with custom update rate
+    /// @param update_rate Rate at which to apply received inputs to driver (Hz)
+    /// @param driver Chrono vehicle driver to update with ROS commands  
+    /// @param topic_name ROS topic to subscribe to for driver inputs
     ChROSDriverInputsHandler(double update_rate,
                              std::shared_ptr<chrono::vehicle::ChDriver> driver,
                              const std::string& topic_name);
 
-    /// Initializes the handler. Creates a subscriber of chrono_ros_interfaces::msg::DriverInputs on topic
-    /// "~/input/driver_inputs".
+    /// Initialize handler (called once at startup in main process)
+    /// In IPC mode, this does nothing. Subprocess will create the actual ROS subscriber.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+    
+    /// Apply driver inputs received from subprocess via IPC
+    /// This method is called internally by HandleIncomingMessage()
+    /// @param steering Steering value from ROS message
+    /// @param throttle Throttle value from ROS message  
+    /// @param braking Braking value from ROS message
+    void ApplyInputs(double steering, double throttle, double braking);
+    
+    /// Handle incoming IPC message from subprocess ROS subscriber
+    /// Called by ChROSManager when IPC message of type DRIVER_INPUTS arrives.
+    /// Extracts DriverInputsData from message payload and applies to driver.
+    /// @param msg IPC message containing DriverInputsData payload
+    virtual void HandleIncomingMessage(const ipc::Message& msg) override;
+    
+    /// Indicates this handler receives messages from subprocess
+    /// @return true (this is a bidirectional subscriber)
+    virtual bool SupportsIncomingMessages() const override { return true; }
 
   protected:
-    /// Updates the driver with stored inputs data from Callback
+    /// Update driver with stored inputs (legacy, not used in IPC mode)
+    /// In IPC mode, ApplyInputs() is called directly when messages arrive
     virtual void Tick(double time) override;
+    
+    /// Send topic name to subprocess once to trigger subscriber creation
+    /// First call: Returns topic name as bytes for subprocess setup
+    /// Subsequent calls: Returns empty vector (no data to publish)
+    /// @param time Current simulation time (unused for subscribers)
+    /// @return Topic name bytes on first call, empty afterwards
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
   private:
-    /// NOTE: This will only update the local m_inputs variable. The driver will receive
-    /// the new commands in the Tick() function.
+    /// ROS callback (legacy, only used in direct ROS mode, not IPC)
+    /// Stores incoming message data in m_inputs for later application in Tick()
     void Callback(const chrono_ros_interfaces::msg::DriverInputs& msg);
 
   private:
@@ -65,8 +121,10 @@ class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
 
     const std::string m_topic_name;          ///< name of the topic to publish to
     chrono::vehicle::DriverInputs m_inputs;  ///< stores the most recent inputs
+    chrono::vehicle::DriverInputs m_applied_inputs;  ///< last inputs applied to driver
     rclcpp::Subscription<chrono_ros_interfaces::msg::DriverInputs>::SharedPtr
         m_subscription;  ///< subscriber to the chrono_ros_interfaces::msg::DriverInputs
+    bool m_subscriber_setup_sent;  ///< tracks if setup message was sent to subprocess
 
     std::mutex m_mutex;  ///< used to control access to m_inputs
 };

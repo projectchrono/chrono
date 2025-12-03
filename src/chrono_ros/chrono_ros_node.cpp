@@ -15,33 +15,43 @@
 // Standalone ROS node process for chrono_ros IPC communication
 // This process runs in isolation from VSG symbols to avoid conflicts
 //
+// Generic dispatcher using handler registry - NO hard-coded message processing!
+//
 // =============================================================================
 
 #include <iostream>
 #include <string>
 #include <memory>
-#include <unordered_map>
 #include <thread>
+#include <chrono>
+
+#ifndef _WIN32
+    #include <sys/prctl.h>  // For PR_SET_PDEATHSIG
+    #include <signal.h>
+#endif
 
 #include "rclcpp/rclcpp.hpp"
-#include "rosgraph_msgs/msg/clock.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
-#include "geometry_msgs/msg/accel_stamped.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "tf2_ros/transform_broadcaster.h"
-#include "tf2_msgs/msg/tf_message.hpp"
 
 #include "chrono_ros/ipc/ChROSIPCChannel.h"
 #include "chrono_ros/ipc/ChROSIPCMessage.h"
+#include "chrono_ros/ChROSHandlerRegistry.h"
 
 using namespace chrono::ros::ipc;
+using namespace chrono::ros;
 
-/// ROS node that receives data via IPC and publishes to ROS topics
+/// Generic ROS node that receives handler data via IPC and publishes to ROS
+/// Uses handler registry for completely extensible dispatch - no hard-coded handlers!
 class ChronoROSNode {
 public:
     ChronoROSNode(const std::string& node_name, const std::string& channel_name)
         : m_node_name(node_name), m_channel_name(channel_name) {
+        
+#ifndef _WIN32
+        // CRITICAL: Set up parent death signal so subprocess dies if parent crashes
+        // This prevents orphan ROS nodes from accumulating
+        prctl(PR_SET_PDEATHSIG, SIGTERM);
+        std::cout << "Configured subprocess to terminate if parent dies" << std::endl;
+#endif
         
         // Initialize ROS
         rclcpp::init(0, nullptr);
@@ -59,9 +69,6 @@ public:
             throw;
         }
         
-        // Initialize TF broadcaster
-        m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(m_node);
-        
         RCLCPP_INFO(m_node->get_logger(), "Chrono ROS node initialized: %s", node_name.c_str());
     }
     
@@ -71,7 +78,7 @@ public:
         }
     }
     
-    /// Main execution loop
+    /// Main execution loop - completely generic, no handler-specific code!
     void Run() {
         Message message;
         RCLCPP_INFO(m_node->get_logger(), "Starting main execution loop");
@@ -80,20 +87,23 @@ public:
             // Process ROS callbacks
             m_executor->spin_some(std::chrono::milliseconds(1));
             
-            // Process IPC messages
-            static int debug_counter = 0;
-            if (++debug_counter % 1000 == 0) {  // Every 1000 iterations
-                RCLCPP_INFO(m_node->get_logger(), "Checking for IPC messages... (check #%d)", debug_counter);
-            }
-            
+            // Process IPC messages using generic dispatcher
             while (m_channel->ReceiveMessage(message)) {
                 RCLCPP_INFO(m_node->get_logger(), "Received IPC message type: %d", 
                            static_cast<int>(message.header.type));
-                ProcessMessage(message);
                 
+                // Check for shutdown
                 if (message.header.type == MessageType::SHUTDOWN) {
                     RCLCPP_INFO(m_node->get_logger(), "Received shutdown message");
                     return;
+                }
+                
+                // Generic dispatch using registry - no switch statement needed!
+                std::vector<uint8_t> data(message.payload, message.payload + message.header.payload_size);
+                // Pass IPC channel for bidirectional communication (subscribers can send back)
+                if (!ChROSHandlerRegistry::GetInstance().Publish(message.header.type, data, m_node, m_channel.get())) {
+                    RCLCPP_WARN(m_node->get_logger(), "No handler registered for message type: %d", 
+                               static_cast<int>(message.header.type));
                 }
             }
             
@@ -103,133 +113,12 @@ public:
     }
 
 private:
-    void ProcessMessage(const Message& message) {
-        switch (message.header.type) {
-            case MessageType::CLOCK_DATA:
-                ProcessClockMessage(message);
-                break;
-                
-            case MessageType::BODY_DATA:
-                ProcessBodyMessage(message);
-                break;
-                
-            default:
-                RCLCPP_WARN(m_node->get_logger(), "Unknown message type: %d", 
-                           static_cast<int>(message.header.type));
-                break;
-        }
-    }
-    
-    void ProcessClockMessage(const Message& message) {
-        const auto* clock_data = message.GetPayload<ClockData>();
-        
-        // Create or get clock publisher
-        if (m_clock_publisher == nullptr) {
-            m_clock_publisher = m_node->create_publisher<rosgraph_msgs::msg::Clock>("/clock", 10);
-            RCLCPP_INFO(m_node->get_logger(), "Created clock publisher");
-        }
-        
-        // Publish clock message
-        rosgraph_msgs::msg::Clock clock_msg;
-        clock_msg.clock.sec = static_cast<int32_t>(clock_data->time_seconds);
-        clock_msg.clock.nanosec = static_cast<uint32_t>((clock_data->time_seconds - clock_msg.clock.sec) * 1e9);
-        
-        RCLCPP_INFO(m_node->get_logger(), "Publishing clock: %.3fs", clock_data->time_seconds);
-        
-        m_clock_publisher->publish(clock_msg);
-        RCLCPP_INFO(m_node->get_logger(), "Clock message published successfully");
-    }
-    
-    void ProcessBodyMessage(const Message& message) {
-        const auto* body_data = message.GetPayload<BodyData>();
-        
-        RCLCPP_INFO(m_node->get_logger(), "Processing body data for: %s", body_data->body_name);
-        
-        // Create publishers for this body (using a map for dynamic creation)
-        std::string body_key = std::string(body_data->body_name);
-        
-        // Create pose publisher
-        auto pose_topic = std::string(body_data->topic_prefix) + "pose";
-        if (m_body_pose_publishers.find(body_key) == m_body_pose_publishers.end()) {
-            m_body_pose_publishers[body_key] = 
-                m_node->create_publisher<geometry_msgs::msg::PoseStamped>(pose_topic, 10);
-            RCLCPP_INFO(m_node->get_logger(), "Created body pose publisher: %s", pose_topic.c_str());
-        }
-        
-        // Create twist publisher  
-        auto twist_topic = std::string(body_data->topic_prefix) + "twist";
-        if (m_body_twist_publishers.find(body_key) == m_body_twist_publishers.end()) {
-            m_body_twist_publishers[body_key] = 
-                m_node->create_publisher<geometry_msgs::msg::TwistStamped>(twist_topic, 10);
-            RCLCPP_INFO(m_node->get_logger(), "Created body twist publisher: %s", twist_topic.c_str());
-        }
-        
-        // Create accel publisher
-        auto accel_topic = std::string(body_data->topic_prefix) + "accel"; 
-        if (m_body_accel_publishers.find(body_key) == m_body_accel_publishers.end()) {
-            m_body_accel_publishers[body_key] = 
-                m_node->create_publisher<geometry_msgs::msg::AccelStamped>(accel_topic, 10);
-            RCLCPP_INFO(m_node->get_logger(), "Created body accel publisher: %s", accel_topic.c_str());
-        }
-        
-        // Create and publish pose message
-        geometry_msgs::msg::PoseStamped pose_msg;
-        pose_msg.header.stamp = m_node->get_clock()->now();
-        pose_msg.header.frame_id = "world";
-        pose_msg.pose.position.x = body_data->pos_x;
-        pose_msg.pose.position.y = body_data->pos_y;
-        pose_msg.pose.position.z = body_data->pos_z;
-        pose_msg.pose.orientation.w = body_data->rot_w;
-        pose_msg.pose.orientation.x = body_data->rot_x;
-        pose_msg.pose.orientation.y = body_data->rot_y;
-        pose_msg.pose.orientation.z = body_data->rot_z;
-        m_body_pose_publishers[body_key]->publish(pose_msg);
-        
-        // Create and publish twist message
-        geometry_msgs::msg::TwistStamped twist_msg;
-        twist_msg.header.stamp = m_node->get_clock()->now();
-        twist_msg.header.frame_id = "world";
-        twist_msg.twist.linear.x = body_data->lin_vel_x;
-        twist_msg.twist.linear.y = body_data->lin_vel_y;
-        twist_msg.twist.linear.z = body_data->lin_vel_z;
-        twist_msg.twist.angular.x = body_data->ang_vel_x;
-        twist_msg.twist.angular.y = body_data->ang_vel_y;
-        twist_msg.twist.angular.z = body_data->ang_vel_z;
-        m_body_twist_publishers[body_key]->publish(twist_msg);
-        
-        // Create and publish accel message
-        geometry_msgs::msg::AccelStamped accel_msg;
-        accel_msg.header.stamp = m_node->get_clock()->now(); 
-        accel_msg.header.frame_id = "world";
-        accel_msg.accel.linear.x = body_data->lin_acc_x;
-        accel_msg.accel.linear.y = body_data->lin_acc_y;
-        accel_msg.accel.linear.z = body_data->lin_acc_z;
-        accel_msg.accel.angular.x = body_data->ang_acc_x;
-        accel_msg.accel.angular.y = body_data->ang_acc_y;
-        accel_msg.accel.angular.z = body_data->ang_acc_z;
-        m_body_accel_publishers[body_key]->publish(accel_msg);
-        
-        RCLCPP_INFO(m_node->get_logger(), "Published body data for: %s", body_data->body_name);
-    }
-
-private:
     std::string m_node_name;
     std::string m_channel_name;
     
     std::shared_ptr<rclcpp::Node> m_node;
     std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> m_executor;
     std::unique_ptr<IPCChannel> m_channel;
-    
-    // Publishers
-    rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr m_clock_publisher;
-    
-    // Body publishers (dynamic creation based on body names)
-    std::unordered_map<std::string, rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr> m_body_pose_publishers;
-    std::unordered_map<std::string, rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr> m_body_twist_publishers;
-    std::unordered_map<std::string, rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr> m_body_accel_publishers;
-    
-    // TF broadcaster
-    std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 };
 
 int main(int argc, char* argv[]) {

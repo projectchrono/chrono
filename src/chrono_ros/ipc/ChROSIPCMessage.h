@@ -33,7 +33,9 @@ enum class MessageType : uint32_t {
     BODY_DATA = 3,
     TF_DATA = 4,
     ROBOT_MODEL_DATA = 5,
-    CUSTOM_DATA = 6,
+    DRIVER_INPUTS = 6,  ///< Bidirectional: subprocess subscriber -> main process
+    VIPER_DC_MOTOR_CONTROL = 7,  ///< Bidirectional: subprocess subscriber -> main process
+    CUSTOM_DATA = 8,
     SHUTDOWN = 99
 };
 

@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono_ros/handlers/ChROSClockHandler.h"
-
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 
 namespace chrono {
@@ -28,11 +27,22 @@ ChROSClockHandler::ChROSClockHandler(double update_rate, const std::string& topi
 
 bool ChROSClockHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     auto node = interface->GetNode();
+    if (!node) {
+        return true;  // IPC mode - no node in main process
+    }
 
     rclcpp::ClockQoS qos;
     m_publisher = node->create_publisher<rosgraph_msgs::msg::Clock>(m_topic_name, qos);
-
     return true;
+}
+
+std::vector<uint8_t> ChROSClockHandler::GetSerializedData(double time) {
+    ChROSClockData data;
+    data.time_seconds = time;
+    
+    std::vector<uint8_t> bytes(sizeof(ChROSClockData));
+    std::memcpy(bytes.data(), &data, sizeof(ChROSClockData));
+    return bytes;
 }
 
 void ChROSClockHandler::Tick(double time) {

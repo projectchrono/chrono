@@ -53,6 +53,11 @@ public:
     /// @param size Size of data in bytes
     bool SendHandlerData(ipc::MessageType message_type, const void* data, size_t size);
     
+    /// Receive message from subprocess (bidirectional communication)
+    /// @param message Message buffer to fill
+    /// @return true if message was received, false if no messages available
+    bool ReceiveMessage(ipc::Message& message);
+    
 private:
     std::string m_channel_name;
     std::unique_ptr<ipc::SubprocessManager> m_subprocess_manager;
