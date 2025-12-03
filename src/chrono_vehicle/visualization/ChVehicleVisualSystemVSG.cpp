@@ -235,7 +235,7 @@ void ShowHelp() {
 
 void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
-    ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
+    ImGui::SetNextWindowPos(ImVec2(250.0f, 5.0f));
     ImGui::Begin("Vehicle");
 
     std::string vehicle_name = "Vehicle: \"" + m_vsys->GetVehicle().GetName() + "\"";
