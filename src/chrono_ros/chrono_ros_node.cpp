@@ -80,17 +80,16 @@ public:
     
     /// Main execution loop - completely generic, no handler-specific code!
     void Run() {
+        // Allocate message buffer once and reuse to avoid 64MB allocations per loop
         Message message;
         RCLCPP_INFO(m_node->get_logger(), "Starting main execution loop");
         
         while (rclcpp::ok()) {
-            // Process ROS callbacks
-            m_executor->spin_some(std::chrono::milliseconds(1));
-            
-            // Process IPC messages using generic dispatcher
+            // PRIORITY: Drain IPC queue FIRST before ROS callbacks
+            // This prevents frames from piling up while ROS is busy
+            int messages_processed = 0;
             while (m_channel->ReceiveMessage(message)) {
-                RCLCPP_INFO(m_node->get_logger(), "Received IPC message type: %d", 
-                           static_cast<int>(message.header.type));
+                messages_processed++;
                 
                 // Check for shutdown
                 if (message.header.type == MessageType::SHUTDOWN) {
@@ -98,17 +97,25 @@ public:
                     return;
                 }
                 
-                // Generic dispatch using registry - no switch statement needed!
-                std::vector<uint8_t> data(message.payload, message.payload + message.header.payload_size);
-                // Pass IPC channel for bidirectional communication (subscribers can send back)
-                if (!ChROSHandlerRegistry::GetInstance().Publish(message.header.type, data, m_node, m_channel.get())) {
+                // Generic dispatch using registry - pass payload directly (no copy!)
+                if (!ChROSHandlerRegistry::GetInstance().Publish(
+                        message.header.type, 
+                        message.payload.get(), 
+                        message.header.payload_size,
+                        m_node, 
+                        m_channel.get())) {
                     RCLCPP_WARN(m_node->get_logger(), "No handler registered for message type: %d", 
                                static_cast<int>(message.header.type));
                 }
             }
             
-            // Small delay to prevent busy waiting
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            // Process ROS callbacks AFTER draining IPC to keep pipeline flowing
+            // Only spin if we didn't process many messages (avoid starving ROS)
+            if (messages_processed < 10) {
+                m_executor->spin_some(std::chrono::microseconds(100));
+                // Very small delay to prevent busy waiting
+                std::this_thread::sleep_for(std::chrono::microseconds(10));
+            }
         }
     }
 

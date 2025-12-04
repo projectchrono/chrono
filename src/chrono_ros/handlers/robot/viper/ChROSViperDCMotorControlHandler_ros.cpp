@@ -67,8 +67,12 @@ void OnViperDCMotorControlReceived(const chrono_ros_interfaces::msg::ViperDCMoto
     data.no_load_speed_wheel_id = msg->no_load_speed.wheel_id;
     
     // Create IPC message and send back to main process
-    ipc::Message ipc_msg(ipc::MessageType::VIPER_DC_MOTOR_CONTROL, 0, 0, 
-                        reinterpret_cast<const uint8_t*>(&data), sizeof(data));
+    // Use static to avoid repeated 64MB allocations
+    static ipc::Message ipc_msg;
+    
+    // Re-initialize header and payload for each use
+    ipc_msg.header = ipc::MessageHeader(ipc::MessageType::VIPER_DC_MOTOR_CONTROL, 0, sizeof(data), 0);
+    std::memcpy(ipc_msg.payload.get(), &data, sizeof(data));
     
     if (g_ipc_channel->SendMessage(ipc_msg)) {
         std::cout << "[SUBPROCESS] ✓ Sent ViperDCMotorControl via IPC to main process" << std::endl;
@@ -79,15 +83,16 @@ void OnViperDCMotorControlReceived(const chrono_ros_interfaces::msg::ViperDCMoto
 
 /// Setup function called by subprocess to create ROS subscriber
 /// @param data Serialized topic name from main process
+/// @param data_size Size of data in bytes
 /// @param node ROS node to create subscriber on
 /// @param channel IPC channel for bidirectional communication
-void SetupViperDCMotorControlSubscriber(const std::vector<uint8_t>& data, 
+void SetupViperDCMotorControlSubscriber(const uint8_t* data, size_t data_size,
                                        rclcpp::Node::SharedPtr node,
                                        ipc::IPCChannel* channel) {
     // Extract topic name from data
     std::string topic_name;
-    if (!data.empty()) {
-        topic_name = std::string(reinterpret_cast<const char*>(data.data()));
+    if (data_size > 0) {
+        topic_name = std::string(reinterpret_cast<const char*>(data), data_size);
     } else {
         topic_name = "~/input/viper_dc_motor_control";  // Default
     }

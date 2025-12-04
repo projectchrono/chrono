@@ -43,8 +43,8 @@ namespace ros {
 class ChROSHandlerRegistry {
 public:
     /// Function signature for handler publish functions
-    /// Takes serialized data bytes, ROS node, and IPC channel (for bidirectional communication)
-    using PublishFunction = std::function<void(const std::vector<uint8_t>&, 
+    /// Takes serialized data bytes (raw pointer + size to avoid copy), ROS node, and IPC channel
+    using PublishFunction = std::function<void(const uint8_t*, size_t,
                                                rclcpp::Node::SharedPtr,
                                                ipc::IPCChannel*)>;
     
@@ -63,15 +63,16 @@ public:
     
     /// Publish data using the registered handler
     /// @param msg_type Message type identifier
-    /// @param data Serialized data bytes
+    /// @param data Pointer to serialized data bytes
+    /// @param data_size Size of data in bytes
     /// @param node ROS node for publishing
     /// @param channel IPC channel for bidirectional communication (can be nullptr)
     /// @return true if handler was found and called, false otherwise
-    bool Publish(ipc::MessageType msg_type, const std::vector<uint8_t>& data, 
+    bool Publish(ipc::MessageType msg_type, const uint8_t* data, size_t data_size,
                 rclcpp::Node::SharedPtr node, ipc::IPCChannel* channel = nullptr) {
         auto it = m_publishers.find(msg_type);
         if (it != m_publishers.end()) {
-            it->second(data, node, channel);
+            it->second(data, data_size, node, channel);
             return true;
         }
         return false;

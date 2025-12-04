@@ -35,8 +35,10 @@ class CH_ROS_API IPCChannel {
 public:
     /// Create IPC channel for the main process (creates shared memory)
     /// @param channel_name Unique name for this IPC channel
-    /// @param buffer_size Size of each ring buffer (must be power of 2)
-    static std::unique_ptr<IPCChannel> CreateMainChannel(const std::string& channel_name, size_t buffer_size = 1024 * 1024);
+    /// @param buffer_size Size of each ring buffer in bytes (default: 512MB for high-bandwidth sensor data)
+    ///                    Note: Total shared memory is 2x this size (bidirectional buffers)
+    ///                    512MB allows ~145 full 1280x720 RGBA8 images or ~15 4K images per direction
+    static std::unique_ptr<IPCChannel> CreateMainChannel(const std::string& channel_name, size_t buffer_size = 512 * 1024 * 1024);
     
     /// Connect to existing IPC channel from subprocess (opens existing shared memory)
     /// @param channel_name Name of the IPC channel to connect to

@@ -66,8 +66,12 @@ void OnDriverInputsReceived(const chrono_ros_interfaces::msg::DriverInputs::Shar
         data.braking = msg->braking;
         
         // Create IPC message
-        ipc::Message ipc_msg(ipc::MessageType::DRIVER_INPUTS, 0, 0, 
-                             reinterpret_cast<const uint8_t*>(&data), sizeof(data));
+        // Use static to avoid repeated 64MB allocations
+        static ipc::Message ipc_msg;
+        
+        // Re-initialize header and payload for each use
+        ipc_msg.header = ipc::MessageHeader(ipc::MessageType::DRIVER_INPUTS, 0, sizeof(data), 0);
+        std::memcpy(ipc_msg.payload.get(), &data, sizeof(data));
         
         // Send to main process
         if (g_ipc_channel->SendMessage(ipc_msg)) {
@@ -82,13 +86,13 @@ void OnDriverInputsReceived(const chrono_ros_interfaces::msg::DriverInputs::Shar
 
 /// Setup function called from subprocess dispatcher
 /// This creates the ROS subscriber and stores the IPC channel for sending back
-void SetupDriverInputsSubscriber(const std::vector<uint8_t>& data, 
+void SetupDriverInputsSubscriber(const uint8_t* data, size_t data_size,
                                  rclcpp::Node::SharedPtr node,
                                  ipc::IPCChannel* channel) {
     // Extract topic name from data
     std::string topic_name;
-    if (!data.empty()) {
-        topic_name = std::string(reinterpret_cast<const char*>(data.data()), data.size());
+    if (data_size > 0) {
+        topic_name = std::string(reinterpret_cast<const char*>(data), data_size);
     } else {
         topic_name = "~/input/driver_inputs";  // Default
     }

@@ -43,18 +43,18 @@ namespace ros {
 
 /// ROS publishing function for clock handler
 /// This is called in the subprocess when clock data arrives via IPC
-void PublishClockToROS(const std::vector<uint8_t>& data, rclcpp::Node::SharedPtr node, ipc::IPCChannel* channel) {
+void PublishClockToROS(const uint8_t* data, size_t data_size, rclcpp::Node::SharedPtr node, ipc::IPCChannel* channel) {
     // Channel not needed for publishers (only for subscribers sending back)
     (void)channel;
     // Deserialize the data
-    if (data.size() != sizeof(ChROSClockData)) {
+    if (data_size != sizeof(ChROSClockData)) {
         RCLCPP_ERROR(node->get_logger(), "Invalid clock data size: %zu, expected %zu", 
-                     data.size(), sizeof(ChROSClockData));
+                     data_size, sizeof(ChROSClockData));
         return;
     }
     
     ChROSClockData clock_data;
-    std::memcpy(&clock_data, data.data(), sizeof(ChROSClockData));
+    std::memcpy(&clock_data, data, sizeof(ChROSClockData));
     
     // Create publisher if needed (lazy initialization with static variable)
     static rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr publisher;

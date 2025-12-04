@@ -66,14 +66,24 @@ public:
     /// Clear the buffer (not thread-safe, use only when no concurrent access)
     void Clear();
 
+    /// Write two data chunks to the ring buffer atomically
+    /// This ensures that the reader sees either both chunks or neither, preventing race conditions
+    /// @param data1 Pointer to first data chunk
+    /// @param size1 Size of first data chunk
+    /// @param data2 Pointer to second data chunk
+    /// @param size2 Size of second data chunk
+    /// @return true if successful, false if not enough space
+    bool Write(const void* data1, size_t size1, const void* data2, size_t size2);
+
 private:
     char* m_data_buffer;    // Points to actual data area
     size_t m_data_size;     // Size of data area
     size_t m_mask;          // Size - 1, for efficient modulo operation
     
     // Pointers to shared memory locations for head/tail
-    alignas(64) std::atomic<size_t>* m_head;  // Write position (in shared memory)
-    alignas(64) std::atomic<size_t>* m_tail;  // Read position (in shared memory)
+    // Use volatile for inter-process atomicity (std::atomic doesn't work across processes)
+    alignas(64) volatile size_t* m_head;  // Write position (in shared memory)
+    alignas(64) volatile size_t* m_tail;  // Read position (in shared memory)
     
     // Verify size is power of 2
     static bool IsPowerOf2(size_t value);

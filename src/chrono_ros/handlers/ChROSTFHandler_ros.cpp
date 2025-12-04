@@ -35,25 +35,25 @@ namespace ros {
 
 /// ROS publishing function for TF handler
 /// Receives variable-size array of transforms and publishes to /tf
-void PublishTFToROS(const std::vector<uint8_t>& data, rclcpp::Node::SharedPtr node, ipc::IPCChannel* channel) {
+void PublishTFToROS(const uint8_t* data, size_t data_size, rclcpp::Node::SharedPtr node, ipc::IPCChannel* channel) {
     // Channel not needed for publishers
     (void)channel;
     
     // Deserialize header
-    if (data.size() < sizeof(ipc::TFData)) {
+    if (data_size < sizeof(ipc::TFData)) {
         RCLCPP_ERROR(node->get_logger(), "Invalid TF data size: %zu, expected at least %zu", 
-                     data.size(), sizeof(ipc::TFData));
+                     data_size, sizeof(ipc::TFData));
         return;
     }
     
     ipc::TFData header;
-    std::memcpy(&header, data.data(), sizeof(ipc::TFData));
+    std::memcpy(&header, data, sizeof(ipc::TFData));
     
     // Validate data size
     size_t expected_size = sizeof(ipc::TFData) + header.transform_count * sizeof(ipc::TFTransform);
-    if (data.size() != expected_size) {
+    if (data_size != expected_size) {
         RCLCPP_ERROR(node->get_logger(), "TF data size mismatch: got %zu, expected %zu for %u transforms",
-                     data.size(), expected_size, header.transform_count);
+                     data_size, expected_size, header.transform_count);
         return;
     }
     
@@ -68,7 +68,7 @@ void PublishTFToROS(const std::vector<uint8_t>& data, rclcpp::Node::SharedPtr no
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
     transforms.reserve(header.transform_count);
     
-    const uint8_t* transform_data_ptr = data.data() + sizeof(ipc::TFData);
+    const uint8_t* transform_data_ptr = data + sizeof(ipc::TFData);
     for (uint32_t i = 0; i < header.transform_count; ++i) {
         ipc::TFTransform tf_data;
         std::memcpy(&tf_data, transform_data_ptr + i * sizeof(ipc::TFTransform), 

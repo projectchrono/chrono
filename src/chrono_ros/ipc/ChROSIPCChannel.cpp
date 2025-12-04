@@ -59,46 +59,39 @@ void IPCChannel::InitializeBuffers() {
     size_t total_size = m_shared_memory->GetSize();
     size_t buffer_size = total_size / 2;
     
+    std::cout << "[IPCChannel] " << (m_is_main_process ? "MAIN" : "SUB") 
+              << " - base_ptr=" << (void*)base_ptr 
+              << ", total_size=" << total_size 
+              << ", buffer_size=" << buffer_size << std::endl;
+    
     // Main process writes to first buffer, reads from second
     // Subprocess writes to second buffer, reads from first
     if (m_is_main_process) {
         m_send_buffer = std::make_unique<RingBuffer>(base_ptr, buffer_size);
         m_receive_buffer = std::make_unique<RingBuffer>(base_ptr + buffer_size, buffer_size);
+        std::cout << "[IPCChannel] MAIN - send_buffer at " << (void*)base_ptr 
+                  << ", receive_buffer at " << (void*)(base_ptr + buffer_size) << std::endl;
     } else {
         m_send_buffer = std::make_unique<RingBuffer>(base_ptr + buffer_size, buffer_size);
         m_receive_buffer = std::make_unique<RingBuffer>(base_ptr, buffer_size);
+        std::cout << "[IPCChannel] SUB - send_buffer at " << (void*)(base_ptr + buffer_size)
+                  << ", receive_buffer at " << (void*)base_ptr << std::endl;
     }
 }
 
 bool IPCChannel::SendMessage(const Message& message) {
     if (!IsReady()) {
-        std::cerr << "IPC Channel not ready for sending" << std::endl;
         return false;
     }
     
-    std::cout << "Writing message header to ring buffer..." << std::endl;
-    // First, try to write the header
-    if (!m_send_buffer->Write(&message.header, sizeof(MessageHeader))) {
-        std::cerr << "Failed to write message header to ring buffer" << std::endl;
-        return false;  // Not enough space for header
-    }
-    std::cout << "Header written successfully" << std::endl;
-    
-    // Then write the payload if there is one
-    if (message.header.payload_size > 0) {
-        std::cout << "Writing payload of size " << message.header.payload_size << std::endl;
-        if (!m_send_buffer->Write(message.payload, message.header.payload_size)) {
-            std::cerr << "Failed to write payload to ring buffer" << std::endl;
-            // Failed to write payload, we need to "rollback" the header write
-            // This is a limitation of the current design - we'd need a more sophisticated
-            // transaction mechanism for true atomicity. For now, the reader will
-            // need to handle incomplete messages.
-            return false;
-        }
-        std::cout << "Payload written successfully" << std::endl;
+    // Use atomic write for header + payload to prevent race conditions
+    // The reader will see either the full message or nothing
+    if (!m_send_buffer->Write(&message.header, sizeof(MessageHeader), 
+                              message.payload.get(), message.header.payload_size)) {
+        // Buffer full
+        return false;
     }
     
-    std::cout << "Message sent successfully to ring buffer" << std::endl;
     return true;
 }
 
@@ -126,7 +119,7 @@ bool IPCChannel::ReceiveMessage(Message& message) {
     
     // Read payload if present
     if (message.header.payload_size > 0) {
-        if (!m_receive_buffer->Read(message.payload, message.header.payload_size)) {
+        if (!m_receive_buffer->Read(message.payload.get(), message.header.payload_size)) {
             return false;  // Incomplete message
         }
     }

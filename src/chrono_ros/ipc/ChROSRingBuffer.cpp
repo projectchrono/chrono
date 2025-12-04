@@ -19,6 +19,8 @@
 #include "chrono_ros/ipc/ChROSRingBuffer.h"
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
+#include <unistd.h>  // for getpid()
 
 namespace chrono {
 namespace ros {
@@ -34,7 +36,7 @@ RingBuffer::RingBuffer(void* buffer, size_t size) {
     }
     
     // Reserve space for head/tail pointers at the beginning
-    size_t metadata_size = 2 * sizeof(std::atomic<size_t>);
+    size_t metadata_size = 2 * sizeof(size_t);  // Two volatile size_t for head/tail
     if (size < metadata_size + 64) {  // Need at least some space for data
         throw std::invalid_argument("Buffer too small for ring buffer metadata");
     }
@@ -50,11 +52,17 @@ RingBuffer::RingBuffer(void* buffer, size_t size) {
     
     // Set up pointers to shared memory locations
     char* base_ptr = static_cast<char*>(buffer);
-    m_head = reinterpret_cast<std::atomic<size_t>*>(base_ptr);
-    m_tail = reinterpret_cast<std::atomic<size_t>*>(base_ptr + sizeof(std::atomic<size_t>));
+    m_head = reinterpret_cast<volatile size_t*>(base_ptr);
+    m_tail = reinterpret_cast<volatile size_t*>(base_ptr + sizeof(size_t));
     m_data_buffer = base_ptr + metadata_size;
     
     m_mask = m_data_size - 1;
+    
+    // DEBUG: Check initial values
+    size_t initial_head = *m_head;
+    size_t initial_tail = *m_tail;
+    std::cout << "[RingBuffer][PID=" << getpid() << "] Constructed at " << buffer << ": head=" << initial_head 
+              << ", tail=" << initial_tail << ", data_size=" << m_data_size << std::endl;
 }
 
 bool RingBuffer::Write(const void* data, size_t size) {
@@ -62,11 +70,22 @@ bool RingBuffer::Write(const void* data, size_t size) {
         return true;  // Nothing to write
     }
     
-    size_t head = m_head->load(std::memory_order_relaxed);
-    size_t tail = m_tail->load(std::memory_order_acquire);
+    size_t head = *m_head;
+    size_t tail = __sync_fetch_and_add(const_cast<size_t*>(m_tail), 0);  // Atomic read with acquire semantics
     
     // Check if we have enough space
     size_t available_space = m_data_size - (head - tail);
+    
+    // DEBUG: Log first few writes
+    static int write_count = 0;
+    if (write_count < 5) {
+        std::cout << "[RingBuffer::Write][PID=" << getpid() << "] #" << write_count << " size=" << size 
+                  << ", head=" << head << ", tail=" << tail 
+                  << ", available_space=" << available_space 
+                  << ", m_head_addr=" << (void*)m_head << std::endl;
+        write_count++;
+    }
+    
     if (size > available_space) {
         return false;  // Not enough space
     }
@@ -88,8 +107,58 @@ bool RingBuffer::Write(const void* data, size_t size) {
                     static_cast<const char*>(data) + first_chunk, second_chunk);
     }
     
-    // Update head position (release semantics ensures data is written before head update)
-    m_head->store(head + size, std::memory_order_release);
+    // Update head position with release semantics (ensures data is written before head update)
+    __sync_synchronize();  // Full memory barrier
+    *m_head = head + size;
+    
+    return true;
+}
+
+bool RingBuffer::Write(const void* data1, size_t size1, const void* data2, size_t size2) {
+    size_t total_size = size1 + size2;
+    if (total_size == 0) {
+        return true;
+    }
+    
+    size_t head = *m_head;
+    size_t tail = __sync_fetch_and_add(const_cast<size_t*>(m_tail), 0);
+    
+    // Check if we have enough space for BOTH chunks
+    size_t available_space = m_data_size - (head - tail);
+    if (total_size > available_space) {
+        return false;
+    }
+    
+    // Write first chunk
+    if (size1 > 0 && data1) {
+        size_t head_pos = head & m_mask;
+        if (head_pos + size1 <= m_data_size) {
+            std::memcpy(m_data_buffer + head_pos, data1, size1);
+        } else {
+            size_t first_chunk = m_data_size - head_pos;
+            std::memcpy(m_data_buffer + head_pos, data1, first_chunk);
+            std::memcpy(m_data_buffer, static_cast<const char*>(data1) + first_chunk, size1 - first_chunk);
+        }
+    }
+    
+    // Write second chunk
+    if (size2 > 0 && data2) {
+        // Calculate start position for second chunk (virtual head + size1)
+        size_t current_head = head + size1;
+        size_t head_pos = current_head & m_mask;
+        
+        if (head_pos + size2 <= m_data_size) {
+            std::memcpy(m_data_buffer + head_pos, data2, size2);
+        } else {
+            size_t first_chunk = m_data_size - head_pos;
+            std::memcpy(m_data_buffer + head_pos, data2, first_chunk);
+            std::memcpy(m_data_buffer, static_cast<const char*>(data2) + first_chunk, size2 - first_chunk);
+        }
+    }
+    
+    // Update head position with release semantics ONLY after both chunks are written
+    __sync_synchronize();
+    *m_head = head + total_size;
     
     return true;
 }
@@ -99,11 +168,21 @@ bool RingBuffer::Read(void* data, size_t size) {
         return true;  // Nothing to read
     }
     
-    size_t head = m_head->load(std::memory_order_acquire);
-    size_t tail = m_tail->load(std::memory_order_relaxed);
+    size_t head = __sync_fetch_and_add(const_cast<size_t*>(m_head), 0);  // Atomic read with acquire semantics
+    size_t tail = *m_tail;
     
     // Check if we have enough data
     size_t available_data = head - tail;
+    
+    // DEBUG: Log first few failed reads
+    static int fail_count = 0;
+    if (size > available_data && fail_count < 5) {
+        std::cout << "[RingBuffer::Read][PID=" << getpid() << "] FAILED: requested=" << size << ", available=" << available_data 
+                  << ", head=" << head << ", tail=" << tail 
+                  << ", m_head_addr=" << (void*)m_head << std::endl;
+        fail_count++;
+    }
+    
     if (size > available_data) {
         return false;  // Not enough data
     }
@@ -125,27 +204,28 @@ bool RingBuffer::Read(void* data, size_t size) {
                     m_data_buffer, second_chunk);
     }
     
-    // Update tail position (release semantics for consistency)
-    m_tail->store(tail + size, std::memory_order_release);
+    // Update tail position with release semantics
+    __sync_synchronize();  // Full memory barrier
+    *m_tail = tail + size;
     
     return true;
 }
 
 size_t RingBuffer::Available() const {
-    size_t head = m_head->load(std::memory_order_acquire);
-    size_t tail = m_tail->load(std::memory_order_relaxed);
+    size_t head = __sync_fetch_and_add(const_cast<size_t*>(m_head), 0);
+    size_t tail = *m_tail;
     return head - tail;
 }
 
 size_t RingBuffer::Space() const {
-    size_t head = m_head->load(std::memory_order_relaxed);
-    size_t tail = m_tail->load(std::memory_order_acquire);
+    size_t head = *m_head;
+    size_t tail = __sync_fetch_and_add(const_cast<size_t*>(m_tail), 0);
     return m_data_size - (head - tail);
 }
 
 void RingBuffer::Clear() {
-    m_head->store(0, std::memory_order_relaxed);
-    m_tail->store(0, std::memory_order_relaxed);
+    *m_head = 0;
+    *m_tail = 0;
 }
 
 }  // namespace ipc

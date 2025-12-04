@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <memory>
 
 namespace chrono {
 namespace ros {
@@ -35,7 +36,8 @@ enum class MessageType : uint32_t {
     ROBOT_MODEL_DATA = 5,
     DRIVER_INPUTS = 6,  ///< Bidirectional: subprocess subscriber -> main process
     VIPER_DC_MOTOR_CONTROL = 7,  ///< Bidirectional: subprocess subscriber -> main process
-    CUSTOM_DATA = 8,
+    CAMERA_DATA = 8,  ///< Publisher: main process -> subprocess ROS
+    CUSTOM_DATA = 9,
     SHUTDOWN = 99
 };
 
@@ -58,33 +60,45 @@ struct MessageHeader {
 };
 
 /// Maximum payload size for a single message
-static constexpr size_t MAX_PAYLOAD_SIZE = 1024 * 1024;  // 1MB
+/// Increased to support large sensor data (4K images, dense point clouds)
+static constexpr size_t MAX_PAYLOAD_SIZE = 64 * 1024 * 1024;  // 64MB
 
-/// Complete IPC message with header and payload
+/// Complete IPC message with header and heap-allocated payload
+/// Payload is dynamically allocated to avoid stack overflow with large buffers
 struct Message {
     MessageHeader header;
-    alignas(8) uint8_t payload[MAX_PAYLOAD_SIZE];
+    std::unique_ptr<uint8_t[]> payload;
     
-    Message() = default;
+    Message() : payload(std::make_unique<uint8_t[]>(MAX_PAYLOAD_SIZE)) {}
+    
     Message(MessageType type, uint64_t time_ns, uint32_t seq, const void* data, size_t size)
-        : header(type, time_ns, static_cast<uint32_t>(size), seq) {
+        : header(type, time_ns, static_cast<uint32_t>(size), seq),
+          payload(std::make_unique<uint8_t[]>(MAX_PAYLOAD_SIZE)) {
         if (size > MAX_PAYLOAD_SIZE) {
             size = MAX_PAYLOAD_SIZE;
         }
         if (data && size > 0) {
-            std::memcpy(payload, data, size);
+            std::memcpy(payload.get(), data, size);
         }
     }
+    
+    // Move constructor and assignment (unique_ptr is move-only)
+    Message(Message&&) = default;
+    Message& operator=(Message&&) = default;
+    
+    // Delete copy constructor and assignment (can't copy unique_ptr)
+    Message(const Message&) = delete;
+    Message& operator=(const Message&) = delete;
     
     /// Get payload as typed pointer
     template<typename T>
     const T* GetPayload() const {
-        return reinterpret_cast<const T*>(payload);
+        return reinterpret_cast<const T*>(payload.get());
     }
     
     template<typename T>
     T* GetPayload() {
-        return reinterpret_cast<T*>(payload);
+        return reinterpret_cast<T*>(payload.get());
     }
 };
 

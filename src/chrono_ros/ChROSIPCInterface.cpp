@@ -80,12 +80,18 @@ void ChROSIPCInterface::Initialize(rclcpp::NodeOptions options) {
 void ChROSIPCInterface::SpinSome(std::chrono::nanoseconds max_duration) {
     // Check if subprocess is still running
     if (!m_subprocess_manager->IsSubprocessRunning()) {
-        std::cerr << "ROS subprocess has terminated unexpectedly" << std::endl;
+        // Only print once to avoid spamming
+        static bool printed = false;
+        if (!printed) {
+            std::cerr << "ROS subprocess has terminated unexpectedly" << std::endl;
+            printed = true;
+        }
         return;
     }
     
     // Process any response messages from subprocess if needed
-    ipc::Message response;
+    // Use static buffer to avoid 64MB allocation every frame!
+    static ipc::Message response;
     while (m_subprocess_manager->ReceiveMessage(response)) {
         // Handle any response messages if needed in the future
     }
@@ -93,20 +99,22 @@ void ChROSIPCInterface::SpinSome(std::chrono::nanoseconds max_duration) {
 
 bool ChROSIPCInterface::SendHandlerData(ipc::MessageType message_type, const void* data, size_t size) {
     if (!m_subprocess_manager->IsSubprocessRunning()) {
-        std::cout << "ERROR: Subprocess not running" << std::endl;
         return false;
     }
     
-    // Create IPC message
+    // Reuse buffer, just update header and copy payload
     uint64_t timestamp_ns = static_cast<uint64_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-    ipc::Message message(message_type, timestamp_ns, m_sequence_counter++, data, size);
+    m_send_buffer.header = ipc::MessageHeader(message_type, timestamp_ns, static_cast<uint32_t>(size), m_sequence_counter++);
     
-    std::cout << "Attempting to send IPC message type " << static_cast<int>(message_type) 
-              << " with size " << size << std::endl;
+    if (size > 0 && data) {
+        if (size > ipc::MAX_PAYLOAD_SIZE) {
+            size = ipc::MAX_PAYLOAD_SIZE;
+            m_send_buffer.header.payload_size = static_cast<uint32_t>(size);
+        }
+        std::memcpy(m_send_buffer.payload.get(), data, size);
+    }
     
-    bool result = m_subprocess_manager->SendMessage(message);
-    std::cout << "Send result: " << (result ? "SUCCESS" : "FAILED") << std::endl;
-    return result;
+    return m_subprocess_manager->SendMessage(m_send_buffer);
 }
 
 bool ChROSIPCInterface::ReceiveMessage(ipc::Message& message) {

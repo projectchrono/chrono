@@ -27,6 +27,7 @@
 #include "chrono_ros/handlers/ChROSTFHandler.h"
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 #include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 
 #include "chrono/core/ChTypes.h"
 
@@ -49,27 +50,58 @@ void ChROSManager::Initialize() {
 }
 
 bool ChROSManager::Update(double time, double step) {
+    static auto last_print = std::chrono::high_resolution_clock::now();
+    static int update_count = 0;
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
     // IPC mode: Generic handler data collection and transmission
     // This approach works for ANY handler that implements GetSerializedData()
     auto ipc_interface = std::dynamic_pointer_cast<ChROSIPCInterface>(m_interface);
     if (ipc_interface) {
         // OUTGOING: Send handler data to subprocess
         for (auto handler : m_handlers) {
+            auto handler_start = std::chrono::high_resolution_clock::now();
+            
             // Get serialized data from handler (no ROS symbols, safe!)
-            // The handler itself manages timing via its update rate
+            // Handler manages its own throttling via update rate
             auto data = handler->GetSerializedData(time);
+            
+            auto serialize_end = std::chrono::high_resolution_clock::now();
             
             if (!data.empty()) {
                 // Determine message type based on handler type
                 ipc::MessageType msg_type = GetHandlerMessageType(handler);
                 
-                // Send via IPC to subprocess
-                ipc_interface->SendHandlerData(msg_type, data.data(), data.size());
+                // Send via IPC to subprocess - if buffer full, silently drop frame
+                // This is standard practice for real-time sensor data
+                bool sent = ipc_interface->SendHandlerData(msg_type, data.data(), data.size());
+                
+                auto send_end = std::chrono::high_resolution_clock::now();
+                auto serialize_us = std::chrono::duration_cast<std::chrono::microseconds>(serialize_end - handler_start).count();
+                auto send_us = std::chrono::duration_cast<std::chrono::microseconds>(send_end - serialize_end).count();
+                
+                if (serialize_us > 1000 || send_us > 1000) {
+                    std::cout << "[TIMING] Handler serialize=" << serialize_us << "us, send=" << send_us 
+                              << "us, sent=" << sent << ", size=" << data.size() << std::endl;
+                }
             }
         }
         
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto total_us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+        
+        update_count++;
+        auto now = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - last_print).count();
+        if (elapsed >= 2) {
+            std::cout << "[PERF] Update() avg=" << (total_us) << "us, rate=" << (update_count / elapsed) << " Hz" << std::endl;
+            last_print = now;
+            update_count = 0;
+        }
+        
         // INCOMING: Check for messages from subprocess (bidirectional subscribers)
-        ipc::Message incoming_msg;
+        // Reuse message buffer to avoid 64MB allocation per call
+        static thread_local ipc::Message incoming_msg;
         while (ipc_interface->ReceiveMessage(incoming_msg)) {
             std::cout << "[MAIN PROCESS] ✓ Received IPC message from subprocess, type=" 
                       << static_cast<int>(incoming_msg.header.type) << std::endl;
@@ -130,11 +162,11 @@ ipc::MessageType ChROSManager::GetHandlerMessageType(std::shared_ptr<ChROSHandle
         return ipc::MessageType::VIPER_DC_MOTOR_CONTROL;
     }
     
+    if (std::dynamic_pointer_cast<ChROSCameraHandler>(handler)) {
+        return ipc::MessageType::CAMERA_DATA;
+    }
+    
     // Add more handler types here as they're implemented
-    // Example:
-    // if (std::dynamic_pointer_cast<ChROSCameraHandler>(handler)) {
-    //     return ipc::MessageType::CAMERA_DATA;
-    // }
     
     return ipc::MessageType::CUSTOM_DATA;  // Default for unknown types
 }

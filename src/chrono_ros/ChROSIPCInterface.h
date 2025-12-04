@@ -62,6 +62,7 @@ private:
     std::string m_channel_name;
     std::unique_ptr<ipc::SubprocessManager> m_subprocess_manager;
     uint32_t m_sequence_counter;
+    ipc::Message m_send_buffer;  ///< Reusable buffer to avoid 64MB allocations
     
     /// Generate unique channel name for this instance
     std::string GenerateChannelName() const;

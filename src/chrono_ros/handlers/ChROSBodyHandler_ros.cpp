@@ -33,18 +33,18 @@ namespace ros {
 
 /// ROS publishing function for body handler
 /// This is called in the subprocess when body data arrives via IPC
-void PublishBodyToROS(const std::vector<uint8_t>& data, rclcpp::Node::SharedPtr node, ipc::IPCChannel* channel) {
+void PublishBodyToROS(const uint8_t* data, size_t data_size, rclcpp::Node::SharedPtr node, ipc::IPCChannel* channel) {
     // Channel not needed for publishers (only for subscribers sending back)
     (void)channel;
     // Deserialize the data
-    if (data.size() != sizeof(ChROSBodyData)) {
+    if (data_size != sizeof(ChROSBodyData)) {
         RCLCPP_ERROR(node->get_logger(), "Invalid body data size: %zu, expected %zu", 
-                     data.size(), sizeof(ChROSBodyData));
+                     data_size, sizeof(ChROSBodyData));
         return;
     }
     
     ChROSBodyData body_data;
-    std::memcpy(&body_data, data.data(), sizeof(ChROSBodyData));
+    std::memcpy(&body_data, data, sizeof(ChROSBodyData));
     
     std::string body_key = std::string(body_data.body_name);
     

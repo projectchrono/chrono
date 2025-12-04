@@ -133,6 +133,8 @@ void SharedMemory::Close() {
         return;
     }
     
+    std::cout << "[SharedMemory] Closing shared memory: " << m_name << ", created=" << m_created << std::endl;
+    
 #ifdef _WIN32
     UnmapViewOfFile(m_ptr);
     if (m_handle) {
@@ -145,7 +147,12 @@ void SharedMemory::Close() {
     
     if (m_created) {
         std::string shm_name = "/" + m_name;
-        shm_unlink(shm_name.c_str());
+        std::cout << "[SharedMemory] Unlinking: " << shm_name << std::endl;
+        if (shm_unlink(shm_name.c_str()) == 0) {
+            std::cout << "[SharedMemory] Successfully unlinked" << std::endl;
+        } else {
+            std::cerr << "[SharedMemory] Failed to unlink: " << strerror(errno) << std::endl;
+        }
     }
 #endif
     

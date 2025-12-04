@@ -188,6 +188,10 @@ void SubprocessManager::TerminateSubprocess() {
 #endif
     
     m_subprocess_running = false;
+    
+    // Explicitly close IPC channel to ensure cleanup
+    // This triggers SharedMemory destructor which calls shm_unlink
+    std::cout << "Cleaning up IPC channel..." << std::endl;
     m_channel.reset();
     
     std::cout << "Terminated ROS subprocess" << std::endl;
@@ -219,7 +223,6 @@ bool SubprocessManager::IsSubprocessRunning() const {
     return result == 0;  // 0 means still running
 #endif
 }
-
 bool SubprocessManager::SendMessage(const Message& message) {
     return m_channel && m_channel->SendMessage(message);
 }
