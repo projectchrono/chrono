@@ -12,29 +12,32 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ASCII text Chrono output database.
+// HDF5 Chrono output database.
 //
 // =============================================================================
 
-#ifndef CH_OUTPUT_ASCII_H
-#define CH_OUTPUT_ASCII_H
+#ifndef CH_OUTPUT_HDF5_H
+#define CH_OUTPUT_HDF5_H
 
 #include <string>
 #include <fstream>
 
-#include "chrono/output/ChOutput.h"
+#include <H5Cpp.h>
+
+#include "chrono/input_output/ChOutput.h"
 
 namespace chrono {
 
-/// @addtogroup chrono_output
+class ChOutputHDF5_impl;
+
+/// @addtogroup chrono_io
 /// @{
 
-/// ASCII text Chrono output database.
-class ChApi ChOutputASCII : public ChOutput {
+/// HDF5 Chrono output database.
+class ChApi ChOutputHDF5 : public ChOutput {
   public:
-    ChOutputASCII(const std::string& filename);
-    ChOutputASCII(std::ostream& stream);
-    ~ChOutputASCII();
+    ChOutputHDF5(const std::string& filename, Mode mode = Mode::FRAMES);
+    ~ChOutputHDF5();
 
   private:
     virtual void Initialize() override;
@@ -51,12 +54,13 @@ class ChApi ChOutputASCII : public ChOutput {
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
-    std::ostream& m_stream;
-    std::ofstream m_file_stream;
+    H5::H5File* m_fileHDF5;
+    Mode m_mode;
+    std::unique_ptr<ChOutputHDF5_impl> m_impl;
     bool m_initialized;
 };
 
-/// @} chrono_output
+/// @} chrono_io
 
 }  // end namespace chrono
 

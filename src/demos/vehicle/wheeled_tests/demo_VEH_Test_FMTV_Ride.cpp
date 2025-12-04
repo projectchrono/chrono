@@ -25,7 +25,7 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
     csv.Stream().precision(6);
 

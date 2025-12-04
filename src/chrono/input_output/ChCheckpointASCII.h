@@ -22,12 +22,12 @@
 #include <string>
 #include <fstream>
 
-#include "chrono/output/ChCheckpoint.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 namespace chrono {
 
-/// @addtogroup chrono_output
+/// @addtogroup chrono_io
 /// @{
 
 /// ASCII text Chrono checkpoint database.
@@ -75,14 +75,14 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
   private:
     void CheckIfOpen() const;
 
-    utils::ChWriterCSV m_csv;  ///< output checkpoint CSV
-    std::ifstream m_ifile;     ///< input checkpoint file
+    ChWriterCSV m_csv;      ///< output checkpoint CSV
+    std::ifstream m_ifile;  ///< input checkpoint file
 
     size_t m_np;  ///< number of position-level states
     size_t m_nv;  ///< number of velocity-level states
 };
 
-/// @} chrono_output
+/// @} chrono_io
 
 }  // end namespace chrono
 

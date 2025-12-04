@@ -20,7 +20,7 @@
 #include "chrono_models/robot/curiosity/Curiosity.h"
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChMassProperties.h"
@@ -29,7 +29,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     // Curiosity rover initial position and orientation
     ChVector3d body_pos(-5, -0.2, 0);

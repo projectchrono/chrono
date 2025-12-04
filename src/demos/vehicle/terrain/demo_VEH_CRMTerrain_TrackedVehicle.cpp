@@ -25,7 +25,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"

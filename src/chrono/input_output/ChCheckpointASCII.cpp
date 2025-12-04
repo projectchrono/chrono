@@ -25,7 +25,7 @@
 #include "chrono/physics/ChLinkMotorRotationDriveline.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
 
-#include "chrono/output/ChCheckpointASCII.h"
+#include "chrono/input_output/ChCheckpointASCII.h"
 
 using std::cout;
 using std::cerr;

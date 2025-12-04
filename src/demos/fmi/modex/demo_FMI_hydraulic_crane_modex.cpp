@@ -22,7 +22,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/solver/ChDirectSolverLS.h"
@@ -471,7 +471,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output file
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, " ", " ", " ", " ", " ", " ");
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     double t = 0;
     double Uref = actuation->GetVal(t);

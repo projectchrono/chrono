@@ -32,7 +32,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChConstants.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsValidation.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* m_data.resize(7);
-     utils::ChWriterCSV csv(" ");
+     ChWriterCSV csv(" ");
      std::ifstream file2("UT_ANCFBeam.txt");
 
      for (size_t col = 0; col < 7; col++)

@@ -28,7 +28,6 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 

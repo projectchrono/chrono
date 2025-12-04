@@ -12,11 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Utility classes and functions for input/output file operations.
-//
-// CSV_Writer
-//  class that encapsulates functionality for writing files in Comma Separated
-//  Values format.
+// Utility functions for input/output file operations.
 //
 // WriteCheckpoint and ReadCheckpoint
 //  these functions write and read, respectively, a checkpoint file.
@@ -39,6 +35,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <vector>
 #include <functional>
 
 #include "chrono/core/ChApiCE.h"
@@ -51,106 +48,20 @@
 namespace chrono {
 namespace utils {
 
-/// ChWriterCSV
-/// Simple class to output to a Comma-Separated Values ASCII file.
-class ChApi ChWriterCSV {
-  public:
-    explicit ChWriterCSV(const std::string& delim = ",") : m_delim(delim) {}
+/// @addtogroup chrono_io
+/// @{
 
-    ChWriterCSV(const ChWriterCSV& source) : m_delim(source.m_delim) {
-        // Note that we do not copy the stream buffer (as then it would be shared!)
-        m_ss.copyfmt(source.m_ss);          // copy all data
-        m_ss.clear(source.m_ss.rdstate());  // copy the error state
-    }
+/// Create a CSV file with a checkpoint of bodies and collision shapes.
+/// This is a specialized checkpointing function suitable for DEM simulations (e.g., with Chrono::Multicore). Note that
+/// only body states are checkpointed and therefore this function should not be used for Chrono multibody systems.
+ChApi bool WriteBodyShapesCheckpoint(ChSystem* system, const std::string& filename);
 
-    ~ChWriterCSV() {}
-
-    void WriteToFile(const std::string& filename, const std::string& header = "") const {
-        std::ofstream ofile(filename);
-        if (!header.empty())
-            ofile << header << std::endl;
-        ofile << m_ss.str();
-        ofile.close();
-    }
-
-    void SetDelimiter(const std::string& delim) { m_delim = delim; }
-    const std::string& GetDelimiter() const { return m_delim; }
-    std::ostringstream& Stream() { return m_ss; }
-
-    template <typename T>
-    ChWriterCSV& operator<<(const T& t) {
-        m_ss << t << m_delim;
-        return *this;
-    }
-
-    ChWriterCSV& operator<<(std::ostream& (*t)(std::ostream&)) {
-        m_ss << t;
-        return *this;
-    }
-    ChWriterCSV& operator<<(std::ios& (*t)(std::ios&)) {
-        m_ss << t;
-        return *this;
-    }
-    ChWriterCSV& operator<<(std::ios_base& (*t)(std::ios_base&)) {
-        m_ss << t;
-        return *this;
-    }
-
-  private:
-    std::string m_delim;
-    std::ostringstream m_ss;
-};
-
-template <typename T>
-inline ChWriterCSV& operator<<(ChWriterCSV& out, const ChVector3<T>& v) {
-    out << v.x() << v.y() << v.z();
-    return out;
-}
-
-template <typename T>
-inline ChWriterCSV& operator<<(ChWriterCSV& out, const ChQuaternion<T>& q) {
-    out << q.e0() << q.e1() << q.e2() << q.e3();
-    return out;
-}
-
-inline ChWriterCSV& operator<<(ChWriterCSV& out, const ChColor& c) {
-    out << c.R << c.G << c.B;
-    return out;
-}
-
-template <typename T>
-inline ChWriterCSV& operator<<(ChWriterCSV& out, const std::vector<T>& vec) {
-    for (const auto& v : vec)
-        out << v;
-    return out;
-}
-
-// -----------------------------------------------------------------------------
-// Free function declarations
-// -----------------------------------------------------------------------------
-
-/// This function dumps to a CSV file pody position, orientation, and optionally linear and angular velocity.
-/// Optionally, only active bodies are processed.
-ChApi void WriteBodies(ChSystem* system,
-                       const std::string& filename,
-                       bool active_only = false,
-                       bool dump_vel = false,
-                       const std::string& delim = ",");
-
-/// Create a CSV file with a checkpoint.
-ChApi bool WriteCheckpoint(ChSystem* system, const std::string& filename);
-
-/// Read a CSV file with a checkpoint.
-ChApi void ReadCheckpoint(ChSystem* system, const std::string& filename);
-
-/// Write CSV output file with camera information for off-line visualization.
-/// The output file includes three vectors, one per line, for camera position, camera target (look-at point), and camera
-/// up vector, respectively.
-ChApi void WriteCamera(const std::string& filename,
-                       const ChVector3d& cam_location,
-                       const ChVector3d& cam_target,
-                       const ChVector3d& camera_upvec,
-                       const std::string& delim = ",");
+/// Read a CSV file with a checkpoint of bodies and collision shapes.
+/// This function creates bodies in the given Chrono system using states and collision shapes read from the checkpoint
+/// file with given name (assumed to have been produced with WriteBodyShapesCheckpoint).
+/// This is a specialized checkpointing function suitable for DEM simulations (e.g., with Chrono::Multicore). Note that
+/// only body states are checkpointed and therefore this function should not be used for Chrono multibody systems.
+ChApi void ReadBodyShapesCheckpoint(ChSystem* system, const std::string& filename);
 
 /// Write CSV output file with body and asset information for off-line visualization.
 /// (1) The first line of the output file contains:
@@ -221,6 +132,8 @@ ChApi void WriteCurvePovray(const ChBezierCurve& curve,
                             const std::string& out_dir,
                             double radius = 0.03,
                             const ChColor& col = ChColor(0.8f, 0.8f, 0.2f));
+
+/// @} chrono_io
 
 }  // namespace utils
 }  // namespace chrono

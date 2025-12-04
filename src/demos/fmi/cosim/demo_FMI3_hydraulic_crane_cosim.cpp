@@ -20,8 +20,10 @@
 #include "chrono_fmi/ChConfigFMI.h"
 #include "chrono_fmi/fmi3/ChFmuToolsImport.h"
 
+#include "chrono/core/ChDataPath.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/functions/ChFunction.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -195,7 +197,7 @@ int main(int argc, char* argv[]) {
     auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Initialize combined output
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     fmi3Float64 F;   // actuator force
     fmi3Float64 s;   // actuator length
     fmi3Float64 sd;  // actuator length rate

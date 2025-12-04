@@ -22,7 +22,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -47,7 +47,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::ChWriterCSV OutStream();
+ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -187,23 +187,23 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::ChWriterCSV out_posPinion = OutStream();
-    utils::ChWriterCSV out_velPinion = OutStream();
-    utils::ChWriterCSV out_accPinion = OutStream();
+    ChWriterCSV out_posPinion = OutStream();
+    ChWriterCSV out_velPinion = OutStream();
+    ChWriterCSV out_accPinion = OutStream();
 
-    utils::ChWriterCSV out_quatPinion = OutStream();
-    utils::ChWriterCSV out_avelPinion = OutStream();
-    utils::ChWriterCSV out_aaccPinion = OutStream();
+    ChWriterCSV out_quatPinion = OutStream();
+    ChWriterCSV out_avelPinion = OutStream();
+    ChWriterCSV out_aaccPinion = OutStream();
 
-    utils::ChWriterCSV out_posRack = OutStream();
-    utils::ChWriterCSV out_velRack = OutStream();
-    utils::ChWriterCSV out_accRack = OutStream();
+    ChWriterCSV out_posRack = OutStream();
+    ChWriterCSV out_velRack = OutStream();
+    ChWriterCSV out_accRack = OutStream();
 
-    utils::ChWriterCSV out_quatRack = OutStream();
-    utils::ChWriterCSV out_avelRack = OutStream();
-    utils::ChWriterCSV out_aaccRack = OutStream();
+    ChWriterCSV out_quatRack = OutStream();
+    ChWriterCSV out_avelRack = OutStream();
+    ChWriterCSV out_aaccRack = OutStream();
 
-    utils::ChWriterCSV out_energy = OutStream();
+    ChWriterCSV out_energy = OutStream();
 
     // Write headers
     out_posPinion << "Time"
@@ -401,8 +401,8 @@ bool ValidateEnergy(const std::string& testName,  // name of this test
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::ChWriterCSV OutStream() {
-    utils::ChWriterCSV out("\t");
+ChWriterCSV OutStream() {
+    ChWriterCSV out("\t");
 
     out.Stream().setf(std::ios::scientific | std::ios::showpos);
     out.Stream().precision(6);

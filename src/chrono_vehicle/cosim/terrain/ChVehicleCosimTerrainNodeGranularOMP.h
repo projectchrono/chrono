@@ -191,7 +191,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// Calculate total kinetic energy of granular material.
     double CalcTotalKineticEnergy();
 
-    void WriteParticleInformation(utils::ChWriterCSV& csv);
+    void WriteParticleInformation(ChWriterCSV& csv);
 
     static ChVector3d CalcBarycentricCoords(const ChVector3d& v1,
                                             const ChVector3d& v2,

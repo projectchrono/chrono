@@ -29,10 +29,10 @@
 
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
-#include "chrono/output/ChOutputASCII.h"
-#include "chrono/output/ChCheckpointASCII.h"
+#include "chrono/input_output/ChOutputASCII.h"
+#include "chrono/input_output/ChCheckpointASCII.h"
 #ifdef CHRONO_HAS_HDF5
-    #include "chrono/output/ChOutputHDF5.h"
+    #include "chrono/input_output/ChOutputHDF5.h"
 #endif
 
 namespace chrono {

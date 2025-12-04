@@ -15,9 +15,9 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono/output/ChOutputASCII.h"
+#include "chrono/input_output/ChOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-    #include "chrono/output/ChOutputHDF5.h"
+    #include "chrono/input_output/ChOutputHDF5.h"
 #endif
 
 #include "chrono_parsers/yaml/ChParserYAML.h"

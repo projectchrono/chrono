@@ -72,7 +72,7 @@ void ChSteeringController::StartDataCollection() {
         return;
     // Create the ChWriterCSV object if needed (first call to this function).
     if (!m_csv) {
-        m_csv = new utils::ChWriterCSV("\t");
+        m_csv = new ChWriterCSV("\t");
         m_csv->Stream().setf(std::ios::scientific | std::ios::showpos);
         m_csv->Stream().precision(6);
     }

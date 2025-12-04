@@ -38,7 +38,7 @@
 
 namespace chrono {
 
-/// @addtogroup chrono_output
+/// @addtogroup chrono_io
 /// @{
 
 /// Base class for a Chrono checkpoint database.
@@ -247,7 +247,7 @@ class ChApi ChCheckpoint {
     Type m_type;  ///< checkpoint database type
 };
 
-/// @} chrono_output
+/// @} chrono_io
 
 }  // end namespace chrono
 

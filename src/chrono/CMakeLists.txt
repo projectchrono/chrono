@@ -1089,7 +1089,6 @@ set(Chrono_utils_SOURCES
     utils/ChUtilsGeometry.cpp
     utils/ChUtilsCreators.cpp
     utils/ChUtilsGenerators.cpp
-    utils/ChUtilsInputOutput.cpp
     utils/ChUtilsChaseCamera.cpp
     utils/ChUtilsValidation.cpp
     utils/ChOpenMP.cpp
@@ -1110,7 +1109,6 @@ set(Chrono_utils_HEADERS
     utils/ChUtilsCreators.h
     utils/ChUtilsGenerators.h
     utils/ChUtilsSamplers.h
-    utils/ChUtilsInputOutput.h
     utils/ChUtilsChaseCamera.h
     utils/ChUtilsValidation.h
     utils/ChProfiler.h
@@ -1129,25 +1127,29 @@ source_group(utils FILES ${Chrono_utils_SOURCES} ${Chrono_utils_HEADERS})
 
 # Output group
 
-set(Chrono_output_HEADERS
-    output/ChOutput.h
-    output/ChOutputASCII.h
-    output/ChCheckpoint.h
-    output/ChCheckpointASCII.h
+set(Chrono_inputoutput_HEADERS
+    input_output/ChOutput.h
+    input_output/ChOutputASCII.h
+    input_output/ChCheckpoint.h
+    input_output/ChCheckpointASCII.h
+    input_output/ChWriterCSV.h
+    input_output/ChUtilsInputOutput.h
 )
-set(Chrono_output_SOURCES
-    output/ChOutputASCII.cpp
-    output/ChCheckpointASCII.cpp
+set(Chrono_inputoutput_SOURCES
+    input_output/ChOutputASCII.cpp
+    input_output/ChCheckpointASCII.cpp
+    input_output/ChWriterCSV.cpp
+    input_output/ChUtilsInputOutput.cpp
 )
 if (HDF5_FOUND)
-    set(Chrono_output_HEADERS ${Chrono_output_HEADERS}
-        output/ChOutputHDF5.h
+    set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChOutputHDF5.h
     )
-    set(Chrono_output_SOURCES ${Chrono_output_SOURCES}
-        output/ChOutputHDF5.cpp
+    set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChOutputHDF5.cpp
     )
 endif()
-source_group(output FILES ${Chrono_output_SOURCES} ${Chrono_output_HEADERS})
+source_group(input_output FILES ${Chrono_inputoutput_SOURCES} ${Chrono_inputoutput_HEADERS})
 
 # -------------------------------------------------------------------------------------------------
 # Third-party files
@@ -1299,7 +1301,7 @@ set(Chrono_SOURCES
     ${Chrono_collision_multicore_SOURCES}
     ${Chrono_collision_bullet_SOURCES}
     ${Chrono_utils_SOURCES}
-    ${Chrono_output_SOURCES}
+    ${Chrono_inputoutput_SOURCES}
 )
 
 set(Chrono_HEADERS
@@ -1331,7 +1333,7 @@ set(Chrono_HEADERS
     ${Chrono_collision_multicore_HEADERS}
     ${Chrono_collision_bullet_HEADERS}
     ${Chrono_utils_HEADERS}
-    ${Chrono_output_HEADERS}
+    ${Chrono_inputoutput_HEADERS}
 )
 
 set(Chrono_thirdparty_FILES

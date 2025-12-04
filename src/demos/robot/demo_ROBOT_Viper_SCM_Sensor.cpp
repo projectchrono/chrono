@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/physics/ChMassProperties.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     // Create the rover
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();

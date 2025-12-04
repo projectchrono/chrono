@@ -23,9 +23,10 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
+#include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"

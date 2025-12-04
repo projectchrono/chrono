@@ -23,7 +23,6 @@
 #define CH_VEHCOSIM_WHEELED_MBS_NODE_H
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChBezierCurve.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"

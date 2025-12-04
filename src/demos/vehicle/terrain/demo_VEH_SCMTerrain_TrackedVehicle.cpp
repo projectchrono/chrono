@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"

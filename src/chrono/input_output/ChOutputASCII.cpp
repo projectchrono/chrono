@@ -22,7 +22,7 @@
 #include "chrono/physics/ChLinkUniversal.h"
 #include "chrono/physics/ChLinkDistance.h"
 
-#include "chrono/output/ChOutputASCII.h"
+#include "chrono/input_output/ChOutputASCII.h"
 
 namespace chrono {
 

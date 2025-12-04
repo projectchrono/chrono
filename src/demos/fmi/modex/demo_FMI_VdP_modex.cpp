@@ -35,7 +35,7 @@
 #include <cmath>
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_fmi/ChConfigFMI.h"
 #include "chrono_fmi/ChExternalFmu.h"
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     }
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     double t = 0;
     ChVectorDynamic<> y(fmu_wrapper->GetNumStates());

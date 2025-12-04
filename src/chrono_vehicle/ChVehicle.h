@@ -25,8 +25,8 @@
 #include <numeric>
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/output/ChOutput.h"
-#include "chrono/output/ChCheckpoint.h"
+#include "chrono/input_output/ChOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"

@@ -19,7 +19,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono/output/ChCheckpointASCII.h"
+#include "chrono/input_output/ChCheckpointASCII.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 

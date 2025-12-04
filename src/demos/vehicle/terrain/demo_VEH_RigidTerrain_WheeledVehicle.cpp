@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ////utils::ChWriterCSV out(" ");
+    ////ChWriterCSV out(" ");
     ////for (int ix = 0; ix < 20; ix++) {
     ////    double x = ix * 1.0;
     ////    for (int iy = 0; iy < 100; iy++) {

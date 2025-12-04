@@ -24,7 +24,7 @@
 #include <array>
 
 #include "chrono/core/ChTimer.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -411,7 +411,7 @@ int main(int argc, char* argv[]) {
     FlatTerrain terrain(0.0, 0.8f);
 
     // Initialize output
-    utils::ChWriterCSV csv;
+    ChWriterCSV csv;
     csv.SetDelimiter(" ");
 
     // Enable/disable saving snapshots

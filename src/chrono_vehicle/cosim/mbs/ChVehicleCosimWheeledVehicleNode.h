@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     /// Impose spindle angular speed as dictated by an attached DBP rig.
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
 
-    void WriteBodyInformation(utils::ChWriterCSV& csv);
+    void WriteBodyInformation(ChWriterCSV& csv);
 
     virtual void OnRender() override;
 

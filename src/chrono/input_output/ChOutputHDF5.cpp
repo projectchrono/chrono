@@ -24,7 +24,7 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkUniversal.h"
 
-#include "chrono/output/ChOutputHDF5.h"
+#include "chrono/input_output/ChOutputHDF5.h"
 
 namespace chrono {
 
