@@ -82,6 +82,9 @@ class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
     /// In IPC mode, this does nothing. Subprocess will create the actual ROS subscriber.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
     
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::DRIVER_INPUTS; }
+
     /// Apply driver inputs received from subprocess via IPC
     /// This method is called internally by HandleIncomingMessage()
     /// @param steering Steering value from ROS message

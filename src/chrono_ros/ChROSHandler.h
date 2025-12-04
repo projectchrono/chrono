@@ -21,6 +21,7 @@
 
 #include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChROSInterface.h"
+#include "chrono_ros/ipc/ChROSIPCMessage.h"
 
 #include <string>
 #include <memory>
@@ -81,6 +82,12 @@ class CH_ROS_API ChROSHandler {
     /// Default is true. Override to false for subscribers.
     virtual bool IsPublisher() const { return true; }
     
+    /// Get the message type of this handler.
+    /// Must be implemented by derived classes to identify the IPC message type.
+    /// @return The IPC message type for this handler
+    typedef chrono::ros::ipc::MessageType MessageType;
+    virtual chrono::ros::ipc::MessageType GetMessageType() const { return static_cast<chrono::ros::ipc::MessageType>(0); }
+
     /// Get serialized data from this handler for IPC transmission.
     /// Framework calls this in main process for publishers.
     /// Handler should extract Chrono data and return as byte vector.

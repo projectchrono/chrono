@@ -50,6 +50,9 @@ class CH_ROS_API ChROSViperDCMotorControlHandler : public ChROSHandler {
     /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
     
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::VIPER_DC_MOTOR_CONTROL; }
+
     /// Apply motor control inputs received from ROS (used in IPC mode)
     void ApplyInputs(const chrono_ros_interfaces::msg::ViperDCMotorControl& msg);
     

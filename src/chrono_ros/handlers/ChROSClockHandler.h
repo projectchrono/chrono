@@ -76,6 +76,9 @@ class CH_ROS_API ChROSClockHandler : public ChROSHandler {
     /// In IPC mode, this does nothing since ROS node is in subprocess
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
     
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::CLOCK_DATA; }
+
     /// Extract simulation time for IPC transmission to subprocess
     /// Called each tick in main process. Packs ChROSClockData struct into byte vector.
     /// Subprocess receives this data and publishes ROS message.

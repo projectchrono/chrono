@@ -71,7 +71,7 @@ bool ChROSManager::Update(double time, double step) {
             
             if (!data.empty()) {
                 // Determine message type based on handler type
-                ipc::MessageType msg_type = GetHandlerMessageType(handler);
+                ipc::MessageType msg_type = handler->GetMessageType();
                 
                 // Send via IPC to subprocess - if buffer full, silently drop frame
                 // This is standard practice for real-time sensor data
@@ -112,8 +112,7 @@ bool ChROSManager::Update(double time, double step) {
             for (auto handler : m_handlers) {
                 if (handler->SupportsIncomingMessages()) {
                     // Check if this handler handles this message type
-                    ipc::MessageType handler_type = GetHandlerMessageType(handler);
-                    if (handler_type == incoming_msg.header.type) {
+                    if (handler->GetMessageType() == incoming_msg.header.type) {
                         handler->HandleIncomingMessage(incoming_msg);
                         handled = true;
                         break;
@@ -134,50 +133,6 @@ bool ChROSManager::Update(double time, double step) {
 
 void ChROSManager::RegisterHandler(std::shared_ptr<ChROSHandler> handler) {
     m_handlers.push_back(handler);
-}
-
-// Helper function to determine message type from handler type
-// This is the ONE place where handler types are identified
-// Adding a new handler just requires adding one line here
-ipc::MessageType ChROSManager::GetHandlerMessageType(std::shared_ptr<ChROSHandler> handler) {
-    // Identify handler type and return corresponding message type
-    // This uses dynamic_cast but is clean and centralized
-    
-    if (std::dynamic_pointer_cast<ChROSClockHandler>(handler)) {
-        return ipc::MessageType::CLOCK_DATA;
-    }
-    
-    if (std::dynamic_pointer_cast<ChROSBodyHandler>(handler)) {
-        return ipc::MessageType::BODY_DATA;
-    }
-    
-    if (std::dynamic_pointer_cast<ChROSTFHandler>(handler)) {
-        return ipc::MessageType::TF_DATA;
-    }
-    
-    if (std::dynamic_pointer_cast<ChROSDriverInputsHandler>(handler)) {
-        return ipc::MessageType::DRIVER_INPUTS;
-    }
-    
-    if (std::dynamic_pointer_cast<ChROSViperDCMotorControlHandler>(handler)) {
-        return ipc::MessageType::VIPER_DC_MOTOR_CONTROL;
-    }
-    
-    if (std::dynamic_pointer_cast<ChROSCameraHandler>(handler)) {
-        return ipc::MessageType::CAMERA_DATA;
-    }
-
-    if (auto lidar_handler = std::dynamic_pointer_cast<ChROSLidarHandler>(handler)) {
-        if (lidar_handler->GetMessageType() == ChROSLidarHandlerMessageType::POINT_CLOUD2) {
-            return ipc::MessageType::LIDAR_POINTCLOUD;
-        } else {
-            return ipc::MessageType::LIDAR_LASERSCAN;
-        }
-    }
-    
-    // Add more handler types here as they're implemented
-    
-    return ipc::MessageType::CUSTOM_DATA;  // Default for unknown types
 }
 
 }  // namespace ros

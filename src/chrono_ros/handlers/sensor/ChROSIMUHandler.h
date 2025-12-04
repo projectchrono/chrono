@@ -40,6 +40,9 @@ class CH_ROS_API ChROSIMUHandler : public ChROSHandler {
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::IMU_DATA; }
+
     /// Set the imu sensor handlers
     /// NOTE: The handlers will tick at the same rate as the imu handler
     void SetAccelerometerHandler(std::shared_ptr<ChROSAccelerometerHandler> accel_handler);

@@ -49,6 +49,9 @@ class CH_ROS_API ChROSGPSHandler : public ChROSHandler {
     /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::GPS_DATA; }
+
   protected:
     virtual void Tick(double time) override;
 

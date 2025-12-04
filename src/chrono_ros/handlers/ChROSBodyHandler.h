@@ -59,6 +59,9 @@ class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
     
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::BODY_DATA; }
+
     /// Extract body state for IPC (called in main process, no ROS calls)
     virtual std::vector<uint8_t> GetSerializedData(double time) override;
 

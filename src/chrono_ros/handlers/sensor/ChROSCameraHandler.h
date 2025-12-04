@@ -71,6 +71,9 @@ class CH_ROS_API ChROSCameraHandler : public ChROSHandler {
     /// Subprocess will create the actual ROS publisher
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
     
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::CAMERA_DATA; }
+
     /// Extract and serialize camera image data for IPC transmission
     /// Called in main process at update_rate frequency
     /// Returns metadata + pixel data as byte vector

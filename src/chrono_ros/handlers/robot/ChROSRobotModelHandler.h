@@ -55,6 +55,9 @@ class CH_ROS_API ChROSRobotModelHandler : public ChROSHandler {
     /// Initializes the handler. This creates the publisher for the robot model topic.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::ROBOT_MODEL_DATA; }
+
   protected:
     /// Publishes the robot model string. Should be called infrequently (i.e. set update_rate to some really high
     /// value).

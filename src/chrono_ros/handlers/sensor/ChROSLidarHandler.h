@@ -54,7 +54,11 @@ class CH_ROS_API ChROSLidarHandler : public ChROSHandler {
     virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
     /// Get the message type of this handler
-    ChROSLidarHandlerMessageType GetMessageType() const { return m_type; }
+    virtual ipc::MessageType GetMessageType() const override {
+        return (m_type == ChROSLidarHandlerMessageType::POINT_CLOUD2) 
+               ? ipc::MessageType::LIDAR_POINTCLOUD 
+               : ipc::MessageType::LIDAR_LASERSCAN;
+    }
 
   protected:
     virtual void Tick(double time) override;

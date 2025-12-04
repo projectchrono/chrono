@@ -39,7 +39,12 @@ enum class MessageType : uint32_t {
     CAMERA_DATA = 8,  ///< Publisher: main process -> subprocess ROS
     LIDAR_POINTCLOUD = 9,
     LIDAR_LASERSCAN = 10,
-    CUSTOM_DATA = 11,
+    ACCELEROMETER_DATA = 11,
+    GYROSCOPE_DATA = 12,
+    MAGNETOMETER_DATA = 13,
+    IMU_DATA = 14,
+    GPS_DATA = 15,
+    CUSTOM_DATA = 16,
     SHUTDOWN = 99
 };
 

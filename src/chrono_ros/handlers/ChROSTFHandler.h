@@ -70,6 +70,9 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     /// @brief Initializes the handler (no-op in IPC mode, broadcaster in subprocess)
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::TF_DATA; }
+
     /// Extract transform data for IPC transmission to subprocess
     /// Computes all transforms, serializes into variable-size byte array
     /// Format: ipc::TFData header + array of ipc::TFTransform structs (see ChROSIPCMessage.h)

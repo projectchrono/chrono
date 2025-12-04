@@ -65,10 +65,6 @@ class CH_ROS_API ChROSManager {
   private:
     std::shared_ptr<ChROSInterface> m_interface;
     std::vector<std::shared_ptr<ChROSHandler>> m_handlers;
-    
-    /// Determine the IPC message type for a given handler
-    /// This is the central place for handler type identification
-    ipc::MessageType GetHandlerMessageType(std::shared_ptr<ChROSHandler> handler);
 };
 
 /// @}
