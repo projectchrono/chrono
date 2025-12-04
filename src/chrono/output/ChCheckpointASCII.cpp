@@ -19,9 +19,11 @@
 #include <iomanip>
 #include <iostream>
 
-#include "chrono/physics/ChLinkLock.h"
-#include "chrono/physics/ChLinkUniversal.h"
-#include "chrono/physics/ChLinkDistance.h"
+#include "chrono/physics/ChLinkMotorLinearSpeed.h"
+#include "chrono/physics/ChLinkMotorLinearDriveline.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChLinkMotorRotationDriveline.h"
+#include "chrono/physics/ChShaftsMotorSpeed.h"
 
 #include "chrono/output/ChCheckpointASCII.h"
 
@@ -193,21 +195,28 @@ void ChCheckpointASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>&
 void ChCheckpointASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
     TestTypeComponent();
 
-    //// TODO - any states?
+    // No states
 }
 
 void ChCheckpointASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     TestTypeComponent();
 
-    //// TODO - ChShaftsMotorSpeed
+    for (const auto& motor : couples) {
+        if (auto motor_speed = std::dynamic_pointer_cast<ChShaftsMotorSpeed>(motor)) {
+            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_np += 1;
+        }
+    }
 }
 
 void ChCheckpointASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     TestTypeComponent();
 
     for (const auto& spring : springs) {
-        if (spring->GetStates().size() > 0)
+        auto num_states = spring->GetStates().size();
+        if (num_states > 0)
             m_csv << spring->GetStates() << endl;
+        m_np += num_states;
     }
 }
 
@@ -220,19 +229,44 @@ void ChCheckpointASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLink
 void ChCheckpointASCII::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
     TestTypeComponent();
 
-    //// TODO - any states?
+    // No states
 }
 
 void ChCheckpointASCII::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
     TestTypeComponent();
 
-    //// TODO - ChLinkMotorLinearSpeed, ChLinkMotorLinearDriveline
+    for (const auto& motor : motors) {
+        if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(motor)) {
+            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_np += 1;
+        } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorLinearDriveline>(motor)) {
+            auto s1 = motor_drvl->GetInnerShaft1Lin();
+            auto s2 = motor_drvl->GetInnerShaft2Lin();
+            auto s3 = motor_drvl->GetInnerShaft2Rot();
+            m_csv << s1->GetPos() << s2->GetPos() << s3->GetPos()                 //
+                  << s1->GetPosDt() << s2->GetPosDt() << s3->GetPosDt() << endl;  //
+            m_np += 3;
+            m_nv += 3;
+        }
+    }
 }
 
 void ChCheckpointASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
     TestTypeComponent();
 
-    //// TODO - ChLinkMotorRotationSpeed, ChLinkMotorRotationDriveline
+    for (const auto& motor : motors) {
+        if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorRotationSpeed>(motor)) {
+            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_np += 1;
+        } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorRotationDriveline>(motor)) {
+            auto s1 = motor_drvl->GetInnerShaft1();
+            auto s2 = motor_drvl->GetInnerShaft2();
+            m_csv << s1->GetPos() << s2->GetPos()               //
+                  << s1->GetPosDt() << s2->GetPosDt() << endl;  //
+            m_np += 2;
+            m_nv += 2;
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -290,14 +324,24 @@ void ChCheckpointASCII::ReadJoints(std::vector<std::shared_ptr<ChLink>>& joints)
     TestOpen();
     TestTypeComponent();
 
-    //// TODO - any states?
+    // No states
 }
 
 void ChCheckpointASCII::ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     TestOpen();
     TestTypeComponent();
 
-    //// TODO - ChShaftsMotorSpeed
+    double state;
+
+    std::string line;
+    for (const auto& couple : couples) {
+        if (auto motor_speed = std::dynamic_pointer_cast<ChShaftsMotorSpeed>(couple)) {
+            std::getline(m_ifile, line);
+            std::istringstream iss(line);
+            iss >> state;
+            motor_speed->Variables().State()(0, 0) = state;
+        }
+    }
 }
 
 void ChCheckpointASCII::ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
@@ -329,21 +373,70 @@ void ChCheckpointASCII::ReadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBody
     TestOpen();
     TestTypeComponent();
 
-    //// TODO - any states?
+    // No states
 }
 
 void ChCheckpointASCII::ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
     TestOpen();
     TestTypeComponent();
 
-    //// TODO - ChLinkMotorLinearSpeed, ChLinkMotorLinearDriveline
+    double state;
+
+    double pos1, pos2, pos3;
+    double pos1_dt, pos2_dt, pos3_dt;
+
+    std::string line;
+    for (const auto& motor : motors) {
+        if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(motor)) {
+            std::getline(m_ifile, line);
+            std::istringstream iss(line);
+            iss >> state;
+            motor_speed->Variables().State()(0, 0) = state;
+        } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorLinearDriveline>(motor)) {
+            std::getline(m_ifile, line);
+            std::istringstream iss(line);
+            iss >> pos1 >> pos2 >> pos3 >> pos1_dt >> pos2_dt >> pos3_dt;
+            auto s1 = motor_drvl->GetInnerShaft1Lin();
+            auto s2 = motor_drvl->GetInnerShaft2Lin();
+            auto s3 = motor_drvl->GetInnerShaft2Rot();
+            s1->SetPos(pos1);
+            s2->SetPos(pos2);
+            s3->SetPos(pos3);
+            s1->SetPosDt(pos1_dt);
+            s2->SetPosDt(pos2_dt);
+            s3->SetPosDt(pos3_dt);
+        }
+    }
 }
 
 void ChCheckpointASCII::ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
     TestOpen();
     TestTypeComponent();
 
-    //// TODO - ChLinkMotorRotationSpeed, ChLinkMotorRotationDriveline
+    double state;
+
+    double pos1, pos2;
+    double pos1_dt, pos2_dt;
+
+    std::string line;
+    for (const auto& motor : motors) {
+        if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorRotationSpeed>(motor)) {
+            std::getline(m_ifile, line);
+            std::istringstream iss(line);
+            iss >> state;
+            motor_speed->Variables().State()(0, 0) = state;
+        } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorRotationDriveline>(motor)) {
+            std::getline(m_ifile, line);
+            std::istringstream iss(line);
+            iss >> pos1 >> pos2 >> pos1_dt >> pos2_dt;
+            auto s1 = motor_drvl->GetInnerShaft1();
+            auto s2 = motor_drvl->GetInnerShaft2();
+            s1->SetPos(pos1);
+            s2->SetPos(pos2);
+            s1->SetPosDt(pos1_dt);
+            s2->SetPosDt(pos2_dt);
+        }
+    }
 }
 
 }  // namespace chrono
