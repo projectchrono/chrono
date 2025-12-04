@@ -63,7 +63,6 @@ except ImportError as e:
 #include "chrono/physics/ChBody.h"
 #include "chrono/core/ChFrame.h"
 
-#include "chrono_ros/ipc/ChROSIPCMessage.h"
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/ChROSHandler.h"
 #include "chrono_ros/ChROSInterface.h"
@@ -91,7 +90,6 @@ except ImportError as e:
 
 using namespace chrono;
 using namespace chrono::ros;
-using namespace chrono::ros::ipc;
 
 %}
 
@@ -185,9 +183,6 @@ using namespace chrono::ros::ipc;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 
 %include "../../../chrono/core/ChFrame.h"    
-
-%include "../../../chrono_ros/ipc/ChROSIPCMessage.h"
-using namespace chrono::ros::ipc;
 
 %include "../../../chrono_ros/ChROSManager.h"
 %include "../../../chrono_ros/ChROSHandler.h"

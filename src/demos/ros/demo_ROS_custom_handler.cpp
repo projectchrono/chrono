@@ -26,7 +26,6 @@
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/ChROSHandler.h"
-#include "chrono_ros/handlers/ChROSUserHandler.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
 #include "chrono_ros/handlers/ChROSTFHandler.h"
 #include "chrono_ros/handlers/ChROSBodyHandler.h"
@@ -40,19 +39,9 @@ using namespace chrono::ros;
 
 // =============================================================================
 
-using namespace chrono;
-using namespace chrono::ros;
-
-// =============================================================================
-
-// Define a simple POD struct for data transfer
-struct MyCustomData {
-    int64_t ticker_value;
-};
-
-class MyCustomHandler : public ChROSUserHandler<MyCustomData> {
+class MyCustomHandler : public ChROSHandler {
   public:
-    MyCustomHandler(const std::string& topic) : ChROSUserHandler(1), m_topic(topic), m_ticker(0) {}
+    MyCustomHandler(const std::string& topic) : ChROSHandler(1), m_topic(topic), m_ticker(0) {}
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override {
         std::cout << "Creating publisher for topic " << m_topic << " ..." << std::endl;
@@ -60,33 +49,18 @@ class MyCustomHandler : public ChROSUserHandler<MyCustomData> {
         return true;
     }
 
-    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::CUSTOM_DATA; }
-
-    // Data extraction (Main Process)
-    // Simply fill the struct with data from the simulation
-    virtual bool FillData(MyCustomData& data, double time) override {
-        m_ticker++; // Increment counter in main process
-        data.ticker_value = m_ticker;
-        return true; // Return true to send data
-    }
-
-    // ROS Publishing (Subprocess)
-    // Receive the struct and publish it to ROS
-    virtual void PublishData(const MyCustomData& data, std::shared_ptr<ChROSInterface> interface) override {
-        std::cout << "Publishing " << data.ticker_value << " ..." << std::endl;
-        std_msgs::msg::Int64 msg;
-        msg.data = data.ticker_value;
-        m_publisher->publish(msg);
-    }
-
     virtual void Tick(double time) override {
-        // No-op in IPC mode. Logic moved to FillData/PublishData.
+        std::cout << "Publishing " << m_ticker << " ..." << std::endl;
+        std_msgs::msg::Int64 msg;
+        msg.data = m_ticker;
+        m_publisher->publish(msg);
+        m_ticker++;
     }
 
   private:
     const std::string m_topic;
     rclcpp::Publisher<std_msgs::msg::Int64>::SharedPtr m_publisher;
-    int64_t m_ticker;
+    int m_ticker;
 };
 
 // =============================================================================
