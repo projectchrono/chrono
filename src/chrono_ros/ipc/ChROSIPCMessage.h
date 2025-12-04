@@ -37,7 +37,9 @@ enum class MessageType : uint32_t {
     DRIVER_INPUTS = 6,  ///< Bidirectional: subprocess subscriber -> main process
     VIPER_DC_MOTOR_CONTROL = 7,  ///< Bidirectional: subprocess subscriber -> main process
     CAMERA_DATA = 8,  ///< Publisher: main process -> subprocess ROS
-    CUSTOM_DATA = 9,
+    LIDAR_POINTCLOUD = 9,
+    LIDAR_LASERSCAN = 10,
+    CUSTOM_DATA = 11,
     SHUTDOWN = 99
 };
 

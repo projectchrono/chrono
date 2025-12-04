@@ -50,11 +50,19 @@ class CH_ROS_API ChROSLidarHandler : public ChROSHandler {
     /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
+    /// Get serialized data for IPC
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
+
+    /// Get the message type of this handler
+    ChROSLidarHandlerMessageType GetMessageType() const { return m_type; }
+
   protected:
     virtual void Tick(double time) override;
 
   private:
     std::shared_ptr<ChROSLidarHandlerImpl> m_impl;
+    double m_last_publish_time = -1.0;
+    ChROSLidarHandlerMessageType m_type;
 };
 
 /// @} ros_sensor_handlers

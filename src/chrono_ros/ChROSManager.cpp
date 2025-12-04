@@ -28,6 +28,7 @@
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 #include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 
 #include "chrono/core/ChTypes.h"
 
@@ -164,6 +165,14 @@ ipc::MessageType ChROSManager::GetHandlerMessageType(std::shared_ptr<ChROSHandle
     
     if (std::dynamic_pointer_cast<ChROSCameraHandler>(handler)) {
         return ipc::MessageType::CAMERA_DATA;
+    }
+
+    if (auto lidar_handler = std::dynamic_pointer_cast<ChROSLidarHandler>(handler)) {
+        if (lidar_handler->GetMessageType() == ChROSLidarHandlerMessageType::POINT_CLOUD2) {
+            return ipc::MessageType::LIDAR_POINTCLOUD;
+        } else {
+            return ipc::MessageType::LIDAR_LASERSCAN;
+        }
     }
     
     // Add more handler types here as they're implemented
