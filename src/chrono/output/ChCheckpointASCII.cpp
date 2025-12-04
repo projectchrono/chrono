@@ -88,7 +88,7 @@ void ChCheckpointASCII::OpenFile(const std::string& filename) {
     }
 }
 
-void ChCheckpointASCII::TestOpen() const {
+void ChCheckpointASCII::CheckIfOpen() const {
     if (!m_ifile.is_open()) {
         cerr << "Error: input checkpoint file not open" << endl;
         throw std::runtime_error("Input checkpoint file not open");
@@ -98,7 +98,7 @@ void ChCheckpointASCII::TestOpen() const {
 // -----------------------------------------------------------------------------
 
 void ChCheckpointASCII::WriteState(ChSystem* sys) {
-    TestTypeSystem();
+    CheckIfSystemType();
 
     m_np = sys->GetNumCoordsPosLevel();
     m_nv = sys->GetNumCoordsVelLevel();
@@ -112,8 +112,8 @@ void ChCheckpointASCII::WriteState(ChSystem* sys) {
 }
 
 void ChCheckpointASCII::ReadState(ChSystem* sys) {
-    TestOpen();
-    TestTypeSystem();
+    CheckIfOpen();
+    CheckIfSystemType();
 
     // Force a calculation of state counters
     sys->Setup();
@@ -157,13 +157,13 @@ void ChCheckpointASCII::ReadState(ChSystem* sys) {
 // -----------------------------------------------------------------------------
 
 void ChCheckpointASCII::WriteTime(double time) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     m_csv << time << endl;
 }
 
 void ChCheckpointASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     for (const auto& body : bodies) {
         const auto& pos = body->GetPos();
@@ -179,7 +179,7 @@ void ChCheckpointASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& 
 }
 
 void ChCheckpointASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     for (const auto& shaft : shafts) {
         double pos = shaft->GetPos();
@@ -193,13 +193,13 @@ void ChCheckpointASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>&
 }
 
 void ChCheckpointASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     // No states
 }
 
 void ChCheckpointASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     for (const auto& motor : couples) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChShaftsMotorSpeed>(motor)) {
@@ -210,7 +210,7 @@ void ChCheckpointASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsC
 }
 
 void ChCheckpointASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     for (const auto& spring : springs) {
         auto num_states = spring->GetStates().size();
@@ -221,19 +221,19 @@ void ChCheckpointASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLink
 }
 
 void ChCheckpointASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     // No states
 }
 
 void ChCheckpointASCII::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     // No states
 }
 
 void ChCheckpointASCII::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(motor)) {
@@ -252,7 +252,7 @@ void ChCheckpointASCII::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkM
 }
 
 void ChCheckpointASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
-    TestTypeComponent();
+    CheckIfComponentType();
 
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorRotationSpeed>(motor)) {
@@ -272,8 +272,8 @@ void ChCheckpointASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkM
 // -----------------------------------------------------------------------------
 
 void ChCheckpointASCII::ReadTime(double& time) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     std::string line;
     std::getline(m_ifile, line);
@@ -282,8 +282,8 @@ void ChCheckpointASCII::ReadTime(double& time) {
 }
 
 void ChCheckpointASCII::ReadBodies(std::vector<std::shared_ptr<ChBody>>& bodies) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     ChVector3d pos;
     ChQuaterniond rot;
@@ -304,8 +304,8 @@ void ChCheckpointASCII::ReadBodies(std::vector<std::shared_ptr<ChBody>>& bodies)
 }
 
 void ChCheckpointASCII::ReadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     double pos;
     double pos_dt;
@@ -321,15 +321,15 @@ void ChCheckpointASCII::ReadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts
 }
 
 void ChCheckpointASCII::ReadJoints(std::vector<std::shared_ptr<ChLink>>& joints) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     // No states
 }
 
 void ChCheckpointASCII::ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     double state;
 
@@ -345,8 +345,8 @@ void ChCheckpointASCII::ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>
 }
 
 void ChCheckpointASCII::ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     std::string line;
     for (auto& spring : springs) {
@@ -363,22 +363,22 @@ void ChCheckpointASCII::ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>&
 }
 
 void ChCheckpointASCII::ReadRotSprings(std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     // No states
 }
 
 void ChCheckpointASCII::ReadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     // No states
 }
 
 void ChCheckpointASCII::ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     double state;
 
@@ -410,8 +410,8 @@ void ChCheckpointASCII::ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLin
 }
 
 void ChCheckpointASCII::ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
-    TestOpen();
-    TestTypeComponent();
+    CheckIfOpen();
+    CheckIfComponentType();
 
     double state;
 

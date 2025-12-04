@@ -106,10 +106,10 @@ RigidTerrain CreateTerrain(ChSystem* sys, const std::vector<ChVector3d>& targets
 
     // Add visualization for target locations
     auto target_shape = chrono_types::make_shared<ChVisualShapeCone>(0.5, 2.0);
-    target_shape->SetColor(ChColor(1, 1, 0));
+    target_shape->SetColor(ChColor(1, 0, 0));
     for (const auto target : targets) {
         patch->GetGroundBody()->GetVisualModel()->AddShape(
-            target_shape, ChFramed(target + ChVector3d(0, 0, 1), QuatFromAngleX(CH_PI)));
+            target_shape, ChFramed(target + ChVector3d(0, 0, 1.1), QuatFromAngleX(CH_PI)));
     }
 
     return terrain;
@@ -130,7 +130,7 @@ void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     ChVector3d path_dir = target_pose.GetRotMat().GetAxisX();
     ChVector3d path_start = target_pose.GetPos() - path_length * path_dir;
     ChVector3d path_end = target_pose.GetPos() + 20.0 * path_dir;
-    auto path = StraightLinePath(path_start, path_end, 1);
+    auto path = StraightLinePath(path_start + ChVector3d(0, 0, 0.1), path_end + ChVector3d(0, 0, 0.1));
 
     // Contact method
     ChContactMethod contact_method = ChContactMethod::SMC;
@@ -281,8 +281,10 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
     vehicle_2.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/vehicle_checkpoint.txt");
 
     // Create the terrain
-    const auto& pos_1 = vehicle_1.GetPos();
-    const auto& pos_2 = vehicle_2.GetPos();
+    ChVector3d pos_1 = vehicle_1.GetPos();
+    ChVector3d pos_2 = vehicle_2.GetPos();
+    pos_1.z() = 0;
+    pos_2.z() = 0;
     cout << "Position 1: " << pos_1 << endl;
     cout << "Position 2: " << pos_2 << endl;
     RigidTerrain terrain = CreateTerrain(&sys, {pos_1, pos_2});

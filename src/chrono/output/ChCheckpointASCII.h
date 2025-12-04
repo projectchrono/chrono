@@ -73,7 +73,7 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
     virtual void ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
   private:
-    void TestOpen() const;
+    void CheckIfOpen() const;
 
     utils::ChWriterCSV m_csv;  ///< output checkpoint CSV
     std::ifstream m_ifile;     ///< input checkpoint file
