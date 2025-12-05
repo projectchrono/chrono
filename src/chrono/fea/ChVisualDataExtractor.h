@@ -90,10 +90,16 @@ template <typename Derived, class T_field_data, class T_data_location = DataAtNo
 class ChVisualDataExtractorScalar : public ChVisualDataExtractorScalarBase {
 public:
     std::optional<double> Extract(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->ExtractImpl(typed_data);
-        }
-        return std::nullopt;
+        std::optional<double> result = std::nullopt;
+        if (data) data->VisitTree([&](ChFieldData* subdata)->bool {
+                if (const auto* typed_data = dynamic_cast<T_field_data*>(subdata)) {
+                    result = this->ExtractImpl(typed_data);
+                    return false;  // stop traversal, we found what we need
+                }
+                return true;  // continue traversal of sub data, if any
+            }
+        );
+        return result;
     }
     virtual double ExtractImpl(const T_field_data* fdata) const = 0;
 
@@ -159,10 +165,16 @@ template <typename Derived, class T_field_data, class T_data_location = DataAtNo
 class ChVisualDataExtractorVector : public ChVisualDataExtractorVectorBase {
 public:
     std::optional<ChVector3d> Extract(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->ExtractImpl(typed_data);
-        }
-        return std::nullopt;
+        std::optional<ChVector3d> result = std::nullopt;
+        if (data) data->VisitTree([&](ChFieldData* subdata)->bool {
+                if (const auto* typed_data = dynamic_cast<T_field_data*>(subdata)) {
+                    result = this->ExtractImpl(typed_data);
+                    return false;  // stop traversal, we found what we need
+                }
+                return true;  // continue traversal of sub data, if any
+            }
+        );
+        return result;
     }
     virtual ChVector3d ExtractImpl(const T_field_data* fdata) const = 0;
 
@@ -273,10 +285,16 @@ template <typename Derived, class T_field_data, class T_data_location = DataAtNo
 class ChVisualDataExtractorMatrix33 : public ChVisualDataExtractorMatrix33Base {
 public:
     std::optional<ChMatrix33d> Extract(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->ExtractImpl(typed_data);
-        }
-        return std::nullopt;
+        std::optional<ChMatrix33d> result = std::nullopt;
+        if (data) data->VisitTree([&](ChFieldData* subdata)->bool {
+                if (const auto* typed_data = dynamic_cast<T_field_data*>(subdata)) {
+                    result = this->ExtractImpl(typed_data);
+                    return false;  // stop traversal, we found what we need
+                }
+                return true;  // continue traversal of sub data, if any
+            }
+        );
+        return result;
     }
     virtual ChMatrix33d ExtractImpl(const T_field_data* fdata) const = 0;
 
@@ -319,10 +337,16 @@ template <typename Derived, class T_field_data, class T_data_location = DataAtNo
 class ChVisualDataExtractorQuaternion : public ChVisualDataExtractorQuaternionBase {
 public:
     std::optional<ChQuaternion<double>> Extract(ChFieldData* data) const override {
-        if (const auto* typed_data = dynamic_cast<T_field_data*>(data)) {
-            return this->ExtractImpl(typed_data);
-        }
-        return std::nullopt;
+        std::optional<ChQuaternion<double>> result = std::nullopt;
+        if (data) data->VisitTree([&](ChFieldData* subdata)->bool {
+                if (const auto* typed_data = dynamic_cast<T_field_data*>(subdata)) {
+                    result = this->ExtractImpl(typed_data);
+                    return false;  // stop traversal, we found what we need
+                }
+                return true;  // continue traversal of sub data, if any
+            }
+        );
+        return result;
     }
     virtual ChQuaternion<double> ExtractImpl(const T_field_data* fdata) const = 0;
 
