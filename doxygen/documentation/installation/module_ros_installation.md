@@ -16,6 +16,8 @@ For more detail, read the [Chrono::ROS](@ref manual_ros) section of the referenc
   - ROS 2 Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended. A Docker image with Chrono::ROS built is available [here](https://hub.docker.com/r/uwsbel/projectchrono).
   - NOTE: All ROS 2 packages required by Chrono::ROS are included in the base ROS 2 installation.
 
+  SHM
+
 ## Optional Dependencies
 
   - Some features (detailed in the [reference manual](@ref manual_ros)) are conditionally built based on some optional dependencies. These dependencies include:

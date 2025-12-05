@@ -19,6 +19,7 @@
 #include "chrono_ros/ChROSInterface.h"
 
 #include "chrono/core/ChTypes.h"
+#include <iostream>
 
 namespace chrono {
 namespace ros {
@@ -29,7 +30,6 @@ void ChROSInterface::Initialize(rclcpp::NodeOptions options) {
     // Initialize only once
     // TODO: Is there any use case for argc and argv as parameters to rclcpp::init?
     if (!rclcpp::ok()) {
-        std::cout << "Initializing rclcpp." << std::endl;
         rclcpp::init(0, 0);
     }
 

@@ -250,13 +250,6 @@ if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   target_link_libraries(Chrono_ros PUBLIC Chrono_parsers)
 endif()
 
-# Enable IPC mode when VSG symbols will conflict with ROS
-# This happens when both PARSERS (which uses VSG) and VSG modules are enabled
-if (CH_ENABLE_MODULE_PARSERS AND CH_ENABLE_MODULE_VSG)
-  target_compile_definitions(Chrono_ros PRIVATE CHRONO_VSG)
-  message(STATUS "Chrono::ROS: VSG symbol collision detected - enabling IPC mode")
-endif()
-
 target_link_libraries(Chrono_ros PUBLIC ${ROS2_TARGETS})
 
 # Set some variables to be visible outside this directory

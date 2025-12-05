@@ -130,7 +130,6 @@ bool SubprocessManager::LaunchSubprocess() {
 #endif
     
     m_subprocess_running = true;
-    std::cout << "Launched ROS subprocess for node: " << m_node_name << std::endl;
     
     return true;
 }
@@ -161,7 +160,6 @@ void SubprocessManager::TerminateSubprocess() {
     }
 #else
     if (m_child_pid > 0) {
-        std::cout << "Terminating subprocess PID: " << m_child_pid << std::endl;
         
         // Send SIGTERM and wait
         kill(m_child_pid, SIGTERM);
@@ -171,14 +169,12 @@ void SubprocessManager::TerminateSubprocess() {
         for (int i = 0; i < 10; i++) {
             int wait_result = waitpid(m_child_pid, &status, WNOHANG);
             if (wait_result != 0) {
-                std::cout << "Subprocess terminated gracefully" << std::endl;
                 break;
             }
             usleep(100000);  // 100ms
             
             // After 1 second, force kill
             if (i == 9) {
-                std::cout << "Forcing subprocess termination with SIGKILL" << std::endl;
                 kill(m_child_pid, SIGKILL);
                 waitpid(m_child_pid, &status, 0);
             }
@@ -192,10 +188,7 @@ void SubprocessManager::TerminateSubprocess() {
     
     // Explicitly close IPC channel to ensure cleanup
     // This triggers SharedMemory destructor which calls shm_unlink
-    std::cout << "Cleaning up IPC channel..." << std::endl;
     m_channel.reset();
-    
-    std::cout << "Terminated ROS subprocess" << std::endl;
 }
 
 bool SubprocessManager::IsSubprocessRunning() const {

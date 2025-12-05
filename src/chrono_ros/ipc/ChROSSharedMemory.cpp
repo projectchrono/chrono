@@ -19,6 +19,10 @@
 #include "chrono_ros/ipc/ChROSSharedMemory.h"
 #include <stdexcept>
 #include <iostream>
+#include <atomic>
+#include <mutex>
+#include <signal.h>
+#include <cstring>
 
 #ifdef _WIN32
     #include <windows.h>
@@ -28,7 +32,70 @@
     #include <fcntl.h>
     #include <unistd.h>
     #include <cerrno>
-    #include <cstring>
+#endif
+
+#ifndef _WIN32
+namespace {
+constexpr int kMaxTrackedSharedMemory = 16;
+constexpr size_t kTrackedNameLength = 256;
+
+struct SharedMemoryTrackerEntry {
+    char path[kTrackedNameLength];
+    std::atomic<bool> active{false};
+};
+
+static SharedMemoryTrackerEntry g_shared_memory_tracker[kMaxTrackedSharedMemory];
+static std::atomic<int> g_tracked_total{0};
+static int g_next_tracker_index = 0;
+static std::mutex g_tracker_mutex;
+static std::once_flag g_signal_handlers_installed;
+
+void SharedMemorySignalHandler(int signal) {
+    int count = g_tracked_total.load(std::memory_order_acquire);
+    for (int i = 0; i < count; ++i) {
+        if (g_shared_memory_tracker[i].active.load(std::memory_order_acquire)) {
+            shm_unlink(g_shared_memory_tracker[i].path);
+        }
+    }
+    _Exit(128 + signal);
+}
+
+void InstallSharedMemorySignalHandlers() {
+    struct sigaction action{};
+    action.sa_handler = SharedMemorySignalHandler;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = 0;
+    sigaction(SIGINT, &action, nullptr);
+    sigaction(SIGTERM, &action, nullptr);
+#ifdef SIGQUIT
+    sigaction(SIGQUIT, &action, nullptr);
+#endif
+}
+
+int RegisterTrackedSharedMemory(const std::string& name) {
+    std::call_once(g_signal_handlers_installed, InstallSharedMemorySignalHandlers);
+
+    std::lock_guard<std::mutex> lock(g_tracker_mutex);
+    if (g_next_tracker_index >= kMaxTrackedSharedMemory) {
+        return -1;
+    }
+
+    int index = g_next_tracker_index++;
+    g_shared_memory_tracker[index].active.store(true, std::memory_order_release);
+    g_shared_memory_tracker[index].path[0] = '/';
+    std::strncpy(g_shared_memory_tracker[index].path + 1, name.c_str(), kTrackedNameLength - 2);
+    g_shared_memory_tracker[index].path[kTrackedNameLength - 1] = '\0';
+    g_tracked_total.store(g_next_tracker_index, std::memory_order_release);
+    return index;
+}
+
+void UnregisterTrackedSharedMemory(int index) {
+    if (index < 0 || index >= kMaxTrackedSharedMemory) {
+        return;
+    }
+    g_shared_memory_tracker[index].active.store(false, std::memory_order_release);
+}
+}  // namespace
 #endif
 
 namespace chrono {
@@ -36,7 +103,7 @@ namespace ros {
 namespace ipc {
 
 SharedMemory::SharedMemory(const std::string& name, size_t size, bool create_new)
-    : m_name(name), m_size(size), m_ptr(nullptr), m_created(create_new) {
+    : m_name(name), m_size(size), m_ptr(nullptr), m_created(create_new), m_signal_index(-1) {
     
 #ifdef _WIN32
     m_handle = nullptr;
@@ -83,7 +150,7 @@ SharedMemory::SharedMemory(const std::string& name, size_t size, bool create_new
         m_handle = nullptr;
         throw std::runtime_error("Failed to map shared memory: " + std::to_string(GetLastError()));
     }
-    
+
 #else  // Unix/Linux
     std::string shm_name = "/" + name;  // POSIX shared memory requires leading slash
     
@@ -112,7 +179,6 @@ SharedMemory::SharedMemory(const std::string& name, size_t size, bool create_new
         }
         m_size = sb.st_size;
     }
-    
     m_ptr = mmap(nullptr, m_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, 0);
     if (m_ptr == MAP_FAILED) {
         close(m_fd);
@@ -120,6 +186,10 @@ SharedMemory::SharedMemory(const std::string& name, size_t size, bool create_new
             shm_unlink(shm_name.c_str());
         }
         throw std::runtime_error("Failed to map shared memory: " + std::string(std::strerror(errno)));
+    }
+
+    if (create_new) {
+        m_signal_index = RegisterTrackedSharedMemory(name);
     }
 #endif
 }
@@ -133,8 +203,6 @@ void SharedMemory::Close() {
         return;
     }
     
-    std::cout << "[SharedMemory] Closing shared memory: " << m_name << ", created=" << m_created << std::endl;
-    
 #ifdef _WIN32
     UnmapViewOfFile(m_ptr);
     if (m_handle) {
@@ -147,15 +215,19 @@ void SharedMemory::Close() {
     
     if (m_created) {
         std::string shm_name = "/" + m_name;
-        std::cout << "[SharedMemory] Unlinking: " << shm_name << std::endl;
-        if (shm_unlink(shm_name.c_str()) == 0) {
-            std::cout << "[SharedMemory] Successfully unlinked" << std::endl;
-        } else {
+        if (shm_unlink(shm_name.c_str()) != 0) {
             std::cerr << "[SharedMemory] Failed to unlink: " << strerror(errno) << std::endl;
         }
     }
 #endif
     
+#ifndef _WIN32
+    if (m_signal_index >= 0) {
+        UnregisterTrackedSharedMemory(m_signal_index);
+        m_signal_index = -1;
+    }
+#endif
+
     m_ptr = nullptr;
 }
 

@@ -24,6 +24,7 @@
 #include "chrono_ros/ipc/ChROSIPCMessage.h"
 
 #include "chrono/core/ChTypes.h"
+#include <iostream>
 
 namespace chrono {
 namespace ros {
@@ -38,83 +39,35 @@ void ChROSManager::Initialize() {
     // Initialize the interface (launches subprocess in IPC mode)
     m_interface->Initialize();
 
-    // In IPC mode, skip handler initialization in main process
-    // Handlers are only initialized in the subprocess where ROS is safe to use
-    std::cout << "ChROSManager: IPC mode - handler initialization skipped in main process" << std::endl;
+    std::cout << "ChROSManager: IPC interface initialized" << std::endl;
 }
 
 bool ChROSManager::Update(double time, double step) {
-    static auto last_print = std::chrono::high_resolution_clock::now();
-    static int update_count = 0;
-    auto start_time = std::chrono::high_resolution_clock::now();
-    
     // IPC mode: Generic handler data collection and transmission
     // This approach works for ANY handler that implements GetSerializedData()
     auto ipc_interface = std::dynamic_pointer_cast<ChROSIPCInterface>(m_interface);
     if (ipc_interface) {
         // OUTGOING: Send handler data to subprocess
         for (auto handler : m_handlers) {
-            auto handler_start = std::chrono::high_resolution_clock::now();
-            
-            // Get serialized data from handler (no ROS symbols, safe!)
-            // Handler manages its own throttling via update rate
             auto data = handler->GetSerializedData(time);
-            
-            auto serialize_end = std::chrono::high_resolution_clock::now();
-            
             if (!data.empty()) {
-                // Determine message type based on handler type
-                ipc::MessageType msg_type = handler->GetMessageType();
-                
-                // Send via IPC to subprocess - if buffer full, silently drop frame
-                // This is standard practice for real-time sensor data
-                bool sent = ipc_interface->SendHandlerData(msg_type, data.data(), data.size());
-                
-                auto send_end = std::chrono::high_resolution_clock::now();
-                auto serialize_us = std::chrono::duration_cast<std::chrono::microseconds>(serialize_end - handler_start).count();
-                auto send_us = std::chrono::duration_cast<std::chrono::microseconds>(send_end - serialize_end).count();
-                
-                if (serialize_us > 1000 || send_us > 1000) {
-                    std::cout << "[TIMING] Handler serialize=" << serialize_us << "us, send=" << send_us 
-                              << "us, sent=" << sent << ", size=" << data.size() << std::endl;
-                }
+                ipc_interface->SendHandlerData(handler->GetMessageType(), data.data(), data.size());
             }
         }
-        
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto total_us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
-        
-        update_count++;
-        auto now = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - last_print).count();
-        if (elapsed >= 2) {
-            std::cout << "[PERF] Update() avg=" << (total_us) << "us, rate=" << (update_count / elapsed) << " Hz" << std::endl;
-            last_print = now;
-            update_count = 0;
-        }
-        
-        // INCOMING: Check for messages from subprocess (bidirectional subscribers)
-        // Reuse message buffer to avoid 64MB allocation per call
         static thread_local ipc::Message incoming_msg;
         while (ipc_interface->ReceiveMessage(incoming_msg)) {
-            std::cout << "[MAIN PROCESS] ✓ Received IPC message from subprocess, type=" 
-                      << static_cast<int>(incoming_msg.header.type) << std::endl;
-            
             // Dispatch to handler using virtual method
             bool handled = false;
             for (auto handler : m_handlers) {
-                if (handler->SupportsIncomingMessages()) {
-                    // Check if this handler handles this message type
-                    if (handler->GetMessageType() == incoming_msg.header.type) {
-                        handler->HandleIncomingMessage(incoming_msg);
-                        handled = true;
-                        break;
-                    }
+                if (handler->SupportsIncomingMessages() && handler->GetMessageType() == incoming_msg.header.type) {
+                    handler->HandleIncomingMessage(incoming_msg);
+                    handled = true;
+                    break;
                 }
             }
             
             if (!handled) {
-                std::cout << "[MAIN PROCESS] No handler for incoming message type " 
+                std::cerr << "ChROSManager: No handler for incoming message type "
                           << static_cast<int>(incoming_msg.header.type) << std::endl;
             }
         }

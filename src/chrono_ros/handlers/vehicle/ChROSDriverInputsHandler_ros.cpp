@@ -44,6 +44,7 @@
 #include "chrono_ros_interfaces/msg/driver_inputs.hpp"
 
 #include <cstring>
+#include <iostream>
 
 namespace chrono {
 namespace ros {
@@ -54,10 +55,6 @@ static ipc::IPCChannel* g_ipc_channel = nullptr;
 
 /// Callback when ROS message is received - sends via IPC back to main process
 void OnDriverInputsReceived(const chrono_ros_interfaces::msg::DriverInputs::SharedPtr msg) {
-    std::cout << "[SUBPROCESS] ✓ Received ROS DriverInputs: steering=" << msg->steering 
-              << ", throttle=" << msg->throttle 
-              << ", braking=" << msg->braking << std::endl;
-    
     if (g_ipc_channel) {
         // Pack data into IPC message
         ipc::DriverInputsData data;
@@ -74,9 +71,7 @@ void OnDriverInputsReceived(const chrono_ros_interfaces::msg::DriverInputs::Shar
         std::memcpy(ipc_msg.payload.get(), &data, sizeof(data));
         
         // Send to main process
-        if (g_ipc_channel->SendMessage(ipc_msg)) {
-            std::cout << "[SUBPROCESS] ✓ Sent DriverInputs via IPC to main process" << std::endl;
-        } else {
+        if (!g_ipc_channel->SendMessage(ipc_msg)) {
             std::cerr << "[SUBPROCESS] ✗ Failed to send DriverInputs via IPC" << std::endl;
         }
     } else {
@@ -102,13 +97,8 @@ void SetupDriverInputsSubscriber(const uint8_t* data, size_t data_size,
     
     // Create subscriber (only once)
     if (!g_driver_subscriber) {
-        std::cout << "[SUBPROCESS] Creating DriverInputs subscriber on topic: " << topic_name << std::endl;
-        std::cout << "[SUBPROCESS] Will send received messages back to main process via IPC" << std::endl;
-        
         g_driver_subscriber = node->create_subscription<chrono_ros_interfaces::msg::DriverInputs>(
             topic_name, 10, OnDriverInputsReceived);
-            
-        std::cout << "[SUBPROCESS] ✓ DriverInputs subscriber created successfully" << std::endl;
     }
 }
 

@@ -19,8 +19,6 @@
 #include "chrono_ros/ipc/ChROSRingBuffer.h"
 #include <stdexcept>
 #include <algorithm>
-#include <iostream>
-#include <unistd.h>  // for getpid()
 
 namespace chrono {
 namespace ros {
@@ -59,10 +57,6 @@ RingBuffer::RingBuffer(void* buffer, size_t size) {
     m_mask = m_data_size - 1;
     
     // DEBUG: Check initial values
-    size_t initial_head = *m_head;
-    size_t initial_tail = *m_tail;
-    std::cout << "[RingBuffer][PID=" << getpid() << "] Constructed at " << buffer << ": head=" << initial_head 
-              << ", tail=" << initial_tail << ", data_size=" << m_data_size << std::endl;
 }
 
 bool RingBuffer::Write(const void* data, size_t size) {
@@ -76,15 +70,6 @@ bool RingBuffer::Write(const void* data, size_t size) {
     // Check if we have enough space
     size_t available_space = m_data_size - (head - tail);
     
-    // DEBUG: Log first few writes
-    static int write_count = 0;
-    if (write_count < 5) {
-        std::cout << "[RingBuffer::Write][PID=" << getpid() << "] #" << write_count << " size=" << size 
-                  << ", head=" << head << ", tail=" << tail 
-                  << ", available_space=" << available_space 
-                  << ", m_head_addr=" << (void*)m_head << std::endl;
-        write_count++;
-    }
     
     if (size > available_space) {
         return false;  // Not enough space
@@ -174,14 +159,6 @@ bool RingBuffer::Read(void* data, size_t size) {
     // Check if we have enough data
     size_t available_data = head - tail;
     
-    // DEBUG: Log first few failed reads
-    static int fail_count = 0;
-    if (size > available_data && fail_count < 5) {
-        std::cout << "[RingBuffer::Read][PID=" << getpid() << "] FAILED: requested=" << size << ", available=" << available_data 
-                  << ", head=" << head << ", tail=" << tail 
-                  << ", m_head_addr=" << (void*)m_head << std::endl;
-        fail_count++;
-    }
     
     if (size > available_data) {
         return false;  // Not enough data

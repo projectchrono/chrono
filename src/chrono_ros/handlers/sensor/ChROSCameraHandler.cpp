@@ -49,9 +49,6 @@ bool ChROSCameraHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
         return false;
     }
 
-    std::cout << "ChROSCameraHandler initialized for topic " << m_topic_name 
-              << " with update rate " << GetUpdateRate() << " Hz" << std::endl;
-
     // In IPC mode, no ROS publisher created here - subprocess will create it
     return true;
 }

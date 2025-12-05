@@ -50,7 +50,6 @@ public:
         // CRITICAL: Set up parent death signal so subprocess dies if parent crashes
         // This prevents orphan ROS nodes from accumulating
         prctl(PR_SET_PDEATHSIG, SIGTERM);
-        std::cout << "Configured subprocess to terminate if parent dies" << std::endl;
 #endif
         
         // Initialize ROS
@@ -129,15 +128,9 @@ private:
 };
 
 int main(int argc, char* argv[]) {
-    std::cout << "=== SUBPROCESS STARTING ===" << std::endl;
-    std::cout << "Arguments received: " << argc << std::endl;
-    for (int i = 0; i < argc; ++i) {
-        std::cout << "  argv[" << i << "] = " << argv[i] << std::endl;
-    }
-    
     std::string node_name = "chrono_ros_node";
     std::string channel_name = "chrono_ros_ipc";
-    
+
     // Parse command line arguments
     for (int i = 1; i < argc - 1; ++i) {
         std::string arg = argv[i];
@@ -147,19 +140,14 @@ int main(int argc, char* argv[]) {
             channel_name = argv[++i];
         }
     }
-    
-    std::cout << "Parsed node_name: " << node_name << std::endl;
-    std::cout << "Parsed channel_name: " << channel_name << std::endl;
-    
+
     try {
-        std::cout << "Creating ChronoROSNode..." << std::endl;
         ChronoROSNode node(node_name, channel_name);
-        std::cout << "Starting node.Run()..." << std::endl;
         node.Run();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-    
+
     return 0;
 }

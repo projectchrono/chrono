@@ -56,6 +56,7 @@ private:
     size_t m_size;
     void* m_ptr;
     bool m_created;
+    int m_signal_index;
     
 #ifdef _WIN32
     void* m_handle;  // HANDLE

@@ -25,7 +25,6 @@
 #include "chrono_ros_interfaces/msg/viper_wheel_id.hpp"
 
 #include "rclcpp/rclcpp.hpp"
-#include <iostream>
 
 namespace chrono {
 namespace ros {
@@ -128,9 +127,6 @@ void SetupViperDCMotorControlSubscriber(const uint8_t* data, size_t data_size,
         10,
         OnViperDCMotorControlReceived
     );
-    
-    std::cout << "[SUBPROCESS] Created Viper DC Motor Control subscriber on topic: " 
-              << topic_name << std::endl;
 }
 
 // Register the handler

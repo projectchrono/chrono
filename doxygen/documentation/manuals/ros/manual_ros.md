@@ -6,3 +6,6 @@ Chrono::ROS Reference Manual {#manual_ros}
 * [Chrono::ROS tutorials](@ref tutorial_table_of_content_chrono_ros)
 
 More coming soon...
+
+
+Changelog as of Chrono9:

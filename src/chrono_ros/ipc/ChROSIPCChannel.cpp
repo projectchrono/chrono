@@ -19,7 +19,6 @@
 #include "chrono_ros/ipc/ChROSIPCChannel.h"
 #include <stdexcept>
 #include <cstring>
-#include <iostream>
 
 namespace chrono {
 namespace ros {
@@ -59,23 +58,15 @@ void IPCChannel::InitializeBuffers() {
     size_t total_size = m_shared_memory->GetSize();
     size_t buffer_size = total_size / 2;
     
-    std::cout << "[IPCChannel] " << (m_is_main_process ? "MAIN" : "SUB") 
-              << " - base_ptr=" << (void*)base_ptr 
-              << ", total_size=" << total_size 
-              << ", buffer_size=" << buffer_size << std::endl;
     
     // Main process writes to first buffer, reads from second
     // Subprocess writes to second buffer, reads from first
     if (m_is_main_process) {
         m_send_buffer = std::make_unique<RingBuffer>(base_ptr, buffer_size);
         m_receive_buffer = std::make_unique<RingBuffer>(base_ptr + buffer_size, buffer_size);
-        std::cout << "[IPCChannel] MAIN - send_buffer at " << (void*)base_ptr 
-                  << ", receive_buffer at " << (void*)(base_ptr + buffer_size) << std::endl;
     } else {
         m_send_buffer = std::make_unique<RingBuffer>(base_ptr + buffer_size, buffer_size);
         m_receive_buffer = std::make_unique<RingBuffer>(base_ptr, buffer_size);
-        std::cout << "[IPCChannel] SUB - send_buffer at " << (void*)(base_ptr + buffer_size)
-                  << ", receive_buffer at " << (void*)base_ptr << std::endl;
     }
 }
 
