@@ -41,6 +41,7 @@ public:
     ChMatrix33d F_t_inv;/// thermal deformation gradient tensor, inverse
     ChMatrix33d F_m;    /// mechanical deformation gradient tensor
     ChVector3d  q_flux; /// heat flux
+    ChVoightTensor<> S_pk2; /// stress as 2nd Piola-Kirchhoff stress tensor in Voigt notation
     
     // by the way this could have been also: 
     // ChFieldDataAuxiliaryThermal aux_thermal;      // with "q_flux"
@@ -152,6 +153,7 @@ public:
             ChMatrixDynamic<> dot_x_hh(3, melement->GetNumNodes());
             this->GetFieldPackedStateBlockDt(melement, data, dot_x_hh, i_field_displ); // dot_x_hh = [v1 | v2 | v3 | v4..]
             l = dot_x_hh * dNde.transpose() * J_x.inverse();
+            a_l = &l;
         }
 
         // Compute  2nd Piola-Kirchhoff tensor in Voigt notation using the constitutive relation of material
@@ -199,6 +201,7 @@ public:
         data.matpoints_data_aux[i_point].F_m = F_m;
         data.matpoints_data_aux[i_point].F_t_inv = F_t_inv;
         data.matpoints_data_aux[i_point].q_flux = q_flux;
+        data.matpoints_data_aux[i_point].S_pk2 = S_stress;
     }
 
     /// Sets matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
@@ -458,31 +461,50 @@ public:
         }
     };
 
-    /// Extract the  C=F^T*F  right Cauchy-Green deformation tensor (should be plotted on material undeformed space)
+    /// Extract the  C=F^T*F  right Cauchy-Green deformation tensor (should be plotted on material undeformed configuration)
     class ExtractRightCauchyGreenC : public ChVisualDataExtractorMatrix33<ExtractRightCauchyGreenC, ChFieldDataAuxiliaryThermoDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryThermoDeformation* fdata)  const override {
             return fdata->F.transpose() * fdata->F;
         }
     };
 
-    /// Extract the  B=F*F^T left Cauchy-Green deformation tensor (should be plotted on spatial deformed space)
+    /// Extract the  B=F*F^T left Cauchy-Green deformation tensor (should be plotted on spatial deformed configuration)
     class ExtractLeftCauchyGreenB : public ChVisualDataExtractorMatrix33<ExtractLeftCauchyGreenB, ChFieldDataAuxiliaryThermoDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryThermoDeformation* fdata)  const override {
             return fdata->F * fdata->F.transpose();
         }
     };
 
-    /// Extract the E=1/2(F^T*F - I)  Green-Lagrange strain tensor (should be plotted on material undeformed space)
+    /// Extract the E=1/2(F^T*F - I)  Green-Lagrange strain tensor (should be plotted on material undeformed configuration)
     class ExtractGreenLagrangeStrain : public ChVisualDataExtractorMatrix33<ExtractGreenLagrangeStrain, ChFieldDataAuxiliaryThermoDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryThermoDeformation* fdata)  const override {
             return 0.5 * (fdata->F.transpose() * fdata->F - ChMatrix33d(1));
         }
     };
 
-    /// Extract the e=1/2(I- (F*F^T)^-1)  Euler-Almansi strain tensor (should be plotted on spatial deformed space)
+    /// Extract the e=1/2(I- (F*F^T)^-1)  Euler-Almansi strain tensor (should be plotted on spatial deformed configuration)
     class ExtractEulerAlmansiStrain : public ChVisualDataExtractorMatrix33<ExtractEulerAlmansiStrain, ChFieldDataAuxiliaryThermoDeformation, DataAtMaterialpoint> {
         virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryThermoDeformation* fdata)  const override {
             return 0.5 * (ChMatrix33d(1) - (fdata->F * fdata->F.transpose()).inverse());
+        }
+    };
+
+    /// Extract the stress, as 2nd Piola-Kirchhoff tensor (should be plotted on material undeformed configuration)
+    class ExtractStress2ndPiolaKirchhoff : public ChVisualDataExtractorMatrix33<ExtractStress2ndPiolaKirchhoff, ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+        virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
+            ChMatrix33d S;
+            fdata->S_pk2.ConvertToMatrix(S);
+            return S;
+        }
+    };
+
+    /// Extract the stress, as Cauchy true stress tensor (should be plotted on spatial deformed configuration)
+    class ExtractStressCauchy : public ChVisualDataExtractorMatrix33<ExtractStressCauchy, ChFieldDataAuxiliaryDeformation, DataAtMaterialpoint> {
+        virtual ChMatrix33d ExtractImpl(const ChFieldDataAuxiliaryDeformation* fdata)  const override {
+            ChMatrix33d S;
+            fdata->S_pk2.ConvertToMatrix(S);
+            double det_J = fdata->F.determinant();
+            return (1.0 / det_J) * fdata->F * S * fdata->F.transpose();
         }
     };
 
