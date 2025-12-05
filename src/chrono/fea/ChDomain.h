@@ -552,6 +552,8 @@ public:
         double Rpfactor = 0,
         double Mpfactor = 0) = 0;
 
+    /// Compute updates (ex. plastic flow, increments, etc.) at the end of a time step. 
+    /// This may happen less frequently than a full Update. 
     virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
         DataPerElement& data,
         const int i_point,
@@ -570,17 +572,19 @@ public:
 
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    // Set node offsets in state vectors (based on the offsets of the containing mesh)
-                    mpointstate->DataSetOffsetPosLevel(GetOffset_x() + n_dofs);
-                    mpointstate->DataSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        // Set node offsets in state vectors (based on the offsets of the containing mesh)
+                        mpointstate->DataSetOffsetPosLevel(GetOffset_x() + n_dofs);
+                        mpointstate->DataSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
 
-                    // Count the actual degrees of freedom (consider only nodes that are not fixed)
+                        // Count the actual degrees of freedom (consider only nodes that are not fixed)
                         if (!mpointstate->IsFixed()) {
                             n_dofs += mpointstate->GetNumCoordsPosLevel();
                             n_dofs_w += mpointstate->GetNumCoordsVelLevel();
                         }
-                }
+                    }
+                });
             }
         }
     };
@@ -630,13 +634,15 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                        local_off_x += mpointstate->GetNumCoordsPosLevel();
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
         T = GetChTime();
@@ -654,13 +660,15 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
-                        local_off_x += mpointstate->GetNumCoordsPosLevel();
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
         Update(T, full_update);
@@ -673,12 +681,14 @@ public:
         unsigned int local_off_a = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntStateGatherAcceleration(off_a + local_off_a, a);
-                        local_off_a += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateGatherAcceleration(off_a + local_off_a, a);
+                            local_off_a += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
     }
@@ -690,12 +700,14 @@ public:
         unsigned int local_off_a = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntStateScatterAcceleration(off_a + local_off_a, a);
-                        local_off_a += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateScatterAcceleration(off_a + local_off_a, a);
+                            local_off_a += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
     }
@@ -713,13 +725,15 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                        local_off_x += mpointstate->GetNumCoordsPosLevel();
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
     }
@@ -737,13 +751,15 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-                        local_off_x += mpointstate->GetNumCoordsPosLevel();
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
     }
@@ -758,12 +774,14 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntLoadResidual_F(off + local_off_v, R, c);
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntLoadResidual_F(off + local_off_v, R, c);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
 
@@ -802,12 +820,14 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntLoadResidual_Mv(off + local_off_v, R, w, c);
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntLoadResidual_Mv(off + local_off_v, R, w, c);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
 
@@ -864,12 +884,14 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
         // Md   caused by elements, based on mass matrix of the element
@@ -907,12 +929,14 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntToDescriptor(off_v + local_off_v, v, R);
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntToDescriptor(off_v + local_off_v, v, R);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
     }
@@ -927,12 +951,14 @@ public:
         unsigned int local_off_v = 0;
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    if (!mpointstate->IsFixed()) {
-                        mpointstate->DataIntFromDescriptor(off_v + local_off_v, v);
-                        local_off_v += mpointstate->GetNumCoordsVelLevel();
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntFromDescriptor(off_v + local_off_v, v);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
                     }
-                }
+                });
             }
         }
     }
@@ -940,9 +966,11 @@ public:
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override {
         for (auto& mel : this->element_datamap) {
             for (auto& matpoint : mel.second.matpoints_data) {
-                if (ChFieldDataState* mfielddata = dynamic_cast<ChFieldDataState*>(matpoint.get())) {
-                    mfielddata->InjectVariables(descriptor);
-                }
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mfielddata = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        mfielddata->InjectVariables(descriptor);
+                    }
+                });
             }
         }
     }
