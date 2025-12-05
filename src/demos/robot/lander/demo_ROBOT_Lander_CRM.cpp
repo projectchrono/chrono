@@ -33,7 +33,6 @@
 #include "chrono/physics/ChContactMaterialNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
