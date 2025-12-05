@@ -32,7 +32,7 @@ ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector3d& dir_mo
     : ChEngine(name), m_dir_motor_block(dir_motor_block) {}
 
 ChEngineShafts::~ChEngineShafts() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_engine->GetSystem();
@@ -104,6 +104,16 @@ void ChEngineShafts::Synchronize(double time, const DriverInputs& driver_inputs,
 
     // Update the throttle level in the thermal engine
     m_engine->SetThrottle(driver_inputs.m_throttle);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChEngineShafts::PopulateComponentList() {
+    m_shafts.push_back(m_motorblock);
+    m_shafts.push_back(m_motorshaft);
+
+    m_couples.push_back(m_engine);
+    m_couples.push_back(m_engine_losses);
 }
 
 }  // end namespace vehicle

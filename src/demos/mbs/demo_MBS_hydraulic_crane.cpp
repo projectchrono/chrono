@@ -30,7 +30,7 @@
 
 #include "chrono/solver/ChDirectSolverLS.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
     integrator->SetAbsTolerances(1e-4, 1e2);
 
     // Initialize output file
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     double s, sd;
     double F;
     GetActuatorLength(crane, attachment_ground, attachment_crane, s, sd);

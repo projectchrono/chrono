@@ -27,7 +27,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 namespace chrono {
 namespace vehicle {
@@ -494,7 +494,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         }
     }
 
-    ////utils::ChWriterCSV csv;
+    ////ChWriterCSV csv;
     ////for (int i = 0; i < shoe_points.size(); i++) {
     ////    csv << shoe_points[i].x() << shoe_points[i].y() << std::endl;
     ////}

@@ -19,7 +19,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << mesh->GetNumNodes() << "\n" << std::endl;
 
     // Set solver and solver settings

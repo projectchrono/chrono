@@ -40,7 +40,7 @@
 #include "chrono/timestepper/ChTimestepperImplicit.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
-#include "chrono/output/ChOutput.h"
+#include "chrono/input_output/ChOutput.h"
 
 namespace chrono {
 

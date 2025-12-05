@@ -96,9 +96,7 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
                         const std::vector<ChVector3d>& points,
                         const ChVector3d& dir);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     // Hardpoint absolute locations
     std::vector<ChVector3d> m_pointsL;

@@ -263,7 +263,7 @@ void ChVehicleCosimTireNodeFlexible::OnOutputData(int frame) {
 
     // Write fixed mesh information
     if (frame == 0) {
-        utils::ChWriterCSV csv(" ");
+        ChWriterCSV csv(" ");
         WriteTireMeshInformation(csv);
         std::string filename = m_node_out_dir + "/mesh_info.dat";
         csv.WriteToFile(filename);
@@ -271,7 +271,7 @@ void ChVehicleCosimTireNodeFlexible::OnOutputData(int frame) {
 
     // Write current mesh state
     {
-        utils::ChWriterCSV csv(" ");
+        ChWriterCSV csv(" ");
         csv << m_system->GetChTime() << endl;
         WriteTireStateInformation(csv);
         std::string filename = OutputFilename(m_node_out_dir + "/simulation", "mesh_state", "dat", frame + 1, 5);
@@ -282,7 +282,7 @@ void ChVehicleCosimTireNodeFlexible::OnOutputData(int frame) {
 
     // Write current terrain forces
     {
-        utils::ChWriterCSV csv(" ");
+        ChWriterCSV csv(" ");
         csv << m_system->GetChTime() << endl;
         WriteTireTerrainForces(csv);
         std::string filename = OutputFilename(m_node_out_dir + "/simulation", "terrain_force", "dat", frame + 1, 5);
@@ -294,7 +294,7 @@ void ChVehicleCosimTireNodeFlexible::OutputVisualizationData(int frame) {
     //// TODO (format?)
 }
 
-void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(ChWriterCSV& csv) {
     // Extract mesh
     auto mesh = m_tire_def->GetMesh();
 
@@ -309,7 +309,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV
     }
 }
 
-void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(ChWriterCSV& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire_def->GetMesh();
     ChState x(mesh->GetNumCoordsPosLevel(), NULL);
@@ -356,7 +356,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::ChWriterCS
     */
 }
 
-void ChVehicleCosimTireNodeFlexible::WriteTireTerrainForces(utils::ChWriterCSV& csv) {
+void ChVehicleCosimTireNodeFlexible::WriteTireTerrainForces(ChWriterCSV& csv) {
     // Write forces reduced to the spindle body
     auto s_force = m_tire_def->ReportTireForce(nullptr);
     csv << s_force.point << endl;

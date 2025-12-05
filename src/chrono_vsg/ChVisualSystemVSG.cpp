@@ -128,6 +128,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
     // Example here taken from the Dear imgui comments (mostly)
     virtual void render(vsg::CommandBuffer& cb) override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
 
         ImGuiTableFlags table_flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
         ImGuiColorEditFlags color_edit_flags =

@@ -43,7 +43,7 @@
         @defgroup chrono_particles Particle factory
         @defgroup chrono_serialization Serialization
         @defgroup chrono_mc_math Multicore math
-        @defgroup chrono_output Chrono simulation output
+        @defgroup chrono_io Input/output
         @defgroup chrono_utils Utility classes
     @}
 */

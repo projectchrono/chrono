@@ -35,7 +35,7 @@ ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
     : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_central_differential->GetSystem();
@@ -64,8 +64,6 @@ ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
 void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
-    ChDriveline::Initialize(chassis);
-
     assert(axles.size() >= 2);
     assert(driven_axles.size() == 2);
 
@@ -201,6 +199,8 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Central differential
     double omega_driveshaft = 0.5 * (omega_front_shaft + omega_rear_shaft);
     m_driveshaft->SetPosDt(omega_driveshaft);
+
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

@@ -189,17 +189,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv << "#time speed acc_y deviation" << std::endl;
 
     std::string datafilename = out_dir + "/ssc_accy_data_";
 
-    utils::ChWriterCSV csv_res("\t");
+    ChWriterCSV csv_res("\t");
     csv_res << "#acc_y steer" << std::endl;
 
     std::string resfilename = out_dir + "/ssc_result_data_";
 
-    utils::ChWriterCSV csv_angle("\t");
+    ChWriterCSV csv_angle("\t");
     csv_angle << "#acc_y roll pitch slip_angle" << std::endl;
 
     std::string anglefilename = out_dir + "/ssc_angle_data_";

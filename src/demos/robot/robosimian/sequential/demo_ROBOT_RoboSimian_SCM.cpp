@@ -21,7 +21,8 @@
 #include <vector>
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 
@@ -31,7 +32,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -98,7 +98,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
     double m_start_time;  // cached time at last location
     double m_avg_speed;   // average speed over last segment
 
-    chrono::utils::ChWriterCSV* m_csv;
+    ChWriterCSV* m_csv;
     ChTimer m_timer;
 };
 
@@ -127,7 +127,7 @@ DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
     m_timer.start();
 
     // Prepare CSV output
-    m_csv = new chrono::utils::ChWriterCSV(",");
+    m_csv = new ChWriterCSV(",");
     *m_csv << "DBP_factor"
            << "DBP_force"
            << "Avg_speed" << endl;

@@ -123,6 +123,8 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
                            ) = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+    virtual void Output(ChOutput& database) const override;
+    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
 
     GuidePinType m_type;  ///< type of the track shoe matching this road wheel
     bool m_has_shock;     ///< specifies whether or not the suspension has a damper

@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "chrono/solver/ChSolverBB.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 

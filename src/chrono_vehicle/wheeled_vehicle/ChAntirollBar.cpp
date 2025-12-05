@@ -33,7 +33,7 @@ void ChAntirollBar::Initialize(std::shared_ptr<ChChassis> chassis,
     Construct(chassis, suspension, location);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 }  // end namespace vehicle

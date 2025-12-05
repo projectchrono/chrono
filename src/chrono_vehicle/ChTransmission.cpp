@@ -41,7 +41,7 @@ void ChTransmission::Initialize(std::shared_ptr<ChChassis> chassis) {
     SetGear(1);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 void ChTransmission::InitializeInertiaProperties() {

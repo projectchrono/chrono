@@ -293,7 +293,7 @@ void ChVehicleCosimWheeledVehicleNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
@@ -304,7 +304,7 @@ void ChVehicleCosimWheeledVehicleNode::OnOutputData(int frame) {
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimWheeledVehicleNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimWheeledVehicleNode::WriteBodyInformation(ChWriterCSV& csv) {
     // Write number of bodies
     csv << 1 + m_num_spindles << endl;
 

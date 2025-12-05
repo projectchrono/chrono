@@ -23,7 +23,9 @@
 #include <cmath>
 #include <vector>
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/collision/ChConvexDecomposition.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChDriver.h"

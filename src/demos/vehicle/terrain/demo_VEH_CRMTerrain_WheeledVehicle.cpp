@@ -23,7 +23,7 @@
 #include <thread>
 
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_file = out_dir + "/results.txt";
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     // -----------------------------
     // Create run-time visualization

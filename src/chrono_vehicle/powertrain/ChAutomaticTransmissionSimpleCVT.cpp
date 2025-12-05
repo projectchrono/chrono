@@ -98,5 +98,9 @@ void ChAutomaticTransmissionSimpleCVT::SetGearRatios(std::vector<double>& fwd, d
     fwd.push_back(1.0);
 }
 
+// -----------------------------------------------------------------------------
+
+void ChAutomaticTransmissionSimpleCVT::PopulateComponentList() {}
+
 }  // namespace vehicle
 }  // namespace chrono

@@ -30,7 +30,7 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
@@ -132,7 +132,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     }
 
     ChSystemMulticore* sys;
-    utils::ChWriterCSV csv;
+    ChWriterCSV csv;
 };
 
 // =============================================================================
@@ -446,11 +446,11 @@ int main(int argc, char* argv[]) {
 
         // Create the falling ball, the granular material, and the container from the checkpoint file.
         cout << "Read checkpoint data from " << checkpoint_file;
-        utils::ReadCheckpoint(sys, checkpoint_file);
+        utils::ReadBodyShapesCheckpoint(sys, checkpoint_file);
         cout << "  done.  Read " << sys->GetBodies().size() << " bodies." << endl;
 
         // Note: we rely on the fact that the ball is the *first* body in the system
-        // (ReadCheckpoint creates bodies in the same order they were created when WriteCheckpoint was called)
+        // (ReadBodyShapesCheckpoint creates bodies in the same order they were created when WriteBodyShapesCheckpoint was called)
         ball = sys->GetBodies().at(0);
 
         // Move the falling ball just above the granular material with a velocity
@@ -526,7 +526,7 @@ int main(int argc, char* argv[]) {
             // Create a checkpoint from the current state.
             if (problem == ProblemPhase::SETTLING && intermediate_checkpoints) {
                 cout << "     Write checkpoint data " << flush;
-                utils::WriteCheckpoint(sys, checkpoint_file);
+                utils::WriteBodyShapesCheckpoint(sys, checkpoint_file);
                 cout << sys->GetBodies().size() << " bodies" << endl;
             }
 
@@ -576,7 +576,7 @@ int main(int argc, char* argv[]) {
     // Create a checkpoint from the last state
     if (problem == ProblemPhase::SETTLING) {
         cout << "Write checkpoint data to " << checkpoint_file;
-        utils::WriteCheckpoint(sys, checkpoint_file);
+        utils::WriteBodyShapesCheckpoint(sys, checkpoint_file);
         cout << "  done.  Wrote " << sys->GetBodies().size() << " bodies." << endl;
     }
 

@@ -33,7 +33,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     m_data.resize(2);
     for (size_t col = 0; col < 2; col++)
         m_data[col].resize(num_steps);
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     std::ifstream file2("UT_ANCFShellIso.txt");
 
     ChVector3d mforce(0, 0, -50);

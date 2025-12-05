@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    utils::ChWriterCSV wheelomega_csv("\t");
+    ChWriterCSV wheelomega_csv("\t");
 
     // Simulation loop
     while (vis->Run()) {

@@ -25,7 +25,7 @@ namespace vehicle {
 ChChassisConnectorFifthWheel::ChChassisConnectorFifthWheel(const std::string& name) : ChChassisConnector(name) {}
 
 ChChassisConnectorFifthWheel::~ChChassisConnectorFifthWheel() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_joint->GetSystem();
@@ -36,7 +36,6 @@ ChChassisConnectorFifthWheel::~ChChassisConnectorFifthWheel() {
 }
 
 void ChChassisConnectorFifthWheel::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
-    ChChassisConnector::Initialize(front, rear);
     // Express the connector reference frame in the absolute coordinate system
     // Rotate universal joint frames to allow pitch and yaw relative DOFs
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector(), Q_ROTATE_Z_TO_X);
@@ -47,6 +46,12 @@ void ChChassisConnectorFifthWheel::Initialize(std::shared_ptr<ChChassis> front, 
     m_joint->SetName(m_name + " joint");
     m_joint->Initialize(front->GetBody(), rear->GetBody(), to_abs);
     rear->GetBody()->GetSystem()->AddLink(m_joint);
+
+    ChPart::Initialize();
+}
+
+void ChChassisConnectorFifthWheel::PopulateComponentList() {
+    m_joints.push_back(m_joint);
 }
 
 }  // end namespace vehicle

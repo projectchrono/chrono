@@ -40,9 +40,9 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChForceFunctors.h"
 
-#include "chrono/output/ChOutputASCII.h"
+#include "chrono/input_output/ChOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-    #include "chrono/output/ChOutputHDF5.h"
+    #include "chrono/input_output/ChOutputHDF5.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL

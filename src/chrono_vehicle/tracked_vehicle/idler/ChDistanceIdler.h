@@ -114,9 +114,7 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     /// Return the set distance in the tensioner.
     virtual double GetTensionerDistance() const = 0;
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChBody> m_carrier;                   ///< carrier body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;      ///< carrier-chassis revolute joint

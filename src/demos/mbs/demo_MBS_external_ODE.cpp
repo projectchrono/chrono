@@ -23,7 +23,7 @@
 
 #include "chrono/solver/ChDirectSolverLS.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> y(2);
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        utils::ChWriterCSV csv(" ");
+        ChWriterCSV csv(" ");
         y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> y(2);
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        utils::ChWriterCSV csv(" ");
+        ChWriterCSV csv(" ");
         y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 

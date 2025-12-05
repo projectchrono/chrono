@@ -21,7 +21,7 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -189,7 +189,7 @@ void SolveHHT(ChSolver::Type solver_type,
     int sim_frame = 0;
     int out_frame = 0;
 
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << t << last_node->GetPos() << endl;
 
     while (t < tend) {

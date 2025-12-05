@@ -46,7 +46,7 @@ const std::string ChMultiLink::m_pointNames[] = {"SPINDLE  ", "UPRIGHT  ", "UA_F
 ChMultiLink::ChMultiLink(const std::string& name) : ChSuspension(name) {}
 
 ChMultiLink::~ChMultiLink() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_upright[0]->GetSystem();
@@ -684,136 +684,58 @@ void ChMultiLink::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChMultiLink::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_upright[0]);
-    bodies.push_back(m_upright[1]);
-    bodies.push_back(m_upperArm[0]);
-    bodies.push_back(m_upperArm[1]);
-    bodies.push_back(m_lateral[0]);
-    bodies.push_back(m_lateral[1]);
-    bodies.push_back(m_trailingLink[0]);
-    bodies.push_back(m_trailingLink[1]);
+void ChMultiLink::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    m_bodies.push_back(m_upright[0]);
+    m_bodies.push_back(m_upright[1]);
+    m_bodies.push_back(m_upperArm[0]);
+    m_bodies.push_back(m_upperArm[1]);
+    m_bodies.push_back(m_lateral[0]);
+    m_bodies.push_back(m_lateral[1]);
+    m_bodies.push_back(m_trailingLink[0]);
+    m_bodies.push_back(m_trailingLink[1]);
     if (UseTierodBodies()) {
-        bodies.push_back(m_tierod[0]);
-        bodies.push_back(m_tierod[1]);
+        m_bodies.push_back(m_tierod[0]);
+        m_bodies.push_back(m_tierod[1]);
     }
-    ExportBodyList(jsonDocument, bodies);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteUA[0]);
-    joints.push_back(m_revoluteUA[1]);
-    joints.push_back(m_sphericalUA[0]);
-    joints.push_back(m_sphericalUA[1]);
-    joints.push_back(m_universalLateralChassis[0]);
-    joints.push_back(m_universalLateralChassis[1]);
-    joints.push_back(m_sphericalLateralUpright[0]);
-    joints.push_back(m_sphericalLateralUpright[1]);
-    joints.push_back(m_universalTLChassis[0]);
-    joints.push_back(m_universalTLChassis[1]);
-    joints.push_back(m_sphericalTLUpright[0]);
-    joints.push_back(m_sphericalTLUpright[1]);
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
+    m_joints.push_back(m_revoluteUA[0]);
+    m_joints.push_back(m_revoluteUA[1]);
+    m_joints.push_back(m_sphericalUA[0]);
+    m_joints.push_back(m_sphericalUA[1]);
+    m_joints.push_back(m_universalLateralChassis[0]);
+    m_joints.push_back(m_universalLateralChassis[1]);
+    m_joints.push_back(m_sphericalLateralUpright[0]);
+    m_joints.push_back(m_sphericalLateralUpright[1]);
+    m_joints.push_back(m_universalTLChassis[0]);
+    m_joints.push_back(m_universalTLChassis[1]);
+    m_joints.push_back(m_sphericalTLUpright[0]);
+    m_joints.push_back(m_sphericalTLUpright[1]);
     if (UseTierodBodies()) {
-        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
-        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
-        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
-        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
+        m_sphericalTierod[0]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[0]->GetAsLink())
+                                            : m_body_loads.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[1]->GetAsLink())
+                                            : m_body_loads.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? m_joints.push_back(m_universalTierod[0]->GetAsLink())
+                                            : m_body_loads.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? m_joints.push_back(m_universalTierod[1]->GetAsLink())
+                                            : m_body_loads.push_back(m_universalTierod[1]->GetAsBushing());
     } else {
-        joints.push_back(m_distTierod[0]);
-        joints.push_back(m_distTierod[1]);
+        m_joints.push_back(m_distTierod[0]);
+        m_joints.push_back(m_distTierod[1]);
     }
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChMultiLink::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_upright[0]);
-    bodies.push_back(m_upright[1]);
-    bodies.push_back(m_upperArm[0]);
-    bodies.push_back(m_upperArm[1]);
-    bodies.push_back(m_lateral[0]);
-    bodies.push_back(m_lateral[1]);
-    bodies.push_back(m_trailingLink[0]);
-    bodies.push_back(m_trailingLink[1]);
-    if (UseTierodBodies()) {
-        bodies.push_back(m_tierod[0]);
-        bodies.push_back(m_tierod[1]);
-    }
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteUA[0]);
-    joints.push_back(m_revoluteUA[1]);
-    joints.push_back(m_sphericalUA[0]);
-    joints.push_back(m_sphericalUA[1]);
-    joints.push_back(m_universalLateralChassis[0]);
-    joints.push_back(m_universalLateralChassis[1]);
-    joints.push_back(m_sphericalLateralUpright[0]);
-    joints.push_back(m_sphericalLateralUpright[1]);
-    joints.push_back(m_universalTLChassis[0]);
-    joints.push_back(m_universalTLChassis[1]);
-    joints.push_back(m_sphericalTLUpright[0]);
-    joints.push_back(m_sphericalTLUpright[1]);
-    if (UseTierodBodies()) {
-        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
-        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
-        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
-        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
-    } else {
-        joints.push_back(m_distTierod[0]);
-        joints.push_back(m_distTierod[1]);
-    }
-    database.WriteJoints(joints);
-    database.WriteBodyBodyLoads(bushings);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_spring[0]);
+    m_tsdas.push_back(m_spring[1]);
+    m_tsdas.push_back(m_shock[0]);
+    m_tsdas.push_back(m_shock[1]);
 }
 
 }  // end namespace vehicle

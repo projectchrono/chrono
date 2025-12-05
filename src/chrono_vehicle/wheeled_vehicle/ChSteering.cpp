@@ -24,7 +24,7 @@ namespace vehicle {
 ChSteering::ChSteering(const std::string& name) : ChPart(name) {}
 
 ChSteering::~ChSteering() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_link->GetSystem();
@@ -44,7 +44,7 @@ void ChSteering::Initialize(std::shared_ptr<ChChassis> chassis,
     Construct(chassis, location, rotation);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 }  // end namespace vehicle

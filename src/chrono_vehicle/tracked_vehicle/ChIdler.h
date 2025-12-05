@@ -88,6 +88,9 @@ class CH_VEHICLE_API ChIdler : public ChPart {
                            ) = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+    virtual void Output(ChOutput& database) const override;
+    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
+    virtual void ReadCheckpoint(ChCheckpoint& database) override;
 
     GuidePinType m_type;                          ///< type of the track shoe matching this road wheel
     ChVector3d m_rel_loc;                         ///< idler subsystem location relative to chassis

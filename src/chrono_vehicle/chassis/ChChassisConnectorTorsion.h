@@ -43,13 +43,15 @@ class CH_VEHICLE_API ChChassisConnectorTorsion : public ChChassisConnector {
     /// Initialize this chassis connector subsystem.
     /// The subsystem is initialized by attaching it to the specified front and rear chassis bodies at their connection
     /// points.
-    virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
-                            std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
-                            ) override;
+    void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
+                    std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
+    );
 
   protected:
     /// Return the torsion stiffness of the chassis.
     virtual double GetTorsionStiffness() const = 0;
+
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChLinkLockRevolute> m_joint;  ///< revolute joint of the connector
     std::shared_ptr<ChLinkRSDA> m_spring;         ///< rotational spring-damper

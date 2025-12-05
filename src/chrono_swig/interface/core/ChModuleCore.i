@@ -75,15 +75,17 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChBodyGeometry.h"
 
-#include "chrono/output/ChOutput.h"
+#include "chrono/input_output/ChOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
 
 using namespace chrono;
 using namespace chrono::utils;
@@ -424,14 +426,16 @@ inline const char* ChUtils_GetFilename() {
 // for hulls and meshing
 %include "../../../chrono/collision/ChConvexDecomposition.h"
 
+%include "../../../chrono/input_output/ChWriterCSV.h"
+%include "../../../chrono/input_output/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChConstants.h"
 %include "../../../chrono/utils/ChUtils.h"
-%include "../../../chrono/utils/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
 
-%include "../../../chrono/output/ChOutput.h"
+%include "../../../chrono/input_output/ChOutput.h"
+%include "../../../chrono/input_output/ChCheckpoint.h"
 
 %include "ChParticleFactory.i"
 //

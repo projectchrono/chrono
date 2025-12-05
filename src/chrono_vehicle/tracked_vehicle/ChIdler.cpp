@@ -46,7 +46,7 @@ void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& l
     m_idler_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TRACK_WHEEL_FAMILY);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 void ChIdler::SetOutput(bool state) {
@@ -63,6 +63,25 @@ void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
         m_idler_wheel->ExportComponentList(jsonSubDocument);
         jsonDocument.AddMember("idler wheel", jsonSubDocument, jsonDocument.GetAllocator());
     }
+}
+
+void ChIdler::Output(ChOutput& database) const {
+    ChPart::Output(database);
+
+    database.WriteSection(m_idler_wheel->GetName());
+    m_idler_wheel->Output(database);
+}
+
+void ChIdler::WriteCheckpoint(ChCheckpoint& database) const {
+    ChPart::WriteCheckpoint(database);
+
+    m_idler_wheel->WriteCheckpoint(database);
+}
+
+void ChIdler::ReadCheckpoint(ChCheckpoint& database) {
+    ChPart::ReadCheckpoint(database);
+
+    m_idler_wheel->ReadCheckpoint(database);
 }
 
 }  // end namespace vehicle

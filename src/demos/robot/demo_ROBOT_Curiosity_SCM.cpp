@@ -26,7 +26,7 @@
 #include "chrono/physics/ChMassProperties.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     // Simulation loop
     double time = 0;

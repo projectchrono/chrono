@@ -37,7 +37,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
                      const chrono::ChSolver::Type& solver_type,
                      const chrono::ChTimestepper::Type& integrator_type,
                      int num_threads_mkl = 1,
-                     bool verbose = true) {
+                     bool verbose = false) {
     auto contact_method = sys.GetContactMethod();
     auto slvr_type = solver_type;
     auto intg_type = integrator_type;

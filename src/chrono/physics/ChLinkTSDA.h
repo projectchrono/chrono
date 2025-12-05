@@ -68,6 +68,9 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Get current states.
     const ChVectorDynamic<>& GetStates() const { return m_states; }
 
+    /// Overwrite the states.
+    void SetStates(const ChVectorDynamic<>& states) { m_states = states; }
+
     /// Get the spring rest (free) length.
     double GetRestLength() const { return m_rest_length; }
 

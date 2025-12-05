@@ -236,7 +236,7 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
@@ -247,7 +247,7 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimViperNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimViperNode::WriteBodyInformation(ChWriterCSV& csv) {
     // Write number of bodies
     csv << 1 + 4 * 4 << endl;
 

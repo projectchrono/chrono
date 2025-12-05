@@ -34,7 +34,7 @@ namespace vehicle {
 ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {}
 
 ChAntirollBarRSD::~ChAntirollBarRSD() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_arm_left->GetSystem();
@@ -132,6 +132,8 @@ void ChAntirollBarRSD::Construct(std::shared_ptr<ChChassis> chassis,
     sys->AddLink(m_link_right);
 }
 
+
+
 void ChAntirollBarRSD::InitializeInertiaProperties() {
     m_mass = 2 * getArmMass();
 }
@@ -200,37 +202,14 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
 }
 
 // -----------------------------------------------------------------------------
-void ChAntirollBarRSD::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
+void ChAntirollBarRSD::PopulateComponentList() {
+    m_bodies.push_back(m_arm_left);
+    m_bodies.push_back(m_arm_right);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm_left);
-    bodies.push_back(m_arm_right);
-    ExportBodyList(jsonDocument, bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute_ch);
-    joints.push_back(m_revolute);
-    joints.push_back(m_link_left);
-    joints.push_back(m_link_right);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChAntirollBarRSD::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm_left);
-    bodies.push_back(m_arm_right);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute_ch);
-    joints.push_back(m_revolute);
-    joints.push_back(m_link_left);
-    joints.push_back(m_link_right);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute_ch);
+    m_joints.push_back(m_revolute);
+    m_joints.push_back(m_link_left);
+    m_joints.push_back(m_link_right);
 }
 
 }  // end namespace vehicle

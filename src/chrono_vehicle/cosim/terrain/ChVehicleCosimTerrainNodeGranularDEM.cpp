@@ -24,7 +24,6 @@
 #include <limits>
 
 #include "chrono/utils/ChUtilsSamplers.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
@@ -761,7 +760,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::UpdateVisualizationParticles() {
 
 void ChVehicleCosimTerrainNodeGranularDEM::WriteCheckpoint(const std::string& filename) const {
     assert(m_num_particles == m_systemDEM->GetNumParticles());
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     // Write number of granular material bodies.
     csv << m_num_particles << endl;

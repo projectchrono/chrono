@@ -104,9 +104,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// Return the maximum rotation angle of the pinion (in either direction).
     virtual double GetMaxAngle() const = 0;
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;   ///< handle to the prismatic joint chassis-link
     std::shared_ptr<ChLinkLockLinActuator> m_actuator;  ///< handle to the linear actuator on steering link

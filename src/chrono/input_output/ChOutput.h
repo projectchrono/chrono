@@ -38,7 +38,7 @@
 
 namespace chrono {
 
-/// @addtogroup chrono_output
+/// @addtogroup chrono_io
 /// @{
 
 /// Base class for a Chrono output database.
@@ -102,7 +102,7 @@ class ChApi ChOutput {
     }
 };
 
-/// @} chrono_output
+/// @} chrono_io
 
 }  // end namespace chrono
 

@@ -154,9 +154,7 @@ class CH_VEHICLE_API ChRigidPinnedAxle : public ChSuspension {
                         const std::vector<ChVector3d>& points,
                         double ang_vel);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 };
 
 /// @} vehicle_wheeled_suspension

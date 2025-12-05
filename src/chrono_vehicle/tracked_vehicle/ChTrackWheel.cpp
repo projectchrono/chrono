@@ -37,6 +37,7 @@ ChTrackWheel::~ChTrackWheel() {
 }
 
 // -----------------------------------------------------------------------------
+
 void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                               std::shared_ptr<ChBody> carrier,
                               const ChVector3d& location,
@@ -72,7 +73,7 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     Construct(chassis, carrier, location, track);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 void ChTrackWheel::InitializeInertiaProperties() {
@@ -99,30 +100,11 @@ void ChTrackWheel::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChTrackWheel::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_wheel);
-    ExportBodyList(jsonDocument, bodies);
+void ChTrackWheel::PopulateComponentList() {
+    m_bodies.push_back(m_wheel);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChTrackWheel::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_wheel);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute);
 }
 
 }  // end namespace vehicle

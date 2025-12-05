@@ -42,29 +42,29 @@ namespace vehicle {
 ChGenericWheeledSuspension::ChGenericWheeledSuspension(const std::string& name) : ChSuspension(name) {}
 
 ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_spindle[0]->GetSystem();
     if (!sys)
         return;
 
-    for (auto& item : m_bodies)
+    for (auto& item : m_susp_bodies)
         sys->Remove(item.second.body);
-    for (auto& item : m_joints)
+    for (auto& item : m_susp_joints)
         ChChassis::RemoveJoint(item.second.joint);
-    for (auto& item : m_dists)
+    for (auto& item : m_susp_dists)
         sys->Remove(item.second.dist);
-    for (auto& item : m_tsdas)
+    for (auto& item : m_susp_tsdas)
         sys->Remove(item.second.tsda);
-    for (auto& item : m_rsdas)
+    for (auto& item : m_susp_rsdas)
         sys->Remove(item.second.rsda);
 
-    m_bodies.clear();
-    m_joints.clear();
-    m_dists.clear();
-    m_tsdas.clear();
-    m_rsdas.clear();
+    m_susp_bodies.clear();
+    m_susp_joints.clear();
+    m_susp_dists.clear();
+    m_susp_tsdas.clear();
+    m_susp_rsdas.clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -146,14 +146,14 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
     if (!mirrored) {
         if (geometry)
             b.geometry = *geometry;
-        m_bodies.insert({{name, -1}, b});
+        m_susp_bodies.insert({{name, -1}, b});
     } else {
         if (geometry)
             b.geometry = TransformVehicleGeometry(*geometry, 0);
-        m_bodies.insert({{name, 0}, b});
+        m_susp_bodies.insert({{name, 0}, b});
         if (geometry)
             b.geometry = TransformVehicleGeometry(*geometry, 1);
-        m_bodies.insert({{name, 1}, b});
+        m_susp_bodies.insert({{name, 1}, b});
     }
 }
 
@@ -175,10 +175,10 @@ void ChGenericWheeledSuspension::DefineJoint(const std::string& name,
     j.bdata = bdata;
 
     if (!mirrored) {
-        m_joints.insert({{name, -1}, j});
+        m_susp_joints.insert({{name, -1}, j});
     } else {
-        m_joints.insert({{name, 0}, j});
-        m_joints.insert({{name, 1}, j});
+        m_susp_joints.insert({{name, 0}, j});
+        m_susp_joints.insert({{name, 1}, j});
     }
 }
 
@@ -196,10 +196,10 @@ void ChGenericWheeledSuspension::DefineDistanceConstraint(const std::string& nam
     d.point2 = point2;
 
     if (!mirrored) {
-        m_dists.insert({{name, -1}, d});
+        m_susp_dists.insert({{name, -1}, d});
     } else {
-        m_dists.insert({{name, 0}, d});
-        m_dists.insert({{name, 1}, d});
+        m_susp_dists.insert({{name, 0}, d});
+        m_susp_dists.insert({{name, 1}, d});
     }
 }
 
@@ -224,14 +224,14 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
     if (!mirrored) {
         if (geometry)
             t.geometry = *geometry;
-        m_tsdas.insert({{name, -1}, t});
+        m_susp_tsdas.insert({{name, -1}, t});
     } else {
         if (geometry)
             t.geometry = TransformTSDAGeometry(*geometry, 0);
-        m_tsdas.insert({{name, 0}, t});
+        m_susp_tsdas.insert({{name, 0}, t});
         if (geometry)
             t.geometry = TransformTSDAGeometry(*geometry, 1);
-        m_tsdas.insert({{name, 1}, t});
+        m_susp_tsdas.insert({{name, 1}, t});
     }
 }
 
@@ -253,11 +253,11 @@ void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
     r.torque = torque;
 
     if (!mirrored) {
-        m_rsdas.insert({{name, -1}, r});
+        m_susp_rsdas.insert({{name, -1}, r});
     } else {
-        m_rsdas.insert({{name, 0}, r});
+        m_susp_rsdas.insert({{name, 0}, r});
         r.axis *= ChVector3d(-1, 0, -1);
-        m_rsdas.insert({{name, 1}, r});
+        m_susp_rsdas.insert({{name, 1}, r});
     }
 }
 
@@ -308,16 +308,16 @@ std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(BodyIdentifier body
     //    body with that name on that side, regardless of what side of the suspension (if any) we
     //    are on.
     if (body.side == -1) {
-        auto b1 = m_bodies.find({body.name, -1});
-        if (b1 != m_bodies.end()) {
+        auto b1 = m_susp_bodies.find({body.name, -1});
+        if (b1 != m_susp_bodies.end()) {
             return b1->second.body;
         }
-        auto b2 = m_bodies.find({body.name, side});
-        assert(b2 != m_bodies.end());
+        auto b2 = m_susp_bodies.find({body.name, side});
+        assert(b2 != m_susp_bodies.end());
         return b2->second.body;
     } else {
-        auto b1 = m_bodies.find({body.name, body.side});
-        assert(b1 != m_bodies.end());
+        auto b1 = m_susp_bodies.find({body.name, body.side});
+        assert(b1 != m_susp_bodies.end());
         return b1->second.body;
     }
 }
@@ -337,7 +337,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
     m_X_SA.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Initialize all bodies in the suspension subsystem
-    for (auto& item : m_bodies) {
+    for (auto& item : m_susp_bodies) {
         ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
         ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
         item.second.body = chrono_types::make_shared<ChBody>();
@@ -352,7 +352,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
     }
 
     // Create and initialize joints in the suspension subsystem
-    for (auto& item : m_joints) {
+    for (auto& item : m_susp_joints) {
         // Extract the two bodies connected by this joint
         std::shared_ptr<ChBody> body1;
         if (item.second.body1.chassis)
@@ -378,17 +378,17 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
         ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
         item.second.joint = chrono_types::make_shared<ChJoint>(item.second.type,     //
-                                                                      Name(item.first),     //
-                                                                      body1,                //
-                                                                      body2,                //
-                                                                      ChFrame<>(pos, rot),  //
-                                                                      item.second.bdata);
+                                                               Name(item.first),     //
+                                                               body1,                //
+                                                               body2,                //
+                                                               ChFrame<>(pos, rot),  //
+                                                               item.second.bdata);
         item.second.joint->SetTag(m_obj_tag);
         chassis->AddJoint(item.second.joint);
     }
 
     // Create and initialize distance constraints in the suspension subsystem
-    for (auto& item : m_dists) {
+    for (auto& item : m_susp_dists) {
         // Extract the two bodies connected by this constraint
         std::shared_ptr<ChBody> body1;
         if (item.second.body1.chassis)
@@ -466,7 +466,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
     }
 
     // Create and initialize TSDAs in the suspension subsystem
-    for (auto& item : m_tsdas) {
+    for (auto& item : m_susp_tsdas) {
         // Extract the two bodies connected by this element
         std::shared_ptr<ChBody> body1;
         if (item.second.body1.chassis)
@@ -501,7 +501,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
     }
 
     // Create and initialize RSDAs in the suspension subsystem
-    for (auto& item : m_rsdas) {
+    for (auto& item : m_susp_rsdas) {
         // Extract the two bodies connected by this element
         std::shared_ptr<ChBody> body1;
         if (item.second.body1.chassis)
@@ -541,7 +541,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
 
 void ChGenericWheeledSuspension::InitializeInertiaProperties() {
     m_mass = 2 * getSpindleMass();
-    for (const auto& item : m_bodies)
+    for (const auto& item : m_susp_bodies)
         m_mass += item.second.body->GetMass();
 }
 
@@ -554,7 +554,7 @@ void ChGenericWheeledSuspension::UpdateInertiaProperties() {
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
-    for (const auto& item : m_bodies)
+    for (const auto& item : m_susp_bodies)
         composite.AddComponent(item.second.body->GetFrameCOMToAbs(), item.second.body->GetMass(),
                                item.second.body->GetInertia());
 
@@ -581,7 +581,7 @@ std::shared_ptr<ChBody> ChGenericWheeledSuspension::GetAntirollBody(VehicleSide 
 std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensionForce(VehicleSide side) const {
     std::vector<ChSuspension::ForceTSDA> forces;
 
-    for (const auto& item : m_tsdas) {
+    for (const auto& item : m_susp_tsdas) {
         if (item.first.side != side)
             continue;
         auto tsda = item.second.tsda;
@@ -599,7 +599,7 @@ std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensio
 std::vector<ChSuspension::ForceRSDA> ChGenericWheeledSuspension::ReportSuspensionTorque(VehicleSide side) const {
     std::vector<ChSuspension::ForceRSDA> torques;
 
-    for (const auto& item : m_rsdas) {
+    for (const auto& item : m_susp_rsdas) {
         if (item.first.side != side)
             continue;
         auto rsda = item.second.rsda;
@@ -620,7 +620,7 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
     }
 
     // Suspension joints
-    for (const auto& item : m_joints) {
+    for (const auto& item : m_susp_joints) {
         if (item.first.side != side)
             continue;
         const auto& joint = item.second.joint;
@@ -629,13 +629,12 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
         auto link = joint->GetAsLink();
         const auto& C = link->GetConstraintViolation();
         assert(C.size() == link->GetNumConstraintsBilateral());
-        std::cout << "Joint " << item.first.name << " type: " << ChJoint::GetTypeString(item.second.type)
-                  << "\n";
+        std::cout << "Joint " << item.first.name << " type: " << ChJoint::GetTypeString(item.second.type) << "\n";
         std::cout << "   " << C.transpose() << "\n";
     }
 
     // Distance constraints
-    for (const auto& item : m_dists) {
+    for (const auto& item : m_susp_dists) {
         if (item.first.side != side)
             continue;
         const auto& dist = item.second.dist;
@@ -653,20 +652,20 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    for (auto& item : m_bodies)
+    for (auto& item : m_susp_bodies)
         item.second.geometry.CreateVisualizationAssets(item.second.body, vis);
-    for (auto& item : m_tsdas)
+    for (auto& item : m_susp_tsdas)
         item.second.geometry.CreateVisualizationAssets(item.second.tsda);
-    for (auto& item : m_dists)
+    for (auto& item : m_susp_dists)
         item.second.dist->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChGenericWheeledSuspension::RemoveVisualizationAssets() {
-    for (const auto& item : m_bodies)
+    for (const auto& item : m_susp_bodies)
         ChPart::RemoveVisualizationAssets(item.second.body);
-    for (const auto& item : m_tsdas)
+    for (const auto& item : m_susp_tsdas)
         ChPart::RemoveVisualizationAssets(item.second.tsda);
-    for (const auto& item : m_dists)
+    for (const auto& item : m_susp_dists)
         ChPart::RemoveVisualizationAssets(item.second.dist);
 
     ChSuspension::RemoveVisualizationAssets();
@@ -674,81 +673,28 @@ void ChGenericWheeledSuspension::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 
-void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
+void ChGenericWheeledSuspension::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    for (const auto& item : m_susp_bodies)
+        m_bodies.push_back(item.second.body);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    for (const auto& item : m_bodies)
-        bodies.push_back(item.second.body);
-    ExportBodyList(jsonDocument, bodies);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
+    for (const auto& item : m_susp_joints)
+        item.second.joint->IsKinematic() ? m_joints.push_back(item.second.joint->GetAsLink())
+                                         : m_body_loads.push_back(item.second.joint->GetAsBushing());
+    for (const auto& item : m_susp_dists)
+        m_joints.push_back(item.second.dist);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    for (const auto& item : m_joints)
-        item.second.joint->IsKinematic() ? joints.push_back(item.second.joint->GetAsLink())
-                                         : bushings.push_back(item.second.joint->GetAsBushing());
-    for (const auto& item : m_dists)
-        joints.push_back(item.second.dist);
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
+    for (const auto& item : m_susp_tsdas)
+        m_tsdas.push_back(item.second.tsda);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    for (const auto& item : m_tsdas)
-        springs.push_back(item.second.tsda);
-    ExportLinSpringList(jsonDocument, springs);
-
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    for (const auto& item : m_rsdas)
-        rot_springs.push_back(item.second.rsda);
-    ExportRotSpringList(jsonDocument, rot_springs);
-}
-
-void ChGenericWheeledSuspension::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    for (const auto& item : m_bodies)
-        bodies.push_back(item.second.body);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    for (const auto& item : m_joints)
-        item.second.joint->IsKinematic() ? joints.push_back(item.second.joint->GetAsLink())
-                                         : bushings.push_back(item.second.joint->GetAsBushing());
-    for (const auto& item : m_dists)
-        joints.push_back(item.second.dist);
-    database.WriteJoints(joints);
-    database.WriteBodyBodyLoads(bushings);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    for (const auto& item : m_tsdas)
-        springs.push_back(item.second.tsda);
-    database.WriteLinSprings(springs);
-
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    for (const auto& item : m_rsdas)
-        rot_springs.push_back(item.second.rsda);
-    database.WriteRotSprings(rot_springs);
+    for (const auto& item : m_susp_rsdas)
+        m_rsdas.push_back(item.second.rsda);
 }
 
 // -----------------------------------------------------------------------------

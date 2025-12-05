@@ -26,43 +26,14 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChLineBezier.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 namespace chrono {
 namespace utils {
 
-// -----------------------------------------------------------------------------
-// WriteBodies
-//
-// Write to a CSV file pody position, orientation, and (optionally) linear and
-// angular velocity. Optionally, only active bodies are processed.
-// -----------------------------------------------------------------------------
-void WriteBodies(ChSystem* system,
-                 const std::string& filename,
-                 bool active_only,
-                 bool dump_vel,
-                 const std::string& delim) {
-    ChWriterCSV csv(delim);
-
-    for (auto body : system->GetBodies()) {
-        if (active_only && !body->IsActive())
-            continue;
-        csv << body->GetPos() << body->GetRot();
-        if (dump_vel)
-            csv << body->GetPosDt() << body->GetAngVelLocal();
-        csv << std::endl;
-    }
-
-    csv.WriteToFile(filename);
-}
-
-// -----------------------------------------------------------------------------
-// WriteCheckpoint
-//
-// Create a CSV file with a checkpoint ...
-//
-// -----------------------------------------------------------------------------
-bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
+bool WriteBodyShapesCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
     ChWriterCSV csv(" ");
     std::string tab("    ");
@@ -195,13 +166,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// ReadCheckpoint
-//
-// Read a CSV file with checkpoint data and create the bodies.
-//
-// -----------------------------------------------------------------------------
-void ReadCheckpoint(ChSystem* system, const std::string& filename) {
+void ReadBodyShapesCheckpoint(ChSystem* system, const std::string& filename) {
     // Open input file stream
     std::ifstream ifile(filename);
     std::string line;
@@ -348,21 +313,6 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         body->GetCollisionModel()->SetFamilyGroup(family_group);
         body->GetCollisionModel()->SetFamilyMask(family_mask);
     }
-}
-
-// -----------------------------------------------------------------------------
-// Write CSV output file with current camera information
-// -----------------------------------------------------------------------------
-void WriteCamera(const std::string& filename,
-                 const ChVector3d& cam_location,
-                 const ChVector3d& cam_target,
-                 const ChVector3d& camera_upvec,
-                 const std::string& delim) {
-    ChWriterCSV csv(delim);
-    csv << cam_location << std::endl;
-    csv << cam_target << std::endl;
-    csv << camera_upvec << std::endl;
-    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------

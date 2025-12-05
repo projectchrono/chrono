@@ -36,7 +36,8 @@
 #include "chrono/utils/ChBodyGeometry.h"
 #include "chrono/physics/ChMassProperties.h"
 
-#include "chrono/output/ChOutput.h"
+#include "chrono/input_output/ChOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -114,12 +115,24 @@ class CH_VEHICLE_API ChPart {
     bool OutputEnabled() const { return m_output; }
 
     /// Export this subsystem's component list to the specified JSON object.
-    /// Derived classes should override this function and first invoke the base class implementation,
-    /// followed by calls to the various static Export***List functions, as appropriate.
+    /// This base class implementation exports information for component physical items.
+    /// An assembly of parts should override this function and invoke ExportComponentList() for each component part.
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const;
 
-    /// Output data for this subsystem's component list to the specified database.
-    virtual void Output(ChOutput& database) const {}
+    /// Output data for this subsystem's components to the specified output database.
+    /// This base class implementation outputs information for component physical items.
+    /// An assembly of parts should override this function and invoke Output() for each component part.
+    virtual void Output(ChOutput& database) const;
+
+    /// Write states of this subsystem's components to the specified checkpoint database.
+    /// This base class implementation outputs states for component physical items.
+    /// An assembly of parts should override this function and invoke WriteCheckpoint() for each component part.
+    virtual void WriteCheckpoint(ChCheckpoint& database) const;
+
+    /// Read states of this subsystem's components from the specified checkpoint database.
+    /// This base class implementation imports states for component physical items.
+    /// An assembly of parts should override this function and invoke ReadCheckpoint() for each copmponent part.
+    virtual void ReadCheckpoint(ChCheckpoint& database);
 
     /// Utility function for transforming inertia tensors between centroidal frames.
     /// It converts an inertia matrix specified in a centroidal frame aligned with the
@@ -163,6 +176,13 @@ class CH_VEHICLE_API ChPart {
     /// A derived class must override this function and first invoke the base class implementation.
     virtual void Create(const rapidjson::Document& d);
 
+    /// Populate lists of Chrono physics items in this subsystem.
+    virtual void PopulateComponentList() {}
+
+    /// Initialize the part (populate components and mark as initialized).
+    /// A derived class should call this at the end of its initialization phase.
+    void Initialize();
+
     /// Export the list of bodies to the specified JSON document.
     void ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies) const;
 
@@ -189,6 +209,14 @@ class CH_VEHICLE_API ChPart {
     void ExportBodyLoadList(rapidjson::Document& jsonDocument,
                             std::vector<std::shared_ptr<ChLoadBodyBody>> loads) const;
 
+    /// Export the list of linear motors to the specified JSON document.
+    void ExportLinMotorList(rapidjson::Document& jsonDocument,
+                            std::vector<std::shared_ptr<ChLinkMotorLinear>> loads) const;
+
+    /// Export the list of rotational motors to the specified JSON document.
+    void ExportRotMotorList(rapidjson::Document& jsonDocument,
+                            std::vector<std::shared_ptr<ChLinkMotorRotation>> loads) const;
+
     /// Erase all visual shapes from the visual model associated with the specified physics item (if any).
     static void RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item);
 
@@ -196,7 +224,6 @@ class CH_VEHICLE_API ChPart {
     static void RemoveVisualizationAsset(std::shared_ptr<ChPhysicsItem> item, std::shared_ptr<ChVisualShape> shape);
 
     std::string m_name;  ///< subsystem name
-    bool m_initialized;  ///< specifies whether or not the part is fully constructed
     bool m_output;       ///< specifies whether or not output is generated for this subsystem
 
     std::shared_ptr<ChPart> m_parent;  ///< parent subsystem (empty if parent is vehicle)
@@ -204,9 +231,22 @@ class CH_VEHICLE_API ChPart {
     ChMatrix33<> m_inertia;            ///< inertia tensor (relative to subsystem COM)
     ChFrame<> m_com;                   ///< COM frame (relative to subsystem reference frame)
     ChFrame<> m_xform;                 ///< subsystem frame expressed in the global frame
-    int m_obj_tag;                    ///< tag for part objects
+    int m_obj_tag;                     ///< tag for part objects
+
+    std::vector<std::shared_ptr<ChBody>> m_bodies;
+    std::vector<std::shared_ptr<ChShaft>> m_shafts;
+    std::vector<std::shared_ptr<ChLink>> m_joints;
+    std::vector<std::shared_ptr<ChShaftsCouple>> m_couples;
+    std::vector<std::shared_ptr<ChMarker>> m_markers;
+    std::vector<std::shared_ptr<ChLinkTSDA>> m_tsdas;
+    std::vector<std::shared_ptr<ChLinkRSDA>> m_rsdas;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> m_body_loads;
+    std::vector<std::shared_ptr<ChLinkMotorLinear>> m_lin_motors;
+    std::vector<std::shared_ptr<ChLinkMotorRotation>> m_rot_motors;
 
   private:
+    bool m_initialized;  ///< specifies whether or not the part is fully constructed
+
     friend class ChAxle;
     friend class ChWheeledVehicle;
     friend class ChTrackedVehicle;

@@ -113,18 +113,20 @@ CH_VEHICLE_API uint16_t ExtractPartTag(int tag);
 
 }  // end namespace VehicleObjTag
 
-/// Tags for specific parts of a wheeled vehicle.
+/// Tags for specific parts of a vehicle.
 enum VehiclePartTag : uint16_t {
     CHASSIS = 0xDD00,
     CHASSIS_REAR = 0xDD01,
 
+    // Wheeled vehicle subsystems
     SUBCHASSIS = 0xEE00,
     SUSPENSION = 0xEE01,
     STEERING = 0xEE02,
     ANTIROLLBAR = 0xEE03,
     WHEEL = 0xEE04,
     TIRE = 0xEE05,
-    
+
+    // Tracked vehicle subsystems
     SPROCKET = 0xFF00,
     IDLER = 0xFF01,
     TRACK_WHEEL = 0xFF02,
