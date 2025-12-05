@@ -80,7 +80,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
 
     /// Convert to a typical 3D rank-two stress or strain tensor (a 3x3 matrix).
     template <class RealB>
-    void ConvertToMatrix(ChMatrix33<RealB>& mdest) {
+    void ConvertToMatrix(ChMatrix33<RealB>& mdest) const {
         mdest(0, 0) = (RealB)XX();
         mdest(1, 1) = (RealB)YY();
         mdest(2, 2) = (RealB)ZZ();
