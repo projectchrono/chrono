@@ -65,13 +65,9 @@ class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
     /// Extract body state for IPC (called in main process, no ROS calls)
     virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
-  protected:
-    virtual void Tick(double time) override;
-
-  private:
-    void PublishPose(double time);
-    void PublishTwist(double time);
-    void PublishAccel(double time);
+    /// Publish data to ROS from serialized bytes (called in subprocess)
+    virtual void PublishFromSerialized(const std::vector<uint8_t>& data, 
+                                       std::shared_ptr<ChROSInterface> interface) override;
 
   private:
     std::shared_ptr<ChBody> m_body;

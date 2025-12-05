@@ -306,6 +306,12 @@ target_sources(chrono_ros_node PRIVATE
     handlers/robot/viper/ChROSViperDCMotorControlHandler_ros.cpp
     handlers/sensor/ChROSCameraHandler_ros.cpp
     handlers/sensor/ChROSLidarHandler_ros.cpp
+    handlers/sensor/ChROSAccelerometerHandler_ros.cpp
+    handlers/sensor/ChROSGyroscopeHandler_ros.cpp
+    handlers/sensor/ChROSMagnetometerHandler_ros.cpp
+    handlers/sensor/ChROSIMUHandler_ros.cpp
+    handlers/sensor/ChROSGPSHandler_ros.cpp
+    handlers/robot/ChROSRobotModelHandler_ros.cpp
 )
 
 target_include_directories(chrono_ros_node PRIVATE 

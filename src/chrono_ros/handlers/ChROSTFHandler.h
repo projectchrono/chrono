@@ -118,11 +118,6 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
                    const std::string& child_frame_id);
 #endif
 
-  protected:
-    /// @brief Update the transforms and publish them
-    /// @param time The current time of the simulation
-    virtual void Tick(double time) override;
-
   private:
     std::vector<std::pair<ChROSTransform, ChROSTransform>> m_transforms;  ///< The transforms to publish
 

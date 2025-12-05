@@ -81,10 +81,6 @@ class CH_ROS_API ChROSCameraHandler : public ChROSHandler {
     /// @return Serialized camera data (header + RGBA8 pixels)
     virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
-  protected:
-    /// Legacy tick function for direct ROS mode (not used in IPC)
-    virtual void Tick(double time) override;
-
   private:
     std::shared_ptr<chrono::sensor::ChCameraSensor> m_camera;  ///< Camera sensor to read from
     const std::string m_topic_name;  ///< ROS topic name for publishing

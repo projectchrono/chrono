@@ -1,7 +1,6 @@
 
 set(DEMOS "")
 
-list(APPEND DEMOS demo_ROS_custom_handler)
 list(APPEND DEMOS demo_ROS_ipc_test)
 
 if (CH_ROS_HAS_INTERFACES)

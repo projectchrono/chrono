@@ -22,8 +22,7 @@
 #include "chrono_ros/ChROSHandler.h"
 
 #include "chrono_sensor/sensors/ChIMUSensor.h"
-
-#include "sensor_msgs/msg/imu.hpp"
+#include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler_ipc.h"
 
 #include <array>
 
@@ -54,8 +53,8 @@ class CH_ROS_API ChROSAccelerometerHandler : public ChROSHandler {
     /// Get the message type of this handler
     virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::ACCELEROMETER_DATA; }
 
-  protected:
-    virtual void Tick(double time) override;
+    /// Get the serialized data for the handler
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
   private:
     /// Helper function to calculate the covariance of the accelerometer
@@ -67,10 +66,13 @@ class CH_ROS_API ChROSAccelerometerHandler : public ChROSHandler {
     std::shared_ptr<chrono::sensor::ChAccelerometerSensor> m_imu;  ///< handle to the imu sensor
 
     const std::string m_topic_name;                                   ///< name of the topic to publish to
-    sensor_msgs::msg::Imu m_imu_msg;                                  ///< message to publish
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;  ///< the publisher for the imu message
 
     std::array<double, 3> m_running_average;  ///< running average to calcualte covariance of the accelerometer
+
+    // Cache for idempotency and friend access
+    double m_last_time = -1.0;
+    std::vector<uint8_t> m_last_serialized_data;
+    ipc::AccelerometerData m_last_data_struct;
 
     friend class ChROSIMUHandler;
 };

@@ -146,13 +146,6 @@ struct TFData {
     // Followed by transform_count TFTransform structures
 };
 
-/// Robot model handler data
-struct RobotModelData {
-    char topic_name[128];
-    uint32_t urdf_size;
-    // Followed by URDF string data
-};
-
 }  // namespace ipc
 }  // namespace ros
 }  // namespace chrono

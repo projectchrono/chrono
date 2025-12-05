@@ -110,10 +110,5 @@ std::vector<uint8_t> ChROSCameraHandler::GetSerializedData(double time) {
     return m_serialize_buffer;
 }
 
-void ChROSCameraHandler::Tick(double time) {
-    // Legacy function - not used in IPC mode
-    // Kept for backward compatibility if someone uses direct ROS mode
-}
-
 }  // namespace ros
 }  // namespace chrono

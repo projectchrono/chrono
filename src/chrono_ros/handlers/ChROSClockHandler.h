@@ -86,11 +86,6 @@ class CH_ROS_API ChROSClockHandler : public ChROSHandler {
     /// @return Serialized ChROSClockData as byte vector
     virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
-  protected:
-    /// Legacy tick function (not used in IPC mode)
-    /// In IPC architecture, GetSerializedData() is called instead
-    virtual void Tick(double time) override;
-
   private:
     const std::string m_topic_name;
     rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr m_publisher;

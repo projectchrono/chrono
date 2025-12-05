@@ -67,11 +67,6 @@ class CH_ROS_API ChROSHandler {
     /// @param interface The interface to the ROS node
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) = 0;
 
-    /// Updates the internal clock and checks if a tick should occur. If yes, Tick() is called.
-    /// @param time the current simulation time
-    /// @param step the step size used since the last Update call
-    virtual void Update(double time, double step) final;
-
     /// Get the period which this handler operates at
     const double GetUpdateRate() const { return m_update_rate; }
 
@@ -147,10 +142,8 @@ class CH_ROS_API ChROSHandler {
     ///   update_rate of 0 indicates tick should be called on each update of the simulation.
     explicit ChROSHandler(double update_rate);
 
-    /// Derived class must implement this function for direct mode or backward compatibility.
-    /// In IPC mode, prefer implementing GetSerializedData() and PublishFromSerialized() instead.
-    /// @param time the current simulation time
-    virtual void Tick(double time) = 0;
+    /// Increment the tick count
+    void IncrementTickCount() { m_tick_count++; }
 
   private:
     const double m_update_rate;  ///< Update rate of the handler

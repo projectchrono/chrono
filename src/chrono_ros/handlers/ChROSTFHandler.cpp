@@ -190,33 +190,5 @@ geometry_msgs::msg::TransformStamped CreateTransformStamped(chrono::ChFrame<> lo
     return tf_msg;
 }
 
-void ChROSTFHandler::Tick(double time) {
-    std::vector<geometry_msgs::msg::TransformStamped> transforms;
-
-    for (auto const& [parent_tf, child_tf] : m_transforms) {
-        chrono::ChFrame<> child_to_parent;
-
-        std::string parent_id;
-        std::string child_id;
-
-        const auto& [parent_body, parent_frame_id] = std::get<ChBodyTransform>(parent_tf);
-        parent_id = parent_frame_id;
-
-        if (std::holds_alternative<ChBodyTransform>(child_tf)) {
-            const auto& [child_body, child_frame_id] = std::get<ChBodyTransform>(child_tf);
-            child_id = child_frame_id;
-            child_to_parent = parent_body->GetFrameRefToAbs().GetInverse() * child_body->GetFrameRefToAbs();
-        } else {
-            const auto& [child_frame, child_frame_id] = std::get<ChFrameTransform>(child_tf);
-            child_id = child_frame_id;
-            child_to_parent = child_frame;
-        }
-
-        transforms.emplace_back(CreateTransformStamped(child_to_parent, parent_id, child_id, time));
-    }
-
-    m_tf_broadcaster->sendTransform(transforms);
-}
-
 }  // namespace ros
 }  // namespace chrono

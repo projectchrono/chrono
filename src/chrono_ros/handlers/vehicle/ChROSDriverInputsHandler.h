@@ -21,8 +21,6 @@
 
 #include "chrono_ros/ChROSHandler.h"
 
-#include "chrono_ros_interfaces/msg/driver_inputs.hpp"
-
 #include "chrono_vehicle/ChDriver.h"
 
 // IPC data structure (separate header - safe for subprocess to include)
@@ -103,10 +101,6 @@ class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
     virtual bool SupportsIncomingMessages() const override { return true; }
 
   protected:
-    /// Update driver with stored inputs (legacy, not used in IPC mode)
-    /// In IPC mode, ApplyInputs() is called directly when messages arrive
-    virtual void Tick(double time) override;
-    
     /// Send topic name to subprocess once to trigger subscriber creation
     /// First call: Returns topic name as bytes for subprocess setup
     /// Subsequent calls: Returns empty vector (no data to publish)
@@ -115,18 +109,11 @@ class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
     virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
   private:
-    /// ROS callback (legacy, only used in direct ROS mode, not IPC)
-    /// Stores incoming message data in m_inputs for later application in Tick()
-    void Callback(const chrono_ros_interfaces::msg::DriverInputs& msg);
-
-  private:
     std::shared_ptr<chrono::vehicle::ChDriver> m_driver;  ///< the driver to update
 
     const std::string m_topic_name;          ///< name of the topic to publish to
     chrono::vehicle::DriverInputs m_inputs;  ///< stores the most recent inputs
     chrono::vehicle::DriverInputs m_applied_inputs;  ///< last inputs applied to driver
-    rclcpp::Subscription<chrono_ros_interfaces::msg::DriverInputs>::SharedPtr
-        m_subscription;  ///< subscriber to the chrono_ros_interfaces::msg::DriverInputs
     bool m_subscriber_setup_sent;  ///< tracks if setup message was sent to subprocess
 
     std::mutex m_mutex;  ///< used to control access to m_inputs

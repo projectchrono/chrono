@@ -23,8 +23,6 @@
 
 using namespace chrono::vehicle;
 
-using std::placeholders::_1;
-
 namespace chrono {
 namespace ros {
 
@@ -38,24 +36,10 @@ ChROSDriverInputsHandler::ChROSDriverInputsHandler(double update_rate,
       m_inputs({0, 0, 0, 0}), m_applied_inputs({0, 0, 0, 0}), m_subscriber_setup_sent(false) {}
 
 bool ChROSDriverInputsHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    auto node = interface->GetNode();
-
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
         return false;
     }
-
-    m_subscription = node->create_subscription<chrono_ros_interfaces::msg::DriverInputs>(
-        m_topic_name, 1, std::bind(&ChROSDriverInputsHandler::Callback, this, _1));
-
     return true;
-}
-
-void ChROSDriverInputsHandler::Callback(const chrono_ros_interfaces::msg::DriverInputs& msg) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    m_inputs.m_steering = msg.steering;
-    m_inputs.m_throttle = msg.throttle;
-    m_inputs.m_braking = msg.braking;
 }
 
 void ChROSDriverInputsHandler::ApplyInputs(double steering, double throttle, double braking) {
@@ -66,16 +50,6 @@ void ChROSDriverInputsHandler::ApplyInputs(double steering, double throttle, dou
     m_inputs.m_braking = braking;
     
     // Immediately apply to driver in IPC mode
-    m_driver->SetSteering(m_inputs.m_steering);
-    m_driver->SetThrottle(m_inputs.m_throttle);
-    m_driver->SetBraking(m_inputs.m_braking);
-    
-    m_applied_inputs = m_inputs;
-}
-
-void ChROSDriverInputsHandler::Tick(double time) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-
     m_driver->SetSteering(m_inputs.m_steering);
     m_driver->SetThrottle(m_inputs.m_throttle);
     m_driver->SetBraking(m_inputs.m_braking);
@@ -97,17 +71,11 @@ std::vector<uint8_t> ChROSDriverInputsHandler::GetSerializedData(double time) {
         m_subscriber_setup_sent = true;
         
         // Serialize topic name to send to subprocess
-        std::vector<uint8_t> data;
-        data.resize(m_topic_name.size() + 1);
-        std::memcpy(data.data(), m_topic_name.c_str(), m_topic_name.size() + 1);
-        
-        std::cout << "[MAIN PROCESS] Sending DriverInputs subscriber setup with topic: " 
-                  << m_topic_name << std::endl;
+        std::vector<uint8_t> data(m_topic_name.begin(), m_topic_name.end());
         return data;
     }
     
-    // After initial setup, return empty - subscriber receives data from ROS
-    return std::vector<uint8_t>();
+    return {};
 }
 
 }  // namespace ros

@@ -22,13 +22,6 @@
 #include "chrono_ros/ChROSHandler.h"
 #include "chrono_ros/ChROSIPCInterface.h"
 #include "chrono_ros/ipc/ChROSIPCMessage.h"
-#include "chrono_ros/handlers/ChROSClockHandler.h"
-#include "chrono_ros/handlers/ChROSBodyHandler.h"  
-#include "chrono_ros/handlers/ChROSTFHandler.h"
-#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
-#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 
 #include "chrono/core/ChTypes.h"
 

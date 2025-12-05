@@ -56,7 +56,7 @@ class PointCloud2Impl : public ChROSLidarHandlerImpl {
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override {
         // In IPC mode, we just check if the sensor has the required filter
-        // No publisher creation here
+        // No publisher creation here - subprocess handles ROS
         return true;
     }
 
@@ -71,6 +71,8 @@ class PointCloud2Impl : public ChROSLidarHandlerImpl {
         size_t point_size = sizeof(PixelXYZI);
         size_t data_size = width * height * point_size;
 
+        // Serialize: header + point data
+        // Use member buffer to avoid reallocation
         size_t total_size = sizeof(ipc::LidarPointCloudData) + data_size;
         if (m_serialize_buffer.capacity() < total_size) {
             m_serialize_buffer.reserve(total_size);
@@ -87,7 +89,7 @@ class PointCloud2Impl : public ChROSLidarHandlerImpl {
         header->width = width;
         header->height = height;
 
-        // Copy point data
+        // Copy point data directly after header
         uint8_t* data_ptr = m_serialize_buffer.data() + sizeof(ipc::LidarPointCloudData);
         std::memcpy(data_ptr, pc_ptr->Buffer.get(), data_size);
 
@@ -130,6 +132,7 @@ class LaserScanImpl : public ChROSLidarHandlerImpl {
         strncpy(header->frame_id, lidar->GetName().c_str(), sizeof(header->frame_id) - 1);
         header->frame_id[sizeof(header->frame_id) - 1] = '\0';
 
+        // Assume lidar is centered for now
         header->angle_min = -lidar->GetHFOV() / 2.0;
         header->angle_max = lidar->GetHFOV() / 2.0;
         header->angle_increment = lidar->GetHFOV() / lidar->GetWidth();
@@ -195,10 +198,6 @@ std::vector<uint8_t> ChROSLidarHandler::GetSerializedData(double time) {
         m_last_publish_time = time;
     }
     return data;
-}
-
-void ChROSLidarHandler::Tick(double time) {
-    // No-op in IPC mode
 }
 
 }  // namespace ros

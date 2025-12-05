@@ -45,11 +45,5 @@ std::vector<uint8_t> ChROSClockHandler::GetSerializedData(double time) {
     return bytes;
 }
 
-void ChROSClockHandler::Tick(double time) {
-    rosgraph_msgs::msg::Clock msg;
-    msg.clock = ChROSHandlerUtilities::GetROSTimestamp(time);
-    m_publisher->publish(msg);
-}
-
 }  // namespace ros
 }  // namespace chrono

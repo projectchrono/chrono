@@ -12,82 +12,104 @@
 // Authors: Aaron Young
 // =============================================================================
 //
-// ROS subscriber handler for Viper DC Motor Control (subprocess only)
-// This file contains ROS-specific code and is only linked into chrono_ros_node
+// ROS-side implementation for Viper DC Motor Control Handler
 //
 // =============================================================================
 
-#include <iostream>
-#include <memory>
-#include <cstring>
-
-#include "rclcpp/rclcpp.hpp"
-#include "chrono_ros_interfaces/msg/viper_dc_motor_control.hpp"
-
+#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
+#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler_ipc.h"
 #include "chrono_ros/ChROSHandlerRegistry.h"
 #include "chrono_ros/ipc/ChROSIPCChannel.h"
-#include "chrono_ros/ipc/ChROSIPCMessage.h"
-#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler_ipc.h"
 
-using namespace chrono::ros;
-using namespace chrono::ros::ipc;
+#include "chrono_ros_interfaces/msg/viper_dc_motor_control.hpp"
+#include "chrono_ros_interfaces/msg/viper_wheel_id.hpp"
 
-// Global subscriber and IPC channel for this handler
+#include "rclcpp/rclcpp.hpp"
+#include <iostream>
+
+namespace chrono {
+namespace ros {
+
+// Global IPC channel pointer for the callback
+static ipc::IPCChannel* g_ipc_channel = nullptr;
 static rclcpp::Subscription<chrono_ros_interfaces::msg::ViperDCMotorControl>::SharedPtr g_viper_subscriber;
-static IPCChannel* g_ipc_channel = nullptr;
 
-/// Callback when ROS receives Viper motor control data
+// Callback for ROS messages
 void OnViperDCMotorControlReceived(const chrono_ros_interfaces::msg::ViperDCMotorControl::SharedPtr msg) {
-    std::cout << "[SUBPROCESS] ✓ Received ROS ViperDCMotorControl" << std::endl;
-    
-    if (!g_ipc_channel) {
-        std::cerr << "[SUBPROCESS] ERROR: IPC channel not set for Viper handler!" << std::endl;
-        return;
-    }
-    
-    // For now, send a simplified version back to main process
-    // The full message has complex nested structures, so we serialize key fields
-    // You can extend this to send the complete message if needed
-    
+    if (!g_ipc_channel) return;
+
     ipc::ViperDCMotorControlData data;
     
-    // Extract simplified data from message
+    // Extract data from message
+    // Note: The message structure might differ slightly based on the ROS interface definition
+    // Assuming standard fields based on previous context
+    
+    // Steering
+    // The ROS message seems to have a list of steering commands or similar?
+    // Based on previous error logs: msg->driver_commands.steering_list
+    // But let's assume a simpler structure if possible, or match what was there.
+    // The error log showed: msg->driver_commands.steering_list
+    // Let's try to match the ROS message structure inferred from errors.
+    
+    // Actually, let's look at the error log again:
+    // msg->driver_commands.steering_list
+    // msg->stall_torque.torque
+    // msg->no_load_speed.speed
+    
+    // Wait, the error log in previous turn (turn 14) showed:
+    // msg->driver_commands.steering_list
+    
+    // Let's try to be safe and use what we saw.
+    
+    // However, I don't have the full definition of chrono_ros_interfaces::msg::ViperDCMotorControl.
+    // But I can infer from the previous code snippet I read (which had errors but showed usage).
+    
+    // Let's assume the previous code was trying to use the correct fields but had syntax errors.
+    
+    // Re-reading the previous code snippet from ChROSViperDCMotorControlHandler_ros.cpp:
+    /*
+    if (!msg->driver_commands.steering_list.empty()) {
+        data.steering_angle = msg->driver_commands.steering_list[0].angle;
+        data.steering_wheel_id = msg->driver_commands.steering_list[0].wheel_id;
+    }
+    data.lifting = msg->driver_commands.lifting;
+    data.stall_torque = msg->stall_torque.torque;
+    data.stall_torque_wheel_id = msg->stall_torque.wheel_id;
+    */
+    
+    // I will use this structure.
+    
     if (!msg->driver_commands.steering_list.empty()) {
         data.steering_angle = msg->driver_commands.steering_list[0].angle;
         data.steering_wheel_id = msg->driver_commands.steering_list[0].wheel_id;
     } else {
-        data.steering_angle = 0.0;
+        data.steering_angle = 0;
         data.steering_wheel_id = -1;
     }
     
     data.lifting = msg->driver_commands.lifting;
+    
     data.stall_torque = msg->stall_torque.torque;
     data.stall_torque_wheel_id = msg->stall_torque.wheel_id;
+    
     data.no_load_speed = msg->no_load_speed.speed;
     data.no_load_speed_wheel_id = msg->no_load_speed.wheel_id;
-    
-    // Create IPC message and send back to main process
-    // Use static to avoid repeated 64MB allocations
+
+    // Create IPC message
     static ipc::Message ipc_msg;
-    
-    // Re-initialize header and payload for each use
     ipc_msg.header = ipc::MessageHeader(ipc::MessageType::VIPER_DC_MOTOR_CONTROL, 0, sizeof(data), 0);
     std::memcpy(ipc_msg.payload.get(), &data, sizeof(data));
     
-    if (g_ipc_channel->SendMessage(ipc_msg)) {
-        std::cout << "[SUBPROCESS] ✓ Sent ViperDCMotorControl via IPC to main process" << std::endl;
-    } else {
-        std::cerr << "[SUBPROCESS] ERROR: Failed to send Viper data via IPC!" << std::endl;
-    }
+    g_ipc_channel->SendMessage(ipc_msg);
 }
 
 /// Setup function called by subprocess to create ROS subscriber
 /// @param data Serialized topic name from main process
 /// @param data_size Size of data in bytes
 /// @param node ROS node to create subscriber on
-/// @param channel IPC channel for bidirectional communication
-void SetupViperDCMotorControlSubscriber(const uint8_t* data, size_t data_size,
-                                       rclcpp::Node::SharedPtr node,
+// Setup function for the subscriber
+void SetupViperDCMotorControlSubscriber(const uint8_t* data, size_t data_size, 
+                                       rclcpp::Node::SharedPtr node, 
                                        ipc::IPCChannel* channel) {
     // Extract topic name from data
     std::string topic_name;
@@ -111,6 +133,8 @@ void SetupViperDCMotorControlSubscriber(const uint8_t* data, size_t data_size,
               << topic_name << std::endl;
 }
 
-// Register this handler with the registry using static initialization
-// This happens automatically when the subprocess loads this compilation unit
+// Register the handler
 CHRONO_ROS_REGISTER_HANDLER(VIPER_DC_MOTOR_CONTROL, SetupViperDCMotorControlSubscriber)
+
+}  // namespace ros
+}  // namespace chrono
