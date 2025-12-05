@@ -152,6 +152,10 @@ public:
         n_dofs_w = 0;
 
         for (auto& node : this->node_data) {
+
+            // Attention. Only ChFieldData without sub data can be used in fields, for performance reasons.
+            assert(node.second.GetNthSubData(0)==nullptr);
+            
             // Set node offsets in state vectors (based on the offsets of the containing mesh)
             node.second.DataSetOffsetPosLevel(GetOffset_x() + n_dofs);
             node.second.DataSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
