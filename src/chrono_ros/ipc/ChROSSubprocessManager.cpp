@@ -29,6 +29,7 @@
     #include <signal.h>
     #include <libgen.h>
     #include <climits>
+    #include <dlfcn.h>
 #endif
 
 namespace chrono {
@@ -242,15 +243,73 @@ std::string SubprocessManager::GetExecutablePath() const {
     return std::string(path) + "\\chrono_ros_node.exe";
 #else
     char path[PATH_MAX];
+    // Try to get the path of the current executable (C++ app) or the python interpreter
     ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
     if (len != -1) {
         path[len] = '\0';
-        char* dir = dirname(path);
-        return std::string(dir) + "/chrono_ros_node";
+        
+        std::string full_path(path);
+        std::string dir_path = full_path.substr(0, full_path.find_last_of("/"));
+        std::string base_name = full_path.substr(full_path.find_last_of("/") + 1);
+        
+        // Check if we are running from python (e.g. "python", "python3", "python3.10")
+        if (base_name.find("python") != std::string::npos) {
+             // If running from python, we need to find where the chrono libraries are installed
+             // We use dladdr to find the location of the current shared library (libChrono_ros.so)
+             Dl_info info;
+             
+             // We need a symbol address that resides in this shared library.
+             // Since we are inside a member function, we can't easily take its address as void*.
+             // However, we can use the address of a static function or a global variable defined in this translation unit.
+             // But we don't have one handy.
+             // Let's use the address of the current function, but we need to be careful with syntax.
+             // A safer and more portable way is to use a non-member function.
+             // Let's assume the vtable or RTTI info is close enough.
+             
+             // Hack: Cast the member function pointer to void* via a union to avoid compiler warnings/errors
+             union {
+                 std::string (SubprocessManager::*pmf)() const;
+                 void* p;
+             } u;
+             u.pmf = &SubprocessManager::GetExecutablePath;
+             
+             if (dladdr(u.p, &info)) {
+                 std::string lib_path(info.dli_fname);
+                 // lib_path is something like /path/to/lib/libChrono_ros.so
+                 // We want to find /path/to/bin/chrono_ros_node
+                 
+                 char* lib_dir_c = dirname(const_cast<char*>(lib_path.c_str()));
+                 std::string lib_dir(lib_dir_c);
+                 
+                 // Check if we are in a build tree (lib/ is sibling to bin/)
+                 // or install tree (lib/ is sibling to bin/)
+                 // In both cases, we go up one level and look into bin/
+                 
+                 // However, sometimes libs are in lib/ or lib64/ or just build/
+                 // Let's try a few common locations relative to the library
+                 
+                 // 1. Sibling bin directory: ../bin/chrono_ros_node
+                 std::string bin_path = lib_dir + "/../bin/chrono_ros_node";
+                 if (access(bin_path.c_str(), X_OK) == 0) {
+                     return bin_path;
+                 }
+                 
+                 // 2. Same directory: ./chrono_ros_node (common in build trees on Windows or flat builds)
+                 bin_path = lib_dir + "/chrono_ros_node";
+                 if (access(bin_path.c_str(), X_OK) == 0) {
+                     return bin_path;
+                 }
+             }
+             
+             // Fallback: Assume chrono_ros_node is in the PATH
+             return "chrono_ros_node";
+        }
+
+        return dir_path + "/chrono_ros_node";
     }
     
     // Fallback to relative path
-    return "./chrono_ros_node";
+    return "chrono_ros_node";
 #endif
 }
 
