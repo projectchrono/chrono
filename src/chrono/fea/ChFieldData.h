@@ -40,6 +40,56 @@ namespace fea {
 class ChFieldData {
 public:
     virtual ~ChFieldData() {};
+
+    /// Optionally, a ChFieldData could have children ChFieldData objects, like
+    /// a tree structure. This can be useful in cases when one has a compound material
+    /// like plastic law + viscous law, each willing to introduce their own ChFieldData
+    /// per material point, hence per each material point the viscoplastic material will
+    /// generate a  ChFieldDataCompound with two children: a ChFieldDataForPlasticity and 
+    /// a ChFieldDataForViscosity, for example.
+    /// When using ChFieldData in a ChField, instead, we require that there are no sub data.
+    /// Return nullptr for n=0 to tell that there are no sub data. 
+    virtual ChFieldData* GetNthSubData(int n) { return nullptr; }
+
+    // Visitor to traverse the sub data, including this root. 
+    // This visitor can stop early (returns true to continue, false to stop)
+    template<typename VisitorFunc>
+    void VisitTree(VisitorFunc&& visitor) {
+        if (!visitor(this)) {
+            return;  // Early exit
+        }
+        visit_tree_recursive<VisitorFunc>(std::forward<VisitorFunc>(visitor));
+    }
+
+    // Visitor to traverse the sub data, without early termination. 
+    // Slightly faster than VisitTree()
+    template<typename VisitorFunc>
+    void ForEach(VisitorFunc&& visitor) {
+        visitor(this);
+        visit_each_recursive<VisitorFunc>(std::forward<VisitorFunc>(visitor));
+    }
+
+private:
+    template<typename VisitorFunc>
+    void visit_tree_recursive(VisitorFunc&& visitor) {
+        for (int i = 0; ; ++i) {
+            ChFieldData* child = GetNthSubData(i);
+            if (!child) {
+                break;  // No more children
+            }
+            child->VisitTree(std::forward<VisitorFunc>(visitor));
+        }
+    }
+    template<typename VisitorFunc>
+    void visit_each_recursive(VisitorFunc&& visitor) {
+        for (int i = 0; ; ++i) {
+            ChFieldData* child = GetNthSubData(i);
+            if (!child) {
+                break;  // No more children
+            }
+            child->ForEach(std::forward<VisitorFunc>(visitor));
+        }
+    }
 };
 
 //------------------------------------------------------------------------------------------
