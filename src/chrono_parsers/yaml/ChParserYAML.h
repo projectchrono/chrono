@@ -24,7 +24,7 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/output/ChOutput.h"
+#include "chrono/input_output/ChOutput.h"
 
 #include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
 

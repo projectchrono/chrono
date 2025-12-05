@@ -522,5 +522,45 @@ void ChTrackedVehicle::Output(int frame, ChOutput& database) const {
     }
 }
 
+void ChTrackedVehicle::WriteCheckpoint(ChCheckpoint& database) const {
+    m_chassis->WriteCheckpoint(database);
+
+    for (auto& c : m_chassis_rear) {
+        c->WriteCheckpoint(database);
+    }
+
+    m_tracks[LEFT]->WriteCheckpoint(database);
+
+    m_tracks[RIGHT]->WriteCheckpoint(database);
+
+    if (m_driveline)
+        m_driveline->WriteCheckpoint(database);
+
+    if (m_powertrain_assembly) {
+        GetEngine()->WriteCheckpoint(database);
+        GetTransmission()->WriteCheckpoint(database);
+    }
+}
+
+void ChTrackedVehicle::ReadCheckpoint(ChCheckpoint& database) {
+    m_chassis->ReadCheckpoint(database);
+
+    for (auto& c : m_chassis_rear) {
+        c->ReadCheckpoint(database);
+    }
+
+    m_tracks[LEFT]->ReadCheckpoint(database);
+
+    m_tracks[RIGHT]->ReadCheckpoint(database);
+
+    if (m_driveline)
+        m_driveline->ReadCheckpoint(database);
+
+    if (m_powertrain_assembly) {
+        GetEngine()->ReadCheckpoint(database);
+        GetTransmission()->ReadCheckpoint(database);
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

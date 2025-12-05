@@ -75,6 +75,8 @@ class CH_VEHICLE_API ChEngineSimpleMap : public ChEngine {
     /// This function does nothing for this simplified engine model.
     virtual void Advance(double step) override {}
 
+    virtual void PopulateComponentList() override;
+
     double m_motor_speed;   ///< current engine speed
     double m_motor_torque;  ///< current engine torque
 

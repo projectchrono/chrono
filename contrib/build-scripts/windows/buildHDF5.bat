@@ -8,7 +8,7 @@
 @rem
 @rem Notes:
 @rem - The script accepts 1 optional argument to override the install directory.
-@rem - This script downloads HDF5 version 1.14.6 from its repository.
+@rem - This script downloads HDF5 version 2.0.0 from its repository.
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -37,7 +37,7 @@ if "%~1" NEQ "" (
     mkdir download_hdf5
 
     echo "  ... HDF5"
-    git clone -c advice.detachedHead=false --depth 1 --branch hdf5_1_14_6 "https://github.com/HDFGroup/hdf5" "download_hdf5/hdf5"
+    git clone -c advice.detachedHead=false --depth 1 --branch hdf5_2_0_0 "https://github.com/HDFGroup/hdf5" "download_hdf5/hdf5"
     set HDF5_SOURCE_DIR="download_hdf5/hdf5"
 
 ) else (
@@ -58,8 +58,9 @@ cmake -B build_hdf5 -S %HDF5_SOURCE_DIR% ^
       -DBUILD_TESTING:BOOL=OFF ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
+      -DHDF_PACKAGE_NAMESPACE:STRING="hdf5::" ^
       -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF ^
-      -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=OFF 
+      -DHDF5_ENABLE_ZLIB_SUPPORT:BOOL=OFF 
 
 cmake --build build_hdf5 --config Release
 cmake --install build_hdf5 --config Release --prefix %HDF5_INSTALL_DIR%

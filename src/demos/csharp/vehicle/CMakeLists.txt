@@ -55,10 +55,18 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
   list(APPEND MODULE_LIST "postprocess")
 endif()
 
-CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
-list(LENGTH CHRONO_CSHARP_SOURCES NUM_CSHARP_FILES)
+set(CHRONO_CSHARP_SOURCES)
+set(_chrono_csharp_source_desc "")
+# Wrapper DLL simplifies references; fallback embeds all needed module sources when the wrapper is disabled so demos still compile as standalone
+if(CHRONO_CSHARP_USING_WRAPPER)
+  set(_chrono_csharp_source_desc "using chrono_csharp_wrapper.dll")
+else()
+  CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
+  list(LENGTH CHRONO_CSHARP_SOURCES NUM_CSHARP_FILES)
+  set(_chrono_csharp_source_desc "embedding ${NUM_CSHARP_FILES} SWIG sources")
+endif()
 
-message(STATUS "  C# vehicle demos; number C# sources: ${NUM_CSHARP_FILES}")
+message(STATUS "  C# vehicle demos; ${_chrono_csharp_source_desc}")
 
 # ----------------------------------------------------------------------
 
@@ -69,7 +77,13 @@ foreach(PROGRAM ${DEMOS})
   if(HAVE_OPENCRG)
     if(WIN32)
       # Add reference to Microsoft.CSharp
-      set_property(TARGET ${PROGRAM} PROPERTY VS_DOTNET_REFERENCES "Microsoft.CSharp")
+      get_property(_existing_refs TARGET ${PROGRAM} PROPERTY VS_DOTNET_REFERENCES)
+      if(NOT _existing_refs)
+        set(_existing_refs "")
+      endif()
+      list(APPEND _existing_refs "Microsoft.CSharp")
+      list(REMOVE_DUPLICATES _existing_refs)
+      set_property(TARGET ${PROGRAM} PROPERTY VS_DOTNET_REFERENCES "${_existing_refs}")
     else()
       # Assuming use of Mono on Unix/Linux (this is currently untested)
       find_package(Mono REQUIRED)
@@ -83,4 +97,6 @@ foreach(PROGRAM ${DEMOS})
   if(CH_ENABLE_MODULE_VSG)
     target_compile_options(${PROGRAM} PRIVATE "/define:CHRONO_VSG")
   endif()
+
+  chrono_configure_csharp_demo(${PROGRAM})
 endforeach()

@@ -46,7 +46,7 @@ const std::string ChSolidAxle::m_pointNames[] = {
 ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {}
 
 ChSolidAxle::~ChSolidAxle() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_axleTube->GetSystem();
@@ -744,110 +744,47 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSolidAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    bodies.push_back(m_tierod);
-    bodies.push_back(m_bellCrank);
-    bodies.push_back(m_draglink);
-    bodies.push_back(m_knuckle[0]);
-    bodies.push_back(m_knuckle[1]);
-    bodies.push_back(m_upperLink[0]);
-    bodies.push_back(m_upperLink[1]);
-    bodies.push_back(m_lowerLink[0]);
-    bodies.push_back(m_lowerLink[1]);
-    ExportBodyList(jsonDocument, bodies);
+void ChSolidAxle::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    m_bodies.push_back(m_axleTube);
+    m_bodies.push_back(m_tierod);
+    m_bodies.push_back(m_bellCrank);
+    m_bodies.push_back(m_draglink);
+    m_bodies.push_back(m_knuckle[0]);
+    m_bodies.push_back(m_knuckle[1]);
+    m_bodies.push_back(m_upperLink[0]);
+    m_bodies.push_back(m_upperLink[1]);
+    m_bodies.push_back(m_lowerLink[0]);
+    m_bodies.push_back(m_lowerLink[1]);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteBellCrank);
-    joints.push_back(m_sphericalTierod);
-    joints.push_back(m_sphericalDraglink);
-    joints.push_back(m_universalDraglink);
-    joints.push_back(m_universalTierod);
-    joints.push_back(m_pointPlaneBellCrank);
-    joints.push_back(m_revoluteKingpin[0]);
-    joints.push_back(m_revoluteKingpin[1]);
-    joints.push_back(m_sphericalUpperLink[0]);
-    joints.push_back(m_sphericalUpperLink[1]);
-    joints.push_back(m_sphericalLowerLink[0]);
-    joints.push_back(m_sphericalLowerLink[1]);
-    joints.push_back(m_universalUpperLink[0]);
-    joints.push_back(m_universalUpperLink[1]);
-    joints.push_back(m_universalLowerLink[0]);
-    joints.push_back(m_universalLowerLink[1]);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
+    m_joints.push_back(m_revoluteBellCrank);
+    m_joints.push_back(m_sphericalTierod);
+    m_joints.push_back(m_sphericalDraglink);
+    m_joints.push_back(m_universalDraglink);
+    m_joints.push_back(m_universalTierod);
+    m_joints.push_back(m_pointPlaneBellCrank);
+    m_joints.push_back(m_revoluteKingpin[0]);
+    m_joints.push_back(m_revoluteKingpin[1]);
+    m_joints.push_back(m_sphericalUpperLink[0]);
+    m_joints.push_back(m_sphericalUpperLink[1]);
+    m_joints.push_back(m_sphericalLowerLink[0]);
+    m_joints.push_back(m_sphericalLowerLink[1]);
+    m_joints.push_back(m_universalUpperLink[0]);
+    m_joints.push_back(m_universalUpperLink[1]);
+    m_joints.push_back(m_universalLowerLink[0]);
+    m_joints.push_back(m_universalLowerLink[1]);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChSolidAxle::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    bodies.push_back(m_tierod);
-    bodies.push_back(m_bellCrank);
-    bodies.push_back(m_draglink);
-    bodies.push_back(m_knuckle[0]);
-    bodies.push_back(m_knuckle[1]);
-    bodies.push_back(m_upperLink[0]);
-    bodies.push_back(m_upperLink[1]);
-    bodies.push_back(m_lowerLink[0]);
-    bodies.push_back(m_lowerLink[1]);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteBellCrank);
-    joints.push_back(m_sphericalTierod);
-    joints.push_back(m_sphericalDraglink);
-    joints.push_back(m_universalDraglink);
-    joints.push_back(m_universalTierod);
-    joints.push_back(m_pointPlaneBellCrank);
-    joints.push_back(m_revoluteKingpin[0]);
-    joints.push_back(m_revoluteKingpin[1]);
-    joints.push_back(m_sphericalUpperLink[0]);
-    joints.push_back(m_sphericalUpperLink[1]);
-    joints.push_back(m_sphericalLowerLink[0]);
-    joints.push_back(m_sphericalLowerLink[1]);
-    joints.push_back(m_universalUpperLink[0]);
-    joints.push_back(m_universalUpperLink[1]);
-    joints.push_back(m_universalLowerLink[0]);
-    joints.push_back(m_universalLowerLink[1]);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_spring[0]);
+    m_tsdas.push_back(m_spring[1]);
+    m_tsdas.push_back(m_shock[0]);
+    m_tsdas.push_back(m_shock[1]);
 }
 
 }  // end namespace vehicle

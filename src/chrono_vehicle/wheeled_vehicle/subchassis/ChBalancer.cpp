@@ -29,7 +29,7 @@ namespace vehicle {
 ChBalancer::ChBalancer(const std::string& name) : ChSubchassis(name) {}
 
 ChBalancer::~ChBalancer() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     ChChassis::RemoveJoint(m_balancer_joint[0]);
@@ -179,41 +179,14 @@ void ChBalancer::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 
-void ChBalancer::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
+void ChBalancer::PopulateComponentList() {
+    m_bodies.push_back(m_beam[0]);
+    m_bodies.push_back(m_beam[1]);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_beam[0]);
-    bodies.push_back(m_beam[1]);
-    ExportBodyList(jsonDocument, bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_balancer_joint[0]->IsKinematic() ? joints.push_back(m_balancer_joint[0]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[0]->GetAsBushing());
-    m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
-}
-
-void ChBalancer::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_beam[0]);
-    bodies.push_back(m_beam[1]);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_balancer_joint[0]->IsKinematic() ? joints.push_back(m_balancer_joint[0]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[0]->GetAsBushing());
-    m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
-    database.WriteJoints(joints);
-    database.WriteBodyBodyLoads(bushings);
+    m_balancer_joint[0]->IsKinematic() ? m_joints.push_back(m_balancer_joint[0]->GetAsLink())
+                                       : m_body_loads.push_back(m_balancer_joint[0]->GetAsBushing());
+    m_balancer_joint[1]->IsKinematic() ? m_joints.push_back(m_balancer_joint[1]->GetAsLink())
+                                       : m_body_loads.push_back(m_balancer_joint[1]->GetAsBushing());
 }
 
 }  // end namespace vehicle

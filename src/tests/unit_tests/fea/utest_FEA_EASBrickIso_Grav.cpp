@@ -29,7 +29,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         // Initialize the output stream and set precision.
-        utils::ChWriterCSV out("\t");
+        ChWriterCSV out("\t");
         out.Stream().setf(std::ios::scientific | std::ios::showpos);
         out.Stream().precision(7);
         // Simulate to final time, while saving position of tip node.

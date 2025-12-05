@@ -25,7 +25,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/geometry/ChLineBezier.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtils.h"
 

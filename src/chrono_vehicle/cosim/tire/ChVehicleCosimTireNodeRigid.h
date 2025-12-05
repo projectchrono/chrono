@@ -24,8 +24,6 @@
 #ifndef CH_VEHCOSIM_TIRE_NODE_RIGID_H
 #define CH_VEHCOSIM_TIRE_NODE_RIGID_H
 
-#include "chrono/utils/ChUtilsInputOutput.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
@@ -70,14 +68,14 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
 
   private:
     /// Write mesh connectivity (fixed).
-    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
+    void WriteTireMeshInformation(ChWriterCSV& csv);
 
     /// Write mesh vertex positions and velocities.
-    void WriteTireStateInformation(utils::ChWriterCSV& csv);
+    void WriteTireStateInformation(ChWriterCSV& csv);
 
     /// Write terrain forces applied to this tire.
     /// For a rigid tire, these are the resultant force and torque on the spindle body.
-    void WriteTireTerrainForces(utils::ChWriterCSV& csv);
+    void WriteTireTerrainForces(ChWriterCSV& csv);
 
     std::shared_ptr<ChRigidTire> m_tire_rgd;               ///< rigid tire
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex

@@ -60,7 +60,8 @@
 
 #include "chrono/fea/ChMesh.h"
 
-#include "chrono/output/ChOutput.h"
+#include "chrono/input_output/ChOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
@@ -253,7 +254,8 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "../../../chrono/fea/ChMesh.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 
-%import(module = "pychrono.core") "../../../chrono/output/ChOutput.h"
+%import(module = "pychrono.core") "../../../chrono/input_output/ChOutput.h"
+%import(module = "pychrono.core") "../../../chrono/input_output/ChCheckpoint.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
@@ -519,3 +521,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)
+
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, FlatTerrain)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, RigidTerrain)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, SCMTerrain)

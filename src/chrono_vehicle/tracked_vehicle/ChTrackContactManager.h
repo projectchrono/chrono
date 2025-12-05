@@ -24,7 +24,7 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -101,7 +101,7 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     bool m_render_forces;   ///< render contact forces
     double m_scale_forces;  ///< contact force rendering scale
 
-    utils::ChWriterCSV m_csv;
+    ChWriterCSV m_csv;
 
     std::shared_ptr<ChChassis> m_chassis;
     std::shared_ptr<ChSprocket> m_sprocket_L;

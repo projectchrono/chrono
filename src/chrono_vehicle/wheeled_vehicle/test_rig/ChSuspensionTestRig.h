@@ -27,7 +27,7 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -224,8 +224,8 @@ class CH_VEHICLE_API ChSuspensionTestRig {
 
     /// Plot data for one axle.
     struct PlotData {
-        utils::ChWriterCSV csvL;  ///< csv output for left side
-        utils::ChWriterCSV csvR;  ///< csv output for right side
+        ChWriterCSV csvL;  ///< csv output for left side
+        ChWriterCSV csvR;  ///< csv output for right side
         int num_tsda;             ///< number of TSDAs
         int num_rsda;             ///< number of RSDAs
     };

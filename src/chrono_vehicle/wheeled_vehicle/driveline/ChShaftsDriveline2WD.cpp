@@ -36,7 +36,7 @@ ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
     : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_differential->GetSystem();
@@ -57,8 +57,6 @@ ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
 void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
-    ChDriveline::Initialize(chassis);
-
     assert(axles.size() >= 1);
     assert(driven_axles.size() == 1);
 
@@ -103,6 +101,8 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
     m_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_clutch->SetModulation(0);
     sys->Add(m_clutch);
+
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

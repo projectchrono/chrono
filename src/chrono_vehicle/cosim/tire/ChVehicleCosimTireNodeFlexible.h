@@ -25,7 +25,7 @@
 #define CH_VEHCOSIM_TIRE_NODE_FLEXIBLE_H
 
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
@@ -91,14 +91,14 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
 
   private:
     /// Write mesh connectivity (and strain information)fixed).
-    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
+    void WriteTireMeshInformation(ChWriterCSV& csv);
 
     /// Write mesh vertex positions and velocities.
-    void WriteTireStateInformation(utils::ChWriterCSV& csv);
+    void WriteTireStateInformation(ChWriterCSV& csv);
 
     /// Write terrain forces applied to this tire.
     /// For a flexible tire, these are the forces on FEA mesh nodes.
-    void WriteTireTerrainForces(utils::ChWriterCSV& csv);
+    void WriteTireTerrainForces(ChWriterCSV& csv);
 
     /// Print the current lowest mesh node.
     void PrintLowestNode();

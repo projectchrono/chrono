@@ -21,7 +21,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChExternalDynamicsODE.h"
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -191,7 +191,7 @@ void SolveHHT(ChSolver::Type solver_type,
     y = wave->GetInitialStates();
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << t << y.format(rowFmt) << endl;
 
     double sim_time = 0;

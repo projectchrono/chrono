@@ -22,7 +22,7 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -99,7 +99,7 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::ChWriterCSV OutStream();
+ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -266,18 +266,18 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::ChWriterCSV out_pos = OutStream();
-    utils::ChWriterCSV out_vel = OutStream();
-    utils::ChWriterCSV out_acc = OutStream();
+    ChWriterCSV out_pos = OutStream();
+    ChWriterCSV out_vel = OutStream();
+    ChWriterCSV out_acc = OutStream();
 
-    utils::ChWriterCSV out_quat = OutStream();
-    utils::ChWriterCSV out_avel = OutStream();
-    utils::ChWriterCSV out_aacc = OutStream();
+    ChWriterCSV out_quat = OutStream();
+    ChWriterCSV out_avel = OutStream();
+    ChWriterCSV out_aacc = OutStream();
 
-    utils::ChWriterCSV out_rfrc = OutStream();
-    utils::ChWriterCSV out_rtrq = OutStream();
+    ChWriterCSV out_rfrc = OutStream();
+    ChWriterCSV out_rtrq = OutStream();
 
-    utils::ChWriterCSV out_energy = OutStream();
+    ChWriterCSV out_energy = OutStream();
 
     // Write headers
     out_pos << "Time"
@@ -434,8 +434,8 @@ bool ValidateReference(const std::string& testName,  // name of this test
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::ChWriterCSV OutStream() {
-    utils::ChWriterCSV out("\t");
+ChWriterCSV OutStream() {
+    ChWriterCSV out("\t");
 
     out.Stream().setf(std::ios::scientific | std::ios::showpos);
     out.Stream().precision(6);

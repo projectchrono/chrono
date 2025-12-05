@@ -27,7 +27,7 @@ namespace vehicle {
 ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(name), m_braking(0) {}
 
 ChTrackBrakeSimple::~ChTrackBrakeSimple() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_brake->GetSystem();

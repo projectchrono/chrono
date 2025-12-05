@@ -159,37 +159,13 @@ void ChTranslationalIdler::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTranslationalIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    ExportBodyList(jsonDocument, bodies);
+void ChTranslationalIdler::PopulateComponentList() {
+    m_bodies.push_back(m_carrier);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_prismatic);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_tensioner);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChTranslationalIdler::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_tensioner);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_tensioner);
 }
 
 }  // end namespace vehicle

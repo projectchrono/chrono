@@ -66,8 +66,6 @@ ChShaftsDriveline6WD::~ChShaftsDriveline6WD() {
 void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
-    ChDriveline::Initialize(chassis);
-
     assert(axles.size() >= 3);
     assert(driven_axles.size() == 3);
 
@@ -264,6 +262,8 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Central differential
     double omega_driveshaft = 0.5 * (omega_rear1_shaft + omega_rear2_shaft);
     m_driveshaft->SetPosDt(omega_driveshaft);
+
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

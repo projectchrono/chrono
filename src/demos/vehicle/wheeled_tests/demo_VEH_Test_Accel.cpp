@@ -23,7 +23,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChFilters.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Output file
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
     csv.Stream().precision(6);
 

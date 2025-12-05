@@ -131,6 +131,27 @@ using namespace chrono::industrial;
 %template(vector_ChFunctionSetpoint) std::vector< std::shared_ptr<chrono::ChFunctionSetpoint> >;
 %template(vector_ChLinkMotor) std::vector< std::shared_ptr<chrono::ChLinkMotor> >;
 
+#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
+%rename(CollisionFamily_LIMB_FR) chrono::robosimian::CollisionFamily::Enum::LIMB_FR;
+%rename(CollisionFamily_LIMB_RR) chrono::robosimian::CollisionFamily::Enum::LIMB_RR;
+%rename(CollisionFamily_LIMB_RL) chrono::robosimian::CollisionFamily::Enum::LIMB_RL;
+%rename(CollisionFamily_LIMB_FL) chrono::robosimian::CollisionFamily::Enum::LIMB_FL;
+%rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::Enum::CHASSIS;
+%rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::Enum::SLED;
+%rename(CollisionFamily_WHEEL_DD) chrono::robosimian::CollisionFamily::Enum::WHEEL_DD;
+
+%rename(CollisionFlags_NONE) chrono::robosimian::CollisionFlags::Enum::NONE;
+%rename(CollisionFlags_CHASSIS) chrono::robosimian::CollisionFlags::Enum::CHASSIS;
+%rename(CollisionFlags_SLED) chrono::robosimian::CollisionFlags::Enum::SLED;
+%rename(CollisionFlags_LIMBS) chrono::robosimian::CollisionFlags::Enum::LIMBS;
+%rename(CollisionFlags_WHEELS) chrono::robosimian::CollisionFlags::Enum::WHEELS;
+%rename(CollisionFlags_ALL) chrono::robosimian::CollisionFlags::Enum::ALL;
+#endif              // --------------------------------------------------------------------- PYTHON
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%rename(CollisionFamily_Enum) chrono::robosimian::CollisionFamily::Enum;
+%rename(CollisionFlags_Enum) chrono::robosimian::CollisionFlags::Enum;
+#endif             // --------------------------------------------------------------------- CSHARP
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -341,16 +362,6 @@ using namespace chrono::industrial;
 			   }
 		};
 
-%extend chrono::turtlebot::TurtleBot{
-		public:
-			TurtleBot(chrono::ChSystem* system,
-               const chrono::ChVector3d& robot_pos,
-               const chrono::ChQuaternion<double>& robot_rot){
-			   
-			   auto selfpoint = std::make_shared<chrono::turtlebot::TurtleBot>(system, robot_pos, robot_rot, nullptr);
-			   return selfpoint.get();
-			   }
-		};
 //
 // ADD PYTHON CODE
 //

@@ -204,27 +204,15 @@ ChVector3d ChTrackShoeBandBushing::GetTension() const {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandBushing::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
-    ExportBodyList(jsonDocument, bodies);
-
-    ExportBodyLoadList(jsonDocument, m_web_bushings);
-}
-
-void ChTrackShoeBandBushing::Output(ChOutput& database) const {
+void ChTrackShoeBandBushing::PopulateComponentList() {
     if (!m_output)
         return;
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
-    database.WriteBodies(bodies);
+    m_bodies.push_back(m_shoe);
+    m_bodies.insert(m_bodies.end(), m_web_segments.begin(), m_web_segments.end());
 
-    database.WriteBodyBodyLoads(m_web_bushings);
+    m_body_loads.insert(m_body_loads.end(), m_web_bushings.begin(), m_web_bushings.end());
 }
 
 }  // end namespace vehicle

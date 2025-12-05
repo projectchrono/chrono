@@ -188,7 +188,7 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPosDt()
         << m_chassis->GetRotDt() << endl;

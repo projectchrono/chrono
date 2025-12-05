@@ -21,8 +21,9 @@
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/output/ChOutputASCII.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChOutputASCII.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -184,7 +185,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize output file for debug output
-    utils::ChWriterCSV vehicle_csv(" ");
+    ChWriterCSV vehicle_csv(" ");
 
     // Enable vehicle output
     vehicle.SetChassisOutput(true);

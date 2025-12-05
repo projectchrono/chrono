@@ -101,9 +101,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
                     const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
     );
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::vector<std::shared_ptr<ChBody>> m_web_segments;          ///< web segment bodies
     std::vector<std::shared_ptr<ChLoadBodyBody>> m_web_bushings;  ///< bushings

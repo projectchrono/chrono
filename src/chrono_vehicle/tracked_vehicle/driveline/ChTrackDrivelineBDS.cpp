@@ -53,8 +53,6 @@ ChTrackDrivelineBDS::~ChTrackDrivelineBDS() {
 void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
                                      std::shared_ptr<ChTrackAssembly> track_left,
                                      std::shared_ptr<ChTrackAssembly> track_right) {
-    ChDriveline::Initialize(chassis);
-
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -94,6 +92,9 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     m_clutch->SetTorqueLimit(GetDifferentialLockingLimit());
     m_clutch->SetModulation(0);
     sys->Add(m_clutch);
+
+    // Mark initialized
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

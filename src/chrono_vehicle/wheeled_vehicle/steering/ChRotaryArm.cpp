@@ -32,7 +32,7 @@ ChRotaryArm::ChRotaryArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 ChRotaryArm::~ChRotaryArm() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_revolute->GetSystem();
@@ -162,29 +162,11 @@ void ChRotaryArm::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotaryArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    ExportBodyList(jsonDocument, bodies);
+void ChRotaryArm::PopulateComponentList() {
+    m_bodies.push_back(m_link);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChRotaryArm::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute);
 }
 
 }  // end namespace vehicle

@@ -45,8 +45,7 @@ namespace vehicle {
 /// the vehicle.  When attached to a chassis, only an offset is provided.
 class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
   public:
-    ChAntirollBarRSD(const std::string& name  ///< [in] name of the subsystem
-    );
+    ChAntirollBarRSD(const std::string& name);
 
     virtual ~ChAntirollBarRSD();
 
@@ -104,9 +103,7 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
                              double radius,
                              const ChColor& color);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 };
 
 /// @} vehicle_wheeled_antirollbar

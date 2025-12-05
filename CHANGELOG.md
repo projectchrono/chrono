@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Support for output and checkpointing](#added-support-for-output-and-checkpointing)
+  - [\[Added\] New Python and CSharp wrappers](#added-new-python-and-csharp-wrappers)
   - [\[Changed\] Refactor Jacobian update strategy for implicit integrators](#changed-refactor-jacobian-update-strategy-for-implicit-integrators)
   - [\[Changed\] Upgrade of 3rd-party dependencies](#changed-upgrade-of-3rd-party-dependencies)
   - [\[Added\] YAML parsers for Chrono models and simulations](#added-yaml-parsers-for-chrono-models-and-simulations) 
@@ -120,6 +122,22 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Added] Support for output and checkpointing
+
+A set of new classes were added to the core Chrono module to support simulation output and checkpointing. Output databases can be created in ASCII text or HDF-5 format. Currently, only the ASCII text format is supported for checkpint database files.
+
+A Chrono checkpoint database can be of `SYSTEM` type (in which case it contains all states associated with a given system) or of `COMPONENT` tpe (in which case it contains states for specific subsets of Chrono phsics items). The latter option is useful in checkpointing and initializing from a checkpoint sub-assemblies, for example vehicle systems.
+Note that, when importing a checkpoint to initialize a give system (`SYSTEM`-type checkpoint) or a subset of physics items (`COMPONENT`-type checkpoint), it is the caller's responsibility to ensure that the target objects (system or component lists) match the number and order in the system from which the checkpoint was generated.
+
+Support for checkpointing was also added to Chrono::Vehicle. A vehicle checkpoint database is always of type `COMPONENT`, thus allowing exporting a checkpoint with the state of vehicle from a larger Chrono simulation, as well as initializing a single vehicle from a checkpoint file within a larger Chrono simulation.
+
+## [Added] New Python and CSharp wrappers
+
+Additional Chrono modules were wrapped for use in Python (through PyChrono) or in C#:
+
+- new PyChrono wrapped modules: Chrono::VSG.
+- new C# wrapped modules: Chrono::Sensor, Chrono::VSG, Chrono robot models library.
 
 ## [Changed] Refactor Jacobian update strategy for implicit integrators
 

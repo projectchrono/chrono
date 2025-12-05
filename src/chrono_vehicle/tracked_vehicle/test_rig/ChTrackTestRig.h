@@ -27,7 +27,7 @@
 #include <string>
 
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
@@ -245,7 +245,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     bool m_plot_output;
     double m_plot_output_step;
     double m_next_plot_output_time;
-    utils::ChWriterCSV* m_csv;
+    ChWriterCSV* m_csv;
 
     friend class ChTrackTestRigVisualSystemIRR;
     friend class ChTrackTestRigVisualSystemVSG;

@@ -21,7 +21,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup chassis position output with column headers
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
     csv.Stream().precision(6);
     csv << "Time (s)"

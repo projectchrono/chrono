@@ -81,7 +81,7 @@ const std::string ChSAELeafspringAxle::m_pointNames[] = {"SHOCK_A     ", "SHOCK_
 ChSAELeafspringAxle::ChSAELeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
 ChSAELeafspringAxle::~ChSAELeafspringAxle() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_axleTube->GetSystem();
@@ -302,8 +302,8 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     // clampA-axleTube rev joint (Z)
     ChFrame<> rev_frame_clampA(points[CLAMP_A], chassisRot);
     m_clampARev[side] =
-        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_clampARev" + suffix,
-                                                  m_clampA[side], m_axleTube, rev_frame_clampA, getClampBushingData());
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_clampARev" + suffix, m_clampA[side],
+                                           m_axleTube, rev_frame_clampA, getClampBushingData());
     m_clampARev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_clampARev[side]);
 
@@ -327,8 +327,8 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     // clampB-axleTube rev joint (Z)
     ChFrame<> rev_frame_clampB(points[CLAMP_B], chassisRot);
     m_clampBRev[side] =
-        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_clampBRev" + suffix,
-                                                  m_clampB[side], m_axleTube, rev_frame_clampB, getClampBushingData());
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_clampBRev" + suffix, m_clampB[side],
+                                           m_axleTube, rev_frame_clampB, getClampBushingData());
     m_clampBRev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_clampBRev[side]);
 
@@ -340,9 +340,9 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // clampB-rearleaf rev joint (Y)
     ChFrame<> rev_frame_rearleaf(points[CLAMP_B], chassisRot * QuatFromAngleX(CH_PI_2));
-    m_rearleafRev[side] = chrono_types::make_shared<ChJoint>(
-        ChJoint::Type::REVOLUTE, m_name + "_rearleafRev" + suffix, m_clampB[side], m_rearleaf[side],
-        rev_frame_rearleaf, getLeafspringBushingData());
+    m_rearleafRev[side] =
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_rearleafRev" + suffix, m_clampB[side],
+                                           m_rearleaf[side], rev_frame_rearleaf, getLeafspringBushingData());
     m_rearleafRev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_rearleafRev[side]);
 
@@ -354,9 +354,9 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // clampA-frontleaf rev joint (Y)
     ChFrame<> rev_frame_frontleaf(points[CLAMP_A], chassisRot * QuatFromAngleX(CH_PI_2));
-    m_frontleafRev[side] = chrono_types::make_shared<ChJoint>(
-        ChJoint::Type::REVOLUTE, m_name + "_frontleafRev" + suffix, m_clampA[side], m_frontleaf[side],
-        rev_frame_frontleaf, getLeafspringBushingData());
+    m_frontleafRev[side] =
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_frontleafRev" + suffix, m_clampA[side],
+                                           m_frontleaf[side], rev_frame_frontleaf, getLeafspringBushingData());
     m_frontleafRev[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_frontleafRev[side]);
 
@@ -446,10 +446,7 @@ void ChSAELeafspringAxle::LogHardpointLocations(const ChVector3d& ref, bool inch
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSAELeafspringAxle::LogConstraintViolations(VehicleSide side) {
-    // TODO: Update this to reflect new suspension joints
-    // Revolute joints
-
-    {}
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------
@@ -534,144 +531,55 @@ void ChSAELeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSAELeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_rearleaf[0]);
-    bodies.push_back(m_rearleaf[1]);
-    bodies.push_back(m_frontleaf[0]);
-    bodies.push_back(m_frontleaf[1]);
-    bodies.push_back(m_shackle[0]);
-    bodies.push_back(m_shackle[1]);
-    bodies.push_back(m_clampA[0]);
-    bodies.push_back(m_clampA[1]);
-    bodies.push_back(m_clampB[0]);
-    bodies.push_back(m_clampB[1]);
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    ExportBodyList(jsonDocument, bodies);
+void ChSAELeafspringAxle::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    m_bodies.push_back(m_axleTube);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_frontleafSph[0]);
-    joints.push_back(m_frontleafSph[1]);
-    joints.push_back(m_rearleafSph[0]);
-    joints.push_back(m_rearleafSph[1]);
-    m_shackleRev[0]->IsKinematic() ? joints.push_back(m_shackleRev[0]->GetAsLink())
-                                   : bushings.push_back(m_shackleRev[0]->GetAsBushing());
-    m_shackleRev[1]->IsKinematic() ? joints.push_back(m_shackleRev[1]->GetAsLink())
-                                   : bushings.push_back(m_shackleRev[1]->GetAsBushing());
-    m_clampARev[0]->IsKinematic() ? joints.push_back(m_clampARev[0]->GetAsLink())
-                                  : bushings.push_back(m_clampARev[0]->GetAsBushing());
-    m_clampARev[1]->IsKinematic() ? joints.push_back(m_clampARev[1]->GetAsLink())
-                                  : bushings.push_back(m_clampARev[1]->GetAsBushing());
-    m_clampBRev[0]->IsKinematic() ? joints.push_back(m_clampBRev[0]->GetAsLink())
-                                  : bushings.push_back(m_clampBRev[0]->GetAsBushing());
-    m_clampBRev[1]->IsKinematic() ? joints.push_back(m_clampBRev[1]->GetAsLink())
-                                  : bushings.push_back(m_clampBRev[1]->GetAsBushing());
-    m_frontleafRev[0]->IsKinematic() ? joints.push_back(m_frontleafRev[0]->GetAsLink())
-                                     : bushings.push_back(m_frontleafRev[0]->GetAsBushing());
-    m_frontleafRev[1]->IsKinematic() ? joints.push_back(m_frontleafRev[1]->GetAsLink())
-                                     : bushings.push_back(m_frontleafRev[1]->GetAsBushing());
-    m_rearleafRev[0]->IsKinematic() ? joints.push_back(m_rearleafRev[0]->GetAsLink())
-                                    : bushings.push_back(m_rearleafRev[0]->GetAsBushing());
-    m_rearleafRev[1]->IsKinematic() ? joints.push_back(m_rearleafRev[1]->GetAsLink())
-                                    : bushings.push_back(m_rearleafRev[1]->GetAsBushing());
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
+    m_joints.push_back(m_frontleafSph[0]);
+    m_joints.push_back(m_frontleafSph[1]);
+    m_joints.push_back(m_rearleafSph[0]);
+    m_joints.push_back(m_rearleafSph[1]);
+    m_shackleRev[0]->IsKinematic() ? m_joints.push_back(m_shackleRev[0]->GetAsLink())
+                                   : m_body_loads.push_back(m_shackleRev[0]->GetAsBushing());
+    m_shackleRev[1]->IsKinematic() ? m_joints.push_back(m_shackleRev[1]->GetAsLink())
+                                   : m_body_loads.push_back(m_shackleRev[1]->GetAsBushing());
+    m_clampARev[0]->IsKinematic() ? m_joints.push_back(m_clampARev[0]->GetAsLink())
+                                  : m_body_loads.push_back(m_clampARev[0]->GetAsBushing());
+    m_clampARev[1]->IsKinematic() ? m_joints.push_back(m_clampARev[1]->GetAsLink())
+                                  : m_body_loads.push_back(m_clampARev[1]->GetAsBushing());
+    m_clampBRev[0]->IsKinematic() ? m_joints.push_back(m_clampBRev[0]->GetAsLink())
+                                  : m_body_loads.push_back(m_clampBRev[0]->GetAsBushing());
+    m_clampBRev[1]->IsKinematic() ? m_joints.push_back(m_clampBRev[1]->GetAsLink())
+                                  : m_body_loads.push_back(m_clampBRev[1]->GetAsBushing());
+    m_frontleafRev[0]->IsKinematic() ? m_joints.push_back(m_frontleafRev[0]->GetAsLink())
+                                     : m_body_loads.push_back(m_frontleafRev[0]->GetAsBushing());
+    m_frontleafRev[1]->IsKinematic() ? m_joints.push_back(m_frontleafRev[1]->GetAsLink())
+                                     : m_body_loads.push_back(m_frontleafRev[1]->GetAsBushing());
+    m_rearleafRev[0]->IsKinematic() ? m_joints.push_back(m_rearleafRev[0]->GetAsLink())
+                                    : m_body_loads.push_back(m_rearleafRev[0]->GetAsBushing());
+    m_rearleafRev[1]->IsKinematic() ? m_joints.push_back(m_rearleafRev[1]->GetAsLink())
+                                    : m_body_loads.push_back(m_rearleafRev[1]->GetAsBushing());
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    ExportLinSpringList(jsonDocument, springs);
+    m_tsdas.push_back(m_spring[0]);
+    m_tsdas.push_back(m_spring[1]);
+    m_tsdas.push_back(m_shock[0]);
+    m_tsdas.push_back(m_shock[1]);
 
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    rot_springs.push_back(m_latRotSpringA[0]);
-    rot_springs.push_back(m_latRotSpringA[1]);
-    rot_springs.push_back(m_latRotSpringB[0]);
-    rot_springs.push_back(m_latRotSpringB[1]);
-    rot_springs.push_back(m_vertRotSpringA[0]);
-    rot_springs.push_back(m_vertRotSpringA[1]);
-    rot_springs.push_back(m_vertRotSpringB[0]);
-    rot_springs.push_back(m_vertRotSpringB[1]);
-    ExportRotSpringList(jsonDocument, rot_springs);
-}
-
-void ChSAELeafspringAxle::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_frontleafSph[0]);
-    joints.push_back(m_frontleafSph[1]);
-    joints.push_back(m_rearleafSph[0]);
-    joints.push_back(m_rearleafSph[1]);
-    m_shackleRev[0]->IsKinematic() ? joints.push_back(m_shackleRev[0]->GetAsLink())
-                                   : bushings.push_back(m_shackleRev[0]->GetAsBushing());
-    m_shackleRev[1]->IsKinematic() ? joints.push_back(m_shackleRev[1]->GetAsLink())
-                                   : bushings.push_back(m_shackleRev[1]->GetAsBushing());
-    m_clampARev[0]->IsKinematic() ? joints.push_back(m_clampARev[0]->GetAsLink())
-                                  : bushings.push_back(m_clampARev[0]->GetAsBushing());
-    m_clampARev[1]->IsKinematic() ? joints.push_back(m_clampARev[1]->GetAsLink())
-                                  : bushings.push_back(m_clampARev[1]->GetAsBushing());
-    m_clampBRev[0]->IsKinematic() ? joints.push_back(m_clampBRev[0]->GetAsLink())
-                                  : bushings.push_back(m_clampBRev[0]->GetAsBushing());
-    m_clampBRev[1]->IsKinematic() ? joints.push_back(m_clampBRev[1]->GetAsLink())
-                                  : bushings.push_back(m_clampBRev[1]->GetAsBushing());
-    m_frontleafRev[0]->IsKinematic() ? joints.push_back(m_frontleafRev[0]->GetAsLink())
-                                     : bushings.push_back(m_frontleafRev[0]->GetAsBushing());
-    m_frontleafRev[1]->IsKinematic() ? joints.push_back(m_frontleafRev[1]->GetAsLink())
-                                     : bushings.push_back(m_frontleafRev[1]->GetAsBushing());
-    m_rearleafRev[0]->IsKinematic() ? joints.push_back(m_rearleafRev[0]->GetAsLink())
-                                    : bushings.push_back(m_rearleafRev[0]->GetAsBushing());
-    m_rearleafRev[1]->IsKinematic() ? joints.push_back(m_rearleafRev[1]->GetAsLink())
-                                    : bushings.push_back(m_rearleafRev[1]->GetAsBushing());
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    database.WriteJoints(joints);
-    database.WriteBodyBodyLoads(bushings);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    database.WriteLinSprings(springs);
-
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    rot_springs.push_back(m_latRotSpringA[0]);
-    rot_springs.push_back(m_latRotSpringA[1]);
-    rot_springs.push_back(m_latRotSpringB[0]);
-    rot_springs.push_back(m_latRotSpringB[1]);
-    rot_springs.push_back(m_vertRotSpringA[0]);
-    rot_springs.push_back(m_vertRotSpringA[1]);
-    rot_springs.push_back(m_vertRotSpringB[0]);
-    rot_springs.push_back(m_vertRotSpringB[1]);
-    database.WriteRotSprings(rot_springs);
+    m_rsdas.push_back(m_latRotSpringA[0]);
+    m_rsdas.push_back(m_latRotSpringA[1]);
+    m_rsdas.push_back(m_latRotSpringB[0]);
+    m_rsdas.push_back(m_latRotSpringB[1]);
+    m_rsdas.push_back(m_vertRotSpringA[0]);
+    m_rsdas.push_back(m_vertRotSpringA[1]);
+    m_rsdas.push_back(m_vertRotSpringB[0]);
+    m_rsdas.push_back(m_vertRotSpringB[1]);
 }
 
 }  // end namespace vehicle

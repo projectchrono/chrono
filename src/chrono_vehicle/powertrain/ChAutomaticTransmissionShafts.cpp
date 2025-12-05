@@ -27,7 +27,7 @@ ChAutomaticTransmissionShafts::ChAutomaticTransmissionShafts(const std::string& 
     : ChAutomaticTransmission(name), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
 ChAutomaticTransmissionShafts::~ChAutomaticTransmissionShafts() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_torqueconverter->GetSystem();
@@ -158,6 +158,15 @@ double ChAutomaticTransmissionShafts::GetOutputDriveshaftTorque() const {
 
 double ChAutomaticTransmissionShafts::GetOutputMotorshaftSpeed() const {
     return m_motorshaft->GetPosDt();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChAutomaticTransmissionShafts::PopulateComponentList() {
+    m_shafts.push_back(m_motorshaft);
+    m_shafts.push_back(m_driveshaft);
+    m_shafts.push_back(m_transmissionblock);
+    m_shafts.push_back(m_shaft_ingear);
 }
 
 }  // end namespace vehicle

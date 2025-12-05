@@ -19,3 +19,5 @@ add_subdirectory(fmi)
 add_subdirectory(fsi)
 
 add_subdirectory(cosimulation)
+
+add_subdirectory(checkpoint)

@@ -186,6 +186,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         vis->BeginScene();
         vis->Render();
+        vis->EndScene();
 
         // Driver inputs
         DriverInputs driver_inputs_1 = driver_1.GetInputs();
@@ -209,8 +210,6 @@ int main(int argc, char* argv[]) {
 
         // Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size);
-
-        vis->EndScene();
     }
 
     return 0;

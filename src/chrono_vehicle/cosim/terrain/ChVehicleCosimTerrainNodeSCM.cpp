@@ -25,7 +25,7 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
@@ -490,7 +490,7 @@ void ChVehicleCosimTerrainNodeSCM::OnOutputData(int frame) {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) const {
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     // Get all SCM grid nodes modified from start of simulation
     const auto& nodes = m_terrain->GetModifiedNodes(true);

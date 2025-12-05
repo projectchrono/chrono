@@ -84,26 +84,13 @@ endif()
 if(MSVC)
   target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)              # missing DLL interface
   target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)              # unreferenced formal parameter
-  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4324>)  # unreferenced formal parameter
   set_target_properties(Chrono_fsitdpf PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 target_link_libraries(Chrono_fsitdpf PRIVATE Chrono_core)
 target_link_libraries(Chrono_fsitdpf PUBLIC Chrono_fsi)
 
-target_link_libraries(Chrono_fsitdpf PUBLIC CUDA::cudart_static)
-target_link_libraries(Chrono_fsitdpf PUBLIC CUDA::nvrtc)
-target_link_libraries(Chrono_fsitdpf PUBLIC CUDA::cuda_driver)
-target_link_libraries(Chrono_fsitdpf PUBLIC CUDA::cublas)
-target_link_libraries(Chrono_fsitdpf PUBLIC CUDA::cusparse)
-
-target_link_libraries(Chrono_fsitdpf PUBLIC Thrust::Thrust)
-target_compile_definitions(Chrono_fsitdpf PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-target_compile_definitions(Chrono_fsitdpf PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-
 target_compile_definitions(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
-
-set_target_properties(Chrono_fsitdpf PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
 install(TARGETS Chrono_fsitdpf
         EXPORT ChronoTargets

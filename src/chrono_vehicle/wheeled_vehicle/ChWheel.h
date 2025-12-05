@@ -137,6 +137,8 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     virtual double GetWheelMass() const = 0;
     virtual const ChVector3d& GetWheelInertia() const = 0;
 
+    virtual void PopulateComponentList() override {}
+
     std::shared_ptr<ChSpindle> m_spindle;  ///< associated suspension spindle body
     std::shared_ptr<ChTire> m_tire;        ///< attached tire subsystem
     VehicleSide m_side;                    ///< wheel mounted on left/right side
