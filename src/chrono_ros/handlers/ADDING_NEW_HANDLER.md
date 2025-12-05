@@ -8,7 +8,7 @@ Chrono::ROS uses a **two-process architecture** to ensure separation and avoid s
 
 1.  **Main Process (Chrono Simulation)**: Runs the physics simulation. It extracts data from Chrono objects and serializes it into raw bytes. It contains **NO** ROS symbols.
 2.  **Subprocess (ROS Node)**: Runs the ROS node. It receives raw bytes via IPC (Inter-Process Communication), deserializes them, and publishes standard ROS messages. It contains **NO** Chrono physics symbols.
-3. The Chrono::ROS Interface attempts to resever(not necessarily use) at least 1GB of /dev/shm to support 4k Chrono:Sensor Image Transport, if you are using this in Docker, please make sure to override the default 16MB SHM size applied by docker.
+3. The Chrono::ROS Interface attempts to reserve(not necessarily use) at least 1GB of /dev/shm to support 4k Chrono:Sensor Image Transport, if you are using this in Docker, please make sure to override the default 16MB SHM size applied by docker.
 
 ### The "Handler" Concept
 

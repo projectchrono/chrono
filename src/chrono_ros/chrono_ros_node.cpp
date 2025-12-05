@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,13 +9,13 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Standalone ROS node process for chrono_ros IPC communication
 // This process runs in isolation from VSG symbols to avoid conflicts
 //
-// Generic dispatcher using handler registry - NO hard-coded message processing!
+// Generic dispatcher using handler registry.
 //
 // =============================================================================
 
