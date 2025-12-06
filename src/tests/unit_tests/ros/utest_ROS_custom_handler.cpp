@@ -34,9 +34,20 @@ class CustomPublisherHandler : public chrono::ros::ChROSHandler {
         return true;
     }
 
-    virtual void Tick(double time) override {
+    virtual std::vector<uint8_t> GetSerializedData(double time) override {
+        std::vector<uint8_t> data(sizeof(int64_t));
+        std::memcpy(data.data(), &m_data, sizeof(int64_t));
+        return data;
+    }
+
+    virtual void PublishFromSerialized(const std::vector<uint8_t>& data, 
+                                       std::shared_ptr<chrono::ros::ChROSInterface> interface) override {
+        if (data.size() != sizeof(int64_t)) return;
+        int64_t val;
+        std::memcpy(&val, data.data(), sizeof(int64_t));
+        
         std_msgs::msg::Int64 msg;
-        msg.data = m_data;
+        msg.data = val;
         m_publisher->publish(msg);
     }
 
@@ -57,8 +68,8 @@ class CustomSubscriberHandler : public chrono::ros::ChROSHandler {
             m_topic, 1, [this](const std_msgs::msg::Int64::SharedPtr msg) { this->m_data = msg->data; });
         return true;
     }
-
-    virtual void Tick(double time) override {}
+    
+    virtual bool IsPublisher() const override { return false; }
 
     int64_t GetData() { return m_data; }
 

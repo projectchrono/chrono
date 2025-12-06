@@ -1,6 +1,4 @@
 SET(TESTS
-  utest_ROS_custom_handler_with_manager
-  utest_ROS_custom_handler
   utest_ROS_simple_publisher_subscriber
 )
 

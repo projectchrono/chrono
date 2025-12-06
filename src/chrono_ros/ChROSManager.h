@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Manager for the ROS handlers
@@ -24,17 +24,25 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace chrono {
 namespace ros {
 
+// Forward declarations
+class ChROSInterface;
+class ChROSHandler;
+class ChROSIPCInterface;
+namespace ipc {
+    enum class MessageType : uint32_t;
+}
+
 /// @addtogroup ros_core
 /// @{
 
-class ChROSInterface;
-class ChROSHandler;
-
-/// Managers the ROS handlers and their registration/updates
+/// Manages the ROS handlers and their registration/updates.
+/// Uses IPC mode: handlers are not initialized in the main process.
+/// Instead, their data is extracted and sent to a subprocess via IPC.
 class CH_ROS_API ChROSManager {
   public:
     /// Constructor for the ChROSManager creates a single ChROSInterface. To use multiple ChROSInterfaces, multiple
@@ -56,7 +64,6 @@ class CH_ROS_API ChROSManager {
 
   private:
     std::shared_ptr<ChROSInterface> m_interface;
-
     std::vector<std::shared_ptr<ChROSHandler>> m_handlers;
 };
 

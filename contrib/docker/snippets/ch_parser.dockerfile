@@ -14,7 +14,7 @@ RUN echo "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:${PACKAGE_DIR}/urdf/lib" >>
 
 # Update CMake options
 ENV CMAKE_OPTIONS="${CMAKE_OPTIONS} \
-    -DCH_ENABLE_MODULE_PARSER=ON \
+    -DCH_ENABLE_MODULE_PARSERS=ON \
     -Durdfdom_DIR=${PACKAGE_DIR}/urdf/lib/urdfdom/cmake \
     -Durdfdom_headers_DIR=${PACKAGE_DIR}/urdf/lib/urdfdom_headers/cmake \
     -Dconsole_bridge_DIR=${PACKAGE_DIR}/urdf/lib/console_bridge/cmake \

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // ROS Handler for communicating gyroscope information
@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler_ipc.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
@@ -34,7 +35,7 @@ ChROSGyroscopeHandler::ChROSGyroscopeHandler(std::shared_ptr<ChGyroscopeSensor> 
 ChROSGyroscopeHandler::ChROSGyroscopeHandler(double update_rate,
                                              std::shared_ptr<ChGyroscopeSensor> imu,
                                              const std::string& topic_name)
-    : ChROSHandler(update_rate), m_imu(imu), m_topic_name(topic_name) {}
+    : ChROSHandler(update_rate), m_imu(imu), m_topic_name(topic_name), m_running_average({0, 0, 0}) {}
 
 bool ChROSGyroscopeHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterGyroAccess, ChFilterGyroAccessName>(m_imu)) {
@@ -45,33 +46,48 @@ bool ChROSGyroscopeHandler::Initialize(std::shared_ptr<ChROSInterface> interface
         return false;
     }
 
-    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Imu>(m_topic_name, 1);
-
-    m_imu_msg.header.frame_id = m_imu->GetName();
-
     return true;
 }
 
-void ChROSGyroscopeHandler::Tick(double time) {
+std::vector<uint8_t> ChROSGyroscopeHandler::GetSerializedData(double time) {
+    if (time == m_last_time) {
+        return m_last_serialized_data;
+    }
+
+    // if (!ShouldTick(time)) {
+    //     return {};
+    // }
+
     auto imu_ptr = m_imu->GetMostRecentBuffer<UserGyroBufferPtr>();
     if (!imu_ptr->Buffer) {
         // TODO: Is this supposed to happen?
-        std::cout << "Gyroscope buffer is not ready. Not ticking." << std::endl;
-        return;
+        // std::cout << "Gyroscope buffer is not ready. Not ticking." << std::endl;
+        return {};
     }
 
     GyroData imu_data = imu_ptr->Buffer[0];
-    m_imu_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
-    m_imu_msg.angular_velocity.x = imu_data.Roll;
-    m_imu_msg.angular_velocity.y = imu_data.Pitch;
-    m_imu_msg.angular_velocity.z = imu_data.Yaw;
+    
+    ipc::GyroscopeData msg;
+    strncpy(msg.topic_name, m_topic_name.c_str(), sizeof(msg.topic_name) - 1);
+    strncpy(msg.frame_id, m_imu->GetName().c_str(), sizeof(msg.frame_id) - 1);
+    
+    msg.angular_velocity[0] = imu_data.Roll;
+    msg.angular_velocity[1] = imu_data.Pitch;
+    msg.angular_velocity[2] = imu_data.Yaw;
 
     // Update the covariance matrix
-    // The ChGyroscopeSensor does not currently support covariances, so we'll
-    // use the imu message to store a rolling average of the covariance
-    m_imu_msg.angular_velocity_covariance = CalculateCovariance(imu_data);
+    auto covariance = CalculateCovariance(imu_data);
+    IncrementTickCount();
+    std::memcpy(msg.angular_velocity_covariance, covariance.data(), sizeof(msg.angular_velocity_covariance));
 
-    m_publisher->publish(m_imu_msg);
+    std::vector<uint8_t> buffer(sizeof(ipc::GyroscopeData));
+    std::memcpy(buffer.data(), &msg, sizeof(ipc::GyroscopeData));
+
+    m_last_time = time;
+    m_last_serialized_data = buffer;
+    m_last_data_struct = msg;
+
+    return buffer;
 }
 
 std::array<double, 9> ChROSGyroscopeHandler::CalculateCovariance(const GyroData& imu_data) {

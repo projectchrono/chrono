@@ -10,10 +10,16 @@ The **ROS module** allows users to interface a ROS 2-based autonomy stack with a
 
 For more detail, read the [Chrono::ROS](@ref manual_ros) section of the reference manual.
 
-## Required Dependencies
+## Requirements
 
 - To build and run applications based on this module, the following are required:
+  - Linux OS (Windows OS support will be validated soon).
+  - Available shared memory (`/dev/shm`) of at least 1 GB by default.
+    - The Chrono::ROS Interface attempts to reserve (not necessarily use) at least 1 GB of `/dev/shm` to support 4K Chrono::Sensor camera images.
+    - If you are running on a memory-constrained system and do not require high-bandwidth sensor data (like 4K cameras), you can reduce the shared memory requirement by modifying `src/chrono_ros/ipc/ChROSIPCChannel.h`. Change the default `buffer_size` in `CreateMainChannel` from `512 * 1024 * 1024` (512 MB) to a smaller value (e.g., `16 * 1024 * 1024` for 16 MB). 16 MB is sufficient for most non-visual sensors. Chrono::ROS creates a bi-directional shared memory channel; therefore, whatever value you set above, the maximum shared memory utilization is that value * 2.
+  - All ROS 2 distributions and middleware variants are supported. However, since Humble is the LTS release, it has been most thoroughly tested with Chrono::ROS, so we recommend Humble for your projects. ROS 1 is not supported.
   - ROS 2 Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended. A Docker image with Chrono::ROS built is available [here](https://hub.docker.com/r/uwsbel/projectchrono).
+    - When using Docker, please make sure to override the default `shm_size` of 64 MB; a `shm_size` of > 1 GB is required by default.
   - NOTE: All ROS 2 packages required by Chrono::ROS are included in the base ROS 2 installation.
 
 ## Optional Dependencies
@@ -30,7 +36,7 @@ NOTE: If you enable Chrono::Parsers with URDF support and you're using a ROS 2 d
 
 1. To build Chrono::ROS, after installing the above dependencies, ensure you have sourced your ROS 2 installation (e.g. `source /opt/ros/humble/setup.bash`).
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
-3. Set `CH_ENABLE_MODULE_ROS` to 'on'.
+3. Set `CH_ENABLE_MODULE_ROS` to 'on' in CMake config arguments or the GUI equivalent.
 4. As mentioned above, to enable URDF support, you must also enable the [Chrono::Parsers](@ref module_parsers_installation) module.
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

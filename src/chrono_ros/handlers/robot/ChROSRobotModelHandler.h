@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Handler responsible for publishing a Robot Model to be visualized in RViz
@@ -24,9 +24,6 @@
 #ifdef CHRONO_PARSERS_URDF
     #include "chrono_parsers/ChParserURDF.h"
 #endif
-
-#include "rclcpp/publisher.hpp"
-#include "std_msgs/msg/string.hpp"
 
 namespace chrono {
 namespace ros {
@@ -55,17 +52,16 @@ class CH_ROS_API ChROSRobotModelHandler : public ChROSHandler {
     /// Initializes the handler. This creates the publisher for the robot model topic.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
-  protected:
-    /// Publishes the robot model string. Should be called infrequently (i.e. set update_rate to some really high
-    /// value).
-    virtual void Tick(double time) override;
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::ROBOT_MODEL_DATA; }
+
+    /// Get the serialized data for the handler
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
   private:
     const std::string m_topic_name;  ///< name of the topic to publish to
     std::string m_robot_model;       ///< the robot model string to publish
-
-    std_msgs::msg::String m_msg;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
+    bool m_published = false;        ///< whether the model has been published
 };
 
 /// @} ros_robot_handlers

@@ -4,6 +4,9 @@ services:
     image: "${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}:dev"
     hostname: '${COMPOSE_PROJECT_NAME}'
     container_name: '${COMPOSE_PROJECT_NAME}-dev'
+    shm_size: 2g
+    ports:
+      - "9090:9090" # For RosBridge default port
     build:
       context: "./"
       network: "host"
@@ -33,8 +36,10 @@ services:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              capabilities: [gpu]
+          - capabilities:
+            - gpu
+            count: all
+            driver: nvidia
   vnc:
     image: "camera/${COMPOSE_PROJECT_NAME}:vnc"
     hostname: "${COMPOSE_PROJECT_NAME}-vnc"
