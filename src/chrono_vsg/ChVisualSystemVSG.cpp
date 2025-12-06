@@ -2339,6 +2339,9 @@ void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContact
     // Populate the group with shapes in the visual model
     PopulateCollGroup(coll_shapes_group, coll_model);
 
+    if (coll_shapes_group->children.size() == 0)
+        return;
+
     // Attach a transform to the group and initialize it with the body current position
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
