@@ -58,7 +58,6 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_terrain_offset(0),
       m_terrain_height(0),
       m_tire_step(1e-3),
-      m_tire_BCE(true),
       m_tire_vis(VisualizationType::PRIMITIVES) {
     // Default motion function for slip angle control
     m_sa_fun = chrono_types::make_shared<ChFunctionConst>(0);
@@ -629,7 +628,10 @@ void ChTireTestRig::CreateTerrainCRM() {
     terrain->SetActiveDomain(ChVector3d(4 * m_tire->GetRadius(), 4 * m_tire->GetWidth(), 4 * m_tire->GetRadius()));
 
     // Create tire BCE markers
-    if (m_tire_BCE) {
+    if (m_bce_callback) {
+        auto bce = m_bce_callback->GetMarkers();
+        terrain->GetFsiSystemSPH()->AddFsiBody(m_spindle, bce, ChFramed(), false);
+    } else {
         if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
             std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
             auto mesh = fea_tire->GetMesh();

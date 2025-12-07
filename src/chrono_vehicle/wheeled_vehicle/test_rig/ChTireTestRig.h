@@ -110,9 +110,6 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Set desired normal load (default: 1000 N).
     void SetNormalLoad(double load) { m_normal_load = load; }
 
-    /// Get the normal load.
-    double GetNormalLoad(double load) const { return m_normal_load; }
-
     /// Set camber angle (default: 0 rad).
     void SetCamberAngle(double camber) { m_camber_angle = camber; }
 
@@ -204,8 +201,19 @@ class CH_VEHICLE_API ChTireTestRig {
                        double terrain_width = 1,
                        double terrain_depth = 0.2);
 
-    /// Disable automatic generation of tire BCE markers (CRM terrain only).
-    void DisableTireBCEMarkers() { m_tire_BCE = false; }
+    /// Callback interface for user-defined wheel/tire BCE markers (CRM terrain only).
+    class CH_VEHICLE_API WheelBCECreationCallback {
+      public:
+        virtual ~WheelBCECreationCallback() {}
+
+        /// Return BCE marker locations, expressed in and relative to the wheel reference frame.
+        virtual std::vector<ChVector3d> GetMarkers() = 0;
+    };
+
+    /// Register a user callback for specifying wheel/tire BCE markers (CRM terrain only).
+    void RegisterWheelBCECreationCallback(std::shared_ptr<WheelBCECreationCallback> callback) {
+        m_bce_callback = callback;
+    }
 
     /// Set time delay before applying motion functions (default: 0 s).
     void SetTimeDelay(double delay) { m_time_delay = delay; }
@@ -223,6 +231,9 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Advance system state by the specified time step.
     void Advance(double step);
+
+    /// Get the normal load.
+    double GetNormalLoad() const { return m_normal_load; }
 
     /// Get total rig mass.
     double GetMass() const { return m_total_mass; }
@@ -285,9 +296,10 @@ class CH_VEHICLE_API ChTireTestRig {
     TerrainParamsRigid m_params_rigid;        ///< rigid terrain contact material properties
     TerrainParamsGranular m_params_granular;  ///< granular terrain parameters
     TerrainParamsCRM m_params_crm;            ///< granular terrain parameters
-    bool m_tire_BCE;                          ///< generate tire BCE markers?
     double m_terrain_offset;                  ///< Y coordinate of tire center
     double m_terrain_height;                  ///< height coordinate for terrain subsystem
+
+    std::shared_ptr<WheelBCECreationCallback> m_bce_callback;
 
     std::shared_ptr<ChBody> m_ground_body;   ///< ground body
     std::shared_ptr<ChBody> m_carrier_body;  ///< rig carrier body
