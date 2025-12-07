@@ -57,7 +57,7 @@ class CH_VEHICLE_API ChTireTestRig {
     enum class TerrainType { SCM, RIGID, CRG, GRANULAR, CRM, NONE };
 
     /// Terrain patch dimensions
-    struct TerrainPatchSize {
+    struct CH_VEHICLE_API TerrainPatchSize {
         TerrainPatchSize() : length(0), width(0), depth(0) {}
         double length;  ///< patch length
         double width;   ///< patch width
@@ -65,14 +65,14 @@ class CH_VEHICLE_API ChTireTestRig {
     };
 
     /// Rigid terrain patch parameters.
-    struct TerrainParamsRigid {
+    struct CH_VEHICLE_API TerrainParamsRigid {
         float friction;       ///< coefficient of friction
         float Young_modulus;  ///< Young's modulus (Pa)
         float restitution;    ///< coefficient of restitution
     };
 
     /// SCM terrain patch parameters.
-    struct TerrainParamsSCM {
+    struct CH_VEHICLE_API TerrainParamsSCM {
         double Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
         double Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
         double Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
@@ -83,20 +83,20 @@ class CH_VEHICLE_API ChTireTestRig {
     };
 
     /// Granular terrain patch parameters.
-    struct TerrainParamsGranular {
-        double radius;            ///< particle radius
-        unsigned int num_layers;  ///< number of layers for initial particle creation
-        double density;           ///< particle material density (kg/m3)
-        double friction;          ///< inter-particle coefficient of friction
-        double cohesion;          ///< inter-particle cohesion pressure (Pa)
-        double Young_modulus;     ///< particle contact material Young's modulus (Pa)
+    struct CH_VEHICLE_API TerrainParamsGranular {
+        double radius;         ///< particle radius
+        double density;        ///< particle material density (kg/m3)
+        double friction;       ///< inter-particle coefficient of friction
+        double cohesion;       ///< inter-particle cohesion pressure (Pa)
+        double Young_modulus;  ///< particle contact material Young's modulus (Pa)
     };
 
-    struct TerrainParamsCRM {
+    struct CH_VEHICLE_API TerrainParamsCRM {
+        TerrainParamsCRM();
 #ifdef CHRONO_FSI
+        fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph_params;             ///< SPH solver settings
         fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;  ///< soil properties
 #endif
-        double radius;  ///< particle radius
     };
 
     /// Construct a tire test rig within the specified system.
@@ -149,10 +149,10 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Enable use of rigid terrain.
     /// Specify contact material properties and patch dimensions.
-    void SetTerrainRigid(const TerrainPatchSize& size,
-                         double friction,      ///< coefficient of friction
-                         double restitution,   ///< coefficient of restitution
-                         double Young_modulus  ///< contact material Young's modulus [Pa]
+    void SetTerrainRigid(const TerrainPatchSize& size,  ///< terrain patch size
+                         double friction,               ///< coefficient of friction
+                         double restitution,            ///< coefficient of restitution
+                         double Young_modulus           ///< contact material Young's modulus [Pa]
     );
 
     /// Enable use of SCM terrain.
@@ -160,47 +160,45 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Enable use of SCM terrain.
     /// Specify SCM soil parameters and patch dimensions.
-    void SetTerrainSCM(const TerrainPatchSize& size,
-                       double Bekker_Kphi,          ///< Kphi, frictional modulus in Bekker model
-                       double Bekker_Kc,            ///< Kc, cohesive modulus in Bekker model
-                       double Bekker_n,             ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-                       double Mohr_cohesion,        ///< cohesion [Pa], for shear failure
-                       double Mohr_friction,        ///< Friction angle [degrees], for shear failure
-                       double Janosi_shear,         ///< shear parameter J [m], (usually a few mm or cm)
-                       double grid_spacing = 0.125  ///< SCM grid spacing
+    void SetTerrainSCM(const TerrainPatchSize& size,  ///< terrain patch size
+                       double Bekker_Kphi,            ///< Kphi, frictional modulus in Bekker model
+                       double Bekker_Kc,              ///< Kc, cohesive modulus in Bekker model
+                       double Bekker_n,               ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+                       double Mohr_cohesion,          ///< cohesion [Pa], for shear failure
+                       double Mohr_friction,          ///< Friction angle [degrees], for shear failure
+                       double Janosi_shear,           ///< shear parameter J [m], (usually a few mm or cm)
+                       double grid_spacing = 0.125    ///< SCM grid spacing
     );
 
     /// Enable use of granular terrain.
     /// The terrain subsystem consists of identical spherical particles initialized in layers.
-    /// A moving-patch option is used, with the patch length set based on the tire dimensions.
+    /// A moving-patch option is used.
     void SetTerrainGranular(const TerrainPatchSize& size, const TerrainParamsGranular& params);
 
     /// Enable use of granular terrain.
     /// Specify contact material properties.
     /// The terrain subsystem consists of identical spherical particles initialized in layers.
-    /// A moving-patch option is used, with the patch length set based on the tire dimensions.
-    void SetTerrainGranular(const TerrainPatchSize& size,
-                            double radius,            ///< particle radius [m]
-                            unsigned int num_layers,  ///< number of layers for initial particle creation
-                            double density,           ///< particle material density [kg/m3]
-                            double friction,          ///< inter-particle coefficient of friction
-                            double cohesion,          ///< inter-particle cohesion pressure [Pa]
-                            double Young_modulus      ///< particle contact material Young's modulus [Pa]
+    /// A moving-patch option is used.
+    void SetTerrainGranular(const TerrainPatchSize& size,  ///< terrain patch size
+                            double radius,                 ///< particle radius [m]
+                            double density,                ///< particle material density [kg/m3]
+                            double friction,               ///< inter-particle coefficient of friction
+                            double cohesion,               ///< inter-particle cohesion pressure [Pa]
+                            double Young_modulus           ///< particle contact material Young's modulus [Pa]
     );
 
     /// Enable use of CRM terrain.
     /// The terrain subsystem is modelled through continuum with CRM.
-    /// Other material and SPH parameters are left to CRM defaults
     void SetTerrainCRM(const TerrainPatchSize& size, const TerrainParamsCRM& params);
 
     /// Enable use of CRM terrain.
-    /// The radius here is the radius of the SPH markers (SPH is the underlying solver for the continuum PDEs)
-    void SetTerrainCRM(const TerrainPatchSize& size,
-                       double radius,
-                       double density,
-                       double Young_modulus,
-                       double friction,
-                       double cohesion);
+    void SetTerrainCRM(const TerrainPatchSize& size,  ///< terrain patch size
+                       double spacing,                ///< SPH particle spacing
+                       double density,                ///< material density
+                       double Young_modulus,          ///< material Young's modulus
+                       double friction,               ///< material internal friction
+                       double cohesion                ///< material internal cohesion
+    );
 
     /// Callback interface for user-defined wheel/tire BCE markers (CRM terrain only).
     class CH_VEHICLE_API WheelBCECreationCallback {

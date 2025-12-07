@@ -158,7 +158,6 @@ void ChTireTestRig::SetTerrainGranular(const TerrainPatchSize& size, const Terra
 
 void ChTireTestRig::SetTerrainGranular(const TerrainPatchSize& size,
                                        double radius,
-                                       unsigned int num_layers,
                                        double density,
                                        double friction,
                                        double cohesion,
@@ -167,7 +166,6 @@ void ChTireTestRig::SetTerrainGranular(const TerrainPatchSize& size,
     m_terrain_size = size;
 
     m_params_granular.radius = radius;
-    m_params_granular.num_layers = num_layers;
     m_params_granular.density = density;
     m_params_granular.friction = friction;
     m_params_granular.cohesion = cohesion;
@@ -175,7 +173,7 @@ void ChTireTestRig::SetTerrainGranular(const TerrainPatchSize& size,
 }
 
 void ChTireTestRig::SetTerrainCRM(const TerrainPatchSize& size,
-                                  double radius,
+                                  double spacing,
                                   double density,
                                   double Young_modulus,
                                   double friction,
@@ -189,7 +187,7 @@ void ChTireTestRig::SetTerrainCRM(const TerrainPatchSize& size,
     m_terrain_type = TerrainType::CRM;
     m_terrain_size = size;
 
-    m_params_crm.radius = radius;
+    m_params_crm.sph_params.initial_spacing = spacing;
 
     m_params_crm.mat_props.density = density;
     m_params_crm.mat_props.cohesion_coeff = cohesion;
@@ -472,6 +470,25 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
 
 // -----------------------------------------------------------------------------
 
+ChTireTestRig::TerrainParamsCRM::TerrainParamsCRM() {
+#ifdef CHRONO_FSI
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.initial_spacing = 0.02;
+    sph_params.d0_multiplier = 1.2;
+    sph_params.artificial_viscosity = 0.5;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.free_surface_threshold = 0.8;
+    sph_params.num_proximity_search_steps = 1;
+    sph_params.use_consistent_gradient_discretization = false;
+    sph_params.use_consistent_laplacian_discretization = false;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+#endif
+}
+
 void ChTireTestRig::CreateTerrain() {
     switch (m_terrain_type) {
         case TerrainType::SCM:
@@ -534,7 +551,8 @@ void ChTireTestRig::CreateTerrainRigid() {
 }
 
 void ChTireTestRig::CreateTerrainGranular() {
-    double vertical_offset = m_params_granular.num_layers * (2 * m_params_granular.radius);
+    int num_layers = (int)(m_terrain_size.depth / (2 * m_params_granular.radius)) + 1;
+    double vertical_offset = num_layers * (2 * m_params_granular.radius);
     ChVector3d location(0, m_terrain_offset, m_terrain_height - vertical_offset);
 
     auto terrain = chrono_types::make_shared<vehicle::GranularTerrain>(m_system);
@@ -570,8 +588,8 @@ void ChTireTestRig::CreateTerrainGranular() {
     ////terrain->EnableVisualization(true);
     terrain->EnableVerbose(true);
 
-    terrain->Initialize(location, m_terrain_size.length, m_terrain_size.width, m_params_granular.num_layers,
-                        m_params_granular.radius, m_params_granular.density);
+    terrain->Initialize(location, m_terrain_size.length, m_terrain_size.width, num_layers, m_params_granular.radius,
+                        m_params_granular.density);
 
     double buffer_dist = 2.0 * m_tire->GetRadius();
     double shift_dist = 0.5 * m_tire->GetRadius();
@@ -582,9 +600,8 @@ void ChTireTestRig::CreateTerrainGranular() {
 
 void ChTireTestRig::CreateTerrainCRM() {
 #ifdef CHRONO_FSI
-    double initSpace0 = 2 * m_params_crm.radius;
-
-    std::shared_ptr<CRMTerrain> terrain = chrono_types::make_shared<CRMTerrain>(*m_system, initSpace0);
+    std::shared_ptr<CRMTerrain> terrain =
+        chrono_types::make_shared<CRMTerrain>(*m_system, m_params_crm.sph_params.initial_spacing);
 
     terrain->SetOutputLevel(OutputLevel::STATE);
     terrain->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
@@ -593,24 +610,8 @@ void ChTireTestRig::CreateTerrainCRM() {
 
     terrain->SetStepsizeMBD(m_tire_step);
 
-    ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.integration_scheme = IntegrationScheme::RK2;
-    sph_params.initial_spacing = initSpace0;
-    sph_params.d0_multiplier = 1.2;
-    sph_params.artificial_viscosity = 0.5;
-    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
-    sph_params.shifting_xsph_eps = 0.25;
-    sph_params.shifting_ppst_pull = 1.0;
-    sph_params.shifting_ppst_push = 3.0;
-    sph_params.free_surface_threshold = 0.8;
-    sph_params.num_proximity_search_steps = 1;
-    sph_params.use_consistent_gradient_discretization = false;
-    sph_params.use_consistent_laplacian_discretization = false;
-    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
-    sph_params.boundary_method = BoundaryMethod::ADAMI;
-
     terrain->SetElasticSPH(m_params_crm.mat_props);
-    terrain->SetSPHParameters(sph_params);
+    terrain->SetSPHParameters(m_params_crm.sph_params);
 
     double loc_z = m_terrain_height - m_terrain_size.depth;
     ChVector3d location(m_terrain_size.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, loc_z);

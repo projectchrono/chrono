@@ -102,7 +102,6 @@ int main() {
     } else {
         ChTireTestRig::TerrainParamsGranular params;
         params.radius = 0.02;
-        params.num_layers = 6;
         params.density = 2000;
         params.friction = 0.9;
         params.cohesion = 1e4;
