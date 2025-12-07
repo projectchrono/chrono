@@ -66,33 +66,17 @@ int main() {
     auto wheel = chrono_types::make_shared<DummyViperWheel>();
     auto tire = chrono_types::make_shared<ViperTire>();
 
-    // ---------------------------------------------------------
-    // Create system and set default solver and integrator types
-    // ---------------------------------------------------------
+    // -------------------------------------------------
+    // Create system and set solver and integrator types
+    // -------------------------------------------------
 
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     double step_size = 2e-4;
     ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
     ChTimestepper::Type integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-
-    // Set collision system
-    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
-    // Number of OpenMP threads used in Chrono (SCM ray-casting and FEA)
-    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
-
-    // Number of threads used in collision detection
-    int num_threads_collision = 1;
-
-    // Number of threads used by Eigen
-    int num_threads_eigen = 1;
-
-    // Number of threads used by PardisoMKL
-    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
-
-    sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
-    //SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
-    tire->SetStepsize(step_size);
+    SetChronoSolver(sys, solver_type, integrator_type);
 
     // -----------------------------
     // Create and configure test rig
@@ -106,17 +90,19 @@ int main() {
     rig.SetTireStepsize(step_size);
     rig.SetTireVisualizationType(VisualizationType::COLLISION);
 
+    ChTireTestRig::TerrainPatchSize size;
+    size.length = 10;
+    size.width = 1;
+    size.depth = 0.2;
+
     ChTireTestRig::TerrainParamsCRM params;
     params.radius = 0.005;
     params.mat_props.density = 1700;
     params.mat_props.Young_modulus = 1e6;
     params.mat_props.cohesion_coeff = 1e2;
-    params.length = 10;
-    params.width = 1;
-    params.depth = 0.2;
-    rig.SetTerrainCRM(params);
+    rig.SetTerrainCRM(size, params);
 
-    // Register custom callback for wheel BCE marker generation    
+    // Register custom callback for wheel BCE marker generation
     auto bce_callback = chrono_types::make_shared<ViperTireBCE>(tire, 2 * params.radius);
     rig.RegisterWheelBCECreationCallback(bce_callback);
 

@@ -34,6 +34,9 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::vehicle;
 
+// Terrain type (RIGID or GRANULAR)
+ChTireTestRig::TerrainType terrain_type = ChTireTestRig::TerrainType::GRANULAR;
+
 int main() {
     double step_size = 5e-3;
     double tire_step_size = 1e-4;
@@ -84,8 +87,19 @@ int main() {
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
-    ////rig.SetTerrainRigid(0.8, 2e7, 0, 10.0);
-    {
+    ChTireTestRig::TerrainPatchSize size;
+    size.length = 3.0;
+    size.width = 1.0;
+    size.depth = 0.24;
+
+    if (terrain_type == ChTireTestRig::TerrainType::RIGID) {
+        ChTireTestRig::TerrainParamsRigid params;
+        params.friction = 0.8f;
+        params.restitution = 0;
+        params.Young_modulus = 2e7f;
+
+        rig.SetTerrainRigid(size, params);
+    } else {
         ChTireTestRig::TerrainParamsGranular params;
         params.radius = 0.02;
         params.num_layers = 6;
@@ -93,9 +107,8 @@ int main() {
         params.friction = 0.9;
         params.cohesion = 1e4;
         params.Young_modulus = 1e7;
-        params.width = 1;
 
-        rig.SetTerrainGranular(params);
+        rig.SetTerrainGranular(size, params);
     }
 
     rig.SetTimeDelay(0.15);

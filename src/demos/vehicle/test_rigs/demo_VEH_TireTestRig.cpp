@@ -62,7 +62,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Terrain type (RIGID or SCM)
 enum class TerrainType { RIGID, SCM };
-TerrainType terrain_type = TerrainType::RIGID;
+ChTireTestRig::TerrainType terrain_type = ChTireTestRig::TerrainType::RIGID;
 
 // Tire specification file
 ////std::string tire_json = "hmmwv/tire/HMMWV_RigidTire.json";
@@ -100,7 +100,7 @@ int main() {
     bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
     bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 
-    if (handling_tire && terrain_type == TerrainType::SCM) {
+    if (handling_tire && terrain_type == ChTireTestRig::TerrainType::SCM) {
         cerr << "ERROR: Handling tire models cannot be used with SCM terrain." << endl;
         return 1;
     }
@@ -110,7 +110,7 @@ int main() {
         int collision_family = 7;
         auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
         double surface_dim = 0.02;
-        if (terrain_type == TerrainType::SCM) {
+        if (terrain_type == ChTireTestRig::TerrainType::SCM) {
             surface_type = ChTire::ContactSurfaceType::TRIANGLE_MESH;
             surface_dim = 0;
         }
@@ -172,15 +172,17 @@ int main() {
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
-    if (terrain_type == TerrainType::RIGID) {
+    ChTireTestRig::TerrainPatchSize size;
+    size.length = 10;
+    size.width = 1;
+
+    if (terrain_type == ChTireTestRig::TerrainType::RIGID) {
         ChTireTestRig::TerrainParamsRigid params;
         params.friction = 0.8f;
         params.restitution = 0;
         params.Young_modulus = 2e7f;
-        params.length = 10;
-        params.width = 1;
 
-        rig.SetTerrainRigid(params);
+        rig.SetTerrainRigid(size, params);
     } else {
         ChTireTestRig::TerrainParamsSCM params;
         params.Bekker_Kphi = 2e6;
@@ -189,11 +191,9 @@ int main() {
         params.Mohr_cohesion = 0;
         params.Mohr_friction = 30;
         params.Janosi_shear = 0.01;
-        params.length = 10;
-        params.width = 1;
         params.grid_spacing = 0.05;
 
-        rig.SetTerrainSCM(params);
+        rig.SetTerrainSCM(size, params);
     }
 
     // -----------------
