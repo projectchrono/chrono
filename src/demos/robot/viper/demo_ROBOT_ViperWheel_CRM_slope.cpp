@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -41,6 +41,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
+
+#include "viper_wheel.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -102,85 +104,6 @@ struct SimParams {
     bool render;
     double render_fps;
 };
-
-//------------------------------------------------------------------
-// Function to save wheel to Paraview VTK files
-//------------------------------------------------------------------
-void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, const ChFrame<>& frame) {
-    std::ofstream outf;
-    outf.open(filename);
-    outf << "# vtk DataFile Version 2.0" << std::endl;
-    outf << "VTK from simulation" << std::endl;
-    outf << "ASCII" << std::endl;
-    outf << "DATASET UNSTRUCTURED_GRID" << std::endl;
-    outf << "POINTS " << mesh.GetCoordsVertices().size() << " "
-         << "float" << std::endl;
-    for (auto& v : mesh.GetCoordsVertices()) {
-        auto w = frame.TransformPointLocalToParent(v);
-        outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
-    }
-    auto nf = mesh.GetIndicesVertexes().size();
-    outf << "CELLS " << nf << " " << 4 * nf << std::endl;
-    for (auto& f : mesh.GetIndicesVertexes()) {
-        outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
-    }
-    outf << "CELL_TYPES " << nf << std::endl;
-    for (int i = 0; i < nf; i++) {
-        outf << "5 " << std::endl;
-    }
-    outf.close();
-}
-
-void CreateBCE_On_Wheel_Grouser(std::vector<ChVector3d>& posRadBCE,
-                                double wheel_rad,
-                                double wheel_w,
-                                double gro_h,
-                                double gro_w,
-                                int gro_num,
-                                double spacing,
-                                bool cartesian) {
-    int num_layers = (int)std::floor(1.00001 * wheel_w / spacing) + 1;
-    for (size_t si = 0; si < num_layers; si++) {
-        Real s = -0.5 * wheel_w + spacing * si;
-        if (cartesian)
-            for (Real x = -wheel_rad; x <= wheel_rad; x += spacing) {
-                for (Real y = -wheel_rad; y <= wheel_rad; y += spacing) {
-                    if (x * x + y * y <= wheel_rad * wheel_rad)
-                        posRadBCE.push_back(ChVector3d(x, s, y));
-                }
-            }
-        else {
-            ChVector3d centerPointLF = {0, s, 0};
-            posRadBCE.push_back(ChVector3d(0, s, 0));
-            // wheel
-            int numr = (int)std::floor(1.00001 * wheel_rad / spacing);
-            for (size_t ir = 0; ir < numr; ir++) {
-                Real r = spacing + ir * spacing;
-                int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
-                for (size_t t = 0; t < numTheta; t++) {
-                    double teta = t * 2 * 3.1415 / numTheta;
-                    ChVector3d BCE_Pos_local = {r * cos(teta), 0, r * sin(teta)};
-                    BCE_Pos_local += centerPointLF;
-                    posRadBCE.push_back(BCE_Pos_local);
-                }
-            }
-            // grouser
-            int numr_g = (int)std::floor(1.00001 * gro_h / spacing);
-            int numw_g = (int)std::floor(1.00001 * gro_w / spacing) + 1;
-            for (size_t ir_g = 0; ir_g < numr_g; ir_g++) {
-                Real r = 0.5 * spacing + ir_g * spacing + wheel_rad;
-                for (size_t t = 0; t < gro_num; t++) {
-                    for (size_t iw_g = 0; iw_g < numw_g; iw_g++) {
-                        Real teta = t * 2 * 3.1415 / gro_num + iw_g * spacing / wheel_rad;
-                        ChVector3d BCE_Pos_local = {r * cos(teta), 0, r * sin(teta)};
-                        BCE_Pos_local += centerPointLF;
-                        posRadBCE.push_back(BCE_Pos_local);
-                    }
-                }
-            }
-        }
-    }
-}
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
@@ -282,12 +205,11 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
 
     sysMBS.AddBody(wheel);
 
-    // Use custom function by Wei - placeholder for BCE marker generation
+    // Create wheel FSI body
     double inner_radius = wheel_radius;
     double outer_radius = wheel_radius + grouser_height;
-    std::vector<ChVector3d> bce;
-    CreateBCE_On_Wheel_Grouser(bce, inner_radius, wheel_width - iniSpacing, grouser_height, grouser_wide, grouser_num,
-                               iniSpacing, false);
+    auto bce = CreateWheelBCE(inner_radius, wheel_width - iniSpacing, grouser_height, grouser_wide, grouser_num,
+                              iniSpacing, false);
     ChQuaternion<> wheel_Rot_bce = Q_ROTATE_Z_TO_Y;
     sysFSI.AddFsiBody(wheel, bce, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(wheel_Rot_bce)), false);
 
@@ -435,7 +357,7 @@ int main(int argc, char* argv[]) {
                         /*grouser_height*/ 0.01,
                         /*sim_number*/ 0,
                         /*snapshots*/ false,
-                        /*output*/ true,
+                        /*output*/ false,
                         /*out_fps*/ 100,
                         /*write_marker_files*/ false,
                         /*print_fps*/ 100,
@@ -473,22 +395,7 @@ int main(int argc, char* argv[]) {
     params.slope_angle = params.slope_angle / 180.0 * CH_PI;
 
     // Create formatted output directory path with appropriate precision
-    std::string out_dir;
-    if (params.output) {
-        // Create output directories
-        if (!filesystem::create_directory(filesystem::path(GetChronoOutputPath() + "FSI_SlopedSingleWheelTest"))) {
-            std::cerr << "Error creating directory " << GetChronoOutputPath() + "FSI_SlopedSingleWheelTest"
-                      << std::endl;
-            return 1;
-        }
-    }
-    std::stringstream ss;
-    ss << std::fixed;
-    ss << GetChronoOutputPath() + "FSI_SlopedSingleWheelTest/ps_" << params.ps_freq;
-    ss << "_s_" << std::setprecision(3) << params.initial_spacing;
-    ss << "_d0_" << std::setprecision(1) << params.d0_multiplier;
-    ss << "_av_" << std::setprecision(2) << params.artificial_viscosity << "/";
-    out_dir = ss.str();
+    std::string out_dir = GetChronoOutputPath() + "VIPER_WHEEL_CRM_SLOPE";
 
     if (params.output) {
         // Create output directories
@@ -496,15 +403,27 @@ int main(int argc, char* argv[]) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
-    }
 
-    std::string sim_number_str = std::to_string(params.sim_number);
-    out_dir = out_dir + sim_number_str + "/";
+        std::stringstream ss;
+        ss << std::fixed;
+        ss << out_dir + "/ps_" << params.ps_freq;
+        ss << "_s_" << std::setprecision(3) << params.initial_spacing;
+        ss << "_d0_" << std::setprecision(1) << params.d0_multiplier;
+        ss << "_av_" << std::setprecision(2) << params.artificial_viscosity << "/";
+        out_dir = ss.str();
 
-    // Output the result to verify
-    std::cout << "Output directory: " << out_dir << std::endl;
+        // Create output directories
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
 
-    if (params.output) {
+        std::string sim_number_str = std::to_string(params.sim_number);
+        out_dir = out_dir + sim_number_str + "/";
+
+        // Output the result to verify
+        std::cout << "Output directory: " << out_dir << std::endl;
+
         // Create output directories
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
@@ -536,7 +455,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSizeCFD(params.time_step);
     sysFSI.SetStepsizeMBD(params.time_step);
 
-     // Meta-step (communication interval)
+    // Meta-step (communication interval)
     double meta_time_step = 5 * params.time_step;
 
     // We simulate slope by just tilting the gravity vector
