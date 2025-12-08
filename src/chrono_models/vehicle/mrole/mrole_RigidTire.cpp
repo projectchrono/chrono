@@ -39,15 +39,13 @@ const std::string mrole_RigidTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj"
 const std::string mrole_RigidTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 mrole_RigidTire::mrole_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void mrole_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

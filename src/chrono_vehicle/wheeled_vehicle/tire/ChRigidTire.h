@@ -50,8 +50,8 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     virtual std::string GetTemplateName() const override { return "RigidTire"; }
 
     /// Set Wavefront OBJ file for contact mesh.
-    void SetMeshFilename(const std::string& mesh_file,   ///< [in] name of Wavefront file
-                         double sweep_sphere_radius = 0  ///< [in] radius of sweeping sphere
+    void SetContactMesh(const std::string& mesh_file,   ///< [in] name of Wavefront file
+                        double sweep_sphere_radius = 0  ///< [in] radius of sweeping sphere
     );
 
     /// Check whether or not this tire uses a contact mesh.

@@ -91,6 +91,7 @@ void ChDriver::ExportCheckpoint(ChCheckpoint::Format format, const std::string& 
         }
         default:
             std::cerr << "Error: unrecognized checkpoint format" << std::endl;
+            throw std::runtime_error("Unrecognized checkpoint format");
     }
 }
 
@@ -113,6 +114,7 @@ void ChDriver::ImportCheckpoint(ChCheckpoint::Format format, const std::string& 
         }
         default:
             std::cerr << "Error: unrecognized checkpoint format" << std::endl;
+            throw std::runtime_error("Unrecognized checkpoint format");
     }
 }
 

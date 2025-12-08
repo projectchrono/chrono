@@ -35,7 +35,7 @@ ChRigidTire::ChRigidTire(const std::string& name) : ChTire(name), m_use_contact_
 ChRigidTire::~ChRigidTire() {}
 
 // -----------------------------------------------------------------------------
-void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sphere_radius) {
+void ChRigidTire::SetContactMesh(const std::string& mesh_file, double sweep_sphere_radius) {
     m_use_contact_mesh = true;
     m_contact_meshFile = mesh_file;
     m_sweep_sphere_radius = sweep_sphere_radius;

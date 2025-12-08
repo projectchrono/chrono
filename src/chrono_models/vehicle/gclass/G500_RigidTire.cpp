@@ -38,15 +38,13 @@ const ChVector3d G500_RigidTire::m_inertia(3.84, 6.69, 3.84);
 const std::string G500_RigidTire::m_meshFile = "gclass/gd250_tire_fine.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 G500_RigidTire::G500_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("uaz/uaz_tire_fine.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("uaz/uaz_tire_fine.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void G500_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

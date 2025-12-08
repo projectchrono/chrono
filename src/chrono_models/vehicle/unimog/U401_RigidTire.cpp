@@ -38,15 +38,13 @@ const ChVector3d U401_RigidTire::m_inertia(1.65, 2.90, 1.65);
 const std::string U401_RigidTire::m_meshFile = "unimog/U401_Tire.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 U401_RigidTire::U401_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("unimog/U401_Tire.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("unimog/U401_Tire.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void U401_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

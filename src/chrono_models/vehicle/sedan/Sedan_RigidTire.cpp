@@ -38,15 +38,13 @@ const ChVector3d Sedan_RigidTire::m_inertia(.156, .679, .156);
 const std::string Sedan_RigidTire::m_meshFile = "sedan/sedan_tire.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 Sedan_RigidTire::Sedan_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("sedan/tire.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("sedan/tire.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void Sedan_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

@@ -51,7 +51,7 @@ const std::string Gator_RigidTire_Rear::m_meshFile_right = "gator/gator_wheel_RR
 
 Gator_RigidTire_Front::Gator_RigidTire_Front(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("gator/gator_tireF_coarse.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("gator/gator_tireF_coarse.obj"), 0.005);
     }
 }
 
@@ -81,7 +81,7 @@ void Gator_RigidTire_Front::RemoveVisualizationAssets() {
 
 Gator_RigidTire_Rear::Gator_RigidTire_Rear(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("gator/gator_tireR_coarse.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("gator/gator_tireR_coarse.obj"), 0.005);
     }
 }
 

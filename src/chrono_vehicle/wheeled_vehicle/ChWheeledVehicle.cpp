@@ -395,80 +395,80 @@ void ChWheeledVehicle::LogConstraintViolations() {
     }
 }
 
-void ChWheeledVehicle::LogSubsystemTypes() {
-    cout << "\nSubsystem types\n";
+void ChWheeledVehicle::LogSubsystemTypes(std::ostream& os) {
+    os << "\nSubsystem types\n";
 
     {
-        cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
+        os << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
 
         int body_tag = m_chassis->GetBodyTag();
         auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
         auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-        cout << "         vehicle tag: " << m_chassis->GetVehicleTag();
-        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        os << "         vehicle tag: " << m_chassis->GetVehicleTag();
+        os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
 
     if (m_powertrain_assembly) {
-        cout << "Powertrain:\n";
-        cout << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
-        cout << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
+        os << "Powertrain:\n";
+        os << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
+        os << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
     }
 
     if (m_driveline)
-        cout << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
+        os << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
 
     for (int i = 0; i < m_steerings.size(); i++) {
-        cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
+        os << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
 
         int body_tag = m_steerings[i]->GetBodyTag();
         auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
         auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-        cout << "         vehicle tag: " << m_steerings[i]->GetVehicleTag();
-        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        os << "         vehicle tag: " << m_steerings[i]->GetVehicleTag();
+        os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
 
     for (int i = 0; i < m_axles.size(); i++) {
-        cout << "Axle " << i << "\n";
+        os << "Axle " << i << "\n";
 
         {
-            cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
+            os << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_suspension->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << m_axles[i]->m_suspension->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << m_axles[i]->m_suspension->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         if (m_axles[i]->m_antirollbar) {
-            cout << "  Antiroll bar: " << m_axles[i]->m_antirollbar->GetTemplateName() << "\n";
+            os << "  Antiroll bar: " << m_axles[i]->m_antirollbar->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_antirollbar->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << m_axles[i]->m_antirollbar->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << m_axles[i]->m_antirollbar->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         if (m_axles[i]->m_brake_left) {
-            cout << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
-            cout << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
+            os << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
+            os << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
         }
 
         {
-            cout << "  Wheel:        " << m_axles[i]->m_wheels[0]->GetTemplateName() << "\n";
+            os << "  Wheel:        " << m_axles[i]->m_wheels[0]->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_wheels[0]->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         if (m_axles[i]->m_wheels.size() == 2) {
-            cout << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName() << "\n";
+            os << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName() << "\n";
         } else {
-            cout << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName() << "\n";
+            os << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName() << "\n";
         }
     }
 }
