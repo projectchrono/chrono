@@ -38,15 +38,13 @@ const ChVector3d CityBus_RigidTire::m_inertia(6.104, 12.0, 6.104);
 const std::string CityBus_RigidTire::m_meshFile = "citybus/CityBusTire.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 CityBus_RigidTire::CityBus_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("citybus/CityBusTire.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("citybus/CityBusTire.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void CityBus_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

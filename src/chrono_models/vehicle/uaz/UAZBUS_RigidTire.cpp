@@ -38,15 +38,13 @@ const ChVector3d UAZBUS_RigidTire::m_inertia(1.2369, 2.22357, 1.2369);
 const std::string UAZBUS_RigidTire::m_meshFile = "uaz/uaz_tire_fine.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 UAZBUS_RigidTire::UAZBUS_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("uaz/uaz_tire_fine.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("uaz/uaz_tire_fine.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void UAZBUS_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

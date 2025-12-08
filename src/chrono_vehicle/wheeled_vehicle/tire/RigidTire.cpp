@@ -61,7 +61,7 @@ void RigidTire::Create(const rapidjson::Document& d) {
     if (d.HasMember("Contact Mesh")) {
         std::string mesh_file = d["Contact Mesh"]["Mesh Filename"].GetString();
         double sweep_radius = d["Contact Mesh"]["Sweep Sphere Radius"].GetDouble();
-        SetMeshFilename(GetVehicleDataFile(mesh_file), sweep_radius);
+        SetContactMesh(GetVehicleDataFile(mesh_file), sweep_radius);
     }
 
     // Check how to visualize this tire.
