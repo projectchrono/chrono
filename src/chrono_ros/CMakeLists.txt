@@ -73,9 +73,20 @@ endif()
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
+if(WIN32)
+    # On Windows, executables and DLLs must be in the same directory (bin) for PATH resolution
+    set(CH_ROS_NODE_DESTINATION bin)
+else()
+    # On Linux, we install the node executable to lib because:
+    # 1. It is an internal helper process, not a user-facing command (keeps bin/ clean)
+    # 2. It simplifies finding the executable relative to the shared library
+    # 3. It simplifies RPATH resolution (it sits next to the libraries it links against)
+    set(CH_ROS_NODE_DESTINATION lib)
+endif()
+
 # Define paths for the configuration file
 set(CH_ROS_NODE_BUILD_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/chrono_ros_node")
-set(CH_ROS_NODE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/bin/chrono_ros_node")
+set(CH_ROS_NODE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/${CH_ROS_NODE_DESTINATION}/chrono_ros_node")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigROS.h.in ${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h)
 
@@ -332,5 +343,5 @@ target_include_directories(chrono_ros_node PRIVATE
 
 install(TARGETS chrono_ros_node
         EXPORT ChronoTargets
-        RUNTIME DESTINATION bin
+        RUNTIME DESTINATION ${CH_ROS_NODE_DESTINATION}
 )
