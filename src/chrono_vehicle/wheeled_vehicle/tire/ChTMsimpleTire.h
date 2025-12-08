@@ -228,6 +228,18 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
+    /// Get current internal dynamics ODE states (if any).
+    virtual void GetInternalStates(ChVector2d& states) const override {
+        states[0] = m_states.brx;
+        states[1] = m_states.bry;
+    }
+
+    /// Set the internal dynamics ODE states (if any).
+    virtual void SetInternalStates(const ChVector2d& states) {
+        m_states.brx = states[0];
+        m_states.bry = states[1];
+    }
+
     void TMcombinedForces(double& fx, double& fy, double sx, double sy, double fz, double muscale);
     void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
 

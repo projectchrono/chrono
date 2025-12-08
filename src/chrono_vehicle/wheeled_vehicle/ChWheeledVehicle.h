@@ -22,6 +22,8 @@
 #ifndef CH_WHEELED_VEHICLE_H
 #define CH_WHEELED_VEHICLE_H
 
+#include <ostream>
+
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
@@ -240,7 +242,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void LogConstraintViolations() override;
 
     /// Log the types (template names) of current vehicle subsystems.
-    void LogSubsystemTypes();
+    void LogSubsystemTypes(std::ostream& os = std::cout);
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
