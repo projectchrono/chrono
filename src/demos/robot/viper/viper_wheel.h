@@ -3,10 +3,12 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <cmath>
 
 #include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
@@ -34,17 +36,25 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
   public:
     ViperTire()
         : chrono::vehicle::ChRigidTire("viper_tire"),
-          m_obj_filename(chrono::GetChronoDataFile("robot/viper/obj/nasa_viper_wheel.obj")),
           m_radius(0.225),
           m_width(0.2),
           m_grouser_height(0.01),
           m_grouser_width(0.005),
           m_num_grousers(24) {
+        SetMeshFile(chrono::GetChronoDataFile("robot/viper/obj/nasa_viper_wheel.obj"));
+    }
+
+    void SetRadius(double radius) { m_radius = radius; }
+    void SetWidth(double width) { m_width = width; }
+    void SetGrouserHeight(double height) { m_grouser_height = height; }
+    void SetGrouserWidth(double width) { m_grouser_width = width; }
+    void SetNumGrousers(int num_grousers) { m_num_grousers = num_grousers; }
+
+    void SetMeshFile(const std::string& filename, double scale = 1) {
         // Create trimesh
-        double scale_ratio = 1.0;
         m_trimesh = chrono_types::make_shared<chrono::ChTriangleMeshConnected>();
-        m_trimesh->LoadWavefrontMesh(m_obj_filename, false, true);
-        m_trimesh->Transform(chrono::ChVector3d(0, 0, 0), chrono::ChMatrix33<>(scale_ratio));
+        m_trimesh->LoadWavefrontMesh(filename, false, true);
+        m_trimesh->Transform(chrono::ChVector3d(0, 0, 0), chrono::ChMatrix33<>(scale));
         m_trimesh->RepairDuplicateVertexes(1e-9);
 
         // Calculate inertia properties
@@ -57,41 +67,27 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
         m_mass *= density;
         m_inertia *= density;
 
+        // Use contact mesh
+        SetContactMesh(filename, m_grouser_width / 2);
+
         std::cout << "Viper wheel mass:    " << m_mass << std::endl;
         std::cout << "Viper wheel inertia: " << m_inertia << std::endl;
     }
 
-    virtual double GetRadius() const override { return m_radius + m_grouser_height; }
-    virtual double GetWidth() const override { return m_width; }
-
-    virtual double GetTireMass() const override { return m_mass; }
-    virtual chrono::ChVector3d GetTireInertia() const override { return m_inertia; }
-
-    virtual void CreateContactMaterial(chrono::ChContactMethod contact_method) override {
-        chrono::ChContactMaterialData mat_info;
-        m_material = mat_info.CreateMaterial(contact_method);
-    }
-
-    virtual void AddVisualizationAssets(chrono::VisualizationType vis) override {
-        m_trimesh_shape = chrono_types::make_shared<chrono::ChVisualShapeTriangleMesh>();
-        m_trimesh_shape->SetMesh(m_trimesh);
-        m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-        m_trimesh_shape->SetMutable(false);
-        m_wheel->GetSpindle()->AddVisualShape(m_trimesh_shape);
-    }
-
-    virtual void RemoveVisualizationAssets() override {
-        chrono::vehicle::ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
-        chrono::vehicle::ChRigidTire::RemoveVisualizationAssets();
-    }
+    void SetMass(double mass) { m_mass = mass; }
+    void SetInertia(const chrono::ChVector3d& inertia) { m_inertia = inertia; }
 
     // Create BCE markers on Viper wheel with grousers.
-    std::vector<chrono::ChVector3d> CreateBCE(double spacing, bool cartesian = false) {
+    std::vector<chrono::ChVector3d> CreateBCE(double spacing, bool cartesian = false) const {
         std::vector<chrono::ChVector3d> bce;
 
         double width = m_width - spacing;
-
         int num_layers = (int)std::floor(1.00001 * width / spacing) + 1;
+
+        int numr = (int)std::floor(1.00001 * m_radius / spacing);
+        int numr_g = (int)std::floor(1.00001 * m_grouser_height / spacing);
+        int numw_g = (int)std::floor(1.00001 * m_grouser_width / spacing) + 1;
+
         for (size_t si = 0; si < num_layers; si++) {
             double s = -0.5 * width + spacing * si;
             if (cartesian)
@@ -102,33 +98,30 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
                     }
                 }
             else {
-                chrono::ChVector3d centerPointLF(0, s, 0);
+                chrono::ChVector3d center(0, s, 0);
                 bce.push_back(chrono::ChVector3d(0, s, 0));
 
                 // wheel
-                int numr = (int)std::floor(1.00001 * m_radius / spacing);
                 for (size_t ir = 0; ir < numr; ir++) {
                     double r = spacing + ir * spacing;
-                    int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
+                    int numTheta = (int)std::floor(chrono::CH_2PI * r / spacing);
                     for (size_t t = 0; t < numTheta; t++) {
-                        double teta = t * 2 * 3.1415 / numTheta;
-                        chrono::ChVector3d BCE_Pos_local = {r * cos(teta), 0, r * sin(teta)};
-                        BCE_Pos_local += centerPointLF;
-                        bce.push_back(BCE_Pos_local);
+                        double teta = t * chrono::CH_2PI / numTheta;
+                        chrono::ChVector3d pos(r * std::cos(teta), 0, r * std::sin(teta));
+                        pos += center;
+                        bce.push_back(pos);
                     }
                 }
 
                 // grouser
-                int numr_g = (int)std::floor(1.00001 * m_grouser_height / spacing);
-                int numw_g = (int)std::floor(1.00001 * m_grouser_width / spacing) + 1;
                 for (size_t ir_g = 0; ir_g < numr_g; ir_g++) {
-                    double r = 0.5 * spacing + ir_g * spacing + m_radius;
+                    double r = m_radius + 0.5 * spacing + ir_g * spacing;
                     for (size_t t = 0; t < m_num_grousers; t++) {
                         for (size_t iw_g = 0; iw_g < numw_g; iw_g++) {
-                            double teta = t * 2 * 3.1415 / m_num_grousers + iw_g * spacing / m_radius;
-                            chrono::ChVector3d BCE_Pos_local = {r * cos(teta), 0, r * sin(teta)};
-                            BCE_Pos_local += centerPointLF;
-                            bce.push_back(BCE_Pos_local);
+                            double teta = t * chrono::CH_2PI / m_num_grousers + (iw_g - numw_g / 2) * spacing / m_radius;
+                            chrono::ChVector3d pos(r * std::cos(teta), 0, r * std::sin(teta));
+                            pos += center;
+                            bce.push_back(pos);
                         }
                     }
                 }
@@ -169,6 +162,30 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
     }
 
   private:
+    virtual double GetRadius() const override { return m_radius + m_grouser_height; }
+    virtual double GetWidth() const override { return m_width; }
+
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual chrono::ChVector3d GetTireInertia() const override { return m_inertia; }
+
+    virtual void CreateContactMaterial(chrono::ChContactMethod contact_method) override {
+        chrono::ChContactMaterialData mat_info;
+        m_material = mat_info.CreateMaterial(contact_method);
+    }
+
+    virtual void AddVisualizationAssets(chrono::VisualizationType vis) override {
+        m_trimesh_shape = chrono_types::make_shared<chrono::ChVisualShapeTriangleMesh>();
+        m_trimesh_shape->SetMesh(m_trimesh);
+        m_trimesh_shape->SetName("ViperWheel");
+        m_trimesh_shape->SetMutable(false);
+        m_wheel->GetSpindle()->AddVisualShape(m_trimesh_shape);
+    }
+
+    virtual void RemoveVisualizationAssets() override {
+        chrono::vehicle::ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
+        chrono::vehicle::ChRigidTire::RemoveVisualizationAssets();
+    }
+
     double m_radius;
     double m_width;
     double m_grouser_height;
@@ -176,7 +193,6 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
     int m_num_grousers;
     double m_mass;
     chrono::ChVector3d m_inertia;
-    std::string m_obj_filename;
     std::shared_ptr<chrono::ChTriangleMeshConnected> m_trimesh;
     std::shared_ptr<chrono::ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
@@ -239,6 +255,7 @@ std::vector<chrono::ChVector3d> CreateWheelBCE(double wheel_rad,
     int num_layers = (int)std::floor(1.00001 * wheel_w / spacing) + 1;
     for (size_t si = 0; si < num_layers; si++) {
         double s = -0.5 * wheel_w + spacing * si;
+
         if (cartesian)
             for (double x = -wheel_rad; x <= wheel_rad; x += spacing) {
                 for (double y = -wheel_rad; y <= wheel_rad; y += spacing) {
@@ -247,7 +264,7 @@ std::vector<chrono::ChVector3d> CreateWheelBCE(double wheel_rad,
                 }
             }
         else {
-            chrono::ChVector3d centerPointLF(0, s, 0);
+            chrono::ChVector3d center(0, s, 0);
             bce.push_back(chrono::ChVector3d(0, s, 0));
 
             // wheel
@@ -257,8 +274,8 @@ std::vector<chrono::ChVector3d> CreateWheelBCE(double wheel_rad,
                 int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
                 for (size_t t = 0; t < numTheta; t++) {
                     double teta = t * 2 * 3.1415 / numTheta;
-                    chrono::ChVector3d BCE_Pos_local = {r * cos(teta), 0, r * sin(teta)};
-                    BCE_Pos_local += centerPointLF;
+                    chrono::ChVector3d BCE_Pos_local(r * std::cos(teta), 0, r * std::sin(teta));
+                    BCE_Pos_local += center;
                     bce.push_back(BCE_Pos_local);
                 }
             }
@@ -271,16 +288,14 @@ std::vector<chrono::ChVector3d> CreateWheelBCE(double wheel_rad,
                 for (size_t t = 0; t < gro_num; t++) {
                     for (size_t iw_g = 0; iw_g < numw_g; iw_g++) {
                         double teta = t * 2 * 3.1415 / gro_num + iw_g * spacing / wheel_rad;
-                        chrono::ChVector3d BCE_Pos_local = {r * cos(teta), 0, r * sin(teta)};
-                        BCE_Pos_local += centerPointLF;
+                        chrono::ChVector3d BCE_Pos_local(r * std::cos(teta), 0, r * std::sin(teta));
+                        BCE_Pos_local += center;
                         bce.push_back(BCE_Pos_local);
                     }
                 }
             }
         }
     }
-
-    std::cout << "Viper wheel -- num BCEs: " << bce.size() << std::endl;
 
     return bce;
 }

@@ -65,6 +65,8 @@ int main() {
 
     auto wheel = chrono_types::make_shared<DummyViperWheel>();
     auto tire = chrono_types::make_shared<ViperTire>();
+    tire->SetGrouserHeight(0.02);
+    tire->SetGrouserWidth(0.01);
 
     // -------------------------------------------------
     // Create system and set solver and integrator types
@@ -90,6 +92,7 @@ int main() {
     rig.SetTireStepsize(step_size);
     rig.SetTireVisualizationType(VisualizationType::COLLISION);
 
+    // Set CRM terrain
     ChTireTestRig::TerrainPatchSize size;
     size.length = 10;
     size.width = 1;
@@ -99,11 +102,16 @@ int main() {
     params.sph_params.initial_spacing = 0.01;
     params.mat_props.density = 1700;
     params.mat_props.Young_modulus = 1e6;
-    params.mat_props.cohesion_coeff = 1e2;
+    params.mat_props.cohesion_coeff = 0;
+    params.mat_props.mu_I0 = 0.04;
+    params.mat_props.mu_fric_2 = 0.8;
+    params.mat_props.mu_fric_s = 0.8;
+    params.mat_props.average_diam = 0.005;
+
     rig.SetTerrainCRM(size, params);
 
     // Register custom callback for wheel BCE marker generation
-    auto bce_callback = chrono_types::make_shared<ViperTireBCE>(tire, 2 * params.sph_params.initial_spacing);
+    auto bce_callback = chrono_types::make_shared<ViperTireBCE>(tire, params.sph_params.initial_spacing);
     rig.RegisterWheelBCECreationCallback(bce_callback);
 
     // -----------------
