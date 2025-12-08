@@ -36,8 +36,9 @@ find_package(std_msgs QUIET)
 find_package(geometry_msgs QUIET)
 find_package(sensor_msgs QUIET)
 find_package(tf2_msgs QUIET)
+find_package(nav_msgs QUIET)
 
-if(rclcpp_FOUND AND tf2_ros_FOUND AND rcl_interfaces_FOUND AND std_msgs_FOUND AND geometry_msgs_FOUND AND sensor_msgs_FOUND AND tf2_msgs_FOUND)
+if(rclcpp_FOUND AND tf2_ros_FOUND AND rcl_interfaces_FOUND AND std_msgs_FOUND AND geometry_msgs_FOUND AND sensor_msgs_FOUND AND tf2_msgs_FOUND AND nav_msgs_FOUND)
   message(STATUS "Found ROS 2")
 else()
   message("ERROR Chrono::ROS requires ROS 2, but ROS 2 was not found; disabling Chrono::ROS")
@@ -54,6 +55,7 @@ set(ROS2_TARGETS
     ${geometry_msgs_TARGETS}
     ${sensor_msgs_TARGETS}
     ${tf2_msgs_TARGETS}
+    ${nav_msgs_TARGETS}
 )
 
 # Optional package
@@ -70,6 +72,10 @@ endif()
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
+
+# Define paths for the configuration file
+set(CH_ROS_NODE_BUILD_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/chrono_ros_node")
+set(CH_ROS_NODE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/bin/chrono_ros_node")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigROS.h.in ${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h)
 
@@ -165,6 +171,15 @@ if (CH_ROS_HAS_INTERFACES)
   list(APPEND CH_ROS_ROBOT_HANDLER_FILES
     handlers/robot/viper/ChROSViperDCMotorControlHandler.h
     handlers/robot/viper/ChROSViperDCMotorControlHandler.cpp
+    handlers/robot/viper/ChROSViperSpeedDriverHandler_ipc.h
+    handlers/robot/viper/ChROSViperSpeedDriverHandler.h
+    handlers/robot/viper/ChROSViperSpeedDriverHandler.cpp
+    handlers/robot/viper/ChROSViperWaypointFollowerHandler_ipc.h
+    handlers/robot/viper/ChROSViperWaypointFollowerHandler.h
+    handlers/robot/viper/ChROSViperWaypointFollowerHandler.cpp
+    handlers/robot/viper/ChROSViperWaypointPathHandler_ipc.h
+    handlers/robot/viper/ChROSViperWaypointPathHandler.h
+    handlers/robot/viper/ChROSViperWaypointPathHandler.cpp
   )
 endif()
 source_group("robot_handler" FILES ${CH_ROS_ROBOT_HANDLER_FILES})
@@ -297,6 +312,9 @@ target_sources(chrono_ros_node PRIVATE
     handlers/ChROSTFHandler_ros.cpp
     handlers/vehicle/ChROSDriverInputsHandler_ros.cpp
     handlers/robot/viper/ChROSViperDCMotorControlHandler_ros.cpp
+    handlers/robot/viper/ChROSViperSpeedDriverHandler_ros.cpp
+    handlers/robot/viper/ChROSViperWaypointFollowerHandler_ros.cpp
+    handlers/robot/viper/ChROSViperWaypointPathHandler_ros.cpp
     handlers/sensor/ChROSCameraHandler_ros.cpp
     handlers/sensor/ChROSLidarHandler_ros.cpp
     handlers/sensor/ChROSAccelerometerHandler_ros.cpp

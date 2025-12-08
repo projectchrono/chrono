@@ -18,6 +18,17 @@
 //
 // =============================================================================
 
+#ifndef CH_CONFIG_ROS_H
+#define CH_CONFIG_ROS_H
+
+// Path to the ROS node executable in the build directory
+#define CH_ROS_NODE_BUILD_PATH "@CH_ROS_NODE_BUILD_PATH@"
+
+// Path to the ROS node executable in the install directory
+#define CH_ROS_NODE_INSTALL_PATH "@CH_ROS_NODE_INSTALL_PATH@"
+
+#endif
+
 #ifndef CH_ROS_CONFIG_H
 #define CH_ROS_CONFIG_H
 
