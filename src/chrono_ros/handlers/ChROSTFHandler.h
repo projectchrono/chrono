@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Handler responsible for publishing transform (tf) information
@@ -42,8 +42,22 @@ namespace ros {
 /// @addtogroup ros_handlers
 /// @{
 
-/// @brief This handler is responsible for publishing transform (tf) information. For more information on the use of tf
-/// in ROS, see the tf2_ros documentation.
+/// @brief Handler responsible for publishing transform (tf) information via IPC.
+///
+/// PUBLISHER PATTERN (variable-size data):
+/// - Main process: Calls GetSerializedData() each tick → packs multiple transforms → sends IPC
+/// - Subprocess: Receives IPC → unpacks transform array → publishes to /tf
+///
+/// This handler supports dynamic transform lists (body-to-body) and static transforms (body-to-frame).
+/// All transforms are computed in main process and sent as serialized data to subprocess.
+///
+/// IPC data structures defined in ChROSIPCMessage.h:
+/// - ipc::TFData: Header with transform count
+/// - ipc::TFTransform: Individual transform data (parent/child frames, position, rotation)
+///
+/// Implementation files:
+/// - ChROSTFHandler.cpp: Main process logic (compute transforms, serialize)
+/// - ChROSTFHandler_ros.cpp: Subprocess ROS publishing (deserialize, publish tf)
 class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     typedef std::pair<chrono::ChFrame<>, std::string> ChFrameTransform;
     typedef std::pair<std::shared_ptr<chrono::ChBody>, std::string> ChBodyTransform;
@@ -53,9 +67,18 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     /// Constructor.
     ChROSTFHandler(double update_rate);
 
-    /// @brief Initializes the handler. This will create the tf broadcaster. The topic name is assigned to /tf
-    /// internally within the broadcaster and this can not be changed.
+    /// @brief Initializes the handler (no-op in IPC mode, broadcaster in subprocess)
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::TF_DATA; }
+
+    /// Extract transform data for IPC transmission to subprocess
+    /// Computes all transforms, serializes into variable-size byte array
+    /// Format: ipc::TFData header + array of ipc::TFTransform structs (see ChROSIPCMessage.h)
+    /// @param time Current simulation time in seconds
+    /// @return Serialized transform data
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
     /// @brief Add a transform to be published. This version of the AddTransform function will use two bodies directly
     /// and calculate the transform at each tick. This is useful for two bodies that are not connected by a link.
@@ -88,16 +111,12 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     /// @brief Add a transform to be published from a sensor. This is simply an alias to
     /// AddTransform(sensor->GetParent(), sensor->GetOffsetPose(), frame_id).
     /// @param sensor The sensor
-    /// @param frame_id The frame id.
+    /// @param parent_frame_id The parent frame id
+    /// @param child_frame_id The child frame id
     void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
                    const std::string& parent_frame_id,
                    const std::string& child_frame_id);
 #endif
-
-  protected:
-    /// @brief Update the transforms and publish them
-    /// @param time The current time of the simulation
-    virtual void Tick(double time) override;
 
   private:
     std::vector<std::pair<ChROSTransform, ChROSTransform>> m_transforms;  ///< The transforms to publish

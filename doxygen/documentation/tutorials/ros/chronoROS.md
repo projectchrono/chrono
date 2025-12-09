@@ -7,7 +7,6 @@ Chrono::ROS provides direct integration into the ROS ecosystem using builtin ROS
 
 Select ROS C++ demos:
 
-* demo_ROS_custom_handler - demo of creating a C++-based custom handler
 * demo_ROS_sensor - demo of ROS integration with Chrono::Sensor
 * demo_ROS_two_managers - demo of using multiple `ChROSManager` instances
 * demo_ROS_urdf - demo of ROS integration with a URDF model
@@ -16,7 +15,6 @@ Select ROS C++ demos:
 
 Select ROS Python demos:
 
-* demo_ROS_custom_handler.py - demo of creating a Python-based custom handler
 * demo_ROS_sensor.py - demo of ROS integration with Chrono::Sensor
 * demo_ROS_two_managers.py - demo of using multiple `ChROSManager` instances
 * demo_ROS_urdf.py - demo of ROS integration with a URDF model

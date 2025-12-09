@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // ROS Handler for communicating gps information
@@ -22,9 +22,6 @@
 #include "chrono_ros/ChROSHandler.h"
 
 #include "chrono_sensor/sensors/ChGPSSensor.h"
-
-#include "rclcpp/publisher.hpp"
-#include "sensor_msgs/msg/nav_sat_fix.hpp"
 
 #include <array>
 
@@ -49,8 +46,11 @@ class CH_ROS_API ChROSGPSHandler : public ChROSHandler {
     /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
-  protected:
-    virtual void Tick(double time) override;
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::GPS_DATA; }
+
+    /// Get the serialized data for the handler
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
   private:
     /// Helper function to calculate the covariance of the accelerometer
@@ -62,9 +62,7 @@ class CH_ROS_API ChROSGPSHandler : public ChROSHandler {
     std::shared_ptr<chrono::sensor::ChGPSSensor> m_gps;  ///< handle to the gps sensor
 
     const std::string m_topic_name;                                         ///< name of the topic to publish to
-    sensor_msgs::msg::NavSatFix m_gps_msg;                                  ///< message to publish
-    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr m_publisher;  ///< the publisher for the gps message
-
+    
     std::array<double, 3> m_running_average; ///< rolling average of the gps data to calculate covariance
 };
 

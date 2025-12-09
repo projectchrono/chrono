@@ -49,12 +49,23 @@ class MyCustomHandler : public ChROSHandler {
         return true;
     }
 
-    virtual void Tick(double time) override {
-        std::cout << "Publishing " << m_ticker << " ..." << std::endl;
-        std_msgs::msg::Int64 msg;
-        msg.data = m_ticker;
-        m_publisher->publish(msg);
+    virtual std::vector<uint8_t> GetSerializedData(double time) override {
+        std::vector<uint8_t> data(sizeof(int64_t));
+        std::memcpy(data.data(), &m_ticker, sizeof(int64_t));
         m_ticker++;
+        return data;
+    }
+
+    virtual void PublishFromSerialized(const std::vector<uint8_t>& data, 
+                                       std::shared_ptr<ChROSInterface> interface) override {
+        if (data.size() != sizeof(int64_t)) return;
+        int64_t val;
+        std::memcpy(&val, data.data(), sizeof(int64_t));
+        
+        std::cout << "Publishing " << val << " ..." << std::endl;
+        std_msgs::msg::Int64 msg;
+        msg.data = val;
+        m_publisher->publish(msg);
     }
 
   private:
