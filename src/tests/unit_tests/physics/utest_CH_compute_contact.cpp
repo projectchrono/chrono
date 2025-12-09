@@ -27,6 +27,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
+
 #include "gtest/gtest.h"
 
 using namespace chrono;

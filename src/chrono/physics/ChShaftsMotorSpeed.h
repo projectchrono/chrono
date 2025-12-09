@@ -67,6 +67,8 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
     /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
     virtual double GetMotorLoad() const override { return motor_load; }
 
+    ChVariablesGeneric& Variables() { return variable; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

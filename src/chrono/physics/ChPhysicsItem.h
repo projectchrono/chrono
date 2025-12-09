@@ -122,7 +122,7 @@ class ChApi ChPhysicsItem : public ChObj {
     unsigned int GetOffset_x() { return offset_x; }
     /// Get offset in the state vector (speed part)
     unsigned int GetOffset_w() { return offset_w; }
-    /// Get offset in the lagrangian multipliers
+    /// Get offset in the Lagrange multipliers
     unsigned int GetOffset_L() { return offset_L; }
 
     /// Set offset in the state vector (position part)
@@ -131,7 +131,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Set offset in the state vector (speed part)
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_w(const unsigned int moff) { offset_w = moff; }
-    /// Set offset in the lagrangian multipliers
+    /// Set offset in the Lagrange multipliers
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_L(const unsigned int moff) { offset_L = moff; }
 
@@ -366,7 +366,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
-    unsigned int offset_L;  ///< offset in vector of lagrangian multipliers
+    unsigned int offset_L;  ///< offset in vector of Lagrange multipliers
 
   private:
     virtual void SetupInitial() {}

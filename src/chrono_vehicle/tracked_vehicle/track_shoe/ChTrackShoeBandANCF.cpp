@@ -353,7 +353,7 @@ void ChTrackShoeBandANCF::UpdateInertiaProperties() {
     m_web_mesh->ComputeMassProperties(mesh_mass, mesh_com, mesh_inertia);
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     composite.AddComponent(ChFrame<>(mesh_com, QUNIT), mesh_mass, mesh_inertia);
 
@@ -491,21 +491,9 @@ ChVector3d ChTrackShoeBandANCF::GetTension() const {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    ExportBodyList(jsonDocument, bodies);
-}
-
-void ChTrackShoeBandANCF::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    database.WriteBodies(bodies);
+void ChTrackShoeBandANCF::PopulateComponentList() {
+    m_bodies.push_back(m_shoe);
 }
 
 }  // end namespace vehicle

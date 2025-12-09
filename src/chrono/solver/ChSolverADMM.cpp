@@ -450,6 +450,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         }  // end step adjust
 
+        m_iterations = iter;
+
     }  // end iteration
 
     l = l.cwiseProduct(S);
@@ -877,6 +879,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
             }
 
         }  // end step adjust
+
+        m_iterations = iter;
 
     }  // end iteration
 

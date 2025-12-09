@@ -15,12 +15,6 @@ import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
 import math
 
-"""
-!!!! Set this path before running the demo!
-"""
-chrono.SetChronoDataPath(chrono.GetChronoDataPath())
-veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 0.5)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)

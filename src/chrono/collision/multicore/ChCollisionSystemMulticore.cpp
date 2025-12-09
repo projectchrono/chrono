@@ -604,6 +604,10 @@ bool ChCollisionSystemMulticore::RayHit(const ChVector3d& from,
                                         const ChVector3d& to,
                                         ChCollisionModel* model,
                                         ChRayhitResult& result) const {
+    std::cerr << "ERROR: ray-hit test with a specified collision model not implemented for ChCollisionSystemMulticore."
+              << std::endl;
+    throw std::runtime_error(
+        "ray-hit test with a specified collision model not implemented for ChCollisionSystemMulticore");
     return false;
 }
 

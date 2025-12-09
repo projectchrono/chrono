@@ -46,6 +46,9 @@ class ChApi ChParticle : public ChParticleBase, public ChContactable {
     // Set the container
     void SetContainer(ChParticleCloud* mc) { container = mc; }
 
+    /// Assign the particle position from raw scalar components without creating temporary vectors
+    void SetPosComponents(double x, double y, double z);
+
     // INTERFACE TO ChContactable
 
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
@@ -217,6 +220,12 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     /// Add a new particle to the particle cluster, passing a coordinate system as initial state.
     void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
+
+    /// Bulk-update particle positions from a packed XYZ array (three consecutive doubles per particle)
+    void SetParticlePositions(const double* positions, size_t count);
+
+    /// Bulk-update particle positions from a packed XYZ array (three consecutive floats per particle)
+    void SetParticlePositions(const float* positions, size_t count);
 
     /// Class to be used as a callback interface for dynamic coloring of particles in a cloud.
     class ChApi ColorCallback {

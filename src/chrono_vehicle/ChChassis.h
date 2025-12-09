@@ -205,13 +205,14 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual ChFrame<> GetBodyCOMFrame() const = 0;
     virtual ChMatrix33<> GetBodyInertia() const = 0;
 
+    virtual void PopulateComponentList() override;
+
     ChVehicle* m_vehicle;                                                ///< associated vehicle
     std::shared_ptr<ChBodyAuxRef> m_body;                                ///< handle to the chassis body
     std::shared_ptr<ChLoadContainer> m_container_bushings;               ///< load container for vehicle bushings
     std::shared_ptr<ChLoadContainer> m_container_external;               ///< load container for external forces
     std::shared_ptr<ChLoadContainer> m_container_terrain;                ///< load container for terrain forces
     std::vector<std::shared_ptr<ExternalForceTorque>> m_external_loads;  ///< external loads
-    std::vector<std::shared_ptr<ChMarker>> m_markers;                    ///< list of user-defined markers
     bool m_fixed;                                                        ///< is the chassis body fixed to ground?
 
     friend class ChChassisRear;
@@ -273,7 +274,7 @@ class CH_VEHICLE_API ChChassisConnector : public ChPart {
     /// location (with respect to and expressed in the reference frame of the front chassis).
     virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
                             std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
-    );
+                            ) = 0;
 
     /// Update the state of this connector subsystem at the current time.
     /// The connector subsystem is provided the current steering driver input (a value between -1 and +1).  Positive

@@ -58,5 +58,9 @@ void ChAutomaticTransmissionSimpleMap::Synchronize(double time,
     m_driveshaft_torque = motorshaft_torque / m_current_gear_ratio;
 }
 
+// -----------------------------------------------------------------------------
+
+void ChAutomaticTransmissionSimpleMap::PopulateComponentList() {}
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-1, 10);
-        integrator->SetModifiedNewton(false);
+        integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
         integrator->SetVerbose(true);
 #endif
     } else {

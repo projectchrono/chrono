@@ -13,6 +13,9 @@
 set DOWNLOAD=ON
 
 set EIGEN_INSTALL_DIR="C:/Packages/eigen"
+set EIGEN_VERSION="5.0.0"
+@rem set EIGEN_VERSION="3.4.0"
+
 
 @if %DOWNLOAD% EQU OFF (
     set EIGEN_SOURCE_DIR="C:/Sources/eigen"
@@ -33,7 +36,7 @@ if "%~1" NEQ "" (
     rmdir /S/Q download_eigen 2>nul
     mkdir download_eigen
 
-    git clone -c advice.detachedHead=false --depth 1 --branch 3.4.0 "https://gitlab.com/libeigen/eigen.git" "download_eigen"
+    git clone -c advice.detachedHead=false --depth 1 --branch %EIGEN_VERSION% "https://gitlab.com/libeigen/eigen.git" "download_eigen"
     set EIGEN_SOURCE_DIR="download_eigen"
 ) else (
     echo "Using provided source directories"

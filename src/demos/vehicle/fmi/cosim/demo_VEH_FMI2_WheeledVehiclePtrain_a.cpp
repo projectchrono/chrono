@@ -24,7 +24,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -345,7 +345,7 @@ int main(int argc, char* argv[]) {
     vehicle_fmu.SetVariable("save_img", save_img);
 
     // Initialize output
-    utils::ChWriterCSV csv;
+    ChWriterCSV csv;
     csv.SetDelimiter(" ");
 
     // Co-simulation loop

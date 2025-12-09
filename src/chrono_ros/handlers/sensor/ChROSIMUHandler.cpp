@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // ROS Handler for communicating imu information. Packages the data from other
@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSIMUHandler_ipc.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
@@ -38,10 +39,6 @@ bool ChROSIMUHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
         return false;
     }
 
-    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Imu>(m_topic_name, 1);
-
-    m_imu_msg.header.frame_id = m_frame_id;
-
     return true;
 }
 
@@ -60,28 +57,51 @@ void ChROSIMUHandler::SetMagnetometerHandler(std::shared_ptr<ChROSMagnetometerHa
     m_mag_handler = mag_handler;
 }
 
-void ChROSIMUHandler::Tick(double time) {
+std::vector<uint8_t> ChROSIMUHandler::GetSerializedData(double time) {
     if (!m_accel_handler || !m_gyro_handler || !m_mag_handler) {
-        std::cerr << "IMU handler not properly initialized. Not ticking." << std::endl;
-        return;
+        // std::cerr << "IMU handler not properly initialized. Not ticking." << std::endl;
+        return {};
     }
+
+    ipc::IMUData msg;
+    strncpy(msg.topic_name, m_topic_name.c_str(), sizeof(msg.topic_name) - 1);
+    strncpy(msg.frame_id, m_frame_id.c_str(), sizeof(msg.frame_id) - 1);
+    
+    msg.has_accel = false;
+    msg.has_gyro = false;
+    msg.has_mag = false;
 
     if (m_accel_handler) {
-        m_imu_msg.linear_acceleration = m_accel_handler->m_imu_msg.linear_acceleration;
-        m_imu_msg.linear_acceleration_covariance = m_accel_handler->m_imu_msg.linear_acceleration_covariance;
+        // Ensure the handler has updated data for this time step
+        m_accel_handler->GetSerializedData(time);
+        const auto& accel_data = m_accel_handler->m_last_data_struct;
+        
+        msg.has_accel = true;
+        std::memcpy(msg.linear_acceleration, accel_data.linear_acceleration, sizeof(msg.linear_acceleration));
+        std::memcpy(msg.linear_acceleration_covariance, accel_data.linear_acceleration_covariance, sizeof(msg.linear_acceleration_covariance));
     }
+    
     if (m_gyro_handler) {
-        m_imu_msg.angular_velocity = m_gyro_handler->m_imu_msg.angular_velocity;
-        m_imu_msg.angular_velocity_covariance = m_gyro_handler->m_imu_msg.angular_velocity_covariance;
+        m_gyro_handler->GetSerializedData(time);
+        const auto& gyro_data = m_gyro_handler->m_last_data_struct;
+        
+        msg.has_gyro = true;
+        std::memcpy(msg.angular_velocity, gyro_data.angular_velocity, sizeof(msg.angular_velocity));
+        std::memcpy(msg.angular_velocity_covariance, gyro_data.angular_velocity_covariance, sizeof(msg.angular_velocity_covariance));
     }
+    
     if (m_mag_handler) {
-        // Convert the magnetic field to orientation
-        auto magnetic_field = m_mag_handler->m_mag_msg.magnetic_field;
-        auto magnetic_field_cov = m_mag_handler->m_mag_msg.magnetic_field_covariance;
+        m_mag_handler->GetSerializedData(time);
+        const auto& mag_data = m_mag_handler->m_last_data_struct;
+        
+        msg.has_mag = true;
+        // Placeholder for future implementation
     }
 
-    m_imu_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
-    m_publisher->publish(m_imu_msg);
+    std::vector<uint8_t> buffer(sizeof(ipc::IMUData));
+    std::memcpy(buffer.data(), &msg, sizeof(ipc::IMUData));
+
+    return buffer;
 }
 
 }  // namespace ros

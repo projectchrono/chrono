@@ -30,7 +30,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_VSG

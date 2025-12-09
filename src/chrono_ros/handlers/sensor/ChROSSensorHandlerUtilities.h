@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Utilities useful for sensor-specific ROS handlers
@@ -19,6 +19,7 @@
 #ifndef CH_ROS_SENSOR_HANDLER_UTILITIES_H
 #define CH_ROS_SENSOR_HANDLER_UTILITIES_H
 
+#include "chrono_ros/ChApiROS.h"
 #include "chrono_sensor/sensors/ChSensor.h"
 
 #include <memory>
@@ -31,7 +32,7 @@ namespace ros {
 /// @{
 
 /// Utility class with static functions that may be useful for sensor-specific ROS handlers
-class ChROSSensorHandlerUtilities {
+class CH_ROS_API ChROSSensorHandlerUtilities {
   public:
     /// Check for filter in Sensor filter list. Returns true if present, false if not.
     /// @tparam FilterType the filter to search for

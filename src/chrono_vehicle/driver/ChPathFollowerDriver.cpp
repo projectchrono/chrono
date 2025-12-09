@@ -24,7 +24,7 @@
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/geometry/ChLineBezier.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"

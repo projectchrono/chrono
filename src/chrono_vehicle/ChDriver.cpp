@@ -68,14 +68,54 @@ bool ChDriver::Log(double time) {
 void ChDriver::SetSteering(double steering) {
     m_steering = ChClamp(steering, -1.0, 1.0);
 }
+
 void ChDriver::SetThrottle(double throttle) {
     m_throttle = ChClamp(throttle, 0.0, 1.0);
 }
+
 void ChDriver::SetBraking(double braking) {
     m_braking = ChClamp(braking, 0.0, 1.0);
 }
+
 void ChDriver::SetClutch(double clutch) {
     m_clutch = ChClamp(clutch, 0.0, 1.0);
+}
+
+void ChDriver::ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
+    switch (format) {
+        case ChCheckpoint::Format::ASCII: {
+            std::ofstream ofile(filename);
+            ofile << m_throttle << " " << m_steering << " " << m_braking << " " << m_clutch << std::endl;
+            ofile.close();
+            break;
+        }
+        default:
+            std::cerr << "Error: unrecognized checkpoint format" << std::endl;
+            throw std::runtime_error("Unrecognized checkpoint format");
+    }
+}
+
+void ChDriver::ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
+    switch (format) {
+        case ChCheckpoint::Format::ASCII: {
+            std::ifstream ifile;
+            try {
+                ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
+                ifile.open(filename);
+            } catch (const std::exception&) {
+                std::cerr << "Error: Cannot open ASCII checkpoint file " << filename << std::endl;
+                throw std::invalid_argument("Cannot open ASCII checkpoint file");
+            }
+            std::string line;
+            std::getline(ifile, line);
+            std::istringstream iss(line);
+            iss >> m_throttle >> m_steering >> m_braking >> m_clutch;
+            break;
+        }
+        default:
+            std::cerr << "Error: unrecognized checkpoint format" << std::endl;
+            throw std::runtime_error("Unrecognized checkpoint format");
+    }
 }
 
 }  // end namespace vehicle

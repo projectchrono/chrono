@@ -12,12 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHTIMESTEPPER_HHT_H
-#define CHTIMESTEPPER_HHT_H
+#ifndef CH_TIMESTEPPER_HHT_H
+#define CH_TIMESTEPPER_HHT_H
 
-#include <array>
-
-#include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperImplicit.h"
 
 namespace chrono {
 
@@ -27,12 +25,15 @@ namespace chrono {
 /// Implementation of the HHT implicit integrator for II order systems.
 /// This timestepper allows use of an adaptive time-step, as well as optional use of a modified
 /// Newton scheme for the solution of the resulting nonlinear problem.
-class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperHHT(ChIntegrableIIorder* intgr = nullptr);
 
     /// Return type of the integration method.
-    virtual Type GetType() const override { return Type::HHT; }
+    virtual ChTimestepper::Type GetType() const override { return ChTimestepper::Type::HHT; }
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
 
     /// Set the numerical damping parameter (in the [-1/3, 0] range).
     /// The closer to -1/3, the more damping.
@@ -44,47 +45,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Return the current value of the method parameter alpha.
     double GetAlpha() { return alpha; }
 
-    /// Turn on/off the internal step size control.
-    /// Default: true.
-    void SetStepControl(bool enable) { step_control = enable; }
-
-    /// Set the minimum step size.
-    /// An exception is thrown if the internal step size decreases below this limit.
-    /// Default: 1e-10.
-    void SetMinStepSize(double step) { h_min = step; }
-
-    /// Set the maximum allowable number of iterations for counting a step towards a stepsize increase.
-    /// Default: 3.
-    void SetMaxItersSuccess(int iters) { maxiters_success = iters; }
-
-    /// Set the minimum number of (internal) steps that use at most maxiters_success
-    /// before considering a stepsize increase.
-    /// Default: 5.
-    void SetRequiredSuccessfulSteps(int num_steps) { req_successful_steps = num_steps; }
-
-    /// Set the multiplicative factor for a stepsize increase (must be larger than 1).
-    /// Default: 2.
-    void SetStepIncreaseFactor(double factor) { step_increase_factor = factor; }
-
-    /// Set the multiplicative factor for a stepsize decrease (must be smaller than 1).
-    /// Default: 0.5.
-    void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
-
-    /// Enable/disable modified Newton.
-    /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once
-    /// per step or if the Newton iteration does not converge with an out-of-date matrix.
-    /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
-    /// Default: true.
-    void SetModifiedNewton(bool enable) { modified_Newton = enable; }
-
-    /// Perform an integration timestep, by advancing the state by the specified time step.
-    virtual void Advance(const double dt) override;
-
-    /// Get the last estimated convergence rate for the internal Newton solver.
-    /// Note that an estimate can only be calculated after the 3rd iteration. For the first 2 iterations, the
-    /// convergence rate estimate is set to 1.
-    double GetEstimatedConvergenceRate() const { return convergence_rate; }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
 
@@ -92,45 +52,51 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
-    void Prepare(ChIntegrableIIorder* integrable2);
-    void Increment(ChIntegrableIIorder* integrable2);
-    bool CheckConvergence(int it);
-    void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
+    // Implementation of virtual methods for an adaptive, error controlled HHT integrator
 
-  private:
+    /// Initialize integrator at beginning of a new step.
+    /// - Set up state vectors
+    /// - Set up auxiliary vectors
+    /// - Gather state (position and velocity) and auxiliary data (acceleration and multipliers) at beginning of step
+    virtual void InitializeStep() override;
+
+    /// Prepare attempting a step of size h (assuming a converged state at the current time t):
+    /// - Initialize residual vector with terms at current time
+    /// - Obtain a prediction at T+h for Newton using extrapolation from solution at current time.
+    /// - If no step size control, start with zero acceleration guess (previous step not guaranteed to have converged)
+    /// - Set the error weight vectors (using solution at current time)
+    virtual void PrepareStep() override;
+
+    /// Calculate new state increment for a Newton iteration.
+    /// - Scatter the current estimate of the new state (the state at time T+h)
+    /// - Set up and solve linear system
+    /// - Calculate solution increment
+    /// - Update the estimate of the new state (the state at time T+h)
+    virtual void Increment() override;
+
+    /// Reset step data for re-attempting step (with new Jacobian or reduced step size).
+    /// - Scatter state
+    /// - Reset auxiliary data (acceleratrion and residual)
+    virtual void ResetStep() override;
+
+    /// Accept attempted step (if Newton converged or was terminated).
+    /// Set states and auxiliary data at the end of an intermediate step.
+    virtual void AcceptStep() override;
+
+    /// Finalize step and update solution at end of step.
+    /// - Scatter state doing a full update.
+    /// - Scatter auxiliary data (accelerations and Lagrange multipliers)
+    virtual void FinalizeStep() override;
+
     double alpha;  ///< HHT method parameter:  -1/3 <= alpha <= 0
     double gamma;  ///< HHT method parameter:   gamma = 1/2 - alpha
     double beta;   ///< HHT method parameter:   beta = (1 - alpha)^2 / 4
 
-    ChStateDelta Da;         ///< state update
-    ChVectorDynamic<> Dl;    ///< Lagrange multiplier update
     ChState Xnew;            ///< current estimate of new positions
     ChStateDelta Vnew;       ///< current estimate of new velocities
     ChStateDelta Anew;       ///< current estimate of new accelerations
     ChVectorDynamic<> Lnew;  ///< current estimate of Lagrange multipliers
-    ChVectorDynamic<> R;     ///< residual of nonlinear system (dynamics portion)
     ChVectorDynamic<> Rold;  ///< residual terms depending on previous state
-    ChVectorDynamic<> Qc;    ///< residual of nonlinear system (constranints portion)
-
-    std::array<double, 3> Da_nrm_hist;  ///< last 3 update norms
-    std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
-    double convergence_rate;            ///< estimated Newton rate of convergence
-
-    bool step_control;                  ///< step size control enabled?
-    unsigned int maxiters_success;      ///< maximum number of NR iterations to declare a step successful
-    unsigned int req_successful_steps;  ///< required number of successive successful steps for a stepsize increase
-    double step_increase_factor;        ///< factor used in increasing stepsize (>1)
-    double step_decrease_factor;        ///< factor used in decreasing stepsize (<1)
-    double h_min;                       ///< minimum allowable stepsize
-    double h;                           ///< internal stepsize
-    unsigned int num_successful_steps;  ///< number of successful steps
-
-    bool modified_Newton;    ///< use modified Newton?
-    bool matrix_is_current;  ///< is the Newton matrix up-to-date?
-    bool call_setup;         ///< should the solver's Setup function be called?
-
-    ChVectorDynamic<> ewtS;  ///< vector of error weights (states)
-    ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
 };
 
 /// @} chrono_timestepper

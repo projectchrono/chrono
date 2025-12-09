@@ -16,18 +16,22 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
+
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
 #endif
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
+
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
@@ -143,7 +147,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     //
     // Create a rigid body with a mesh or a cylinder collision shape
@@ -349,7 +353,7 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxIters(8);
         integrator->SetAbsTolerances(1e-1, 10);
-        integrator->SetModifiedNewton(true);
+        integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
         integrator->SetVerbose(true);
     */
     /*

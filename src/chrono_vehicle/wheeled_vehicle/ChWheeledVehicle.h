@@ -22,6 +22,8 @@
 #ifndef CH_WHEELED_VEHICLE_H
 #define CH_WHEELED_VEHICLE_H
 
+#include <ostream>
+
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
@@ -195,7 +197,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// braking between 0 and 1). This version does not update any tires associated with the vehicle.
     virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
-    ) override;
+                             ) override;
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
@@ -204,7 +206,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void Synchronize(double time,                        ///< [in] current time
                              const DriverInputs& driver_inputs,  ///< [in] current driver inputs
                              const ChTerrain& terrain            ///< [in] reference to the terrain system
-    ) override;
+                             ) override;
 
     /// Advance the state of this vehicle by the specified time step.
     /// In addition to advancing the state of the multibody system (if the vehicle owns the underlying system), this
@@ -240,7 +242,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void LogConstraintViolations() override;
 
     /// Log the types (template names) of current vehicle subsystems.
-    void LogSubsystemTypes();
+    void LogSubsystemTypes(std::ostream& os = std::cout);
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
@@ -265,8 +267,14 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This function is called at the end of each vehicle state advance.
     virtual void UpdateInertiaProperties() override final;
 
-    /// Output data for all modeling components in the vehicle system.
+    /// Output data for all modeling components in the wheeled vehicle system.
     virtual void Output(int frame, ChOutput& database) const override;
+
+    /// Checkpoint states of all modeling components in the wheeled vehicle system.
+    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
+
+    /// Read states of all modeling components in the vehicle system from the specified checkpoint database.
+    virtual void ReadCheckpoint(ChCheckpoint& database) override;
 
     ChSubchassisList m_subchassis;               ///< list of subchassis subsystems (typically empty)
     ChAxleList m_axles;                          ///< list of axle subsystems

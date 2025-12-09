@@ -105,7 +105,7 @@ void ChTranslationalIdler::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_carrier->GetFrameCOMToAbs(), m_carrier->GetMass(), m_carrier->GetInertia());
     composite.AddComponent(m_idler_wheel->GetBody()->GetFrameCOMToAbs(), m_idler_wheel->GetBody()->GetMass(),
                            m_idler_wheel->GetBody()->GetInertia());
@@ -159,37 +159,13 @@ void ChTranslationalIdler::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTranslationalIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    ExportBodyList(jsonDocument, bodies);
+void ChTranslationalIdler::PopulateComponentList() {
+    m_bodies.push_back(m_carrier);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_prismatic);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_tensioner);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChTranslationalIdler::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_tensioner);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_tensioner);
 }
 
 }  // end namespace vehicle

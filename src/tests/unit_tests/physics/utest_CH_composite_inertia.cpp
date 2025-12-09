@@ -18,7 +18,7 @@
 
 #include "gtest/gtest.h"
 
-#include "chrono/utils/ChCompositeInertia.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/core/ChRotation.h"
 
 using namespace chrono;
@@ -47,7 +47,7 @@ TEST(CompositeInertia, hemispheres) {
     double Jyy = Jxx;
     double Jzz = (2.0 / 5.0) * mass * r * r;
 
-    utils::CompositeInertia comp;
+    CompositeInertia comp;
 
     comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height + offset), ChQuaternion<>(1, 0, 0, 0)), mass,
                       ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
@@ -93,7 +93,7 @@ TEST(CompositeInertia, boxes) {
     ChMatrix33<> inertia1(ChVector3d(mass1 * (hy1 * hy1 + hz1 * hz1) / 3, mass1 * (hx1 * hx1 + hz1 * hz1) / 3,
                                      mass1 * (hx1 * hx1 + hy1 * hy1) / 3));
 
-    utils::CompositeInertia comp;
+    CompositeInertia comp;
 
     for (int ix = 0; ix < nx; ix++) {
         double cx = ix * 2 * (hx - hx1) / (nx - 1.0) + center.x() - hx + hx1;
@@ -130,7 +130,7 @@ TEST(CompositeInertia, hollow_sphere) {
     double rho = 50;
 
     // Hollow sphere as a composite
-    utils::CompositeInertia comp;
+    CompositeInertia comp;
 
     double mass_out = CH_4_3 * CH_PI * rho * std::pow(r_out, 3);
     double mass_in = CH_4_3 * CH_PI * rho * std::pow(r_in, 3);

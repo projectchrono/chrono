@@ -12,6 +12,14 @@
 
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 
+ #include <BRepBuilderAPI_MakeWire.hxx>
+ #include <BRepBuilderAPI_MakeEdge.hxx>
+ #include <BRepBuilderAPI_MakeFace.hxx>
+ #include <BRepPrimAPI_MakePrism.hxx>
+ #include <GC_MakeArcOfCircle.hxx>
+ #include <GC_MakeSegment.hxx>
+ #include <gp_Circ.hxx>
+
 namespace chrono {
 namespace cascade {
 
@@ -34,17 +42,33 @@ ChCascadeBodyEasy::ChCascadeBodyEasy(TopoDS_Shape& shape,
         Init(shape, density, nullptr, create_collision, mat);
 }
 
+ChCascadeBodyEasy::ChCascadeBodyEasy(const std::string& shape_name,
+                                     const ChCascadeDoc& doc,
+                                     double density,
+                                     bool create_visualization,
+                                     bool create_collision,
+                                     std::shared_ptr<ChContactMaterial> mat) {
+    TopoDS_Shape shape;
+    bool found = doc.GetNamedShape(shape, shape_name);
+    if (found) {
+        if (create_visualization)
+            Init(shape, density, chrono_types::make_shared<ChCascadeTriangulate>(), create_collision, mat);
+        else
+            Init(shape, density, nullptr, create_collision, mat);
+    }
+}
+
 void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
                              double density,
                              std::shared_ptr<ChCascadeTriangulate> vis_params,
                              bool create_collision,
                              std::shared_ptr<ChContactMaterial> mat) {
-    chrono::ChFrame<>* user_ref_to_abs = 0;  // as parameter?
-    chrono::ChFrame<> frame_ref_to_abs;
+    ChFramed* user_ref_to_abs = 0;  // as parameter?
+    ChFramed frame_ref_to_abs;
 
     if (!user_ref_to_abs) {
         TopLoc_Location loc_shape_to_abs = shape.Location();
-        chrono::cascade::ChCascadeDoc::FromCascadeToChrono(loc_shape_to_abs, frame_ref_to_abs);
+        chrono::cascade::ChCascadeDoc::ConvertFrameCascadeToChrono(loc_shape_to_abs, frame_ref_to_abs);
     } else {
         frame_ref_to_abs = *user_ref_to_abs;
     }
@@ -54,32 +78,32 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     this->topods_shape.Location(TopLoc_Location());
 
     // compute mass properties and COG reference
-    chrono::ChVector3d cog;
-    chrono::ChVector3d inertiaXX;
-    chrono::ChVector3d inertiaXY;
+    ChVector3d cog;
+    ChVector3d inertiaXX;
+    ChVector3d inertiaXY;
     double vol;
     double mass;
-    chrono::cascade::ChCascadeDoc::GetVolumeProperties(topods_shape, density, cog, inertiaXX, inertiaXY, vol, mass);
+    ChCascadeDoc::GetVolumeProperties(topods_shape, density, cog, inertiaXX, inertiaXY, vol, mass);
 
     // Set mass and COG and REF references
-    this->SetMass(mass);
-    this->SetInertiaXX(inertiaXX);
-    this->SetInertiaXY(inertiaXY);
-    this->SetFrameRefToAbs(frame_ref_to_abs);
+    SetMass(mass);
+    SetInertiaXX(inertiaXX);
+    SetInertiaXY(inertiaXY);
+    SetFrameRefToAbs(frame_ref_to_abs);
 
-    chrono::ChFrame<> frame_cog_to_ref;
+    ChFramed frame_cog_to_ref;
     frame_cog_to_ref.SetPos(cog);
     frame_cog_to_ref.SetRot(chrono::QUNIT);
-    this->SetFrameCOMToRef(frame_cog_to_ref);
+    SetFrameCOMToRef(frame_cog_to_ref);
 
     // Add a visualization asset if needed
     if (vis_params) {
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
+        ChCascadeMeshTools::FillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        this->AddVisualShape(trimesh_shape);
+        AddVisualShape(trimesh_shape);
 
         // Add a collision shape if needed
         if (create_collision) {
@@ -126,7 +150,7 @@ void ChCascadeBodyEasyProfile::ClearProfiles() {
 }
 
 void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
-    chrono::utils::CompositeInertia inertia_composer;
+    CompositeInertia inertia_composer;
 
     TopoDS_Compound mcompound;
     TopoDS_Builder builder;
@@ -159,7 +183,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         // Add a visualization asset if needed
         if (face.visualization) {
             auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-            ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
+            ChCascadeMeshTools::FillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
 
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
@@ -168,9 +192,9 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
         prism.Location(TopLoc_Location());  // needed?
 
-        chrono::ChVector3d cog;
-        chrono::ChVector3d inertiaXX;
-        chrono::ChVector3d inertiaXY;
+        ChVector3d cog;
+        ChVector3d inertiaXX;
+        ChVector3d inertiaXY;
         double vol;
         double mass;
         chrono::cascade::ChCascadeDoc::GetVolumeProperties(prism, face.density, cog, inertiaXX, inertiaXY, vol, mass);
@@ -191,12 +215,12 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         builder.Add(mcompound, prism);
     }
 
-    chrono::ChFrame<>* user_ref_to_abs = 0;  // as parameter?
-    chrono::ChFrame<> frame_ref_to_abs;
+    ChFramed* user_ref_to_abs = 0;  // as parameter?
+    ChFramed frame_ref_to_abs;
 
     if (!user_ref_to_abs) {
         TopLoc_Location loc_shape_to_abs = mcompound.Location();
-        chrono::cascade::ChCascadeDoc::FromCascadeToChrono(loc_shape_to_abs, frame_ref_to_abs);
+        chrono::cascade::ChCascadeDoc::ConvertFrameCascadeToChrono(loc_shape_to_abs, frame_ref_to_abs);
     } else {
         frame_ref_to_abs = *user_ref_to_abs;
     }
@@ -217,7 +241,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
     // this->SetFrameRefToAbs(frame_ref_to_abs); //not needed
 
-    chrono::ChFrame<> frame_cog_to_ref;
+    ChFramed frame_cog_to_ref;
     frame_cog_to_ref.SetPos(inertia_composer.GetCOM());
     frame_cog_to_ref.SetRot(chrono::QUNIT);
     this->SetFrameCOMToRef(frame_cog_to_ref);
@@ -260,7 +284,7 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(std::sha
 
             gp_Pnt aPntA(msegment->pA.x(), msegment->pA.y(), msegment->pA.z());
             gp_Pnt aPntB(msegment->pB.x(), msegment->pB.y(), msegment->pB.z());
-            Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(aPntA, aPntB);
+            opencascade::handle<Geom_TrimmedCurve> aSegment1 = GC_MakeSegment(aPntA, aPntB);
 
             TopoDS_Edge aEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
 
@@ -277,7 +301,7 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(std::sha
 
             // note the reversal of angle2 angle1 respect to chrono ChLineArc: in OCC proceeds as gpCirc Y axis in
             // twist direction. In OCC sense=true means starts from 1st angle parameter,
-            Handle(Geom_TrimmedCurve) aArcOfCircle;
+            opencascade::handle<Geom_TrimmedCurve> aArcOfCircle;
             if (!marc->counterclockwise) {
                 aArcOfCircle = GC_MakeArcOfCircle(aCirc, marc->angle2, marc->angle1, false);
             } else {

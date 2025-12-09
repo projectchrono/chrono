@@ -29,7 +29,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Initialize the output stream and set precision.
-        utils::ChWriterCSV out("\t");
+        ChWriterCSV out("\t");
         out.Stream().setf(std::ios::scientific | std::ios::showpos);
         out.Stream().precision(7);
 
@@ -273,7 +273,6 @@ int main(int argc, char* argv[]) {
         out.WriteToFile("../TEST_Brick/tip_position.txt");
     } else {
         // Initialize total number of iterations and timer.
-        int Iterations = 0;
         double start = std::clock();
         int stepNo = 0;
         double AbsVal = 0.0;
@@ -293,11 +292,11 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             stepNo++;
-            Iterations += mystepper->GetNumIterations();
         }
         // Report run time and total number of iterations.
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        std::cout << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
+        std::cout << "Computation Time: " << duration << "   Number of iterations: " << mystepper->GetNumIterations()
+                  << "\n";
         std::cout << "Unit test check succeeded \n";
     }
 

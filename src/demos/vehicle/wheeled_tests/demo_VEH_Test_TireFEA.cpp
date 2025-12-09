@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
         hht->SetAlpha(-0.2);
         hht->SetMaxIters(5);
         hht->SetAbsTolerances(1e-2);
-        hht->SetModifiedNewton(true);
+        hht->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
         hht->SetStepControl(false);
         hht->SetMinStepSize(1e-4);
         ////hht->SetVerbose(true);
@@ -317,6 +317,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, -1.5, 0), VNULL);
+            vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
             vis = vis_irr;
 #endif
@@ -350,6 +351,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
+            vis_vsg->SetContactNormalsVisibility(true, -1);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -364,7 +366,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    utils::ChWriterCSV csv;
+    ChWriterCSV csv;
     csv.SetDelimiter(" ");
 
     // Simulation loop

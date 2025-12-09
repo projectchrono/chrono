@@ -14,6 +14,7 @@ set(DEMOS
   demo_MBS_callbackSMC
   demo_MBS_collisionNSC
   demo_MBS_collisionSMC
+  demo_MBS_collision_trimesh
   demo_MBS_earthquake
   demo_MBS_friction
   demo_MBS_motors
@@ -26,6 +27,13 @@ set(DEMOS
   demo_MBS_hydraulic_crane_cosim
   demo_MBS_custom_contact
 )
+
+# Demoe that require VSG
+if(CH_ENABLE_MODULE_VSG)
+    set(DEMOS ${DEMOS}
+        demo_MBS_checkpoint
+    )
+endif()
 
 # Add demos that can only work with Irrlicht
 if(CH_ENABLE_MODULE_IRRLICHT)
@@ -42,7 +50,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
       demo_MBS_suspension
       demo_MBS_tracks
       demo_MBS_convergence
-      demo_MBS_collision_trimesh
       demo_MBS_collision_2d
       demo_MBS_emitter
       demo_MBS_emit_cluster

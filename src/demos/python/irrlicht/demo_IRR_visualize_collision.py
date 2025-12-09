@@ -38,11 +38,6 @@ class DebugDrawer(chrono.VisualizationCallback):
 
 # -----------------------------------------------------------------------------
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('relative/path/to/data/directory/')
-
 print( "Copyright (c) 2022 projectchrono.org")
 
 # Create sys, contact material, and bodies

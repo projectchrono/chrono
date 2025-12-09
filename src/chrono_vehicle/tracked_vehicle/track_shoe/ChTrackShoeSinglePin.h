@@ -80,9 +80,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
   private:
     /// Connect this track shoe to the specified neighbor.

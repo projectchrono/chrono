@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/assets/ChColormap.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
@@ -85,9 +86,12 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         Real3* pos;
         Real3* vel;
         Real3* prop;
+        ChParticleCloud* cloud = nullptr;
 
       private:
-        virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override final { return GetColor(n); }
+        virtual ChColor get(unsigned int n, const ChParticleCloud& source_cloud) const override final {
+            return GetColor(n);
+        }
     };
 
     /// Set a callback for dynamic coloring of SPH particles.
@@ -103,7 +107,9 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         Real3* pos;
 
       private:
-        virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override final { return get(n); }
+        virtual bool get(unsigned int n, const ChParticleCloud& source_cloud) const override final {
+            return get(n);
+        }
     };
 
     /// Set a callback for dynamic visibility of SPH particles.
@@ -145,10 +151,31 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     ChSystem* GetSystem() const { return m_sysMBS; }
 
   private:
+  /// GPU shader modes supported by the SPH particle colour compute path
+  enum class ColorMode {
+        NONE = 0,
+        HEIGHT = 1,
+        VELOCITY_MAG = 2,
+        VELOCITY_X = 3,
+        VELOCITY_Y = 4,
+        VELOCITY_Z = 5,
+        DENSITY = 6,
+        PRESSURE = 7
+    };
+
     enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
 
     void BindComputationalDomain();
     void BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag);
+    void EnsureGpuColoringReady(size_t num_particles);
+    bool InitializeGpuColoringResources(size_t num_particles);
+    void UpdateGpuColoring(size_t num_particles);
+    void ConfigureGpuCommands(bool enable);
+    void UpdateGpuColormapBuffer();
+    bool ShouldUseGpuColoring(size_t num_particles) const;
+    ColorMode DetermineColorMode() const;
+    bool IsColormapSupported() const;
+    vsg3d::ChVisualSystemVSG::ParticleCloud* GetSphParticleCloud();
 
     ChFsiSystemSPH* m_sysFSI;       ///< associated FSI system
     ChFsiFluidSystemSPH* m_sysSPH;  ///< associated SPH system
@@ -184,6 +211,39 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     std::vector<Real3> m_acc;   ///< SPH and BCE positions
     std::vector<Real3> m_frc;   ///< SPH and BCE positions
     std::vector<Real3> m_prop;  ///< SPH properties (density, pressure, viscosity)
+
+    // extended data for GPU-based SPH particle coloring
+    struct GpuColoringResources {
+      bool initialized = false;                                      ///< true once GPU buffers are allocated
+      bool active = false;                                           ///< true when compute pass runs this frame
+      uint32_t workgroupSize = 256;                                  ///< compute workgroup size
+      vsg::ref_ptr<vsg::vec4Array> positionData;                     ///< staging buffer for positions
+      vsg::ref_ptr<vsg::vec4Array> velocityData;                     ///< staging buffer for velocities
+      vsg::ref_ptr<vsg::vec4Array> propertyData;                     ///< staging buffer for auxiliary properties
+      vsg::ref_ptr<vsg::vec4Array> uniformData;                      ///< packed uniforms for shader constants
+      vsg::ref_ptr<vsg::vec4Array> colormapData;                     ///< LUT storage for active colourmap
+      vsg::ref_ptr<vsg::DescriptorBuffer> positionDescriptor;        ///< descriptor binding for positions
+      vsg::ref_ptr<vsg::DescriptorBuffer> velocityDescriptor;        ///< descriptor binding for velocities
+      vsg::ref_ptr<vsg::DescriptorBuffer> propertyDescriptor;        ///< descriptor binding for properties
+      vsg::ref_ptr<vsg::DescriptorBuffer> colorDescriptor;           ///< descriptor binding for output colours
+      vsg::ref_ptr<vsg::DescriptorBuffer> uniformDescriptor;         ///< descriptor binding for uniforms
+      vsg::ref_ptr<vsg::DescriptorBuffer> colormapDescriptor;        ///< descriptor binding for LUT data
+      vsg::ref_ptr<vsg::DescriptorSetLayout> descriptorSetLayout;    ///< layout describing binding slots
+      vsg::ref_ptr<vsg::PipelineLayout> pipelineLayout;              ///< compute pipeline layout
+      vsg::ref_ptr<vsg::ComputePipeline> pipeline;                   ///< compute pipeline object
+      vsg::ref_ptr<vsg::DescriptorSet> descriptorSet;                ///< descriptor set shared across frames
+      vsg::ref_ptr<vsg::BindDescriptorSets> bindDescriptorSets;      ///< command to bind descriptors
+      vsg::ref_ptr<vsg::BindComputePipeline> bindPipeline;           ///< command to bind pipeline
+      vsg::ref_ptr<vsg::Dispatch> dispatch;                          ///< command issuing the compute dispatch
+      vsg::ref_ptr<vsg::PipelineBarrier> barrier;                    ///< barrier syncing compute to draw
+      vsg::ref_ptr<vsg::Commands> commands;                          ///< command list submitted to compute graph
+      ChColormap::Type currentColormapType = ChColormap::Type::JET;  ///< currently uploaded colourmap
+      uint32_t colormapResolution = 512u;                            ///< sampling resolution for colourmap LUT
+      bool colormapDirty = true;                                     ///< flag forcing LUT upload
+      ColorMode mode = ColorMode::NONE;                              ///< last compute mode dispatched
+    } m_gpu_color;
+
+    int m_sph_cloud_index;  ///< cache of the SPH cloud slot inside the VSG visual system
 
     bool m_use_active_boxes;                     ///< active domains enabled?
     ChVector3d m_active_box_hsize;               ///< half-dimensions of active boxes
@@ -232,6 +292,8 @@ class CH_FSI_API ParticleHeightColorCallback : public ChSphVisualizationVSG::Par
     virtual ChVector2d GetDataRange() const override;
     virtual ChColor GetColor(unsigned int n) const override;
 
+    Real3 GetUpVector() const { return m_up; }
+
   private:
     ChColor m_base_color;
     double m_hmin;
@@ -249,6 +311,8 @@ class CH_FSI_API ParticleVelocityColorCallback : public ChSphVisualizationVSG::P
     virtual std::string GetTile() const override;
     virtual ChVector2d GetDataRange() const override;
     virtual ChColor GetColor(unsigned int n) const override;
+
+    Component GetComponent() const { return m_component; }
 
   private:
     Component m_component;

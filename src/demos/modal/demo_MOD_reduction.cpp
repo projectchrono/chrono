@@ -412,7 +412,7 @@ int main(int argc, char* argv[]) {
         hht_stepper->SetVerbose(false);
         hht_stepper->SetStepControl(false);
         hht_stepper->SetAlpha(-0.2);
-        hht_stepper->SetModifiedNewton(true);
+        hht_stepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
     }
 
     UPDATE_EXAMPLE = true;

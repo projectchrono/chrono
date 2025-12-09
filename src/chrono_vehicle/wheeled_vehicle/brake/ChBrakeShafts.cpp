@@ -24,7 +24,7 @@ namespace vehicle {
 ChBrakeShafts::ChBrakeShafts(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {}
 
 ChBrakeShafts::~ChBrakeShafts() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_shaft->GetSystem();
@@ -65,6 +65,14 @@ void ChBrakeShafts::Synchronize(double time, double braking) {
     m_modulation = braking;
     m_clutch->SetModulation(braking);
     //// TODO: more here?
+}
+
+// -----------------------------------------------------------------------------
+
+void ChBrakeShafts::PopulateComponentList() {
+    m_shafts.push_back(m_shaft);
+
+    m_couples.push_back(m_clutch);
 }
 
 }  // end namespace vehicle

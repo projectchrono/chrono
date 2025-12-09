@@ -5,8 +5,12 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
-  - [\[Changed\] Refactoring of Chrono::FSI and the Chrono SPH solver](#changed-refactoring-of-chronofsi-and-the-chrono-sph-solver)
-  - [\[Added\] YAML specification of Chrono models and simulations](#added-yaml-specification-of-chrono-models-and-simulations)
+  - [\[Added\] Support for output and checkpointing](#added-support-for-output-and-checkpointing)
+  - [\[Added\] New Python and CSharp wrappers](#added-new-python-and-csharp-wrappers)
+  - [\[Changed\] Refactor Jacobian update strategy for implicit integrators](#changed-refactor-jacobian-update-strategy-for-implicit-integrators)
+  - [\[Changed\] Upgrade of 3rd-party dependencies](#changed-upgrade-of-3rd-party-dependencies)
+  - [\[Added\] YAML parsers for Chrono models and simulations](#added-yaml-parsers-for-chrono-models-and-simulations) 
+  - [\[Changed\] Refactoring of Chrono::FSI and Chrono fluid solvers](#changed-refactoring-of-chronofsi-and-chrono-fluid-solvers)
   - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
   - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
   - [\[Added\] New Chrono::VSG features and capabilities](#added-new-chronovsg-features-and-capabilities)
@@ -119,25 +123,93 @@ Change Log
 
 # Unreleased (development branch)
 
-## [Changed] Refactoring of Chrono::FSI and the Chrono SPH solver
+## [Added] Support for output and checkpointing
+
+A set of new classes were added to the core Chrono module to support simulation output and checkpointing. Output databases can be created in ASCII text or HDF-5 format. Currently, only the ASCII text format is supported for checkpint database files.
+
+A Chrono checkpoint database can be of `SYSTEM` type (in which case it contains all states associated with a given system) or of `COMPONENT` tpe (in which case it contains states for specific subsets of Chrono phsics items). The latter option is useful in checkpointing and initializing from a checkpoint sub-assemblies, for example vehicle systems.
+Note that, when importing a checkpoint to initialize a give system (`SYSTEM`-type checkpoint) or a subset of physics items (`COMPONENT`-type checkpoint), it is the caller's responsibility to ensure that the target objects (system or component lists) match the number and order in the system from which the checkpoint was generated.
+
+Support for checkpointing was also added to Chrono::Vehicle. A vehicle checkpoint database is always of type `COMPONENT`, thus allowing exporting a checkpoint with the state of vehicle from a larger Chrono simulation, as well as initializing a single vehicle from a checkpoint file within a larger Chrono simulation.
+
+## [Added] New Python and CSharp wrappers
+
+Additional Chrono modules were wrapped for use in Python (through PyChrono) or in C#:
+
+- new PyChrono wrapped modules: Chrono::VSG.
+- new C# wrapped modules: Chrono::Sensor, Chrono::VSG, Chrono robot models library.
+
+## [Changed] Refactor Jacobian update strategy for implicit integrators
+
+These changes allow lagging Jacobian evaluation and factorization across multiple time steps. This is an extension of the previous "modified Newton" strategy where it was possible to use the same Jacobian matrix for all iterations of the Newton process at a given integration step.
+
+Previously, the two options (full Newton and modified Newton) were controlled through a boolean, such that `modified_Newton = true` resulted in the Jacobian evaluation and factorization happening once per step and `modified_Newton = false` resulted in Jacobian evaluations and factorizations at every Newton iteration.
+
+With the new strategy, there are 4 options provided through the `ChTimestepperImplicit::JacobianUpdate` enum:
+
+| Option             | Strategy                                         |
+| :----------------- | :----------------------------------------------- |
+| `EVERY_ITERATION`  | Full Newton: Jacobian updated at every iteration |
+| `EVERY_STEP`       | Jacobian updated at every step                   |
+| `NEVER`            | Jacobian never updated                           |
+| `AUTOMATIC`        | Automatic Jacobian update                        |
+
+The options `EVERY_ITERATION` and `EVERY_STEP` correspond to the previous two available options. 
+The option `NEVER` instructs the code to use the same Jacobian factorization from the very first step throughout the entire simulation.
+The option `AUTOMATIC` leads to reusing a Jacobian factorization until there’s a Newton convergence failure with an out-of-date Jacobian.
+
+The Jacobian update strategy method is set through the function `ChTimestepperImplicit::SetJacobianUpdateMethod` (default value EVERY_STEP).
+This function can also be called during half-way through the simulation, including a change to the option `NEVER` (for example, for a case where things “settle down” and the caller knows when that happens).
+
+These changes also come with a refactoring of the class hierarchy for the implicit integrators in Chrono.
+One outcome of that is that the logic for Jacobian evaluations and factorizations, step size control, convergence testing, and integrator behavior was moved to the ChTimestepperImplicit base class.
+This means that any of the Chrono implicit integrators can leverage it (with the exception of the linearized and projected Euler schemes which have their own decisions about solving the non-linear system).
+For now, only the HHT integrator uses this mechanism, with others (in particular implicit Euler) to follow.  
+
+To further imporove the overall performance of Chrono simulations that use an implicit integrator, we implemented logic to fine control the phases required for a matrix factorization for a sparse direct linear solver. 
+In particular, a so-called `analyze` phase (including a call to Chrono's sparsity patter learner, as well as any other operations a particular solver may require) is performed only if a structural change in the problem matrix is detected (for example, upon addition or deletion of a physical item in the Chrono system).
+
+## [Changed] Upgrade of 3rd-party dependencies
+
+- Chrono now supports both Eigen3 version 5.0, as well as the older 3.* versions.
+  <br>
+  Priority is given to Eigen3 5.0, with fallback on Eigen3 3.3 or 3.4.
+- Chrono::VSG now requires newer versions of the VSG libraries.
+  <br>
+  See the Chrono::VSG [installation instructions](https://api.projectchrono.org/module_vsg_installation.html).
+- Chrono::Cascade was updated to use OCCT version 7.9.2
+  <br>
+  Older versions are **not** supported anymore.
+- Chrono was also tested with the current latest Intel oneAPI release, version 2025.3 (for MKL support, as well as optional MPI).
+
+## [Added] YAML parsers for Chrono models and simulations
+
+A first set of YAML parsers were added to the Chrono::Parsers module to allow full specification of Chrono models and simulations through YAML specification files.
+
+Currently, we provide support for:
+
+- Rigid multibody systems with support for a limited set of joints.
+- SPH-based FSI problems.
+- Chrono::Vehicle models.
+- Simulation settings for multibodyy dynamics and for SPH-based FSI problems.
+
+See the Chrono::parsers [manual](https://api.projectchrono.org/manual_parsers.html) for more details, including schemas of the YAML specification files.
+
+## [Changed] Refactoring of Chrono::FSI and Chrono fluid solvers
 
 The Chrono::FSI module was redesigned in order to:
 - separate the interface between the multibody solver and a fluid solver; 
 - redesign the Chrono SPH solver to seamlessly support different equations of motion (Navier-Stokes for fluid dynamics and continuous representation of granular dynamics);
-- enhance accuracy, robustness, and performance;
-- extend the FSI interface to improve its modeling, visualization, and post-processing capabilities.
+- enhance accuracy, robustness, and performance of the Chrono::SPH dolver;
+- extend the Chrono::SPH FSI interface to improve its modeling, visualization, and post-processing capabilities.
 
-Enabling the Chrono::FSI module, now creates two separate libraries: (1) a generic FSI library which allows coupling Chrono rigid and flexible multibody systems to an arbitrary hydrodynamics solver, and (2) an FSI-aware SPH solver which can be coupled through the generic FSI interface to a Chrono multibody simulation.
+Enabling the Chrono::FSI module, now creates the generic FSI interface library, which allows coupling Chrono rigid and flexible multibody systems to an arbitrary hydrodynamics solver.
+Two separate FSI-aware fluid solver libraries can be built:
+1. Chrono::SPH, which provides SPH capabilities for modeling incompressible Navier-Stokes fluid systems, as well as homogeneized granular systems (CRM for deformable soil);
+2. Chrono::TDPF, which provides a Time-Dependent Potential Flow fluid solver.
 
 
 **TODO**
-
-## [Added] YAML specification of Chrono models and simulations
-
-The new `ChParserYAML` parser, available in the Chrono::Parsers module, allows definition of Chrono models and Chrono simulations via specification files in YAML format, thus providing a mechanism for creating, simulating, and visualizing Chrono systems without the need to write (C++, C#, or Python) code.
-Consult the Chrono::Parsers module [documentation](https://api.projectchrono.org/manual_parsers.html) for details on supported modeling elements and the YAML schema of model description and simulation description files.
-
-Currently, the Chrono YAML parser supports rigid multibody systems, with FEA support coming in the near future.
 
 ## [Added] Chrono::Peridynamics module
 

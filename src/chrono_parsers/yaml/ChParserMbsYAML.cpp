@@ -40,9 +40,9 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChForceFunctors.h"
 
-#include "chrono/output/ChOutputASCII.h"
+#include "chrono/input_output/ChOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-    #include "chrono/output/ChOutputHDF5.h"
+    #include "chrono/input_output/ChOutputHDF5.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
@@ -674,7 +674,9 @@ void ChParserMbsYAML::SetIntegrator(ChSystem& sys, const IntegratorParams& param
             integrator->SetRelTolerance(params.rtol);
             integrator->SetAbsTolerances(params.atol_states, params.atol_multipliers);
             integrator->SetStepControl(params.use_stepsize_control);
-            integrator->SetModifiedNewton(params.use_modified_newton);
+            integrator->SetJacobianUpdateMethod(params.use_modified_newton
+                                                    ? ChTimestepperImplicit::JacobianUpdate::EVERY_STEP
+                                                    : ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
             break;
         }
         case ChTimestepper::Type::EULER_IMPLICIT: {
@@ -1229,9 +1231,6 @@ void ChParserMbsYAML::DoStepDynamics() {
 
     // Process motor controllers
     for (auto& motor_controller : m_motor_controllers) {
-        // Model instance
-        int model_instance = motor_controller.second.model_instance;
-
         motor_controller.second.controller->Synchronize(time);
         motor_controller.second.controller->Advance(time_step);
 

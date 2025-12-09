@@ -56,19 +56,24 @@ void ChGuiComponentVSG::Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,
 
     ImGui::PushItemWidth(item_width);
     if (bimodal) {
-        float delta_neg = (0 - min_val) / ((num_items - 1) / 2);
-        for (int i = 0; i < (num_items + 1) / 2; i++) {
+        // so that the colourbar labels line up with the pressure shader modes in the VSG shader without drift
+        // from the zero point - lining them up symettrically
+        const int half = (num_items - 1) / 2;
+        float delta_neg = (0 - min_val) / half;
+        for (int i = 0; i <= half; i++) {
             double val = min_val + i * delta_neg;
             sprintf(buffer, (std::abs(val) < 100) ? "%.2f" : "%6.1e", val);
             TextCentered(buffer, offset + i * item_width);
             ImGui::SameLine();
         }
-        float delta_pos = (max_val - 0) / ((num_items - 1) / 2);
-        for (int i = (num_items + 1) / 2; i < num_items; i++) {
-            double val = min_val + i * delta_pos;
+        float delta_pos = (max_val - 0) / half;
+        for (int step = 1; step <= half; step++) {
+            double val = step * delta_pos;
+            int column = half + step;
             sprintf(buffer, (std::abs(val) < 100) ? "%.2f" : "%6.1e", val);
-            TextCentered(buffer, offset + i * item_width);
-            ImGui::SameLine();
+            TextCentered(buffer, offset + column * item_width);
+            if (column < num_items - 1)
+                ImGui::SameLine();
         }
     } else {
         float delta = (max_val - min_val) / (num_items - 1);

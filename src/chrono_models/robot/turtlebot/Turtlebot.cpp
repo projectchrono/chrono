@@ -21,7 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono_models/robot/turtlebot/Turtlebot.h"
 

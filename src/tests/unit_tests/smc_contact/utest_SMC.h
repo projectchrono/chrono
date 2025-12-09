@@ -19,7 +19,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #ifdef SMC_MULTICORE
     #include "chrono_multicore/physics/ChSystemMulticore.h"

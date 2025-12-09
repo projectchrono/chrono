@@ -32,8 +32,6 @@ throttle_value = 0.3
 
 # =============================================================================
 
-veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Create the HMMWV vehicle
 hmmwv = veh.HMMWV_Full()
 hmmwv.SetContactMethod(chrono.ChContactMethod_SMC)

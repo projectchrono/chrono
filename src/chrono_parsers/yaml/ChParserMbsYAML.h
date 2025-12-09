@@ -50,15 +50,13 @@ class ChParserMbsYAML;
 /// Attached controllers are processed and loads applied to the associated bodies in ChParserMbsYAML::DoStepDynamics.
 class ChLoadController {
   public:
+    virtual ~ChLoadController() {}
+
     virtual void Initialize(const ChParserMbsYAML& parser, int model_instance) {}
     virtual void Synchronize(double time) {}
     virtual void Advance(double time_step) {}
 
     virtual ChVector3d GetLoad() const = 0;
-
-  protected:
-    ChLoadController() {}
-    virtual ~ChLoadController() {}
 };
 
 /// List of load controller names and their associated loads.
@@ -71,15 +69,13 @@ typedef std::unordered_map<std::string, ChVector3d> LoadControllerLoads;
 /// ChParserMbsYAML::DoStepDynamics.
 class ChMotorController {
   public:
+    virtual ~ChMotorController() {}
+
     virtual void Initialize(const ChParserMbsYAML& parser, int model_instance) {}
     virtual void Synchronize(double time) {}
     virtual void Advance(double time_step) {}
 
     virtual double GetActuation() const = 0;
-
-  protected:
-    ChMotorController() {}
-    virtual ~ChMotorController() {}
 };
 
 /// List of motor controller names and their associated loads.
@@ -169,14 +165,14 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// parameters for a load controller with specified name.
     void AttachLoadController(std::shared_ptr<ChLoadController> controller,
                               const std::string& name,
-                              int model_instance = 0);
+                              int model_instance);
 
     /// Attach the external controller for the motor controller with given name.
     /// This function can be called only after the MBS model was loaded, the model specification must include
     /// parameters for a motor with specified name, and that motor was set as externally actuated.
     void AttachMotorController(std::shared_ptr<ChMotorController> controller,
                                const std::string& name,
-                               int model_instance = 0);
+                               int model_instance);
 
     /// Advance dynamics of the multibody system.
     /// - load controllers (if any are attached) are synchronized and their dynamics advanced in time;

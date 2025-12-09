@@ -403,6 +403,12 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
     inertia(2, 2) = mJzz;
 }
 
+ChMassProperties ChMesh::ComputeMassProperties() {
+    ChMassProperties mp;
+    ComputeMassProperties(mp.mass, mp.com, mp.inertia);
+    return mp;
+}
+
 void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
                                 ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                 const ChVectorDynamic<>& w,  ///< the w vector

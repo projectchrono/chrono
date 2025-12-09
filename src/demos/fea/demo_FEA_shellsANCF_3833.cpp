@@ -19,10 +19,12 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
+
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
+
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "FEAvisualization.h"
@@ -286,7 +288,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxIters(50);
     mystepper->SetAbsTolerances(1e-4, 1e2);
     mystepper->SetStepControl(false);
-    mystepper->SetModifiedNewton(true);
+    mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";

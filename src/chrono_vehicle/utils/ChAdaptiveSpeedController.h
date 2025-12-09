@@ -25,7 +25,7 @@
 #include <string>
 
 #include "chrono/core/ChFrameMoving.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
@@ -103,7 +103,7 @@ class CH_VEHICLE_API ChAdaptiveSpeedController {
     double m_errd;  ///< error derivative
     double m_erri;  ///< integral of error
 
-    utils::ChWriterCSV* m_csv;  ///< ChWriterCSV object for data collection
+    ChWriterCSV* m_csv;  ///< ChWriterCSV object for data collection
     bool m_collect;             ///< flag indicating whether or not data is being collected
 };
 

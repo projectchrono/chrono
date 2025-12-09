@@ -22,6 +22,8 @@
 #ifndef CH_TRACKED_VEHICLE_H
 #define CH_TRACKED_VEHICLE_H
 
+#include <ostream>
+
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -211,7 +213,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void LogConstraintViolations() override;
 
     /// Log the types (template names) of current vehicle subsystems.
-    void LogSubsystemTypes();
+    void LogSubsystemTypes(std::ostream& os = std::cout);
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
@@ -238,6 +240,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChOutput& database) const override;
+
+    /// Checkpoint states of all modeling components in the wheeled vehicle system.
+    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
+
+    /// Read states of all modeling components in the vehicle system from the specified checkpoint database.
+    virtual void ReadCheckpoint(ChCheckpoint& database) override;
 
     std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
     std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem

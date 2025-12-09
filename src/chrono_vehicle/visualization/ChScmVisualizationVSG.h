@@ -70,8 +70,6 @@ class CH_VEHICLE_API ChScmVisualizationVSG : public vsg3d::ChVisualSystemVSGPlug
     ChSystem* GetSystem() const { return m_sys; }
 
   private:
-    enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
-
     void BindActiveBox(SCMLoader::ActiveDomainInfo& domain);
     void BindDefaultActiveBox();
 

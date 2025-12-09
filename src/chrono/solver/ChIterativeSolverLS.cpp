@@ -180,7 +180,7 @@ ChIterativeSolverLS::~ChIterativeSolverLS() {
     delete m_spmv;
 }
 
-bool ChIterativeSolverLS::Setup(ChSystemDescriptor& sysd) {
+bool ChIterativeSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     // Calculate problem size
     int dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 

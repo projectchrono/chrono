@@ -22,7 +22,6 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtils.h"
 
@@ -592,7 +591,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         mystepper->SetStepControl(false);
-        mystepper->SetModifiedNewton(false);
+        mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     }
 
     sys.DoStaticLinear();

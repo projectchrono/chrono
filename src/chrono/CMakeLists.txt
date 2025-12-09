@@ -108,6 +108,7 @@ set(Chrono_physics_SOURCES
     physics/ChExternalDynamicsODE.cpp
     physics/ChExternalDynamicsDAE.cpp
     physics/ChAssembly.cpp
+    physics/ChMassProperties.cpp
     )
 set(Chrono_physics_HEADERS
     physics/ChBodyFrame.h
@@ -132,7 +133,7 @@ set(Chrono_physics_HEADERS
     physics/ChExternalDynamicsODE.h
     physics/ChExternalDynamicsDAE.h
     physics/ChAssembly.h
-    physics/ChInertiaUtils.h
+    physics/ChMassProperties.h
     )
 source_group(physics FILES ${Chrono_physics_SOURCES} ${Chrono_physics_HEADERS})
 
@@ -891,6 +892,8 @@ source_group(particlefactory FILES ${Chrono_particlefactory_SOURCES} ${Chrono_pa
 set(Chrono_timestepper_SOURCES
     timestepper/ChIntegrable.cpp
     timestepper/ChTimestepper.cpp
+    timestepper/ChTimestepperExplicit.cpp
+    timestepper/ChTimestepperImplicit.cpp
     timestepper/ChTimestepperHHT.cpp
     timestepper/ChStaticAnalysis.cpp
     timestepper/ChAssemblyAnalysis.cpp
@@ -899,6 +902,8 @@ set(Chrono_timestepper_HEADERS
     timestepper/ChState.h
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
+    timestepper/ChTimestepperExplicit.h
+    timestepper/ChTimestepperImplicit.h
     timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
     timestepper/ChAssemblyAnalysis.h
@@ -1084,14 +1089,12 @@ set(Chrono_utils_SOURCES
     utils/ChUtilsGeometry.cpp
     utils/ChUtilsCreators.cpp
     utils/ChUtilsGenerators.cpp
-    utils/ChUtilsInputOutput.cpp
     utils/ChUtilsChaseCamera.cpp
     utils/ChUtilsValidation.cpp
     utils/ChOpenMP.cpp
     utils/ChProfiler.cpp
     utils/ChControllers.cpp
     utils/ChFilters.cpp
-    utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
     utils/ChForceFunctors.cpp
@@ -1106,13 +1109,11 @@ set(Chrono_utils_HEADERS
     utils/ChUtilsCreators.h
     utils/ChUtilsGenerators.h
     utils/ChUtilsSamplers.h
-    utils/ChUtilsInputOutput.h
     utils/ChUtilsChaseCamera.h
     utils/ChUtilsValidation.h
     utils/ChProfiler.h
     utils/ChControllers.h
     utils/ChFilters.h
-    utils/ChCompositeInertia.h
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
     utils/ChForceFunctors.h
@@ -1126,24 +1127,29 @@ source_group(utils FILES ${Chrono_utils_SOURCES} ${Chrono_utils_HEADERS})
 
 # Output group
 
-set(Chrono_output_HEADERS
-    output/ChOutput.h
-    output/ChOutputASCII.h
+set(Chrono_inputoutput_HEADERS
+    input_output/ChOutput.h
+    input_output/ChOutputASCII.h
+    input_output/ChCheckpoint.h
+    input_output/ChCheckpointASCII.h
+    input_output/ChWriterCSV.h
+    input_output/ChUtilsInputOutput.h
 )
-set(Chrono_output_SOURCES
-    output/ChOutputASCII.cpp
+set(Chrono_inputoutput_SOURCES
+    input_output/ChOutputASCII.cpp
+    input_output/ChCheckpointASCII.cpp
+    input_output/ChWriterCSV.cpp
+    input_output/ChUtilsInputOutput.cpp
 )
 if (HDF5_FOUND)
-    set(Chrono_output_HEADERS ${Chrono_output_HEADERS}
-        output/ChOutputHDF5.h
+    set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChOutputHDF5.h
     )
-    set(Chrono_output_SOURCES ${Chrono_output_SOURCES}
-        output/ChOutputHDF5.cpp
+    set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChOutputHDF5.cpp
     )
 endif()
-source_group(output FILES ${Chrono_output_SOURCES} ${Chrono_output_HEADERS})
-
-
+source_group(input_output FILES ${Chrono_inputoutput_SOURCES} ${Chrono_inputoutput_HEADERS})
 
 # -------------------------------------------------------------------------------------------------
 # Third-party files
@@ -1258,6 +1264,11 @@ set(Chrono_libstl_FILES
 )
 source_group(utils\\libstl FILES ${Chrono_libstl_FILES})
 
+# Chrono configuration and version files
+set(Chrono_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono/ChConfig.h)
+set(Chrono_VERSION_FILE ${PROJECT_BINARY_DIR}/chrono/ChVersion.h)
+source_group("" FILES ${Chrono_CONFIG_FILE} ${Chrono_VERSION_FILE})
+
 # -------------------------------------------------------------------------------------------------
 # Collect all source and header files for the Chrono core library
 # -------------------------------------------------------------------------------------------------
@@ -1290,7 +1301,7 @@ set(Chrono_SOURCES
     ${Chrono_collision_multicore_SOURCES}
     ${Chrono_collision_bullet_SOURCES}
     ${Chrono_utils_SOURCES}
-    ${Chrono_output_SOURCES}
+    ${Chrono_inputoutput_SOURCES}
 )
 
 set(Chrono_HEADERS
@@ -1322,7 +1333,7 @@ set(Chrono_HEADERS
     ${Chrono_collision_multicore_HEADERS}
     ${Chrono_collision_bullet_HEADERS}
     ${Chrono_utils_HEADERS}
-    ${Chrono_output_HEADERS}
+    ${Chrono_inputoutput_HEADERS}
 )
 
 set(Chrono_thirdparty_FILES
@@ -1337,6 +1348,8 @@ set(Chrono_FILES
     ${Chrono_SOURCES}
     ${Chrono_HEADERS}
     ${Chrono_thirdparty_FILES}
+    ${Chrono_CONFIG_FILE}
+    ${Chrono_VERSION_FILE}
 )
 
 # -------------------------------------------------------------------------------------------------
@@ -1428,20 +1441,22 @@ if(UNIX)
 endif()
 
 if(HDF5_FOUND)
-    if(TARGET hdf5-static)
-      message(STATUS "Linking static libraries hdf5-static")
-      target_link_libraries(Chrono_core PUBLIC hdf5-static)
-      target_link_libraries(Chrono_core PUBLIC hdf5_cpp-static)
-      target_link_libraries(Chrono_core PUBLIC hdf5_hl-static)
-      target_link_libraries(Chrono_core PUBLIC hdf5_hl_cpp-static)
-      target_link_libraries(Chrono_core PUBLIC hdf5_tools-static)
-    elseif(TARGET hdf5-shared)
-      message(STATUS "Linking shared libraries hdf5-shared")
-      target_link_libraries(Chrono_core PUBLIC hdf5-shared)
-      target_link_libraries(Chrono_core PUBLIC hdf5_cpp-shared)
-      target_link_libraries(Chrono_core PUBLIC hdf5_hl-shared)
-      target_link_libraries(Chrono_core PUBLIC hdf5_hl_cpp-shared)
-      target_link_libraries(Chrono_core PUBLIC hdf5_tools-shared)
+    if(TARGET hdf5::hdf5-static AND (NOT APPLE))
+      # There are some issues with the static version of HDF5 on macOS
+      # See https://autotwin.github.io/automesh/installation.html#zlib-target-not-found
+      message(STATUS "Linking static libraries hdf5::hdf5-static")
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5-static)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_cpp-static)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl-static)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl_cpp-static)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_tools-static)
+    elseif(TARGET hdf5::hdf5-shared)
+      message(STATUS "Linking shared libraries hdf5::hdf5-shared")
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5-shared)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_cpp-shared)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl-shared)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_hl_cpp-shared)
+      target_link_libraries(Chrono_core PUBLIC hdf5::hdf5_tools-shared)
     elseif(TARGET HDF5::HDF5)
       message(STATUS "Linking HDF5::HDF5")
       target_link_libraries(Chrono_core PUBLIC HDF5::HDF5)

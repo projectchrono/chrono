@@ -63,6 +63,8 @@ class CH_VEHICLE_API ChBrakeShafts : public ChBrake {
     /// Get the max braking torque (for modulation =1)
     virtual double GetMaxBrakingTorque() = 0;
 
+    virtual void PopulateComponentList() override;
+
     double m_modulation;                       ///< current braking input
     bool m_locked;                             ///< is brake locked?
     std::shared_ptr<ChShaft> m_shaft;          ///< shaft attached to "fixed" body

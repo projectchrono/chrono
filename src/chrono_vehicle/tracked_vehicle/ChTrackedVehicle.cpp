@@ -356,7 +356,7 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
     const ChMatrix33<>& A = GetTransform().GetRotMat();
-    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;
+    m_inertia = A.transpose() * (inertia - CompositeInertia::InertiaShiftMatrix(com)) * A;
 }
 
 // -----------------------------------------------------------------------------
@@ -369,84 +369,84 @@ void ChTrackedVehicle::LogConstraintViolations() {
     m_tracks[1]->LogConstraintViolations();
 }
 
-void ChTrackedVehicle::LogSubsystemTypes() {
-    cout << "\nSubsystem types\n";
+void ChTrackedVehicle::LogSubsystemTypes(std::ostream& os) {
+    os << "\nSubsystem types\n";
 
     {
-        cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
+        os << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
 
         int body_tag = m_chassis->GetBodyTag();
         auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
         auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-        cout << "         vehicle tag: " << m_chassis->GetVehicleTag();
-        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        os << "         vehicle tag: " << m_chassis->GetVehicleTag();
+        os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
 
     if (m_powertrain_assembly) {
-        cout << "Powertrain:\n";
-        cout << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
-        cout << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
+        os << "Powertrain:\n";
+        os << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
+        os << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
     }
 
     if (m_driveline)
-        cout << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
+        os << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
 
     for (int i = 0; i < 2; i++) {
-        cout << "Track " << i << "\n";
+        os << "Track " << i << "\n";
 
         {
             auto sprocket = m_tracks[i]->GetSprocket();
-            cout << "  Sprocket:   " << sprocket->GetTemplateName() << "\n";
+            os << "  Sprocket:   " << sprocket->GetTemplateName() << "\n";
 
             int body_tag = sprocket->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << sprocket->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << sprocket->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         {
             auto idler = m_tracks[i]->GetIdler();
-            cout << "  Idler:   " << idler->GetTemplateName() << "\n";
+            os << "  Idler:   " << idler->GetTemplateName() << "\n";
 
             int body_tag = idler->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << idler->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << idler->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         {
             auto suspension = m_tracks[i]->GetTrackSuspension(0);
-            cout << "  Suspension:   " << suspension->GetTemplateName() << "\n";
+            os << "  Suspension:   " << suspension->GetTemplateName() << "\n";
 
             int body_tag = suspension->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << suspension->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << suspension->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         {
             auto road_wheel = m_tracks[i]->GetRoadWheel(0);
-            cout << "  Road-wheel:   " << road_wheel->GetTemplateName() << "\n";
+            os << "  Road-wheel:   " << road_wheel->GetTemplateName() << "\n";
 
             int body_tag = road_wheel->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << road_wheel->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << road_wheel->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         if (m_tracks[i]->GetNumRollers() > 0) {
             auto roller = m_tracks[i]->GetRoller(0);
-            cout << "  Roller:   " << roller->GetTemplateName() << "\n";
+            os << "  Roller:   " << roller->GetTemplateName() << "\n";
 
             int body_tag = roller->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << roller->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << roller->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
     }
 }
@@ -519,6 +519,46 @@ void ChTrackedVehicle::Output(int frame, ChOutput& database) const {
 
     if (m_tracks[RIGHT]->OutputEnabled()) {
         m_tracks[RIGHT]->Output(database);
+    }
+}
+
+void ChTrackedVehicle::WriteCheckpoint(ChCheckpoint& database) const {
+    m_chassis->WriteCheckpoint(database);
+
+    for (auto& c : m_chassis_rear) {
+        c->WriteCheckpoint(database);
+    }
+
+    m_tracks[LEFT]->WriteCheckpoint(database);
+
+    m_tracks[RIGHT]->WriteCheckpoint(database);
+
+    if (m_driveline)
+        m_driveline->WriteCheckpoint(database);
+
+    if (m_powertrain_assembly) {
+        GetEngine()->WriteCheckpoint(database);
+        GetTransmission()->WriteCheckpoint(database);
+    }
+}
+
+void ChTrackedVehicle::ReadCheckpoint(ChCheckpoint& database) {
+    m_chassis->ReadCheckpoint(database);
+
+    for (auto& c : m_chassis_rear) {
+        c->ReadCheckpoint(database);
+    }
+
+    m_tracks[LEFT]->ReadCheckpoint(database);
+
+    m_tracks[RIGHT]->ReadCheckpoint(database);
+
+    if (m_driveline)
+        m_driveline->ReadCheckpoint(database);
+
+    if (m_powertrain_assembly) {
+        GetEngine()->ReadCheckpoint(database);
+        GetTransmission()->ReadCheckpoint(database);
     }
 }
 

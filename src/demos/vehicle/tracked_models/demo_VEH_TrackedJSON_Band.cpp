@@ -21,7 +21,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup chassis position output with column headers
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
     csv.Stream().precision(6);
     csv << "Time (s)"
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
     integrator->SetVerbose(verbose_integrator);
 
     // ---------------
@@ -457,7 +457,6 @@ int main(int argc, char* argv[]) {
 
         cout << "Step: " << step_number;
         cout << "   Time: " << time;
-        cout << "   Number of Iterations: " << integrator->GetNumIterations();
         cout << "   Step Time: " << step_timing;
         cout << "   Total Time: " << total_timing;
         cout << endl;

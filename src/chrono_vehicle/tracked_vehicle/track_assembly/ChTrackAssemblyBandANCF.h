@@ -114,6 +114,12 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChChassis> chassis) override final;
 
+    /// Initialize this track assembly subsystem.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis subsystem
+                            const ChVector3d& location,          ///< location relative to the chassis frame
+                            bool create_shoes = true             ///< control creation of the actual track
+    ) override final;
+
     /// Remove all track shoes from assembly.
     virtual void RemoveTrackShoes() override final;
 

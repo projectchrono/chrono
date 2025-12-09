@@ -38,15 +38,13 @@ const ChVector3d Duro_RigidTire::m_inertia(3.34, 6.28, 3.34);
 const std::string Duro_RigidTire::m_meshFile = "duro/Duro_Tire.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 Duro_RigidTire::Duro_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("duro/Duro_Tire.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("duro/Duro_Tire.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void Duro_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

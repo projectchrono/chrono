@@ -135,13 +135,23 @@ endif()
 #-----------------------------------------------------------------------------
 
 message(STATUS "Searching for Eigen3")
-find_package(Eigen3 3.3 QUIET)
-if(EIGEN3_FOUND)
-  message(STATUS "  Eigen3 found. EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+
+# Look first for Eigen 5.0, then 3.3
+find_package(Eigen3 5.0 QUIET)
+if(NOT Eigen3_FOUND)
+   find_package(Eigen3 3.3)
+endif()
+
+if(Eigen3_FOUND)
+  message(STATUS "Eigen3 found")
+  message(STATUS "  Eigen3 version:     ${EIGEN3_VERSION}")
+  message(STATUS "  Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
   mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
 else()
-  message(ERROR "  Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or the envvar Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
+  message(ERROR "Eigen3 cannot be found.\n"
+          "  Provide Eigen3_DIR (location of Eigen3Config.cmake) or else\n" 
+          "  set either EIGEN3_INCLUDE_DIR or the envvar Eigen3_ROOT to the location of Eigen library.")
   set(EIGEN3_INCLUDE_DIR "" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
   set(Eigen3_DIR "" CACHE PATH "Path to Eigen3 config file (should contain the \"Eigen3Config.cmake\" file")
   mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)

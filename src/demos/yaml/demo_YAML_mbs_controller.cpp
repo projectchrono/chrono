@@ -231,12 +231,7 @@ int main(int argc, char* argv[]) {
 
     // Create output directory
     if (output) {
-        std::string out_dir = GetChronoOutputPath() + "YAML_MBS";
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
-        out_dir = out_dir + "/" + model_name;
+        std::string out_dir = GetChronoOutputPath() + "YAML_MBS_CONTROLLER";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;

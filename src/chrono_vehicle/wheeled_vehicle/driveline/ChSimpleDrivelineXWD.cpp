@@ -41,9 +41,6 @@ void ChSimpleDrivelineXWD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const std::vector<int>& driven_axles) {
     assert(axles.size() >= 1);
 
-    // Create the driveshaft
-    ChDriveline::Initialize(chassis);
-
     m_driven_axles = driven_axles;
 
     for (int i = 0; i < driven_axles.size(); i++) {
@@ -51,6 +48,8 @@ void ChSimpleDrivelineXWD::Initialize(std::shared_ptr<ChChassis> chassis,
         m_shaft_left.push_back(axles[m_driven_axles[i]]->m_suspension->GetAxle(LEFT));
         m_shaft_right.push_back(axles[m_driven_axles[i]]->m_suspension->GetAxle(RIGHT));
     }
+
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

@@ -40,7 +40,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChConstants.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     m_data.resize(4);
     for (size_t col = 0; col < 4; col++)
         m_data[col].resize(num_steps);
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     std::ifstream file2("UT_ANCFShellLam.txt");*/
 
     ChVector3d mforce(0, 0, -10);
@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(time_step);
         std::cout << "Time t = " << sys.GetChTime() << "s \n";
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
-        // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
+        // std::cout << "mystepper->GetNumStepIterations()= " << mystepper->GetNumStepIterations() << "\n";
         // Checking tip Z displacement
         double err = std::abs(nodetip->pos.z() - FileInputMat(it, 1));
         max_err = std::max(max_err, err);

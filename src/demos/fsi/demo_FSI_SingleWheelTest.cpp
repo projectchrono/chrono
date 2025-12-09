@@ -22,13 +22,12 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/core/ChTimer.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 

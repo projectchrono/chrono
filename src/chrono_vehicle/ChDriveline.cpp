@@ -24,11 +24,6 @@ namespace vehicle {
 
 ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
-void ChDriveline::Initialize(std::shared_ptr<ChChassis> chassis) {
-    // Mark as initialized
-    m_initialized = true;
-}
-
 void ChDriveline::InitializeInertiaProperties() {
     m_mass = 0;
     m_inertia = ChMatrix33<>(0);

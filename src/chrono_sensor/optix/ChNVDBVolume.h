@@ -24,14 +24,13 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-//#include "chrono/assets/ChBoxShape.h"
+// #include "chrono/assets/ChBoxShape.h"
 
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono_sensor/ChApiSensor.h"
 
-//#include "chrono_sensor/cuda/cuda_utils.cuh"
-
+// #include "chrono_sensor/cuda/cuda_utils.cuh"
 
 namespace chrono {
 namespace sensor {
@@ -41,7 +40,7 @@ class CH_SENSOR_API ChNVDBShape : public ChVisualShape {
     ChNVDBShape();
     ChNVDBShape(const ChBox& box);
 
-    ~ChNVDBShape(){};
+    ~ChNVDBShape() {};
 
     /// Access the box geometry.
     ChBox& GetBoxGeometry() { return gbox; }
@@ -58,29 +57,23 @@ class CH_SENSOR_API ChNVDBShape : public ChVisualShape {
 
 class CH_SENSOR_API ChNVDBVolume : public ChBody {
   public:
-    /// Creates a NanoVDB volume which is used as a bounding volume for rendering volumetric data. 
-    /// When building Chrono::Sensor, enable CH_USE_NVDB to link NanoVDB library to Chrono::Sensor.
+    /// Creates a NanoVDB volume which is used as a bounding volume for rendering volumetric data.
+    /// When building Chrono::Sensor, enable CH_USE_SENSOR_NVDB to link NanoVDB library to Chrono::Sensor.
     /// Currently this can only be used to render Chrono::FSI SPH simulations.
-    /// Use this in conjunction with ChScene::SetFSIParticles() and ChScene::SetFSINumFSIParticles() to render Chrono::FSI SPH simulations.
+    /// Use this in conjunction with ChScene::SetFSIParticles() and ChScene::SetFSINumFSIParticles() to render
+    /// Chrono::FSI SPH simulations.
     ChNVDBVolume(double Xsize,
                  double Ysize,
                  double Zsize,
-                 double density,                                         ///< density of the body
-                 bool visualize = true                                  ///< create visualization asset
+                 double density,        ///< density of the body
+                 bool visualize = true  ///< create visualization asset
     );
 
-   
   private:
-    void SetupBody(double Xsize,
-                   double Ysize,
-                   double Zsize,
-                   double density,
-                   bool visualize);
-
-
+    void SetupBody(double Xsize, double Ysize, double Zsize, double density, bool visualize);
 };
 
 }  // namespace sensor
-} // namespace chrono
+}  // namespace chrono
 
 #endif

@@ -54,7 +54,7 @@ To install a PyChrono conda module, do the following:
    ```
    - Pythonocc-core, for Chrono::Cascade support:
    ``` 
-   conda install -c conda-forge pythonocc-core=7.4.1
+   conda install -c conda-forge pythonocc-core=7.9.0
    ```
    - Gnuplot, for graphing data: 
    ``` 
@@ -93,14 +93,6 @@ In general, no changes to PYTHONPATH are required when installing the PyChrono c
 export PYTHONPATH=$HOME/opt/anaconda3/envs/chrono/share/chrono/python
 ```
 </div>
-
-<div class="ce-warning">
-If you are interested in using the Chrono::Cascade module through PyChrono, note that the conda [pythonocc-core](https://anaconda.org/conda-forge/pythonocc-core/files) package version 7.4.1 is **not** available for Python 3.10.  Use Python version 3.9 or 3.8.
-</div>
-
-<div class="ce-info">
-The reason for the specific dependency versions and order of installation of dependency conda packages is related to the fact that Chrono::Cascade uses the API from OpenCascade v. 7.4 and that the pythonocc-core version 7.4.1 hardcodes a requirement for MKL version 2020. As such, the PyChrono conda packages are linked against this specific version of MKL.  If installed first, the Numpy package would install MKL as its own dependency and, by default, Numpy version 1.24.0 installs MKL version 2022.  Until we modify the PyChrono conda package to automatically install all required dependencies of the necessary version and in the proper order, it is the user's responsibility to ensure version compatibility by following the steps above as listed.
-</div>   
 
    
 

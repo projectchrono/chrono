@@ -174,24 +174,25 @@ int main(int argc, char* argv[]) {
     // Let's say I want to only publish the imu data at half the rate specified in the simulation
     // Override that with the constructor that takes a rate
     // All sensor handlers accept a rate, otherwise it's just the sensor's update rate
-    auto acc_rate = acc->GetUpdateRate() / 2;
+    // Do NOT set the IMU handler's update rate higher than any of its accel/gyro/mag handlers, or the IMU handler will trigger an assertion.
+    // That is because all these sub-sensors extend from IMU handler.
+
+    auto acc_rate = acc->GetUpdateRate();
     auto acc_topic_name = "~/output/accelerometer/data";
     auto acc_handler = chrono_types::make_shared<ChROSAccelerometerHandler>(acc_rate, acc, acc_topic_name);
     ros_manager->RegisterHandler(acc_handler);
 
-    // Create the publisher for the gyroscope
     auto gyro_topic_name = "~/output/gyroscope/data";
     auto gyro_handler = chrono_types::make_shared<ChROSGyroscopeHandler>(gyro, gyro_topic_name);
     ros_manager->RegisterHandler(gyro_handler);
 
-    // Create the publisher for the magnetometer
     auto mag_topic_name = "~/output/magnetometer/data";
     auto mag_handler = chrono_types::make_shared<ChROSMagnetometerHandler>(mag, mag_topic_name);
     ros_manager->RegisterHandler(mag_handler);
 
-    // Create the publisher for _all_ imu sensors
     auto imu_topic_name = "~/output/imu/data";
-    auto imu_handler = chrono_types::make_shared<ChROSIMUHandler>(100, imu_topic_name);
+    auto imu_rate = acc->GetUpdateRate() / 2;
+    auto imu_handler = chrono_types::make_shared<ChROSIMUHandler>(imu_rate, imu_topic_name);
     imu_handler->SetAccelerometerHandler(acc_handler);
     imu_handler->SetGyroscopeHandler(gyro_handler);
     imu_handler->SetMagnetometerHandler(mag_handler);

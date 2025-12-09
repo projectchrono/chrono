@@ -266,7 +266,7 @@ class ChGnuPlot {
     /// - index of current subplot.
     /// Notes:
     /// - indices must be given in ascending order (starting from 0)
-    /// - indices must cover all specified subplots (i.e., num indices = rows * cols)
+    /// - indices must cover all specified subplots
     /// - requires manual call to EndSubplot() when all subplots have been completed.
     void StartSubplot(int rows, int cols, int idx) {
         if (idx < 0 || idx > rows * cols - 1 || idx < m_curr_idx)

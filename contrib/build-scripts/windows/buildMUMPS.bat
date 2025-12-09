@@ -2,7 +2,6 @@
 @rem -------------------------------------------------------------------------------------------------------
 @rem Windows shell script for building MUMPS using the scivision/mumps CMake project.
 @rem - Requires git, cmake, and the Intel openAPI HPC toolkit (for a Fortran compiler and MKL).
-@rem   NOTE: Intel oneAPI 2025 does *not* work with Eigen! Use version 2023.
 @rem - Place in an arbitrary temporary directory.
 @rem - Specify the install directory.
 @rem - Run the script (.\buildMUMPS.bat).

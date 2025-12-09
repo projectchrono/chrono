@@ -51,5 +51,9 @@ void ChEngineSimple::Synchronize(double time, const DriverInputs& driver_inputs,
     m_motor_torque *= driver_inputs.m_throttle;
 }
 
+// -----------------------------------------------------------------------------
+
+void ChEngineSimple::PopulateComponentList() {}
+
 }  // end namespace vehicle
 }  // end namespace chrono

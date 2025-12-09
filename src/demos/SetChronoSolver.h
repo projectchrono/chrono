@@ -37,7 +37,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
                      const chrono::ChSolver::Type& solver_type,
                      const chrono::ChTimestepper::Type& integrator_type,
                      int num_threads_mkl = 1,
-                     bool verbose = true) {
+                     bool verbose = false) {
     auto contact_method = sys.GetContactMethod();
     auto slvr_type = solver_type;
     auto intg_type = integrator_type;
@@ -144,7 +144,8 @@ bool SetChronoSolver(chrono::ChSystem& sys,
             integrator->SetMaxIters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
-            integrator->SetModifiedNewton(false);
+            integrator->SetJacobianUpdateMethod(
+                chrono::ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
             break;
         }
         case chrono::ChTimestepper::Type::EULER_IMPLICIT: {

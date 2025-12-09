@@ -63,6 +63,13 @@ ChParticle& ChParticle::operator=(const ChParticle& other) {
     return *this;
 }
 
+// Lightweight helper so bulk writers can assign coordinates without constructing ChVector3d temporaries
+void ChParticle::SetPosComponents(double x, double y, double z) {
+    m_csys.pos.x() = x;
+    m_csys.pos.y() = y;
+    m_csys.pos.z() = z;
+}
+
 void ChParticle::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
     w.segment(0, 3) = GetPosDt().eigen();
     w.segment(3, 3) = GetAngVelLocal().eigen();
@@ -328,6 +335,33 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     }
 
     particles.push_back(newp);
+}
+
+// GPU set data
+// Bulk loader for double-precision position arrays (XYZXYZ...)
+void ChParticleCloud::SetParticlePositions(const double* positions, size_t count) {
+    const size_t n = std::min(count, particles.size());
+    if (n == 0 || positions == nullptr)
+        return;
+
+    const double* xyz = positions;
+    for (size_t i = 0; i < n; ++i, xyz += 3) {
+        particles[i]->SetPosComponents(xyz[0], xyz[1], xyz[2]);
+    }
+}
+
+// Bulk loader for single-precision position arrays, promoting to double internally
+void ChParticleCloud::SetParticlePositions(const float* positions, size_t count) {
+    const size_t n = std::min(count, particles.size());
+    if (n == 0 || positions == nullptr)
+        return;
+
+    const float* xyz = positions;
+    for (size_t i = 0; i < n; ++i, xyz += 3) {
+        particles[i]->SetPosComponents(static_cast<double>(xyz[0]),
+                                       static_cast<double>(xyz[1]),
+                                       static_cast<double>(xyz[2]));
+    }
 }
 
 ChColor ChParticleCloud::GetVisualColor(unsigned int n) const {

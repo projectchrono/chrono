@@ -38,15 +38,13 @@ const ChVector3d FMTV_RigidTire::m_inertia(13.0, 22.0, 13.0);
 const std::string FMTV_RigidTire::m_meshFile = "mtv/meshes/MTV_tire.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 FMTV_RigidTire::FMTV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetVehicleDataFile("mtv/meshes/MTV_tire.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("mtv/meshes/MTV_tire.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void FMTV_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

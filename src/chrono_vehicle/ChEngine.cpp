@@ -24,8 +24,7 @@ namespace vehicle {
 ChEngine::ChEngine(const std::string& name) : ChPart(name) {}
 
 void ChEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
-    // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 void ChEngine::InitializeInertiaProperties() {

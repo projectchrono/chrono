@@ -175,7 +175,7 @@ void ChLoad::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<
         if (loader->GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = loader->GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loader->GetLoadable()->GetSubBlockSize(i); ++row) {
-                R(row + moffset) += grouped_cMv(rowQ) * c;
+                R(row + moffset) += grouped_cMv(rowQ);
                 ++rowQ;
             }
         }
@@ -314,7 +314,7 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
-                R(row + moffset) += grouped_cMv(rowQ) * c;
+                R(row + moffset) += grouped_cMv(rowQ);
                 ++rowQ;
             }
         }
@@ -502,7 +502,7 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
-                    R(row + moffset) += grouped_cMv(rowQ) * c;
+                    R(row + moffset) += grouped_cMv(rowQ);
                     ++rowQ;
                 }
             }

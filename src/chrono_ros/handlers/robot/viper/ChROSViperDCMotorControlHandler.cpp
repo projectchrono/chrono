@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Handler responsible for receiving and updating the DC motor control commands
@@ -20,10 +20,7 @@
 #include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
-
-#include "chrono_ros_interfaces/msg/viper_wheel_id.hpp"
-
-using std::placeholders::_1;
+#include "chrono_ros/ipc/ChROSIPCMessage.h"
 
 using namespace chrono::viper;
 
@@ -33,43 +30,66 @@ namespace ros {
 ChROSViperDCMotorControlHandler::ChROSViperDCMotorControlHandler(double update_rate,
                                                                  std::shared_ptr<ViperDCMotorControl> driver,
                                                                  const std::string& topic_name)
-    : ChROSHandler(update_rate), m_driver(driver), m_topic_name(topic_name) {}
+    : ChROSHandler(update_rate), m_driver(driver), m_topic_name(topic_name), m_subscriber_setup_sent(false) {
+    // Initialize inputs
+    m_inputs.steering_angle = 0;
+    m_inputs.steering_wheel_id = -1; // NONE
+    m_inputs.lifting = 0;
+    m_inputs.stall_torque = 0;
+    m_inputs.stall_torque_wheel_id = -1; // NONE
+    m_inputs.no_load_speed = 0;
+    m_inputs.no_load_speed_wheel_id = -1; // NONE
+}
 
 bool ChROSViperDCMotorControlHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    auto node = interface->GetNode();
-
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
         return false;
     }
-
-    m_subscription = node->create_subscription<chrono_ros_interfaces::msg::ViperDCMotorControl>(
-        m_topic_name, 1, std::bind(&ChROSViperDCMotorControlHandler::Callback, this, _1));
-
     return true;
 }
 
-void ChROSViperDCMotorControlHandler::Callback(const chrono_ros_interfaces::msg::ViperDCMotorControl& msg) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_msg = msg;
+std::vector<uint8_t> ChROSViperDCMotorControlHandler::GetSerializedData(double time) {
+    if (!m_subscriber_setup_sent) {
+        m_subscriber_setup_sent = true;
+        // Send topic name to subprocess to setup subscriber
+        std::vector<uint8_t> data(m_topic_name.begin(), m_topic_name.end());
+        data.push_back('\0'); // Null terminator
+        return data;
+    }
+    return {};
 }
 
-void ChROSViperDCMotorControlHandler::Tick(double time) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    for (auto steering_command : m_msg.driver_commands.steering_list) {
-        if (steering_command.wheel_id != chrono_ros_interfaces::msg::ViperWheelID::V_UNDEFINED)
-            m_driver->SetSteering(steering_command.angle,
-                                  static_cast<chrono::viper::ViperWheelID>(steering_command.wheel_id));
-        else
-            m_driver->SetSteering(steering_command.angle);
+void ChROSViperDCMotorControlHandler::HandleIncomingMessage(const ipc::Message& msg) {
+    if (msg.header.type != ipc::MessageType::VIPER_DC_MOTOR_CONTROL) {
+        return;
     }
+    
+    if (msg.header.payload_size != sizeof(ipc::ViperDCMotorControlData)) {
+        std::cerr << "Received Viper control message with incorrect size" << std::endl;
+        return;
+    }
+    
+    auto data = reinterpret_cast<const ipc::ViperDCMotorControlData*>(msg.payload.get());
+    ApplyInputs(*data);
+}
 
-    m_driver->SetLifting(m_msg.driver_commands.lifting);
-    m_driver->SetMotorStallTorque(m_msg.stall_torque.torque,
-                                  static_cast<chrono::viper::ViperWheelID>(m_msg.stall_torque.wheel_id));
-    m_driver->SetMotorNoLoadSpeed(m_msg.no_load_speed.speed,
-                                  static_cast<chrono::viper::ViperWheelID>(m_msg.no_load_speed.wheel_id));
+void ChROSViperDCMotorControlHandler::ApplyInputs(const ipc::ViperDCMotorControlData& data) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_inputs = data;
+
+    // Apply steering
+    m_driver->SetSteering(m_inputs.steering_angle, static_cast<ViperWheelID>(m_inputs.steering_wheel_id));
+
+    // Apply lifting
+    m_driver->SetLifting(m_inputs.lifting);
+
+    // Apply stall torque
+    m_driver->SetMotorStallTorque(m_inputs.stall_torque, static_cast<ViperWheelID>(m_inputs.stall_torque_wheel_id));
+
+    // Apply no load speed
+    m_driver->SetMotorNoLoadSpeed(m_inputs.no_load_speed, static_cast<ViperWheelID>(m_inputs.no_load_speed_wheel_id));
 }
 
 }  // namespace ros
 }  // namespace chrono
+

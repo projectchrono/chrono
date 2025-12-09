@@ -100,7 +100,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     chassis->GetSystem()->RegisterCustomCollisionCallback(m_callback);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 void ChSprocket::InitializeInertiaProperties() {
@@ -315,37 +315,13 @@ void ChSprocket::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChSprocket::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_gear);
-    ExportBodyList(jsonDocument, bodies);
+void ChSprocket::PopulateComponentList() {
+    m_bodies.push_back(m_gear);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChSprocket::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_gear);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute);
 }
 
 }  // end namespace vehicle

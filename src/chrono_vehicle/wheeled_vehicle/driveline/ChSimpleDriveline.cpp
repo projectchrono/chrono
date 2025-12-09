@@ -41,9 +41,6 @@ void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const std::vector<int>& driven_axles) {
     assert(driven_axles.size() == 2);
 
-    // Create the driveshaft
-    ChDriveline::Initialize(chassis);
-
     m_driven_axles = driven_axles;
 
     // Grab handles to the suspension wheel shafts.
@@ -52,6 +49,8 @@ void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_rear_left = axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT);
     m_rear_right = axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT);
+
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

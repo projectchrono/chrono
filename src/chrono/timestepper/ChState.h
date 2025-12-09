@@ -175,7 +175,7 @@ class ChStateDelta : public ChVectorDynamic<double> {
 
     /// Scale this state by the given value.
     ChStateDelta& operator*=(double factor) {
-        ChVectorDynamic<>::operator*(factor);
+        ChVectorDynamic<>::operator*=(factor);
         return *this;
     }
 

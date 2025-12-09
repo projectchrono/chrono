@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
 
     auto sceneMesh2 = chrono_types::make_shared<ChVisualShapeModelFile>();
     sceneMesh2->SetFilename(GetChronoDataFile("models/bunny.glb"));
-    int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector3d(-2, 0, -8), Zup * QuatFromAngleZ(CH_PI)));
+    int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector3d(-2, 0, -8), QuatFromAngleY(CH_PI)));
     if (bunndyId == -1)
         std::cerr << "Could not get bunny!" << std::endl;
 

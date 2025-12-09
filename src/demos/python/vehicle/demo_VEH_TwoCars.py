@@ -138,11 +138,4 @@ def main():
 
     return 0
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 main()

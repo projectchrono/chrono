@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxIters(8);
     integrator->SetAbsTolerances(1e-1, 10);
-    integrator->SetModifiedNewton(false);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     integrator->SetVerbose(true);
 
     while (vis->Run()) {

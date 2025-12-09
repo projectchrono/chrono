@@ -124,11 +124,13 @@ endif()
 
 # Generate the configuration header file using substitution variables.
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicle.h.in
-               ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h)
+set(CV_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h)
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
-        DESTINATION include/chrono_vehicle)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicle.h.in ${CV_CONFIG_FILE} @ONLY)
+
+source_group("" FILES ${CV_CONFIG_FILE})
+
+install(FILES ${CV_CONFIG_FILE} DESTINATION include/chrono_vehicle)
 
 if(CH_ENABLE_MODULE_VSG)
     # Find the VSG library
@@ -900,6 +902,8 @@ add_library(Chrono_vehicle
     ${CV_TV_VEHICLE_FILES}
 #
     ${CV_STB_FILES}
+#
+    ${CV_CONFIG_FILE}
 )
 
 add_library(Chrono::vehicle ALIAS Chrono_vehicle)

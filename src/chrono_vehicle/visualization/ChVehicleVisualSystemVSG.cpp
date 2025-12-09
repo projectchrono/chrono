@@ -235,7 +235,7 @@ void ShowHelp() {
 
 void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
-    ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
+    ImGui::SetNextWindowPos(ImVec2(250.0f, 5.0f));
     ImGui::Begin("Vehicle");
 
     std::string vehicle_name = "Vehicle: \"" + m_vsys->GetVehicle().GetName() + "\"";
@@ -276,7 +276,9 @@ void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
         ImGui::TableNextColumn();
         ImGui::PushItemWidth(150.0f);
         ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
+        ImGui::PushID("Steering"); // avoids ID conflicts (as per DearImgui message popup)
         DrawGauge(-m_vsys->GetSteering(), -1, 1);
+        ImGui::PopID();
         ImGui::PopStyleColor();
         ImGui::PopItemWidth();
         ImGui::TableNextRow();
@@ -285,18 +287,24 @@ void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
             m_vsys->GetVehicle().GetPowertrainAssembly()->GetTransmission()->IsManual()) {
             ImGui::TextUnformatted("Clutch:");
             ImGui::TableNextColumn();
+            ImGui::PushID("Clutch"); // avoids ID conflicts with giving the sliders imgui names
             DrawGauge(m_vsys->GetClutch(), 0, 1);
+            ImGui::PopID();
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
         }
         ImGui::TextUnformatted("Braking:");
         ImGui::TableNextColumn();
+        ImGui::PushID("Braking"); // avoids ID conflicts with giving the sliders imgui names
         DrawGauge(m_vsys->GetBraking(), 0, 1);
+        ImGui::PopID();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Throttle:");
         ImGui::TableNextColumn();
+        ImGui::PushID("Throttle"); // avoids ID conflicts with giving the sliders imgui names
         DrawGauge(m_vsys->GetThrottle(), 0, 1);
+        ImGui::PopID();
         ImGui::EndTable();
     }
 

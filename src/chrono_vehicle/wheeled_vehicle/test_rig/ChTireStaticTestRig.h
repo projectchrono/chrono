@@ -27,7 +27,8 @@
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
@@ -195,7 +196,7 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     std::string m_outdir;
     bool m_output;
     bool m_gnuplot;
-    utils::ChWriterCSV m_csv;
+    ChWriterCSV m_csv;
 };
 
 /// @} vehicle_wheeled_test_rig

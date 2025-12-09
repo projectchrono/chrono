@@ -38,13 +38,13 @@ message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 # Place the header file in the library output directory and make sure it can
 # be found at compile time.
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ChConfigDem.h.in
-    ${PROJECT_BINARY_DIR}/chrono_dem/ChConfigDem.h
-    )
+set(DEM_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_dem/ChConfigDem.h)
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_dem/ChConfigDem.h"
-        DESTINATION include/chrono_dem)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigDem.h.in ${DEM_CONFIG_FILE} @ONLY)
+
+source_group("" FILES ${DEM_CONFIG_FILE})
+
+install(FILES ${DEM_CONFIG_FILE} DESTINATION include/chrono_dem)
 
 # ------------------------------------------------------------------------------
 # List the files in the Chrono::DEM module
@@ -86,7 +86,7 @@ set(DEM_UTILITY_FILES
     utils/ChDemJsonParser.h
     utils/ChDemSphereDecomp.h
     )
-source_group(utilities FILES ${DEM_UTILITY_FILES})
+source_group(utils FILES ${DEM_UTILITY_FILES})
 
 # --------------- DEM VSG INTERFACE
 
@@ -121,7 +121,9 @@ add_library(Chrono_dem
             ${DEM_BASE_FILES}
             ${DEM_PHYSICS_FILES}
             ${DEM_CUDA_FILES}
-            ${Chrono_DEM_UTILITIES})
+            ${DEM_UTILITY_FILES}
+            ${DEM_CONFIG_FILE}
+)
 
 add_library(Chrono::dem ALIAS Chrono_dem)
 

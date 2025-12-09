@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // ROS Handler for communicating accelerometer information
@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler_ipc.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
@@ -46,33 +47,47 @@ bool ChROSAccelerometerHandler::Initialize(std::shared_ptr<ChROSInterface> inter
         return false;
     }
 
-    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Imu>(m_topic_name, 1);
-
-    m_imu_msg.header.frame_id = m_imu->GetName();
-
     return true;
 }
 
-void ChROSAccelerometerHandler::Tick(double time) {
+std::vector<uint8_t> ChROSAccelerometerHandler::GetSerializedData(double time) {
+    if (time == m_last_time) {
+        return m_last_serialized_data;
+    }
+
+    // if (!ShouldTick(time)) {
+    //     return {};
+    // }
+
     auto imu_ptr = m_imu->GetMostRecentBuffer<UserAccelBufferPtr>();
     if (!imu_ptr->Buffer) {
         // TODO: Is this supposed to happen?
-        std::cout << "Accelerometer buffer is not ready. Not ticking." << std::endl;
-        return;
+        // std::cout << "Accelerometer buffer is not ready. Not ticking." << std::endl;
+        return {};
     }
 
     AccelData imu_data = imu_ptr->Buffer[0];
-    m_imu_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
-    m_imu_msg.linear_acceleration.x = imu_data.X;
-    m_imu_msg.linear_acceleration.y = imu_data.Y;
-    m_imu_msg.linear_acceleration.z = imu_data.Z;
+
+    ipc::AccelerometerData msg;
+    strncpy(msg.topic_name, m_topic_name.c_str(), sizeof(msg.topic_name) - 1);
+    strncpy(msg.frame_id, m_imu->GetName().c_str(), sizeof(msg.frame_id) - 1);
+
+    msg.linear_acceleration[0] = imu_data.X;
+    msg.linear_acceleration[1] = imu_data.Y;
+    msg.linear_acceleration[2] = imu_data.Z;
 
     // Update the covariance matrix
-    // The ChAccelerometerSensor does not currently support covariances, so we'll
-    // use the imu message to store a rolling average of the covariance
-    m_imu_msg.linear_acceleration_covariance = CalculateCovariance(imu_data);
+    // The ChAccelerometerSensor does not currently support covariances, so we'll use the imu message to store a rolling average of the covariance
+    auto covariance = CalculateCovariance(imu_data);
+    IncrementTickCount();
+    std::memcpy(msg.linear_acceleration_covariance, covariance.data(), sizeof(msg.linear_acceleration_covariance));    std::vector<uint8_t> buffer(sizeof(ipc::AccelerometerData));
+    std::memcpy(buffer.data(), &msg, sizeof(ipc::AccelerometerData));
 
-    m_publisher->publish(m_imu_msg);
+    m_last_time = time;
+    m_last_serialized_data = buffer;
+    m_last_data_struct = msg;
+
+    return buffer;
 }
 
 std::array<double, 9> ChROSAccelerometerHandler::CalculateCovariance(const AccelData& imu_data) {

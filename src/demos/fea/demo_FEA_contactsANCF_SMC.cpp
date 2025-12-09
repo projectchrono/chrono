@@ -26,9 +26,10 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
+
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono/fea/ChMesh.h"

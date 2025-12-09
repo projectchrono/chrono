@@ -27,7 +27,7 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotionImposed.h"
 #include "chrono/assets/ChVisualSystem.h"
@@ -35,7 +35,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 

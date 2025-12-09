@@ -34,6 +34,7 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
                        core::vector3df(1.0f, 1.0f, 1.0f)),
       InputReceiverEnabled(true) {
     device = devicepointer;
+    device->grab();
     BBox.reset(0, 0, 0);
 
     UpVector.set(0.0f, 1.0f, 0.0f);
@@ -78,6 +79,10 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
     recalculateViewArea();
 
     smgr->setActiveCamera(this);
+}
+
+RTSCamera::~RTSCamera() {
+    device->drop();
 }
 
 bool RTSCamera::OnEvent(const SEvent& event) {
