@@ -973,7 +973,7 @@ void SCMLoader::UpdateActiveDomain(ActiveDomainInfo& ad, const ChVector3d& Z) {
     }
 
     // Calculate inverse of SCM normal expressed in body frame (for optimization of ray-OBB test)
-    ChVector3d dir = ad.m_body->TransformDirectionParentToLocal(Z);
+    ChVector3d dir = ad.m_body->GetFrameRefToAbs().TransformDirectionParentToLocal(Z);
     ad.m_ooN.x() = (dir.x() == 0) ? 1e10 : 1.0 / dir.x();
     ad.m_ooN.y() = (dir.y() == 0) ? 1e10 : 1.0 / dir.y();
     ad.m_ooN.z() = (dir.z() == 0) ? 1e10 : 1.0 / dir.z();
