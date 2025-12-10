@@ -75,6 +75,7 @@ double dT = 2.5e-4;
 
 // linear actuator and angular actuator
 auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
+auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
 
 // Save data as csv files to see the results off-line using Paraview
 bool output = true;
@@ -246,7 +247,6 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     sysMBS.AddLink(prismatic2);
 
     // Connect the wheel to the axle through a motor.
-    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetName("engine_wheel_axle");
     motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_PI_2)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
@@ -408,8 +408,9 @@ int main(int argc, char* argv[]) {
     while (time < total_time) {
         // Get the infomation of the wheel
         const auto& reaction = actuator->GetReaction2();
+        const auto& reaction_motor = motor->GetReaction2();
         const auto& force = reaction.force;
-        const auto& torque = reaction.torque;
+        const auto& torque = reaction_motor.torque;
         const auto& w_pos = wheel->GetPos();
         const auto& w_vel = wheel->GetPosDt();
         const auto& angvel = wheel->GetAngVelLocal();
