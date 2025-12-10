@@ -60,6 +60,34 @@ if(DBG_SCRIPT)
 endif()
 
 #-----------------------------------------------------------------------------
+# Set SWIG flags for optional modules
+#-----------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_VSG)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
+endif()
+
+if(CH_ENABLE_MODULE_IRRLICHT)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
+endif()
+
+if(CH_ENABLE_MODULE_FSI)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI")
+endif()
+
+if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PARSERS_URDF")
+endif()
+
+if (CH_ENABLE_MODULE_SENSOR)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE AND HAVE_OPENCRG)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DHAVE_OPENCRG")
+endif()
+
+#-----------------------------------------------------------------------------
 
 set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
@@ -355,20 +383,6 @@ endif()
 
 if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
-  if (CH_ENABLE_MODULE_IRRLICHT)
-     #Append the CHRONO_IRRLICHT flag, for vehicle visual irrlicht
-     set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
-  endif()
-
-  if (CH_ENABLE_MODULE_VSG)
-    #Append the CHRONO_VSG flag, for vehicle visual VSG
-    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
-  endif()
-
-  if (HAVE_OPENCRG)
-     set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DHAVE_OPENCRG")
-  endif()
-
   message(STATUS "Add C# VEHICLE module")
 
   set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/vehicle")
@@ -388,16 +402,26 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   swig_add_library(Chrono_csharp_vehicle LANGUAGE csharp SOURCES ${INTERFACE_FILE_VEHICLE})
   target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_core Chrono_vehicle ChronoModels_vehicle)
 
-
-  if (CH_ENABLE_MODULE_IRRLICHT)
+  if(CH_ENABLE_MODULE_IRRLICHT)
     find_package(Irrlicht QUIET REQUIRED)
     target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_irrlicht Chrono_vehicle_irrlicht Irrlicht::Irrlicht)
-  endif()
-
-  if (CH_ENABLE_MODULE_POSTPROCESS)
-     target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_postprocess)
+    add_dependencies(Chrono_csharp_vehicle Chrono_csharp_irrlicht)
   endif()
   
+  if(CH_ENABLE_MODULE_VSG)
+      target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_vehicle_vsg Chrono_vsg)
+      add_dependencies(Chrono_csharp_vehicle Chrono_csharp_vsg)
+  endif()
+
+  if(CH_ENABLE_MODULE_POSTPROCESS)
+     target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_postprocess)
+    add_dependencies(Chrono_csharp_vehicle Chrono_csharp_postprocess)
+  endif()
+  
+  if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_FSI_SPH)
+    target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_fsi Chrono_fsisph)
+  endif()
+
   set_target_properties(Chrono_csharp_vehicle PROPERTIES 
                         PROJECT_LABEL "Chrono_csharp_vehicle"
                         OUTPUT_NAME   "Chrono_csharp_vehicle"
@@ -413,18 +437,6 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   add_dependencies(Chrono_csharp_vehicle Chrono_core Chrono_vehicle ChronoModels_vehicle)
 
   add_dependencies(Chrono_csharp_vehicle Chrono_csharp_core)
-  
-  if (CH_ENABLE_MODULE_VSG)
-      target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_vehicle_vsg Chrono_vsg)
-      add_dependencies(Chrono_csharp_vehicle Chrono_csharp_vsg)
-  endif()
-  
-  if (CH_ENABLE_MODULE_IRRLICHT)
-    add_dependencies(Chrono_csharp_vehicle Chrono_csharp_irrlicht)
-  endif()
-  if (CH_ENABLE_MODULE_POSTPROCESS)
-    add_dependencies(Chrono_csharp_vehicle Chrono_csharp_postprocess)
-  endif()
   
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(TARGETS Chrono_csharp_vehicle
