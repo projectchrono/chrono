@@ -31,8 +31,8 @@ ChElementBeamEuler::ChElementBeamEuler()
       use_geometric_stiffness(true) {
     nodes.resize(2);
 
-    Km.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
-    Kg.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
+    Km.setZero(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
+    Kg.setZero(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
 }
 
 void ChElementBeamEuler::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
@@ -52,8 +52,8 @@ void ChElementBeamEuler::ShapeFunctions(ShapeVector& N, double eta) {
     double Nx2 = (1. / 2.) * (1 + eta);
     double Ny1 = (1. / 4.) * std::pow((1 - eta), 2) * (2 + eta);
     double Ny2 = (1. / 4.) * std::pow((1 + eta), 2) * (2 - eta);
-    double Nr1 = (this->length / 8.) * std::pow((1 - eta), 2) * (1 + eta);
-    double Nr2 = (this->length / 8.) * std::pow((1 + eta), 2) * (eta - 1);
+    double Nr1 = (length / 8.) * std::pow((1 - eta), 2) * (1 + eta);
+    double Nr2 = (length / 8.) * std::pow((1 + eta), 2) * (eta - 1);
     /*
     N(0) = Nx1;
     N(1) = Ny1;
@@ -68,8 +68,8 @@ void ChElementBeamEuler::ShapeFunctions(ShapeVector& N, double eta) {
     N(10) = -Nr2;
     N(11) = Nr2;
     */
-    double dN_ua = (1. / (2. * this->length)) * (-3. + 3 * eta * eta);
-    double dN_ub = (1. / (2. * this->length)) * (3. - 3 * eta * eta);
+    double dN_ua = (1. / (2. * length)) * (-3. + 3 * eta * eta);
+    double dN_ub = (1. / (2. * length)) * (3. - 3 * eta * eta);
     double dN_ra = (1. / 4.) * (-1. - 2 * eta + 3 * eta * eta);
     double dN_rb = -(1. / 4.) * (1. - 2 * eta - 3 * eta * eta);
     N(0) = Nx1;
@@ -89,14 +89,14 @@ void ChElementBeamEuler::Update() {
     ChElementGeneric::Update();
 
     // always keep updated the rotation matrix A:
-    this->UpdateRotation();
+    UpdateRotation();
 }
 
 void ChElementBeamEuler::UpdateRotation() {
-    ChMatrix33<> A0(this->q_element_ref_rot);
+    ChMatrix33<> A0(q_element_ref_rot);
 
     ChMatrix33<> Aabs;
-    if (this->disable_corotate) {
+    if (disable_corotate) {
         Aabs = A0;
         q_element_abs_rot = q_element_ref_rot;
     } else {
@@ -113,7 +113,7 @@ void ChElementBeamEuler::UpdateRotation() {
         q_element_abs_rot = Aabs.GetQuaternion();
     }
 
-    this->A = A0.transpose() * Aabs;
+    A = A0.transpose() * Aabs;
 }
 
 void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
@@ -124,8 +124,8 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
 
     // Node 0, displacement (in local element frame, corotated back)
     //     d = [Atw]' Xt - [A0w]'X0
-    ChVector3d displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) -
-                       this->q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
+    ChVector3d displ = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) -
+                       q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
     mD.segment(0, 3) = displ.eigen();
 
     // Node 0, x,y,z small rotations (in local element frame)
@@ -140,8 +140,8 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
 
     // Node 1, displacement (in local element frame, corotated back)
     //     d = [Atw]' Xt - [A0w]'X0
-    displ = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) -
-            this->q_element_ref_rot.RotateBack(nodes[1]->GetX0().GetPos());
+    displ = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) -
+            q_element_ref_rot.RotateBack(nodes[1]->GetX0().GetPos());
     mD.segment(6, 3) = displ.eigen();
 
     // Node 1, x,y,z small rotations (in local element frame)
@@ -174,22 +174,22 @@ void ChElementBeamEuler::GetFieldDt(ChVectorDynamic<>& mD_dt) {
 // This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
 void ChElementBeamEuler::ComputeNodalMass() {
     for (int i = 0; i < nodes.size(); ++i)
-        nodes[i]->m_TotalMass += this->mass / nodes.size();
+        nodes[i]->m_TotalMass += mass / nodes.size();
 }
 
 void ChElementBeamEuler::ComputeStiffnessMatrix() {
     assert(section);
 
-    double EA = this->section->GetAxialRigidity();
-    double EIyy = this->section->GetBendingRigidityY();
-    double EIzz = this->section->GetBendingRigidityZ();
-    double GJ = this->section->GetTorsionRigidityX();
-    double Cy = this->section->GetCentroidY();
-    double Cz = this->section->GetCentroidZ();
-    double Sy = this->section->GetShearCenterY();
-    double Sz = this->section->GetShearCenterZ();
+    double EA = section->GetAxialRigidity();
+    double EIyy = section->GetBendingRigidityY();
+    double EIzz = section->GetBendingRigidityZ();
+    double GJ = section->GetTorsionRigidityX();
+    double Cy = section->GetCentroidY();
+    double Cz = section->GetCentroidZ();
+    double Sy = section->GetShearCenterY();
+    double Sz = section->GetShearCenterZ();
 
-    double h = this->length;
+    double h = length;
 
     double om_xz = 0;  // For Euler-Bernoulli
     double om_xy = 0;  // For Euler-Bernoulli
@@ -260,14 +260,14 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
             Km(c, r) = Km(r, c);
 
     // In case the section is rotated:
-    if (this->section->GetSectionRotation()) {
+    if (section->GetSectionRotation()) {
         // Do [K]^ = [R][K][R]'
         ChMatrix33<> Rotsect;
         Rotsect.SetFromCardanAnglesXYZ(ChVector3d(-section->GetSectionRotation(), 0, 0));
         ChMatrixDynamic<> CKtemp(12, 12);
         CKtemp.setZero();
-        ChMatrixCorotation::ComputeCK(this->Km, Rotsect, 4, CKtemp);
-        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->Km);
+        ChMatrixCorotation::ComputeCK(Km, Rotsect, 4, CKtemp);
+        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, Km);
     }
     // In case the section has a centroid displacement:
 
@@ -275,24 +275,24 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         // Do [K]" = [T_c][K]^[T_c]'
 
         for (int i = 0; i < 12; ++i)
-            this->Km(4, i) += Cz * this->Km(0, i);
+            Km(4, i) += Cz * Km(0, i);
         for (int i = 0; i < 12; ++i)
-            this->Km(5, i) += -Cy * this->Km(0, i);
+            Km(5, i) += -Cy * Km(0, i);
 
         for (int i = 0; i < 12; ++i)
-            this->Km(10, i) += Cz * this->Km(6, i);
+            Km(10, i) += Cz * Km(6, i);
         for (int i = 0; i < 12; ++i)
-            this->Km(11, i) += -Cy * this->Km(6, i);
+            Km(11, i) += -Cy * Km(6, i);
 
         for (int i = 0; i < 12; ++i)
-            this->Km(i, 4) += Cz * this->Km(i, 0);
+            Km(i, 4) += Cz * Km(i, 0);
         for (int i = 0; i < 12; ++i)
-            this->Km(i, 5) += -Cy * this->Km(i, 0);
+            Km(i, 5) += -Cy * Km(i, 0);
 
         for (int i = 0; i < 12; ++i)
-            this->Km(i, 10) += Cz * this->Km(i, 6);
+            Km(i, 10) += Cz * Km(i, 6);
         for (int i = 0; i < 12; ++i)
-            this->Km(i, 11) += -Cy * this->Km(i, 6);
+            Km(i, 11) += -Cy * Km(i, 6);
     }
 
     // In case the section has a shear center displacement:
@@ -300,14 +300,14 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         // Do [K]?= [T_s][K]"[T_s]'
 
         for (int i = 0; i < 12; ++i)
-            this->Km(3, i) += -Sz * this->Km(1, i) + Sy * this->Km(2, i);
+            Km(3, i) += -Sz * Km(1, i) + Sy * Km(2, i);
         for (int i = 0; i < 12; ++i)
-            this->Km(9, i) += -Sz * this->Km(7, i) + Sy * this->Km(8, i);
+            Km(9, i) += -Sz * Km(7, i) + Sy * Km(8, i);
 
         for (int i = 0; i < 12; ++i)
-            this->Km(i, 3) += -Sz * this->Km(i, 1) + Sy * this->Km(i, 2);
+            Km(i, 3) += -Sz * Km(i, 1) + Sy * Km(i, 2);
         for (int i = 0; i < 12; ++i)
-            this->Km(i, 9) += -Sz * this->Km(i, 7) + Sy * this->Km(i, 8);
+            Km(i, 9) += -Sz * Km(i, 7) + Sy * Km(i, 8);
     }
 }
 
@@ -327,11 +327,11 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     // Applications of Finite Element Analysis? or in W. McGuire & R.H. Gallagher & R.D. Ziemian, �Matrix Structural
     // Analysis?
 
-    // double EA = this->section->GetAxialRigidity();
-    // double EIyy = this->section->GetBendingRigidityY();
-    // double EIzz = this->section->GetBendingRigidityZ();
+    // double EA = section->GetAxialRigidity();
+    // double EIyy = section->GetBendingRigidityY();
+    // double EIzz = section->GetBendingRigidityZ();
 
-    double L = this->length;
+    double L = length;
 
     double P6_5L_y = 6. / (5. * L);    // optional [2]: ...+ 12*IzA /(L*L*L);
     double P6_5L_z = 6. / (5. * L);    // optional [2]: ...+ 12*IyA /(L*L*L);
@@ -342,58 +342,58 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     double PL_30_y = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
     double PL_30_z = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
                                        /*
-                                        this->Kg(0, 0) =   1./L;
-                                        this->Kg(6, 6) =   1./L;
-                                        this->Kg(0, 6) = - 1./L;
+                                        Kg(0, 0) =   1./L;
+                                        Kg(6, 6) =   1./L;
+                                        Kg(0, 6) = - 1./L;
                                         */
 
-    this->Kg(1, 1) = P6_5L_y;
-    this->Kg(1, 5) = P_10_y;
-    this->Kg(1, 7) = -P6_5L_y;
-    this->Kg(1, 11) = P_10_y;
+    Kg(1, 1) = P6_5L_y;
+    Kg(1, 5) = P_10_y;
+    Kg(1, 7) = -P6_5L_y;
+    Kg(1, 11) = P_10_y;
 
-    this->Kg(2, 2) = P6_5L_z;
-    this->Kg(2, 4) = -P_10_z;
-    this->Kg(2, 8) = -P6_5L_z;
-    this->Kg(2, 10) = -P_10_z;
+    Kg(2, 2) = P6_5L_z;
+    Kg(2, 4) = -P_10_z;
+    Kg(2, 8) = -P6_5L_z;
+    Kg(2, 10) = -P_10_z;
 
-    this->Kg(4, 4) = PL2_15_y;
-    this->Kg(4, 8) = P_10_y;
-    this->Kg(4, 10) = -PL_30_y;
+    Kg(4, 4) = PL2_15_y;
+    Kg(4, 8) = P_10_y;
+    Kg(4, 10) = -PL_30_y;
 
-    this->Kg(5, 5) = PL2_15_z;
-    this->Kg(5, 7) = -P_10_z;
-    this->Kg(5, 11) = -PL_30_z;
+    Kg(5, 5) = PL2_15_z;
+    Kg(5, 7) = -P_10_z;
+    Kg(5, 11) = -PL_30_z;
 
-    this->Kg(7, 7) = P6_5L_y;
-    this->Kg(7, 11) = -P_10_y;
+    Kg(7, 7) = P6_5L_y;
+    Kg(7, 11) = -P_10_y;
 
-    this->Kg(8, 8) = P6_5L_z;
-    this->Kg(8, 10) = P_10_y;
+    Kg(8, 8) = P6_5L_z;
+    Kg(8, 10) = P_10_y;
 
-    this->Kg(10, 10) = PL2_15_y;
+    Kg(10, 10) = PL2_15_y;
 
-    this->Kg(11, 11) = PL2_15_z;
+    Kg(11, 11) = PL2_15_z;
 
     // symmetric part;
     for (int r = 0; r < 12; r++)
         for (int c = r + 1; c < 12; c++)
             Kg(c, r) = Kg(r, c);
 
-    double Cy = this->section->GetCentroidY();
-    double Cz = this->section->GetCentroidZ();
-    double Sy = this->section->GetShearCenterY();
-    double Sz = this->section->GetShearCenterZ();
+    double Cy = section->GetCentroidY();
+    double Cz = section->GetCentroidZ();
+    double Sy = section->GetShearCenterY();
+    double Sz = section->GetShearCenterZ();
 
     // In case the section is rotated:
-    if (this->section->GetSectionRotation()) {
+    if (section->GetSectionRotation()) {
         // Do [K]^ = [R][K][R]'
         ChMatrix33<> Rotsect;
         Rotsect.SetFromCardanAnglesXYZ(ChVector3d(-section->GetSectionRotation(), 0, 0));
         ChMatrixDynamic<> CKtemp(12, 12);
         CKtemp.setZero();
-        ChMatrixCorotation::ComputeCK(this->Kg, Rotsect, 4, CKtemp);
-        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->Kg);
+        ChMatrixCorotation::ComputeCK(Kg, Rotsect, 4, CKtemp);
+        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, Kg);
     }
     // In case the section has a centroid displacement:
 
@@ -401,24 +401,24 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
         // Do [K]" = [T_c][K]^[T_c]'
 
         for (int i = 0; i < 12; ++i)
-            this->Kg(4, i) += Cz * this->Kg(0, i);
+            Kg(4, i) += Cz * Kg(0, i);
         for (int i = 0; i < 12; ++i)
-            this->Kg(5, i) += -Cy * this->Kg(0, i);
+            Kg(5, i) += -Cy * Kg(0, i);
 
         for (int i = 0; i < 12; ++i)
-            this->Kg(10, i) += Cz * this->Kg(6, i);
+            Kg(10, i) += Cz * Kg(6, i);
         for (int i = 0; i < 12; ++i)
-            this->Kg(11, i) += -Cy * this->Kg(6, i);
+            Kg(11, i) += -Cy * Kg(6, i);
 
         for (int i = 0; i < 12; ++i)
-            this->Kg(i, 4) += Cz * this->Kg(i, 0);
+            Kg(i, 4) += Cz * Kg(i, 0);
         for (int i = 0; i < 12; ++i)
-            this->Kg(i, 5) += -Cy * this->Kg(i, 0);
+            Kg(i, 5) += -Cy * Kg(i, 0);
 
         for (int i = 0; i < 12; ++i)
-            this->Kg(i, 10) += Cz * this->Kg(i, 6);
+            Kg(i, 10) += Cz * Kg(i, 6);
         for (int i = 0; i < 12; ++i)
-            this->Kg(i, 11) += -Cy * this->Kg(i, 6);
+            Kg(i, 11) += -Cy * Kg(i, 6);
     }
 
     // In case the section has a shear center displacement:
@@ -426,14 +426,14 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
         // Do [K]?= [T_s][K]"[T_s]'
 
         for (int i = 0; i < 12; ++i)
-            this->Kg(3, i) += -Sz * this->Kg(1, i) + Sy * this->Kg(2, i);
+            Kg(3, i) += -Sz * Kg(1, i) + Sy * Kg(2, i);
         for (int i = 0; i < 12; ++i)
-            this->Kg(9, i) += -Sz * this->Kg(7, i) + Sy * this->Kg(8, i);
+            Kg(9, i) += -Sz * Kg(7, i) + Sy * Kg(8, i);
 
         for (int i = 0; i < 12; ++i)
-            this->Kg(i, 3) += -Sz * this->Kg(i, 1) + Sy * this->Kg(i, 2);
+            Kg(i, 3) += -Sz * Kg(i, 1) + Sy * Kg(i, 2);
         for (int i = 0; i < 12; ++i)
-            this->Kg(i, 9) += -Sz * this->Kg(i, 7) + Sy * this->Kg(i, 8);
+            Kg(i, 9) += -Sz * Kg(i, 7) + Sy * Kg(i, 8);
     }
 }
 
@@ -441,8 +441,8 @@ void ChElementBeamEuler::SetupInitial(ChSystem* system) {
     assert(section);
 
     // Compute rest length, mass:
-    this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-    this->mass = this->length * this->section->GetMassPerUnitLength();
+    length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
+    mass = length * section->GetMassPerUnitLength();
 
     // Compute initial rotation
     ChMatrix33<> A0;
@@ -475,21 +475,21 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 
             ChVectorDynamic<> Fi0(12);
             ChVectorDynamic<> FiD(12);
-            this->ComputeInternalForces(Fi0);
+            ComputeInternalForces(Fi0);
             ChMatrixDynamic<> H_num(12, 12);
 
             // K
-            ChVector3d pa0 = this->GetNodeA()->GetPos();
-            ChQuaternion<> qa0 = this->GetNodeA()->GetRot();
-            ChVector3d pb0 = this->GetNodeB()->GetPos();
-            ChQuaternion<> qb0 = this->GetNodeB()->GetRot();
+            ChVector3d pa0 = GetNodeA()->GetPos();
+            ChQuaternion<> qa0 = GetNodeA()->GetRot();
+            ChVector3d pb0 = GetNodeB()->GetPos();
+            ChQuaternion<> qb0 = GetNodeB()->GetRot();
             for (int i = 0; i < 3; ++i) {
                 ChVector3d paD = pa0;
                 paD[i] += delta_p;
-                this->GetNodeA()->SetPos(paD);
-                this->ComputeInternalForces(FiD);
+                GetNodeA()->SetPos(paD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i) = (FiD - Fi0) / delta_p;
-                this->GetNodeA()->SetPos(pa0);
+                GetNodeA()->SetPos(pa0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d rotator(VNULL);
@@ -497,18 +497,18 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
                 ChQuaternion<> mdeltarotL;
                 mdeltarotL.SetFromRotVec(rotator);  // rot.in local basis - as in system wide vectors
                 ChQuaternion<> qaD = qa0 * mdeltarotL;
-                this->GetNodeA()->SetRot(qaD);
-                this->ComputeInternalForces(FiD);
+                GetNodeA()->SetRot(qaD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 3) = (FiD - Fi0) / delta_r;
-                this->GetNodeA()->SetRot(qa0);
+                GetNodeA()->SetRot(qa0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d pbD = pb0;
                 pbD[i] += delta_p;
-                this->GetNodeB()->SetPos(pbD);
-                this->ComputeInternalForces(FiD);
+                GetNodeB()->SetPos(pbD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 6) = (FiD - Fi0) / delta_p;
-                this->GetNodeB()->SetPos(pb0);
+                GetNodeB()->SetPos(pb0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d rotator(VNULL);
@@ -516,49 +516,49 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
                 ChQuaternion<> mdeltarotL;
                 mdeltarotL.SetFromRotVec(rotator);  // rot.in local basis - as in system wide vectors
                 ChQuaternion<> qbD = qb0 * mdeltarotL;
-                this->GetNodeB()->SetRot(qbD);
-                this->ComputeInternalForces(FiD);
+                GetNodeB()->SetRot(qbD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 9) = (FiD - Fi0) / delta_r;
-                this->GetNodeB()->SetRot(qb0);
+                GetNodeB()->SetRot(qb0);
             }
             H.block(0, 0, 12, 12) = -H_num * Kfactor;
 
             // R
-            ChVector3d va0 = this->GetNodeA()->GetPosDt();
-            ChVector3d wa0 = this->GetNodeA()->GetAngVelLocal();
-            ChVector3d vb0 = this->GetNodeB()->GetPosDt();
-            ChVector3d wb0 = this->GetNodeB()->GetAngVelLocal();
+            ChVector3d va0 = GetNodeA()->GetPosDt();
+            ChVector3d wa0 = GetNodeA()->GetAngVelLocal();
+            ChVector3d vb0 = GetNodeB()->GetPosDt();
+            ChVector3d wb0 = GetNodeB()->GetAngVelLocal();
             for (int i = 0; i < 3; ++i) {
                 ChVector3d vaD = va0;
                 vaD[i] += delta_p;
-                this->GetNodeA()->SetPosDt(vaD);
-                this->ComputeInternalForces(FiD);
+                GetNodeA()->SetPosDt(vaD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i) = (FiD - Fi0) / delta_p;
-                this->GetNodeA()->SetPosDt(va0);
+                GetNodeA()->SetPosDt(va0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d waD = wa0;
                 waD[i] += delta_r;
-                this->GetNodeA()->SetAngVelLocal(waD);
-                this->ComputeInternalForces(FiD);
+                GetNodeA()->SetAngVelLocal(waD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 3) = (FiD - Fi0) / delta_r;
-                this->GetNodeA()->SetAngVelLocal(wa0);
+                GetNodeA()->SetAngVelLocal(wa0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d vbD = vb0;
                 vbD[i] += delta_p;
-                this->GetNodeB()->SetPosDt(vbD);
-                this->ComputeInternalForces(FiD);
+                GetNodeB()->SetPosDt(vbD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 6) = (FiD - Fi0) / delta_p;
-                this->GetNodeB()->SetPosDt(vb0);
+                GetNodeB()->SetPosDt(vb0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d wbD = wb0;
                 wbD[i] += delta_r;
-                this->GetNodeB()->SetAngVelLocal(wbD);
-                this->ComputeInternalForces(FiD);
+                GetNodeB()->SetAngVelLocal(wbD);
+                ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 9) = (FiD - Fi0) / delta_r;
-                this->GetNodeB()->SetAngVelLocal(wb0);
+                GetNodeB()->SetAngVelLocal(wb0);
             }
             H.block(0, 0, 12, 12) += -H_num * Rfactor;
 
@@ -573,33 +573,33 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
             // Corotate local stiffness matrix
             //
 
-            ChMatrix33<> Atoabs(this->q_element_abs_rot);
-            ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
-            ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+            ChMatrix33<> Atoabs(q_element_abs_rot);
+            ChMatrix33<> AtolocwelA(GetNodeA()->Frame().GetRot().GetConjugate() * q_element_abs_rot);
+            ChMatrix33<> AtolocwelB(GetNodeB()->Frame().GetRot().GetConjugate() * q_element_abs_rot);
             std::vector<ChMatrix33<>*> R;
             R.push_back(&Atoabs);
             R.push_back(&AtolocwelA);
             R.push_back(&Atoabs);
             R.push_back(&AtolocwelB);
 
-            if (this->use_geometric_stiffness) {
+            if (use_geometric_stiffness) {
                 // K = Km+Kg
 
                 // For Kg, compute Px tension of the beam along centerline, using temporary but fast data structures:
-                ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
-                this->GetStateBlock(displ);
-                double Px = -this->Km.row(0) * displ;
+                ChVectorDynamic<> displ(GetNumCoordsPosLevel());
+                GetStateBlock(displ);
+                double Px = -Km.row(0) * displ;
 
                 // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] =
                 // (kf+rf*beta)*[Km] + kf*Kg
                 H_local =
-                    this->Km * (Kfactor + Rfactor * this->section->GetRayleighDampingBeta()) + this->Kg * Px * Kfactor;
+                    Km * (Kfactor + Rfactor * section->GetRayleighDampingBeta()) + Kg * Px * Kfactor;
             } else {
                 // K = Km
 
                 // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km]+rf*[R] =
                 // (kf+rf*beta)*[K]
-                H_local = this->Km * (Kfactor + Rfactor * this->section->GetRayleighDampingBeta());
+                H_local = Km * (Kfactor + Rfactor * section->GetRayleighDampingBeta());
             }
 
             ChMatrixCorotation::ComputeCK(H_local, R, 4, CK);
@@ -622,7 +622,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
             // Add inertial stiffness matrix and inertial damping matrix (gyroscopic damping),
             // if enabled in section material.
             // These matrices are not symmetric. Also note
-            if (this->section->compute_inertia_damping_matrix || this->section->compute_inertia_stiffness_matrix) {
+            if (section->compute_inertia_damping_matrix || section->compute_inertia_stiffness_matrix) {
                 ChMatrixNM<double, 6, 6> matr_loc;
                 ChMatrixNM<double, 6, 6> KRi_loc;
                 KRi_loc.setZero();
@@ -632,12 +632,12 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
                 double node_multiplier_fact_K = 0.5 * length * Kfactor;
                 for (int i = 0; i < nodes.size(); ++i) {
                     int stride = i * 6;
-                    if (this->section->compute_inertia_damping_matrix) {
-                        this->section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetAngVelLocal());
+                    if (section->compute_inertia_damping_matrix) {
+                        section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetAngVelLocal());
                         KRi_loc += matr_loc * node_multiplier_fact_R;
                     }
-                    if (this->section->compute_inertia_stiffness_matrix) {
-                        this->section->ComputeInertiaStiffnessMatrix(
+                    if (section->compute_inertia_stiffness_matrix) {
+                        section->ComputeInertiaStiffnessMatrix(
                             matr_loc, nodes[i]->GetAngVelLocal(), nodes[i]->GetAngAccLocal(),
                             (nodes[i]->GetRotMat().transpose()) *
                                 nodes[i]->GetPosDt2());  // assume x_dtdt in local frame!
@@ -663,7 +663,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     // The M mass matrix of this element:
     //
 
-    if (Mfactor || (Rfactor && this->section->GetRayleighDampingAlpha())) {
+    if (Mfactor || (Rfactor && section->GetRayleighDampingAlpha())) {
         ChMatrixDynamic<> Mloc(12, 12);
         Mloc.setZero();
         ChMatrix33<> Mxw;
@@ -672,12 +672,12 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         // "lumped" M mass matrix
         //
         ChMatrixNM<double, 6, 6> sectional_mass;
-        this->section->ComputeInertiaMatrix(sectional_mass);
+        section->ComputeInertiaMatrix(sectional_mass);
 
         // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M] , so H += km*[M]+rf*[Rm]  H +=
         // (km+rf*alpha)*[M]
 
-        double node_multiplier_fact = 0.5 * length * (Mfactor + Rfactor * this->section->GetRayleighDampingAlpha());
+        double node_multiplier_fact = 0.5 * length * (Mfactor + Rfactor * section->GetRayleighDampingAlpha());
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             // if there is no mass center offset, the upper right and lower left blocks need not be rotated,
@@ -692,9 +692,9 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         }
 
         /* The following would be needed if consistent mass matrix is used, but...
-        ChMatrix33<> Atoabs(this->q_element_abs_rot);
-        ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-        ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+        ChMatrix33<> Atoabs(q_element_abs_rot);
+        ChMatrix33<> AtolocwelA(GetNodeA()->Frame().GetRot().GetConjugate() % q_element_abs_rot);
+        ChMatrix33<> AtolocwelB(GetNodeB()->Frame().GetRot().GetConjugate() % q_element_abs_rot);
         std::vector< ChMatrix33<>* > R;
         R.push_back(&Atoabs);
         R.push_back(&AtolocwelA);
@@ -721,14 +721,14 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     // set up vector of nodal displacements and small rotations (in local element system)
     ChVectorDynamic<> displ(12);
-    this->GetStateBlock(displ);
+    GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
     ChVectorDynamic<> Fi_local = Km * displ;
 
     // set up vector of nodal velocities (in local element system)
     ChVectorDynamic<> displ_dt(12);
-    this->GetFieldDt(displ_dt);
+    GetFieldDt(displ_dt);
 
     // Rayleigh damping - stiffness proportional
     ChMatrixDynamic<> FiR_local = section->GetRayleighDampingBeta() * Km * displ_dt;
@@ -736,17 +736,17 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     Fi_local += FiR_local;
 
     // Rayleigh damping - mass proportional
-    if (this->section->GetRayleighDampingAlpha()) {
+    if (section->GetRayleighDampingAlpha()) {
         ChMatrixDynamic<> Mloc(12, 12);
         Mloc.setZero();
         ChMatrix33<> Mxw;
 
         // the "lumped" M mass matrix must be computed
         ChMatrixNM<double, 6, 6> sectional_mass;
-        this->section->ComputeInertiaMatrix(sectional_mass);
+        section->ComputeInertiaMatrix(sectional_mass);
 
         // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M]
-        double node_multiplier_fact = 0.5 * length * (this->section->GetRayleighDampingAlpha());
+        double node_multiplier_fact = 0.5 * length * (section->GetRayleighDampingAlpha());
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             Mloc.block<6, 6>(stride, stride) += sectional_mass * node_multiplier_fact;
@@ -762,9 +762,9 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     //
 
     // Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame
-    ChMatrix33<> Atoabs(this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+    ChMatrix33<> Atoabs(q_element_abs_rot);
+    ChMatrix33<> AtolocwelA(GetNodeA()->Frame().GetRot().GetConjugate() * q_element_abs_rot);
+    ChMatrix33<> AtolocwelB(GetNodeB()->Frame().GetRot().GetConjugate() * q_element_abs_rot);
     std::vector<ChMatrix33<>*> R;
     R.push_back(&Atoabs);
     R.push_back(&AtolocwelA);
@@ -779,7 +779,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector3d mFcent_i;
     ChVector3d mTgyro_i;
     for (int i = 0; i < nodes.size(); ++i) {
-        this->section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetAngVelLocal());
+        section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetAngVelLocal());
         Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetRotMat() * mFcent_i).eigen();
         Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
     }
@@ -804,7 +804,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 void ChElementBeamEuler::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     // no so efficient... a temporary mass matrix here:
     ChMatrixDynamic<> mM(12, 12);
-    this->ComputeMmatrixGlobal(mM);
+    ComputeMmatrixGlobal(mM);
 
     // a vector of G accelerations for the two nodes (for translation degrees of freedom)
     ChVectorDynamic<> mG(12);
@@ -822,8 +822,8 @@ void ChElementBeamEuler::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVec
 }
 
 void ChElementBeamEuler::EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) {
-    ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
-    this->GetStateBlock(displ);
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
+    GetStateBlock(displ);
 
     ShapeVector N;
     ShapeFunctions(N, eta);  // Evaluate compressed shape functions
@@ -847,32 +847,32 @@ void ChElementBeamEuler::EvaluateSectionFrame(const double eta, ChVector3d& poin
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
 
-    this->EvaluateSectionDisplacement(eta, u_displ, u_rotaz);
+    EvaluateSectionDisplacement(eta, u_displ, u_rotaz);
 
     // Since   d = [Atw]' Xt - [A0w]'X0   , so we have
     //        Xt = [Atw] (d +  [A0w]'X0)
 
-    point = this->q_element_abs_rot.Rotate(u_displ +
-                                           this->q_element_ref_rot.RotateBack(Nx1 * this->nodes[0]->GetX0().GetPos() +
-                                                                              Nx2 * this->nodes[1]->GetX0().GetPos()));
+    point = q_element_abs_rot.Rotate(u_displ +
+                                           q_element_ref_rot.RotateBack(Nx1 * nodes[0]->GetX0().GetPos() +
+                                                                              Nx2 * nodes[1]->GetX0().GetPos()));
 
     ChQuaternion<> msectionrot;
     msectionrot.SetFromAngleAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
-    rot = this->q_element_abs_rot * msectionrot;
+    rot = q_element_abs_rot * msectionrot;
 }
 
 void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) {
     assert(section);
 
-    double EA = this->section->GetAxialRigidity();
-    double EIyy = this->section->GetBendingRigidityY();
-    double EIzz = this->section->GetBendingRigidityZ();
-    double GJ = this->section->GetTorsionRigidityX();
-    double alpha = this->section->GetSectionRotation();
-    double Cy = this->section->GetCentroidY();
-    double Cz = this->section->GetCentroidZ();
-    double Sy = this->section->GetShearCenterY();
-    double Sz = this->section->GetShearCenterZ();
+    double EA = section->GetAxialRigidity();
+    double EIyy = section->GetBendingRigidityY();
+    double EIzz = section->GetBendingRigidityZ();
+    double GJ = section->GetTorsionRigidityX();
+    double alpha = section->GetSectionRotation();
+    double Cy = section->GetCentroidY();
+    double Cz = section->GetCentroidZ();
+    double Sy = section->GetShearCenterY();
+    double Sz = section->GetShearCenterZ();
 
     // The shear center offset is respect to the centerline.
     // In case the section has a shear center displacement:
@@ -917,8 +917,8 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector3d
     ChMatrixNM<double, 12, 12> T;
     T = Rotsect * Ts * Tc;
 
-    ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
-    this->GetStateBlock(displ);
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
+    GetStateBlock(displ);
     ChVectorDynamic<> displ_ec = T * displ;
 
     // ShapeVector N;
@@ -1018,8 +1018,8 @@ void ChElementBeamEuler::LoadableStateIncrement(const unsigned int off_x,
 }
 
 void ChElementBeamEuler::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-    mvars.push_back(&this->nodes[0]->Variables());
-    mvars.push_back(&this->nodes[1]->Variables());
+    mvars.push_back(&nodes[0]->Variables());
+    mvars.push_back(&nodes[1]->Variables());
 }
 
 void ChElementBeamEuler::ComputeNF(const double U,
@@ -1031,7 +1031,7 @@ void ChElementBeamEuler::ComputeNF(const double U,
     ShapeVector N;
     ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependant on state
 
-    detJ = this->GetRestLength() / 2.0;
+    detJ = GetRestLength() / 2.0;
 
     Qi(0) = N(0) * F(0);
     Qi(1) = N(1) * F(1) + N(6) * F(5);
@@ -1056,12 +1056,12 @@ void ChElementBeamEuler::ComputeNF(const double U,
                                    const ChVectorDynamic<>& F,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
-    this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
+    ComputeNF(U, Qi, detJ, F, state_x, state_w);
     detJ /= 4.0;  // because volume
 }
 
 double ChElementBeamEuler::GetDensity() {
-    return this->section->GetMassPerUnitLength();
+    return section->GetMassPerUnitLength();
 }
 
 }  // end namespace fea
