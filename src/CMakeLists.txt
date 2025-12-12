@@ -740,8 +740,9 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
 
-# Create Chrono configuration header in build and install trees
+# Create Chrono project configuration script in install and build trees
 set(CH_INSTALL_TREE TRUE)
+set(CH_BUILD_TREE_DIR "")
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
@@ -749,6 +750,7 @@ configure_package_config_file(
 )
 
 set(CH_INSTALL_TREE FALSE)
+set(CH_BUILD_TREE_DIR "${PROJECT_BINARY_DIR}")
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
@@ -756,6 +758,7 @@ configure_package_config_file(
 )
 
 unset(CH_INSTALL_TREE)
+unset(CH_BUILD_TREE_DIR)
 
 # install config files
 install(FILES
