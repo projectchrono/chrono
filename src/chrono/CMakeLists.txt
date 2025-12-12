@@ -257,6 +257,7 @@ set(Chrono_physics_loads_SOURCES
     physics/ChLoadsBody.cpp
     physics/ChLoadsNodeXYZ.cpp
     physics/ChLoadBodyMesh.cpp
+    physics/ChLoadHydrodynamics.cpp
     physics/ChLoadContainer.cpp
     )
 set(Chrono_physics_loads_HEADERS
@@ -269,6 +270,7 @@ set(Chrono_physics_loads_HEADERS
     physics/ChLoadsNodeXYZ.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
+    physics/ChLoadHydrodynamics.h
     physics/ChLoadContainer.h
     )
 source_group(physics\\loads FILES ${Chrono_physics_loads_SOURCES} ${Chrono_physics_loads_HEADERS})
