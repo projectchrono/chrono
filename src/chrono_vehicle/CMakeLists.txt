@@ -281,7 +281,7 @@ if(HAVE_OPENCRG)
         terrain/CRGTerrain.cpp
     )
 endif()
-if(CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI_SPH)
     set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
         terrain/CRMTerrain.h
         terrain/CRMTerrain.cpp    
@@ -849,8 +849,9 @@ endif()
 if(CH_ENABLE_MODULE_VSG)
   list (APPEND DEPENDENCIES_VEHICLE "VSG")
 endif()
-if(CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI_SPH)
   list (APPEND DEPENDENCIES_VEHICLE "FSI")
+  list (APPEND DEPENDENCIES_VEHICLE "FSI_SPH")
 endif()
 
 set(DEPENDENCIES_VEHICLE ${DEPENDENCIES_VEHICLE} PARENT_SCOPE)
@@ -923,7 +924,8 @@ if(HAVE_OPENCRG)
   target_link_libraries(Chrono_vehicle PRIVATE OpenCRG::OpenCRG)
 endif()
 
-if(CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI_SPH)
+  target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsi)
   target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsisph)
 endif()
 
