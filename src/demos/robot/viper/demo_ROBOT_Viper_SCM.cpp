@@ -138,9 +138,10 @@ std::shared_ptr<ChContactMaterial> CustomWheelMaterial(ChContactMethod contact_m
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Global parameter for moving patch size:
-    double wheel_diameter = 0.75;
+    // Wheel dimensions (for SCM active domains)
+    double wheel_diameter = 0.6;
     double wheel_width = 0.4;
+    ChVector3d wheel_size(wheel_diameter, wheel_width, wheel_diameter);
 
     // Create a Chrono physical system and associated collision system
     ChSystemSMC sys;
@@ -148,7 +149,7 @@ int main(int argc, char* argv[]) {
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Initialize output
-    const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
+    std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_SCM";
     if (output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -222,16 +223,16 @@ int main(int argc, char* argv[]) {
 
     // Add an active domains for every wheel
     if (enable_active_domains) {
-        terrain.AddActiveDomain(Wheel_1, ChVector3d(0, 0, 0), ChVector3d(1.25 * wheel_diameter, wheel_width, 1.25 * wheel_diameter));
-        terrain.AddActiveDomain(Wheel_2, ChVector3d(0, 0, 0), ChVector3d(1.25 * wheel_diameter, wheel_width, 1.25 * wheel_diameter));
-        terrain.AddActiveDomain(Wheel_3, ChVector3d(0, 0, 0), ChVector3d(1.25 * wheel_diameter, wheel_width, 1.25 * wheel_diameter));
-        terrain.AddActiveDomain(Wheel_4, ChVector3d(0, 0, 0), ChVector3d(1.25 * wheel_diameter, wheel_width, 1.25 * wheel_diameter));
+        terrain.AddActiveDomain(Wheel_1, ChVector3d(0, 0, 0), wheel_size);
+        terrain.AddActiveDomain(Wheel_2, ChVector3d(0, 0, 0), wheel_size);
+        terrain.AddActiveDomain(Wheel_3, ChVector3d(0, 0, 0), wheel_size);
+        terrain.AddActiveDomain(Wheel_4, ChVector3d(0, 0, 0), wheel_size);
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 20000);
 
-    terrain.SetMeshWireframe(true);
+    terrain.SetMeshWireframe(false);
 
     // Create the run-time visualization interface
 #ifndef CHRONO_IRRLICHT
@@ -277,6 +278,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Viper Rover on SCM");
             vis_vsg->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_diameter));
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

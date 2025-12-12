@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // The API interface between ROS/rclcpp and Chrono
@@ -19,10 +19,10 @@
 #ifndef CH_ROS_INTERFACE_H
 #define CH_ROS_INTERFACE_H
 
-#include "chrono_ros/ChApiROS.h"
-
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/executor.hpp"
+
+#include "chrono_ros/ChApiROS.h"
 
 #include <memory>
 #include <chrono>
@@ -42,19 +42,25 @@ class CH_ROS_API ChROSInterface {
     /// @param node_name the name to set to the created node. ROS will throw an error if the node name is identical to
     /// previously created nodes. 
     ChROSInterface(const std::string node_name);
+    
+    /// Virtual destructor for polymorphism
+    virtual ~ChROSInterface() = default;
 
     /// Initialize the underlying ROS 2 node.
     /// A SingleThreadedExecutor will be created and the node will be added to it.
-    void Initialize(rclcpp::NodeOptions options = rclcpp::NodeOptions());
+    virtual void Initialize(rclcpp::NodeOptions options = rclcpp::NodeOptions());
 
     /// Tick once. Will basically just call rclcpp::spin_some()
     /// NOTE: This is non-blocking. Available work will be executed, but it won't wait until it's completed if
     /// max_duration is 0 or the time since the last call to SpinSome is less than max_duration.
-    void SpinSome(std::chrono::nanoseconds max_duration = std::chrono::nanoseconds(0));
+    virtual void SpinSome(std::chrono::nanoseconds max_duration = std::chrono::nanoseconds(0));
 
     /// Retrieve the ROS node. Use this API to create a publisher or subscriber or any
     /// other ROS component.
-    rclcpp::Node::SharedPtr GetNode() { return m_node; }
+    virtual rclcpp::Node::SharedPtr GetNode() { return m_node; }
+    
+    /// Get the node name (for IPC interface access)
+    const std::string& GetNodeName() const { return m_node_name; }
 
   private:
     const std::string m_node_name;

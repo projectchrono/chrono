@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Chrono::ROS configuration header file
@@ -17,6 +17,17 @@
 // Automatically created during CMake configuration.
 //
 // =============================================================================
+
+#ifndef CH_CONFIG_ROS_H
+#define CH_CONFIG_ROS_H
+
+// Path to the ROS node executable in the build directory
+#define CH_ROS_NODE_BUILD_PATH "@CH_ROS_NODE_BUILD_PATH@"
+
+// Path to the ROS node executable in the install directory
+#define CH_ROS_NODE_INSTALL_PATH "@CH_ROS_NODE_INSTALL_PATH@"
+
+#endif
 
 #ifndef CH_ROS_CONFIG_H
 #define CH_ROS_CONFIG_H

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Handler responsible for publishing information about a ChBody
@@ -20,12 +20,14 @@
 #define CH_ROS_BODY_HANDLER_H
 
 #include "chrono_ros/ChROSHandler.h"
-
 #include "chrono/physics/ChBody.h"
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/accel_stamped.hpp"
+
+#include <string>
+#include <cstring>
 
 namespace chrono {
 namespace ros {
@@ -33,41 +35,44 @@ namespace ros {
 /// @addtogroup ros_handlers
 /// @{
 
-/// This handler is responsible for publishing state information about a ChBody. This handler creates three publishers
-/// for the pose, twist (linear/angular velocity), and accel (linear/angular acceleration) topics.
+/// Data structure for body handler communication between processes.
+/// Plain C++ struct with no ROS dependencies for IPC serialization.
+struct ChROSBodyData {
+    char body_name[64];
+    char topic_prefix[128];
+    
+    double pos_x, pos_y, pos_z;
+    double rot_w, rot_x, rot_y, rot_z;
+    
+    double lin_vel_x, lin_vel_y, lin_vel_z;
+    double ang_vel_x, ang_vel_y, ang_vel_z;
+    
+    double lin_acc_x, lin_acc_y, lin_acc_z;
+    double ang_acc_x, ang_acc_y, ang_acc_z;
+};
+
+/// Publishes pose, twist, and acceleration information for a ChBody.
+/// Creates three publishers: <topic>/pose, <topic>/twist, <topic>/accel
 class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
   public:
-    /// Constructor.
-    /// The based topic is concatenated before the individual topic names. This handler will publish to the topics:
-    ///     <topic>/pose
-    ///     <topic>/twist
-    ///     <topic>/accel
-    /// where <topic> is the passed in topic argument. If the no topic is passed, the topics will be:
-    ///     ~/pose
-    ///     ~/twist
-    ///     ~/accel
     ChROSBodyHandler(double update_rate, std::shared_ptr<ChBody> body, const std::string& topic = "~/");
 
-    /// Initializes the handler. This creates the three publishers for the pose, twist, and accel topics.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+    
+    /// Get the message type of this handler
+    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::BODY_DATA; }
 
-  protected:
-    /// @brief Simply calls PublishPose, PublishTwist, and PublishAccel.
-    /// @param time The time at which the current state of the simulation is.
-    virtual void Tick(double time) override;
+    /// Extract body state for IPC (called in main process, no ROS calls)
+    virtual std::vector<uint8_t> GetSerializedData(double time) override;
 
-  private:
-    /// Publishes the pose of the body at the given time.
-    void PublishPose(double time);
-    /// Publishes the twist of the body at the given time.
-    void PublishTwist(double time);
-    /// Publishes the accel of the body at the given time.
-    void PublishAccel(double time);
+    /// Publish data to ROS from serialized bytes (called in subprocess)
+    virtual void PublishFromSerialized(const std::vector<uint8_t>& data, 
+                                       std::shared_ptr<ChROSInterface> interface) override;
 
   private:
     std::shared_ptr<ChBody> m_body;
-
     const std::string m_topic;
+    
     geometry_msgs::msg::PoseStamped m_pose_msg;
     geometry_msgs::msg::TwistStamped m_twist_msg;
     geometry_msgs::msg::AccelStamped m_accel_msg;

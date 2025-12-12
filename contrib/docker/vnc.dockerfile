@@ -1,19 +1,23 @@
 FROM debian:buster
 
 # Install git, supervisor, VNC, & X11 packages
-RUN apt-get update && \
-	apt-get install -y --no-install-recommends \
-    bash \
-    fluxbox \
-    git \
-    net-tools \
-    novnc \
-    supervisor \
-    x11vnc \
-    xterm \
-    xvfb && \
+RUN sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g' /etc/apt/sources.list && \
+    sed -i 's|security.debian.org/debian-security|archive.debian.org/debian-security|g' /etc/apt/sources.list && \
+    # Buster is archived; disable “Valid-Until” checks
+    printf 'Acquire::Check-Valid-Until "false";\nAcquire::Check-Date "false";\n' > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        fluxbox \
+        git \
+        net-tools \
+        novnc \
+        supervisor \
+        x11vnc \
+        xterm \
+        xvfb && \
     apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
-
+    
 # Setup demo environment variables
 ENV HOME=/root \
     DEBIAN_FRONTEND=noninteractive \

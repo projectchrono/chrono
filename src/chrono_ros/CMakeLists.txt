@@ -71,6 +71,21 @@ endif()
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
+if(WIN32)
+    # On Windows, executables and DLLs must be in the same directory (bin) for PATH resolution
+    set(CH_ROS_NODE_DESTINATION bin)
+else()
+    # On Linux, we install the node executable to lib because:
+    # 1. It is an internal helper process, not a user-facing command (keeps bin/ clean)
+    # 2. It simplifies finding the executable relative to the shared library
+    # 3. It simplifies RPATH resolution (it sits next to the libraries it links against)
+    set(CH_ROS_NODE_DESTINATION lib)
+endif()
+
+# Define paths for the configuration file
+set(CH_ROS_NODE_BUILD_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/chrono_ros_node")
+set(CH_ROS_NODE_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/${CH_ROS_NODE_DESTINATION}/chrono_ros_node")
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigROS.h.in ${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h)
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h" DESTINATION include/chrono_ros)
@@ -89,6 +104,22 @@ set(CH_ROS_BASE_FILES
   ChROSInterface.cpp
 )
 source_group("base" FILES ${CH_ROS_BASE_FILES})
+
+set(CH_ROS_IPC_FILES
+  ipc/ChROSIPCMessage.h
+  ipc/ChROSSharedMemory.h
+  ipc/ChROSSharedMemory.cpp
+  ipc/ChROSRingBuffer.h
+  ipc/ChROSRingBuffer.cpp
+  ipc/ChROSIPCChannel.h
+  ipc/ChROSIPCChannel.cpp
+  ipc/ChROSSubprocessManager.h
+  ipc/ChROSSubprocessManager.cpp
+  
+  ChROSIPCInterface.h
+  ChROSIPCInterface.cpp
+)
+source_group("ipc" FILES ${CH_ROS_IPC_FILES})
 
 set(CH_ROS_HANDLER_FILES
   ChROSHandler.h
@@ -176,6 +207,7 @@ set(DEPENDENCIES_ROS ${DEPENDENCIES_ROS} PARENT_SCOPE)
 
 add_library(Chrono_ros SHARED
             ${CH_ROS_BASE_FILES}
+            ${CH_ROS_IPC_FILES}
             ${CH_ROS_HANDLER_FILES}
             ${CH_ROS_VEHICLE_HANDLER_FILES}
             ${CH_ROS_SENSOR_HANDLER_FILES}
@@ -253,3 +285,49 @@ install(TARGETS Chrono_ros
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_ros
         FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
+
+#-----------------------------------------------------------------------------
+# Create the ROS node subprocess executable
+#-----------------------------------------------------------------------------
+
+add_executable(chrono_ros_node chrono_ros_node.cpp)
+
+target_link_libraries(chrono_ros_node 
+    ${ROS2_TARGETS}
+    Chrono_core
+)
+
+# Add the IPC source files directly to avoid circular dependencies
+target_sources(chrono_ros_node PRIVATE
+    ipc/ChROSSharedMemory.cpp
+    ipc/ChROSRingBuffer.cpp  
+    ipc/ChROSIPCChannel.cpp
+    
+    # Add handler utilities
+    handlers/ChROSHandlerUtilities.cpp
+    
+    # Add handler ROS publishing implementations (only linked in subprocess)
+    handlers/ChROSClockHandler_ros.cpp
+    handlers/ChROSBodyHandler_ros.cpp
+    handlers/ChROSTFHandler_ros.cpp
+    handlers/vehicle/ChROSDriverInputsHandler_ros.cpp
+    handlers/robot/viper/ChROSViperDCMotorControlHandler_ros.cpp
+    handlers/sensor/ChROSCameraHandler_ros.cpp
+    handlers/sensor/ChROSLidarHandler_ros.cpp
+    handlers/sensor/ChROSAccelerometerHandler_ros.cpp
+    handlers/sensor/ChROSGyroscopeHandler_ros.cpp
+    handlers/sensor/ChROSMagnetometerHandler_ros.cpp
+    handlers/sensor/ChROSIMUHandler_ros.cpp
+    handlers/sensor/ChROSGPSHandler_ros.cpp
+    handlers/robot/ChROSRobotModelHandler_ros.cpp
+)
+
+target_include_directories(chrono_ros_node PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${PROJECT_BINARY_DIR}
+)
+
+install(TARGETS chrono_ros_node
+        EXPORT ChronoTargets
+        RUNTIME DESTINATION ${CH_ROS_NODE_DESTINATION}
+)
