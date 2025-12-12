@@ -384,8 +384,9 @@ int main(int argc, char* argv[]) {
     // =============================================================================
     // Create VSG visualization
     // =============================================================================
-    // Create a run-time visualizer
+
     std::shared_ptr<ChVisualSystem> vis;
+
     if (enable_vis) {
 #ifdef CHRONO_VSG
         // FSI plugin

@@ -25,6 +25,10 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkLock.h"
+
+#include "chrono/assets/ChVisualSystem.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+
 #include "chrono/core/ChRealtimeStep.h"
 
 #ifdef CHRONO_VSG
@@ -142,21 +146,26 @@ int main(int argc, char* argv[]) {
     // =============================================================================
     // Create VSG visualization
     // =============================================================================
+
+    std::shared_ptr<ChVisualSystem> vis;
+
 #ifdef CHRONO_VSG
-    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowTitle("Lunar Lander Simulation");
-    vis->SetWindowSize(ChVector2i(1280, 720));
-    vis->SetWindowPosition(ChVector2i(100, 100));
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->AddCamera(ChVector3d(8, -8, 6), ChVector3d(0, 0, 2));
-    vis->SetCameraAngleDeg(40.0);
-    vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->SetBackgroundColor(ChColor(0.1f, 0.1f, 0.15f));  // Dark blue-gray (space-like)
-    vis->EnableSkyBox();
-    vis->EnableShadows();
-    vis->Initialize();
+    auto vis_VSG = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis_VSG->AttachSystem(&sys);
+    vis_VSG->SetWindowTitle("Lunar Lander Simulation");
+    vis_VSG->SetWindowSize(ChVector2i(1280, 720));
+    vis_VSG->SetWindowPosition(ChVector2i(100, 100));
+    vis_VSG->SetCameraVertical(CameraVerticalDir::Z);
+    vis_VSG->AddCamera(ChVector3d(8, -8, 6), ChVector3d(0, 0, 2));
+    vis_VSG->SetCameraAngleDeg(40.0);
+    vis_VSG->SetLightIntensity(1.0f);
+    vis_VSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis_VSG->SetBackgroundColor(ChColor(0.1f, 0.1f, 0.15f));  // Dark blue-gray (space-like)
+    vis_VSG->EnableSkyBox();
+    vis_VSG->EnableShadows();
+    vis_VSG->Initialize();
+
+    vis = vis_VSG;
 #else
     std::cout << "VSG not available. Cannot visualize." << std::endl;
     return 1;
