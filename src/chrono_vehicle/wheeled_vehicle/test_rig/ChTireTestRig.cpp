@@ -32,7 +32,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
 #endif
@@ -178,7 +178,7 @@ void ChTireTestRig::SetTerrainCRM(const TerrainPatchSize& size,
                                   double Young_modulus,
                                   double friction,
                                   double cohesion) {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
         std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
         throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
@@ -204,7 +204,7 @@ void ChTireTestRig::SetTerrainCRM(const TerrainPatchSize& size,
 }
 
 void ChTireTestRig::SetTerrainCRM(const TerrainPatchSize& size, const TerrainParamsCRM& params) {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
         std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
         throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
@@ -298,7 +298,7 @@ void ChTireTestRig::Advance(double step) {
     double time = m_system->GetChTime();
 
     if (m_terrain_type == TerrainType::CRM) {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
         std::static_pointer_cast<CRMTerrain>(m_terrain)->GetFsiSystemSPH()->DoStepDynamics(step);
 #endif
     } else {
@@ -471,7 +471,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
 // -----------------------------------------------------------------------------
 
 ChTireTestRig::TerrainParamsCRM::TerrainParamsCRM() {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = 0.02;
     sph_params.d0_multiplier = 1.2;
@@ -599,7 +599,7 @@ void ChTireTestRig::CreateTerrainGranular() {
 }
 
 void ChTireTestRig::CreateTerrainCRM() {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     std::shared_ptr<CRMTerrain> terrain =
         chrono_types::make_shared<CRMTerrain>(*m_system, m_params_crm.sph_params.initial_spacing);
 

@@ -103,8 +103,8 @@ if (CH_ENABLE_MODULE_IRRLICHT)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
 endif()
 
-if (CH_ENABLE_MODULE_FSI)
-  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI")
+if (CH_ENABLE_MODULE_FSI_SPH)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI_SPH")
 endif()
 
 if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
@@ -497,7 +497,7 @@ endif()
 # MODULE for the fsi python wrapper.
 #-----------------------------------------------------------------------------
 
-if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_FSI_SPH)
+if(CH_ENABLE_MODULE_FSI_SPH)
 
   message(STATUS "Add python FSI module")
 
@@ -846,7 +846,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
       target_link_libraries(${CHPY_VEHICLE} PRIVATE Chrono_vehicle_vsg Chrono_vsg)
   endif()
 
-  if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_FSI_SPH)
+  if(CH_ENABLE_MODULE_FSI_SPH)
     target_link_libraries(${CHPY_VEHICLE} PRIVATE Chrono_fsi Chrono_fsisph)
   endif()
 

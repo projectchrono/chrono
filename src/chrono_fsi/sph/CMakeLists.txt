@@ -19,14 +19,14 @@ message(STATUS "SPH-based Chrono::FSI submodule")
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
-    set(CH_ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    set(CH_ENABLE_MODULE_FSI_SPH OFF CACHE BOOL "Enable the Chrono::SPH FSI module" FORCE)
     return()
 endif()
 
 # Return now if CUDA is not available
 if(NOT CHRONO_CUDA_FOUND)
     message(WARNING "Chrono::FSI::SPH requires CUDA, but CUDA was not found; disabling Chrono::FSI::SPH")
-    set(CH_ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    set(CH_ENABLE_MODULE_FSI_SPH OFF CACHE BOOL "Enable the Chrono::SPH FSI module" FORCE)
     return()
 endif()
 

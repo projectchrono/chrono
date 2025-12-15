@@ -151,7 +151,7 @@ using namespace chrono::vehicle::m113;
 #define CH_VEHICLE_API 
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
 #define CH_FSI_API
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
@@ -211,7 +211,7 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
 %shared_ptr(chrono::vehicle::CRMTerrain)
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
@@ -259,7 +259,7 @@ using namespace chrono::vehicle::m113;
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
 %import(module = "pychrono.fsi") "chrono_swig/interface/fsi/ChFsiProblemSPH.i"
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON

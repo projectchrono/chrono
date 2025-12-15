@@ -208,6 +208,7 @@ void ChParserFsiYAML::CreateFsiSystem() {
     // Parse the fluid YAML files, create FSI system, and associate FSI solids
     switch (m_sysCFD_type) {
         case ChParserCfdYAML::FluidSystemType::SPH: {
+#ifdef CHRONO_FSI_SPH
             // Create an SPH YAML parser
             auto parserSPH = chrono_types::make_shared<ChParserSphYAML>(m_file_modelCFD, m_file_simCFD, m_verbose);
 
@@ -238,13 +239,16 @@ void ChParserFsiYAML::CreateFsiSystem() {
             problemSPH->Initialize();
 
             m_parserCFD = parserSPH;
+#endif
             break;
         }
         case ChParserCfdYAML::FluidSystemType::BEM: {
+#ifdef CHRONO_FSI_TDPF
             throw std::runtime_error("BEM fluid system not yet supported");
             ////auto parserBEM = chrono_types::make_shared<ChParserBemYAML>(m_file_modelCFD, m_file_simCFD, m_verbose);
             ////m_parserCFD = parserBEM;
-            ////break;
+#endif
+            break;
         }
     }
 }

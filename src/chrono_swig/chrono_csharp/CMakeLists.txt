@@ -71,8 +71,8 @@ if(CH_ENABLE_MODULE_IRRLICHT)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
 endif()
 
-if(CH_ENABLE_MODULE_FSI)
-  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI")
+if(CH_ENABLE_MODULE_FSI_SPH)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI_SPH")
 endif()
 
 if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
@@ -418,7 +418,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     add_dependencies(Chrono_csharp_vehicle Chrono_csharp_postprocess)
   endif()
   
-  if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_FSI_SPH)
+  if(CH_ENABLE_MODULE_FSI_SPH)
     target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_fsi Chrono_fsisph)
   endif()
 

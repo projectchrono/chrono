@@ -27,7 +27,7 @@
 
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/terrain/CRMTerrain.h"
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
@@ -41,7 +41,7 @@ using namespace chrono::irrlicht;
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-    #ifdef CHRONO_FSI
+    #ifdef CHRONO_FSI_SPH
         #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
     #endif
 using namespace chrono::vsg3d;
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     joint->Initialize(floor, spindle, ChFramed());
     sys.AddLink(joint);
 
-#ifndef CHRONO_FSI
+#ifndef CHRONO_FSI_SPH
     if (terrain_type == TerrainType::CRM) {
         cout << "CRM terrain not available (Chrono::FSI not enabled)." << endl;
         cout << "Revert to rigid terrain." << endl;
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case TerrainType::CRM: {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
             double spacing = 0.04;
             auto terrain_crm = chrono_types::make_shared<CRMTerrain>(sys, spacing);
             terrain_crm->SetGravitationalAcceleration(gacc);
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
 
-    #ifdef CHRONO_FSI
+    #ifdef CHRONO_FSI_SPH
             if (terrain_type == TerrainType::CRM) {
                 auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetFsiSystemSPH();
                 auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());

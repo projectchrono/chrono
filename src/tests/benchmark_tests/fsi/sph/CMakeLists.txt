@@ -1,4 +1,4 @@
-if(NOT CH_ENABLE_MODULE_FSI)
+if(NOT CH_ENABLE_MODULE_FSI_SPH)
     return()
 endif()
     

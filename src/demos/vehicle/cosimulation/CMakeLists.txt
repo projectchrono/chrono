@@ -25,7 +25,7 @@ if(CH_ENABLE_MODULE_VEHICLE_MODELS)
       demo_VEH_Cosim_TrackedVehicle
   )
 
-  if(CH_ENABLE_MODULE_FSI)
+  if(CH_ENABLE_MODULE_FSI_SPH)
     set(PROGRAMS ${PROGRAMS}
         demo_VEH_Cosim_WheeledVehicle_SPH)
   endif()

@@ -22,7 +22,7 @@
 #endif
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
@@ -65,7 +65,7 @@
 %shared_ptr(chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
 %shared_ptr(chrono::vehicle::CRMTerrain)
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON

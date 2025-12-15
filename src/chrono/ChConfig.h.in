@@ -61,6 +61,12 @@
 // If module FSI was enabled, define CHRONO_FSI
 @CHRONO_FSI@
 
+// If FSI_SPH module was enabled, define CHRONO_FSI_SPH
+@CHRONO_FSI_SPH@
+
+// If FSI_TDPF module was enabled, define CHRONO_FSI_TDPF
+@CHRONO_FSI_TDPF@
+
 // If module DEM was enabled, define CHRONO_DEM
 @CHRONO_DEM@
 

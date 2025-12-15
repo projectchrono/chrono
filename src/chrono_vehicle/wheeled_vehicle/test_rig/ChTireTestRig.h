@@ -33,7 +33,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/terrain/CRMTerrain.h"
 #endif
 
@@ -93,7 +93,7 @@ class CH_VEHICLE_API ChTireTestRig {
 
     struct CH_VEHICLE_API TerrainParamsCRM {
         TerrainParamsCRM();
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
         fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph_params;             ///< SPH solver settings
         fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;  ///< soil properties
 #endif

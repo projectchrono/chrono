@@ -3,7 +3,7 @@
 #=============================================================================
 
 set(DEMOS demo_ROBOT_Lander)
-if(CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI_SPH)
    set(DEMOS ${DEMOS} demo_ROBOT_Lander_CRM)
 endif()
 
