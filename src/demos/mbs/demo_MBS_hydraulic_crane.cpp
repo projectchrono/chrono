@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     actuator->Cylinder().SetInitialChamberPressures(4.163e6, 3.461e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);
     actuator->SetInitialLoad(F0);
-    actuator->Initialize(ground, crane, true, attachment_ground, attachment_crane);
+    actuator->Connect(ground, crane, true, attachment_ground, attachment_crane);
     sys.Add(actuator);
 
     // Attach visualization asset to actuator

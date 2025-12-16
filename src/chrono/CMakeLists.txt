@@ -275,15 +275,19 @@ set(Chrono_physics_loads_HEADERS
     )
 source_group(physics\\loads FILES ${Chrono_physics_loads_SOURCES} ${Chrono_physics_loads_HEADERS})
 
-set(Chrono_physics_hydraulics_SOURCES
+set(Chrono_physics_actuators_SOURCES
+    physics/ChActuator.cpp
     physics/ChHydraulicCircuit.cpp
     physics/ChHydraulicActuator.cpp
+    physics/ChElectricActuator.cpp
     )
-set(Chrono_physics_hydraulics_HEADERS
+set(Chrono_physics_actuators_HEADERS
+    physics/ChActuator.h
     physics/ChHydraulicCircuit.h
     physics/ChHydraulicActuator.h
+    physics/ChElectricActuator.h
     )
-source_group(physics\\hydraulics FILES ${Chrono_physics_hydraulics_SOURCES} ${Chrono_physics_hydraulics_HEADERS})
+source_group(physics\\actuators FILES ${Chrono_physics_actuators_SOURCES} ${Chrono_physics_actuators_HEADERS})
 
 set(Chrono_physics_shafts_SOURCES
     physics/ChShaft.cpp
@@ -1282,7 +1286,7 @@ set(Chrono_SOURCES
     ${Chrono_physics_contact_SOURCES}
     ${Chrono_physics_links_SOURCES}
     ${Chrono_physics_loads_SOURCES}
-    ${Chrono_physics_hydraulics_SOURCES}
+    ${Chrono_physics_actuators_SOURCES}
     ${Chrono_physics_shafts_SOURCES}
     ${Chrono_fea_SOURCES}
     ${Chrono_fea_nodes_SOURCES}
@@ -1313,7 +1317,7 @@ set(Chrono_HEADERS
     ${Chrono_physics_contact_HEADERS}
     ${Chrono_physics_links_HEADERS}
     ${Chrono_physics_loads_HEADERS}
-    ${Chrono_physics_hydraulics_HEADERS}
+    ${Chrono_physics_actuators_HEADERS}
     ${Chrono_physics_shafts_HEADERS}
     ${Chrono_fea_HEADERS}
     ${Chrono_fea_nodes_HEADERS}

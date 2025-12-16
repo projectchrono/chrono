@@ -25,12 +25,8 @@
 #ifndef CH_HYDRAULIC_ACTUATOR_H
 #define CH_HYDRAULIC_ACTUATOR_H
 
-#include <array>
-
-#include "chrono/physics/ChExternalDynamicsODE.h"
+#include "chrono/physics/ChActuator.h"
 #include "chrono/physics/ChHydraulicCircuit.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 
@@ -39,46 +35,24 @@ namespace chrono {
 /// All hydraulic actuators contain a cylinder and a directional valve. Derived classes may add additional components
 /// and combine these in circuits with different numbers of fluid (oil) volumes.
 ///
-/// A hydraulic actuator can be attached between two bodies, in which case the actuator length and length rate of change
-/// is inferred from the states of those two bodies. Alternatively, a hydraulic actuator can be instantiated stand-alone
-/// (e.g., for use in a co-simulation setting), in which case the actuator length and rate must be provided from
-/// outside.
-class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
+/// Initial load:
+///   If provided, this value is used in calculating consistent initial conditions, using the initial directional valve
+///   spool position and the initial cylinder pressures as initial guesses. Otherwise, the initial actuator state is set
+///   to the user specified values (which may be inconsistent with the configuration of the cylinder piston).
+///
+/// Input function:
+///   This function should return the directional valve input, normalized to the interval [-1,1]. The extreme values
+///   correspond to the maximum input voltage (providing full opening of the valve) to the proportional magnet
+///   controlling the valve spool position.
+class ChApi ChHydraulicActuatorBase : public ChActuator {
   public:
     virtual ~ChHydraulicActuatorBase() {}
-
-    /// Set the actuation function.
-    /// This function should return the directional valve input, normalized to the interval [-1,1]. The extreme values
-    /// correspond to the maximum input voltage (providing full opening of the valve) to the proportional magnet
-    /// controlling the valve spool position. Note that the provided input is automatically clamped to [-1,1].
-    void SetInputFunction(std::shared_ptr<ChFunction> fun) { ref_fun = fun; }
 
     /// Set the tank and pump pressures.
     void SetPressures(double pump_pressure, double tank_pressure);
 
-    /// Set actuator initial length [m].
-    /// This value is used only for an actuator not attached to bodies. For a connected actuator, the initial length is
-    /// inferred from the initial body positions.
-    void SetActuatorInitialLength(double len);
-
-    /// Set initial loading force.
-    /// If provided, this value is used in calculating consistent initial conditions, using the initial dircetional
-    /// valve spool position and the initial cylinder pressures as initial guesses. Otherwise, the initial actuator
-    /// state is set to the user specified values (which may be inconsistent with the configuration of the cylinder
-    /// piston).
-    void SetInitialLoad(double initial_load);
-
     /// Initialize the hydraulic actuator stand-alone.
-    /// In this case, actuator position and rate are supposed to be provided from the outside.
     virtual void Initialize() override;
-
-    /// Initialize this hydraulic actuator by connecting it between the two specified bodies.
-    void Initialize(std::shared_ptr<ChBody> body1,  ///< first connected body
-                    std::shared_ptr<ChBody> body2,  ///< second connected body
-                    bool local,                     ///< true if locations given in body local frames
-                    ChVector3d loc1,                ///< location of connection point on body 1
-                    ChVector3d loc2                 ///< location of connection point on body 2
-    );
 
     /// Access the hydraulic cylinder in this circuit.
     ChHydraulicCylinder& Cylinder() { return cyl; }
@@ -86,21 +60,9 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     /// Access the directoinal valve in this circuit.
     ChHydraulicDirectionalValve4x3& DirectionalValve() { return dvalve; }
 
-    /// Get the endpoint location on 1st body (expressed in absolute coordinate system).
-    /// Returns a zero location if the actuator is not attached to bodies.
-    ChVector3d GetPoint1Abs() const { return m_aloc1; }
-
-    /// Get the endpoint location on 2nd body (expressed in body coordinate system).
-    /// Returns a zero location if the actuator is not attached to bodies.
-    ChVector3d GetPoint2Abs() const { return m_aloc2; }
-
-    /// Set the current actuator length and rate of change.
-    /// Can be used in a co-simulation interface.
-    void SetActuatorLength(double len, double vel);
-
     /// Get the current actuator force.
     /// Can be used in a co-simulation interface.
-    double GetActuatorForce();
+    virtual double GetActuatorForce() override;
 
     /// Get the current cylinder pressures.
     std::array<double, 2> GetCylinderPressures();
@@ -122,41 +84,14 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     /// Extract cylinder pressures from current state.
     virtual Vec2 ExtractCylinderPressures() const = 0;
 
-    /// Get current actuator input.
-    double GetInput(double t) const;
-
     /// Declare the EOM of this physics item as stiff or non-stiff.
     virtual bool IsStiff() const override { return true; }
-
-    /// Update the physics item at current state.
-    virtual void Update(double time, bool update_assets) override;
-
-    /// Load generalized forces.
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-
-    bool is_attached;            ///< true if actuator attached to bodies
-    ChBody* m_body1;             ///< first conected body
-    ChBody* m_body2;             ///< second connected body
-    ChVector3d m_loc1;           ///< point on body 1 (local frame)
-    ChVector3d m_loc2;           ///< point on body 2 (local frame)
-    ChVector3d m_aloc1;          ///< point on body 1 (global frame)
-    ChVector3d m_aloc2;          ///< point on body 2 (global frame)
-    ChVectorDynamic<> m_Qforce;  ///< generalized forcing terms
 
     ChHydraulicCylinder cyl;                ///< hydraulic cylinder
     ChHydraulicDirectionalValve4x3 dvalve;  ///< directional valve
 
-    std::shared_ptr<ChFunction> ref_fun;  ///< actuation function (spool displacement reference)
-
-    double s_0;  ///< initial actuator length [m]
-    double s;    ///< current actuator length [m]
-    double sd;   ///< current actuator speed [m/s]
-
     double pP;  ///< pump pressure [Pa]
     double pT;  ///< tank pressure [Pa]
-
-    bool calculate_consistent_IC;  ///< solve initialization nonlinear system
-    double F0;                     ///< estimated initial load
 };
 
 // -----------------------------------------------------------------------------
