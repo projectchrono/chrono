@@ -136,10 +136,12 @@ endif()
 
 message(STATUS "Searching for Eigen3")
 
-# Look first for Eigen 5.0, then 3.3
+# Look first for Eigen 5.0, then 3.
+message(STATUS "  Try Eigen 5.0 or newer")
 find_package(Eigen3 5.0 QUIET)
 if(NOT Eigen3_FOUND)
-   find_package(Eigen3 3.3)
+   message(STATUS "  Try Eigen 3.3 or newer")
+   find_package(Eigen3 3.3 QUIET)
 endif()
 
 if(Eigen3_FOUND)
