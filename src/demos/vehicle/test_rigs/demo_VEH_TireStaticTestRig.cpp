@@ -120,14 +120,17 @@ int main() {
         cout << "Setting solver and integrator for MB tire" << endl;
 
         sys = new ChSystemSMC;
-        step_size = 5e-5;
+        step_size = 2.5e-5;
         ////solver_type = ChSolver::Type::PARDISO_MKL;
         ////solver_type = ChSolver::Type::SPARSE_QR;
         ////solver_type = ChSolver::Type::BICGSTAB;
         solver_type = ChSolver::Type::MINRES;
+        ////solver_type = ChSolver::Type::PSOR;
+        ////solver_type = ChSolver::Type::PARDISO_MKL;
 
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
         ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+        ////integrator_type = ChTimestepper::Type::HHT;
     } else if (fea_tire) {
         cout << "Setting solver and integrator for FEA tire" << endl;
 
@@ -136,6 +139,8 @@ int main() {
         solver_type = ChSolver::Type::PARDISO_MKL;
         integrator_type = ChTimestepper::Type::HHT;
     } else if (rigid_tire || handling_tire) {
+        cout << "Setting solver and integrator for rigid or handling tire" << endl;
+
         sys = new ChSystemNSC;
         step_size = 2e-4;
         solver_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -158,7 +163,7 @@ int main() {
     int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
 
     sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
-    SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);
+    SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso, true);
     tire->SetStepsize(step_size);
 
     auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
@@ -167,7 +172,9 @@ int main() {
         hht->SetMaxIters(5);
         hht->SetAbsTolerances(1e-2);
         hht->SetStepControl(false);
-        hht->SetMinStepSize(1e-4);
+        hht->SetMinStepSize(1e-5);
+        hht->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::AUTOMATIC);
+        hht->AcceptTerminatedStep(false);
     }
 
     // -----------------
@@ -204,7 +211,8 @@ int main() {
     // Set test parameters
     rig.SetNominalRadialLoad(3600 * g);
     rig.SetStateTransitionDelay(0.1);
-    rig.SetRadialLoadSpeed(0.001);
+    rig.SetDropSpeed(0.1);
+    rig.SetRadialLoadSpeed(0.01);
     rig.SetLongitudinalLoadSpeed(0.1);
     rig.SetLateralLoadSpeed(0.1);
     rig.SetTorsionalLoadSpeed(0.1);

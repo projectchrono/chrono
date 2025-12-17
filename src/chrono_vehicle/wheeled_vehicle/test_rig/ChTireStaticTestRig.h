@@ -66,6 +66,9 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     /// Set gravitational acceleration (default: 9.81 m/s2).
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
 
+    /// Set drop speed (default: 1 m/s)
+    void SetDropSpeed(double speed) { m_drop_speed = 1; }
+
     /// Set nominal radial load (default: 5000 N).
     void SetNominalRadialLoad(double load) { m_r_load = load; }
 
@@ -167,6 +170,8 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     double m_tire_step;                ///< step size for tire integration
 
     double m_grav;  ///< gravitational acceleration
+
+    double m_drop_speed;  ///< vertical drop speed
 
     double m_r_load;   ///< nominal radial load
     double m_r_speed;  ///< radial load speed

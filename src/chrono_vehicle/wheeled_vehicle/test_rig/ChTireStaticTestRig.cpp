@@ -45,6 +45,7 @@ ChTireStaticTestRig::ChTireStaticTestRig(std::shared_ptr<ChWheel> wheel, std::sh
       m_grav(9.8),
       m_wheel(wheel),
       m_tire(tire),
+      m_drop_speed(1),
       m_r_load(5000),
       m_r_speed(0.001),
       m_x_speed(0.001),
@@ -282,7 +283,7 @@ void ChTireStaticTestRig::UpdateActuators(double time) {
             m_motor_r->SetDisabled(true);
             break;
         case State::DROPPING:
-            r_speed = 0.1;
+            r_speed = m_drop_speed;
             break;
         case State::COMPRESSING:
             r_speed = m_r_speed;
@@ -307,7 +308,7 @@ void ChTireStaticTestRig::UpdateActuators(double time) {
 
     {
         auto func = std::static_pointer_cast<ChFunctionSetpoint>(m_motor_r->GetMotorFunction());
-        func->SetSetpointAndDerivatives(10 * r_speed, 0.0, 0.0);
+        func->SetSetpointAndDerivatives(r_speed, 0.0, 0.0);
     }
     {
         auto func = std::static_pointer_cast<ChFunctionSetpoint>(m_motor_x->GetMotorFunction());
