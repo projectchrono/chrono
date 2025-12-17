@@ -296,6 +296,9 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
         case ChSolver::Type::MINRES:
             solver = chrono_types::make_shared<ChSolverMINRES>();
             break;
+        case ChSolver::Type::BICGSTAB:
+            solver = chrono_types::make_shared<ChSolverBiCGSTAB>();
+            break;
         case ChSolver::Type::SPARSE_LU:
             solver = chrono_types::make_shared<ChSolverSparseLU>();
             break;
