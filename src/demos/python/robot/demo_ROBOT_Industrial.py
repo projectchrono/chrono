@@ -58,8 +58,8 @@ keys = [key_0, key_1, key_2, key_0]
 
 # Create a trajectory interpolator from given keyframes
 interpolator = chronorob.TrajectoryInterpolatorOperationSpace(
+    motion_cycle_time,
     keys, 
-    motion_cycle_time, 
     chronorob.TrajectoryInterpolatorOperationSpace.PosfunType_LINE,
     chronorob.TrajectoryInterpolatorOperationSpace.SpacefunType_PW_POLY345,
     chronorob.TrajectoryInterpolatorOperationSpace.RotfunType_BSPLINE1,

@@ -37,7 +37,7 @@ class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
                      const ChFramed& base_frame = ChFramed(),  ///< place robot base in these coordinatesv
                      unsigned int id = 0,  ///< give robot a unique identifier (useful to import multiple instances of
                                            ///< same CAD robot without name clashes)
-                     std::vector<std::string> bodynames = {"base", "biceps", "forearm", "screw", "end_effector"}
+                     const std::vector<std::string>& bodynames = {"base", "biceps", "forearm", "screw", "end_effector"}
                      ///< name of bodies to search in sys for building robot model (fallback)
     );
 

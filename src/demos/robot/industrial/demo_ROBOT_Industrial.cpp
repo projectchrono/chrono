@@ -74,13 +74,13 @@ int main(int argc, char* argv[]) {
 
     // Create a trajectory interpolator from given keyframes
     industrial::TrajectoryInterpolatorOperationSpace interpolator;
-    interpolator.Setup(keys, motion_cycle_time, industrial::TrajectoryInterpolatorOperationSpace::PosfunType::LINE,
+    interpolator.Setup(motion_cycle_time, keys, industrial::TrajectoryInterpolatorOperationSpace::PosfunType::LINE,
                        industrial::TrajectoryInterpolatorOperationSpace::SpacefunType::PW_POLY345,
                        industrial::TrajectoryInterpolatorOperationSpace::RotfunType::BSPLINE1,
                        industrial::TrajectoryInterpolatorOperationSpace::SpacefunType::PW_POLY345, nullptr);
 
-    auto posfun = interpolator.GetPositionFunction();
-    auto rotfun = interpolator.GetRotationFunction();
+    const auto& posfun = interpolator.GetPositionFunction();
+    const auto& rotfun = interpolator.GetRotationFunction();
 
     // Visualize trajectory
     auto posline = posfun->GetLine();
