@@ -14,21 +14,6 @@
 //  'import pychrono.ros'
 
 
-%define MODULEIMPORT
-"
-try:
-  if __package__ or "." in __name__:
-      from . import _ros
-  else:
-      import _ros
-except ImportError as e:
-  import os
-  if "ROS_DISTRO" not in os.environ or "AMENT_PREFIX_PATH" not in os.environ:
-    raise Exception("Cannot import ros. It appears like you haven't sourced your ROS installation.")
-  raise e
-"
-%enddef
-
 %module(directors="1") ros
 
 
@@ -182,8 +167,6 @@ using namespace chrono::ros;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
-
-%include "../../../chrono/core/ChFrame.h"    
 
 %include "../../../chrono_ros/ChROSManager.h"
 
