@@ -33,7 +33,7 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
     // Read the reference data file.
     m_ref_data = ReadDataFile(ref_filename, m_ref_headers);
     auto num_ref_cols = m_ref_data.size();
-    auto num_ref_rows = m_ref_data[0].size();
+    auto num_ref_rows = (size_t)m_ref_data[0].size();
 
     // Resize the arrays of norms to zero length
     // (needed if we return with an error below)
@@ -48,7 +48,6 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
         std::cout << "   File " << ref_filename << " has " << num_ref_cols << " columns" << std::endl;
         return false;
     }
-
     if (m_num_rows != num_ref_rows) {
         std::cout << "ERROR: the number of rows in the two files is different:" << std::endl;
         std::cout << "   File " << sim_filename << " has " << m_num_rows << " columns" << std::endl;
@@ -57,7 +56,7 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
     }
 
     // Ensure that the first columns (time) are the same.
-    if (L2norm(m_sim_data[0] - m_ref_data[0]) > 1e-10) {
+    if ((m_sim_data[0] - m_ref_data[0]).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -69,9 +68,9 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<Eigen::Infinity>();
     }
 
     return true;
@@ -84,24 +83,26 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     m_RMS_norms.resize(0);
     m_INF_norms.resize(0);
 
-    // Read the simulation results file.
+    // Simulation data
     m_num_cols = sim_data.size();
+    m_num_rows = (size_t)sim_data[0].size();
     if (m_num_cols < 1) {
         std::cout << "ERROR: no values in simulation data structure." << std::endl;
         return false;
     }
 
-    m_num_rows = sim_data[0].size();
+    // Reference data
+    auto num_ref_cols = m_ref_data.size();
+    auto num_ref_rows = (size_t)m_ref_data[0].size();
 
     // Perform some sanity checks.
-    if (m_num_cols != ref_data.size()) {
+    if (m_num_cols != num_ref_cols) {
         std::cout << "ERROR: the number of columns in the two structures is different:" << std::endl;
         std::cout << "   Simulation data has " << m_num_cols << " columns" << std::endl;
         std::cout << "   Reference data has " << ref_data.size() << " columns" << std::endl;
         return false;
     }
-
-    if (m_num_rows != ref_data[0].size()) {
+    if (m_num_rows != num_ref_rows) {
         std::cout << "ERROR: the number of rows in the two structures is different:" << std::endl;
         std::cout << "   Simulation data has " << m_num_rows << " rows" << std::endl;
         std::cout << "   Reference data has " << ref_data[0].size() << " rows" << std::endl;
@@ -120,7 +121,7 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     }
 
     // Ensure that the first columns (time) are the same.
-    if (L2norm(m_sim_data[0] - m_ref_data[0]) > 1e-10) {
+    if ((m_sim_data[0] - m_ref_data[0]).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -132,9 +133,9 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<Eigen::Infinity>();
     }
 
     return true;
@@ -153,9 +154,9 @@ bool ChValidation::Process(const std::string& sim_filename) {
 
     // Calculate norms of the column vectors.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1]).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1]).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1]).lpNorm<Eigen::Infinity>();
     }
 
     return true;
@@ -192,26 +193,12 @@ bool ChValidation::Process(const Data& sim_data) {
 
     // Calculate norms of the column vectors.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1]).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1]).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1]).lpNorm<Eigen::Infinity>();
     }
 
     return true;
-}
-
-// -----------------------------------------------------------------------------
-
-double ChValidation::L2norm(const DataVector& v) {
-    return std::sqrt((v * v).sum());
-}
-
-double ChValidation::RMSnorm(const DataVector& v) {
-    return std::sqrt((v * v).sum() / v.size());
-}
-
-double ChValidation::INFnorm(const DataVector& v) {
-    return std::abs(v).max();
 }
 
 // -----------------------------------------------------------------------------

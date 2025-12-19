@@ -42,6 +42,13 @@ Scalar wrmsNorm(
     return numext::sqrt(derived().cwiseProduct(weights).cwiseAbs2().sum() / derived().size());
 }
 
+/// Calculate the RMS (residual mean square) norm of a vector.
+Scalar rmsNorm() const {
+    if (derived().size() == 0)
+        return 0;
+    return derived().lpNorm<2>() / derived().size();
+}
+
 /// Add a scalar to all elements.
 const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const ConstantReturnType> operator+(
     const Scalar& val) const {

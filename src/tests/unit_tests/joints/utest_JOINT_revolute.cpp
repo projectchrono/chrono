@@ -482,7 +482,7 @@ bool ValidateReference(const std::string& testName,  // name of the Chrono test
 
     bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -499,7 +499,7 @@ bool ValidateConstraints(const std::string& testName,  // name of the Chrono tes
 
     bool check = ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate Constraints" << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 

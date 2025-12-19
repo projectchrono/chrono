@@ -130,7 +130,7 @@ void ODEModel::WriteData(double step, const std::string& filename) {
 
     ChWriterCSV csv(" ");
 
-    for (size_t it = 0; it < m_data[0].size(); ++it) {
+    for (Eigen::Index it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
@@ -294,7 +294,7 @@ void ChronoModel::WriteData(double step, const std::string& filename) {
 
     ChWriterCSV csv(" ");
 
-    for (size_t it = 0; it < m_data[0].size(); ++it) {
+    for (Eigen::Index it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
@@ -327,7 +327,7 @@ bool test_EULER(double step, int num_steps, const ChValidation::Data& ref_data, 
     bool check_state = ChValidation::Test(model.GetData(), ref_data, ChValidation::NormType::RMS, tol_state, norms_state);
     std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
               << std::endl;
-    for (size_t col = 0; col < norms_state.size(); col++)
+    for (Eigen::Index col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
     // Validate constraint violations.
@@ -335,7 +335,7 @@ bool test_EULER(double step, int num_steps, const ChValidation::Data& ref_data, 
     bool check_cnstr = ChValidation::Test(model.GetCnstrData(), ChValidation::NormType::RMS, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
               << ")" << std::endl;
-    for (size_t col = 0; col < norms_cnstr.size(); col++)
+    for (Eigen::Index col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 
     return check_state && check_cnstr;
@@ -369,7 +369,7 @@ bool test_HHT(double step, int num_steps, const ChValidation::Data& ref_data, do
     bool check_state = ChValidation::Test(model.GetData(), ref_data, ChValidation::NormType::RMS, tol_state, norms_state);
     std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
               << std::endl;
-    for (size_t col = 0; col < norms_state.size(); col++)
+    for (Eigen::Index col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
     // Validate constraint violations.
@@ -377,7 +377,7 @@ bool test_HHT(double step, int num_steps, const ChValidation::Data& ref_data, do
     bool check_cnstr = ChValidation::Test(model.GetCnstrData(), ChValidation::NormType::RMS, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
               << ")" << std::endl;
-    for (size_t col = 0; col < norms_cnstr.size(); col++)
+    for (Eigen::Index col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 
     return check_state && check_cnstr;

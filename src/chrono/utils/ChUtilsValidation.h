@@ -24,12 +24,12 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-#include <valarray>
 #include <cmath>
 #include <numeric>
 #include <algorithm>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 namespace utils {
@@ -48,7 +48,7 @@ class ChApi ChValidation {
     typedef std::vector<std::string> Headers;
 
     /// Vector of data points.
-    typedef std::valarray<double> DataVector;
+    typedef ChVectorDynamic<> DataVector;
 
     /// Data table.
     typedef std::vector<DataVector> Data;
@@ -154,10 +154,6 @@ class ChApi ChValidation {
     static bool Test(const Data& sim_data, NormType norm_type, double tolerance, DataVector& norms);
 
   private:
-    double L2norm(const DataVector& v);
-    double RMSnorm(const DataVector& v);
-    double INFnorm(const DataVector& v);
-
     size_t m_num_cols;
     size_t m_num_rows;
 

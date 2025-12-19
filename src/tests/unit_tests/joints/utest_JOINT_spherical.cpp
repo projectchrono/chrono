@@ -292,9 +292,7 @@ bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of join
     out_cnstr << "Time"
               << "Cnstr_1"
               << "Cnstr_2"
-              << "Cnstr_3"
-              << "Constraint_4"
-              << "Cnstr_5" << std::endl;
+              << "Cnstr_3" << std::endl;
 
     // Perform a system assembly to ensure we have the correct accelerations at the initial time.
     sys.DoAssembly(AssemblyAnalysis::Level::FULL);
@@ -403,7 +401,7 @@ bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono
 
     bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -420,7 +418,7 @@ bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chro
 
     bool check = ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate Constraints" << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
