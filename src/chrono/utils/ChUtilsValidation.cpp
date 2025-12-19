@@ -42,21 +42,23 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
     m_INF_norms.resize(0);
 
     // Perform some sanity checks.
-    if (m_num_cols != num_ref_cols) {
+    if (m_num_cols > num_ref_cols) {
         std::cout << "ERROR: the number of columns in the two files is different:" << std::endl;
         std::cout << "   File " << sim_filename << " has " << m_num_cols << " columns" << std::endl;
         std::cout << "   File " << ref_filename << " has " << num_ref_cols << " columns" << std::endl;
         return false;
     }
-    if (m_num_rows != num_ref_rows) {
-        std::cout << "ERROR: the number of rows in the two files is different:" << std::endl;
-        std::cout << "   File " << sim_filename << " has " << m_num_rows << " columns" << std::endl;
-        std::cout << "   File " << ref_filename << " has " << num_ref_rows << " columns" << std::endl;
-        return false;
+    size_t n = m_num_rows;
+    if (m_num_rows > num_ref_rows) {
+        std::cout << "WARNING: simulation data has more time points than reference data:" << std::endl;
+        std::cout << "   Simulation file " << sim_filename << " has " << m_num_rows << " data points" << std::endl;
+        std::cout << "   Reference file " << ref_filename << " has " << num_ref_rows << " data points" << std::endl;
+        std::cout << "   Processing up to t = " << m_ref_data[0].tail(1) << std::endl;
+        n = num_ref_rows;
     }
 
     // Ensure that the first columns (time) are the same.
-    if ((m_sim_data[0] - m_ref_data[0]).lpNorm<2>() > 1e-10) {
+    if ((m_sim_data[0] - m_ref_data[0]).head(n).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -68,9 +70,9 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<2>();
-        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).rmsNorm();
-        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<Eigen::Infinity>();
+        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<Eigen::Infinity>();
     }
 
     return true;
@@ -102,11 +104,13 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
         std::cout << "   Reference data has " << ref_data.size() << " columns" << std::endl;
         return false;
     }
+    size_t n = m_num_rows;
     if (m_num_rows != num_ref_rows) {
-        std::cout << "ERROR: the number of rows in the two structures is different:" << std::endl;
-        std::cout << "   Simulation data has " << m_num_rows << " rows" << std::endl;
-        std::cout << "   Reference data has " << ref_data[0].size() << " rows" << std::endl;
-        return false;
+        std::cout << "WARNING: simulation data has more time points than reference data:" << std::endl;
+        std::cout << "   Simulation data has " << m_num_rows << " data points" << std::endl;
+        std::cout << "   Reference data has " << ref_data[0].size() << " data points" << std::endl;
+        std::cout << "   Processing up to t = " << m_ref_data[0].tail(1) << std::endl;
+        n = num_ref_rows;
     }
 
     // Cache simulation and reference data. Set headers to empty values.
@@ -121,7 +125,7 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     }
 
     // Ensure that the first columns (time) are the same.
-    if ((m_sim_data[0] - m_ref_data[0]).lpNorm<2>() > 1e-10) {
+    if ((m_sim_data[0] - m_ref_data[0]).head(n).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -133,9 +137,9 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<2>();
-        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).rmsNorm();
-        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).lpNorm<Eigen::Infinity>();
+        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<Eigen::Infinity>();
     }
 
     return true;
@@ -171,12 +175,11 @@ bool ChValidation::Process(const Data& sim_data) {
 
     // Read the simulation results file.
     m_num_cols = sim_data.size();
+    m_num_rows = sim_data[0].size();
     if (m_num_cols < 1) {
         std::cout << "ERROR: no values in simulation data structure." << std::endl;
         return false;
     }
-
-    m_num_rows = sim_data[0].size();
 
     // Cache simulation data. Set headers to empty values.
     m_sim_data.resize(m_num_cols);
