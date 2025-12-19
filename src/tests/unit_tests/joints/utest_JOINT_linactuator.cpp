@@ -31,7 +31,7 @@ using namespace chrono;
 // =============================================================================
 // Local variables
 //
-static const std::string val_dir = "../RESULTS/";
+static const std::string val_dir = "TEST_RESULTS/";
 static const std::string out_dir = val_dir + "lin_actuator/";
 static const std::string ref_dir = "testing/joints/lin_actuator/";
 
@@ -341,23 +341,23 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     }
 
     // Write output files
-    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", "# " + testName);
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", "# " + testName);
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", "# " + testName);
 
-    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", "# " + testName);
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", "# " + testName);
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", "# " + testName);
 
-    out_rfrcP.WriteToFile(out_dir + testName + "_CHRONO_RforceP.txt", testName + "\n");
-    out_rtrqP.WriteToFile(out_dir + testName + "_CHRONO_RtorqueP.txt", testName + "\n");
+    out_rfrcP.WriteToFile(out_dir + testName + "_CHRONO_RforceP.txt", "# " + testName);
+    out_rtrqP.WriteToFile(out_dir + testName + "_CHRONO_RtorqueP.txt", "# " + testName);
 
-    out_rfrcA.WriteToFile(out_dir + testName + "_CHRONO_RforceA.txt", testName + "\n");
-    out_rtrqA.WriteToFile(out_dir + testName + "_CHRONO_RtorqueA.txt", testName + "\n");
+    out_rfrcA.WriteToFile(out_dir + testName + "_CHRONO_RforceA.txt", "# " + testName);
+    out_rtrqA.WriteToFile(out_dir + testName + "_CHRONO_RtorqueA.txt", "# " + testName);
 
-    out_cnstrP.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsP.txt", testName + "\n");
+    out_cnstrP.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsP.txt", "# " + testName);
 
-    out_cnstrA.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsA.txt", testName + "\n");
+    out_cnstrA.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsA.txt", "# " + testName);
 
     return true;
 }

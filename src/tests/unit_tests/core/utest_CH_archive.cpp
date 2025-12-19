@@ -36,7 +36,6 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -44,7 +43,7 @@ using namespace chrono;
 
 const double ABS_ERR = 1e-5;
 enum class ArchiveType { BINARY, JSON, XML };
-const std::string val_dir = "../RESULTS/";
+const std::string val_dir = "TEST_RESULTS/";
 const std::string out_dir = val_dir + "ch_archive/";
 
 void assemble_fourbar(ChSystemNSC& system) {

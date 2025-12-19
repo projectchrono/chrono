@@ -1,5 +1,5 @@
-RevSpherical_Case01_ADAMS
-
+# RevSpherical_Case01_ADAMS
+#
 Time	X_Torque	Y_Torque	Z_Torque
 +0.000000E+00	+0.000000E+00	+4.783730E-01	+0.000000E+00
 +1.000000E-02	-1.368340E-08	+4.783550E-01	+0.000000E+00

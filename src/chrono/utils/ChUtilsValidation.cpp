@@ -22,7 +22,7 @@ namespace chrono {
 namespace utils {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 bool ChValidation::Process(const std::string& sim_filename, const std::string& ref_filename, char delim) {
     // Read the simulation results file.
     m_num_rows = ReadDataFile(sim_filename, delim, m_sim_headers, m_sim_data);
@@ -73,8 +73,6 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     // Resize the arrays of norms to zero length
     // (needed if we return with an error below)
@@ -138,8 +136,6 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 bool ChValidation::Process(const std::string& sim_filename, char delim) {
     // Read the simulation results file.
     m_num_rows = ReadDataFile(sim_filename, delim, m_sim_headers, m_sim_data);
@@ -160,8 +156,6 @@ bool ChValidation::Process(const std::string& sim_filename, char delim) {
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 bool ChValidation::Process(const Data& sim_data) {
     // Resize the arrays of norms to zero length
     // (needed if we return with an error below)
@@ -202,7 +196,7 @@ bool ChValidation::Process(const Data& sim_data) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 double ChValidation::L2norm(const DataVector& v) {
     return std::sqrt((v * v).sum());
 }
@@ -216,32 +210,36 @@ double ChValidation::INFnorm(const DataVector& v) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 size_t ChValidation::ReadDataFile(const std::string& filename, char delim, Headers& headers, Data& data) {
     std::ifstream ifile(filename);
     std::string line;
 
-    // Count the number of lines in the file then rewind the input file stream.
+    // Count the number of lines in the file then rewind the input file stream
     size_t num_lines = std::count(std::istreambuf_iterator<char>(ifile), std::istreambuf_iterator<char>(), '\n');
     ifile.seekg(0, ifile.beg);
 
-    size_t num_data_points = num_lines - 3;
+    // Skip top comment lines (lines starting with '#')
+    size_t num_comments = 0;
+    while (true) {
+        std::getline(ifile, line);
+        if (line[0] == '#')
+            num_comments++;
+        else
+            break;
+    }
 
-    // Skip the first two lines.
-    std::getline(ifile, line);
-    std::getline(ifile, line);
-
-    // Read the line with column headers.
-    std::getline(ifile, line);
+    // Read the column headers (assumed separated by spaces)
     std::stringstream iss1(line);
     std::string col_header = "";
 
     while (std::getline(iss1, col_header, delim))
         headers.push_back(col_header);
 
+    // Resize data
+    size_t num_data_points = num_lines - num_comments - 1;
     size_t num_cols = headers.size();
 
-    // Resize data
     data.resize(num_cols);
     for (size_t col = 0; col < num_cols; col++)
         data[col].resize(num_data_points);

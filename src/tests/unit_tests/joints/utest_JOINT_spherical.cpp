@@ -34,7 +34,7 @@ enum class eChLinkFormulation { Lock, Mate };
 // =============================================================================
 // Local variables
 //
-static const std::string val_dir = "../RESULTS/";
+static const std::string val_dir = "TEST_RESULTS/";
 static const std::string out_dir = val_dir + "spherical_joint/";
 static const std::string ref_dir = "testing/joints/spherical_joint/";
 
@@ -368,20 +368,20 @@ bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of join
     }
 
     // Write output files
-    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", "# " + testName);
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", "# " + testName);
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", "# " + testName);
 
-    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", "# " + testName);
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", "# " + testName);
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", "# " + testName);
 
-    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
-    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
+    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", "# " + testName);
+    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", "# " + testName);
 
-    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", "# " + testName);
 
-    out_cnstr.WriteToFile(out_dir + testName + "_CHRONO_Constraints.txt", testName + "\n");
+    out_cnstr.WriteToFile(out_dir + testName + "_CHRONO_Constraints.txt", "# " + testName);
 
     return true;
 }

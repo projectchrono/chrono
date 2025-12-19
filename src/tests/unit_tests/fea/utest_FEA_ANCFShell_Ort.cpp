@@ -41,7 +41,7 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/utils/ChUtilsValidation.h"
+//#include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
@@ -217,12 +217,14 @@ int main(int argc, char* argv[]) {
     mystepper->SetAbsTolerances(1e-08);
     mystepper->SetVerbose(true);
 
-    /*utils::Data m_data;
+    /*
+    utils::Data m_data;
     m_data.resize(4);
     for (size_t col = 0; col < 4; col++)
         m_data[col].resize(num_steps);
     ChWriterCSV csv(" ");
-    std::ifstream file2("UT_ANCFShellLam.txt");*/
+    std::ifstream file2("UT_ANCFShellLam.txt");
+    */
 
     ChVector3d mforce(0, 0, -10);
 
@@ -243,6 +245,7 @@ int main(int argc, char* argv[]) {
                       << "  reference: " << FileInputMat(it, 1) << std::endl;
             return 1;
         }
+
         /*
         // Code snippet to generate golden file
         m_data[0][it] = sys.GetChTime();
@@ -250,10 +253,12 @@ int main(int argc, char* argv[]) {
         m_data[2][it] = nodetip->pos.x();
         m_data[3][it] = nodetip->pos.y();
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << std::endl;
-        csv.WriteToFile("UT_ANCFShellLam.txt");*/
+        csv.WriteToFile("UT_ANCFShellLam.txt");
+        */
     }
 
     std::cout << "Maximum error = " << max_err << std::endl;
     std::cout << "Unit test check succeeded \n";
+
     return 0;
 }
