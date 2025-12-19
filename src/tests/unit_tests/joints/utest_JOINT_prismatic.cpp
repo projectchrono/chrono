@@ -28,6 +28,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 
 enum class eChLinkFormulation { Lock, Mate };
 
@@ -431,9 +432,9 @@ bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + refTestName + "_ADAMS_" + what + ".txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
     for (size_t col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
@@ -448,9 +449,9 @@ bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chro
                          double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_Constraints.txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate Constraints" << (check ? ": Passed" : ": Failed") << "  [  ";
     for (size_t col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
@@ -465,9 +466,9 @@ bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono te
                     double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_Energy.txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+    ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
 
     bool check = norms[norms.size() - 1] <= tolerance;
     std::cout << "   validate Energy" << (check ? ": Passed" : ": Failed") << "  [  " << norms[norms.size() - 1]

@@ -34,18 +34,6 @@
 namespace chrono {
 namespace utils {
 
-/// Norm types for validation
-enum ChNormType { L2_NORM, RMS_NORM, INF_NORM };
-
-/// Vector of data file headers.
-typedef std::vector<std::string> Headers;
-
-/// Vector of data points.
-typedef std::valarray<double> DataVector;
-
-/// Data table.
-typedef std::vector<DataVector> Data;
-
 /// This class provides functionality for validation of simulation results.
 /// It provides functions for processing either two data files (simulation and reference) and calculating the norms of
 /// the column differences, or for processing a single simulation data file and calculating the norms of its columns. In
@@ -53,6 +41,18 @@ typedef std::vector<DataVector> Data;
 /// processed.
 class ChApi ChValidation {
   public:
+    /// Norm types for validation.
+    enum class NormType { L2, RMS, INF };
+
+    /// Vector of data file headers.
+    typedef std::vector<std::string> Headers;
+
+    /// Vector of data points.
+    typedef std::valarray<double> DataVector;
+
+    /// Data table.
+    typedef std::vector<DataVector> Data;
+
     ChValidation() {}
     ~ChValidation() {}
 
@@ -60,8 +60,7 @@ class ChApi ChValidation {
     /// Ignoring the first column (which must contain identical values in the two input files), subtract the data in
     /// corresponding columns in the two files are and calculate the norms of the difference vectors.
     bool Process(const std::string& sim_filename,  ///< name of the file with simulation results
-                 const std::string& ref_filename,  ///< name of the file with reference data
-                 char delim = '\t'                 ///< delimiter (default TAB)
+                 const std::string& ref_filename   ///< name of the file with reference data
     );
 
     /// Process the data in the two specified structures.
@@ -73,9 +72,7 @@ class ChApi ChValidation {
 
     /// Read the data in the specified file and process it.
     /// Calculate the vector norms of all columns except the first one.
-    bool Process(const std::string& sim_filename,  ///< name of the file with simulation results
-                 char delim = '\t'                 ///< delimiter (default TAB)
-    );
+    bool Process(const std::string& sim_filename);
 
     /// Process the data in the specified structure.
     /// Calculate the vector norms of all columns except the first one.
@@ -118,14 +115,43 @@ class ChApi ChValidation {
     /// Return the infinity norms for all columns.
     const DataVector& GetINFnorms() const { return m_INF_norms; }
 
-    /// Read the specified data file.
-    /// The file is assumed to be delimited by the specified character.
-    /// The return value is the actual number of data points read from the file.
-    static size_t ReadDataFile(const std::string& filename,  ///< [in] name of the data file
-                               char delim,                   ///< [in] delimiter
-                               Headers& headers,             ///< [out] vector of column header strings
-                               Data& data                    ///< [out] table of data values
+    // Utility wrapper functions
+
+    /// Read the specified data file and return a Data object.
+    /// The file is assumed to be space-delimited.
+    static Data ReadDataFile(const std::string& filename,  ///< [in] name of the data file
+                             Headers& headers              ///< [out] vector of column header strings
     );
+
+    /// Compare the data in the two specified files.
+    /// The comparison is done using the specified norm type and tolerance. The function returns true if the norms of
+    /// all column differences are below the given tolerance and false otherwise. It is assumed that the input files are
+    /// space-delimited.
+    static bool Test(const std::string& sim_filename,
+                     const std::string& ref_filename,
+                     NormType norm_type,
+                     double tolerance,
+                     DataVector& norms);
+
+    /// Compare the data in the two specified structures
+    /// The comparison is done using the specified norm type and tolerance. The function returns true if the norms of
+    /// all column differences are below the given tolerance and false otherwise.
+    static bool Test(const Data& sim_data,
+                     const Data& ref_data,
+                     NormType norm_type,
+                     double tolerance,
+                     DataVector& norms);
+
+    /// Validation of a constraint violation data file.
+    /// The validation is done using the specified norm type and tolerance. The function returns true if the norms of
+    /// all columns, excluding the first one, are below the given tolerance and false otherwise. It is assumed that the
+    /// input file is space-delimited.
+    static bool Test(const std::string& sim_filename, NormType norm_type, double tolerance, DataVector& norms);
+
+    /// Validation of a constraint violation data structure.
+    /// The validation is done using the specified norm type and tolerance. The function returns true if the norms of
+    /// all columns, excluding the first one, are below the given tolerance and false otherwise.
+    static bool Test(const Data& sim_data, NormType norm_type, double tolerance, DataVector& norms);
 
   private:
     double L2norm(const DataVector& v);
@@ -145,40 +171,6 @@ class ChApi ChValidation {
     DataVector m_RMS_norms;
     DataVector m_INF_norms;
 };
-
-// -----------------------------------------------------------------------------
-// Free function declarations
-// -----------------------------------------------------------------------------
-
-/// Compare the data in the two specified files.
-/// The comparison is done using the specified norm type and tolerance. The function returns true if the norms of all
-/// column differences are below the given tolerance and false otherwise. It is assumed that the input files are
-/// space-delimited.
-ChApi bool Validate(const std::string& sim_filename,
-                    const std::string& ref_filename,
-                    ChNormType norm_type,
-                    double tolerance,
-                    DataVector& norms);
-
-/// Compare the data in the two specified structures
-/// The comparison is done using the specified norm type and tolerance. The function returns true if the norms of all
-/// column differences are below the given tolerance and false otherwise.
-ChApi bool Validate(const Data& sim_data,
-                    const Data& ref_data,
-                    ChNormType norm_type,
-                    double tolerance,
-                    DataVector& norms);
-
-/// Validation of a constraint violation data file.
-/// The validation is done using the specified norm type and tolerance. The function returns true if the norms of all
-/// columns, excluding the first one, are below the given tolerance and false otherwise. It is assumed that the input
-/// file is space-delimited.
-ChApi bool Validate(const std::string& sim_filename, ChNormType norm_type, double tolerance, DataVector& norms);
-
-/// Validation of a constraint violation data structure.
-/// The validation is done using the specified norm type and tolerance. The function returns true if the norms of all
-/// columns, excluding the first one, are below the given tolerance and false otherwise.
-ChApi bool Validate(const Data& sim_data, ChNormType norm_type, double tolerance, DataVector& norms);
 
 // -----------------------------------------------------------------------------
 // Global functions for accessing the reference validation data.

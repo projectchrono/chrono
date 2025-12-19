@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetVerbose(true);
 
     /*
-    utils::Data m_data;
+    ChValidation::Data m_data;
     m_data.resize(2);
     for (size_t col = 0; col < 2; col++)
         m_data[col].resize(num_steps);

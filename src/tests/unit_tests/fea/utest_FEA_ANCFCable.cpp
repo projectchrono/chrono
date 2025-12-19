@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     ChWriterCSV csv(" ");
     std::ifstream file2("UT_ANCFBeam.txt");
 
-    utils::Data m_data;  // Matrices to store data
+    ChValidation::Data m_data;  // Matrices to store data
     m_data.resize(7);
     for (size_t col = 0; col < 7; col++)
         m_data[col].resize(num_steps);
