@@ -687,11 +687,11 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector3d& poin
 void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) {
     assert(m_section);
 
-    ShapeVector N;
-    ShapeVector Nd;
-    ShapeVector Ndd;
-    // double xi = (eta*2 - 1.0);
-    // double xi = (eta + 1.0) / 2.0;
+    ////ShapeVector N;
+    ////ShapeVector Nd;
+    ////ShapeVector Ndd;
+    ////double xi = (eta*2 - 1.0);
+    ////double xi = (eta + 1.0) / 2.0;
 
     /* To be completed*/
 }

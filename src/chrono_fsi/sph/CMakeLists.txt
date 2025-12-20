@@ -208,6 +208,8 @@ if(MSVC)
   set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
+target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
+
 target_link_libraries(Chrono_fsisph PRIVATE Chrono_core)
 target_link_libraries(Chrono_fsisph PUBLIC Chrono_fsi)
 
