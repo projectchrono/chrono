@@ -94,8 +94,8 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     }
 
     // Reference data
-    auto num_ref_cols = m_ref_data.size();
-    auto num_ref_rows = (size_t)m_ref_data[0].size();
+    auto num_ref_cols = ref_data.size();
+    auto num_ref_rows = (size_t)ref_data[0].size();
 
     // Perform some sanity checks.
     if (m_num_cols != num_ref_cols) {
@@ -109,7 +109,7 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
         std::cout << "WARNING: simulation data has more time points than reference data:" << std::endl;
         std::cout << "   Simulation data has " << m_num_rows << " data points" << std::endl;
         std::cout << "   Reference data has " << ref_data[0].size() << " data points" << std::endl;
-        std::cout << "   Processing up to t = " << m_ref_data[0].tail(1) << std::endl;
+        std::cout << "   Processing up to t = " << ref_data[0].tail(1) << std::endl;
         n = num_ref_rows;
     }
 
