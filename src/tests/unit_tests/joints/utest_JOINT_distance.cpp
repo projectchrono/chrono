@@ -256,11 +256,7 @@ bool TestDistance(
                << "KE+PE" << std::endl;
 
     out_cnstr << "Time"
-              << "Cnstr_1"
-              << "Cnstr_2"
-              << "Cnstr_3"
-              << "Constraint_4"
-              << "Cnstr_5" << std::endl;
+              << "Cnstr_1" << std::endl;
 
     // Perform a system assembly to ensure we have the correct accelerations at the initial time.
     sys.DoAssembly(AssemblyAnalysis::Level::FULL);
