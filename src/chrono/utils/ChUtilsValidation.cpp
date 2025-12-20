@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <iterator>
+
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
