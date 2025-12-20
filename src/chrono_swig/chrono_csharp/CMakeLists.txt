@@ -685,6 +685,11 @@ install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/robot/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
 
+if(CH_ENABLE_MODULE_ROS)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/ros/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
 
 # Template project
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -777,6 +782,9 @@ if(CH_USE_CSHARP_WRAPPER)
   if(CH_ENABLE_MODULE_SENSOR)
     list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/sensor")
   endif()
+  if(CH_ENABLE_MODULE_ROS)
+    list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/ros")
+  endif()
 
   set(_chrono_csharp_module_dirs_arg "")
   if(CHRONO_CSHARP_MODULE_SOURCE_DIRS)
@@ -819,6 +827,9 @@ if(CH_USE_CSHARP_WRAPPER)
   endif()
   if(CH_ENABLE_MODULE_SENSOR)
     add_dependencies(Chrono_csharp_wrapper Chrono_csharp_sensor)
+  endif()
+  if(CH_ENABLE_MODULE_ROS)
+    add_dependencies(Chrono_csharp_wrapper Chrono_csharp_ros)
   endif()
 
   if(WIN32)
