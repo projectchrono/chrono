@@ -38,7 +38,7 @@ class CH_MODELS_API IndustrialRobot6dofCAD : public IndustrialRobot6dof {
         const ChFramed& base_frame = ChFramed(),  ///< place robot base in these coordinates
         unsigned int id = 0,  ///< give robot a unique identifier (useful to import multiple instances of same CAD robot
                               ///< without name clashes)
-        std::vector<std::string> bodynames = {"base", "shoulder", "biceps", "elbow", "forearm", "wrist", "end_effector"}
+        const std::vector<std::string>& bodynames = {"base", "shoulder", "biceps", "elbow", "forearm", "wrist", "end_effector"}
         ///< name of bodies to search in sys for building robot model
         ///  NB: if 'base' body is not provided here, robot arm is linked to internal 'ground' instead (fallback)
     );

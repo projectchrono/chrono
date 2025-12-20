@@ -99,8 +99,8 @@ class CH_MODELS_API TrajectoryInterpolatorOperationSpace : public TrajectoryInte
     /// - can be manually defined by the user: in this case, their sum must equal total motion time parameter
     /// - can be skipped: in this case, durations are automatically computed as weighted average of total path length
     TrajectoryInterpolatorOperationSpace(
-        const std::vector<ChCoordsysd>& waypoints,  ///< input trajectory waypoints
         double motion_time_tot,                     ///< total time to complete trajectory
+        const std::vector<ChCoordsysd>& waypoints,  ///< input trajectory waypoints
         PosfunType posfun_type,                     ///< type of geometric position function
         SpacefunType pos_spacefun_type,             ///< type of space function used to evaluate position
         RotfunType rotfun_type,                     ///< type of geometric rotation function
@@ -111,8 +111,8 @@ class CH_MODELS_API TrajectoryInterpolatorOperationSpace : public TrajectoryInte
     /// Setup interpolator internal data.
     /// NB: must to be manually called after settings are changed.
     void Setup(
-        const std::vector<ChCoordsysd>& waypoints,  ///< input trajectory waypoints
         double motion_time_tot,                     ///< total time to complete trajectory
+        const std::vector<ChCoordsysd>& waypoints,  ///< input trajectory waypoints
         PosfunType posfun_type,                     ///< type of geometric position function
         SpacefunType pos_spacefun_type,             ///< type of space function used to evaluate position
         RotfunType rotfun_type,                     ///< type of geometric rotation function
