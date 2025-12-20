@@ -46,7 +46,7 @@ Scalar wrmsNorm(
 Scalar rmsNorm() const {
     if (derived().size() == 0)
         return 0;
-    return derived().lpNorm<2>() / derived().size();
+    return derived().norm() / derived().size();
 }
 
 /// Add a scalar to all elements.
