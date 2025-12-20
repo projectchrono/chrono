@@ -19,6 +19,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/functions/ChFunctionBase.h"
@@ -494,6 +495,11 @@ class ChGnuPlot {
     }
 
     void ExecuteGnuplot(std::string& script) {
+#ifndef CHRONO_HAS_GNUPLOT
+        std::cerr << "Warning: GnuPlot is not installed. No plots will be created." << std::endl;
+        return;
+#endif
+
         // Create a tmp .gpl file
         {
             std::ofstream gnuplot_command(m_gpl_filename);
