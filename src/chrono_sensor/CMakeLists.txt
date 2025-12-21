@@ -247,12 +247,14 @@ set(Chrono_sensor_FILTERS_SOURCES
     filters/ChFilterRadarXYZVisualize.cpp
     filters/ChFilterRadarVisualizeCluster.cpp
     filters/ChFilterTachometerUpdate.cpp
+    filters/ChFilterCameraExposure.cpp
 )
 
 set(Chrono_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
     filters/ChFilterIMUUpdate.h
   	filters/ChFilterGPSUpdate.h
+    filters/ChFilterCameraExposure.h
     filters/ChFilterCameraNoise.h
     filters/ChFilterLidarNoise.h
   	filters/ChFilterVisualize.h

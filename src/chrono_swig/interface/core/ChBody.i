@@ -65,6 +65,7 @@ ChVector3<double> GetAngAccParent() const          {return $self->GetAngAccParen
 
 // Methods inherited from ChContactable
 void AddCollisionModel(std::shared_ptr<ChCollisionModel> model)                         {$self->AddCollisionModel(model);}
+void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape)                         {$self->AddCollisionShape(shape);}
 void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {$self->AddCollisionShape(shape, frame);}
 std::shared_ptr<ChCollisionModel> GetCollisionModel()                                   {return $self->GetCollisionModel();}
 };

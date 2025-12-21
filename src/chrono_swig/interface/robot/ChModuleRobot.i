@@ -254,8 +254,6 @@ using namespace chrono::industrial;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
@@ -263,6 +261,8 @@ using namespace chrono::industrial;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 //%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystemNSC.i"
 //%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystemSMC.i"
