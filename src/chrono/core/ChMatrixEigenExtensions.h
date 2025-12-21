@@ -46,7 +46,7 @@ Scalar wrmsNorm(
 Scalar rmsNorm() const {
     if (derived().size() == 0)
         return 0;
-    return derived().norm() / derived().size();
+    return numext::sqrt(derived().cwiseAbs2().sum() / derived().size());
 }
 
 /// Add a scalar to all elements.
