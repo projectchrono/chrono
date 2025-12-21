@@ -19,7 +19,7 @@
 #include <iterator>
 
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/utils/ChValidation.h"
 
 namespace chrono {
 namespace utils {
@@ -44,7 +44,7 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
     m_INF_norms.resize(0);
 
     // Perform some sanity checks.
-    if (m_num_cols > num_ref_cols) {
+    if (m_num_cols != num_ref_cols) {
         std::cout << "ERROR: the number of columns in the two files is different:" << std::endl;
         std::cout << "   File " << sim_filename << " has " << m_num_cols << " columns" << std::endl;
         std::cout << "   File " << ref_filename << " has " << num_ref_cols << " columns" << std::endl;
@@ -60,7 +60,7 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
     }
 
     // Ensure that the first columns (time) are the same.
-    if ((m_sim_data[0] - m_ref_data[0]).head(n).lpNorm<2>() > 1e-10) {
+    if ((m_sim_data[0].head(n) - m_ref_data[0].head(n)).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -72,9 +72,9 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<2>();
-        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).rmsNorm();
-        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<Eigen::Infinity>();
+        m_L2_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<Eigen::Infinity>();
     }
 
     return true;
@@ -107,7 +107,7 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
         return false;
     }
     size_t n = m_num_rows;
-    if (m_num_rows != num_ref_rows) {
+    if (m_num_rows > num_ref_rows) {
         std::cout << "WARNING: simulation data has more time points than reference data:" << std::endl;
         std::cout << "   Simulation data has " << m_num_rows << " data points" << std::endl;
         std::cout << "   Reference data has " << ref_data[0].size() << " data points" << std::endl;
@@ -127,7 +127,7 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     }
 
     // Ensure that the first columns (time) are the same.
-    if ((m_sim_data[0] - m_ref_data[0]).head(n).lpNorm<2>() > 1e-10) {
+    if ((m_sim_data[0].head(n) - m_ref_data[0].head(n)).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -139,9 +139,9 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<2>();
-        m_RMS_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).rmsNorm();
-        m_INF_norms[col] = (m_sim_data[col + 1] - m_ref_data[col + 1]).head(n).lpNorm<Eigen::Infinity>();
+        m_L2_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<Eigen::Infinity>();
     }
 
     return true;
@@ -204,6 +204,23 @@ bool ChValidation::Process(const Data& sim_data) {
     }
 
     return true;
+}
+
+// -----------------------------------------------------------------------------
+
+ChValidation::Data ChValidation::CreateData(const std::vector<std::vector<double>>& columns) {
+    if (columns.empty())
+        return Data();
+
+    auto num_cols = columns.size();
+    auto num_rows = columns[0].size();
+    Data data(num_cols);
+    for (size_t col = 0; col < num_cols; col++) {
+        std::vector<double>& tmp = const_cast<std::vector<double>&>(columns[col]);
+        data[col] = Eigen::Map<ChVectorDynamic<>>(tmp.data(), num_rows);
+    }
+
+    return data;
 }
 
 // -----------------------------------------------------------------------------

@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_UTILS_VALIDATION_H
-#define CH_UTILS_VALIDATION_H
+#ifndef CH_VALIDATION_H
+#define CH_VALIDATION_H
 
 #include <string>
 #include <iostream>
@@ -117,7 +117,10 @@ class ChApi ChValidation {
 
     // Utility wrapper functions
 
-    /// Read the specified data file and return a Data object.
+    /// Create and return a validation Data object from the specified vector of data series.
+    static Data CreateData(const std::vector<std::vector<double>>& columns);
+
+    /// Read the specified data file and return a validation Data object.
     /// The file is assumed to be space-delimited.
     static Data ReadDataFile(const std::string& filename,  ///< [in] name of the data file
                              Headers& headers              ///< [out] vector of column header strings
@@ -133,7 +136,7 @@ class ChApi ChValidation {
                      double tolerance,
                      DataVector& norms);
 
-    /// Compare the data in the two specified structures
+    /// Compare the data in the two specified structures.
     /// The comparison is done using the specified norm type and tolerance. The function returns true if the norms of
     /// all column differences are below the given tolerance and false otherwise.
     static bool Test(const Data& sim_data,

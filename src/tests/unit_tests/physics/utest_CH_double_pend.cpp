@@ -28,7 +28,7 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/utils/ChValidation.h"
 
 using namespace chrono;
 using namespace chrono::utils;

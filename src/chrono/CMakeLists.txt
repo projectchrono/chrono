@@ -1092,7 +1092,7 @@ set(Chrono_utils_SOURCES
     utils/ChUtilsCreators.cpp
     utils/ChUtilsGenerators.cpp
     utils/ChUtilsChaseCamera.cpp
-    utils/ChUtilsValidation.cpp
+    utils/ChValidation.cpp
     utils/ChOpenMP.cpp
     utils/ChProfiler.cpp
     utils/ChControllers.cpp
@@ -1112,7 +1112,7 @@ set(Chrono_utils_HEADERS
     utils/ChUtilsGenerators.h
     utils/ChUtilsSamplers.h
     utils/ChUtilsChaseCamera.h
-    utils/ChUtilsValidation.h
+    utils/ChValidation.h
     utils/ChProfiler.h
     utils/ChControllers.h
     utils/ChFilters.h

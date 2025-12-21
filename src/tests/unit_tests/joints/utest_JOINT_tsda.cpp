@@ -23,7 +23,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/utils/ChValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
