@@ -156,6 +156,9 @@ class ChApi ChValidation {
     /// all columns, excluding the first one, are below the given tolerance and false otherwise.
     static bool Test(const Data& sim_data, NormType norm_type, double tolerance, DataVector& norms);
 
+    /// Return the norm type as a string.
+    static std::string GetNormTypeAsString(NormType type);
+
   private:
     size_t m_num_cols;
     size_t m_num_rows;

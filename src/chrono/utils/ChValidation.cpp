@@ -420,6 +420,17 @@ bool ChValidation::Test(const Data& sim_data, NormType norm_type, double toleran
     return true;
 }
 
+std::string ChValidation::GetNormTypeAsString(NormType type) {
+    switch (type) {
+        case NormType::L2:
+            return "L2";
+        case NormType::RMS: 
+          return "RMS";
+        case NormType::INF:
+            return "L-infinity";
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Functions for manipulating the validation data directory
 // -----------------------------------------------------------------------------
