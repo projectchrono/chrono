@@ -112,13 +112,9 @@ void ChTireStaticTestRig::Initialize(Mode mode) {
 
     const double dim = 0.1;                     // base dimension
     double post_offset = 3 * dim;               // in y direciton
-    double spindle_height = tire_radius + 0.2;  // initial spindle/wheel height
+    double spindle_height = tire_radius + 0.1;  // initial spindle/wheel height
     double plate_dim = 1.5;                     // plate width and length
     double plate_thickness = 0.1;               // plate thickness
-
-    // Create bodies
-    ////const double mass = m_wheel->GetWheelMass() + m_tire->GetTireMass();
-    ////const ChVector3d inertia = m_wheel->GetWheelInertia() + m_tire->GetTireInertia();
 
     // Create the ground body
     m_ground_body = chrono_types::make_shared<ChBody>();

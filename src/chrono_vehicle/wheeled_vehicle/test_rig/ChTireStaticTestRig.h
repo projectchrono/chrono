@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
 
     /// Set drop speed (default: 1 m/s)
-    void SetDropSpeed(double speed) { m_drop_speed = 1; }
+    void SetDropSpeed(double speed) { m_drop_speed = speed; }
 
     /// Set nominal radial load (default: 5000 N).
     void SetNominalRadialLoad(double load) { m_r_load = load; }

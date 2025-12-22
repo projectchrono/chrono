@@ -79,6 +79,7 @@ auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
 // Test mode
 ChTireStaticTestRig::Mode test_mode = ChTireStaticTestRig::Mode::TEST_R;
 
+bool verbose_solvers = false;
 bool debug_output = false;
 bool gnuplot_output = true;
 
@@ -120,13 +121,13 @@ int main() {
         cout << "Setting solver and integrator for MB tire" << endl;
 
         sys = new ChSystemSMC;
-        step_size = 2.5e-5;
+        step_size = 3e-5;
         ////solver_type = ChSolver::Type::PARDISO_MKL;
+        ////solver_type = ChSolver::Type::MUMPS;
         ////solver_type = ChSolver::Type::SPARSE_QR;
         ////solver_type = ChSolver::Type::BICGSTAB;
         solver_type = ChSolver::Type::MINRES;
         ////solver_type = ChSolver::Type::PSOR;
-        ////solver_type = ChSolver::Type::PARDISO_MKL;
 
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
         ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
@@ -169,13 +170,17 @@ int main() {
     auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
     if (hht) {
         hht->SetAlpha(-0.2);
-        hht->SetMaxIters(5);
-        hht->SetAbsTolerances(1e-2);
+        hht->SetMaxIters(10);
+        hht->SetAbsTolerances(1e-2, 1e2);
+        hht->SetRelTolerance(1e-3);
         hht->SetStepControl(false);
         hht->SetMinStepSize(1e-5);
         hht->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::AUTOMATIC);
         hht->AcceptTerminatedStep(false);
+        hht->SetVerbose(verbose_solvers);
     }
+
+    sys->GetSolver()->SetVerbose(verbose_solvers);
 
     // -----------------
     // Initialize output
@@ -188,6 +193,8 @@ int main() {
     }
 
     cout << "Tire: " << std::quoted(tire->GetName()) << "  template: " << tire->GetTemplateName() << endl;
+
+    sys->EnableSolverMatrixWrite(true, out_dir);
 
     // -----------------------------
     // Create and configure test rig
