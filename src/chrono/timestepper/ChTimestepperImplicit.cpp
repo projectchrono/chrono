@@ -290,13 +290,14 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
 bool ChTimestepperImplicit::CheckConvergence(int it) {
     bool pass = false;
 
-    // Declare convergence when either the residual is below the absolute tolerance or
-    // the WRMS update norm is less than 1 (relative + absolute tolerance test)
+    // Declare convergence when either:
+    // - the mean L2-norm of the residual is below the absolute tolerance
     //    |R|_2 < atol
-    // or |D|_WRMS < 1
+    // - the WRMS update norm is less than 1 (relative + absolute tolerance test)
+    //    |D|_WRMS < 1
     // Both states and Lagrange multipliers must converge.
-    double R_nrm = R.norm();
-    double Qc_nrm = Qc.norm();
+    double R_nrm = R.wrmsNorm(rwtS);
+    double Qc_nrm = Qc.wrmsNorm(rwtL);
     double Ds_nrm = Ds.wrmsNorm(ewtS);
     double Dl_nrm = Dl.wrmsNorm(ewtL);
 
@@ -319,10 +320,16 @@ bool ChTimestepperImplicit::CheckConvergence(int it) {
         cout << endl;
     }
 
-    if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Ds_nrm < 1 && Dl_nrm < 1))
+    if ((R_nrm < 1 && Qc_nrm < 1) || (Ds_nrm < 1 && Dl_nrm < 1))
         pass = true;
 
     return pass;
+}
+
+// Calculate the residual weight vector of the same size as the specified solution vector x,
+// using the given absolute tolerance
+void ChTimestepperImplicit::CalcResidualWeights(const ChVectorDynamic<>& x, double atol, ChVectorDynamic<>& rwt) {
+    rwt.setConstant(x.size(), 1 / atol);
 }
 
 // Calculate the error weight vector corresponding to the specified solution vector x,

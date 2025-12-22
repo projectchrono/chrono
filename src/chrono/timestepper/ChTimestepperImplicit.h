@@ -204,7 +204,10 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     /// Check convergence of Newton process.
     bool CheckConvergence(int iteration);
 
-    /// Calculate error weights based on the given state and tolerances.
+    /// Calculate residual norm weights based on the given state and absolute tolerance.
+    void CalcResidualWeights(const ChVectorDynamic<>& x, double atol, ChVectorDynamic<>& rwt);
+
+    /// Calculate error weights based on the given state and relative and absolute tolerances.
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 
     JacobianUpdate jacobian_update_method;  ///< Jacobian update strategy
@@ -237,8 +240,11 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     std::array<double, 3> Ds_nrm_hist;  ///< last 3 update norms
     std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
 
-    ChVectorDynamic<> ewtS;  ///< vector of error weights (states)
-    ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
+    ChVectorDynamic<> rwtS;  ///< vector of residual norm weights (states)
+    ChVectorDynamic<> rwtL;  ///< vector of residual norm weights (Lagrange multipliers)
+
+    ChVectorDynamic<> ewtS;  ///< vector of error norm weights (states)
+    ChVectorDynamic<> ewtL;  ///< vector of error norm weights (Lagrange multipliers)
 
     bool accept_terminated;  ///< accept or reject steps after a non-converged Newton solve
 
