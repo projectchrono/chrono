@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
+    std::cout << "\nTest " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
 
     return !passed;
 }

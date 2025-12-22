@@ -177,13 +177,19 @@ int main(int argc, char* argv[]) {
         hnodeancf5->SetForce(ChVector3d(0, -5e5 * std::pow(0.5, 3), 0));
         sys.DoStepDynamics(time_Step);
     }
+
     double error_y = (hnodeancf5->GetPos().y() + u_y_Ref) / u_y_Ref;
     double error_x = (hnodeancf5->GetPos().x() + u_x_Ref - 2.0) / u_x_Ref;
+
     if (std::max(error_x, error_y) > rel_Tol) {
+        std::cout << "\nTest FAILED" << std::endl;
         return 1;
     }
+
+    std::cout << "\nTest PASSED" << std::endl;
     std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";
     std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x() << " m. \n";
     std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
+    
     return 0;
 }

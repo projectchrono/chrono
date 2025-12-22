@@ -202,14 +202,15 @@ int main(int argc, char* argv[]) {
     */
 
     for (unsigned int it = 0; it < num_steps; it++) {
-        sys.DoStepDynamics(time_step);
         std::cout << "Time t = " << sys.GetChTime() << "s \n";
+        sys.DoStepDynamics(time_step);
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumStepIterations()= " << mystepper->GetNumStepIterations() << "\n";
         // Check vertical displacement of the shell tip
         double AbsVal = std::abs(nodetip->pos.z() - FileInputMat(it, 1));
         if (AbsVal > precision) {
-            std::cout << "Unit test check failed \n";
+            std::cout << "error = " << AbsVal << " > " << precision << " = tolerance" << std::endl;
+            std::cout << "\nTest FAILED" << std::endl;
             return 1;
         }
 
@@ -224,7 +225,7 @@ int main(int argc, char* argv[]) {
         */
     }
 
-    std::cout << "Unit test check succeeded \n";
+    std::cout << "\nTest PASSED" << std::endl;
 
     return 0;
 }

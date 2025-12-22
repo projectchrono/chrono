@@ -89,9 +89,6 @@ void ChTimestepperHHT::FinalizeStep() {
 // - If no step size control, start with zero acceleration guess (previous step not guaranteed to have converged)
 // - Set the error weight vectors (using solution at current time)
 void ChTimestepperHHT::PrepareStep() {
-    // Estimate absolue tolerance at acceleration level
-    double abstolA = abstolS / (h * h);
-
     if (step_control)
         Anew = A;
     Vnew = V + Anew * h;
@@ -101,9 +98,9 @@ void ChTimestepperHHT::PrepareStep() {
     integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
     integrable->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
 
-    CalcResidualWeights(A, abstolA, rwtS);
+    CalcResidualWeights(A, abstolS, rwtS);
     CalcResidualWeights(L, abstolL, rwtL);
-    CalcErrorWeights(A, reltol, abstolA, ewtS);
+    CalcErrorWeights(A, reltol, abstolS, ewtS);
     CalcErrorWeights(L, reltol, abstolL, ewtL);
 }
 

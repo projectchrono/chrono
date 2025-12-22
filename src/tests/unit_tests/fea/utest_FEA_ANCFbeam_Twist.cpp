@@ -174,14 +174,14 @@ int main(int argc, char* argv[]) {
     std::cout << "Percent Error: " << Percent_Error << "%" << std::endl;
 
     if (abs(Percent_Error) > 5.0) {
-        std::cout << "Unit test check failed - Twist Angle Error is too large\n";
+        std::cout << "\nTest FAILED - Twist Angle Error is too large\n";
         return 1;
     }
     if ((abs(Tip_Angles.y() * CH_RAD_TO_DEG) > 0.001) || (abs(Tip_Angles.z() * CH_RAD_TO_DEG) > 0.001)) {
-        std::cout << "Unit test check failed - Off axis angle is too large.\n";
+        std::cout << "\nTest FAILED - Off axis angle is too large.\n";
         return 1;
     }
 
-    std::cout << "Unit test check succeeded \n";
+    std::cout << "\nTest PASSED" << std::endl;
     return 0;
 }

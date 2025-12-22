@@ -288,7 +288,8 @@ int main(int argc, char* argv[]) {
             AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat(stepNo, 1));
             std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
-                std::cout << "Unit test check failed \n";
+                std::cout << "error = " << AbsVal << " > " << precision << " = tolerance" << std::endl;
+                std::cout << "\nTest FAILED" << std::endl;
                 return 1;
             }
             stepNo++;
