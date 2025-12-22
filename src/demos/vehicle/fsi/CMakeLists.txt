@@ -3,7 +3,7 @@
 # These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_FSI)
+if(NOT CH_ENABLE_MODULE_FSI_SPH)
    return()
 endif()
 
@@ -27,10 +27,7 @@ set(UTILS "../../SetChronoSolver.h")
 
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
-
-if(CH_ENABLE_MODULE_FSI)
-    list(APPEND LIBS "Chrono_fsisph")
-endif()
+list(APPEND LIBS "Chrono_fsisph")
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
@@ -48,9 +45,7 @@ endif()
 
 if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_vehicle_vsg")
-    if(CH_ENABLE_MODULE_FSI)
-      list(APPEND LIBS "Chrono_fsisph_vsg")
-    endif()
+    list(APPEND LIBS "Chrono_fsisph_vsg")
 endif()
 
 #--------------------------------------------------------------

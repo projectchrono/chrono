@@ -14,21 +14,6 @@
 //  'import pychrono.ros'
 
 
-%define MODULEIMPORT
-"
-try:
-  if __package__ or "." in __name__:
-      from . import _ros
-  else:
-      import _ros
-except ImportError as e:
-  import os
-  if "ROS_DISTRO" not in os.environ or "AMENT_PREFIX_PATH" not in os.environ:
-    raise Exception("Cannot import ros. It appears like you haven't sourced your ROS installation.")
-  raise e
-"
-%enddef
-
 %module(directors="1") ros
 
 
@@ -73,6 +58,18 @@ except ImportError as e:
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
 #ifdef CHRONO_SENSOR
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
+
+#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChSegmentationCamera.h"
+#include "chrono_sensor/sensors/ChDepthCamera.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
+
+#include "chrono_sensor/sensors/ChIMUSensor.h"
+
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
@@ -98,6 +95,7 @@ using namespace chrono::ros;
 // Undefine ChApi and CH_ROS_API otherwise SWIG gives a syntax error
 #define ChApi
 #define CH_ROS_API
+#define CH_SENSOR_API
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -183,7 +181,12 @@ using namespace chrono::ros;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 
-%include "../../../chrono/core/ChFrame.h"    
+#ifdef CHRONO_SENSOR
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChSensor.i"
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChOptixSensor.i"
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChIMUSensor.i"
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChGPSSensor.i"
+#endif
 
 %include "../../../chrono_ros/ChROSManager.h"
 
@@ -234,6 +237,7 @@ using namespace chrono::ros;
 
 %ignore chrono::ros::ChROSInterface::GetNode;
 
+#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 //
 // ADD PYTHON CODE
 //
@@ -245,5 +249,5 @@ class ChROSPythonManager(ChROSManager):
         super().__init__(node_name)
 
 %}
-
+#endif              // --------------------------------------------------------------------- PYTHON
 

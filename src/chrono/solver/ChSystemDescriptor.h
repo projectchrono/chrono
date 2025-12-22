@@ -80,8 +80,8 @@ class ChApi ChSystemDescriptor {
     /// Access the vector of variables.
     std::vector<ChVariables*>& GetVariables() { return m_variables; }
 
-    /// Access the vector of KRM matrix blocks.
-    std::vector<ChKRMBlock*>& GetKRMBlocks() { return m_KRMblocks; }
+    /// Return true if any KRM block includes K or R components.
+    bool HasKRBlocks();
 
     /// Begin insertion of items
     virtual void BeginInsertion() {
@@ -131,14 +131,14 @@ class ChApi ChSystemDescriptor {
     /// The column vector must be passed as a ChMatrix<> object, which will be automatically reset and resized to the
     /// proper length if necessary.
     virtual unsigned int BuildFbVector(ChVectorDynamic<>& Fvector,  ///< system-level vector 'f'
-                                       unsigned int start_row = 0  ///< offset in global 'f' vector
+                                       unsigned int start_row = 0   ///< offset in global 'f' vector
     ) const;
 
     /// Get a vector with all the 'bi' known terms ('constraint residuals') associated to all constraints,
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
     virtual unsigned int BuildBiVector(ChVectorDynamic<>& Bvector,  ///< system-level vector 'b'
-                                       unsigned int start_row = 0  ///< offset in global 'b' vector
+                                       unsigned int start_row = 0   ///< offset in global 'b' vector
     ) const;
 
     /// Get the d vector = {f; -b} with all the 'fb' and 'bi' known terms, as in  Z*y-d
@@ -244,7 +244,7 @@ class ChApi ChSystemDescriptor {
 
     /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}.
     /// Note that the 'q' data in the ChVariables of the system descriptor is changed by this
-    /// operation, so thay may need to be backed up via FromVariablesToVector()
+    /// operation, so that may need to be backed up via FromVariablesToVector()
     virtual void SystemProduct(ChVectorDynamic<>& result,  ///< result vector (multiplication of system matrix by x)
                                const ChVectorDynamic<>& x  ///< vector to be multiplied
     );

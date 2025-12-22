@@ -202,6 +202,7 @@ void SaveFileCRM(const std::string& filename,
                  thrust::host_vector<Real4> rhoPresMu,
                  thrust::host_vector<Real3> tau_normal,
                  thrust::host_vector<Real3> tau_shear,
+                 thrust::host_vector<Real3> pcEvSv,
                  int start_index,
                  int end_index) {
     std::ofstream file(filename);
@@ -216,7 +217,7 @@ void SaveFileCRM(const std::string& filename,
             break;
         case OutputLevel::CRM_FULL:
             sstream << "x,y,z,h,v_x,v_y,v_z,|U|,acc,rho(rpx),p11(tauXxYyZz_11),p22(tauXxYyZz_22),p33("
-                       "tauXxYyZz_33),shear12(tauXyXzYz_12),shear13(tauXyXzYz_13),shear23(tauXyXzYz_23)\n";
+                       "tauXxYyZz_33),shear12(tauXyXzYz_12),shear13(tauXyXzYz_13),shear23(tauXyXzYz_23),pc,Ev,Sv\n";
             break;
     }
 
@@ -227,7 +228,7 @@ void SaveFileCRM(const std::string& filename,
         Real4 rp = rhoPresMu[i];
         Real3 tn = tau_normal[i];
         Real3 ts = tau_shear[i];
-
+        Real3 pcEvSv_i = pcEvSv[i];
         Real v_len = length(v);
         Real a_len = length(a);
 
@@ -242,7 +243,8 @@ void SaveFileCRM(const std::string& filename,
             case OutputLevel::CRM_FULL:
                 sstream << p.x << ", " << p.y << ", " << p.z << ", " << p.w << ", " << v.x << ", " << v.y << ", " << v.z
                         << ", " << v_len << ", " << a_len << ", " << rp.x << ", " << tn.x << ", " << tn.y << ", "
-                        << tn.z << ", " << ts.x << ", " << ts.y << ", " << ts.z << std::endl;
+                        << tn.z << ", " << ts.x << ", " << ts.y << ", " << ts.z << ", " << pcEvSv_i.x << ", "
+                        << pcEvSv_i.y << ", " << pcEvSv_i.z << std::endl;
                 break;
         }
     }
@@ -261,6 +263,7 @@ void SaveAllCRM(const std::string& dir,
                 thrust::host_vector<Real4> rhoPresMu,
                 thrust::host_vector<Real3> tau_normal,
                 thrust::host_vector<Real3> tau_shear,
+                thrust::host_vector<Real3> pcEvSv,
                 const thrust::host_vector<int4>& referenceArray,
                 const thrust::host_vector<int4>& referenceArrayFEA) {
     bool haveHelper = (referenceArray[0].z == -3) ? true : false;
@@ -271,6 +274,7 @@ void SaveAllCRM(const std::string& dir,
         std::string filename = dir + "/others" + std::to_string(frame) + ".csv";
         SaveFileCRM(filename, level,                                                 //
                     pos, vel, acc, rhoPresMu, tau_normal, tau_shear,                 //
+                    pcEvSv,                                                          //
                     referenceArray[0].x, referenceArray[haveHelper + haveGhost].y);  //
     }
 
@@ -278,7 +282,7 @@ void SaveAllCRM(const std::string& dir,
     {
         std::string filename = dir + "/fluid" + std::to_string(frame) + ".csv";
         SaveFileCRM(filename, level,                                                                    //
-                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear,                                    //
+                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear, pcEvSv,                            //
                     referenceArray[haveHelper + haveGhost].x, referenceArray[haveHelper + haveGhost].y  //
         );
     }
@@ -287,7 +291,7 @@ void SaveAllCRM(const std::string& dir,
     if (frame == 0) {
         std::string filename = dir + "/boundary" + std::to_string(frame) + ".csv";
         SaveFileCRM(filename, level,                                                                              //
-                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear,                                              //
+                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear, pcEvSv,                                      //
                     referenceArray[haveHelper + haveGhost + 1].x, referenceArray[haveHelper + haveGhost + 1].y);  //
     }
 
@@ -296,7 +300,7 @@ void SaveAllCRM(const std::string& dir,
     if (refSize > haveHelper + haveGhost + 2 && referenceArray[2].z == 1) {
         std::string filename = dir + "/rigidBCE" + std::to_string(frame) + ".csv";
         SaveFileCRM(filename, level,                                                               //
-                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear,                               //
+                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear, pcEvSv,                       //
                     referenceArray[haveHelper + haveGhost + 2].x, referenceArray[refSize - 1].y);  //
     }
 
@@ -304,18 +308,18 @@ void SaveAllCRM(const std::string& dir,
     int refSize_Flex = (int)referenceArrayFEA.size();
     if (refSize_Flex > 0) {
         std::string filename = dir + "/flexBCE" + std::to_string(frame) + ".csv";
-        SaveFileCRM(filename, level,                                                 //
-                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear,                 //
-                    referenceArrayFEA[0].x, referenceArrayFEA[refSize_Flex - 1].y);  //
+        SaveFileCRM(filename, level,                                                         //
+                    pos, vel, acc, rhoPresMu, tau_normal, tau_shear,                         //
+                    pcEvSv, referenceArrayFEA[0].x, referenceArrayFEA[refSize_Flex - 1].y);  //
     }
 }
 
 void saveParticleDataCRM(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr) {
-    saveParticleDataCRM(dir, level,                                                            //
-                        data_mgr.sphMarkers_D->posRadD, data_mgr.sphMarkers_D->velMasD,        //
-                        data_mgr.derivVelRhoOriginalD, data_mgr.sphMarkers_D->rhoPresMuD,      //
-                        data_mgr.sphMarkers_D->tauXxYyZzD, data_mgr.sphMarkers_D->tauXyXzYzD,  //
-                        data_mgr.referenceArray, data_mgr.referenceArray_FEA);                 //
+    saveParticleDataCRM(dir, level,                                                                             //
+                        data_mgr.sphMarkers_D->posRadD, data_mgr.sphMarkers_D->velMasD,                         //
+                        data_mgr.derivVelRhoOriginalD, data_mgr.sphMarkers_D->rhoPresMuD,                       //
+                        data_mgr.sphMarkers_D->tauXxYyZzD, data_mgr.sphMarkers_D->tauXyXzYzD,                   //
+                        data_mgr.sphMarkers_D->pcEvSvD, data_mgr.referenceArray, data_mgr.referenceArray_FEA);  //
 }
 
 void saveParticleDataCRM(const std::string& dir,
@@ -326,6 +330,7 @@ void saveParticleDataCRM(const std::string& dir,
                          const thrust::device_vector<Real4>& rhoPresMuD,
                          const thrust::device_vector<Real3>& tauXxYyZzD,
                          const thrust::device_vector<Real3>& tauXyXzYzD,
+                         const thrust::device_vector<Real3>& pcEvSvD,
                          const thrust::host_vector<int4>& referenceArray,
                          const thrust::host_vector<int4>& referenceArrayFEA) {
     thrust::host_vector<Real4> pos = posRadD;
@@ -334,16 +339,17 @@ void saveParticleDataCRM(const std::string& dir,
     thrust::host_vector<Real4> rhoPresMu = rhoPresMuD;
     thrust::host_vector<Real3> tau_normal = tauXxYyZzD;
     thrust::host_vector<Real3> tau_shear = tauXyXzYzD;
+    thrust::host_vector<Real3> pcEvSv = pcEvSvD;
 
     // Current frame number
     static int frame = -1;
     frame++;
 
     // Start printing in a separate thread and detach the thread to allow independent execution
-    std::thread th(SaveAllCRM,                                       //
-                   dir, frame, level,                                //
-                   pos, vel, acc, rhoPresMu, tau_normal, tau_shear,  //
-                   referenceArray, referenceArrayFEA);               //
+    std::thread th(SaveAllCRM,                                               //
+                   dir, frame, level,                                        //
+                   pos, vel, acc, rhoPresMu, tau_normal, tau_shear, pcEvSv,  //
+                   referenceArray, referenceArrayFEA);                       //
     th.detach();
 }
 
@@ -545,8 +551,8 @@ void writeParticleFileJSON(const std::string& filename, FsiDataManager& data_mgr
 }
 
 void writeParticleFileJSON(const std::string& outfilename,
-                          thrust::device_vector<Real4>& posRadD,
-                          thrust::host_vector<int4>& referenceArray) {
+                           thrust::device_vector<Real4>& posRadD,
+                           thrust::host_vector<int4>& referenceArray) {
     thrust::host_vector<Real4> posRadH = posRadD;
 
     bool haveHelper = (referenceArray[0].z == -3) ? true : false;

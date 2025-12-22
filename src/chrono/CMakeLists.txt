@@ -257,6 +257,7 @@ set(Chrono_physics_loads_SOURCES
     physics/ChLoadsBody.cpp
     physics/ChLoadsNodeXYZ.cpp
     physics/ChLoadBodyMesh.cpp
+    physics/ChLoadHydrodynamics.cpp
     physics/ChLoadContainer.cpp
     )
 set(Chrono_physics_loads_HEADERS
@@ -269,6 +270,7 @@ set(Chrono_physics_loads_HEADERS
     physics/ChLoadsNodeXYZ.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
+    physics/ChLoadHydrodynamics.h
     physics/ChLoadContainer.h
     )
 source_group(physics\\loads FILES ${Chrono_physics_loads_SOURCES} ${Chrono_physics_loads_HEADERS})
@@ -1090,7 +1092,7 @@ set(Chrono_utils_SOURCES
     utils/ChUtilsCreators.cpp
     utils/ChUtilsGenerators.cpp
     utils/ChUtilsChaseCamera.cpp
-    utils/ChUtilsValidation.cpp
+    utils/ChValidation.cpp
     utils/ChOpenMP.cpp
     utils/ChProfiler.cpp
     utils/ChControllers.cpp
@@ -1110,7 +1112,7 @@ set(Chrono_utils_HEADERS
     utils/ChUtilsGenerators.h
     utils/ChUtilsSamplers.h
     utils/ChUtilsChaseCamera.h
-    utils/ChUtilsValidation.h
+    utils/ChValidation.h
     utils/ChProfiler.h
     utils/ChControllers.h
     utils/ChFilters.h
@@ -1545,6 +1547,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>)
     target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result>)
     target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-switch>)
+    target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated>)
 elseif(MSVC)
     message(STATUS "Warning level set to /W4")
     target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/W4>)
@@ -1571,6 +1574,7 @@ else()
     target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-function>)
     target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>)
     target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result>)
+    target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated>)
 endif()
 
 # Globally define debug and NOT-debug macros based on build type 

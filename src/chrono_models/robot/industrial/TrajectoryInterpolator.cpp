@@ -33,18 +33,19 @@ namespace industrial {
 // =============================================================================
 // TrajectoryInterpolatorOperationSpace
 // =============================================================================
-TrajectoryInterpolatorOperationSpace::TrajectoryInterpolatorOperationSpace(const std::vector<ChCoordsysd>& waypoints,
-                                                                           double motion_time_tot,
+TrajectoryInterpolatorOperationSpace::TrajectoryInterpolatorOperationSpace(double motion_time_tot,
+                                                                           const std::vector<ChCoordsysd>& waypoints,
                                                                            PosfunType posfun_type,
                                                                            SpacefunType pos_spacefun_type,
                                                                            RotfunType rotfun_type,
                                                                            SpacefunType rot_spacefun_type,
                                                                            std::vector<double>* durations) {
-    Setup(waypoints, motion_time_tot, posfun_type, pos_spacefun_type, rotfun_type, rot_spacefun_type, durations);
+    Setup(motion_time_tot, waypoints, posfun_type, pos_spacefun_type, rotfun_type, rot_spacefun_type, durations);
 }
 
-void TrajectoryInterpolatorOperationSpace::Setup(const std::vector<ChCoordsysd>& waypoints,
-                                                 double motion_time_tot,
+void TrajectoryInterpolatorOperationSpace::Setup(double motion_time_tot,
+                                                 const std::vector<ChCoordsysd>& waypoints,
+
                                                  PosfunType posfun_type,
                                                  SpacefunType pos_spacefun_type,
                                                  RotfunType rotfun_type,
@@ -146,7 +147,8 @@ void TrajectoryInterpolatorOperationSpace::SetupRotationFunction() {
     }
 }
 
-std::shared_ptr<ChFunctionSequence> TrajectoryInterpolatorOperationSpace::SetupSpaceFunction(SpacefunType spacefun_type) {
+std::shared_ptr<ChFunctionSequence> TrajectoryInterpolatorOperationSpace::SetupSpaceFunction(
+    SpacefunType spacefun_type) {
     auto spacefun = chrono_types::make_shared<ChFunctionSequence>();
     auto num_motions = m_waypoints.size() - 1;
 

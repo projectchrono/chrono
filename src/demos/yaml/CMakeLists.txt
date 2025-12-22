@@ -36,6 +36,10 @@ if(CH_ENABLE_MODULE_MUMPS)
 endif()
 
 if(CH_ENABLE_MODULE_FSI)
+  list(APPEND LIBS Chrono_fsi)
+endif()
+
+if(CH_ENABLE_MODULE_FSI_SPH)
   list(APPEND LIBS Chrono_fsisph)
   if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_fsisph_vsg")

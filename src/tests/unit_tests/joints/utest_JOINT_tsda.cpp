@@ -23,16 +23,17 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/utils/ChValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 
 // =============================================================================
 // Local variables
 //
-static const std::string val_dir = "../RESULTS/";
+static const std::string val_dir = "TEST_RESULTS/";
 static const std::string out_dir = val_dir + "transpringcb_force/";
 static const std::string ref_dir = "testing/joints/transpringcb_force/";
 
@@ -392,18 +393,18 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
     }
 
     // Write output files
-    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", "# " + testName);
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", "# " + testName);
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", "# " + testName);
 
-    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", "# " + testName);
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", "# " + testName);
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", "# " + testName);
 
-    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
-    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
+    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", "# " + testName);
+    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", "# " + testName);
 
-    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", "# " + testName);
 
     return true;
 }
@@ -419,11 +420,11 @@ bool ValidateReference(const std::string& testName,  // name of this test
 {
     std::string sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 

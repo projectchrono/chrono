@@ -2,7 +2,6 @@
 # ------------------------------------------------------------------------------
 
 if(NOT CH_ENABLE_MODULE_MULTICORE OR NOT CH_ENABLE_MODULE_VSG)
-  message(STATUS "  Warning: the multicore RoboSimian projects require Chrono::Multicore and Chrono::VSG")
   return()
 endif()
 

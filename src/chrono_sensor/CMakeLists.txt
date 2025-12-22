@@ -247,12 +247,14 @@ set(Chrono_sensor_FILTERS_SOURCES
     filters/ChFilterRadarXYZVisualize.cpp
     filters/ChFilterRadarVisualizeCluster.cpp
     filters/ChFilterTachometerUpdate.cpp
+    filters/ChFilterCameraExposure.cpp
 )
 
 set(Chrono_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
     filters/ChFilterIMUUpdate.h
   	filters/ChFilterGPSUpdate.h
+    filters/ChFilterCameraExposure.h
     filters/ChFilterCameraNoise.h
     filters/ChFilterLidarNoise.h
   	filters/ChFilterVisualize.h
@@ -565,11 +567,12 @@ if(CH_USE_SENSOR_NVDB)
   message(STATUS "NANO VDB Visualization enabled in Chrono::Sensor.")
 endif()
 
-# windows builds should disable warning 4661 and 4005
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
-    target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)
+if(MSVC)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)
 endif()
+
+target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
 
 target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_SENSOR>)
 

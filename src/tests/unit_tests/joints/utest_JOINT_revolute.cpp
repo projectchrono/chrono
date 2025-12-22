@@ -23,18 +23,19 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/utils/ChValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 
 enum class eChLinkFormulation { Lock, Mate, Native };
 
 // =============================================================================
 // Local variables
 //
-static const std::string val_dir = "../RESULTS/";
+static const std::string val_dir = "TEST_RESULTS/";
 static const std::string out_dir = val_dir + "revolute_joint/";
 static const std::string ref_dir = "testing/joints/revolute_joint/";
 
@@ -193,9 +194,9 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
                   eChLinkFormulation formulation,    // joint formulation
                   double simTimeStep,                // simulation time step
                   double outTimeStep,                // output time step
-                  const std::string& chronoTestName  // name of the Chrono test
+                  const std::string& testName  // name of the Chrono test
 ) {
-    std::cout << "TEST: " << chronoTestName << std::endl;
+    std::cout << "TEST: " << testName << std::endl;
 
     // Settings
     //---------
@@ -344,7 +345,7 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
               << "Cnstr_1"
               << "Cnstr_2"
               << "Cnstr_3"
-              << "Constraint_4"
+              << "Cnstr_4"
               << "Cnstr_5" << std::endl;
 
     // Perform a system assembly to ensure we have the correct accelerations at the initial time.
@@ -436,31 +437,31 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
     // Write output files
 
     std::cout << "  Write output files..." << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Pos.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Vel.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Acc.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Quat.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Avel.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Aacc.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Rforce.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Rtorque.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Energy.txt" << std::endl;
-    std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Constraints.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Pos.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Vel.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Acc.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Quat.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Avel.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Aacc.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Rforce.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Rtorque.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Energy.txt" << std::endl;
+    std::cout << "     file=" << out_dir + testName + "_CHRONO_Constraints.txt" << std::endl;
 
-    out_pos.WriteToFile(out_dir + chronoTestName + "_CHRONO_Pos.txt", chronoTestName + "\n");
-    out_vel.WriteToFile(out_dir + chronoTestName + "_CHRONO_Vel.txt", chronoTestName + "\n");
-    out_acc.WriteToFile(out_dir + chronoTestName + "_CHRONO_Acc.txt", chronoTestName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", "# " + testName);
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", "# " + testName);
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", "# " + testName);
 
-    out_quat.WriteToFile(out_dir + chronoTestName + "_CHRONO_Quat.txt", chronoTestName + "\n");
-    out_avel.WriteToFile(out_dir + chronoTestName + "_CHRONO_Avel.txt", chronoTestName + "\n");
-    out_aacc.WriteToFile(out_dir + chronoTestName + "_CHRONO_Aacc.txt", chronoTestName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", "# " + testName);
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", "# " + testName);
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", "# " + testName);
 
-    out_rfrc.WriteToFile(out_dir + chronoTestName + "_CHRONO_Rforce.txt", chronoTestName + "\n");
-    out_rtrq.WriteToFile(out_dir + chronoTestName + "_CHRONO_Rtorque.txt", chronoTestName + "\n");
+    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", "# " + testName);
+    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", "# " + testName);
 
-    out_energy.WriteToFile(out_dir + chronoTestName + "_CHRONO_Energy.txt", chronoTestName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", "# " + testName);
 
-    out_cnstr.WriteToFile(out_dir + chronoTestName + "_CHRONO_Constraints.txt", chronoTestName + "\n");
+    out_cnstr.WriteToFile(out_dir + testName + "_CHRONO_Constraints.txt", "# " + testName);
 
     return true;
 }
@@ -470,18 +471,18 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
 // Wrapper function for comparing the specified simulation quantities against a
 // reference file.
 //
-bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono test
+bool ValidateReference(const std::string& testName,  // name of the Chrono test
                        const std::string& refTestName,     // name the reference test
                        const std::string& what,            // identifier for test quantity
                        double tolerance)                   // validation tolerance
 {
-    std::string sim_file = out_dir + chronoTestName + "_CHRONO_" + what + ".txt";
+    std::string sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + refTestName + "_ADAMS_" + what + ".txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -490,15 +491,15 @@ bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono
 
 // Wrapper function for checking constraint violations.
 //
-bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chrono test
+bool ValidateConstraints(const std::string& testName,  // name of the Chrono test
                          double tolerance)                   // validation tolerance
 {
-    std::string sim_file = out_dir + chronoTestName + "_CHRONO_Constraints.txt";
-    utils::DataVector norms;
+    std::string sim_file = out_dir + testName + "_CHRONO_Constraints.txt";
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate Constraints" << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -507,13 +508,13 @@ bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chro
 
 // wrapper function for checking energy conservation.
 //
-bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono test
+bool ValidateEnergy(const std::string& testName,  // name of the Chrono test
                     double tolerance)                   // validation tolerance
 {
-    std::string sim_file = out_dir + chronoTestName + "_CHRONO_Energy.txt";
-    utils::DataVector norms;
+    std::string sim_file = out_dir + testName + "_CHRONO_Energy.txt";
+    ChValidation::DataVector norms;
 
-    utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+    ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
 
     bool check = norms[norms.size() - 1] <= tolerance;
     std::cout << "   validate Energy" << (check ? ": Passed" : ": Failed") << "  [  " << norms[norms.size() - 1]

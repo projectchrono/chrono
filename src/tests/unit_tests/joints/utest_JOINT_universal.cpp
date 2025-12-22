@@ -22,16 +22,17 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/utils/ChValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 
 // =============================================================================
 // Local variables
 //
-static const std::string val_dir = "../RESULTS/";
+static const std::string val_dir = "TEST_RESULTS/";
 static const std::string out_dir = val_dir + "universal_joint/";
 static const std::string ref_dir = "testing/joints/universal_joint/";
 
@@ -247,7 +248,7 @@ bool TestUniversal(const ChVector3d& jointLoc,      // absolute location of join
               << "Cnstr_1"
               << "Cnstr_2"
               << "Cnstr_3"
-              << "Constraint_4" << std::endl;
+              << "Cnstr_4" << std::endl;
 
     // Perform a system assembly to ensure we have the correct accelerations at the initial time.
     sys.DoAssembly(AssemblyAnalysis::Level::FULL);
@@ -334,20 +335,20 @@ bool TestUniversal(const ChVector3d& jointLoc,      // absolute location of join
     }
 
     // Write output files
-    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", "# " + testName);
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", "# " + testName);
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", "# " + testName);
 
-    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", "# " + testName);
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", "# " + testName);
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", "# " + testName);
 
-    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
-    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
+    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", "# " + testName);
+    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", "# " + testName);
 
-    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", "# " + testName);
 
-    out_cnstr.WriteToFile(out_dir + testName + "_CHRONO_Constraints.txt", testName + "\n");
+    out_cnstr.WriteToFile(out_dir + testName + "_CHRONO_Constraints.txt", "# " + testName);
 
     return true;
 }
@@ -363,11 +364,11 @@ bool ValidateReference(const std::string& testName,  // name of this test
 {
     std::string sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -380,11 +381,11 @@ bool ValidateConstraints(const std::string& testName,  // name of this test
                          double tolerance)             // validation tolerance
 {
     std::string sim_file = out_dir + testName + "_CHRONO_Constraints.txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate Constraints" << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -397,9 +398,9 @@ bool ValidateEnergy(const std::string& testName,  // name of this test
                     double tolerance)             // validation tolerance
 {
     std::string sim_file = out_dir + testName + "_CHRONO_Energy.txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+    ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
 
     bool check = norms[norms.size() - 1] <= tolerance;
     std::cout << "   validate Energy" << (check ? ": Passed" : ": Failed") << "  [  " << norms[norms.size() - 1]

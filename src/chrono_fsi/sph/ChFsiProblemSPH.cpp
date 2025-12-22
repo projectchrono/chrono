@@ -266,8 +266,10 @@ void ChFsiProblemSPH::Initialize() {
             for (const auto& pos : sph_points) {
                 m_props_cb->set(*m_sysSPH, pos);
                 ChVector3d tau_diag(-m_props_cb->p0);
+                // Consolidation Pressure is only used in the MCC rheology model
+                double consolidation_pressure = m_props_cb->p0 * m_props_cb->pre_pressure_scale0;
                 m_sysSPH->AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
-                                         tau_diag, tau_offdiag);
+                                         tau_diag, tau_offdiag, consolidation_pressure);
             }
             break;
         }
@@ -652,26 +654,60 @@ void ChFsiProblemSPH::WriteReconstructedSurface(const std::string& dir, const st
 
 ChFsiProblemCartesian::ChFsiProblemCartesian(double spacing, ChSystem* sys) : ChFsiProblemSPH(spacing, sys) {}
 
-void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {
+void ChFsiProblemCartesian::Construct(const std::string& sph_file,
+                                      const std::string& bce_file,
+                                      const ChVector3d& pos,
+                                      bool use_grid_coordinates) {
     if (m_verbose) {
         cout << "Construct ChFsiProblemSPH from data files" << endl;
     }
 
     std::string line;
-    int x, y, z;
 
     std::ifstream sph(sph_file, std::ios_base::in);
     while (std::getline(sph, line)) {
-        std::istringstream iss(line, std::ios_base::in);
-        iss >> x >> y >> z;
-        m_sph.insert(ChVector3i(x, y, z));
+        // Replace commas with spaces for CSV format
+        std::replace(line.begin(), line.end(), ',', ' ');
+        std::istringstream iss(line);
+
+        if (use_grid_coordinates) {
+            // Read integer grid coordinates directly
+            int x, y, z;
+            if (iss >> x >> y >> z) {
+                m_sph.insert(ChVector3i(x, y, z));
+            }
+        } else {
+            // Read physical positions and convert to grid coordinates
+            double x, y, z;
+            if (iss >> x >> y >> z) {
+                ChVector3i grid_pos((int)std::round(x / m_spacing), (int)std::round(y / m_spacing),
+                                    (int)std::round(z / m_spacing));
+                m_sph.insert(grid_pos);
+            }
+        }
     }
 
     std::ifstream bce(bce_file, std::ios_base::in);
     while (std::getline(bce, line)) {
-        std::istringstream iss(line, std::ios_base::in);
-        iss >> x >> y >> z;
-        m_bce.insert(ChVector3i(x, y, z));
+        // Replace commas with spaces for CSV format
+        std::replace(line.begin(), line.end(), ',', ' ');
+        std::istringstream iss(line);
+
+        if (use_grid_coordinates) {
+            // Read integer grid coordinates directly
+            int x, y, z;
+            if (iss >> x >> y >> z) {
+                m_bce.insert(ChVector3i(x, y, z));
+            }
+        } else {
+            // Read physical positions and convert to grid coordinates
+            double x, y, z;
+            if (iss >> x >> y >> z) {
+                ChVector3i grid_pos((int)std::round(x / m_spacing), (int)std::round(y / m_spacing),
+                                    (int)std::round(z / m_spacing));
+                m_bce.insert(grid_pos);
+            }
+        }
     }
 
     if (m_verbose) {

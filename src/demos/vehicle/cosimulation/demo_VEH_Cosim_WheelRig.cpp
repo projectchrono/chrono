@@ -36,7 +36,7 @@
 #ifdef CHRONO_MULTICORE
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
 #ifdef CHRONO_DEM
@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 #endif
-#ifndef CHRONO_FSI
+#ifndef CHRONO_FSI_SPH
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH) {
         if (rank == 0)
             cout << "Chrono::FSI is required for GRANULAR_SPH terrain type!" << endl;
@@ -421,7 +421,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);

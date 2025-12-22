@@ -367,14 +367,23 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
 
     int render_frame = 0;
     double time0 = sys.GetChTime();
-    while (vis->Run()) {
+    while (true) {
         double time = sys.GetChTime();
 
-        if (time >= render_frame / render_fps) {
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
-            render_frame++;
+        if (vis) {
+            if (!vis->Run())
+                break;
+
+            if (time >= render_frame / render_fps) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+
+                render_frame++;
+            }
+        } else if (time > t_end) {
+            cout << "\rStopped at end time." << endl;
+            break;
         }
 
         // Driver inputs
@@ -405,7 +414,8 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         vehicle_1.Synchronize(time, driver_inputs_1, terrain);
         vehicle_2.Synchronize(time, driver_inputs_2, terrain);
         terrain.Synchronize(time);
-        vis->Synchronize(time, driver_inputs_1);
+        if (vis)
+            vis->Synchronize(time, driver_inputs_1);
 
         // Advance simulation for one timestep for all modules.
         driver_1.Advance(step_size);
@@ -413,7 +423,8 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         vehicle_1.Advance(step_size);
         vehicle_2.Advance(step_size);
         terrain.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
         // Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size);

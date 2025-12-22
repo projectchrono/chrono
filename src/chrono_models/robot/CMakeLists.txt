@@ -49,7 +49,6 @@ set(CRM_CURIOSITY_FILES
 
 source_group("curiosity" FILES ${CRM_CURIOSITY_FILES})
 
-
 #-----------------------------------------------------------------------------
 
 set(CRM_COPTERS_FILES

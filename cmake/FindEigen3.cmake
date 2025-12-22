@@ -71,8 +71,10 @@ macro(_eigen3_check_version)
   if(EIGEN3_VERSION)
       if(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
           set(EIGEN3_VERSION_OK FALSE)
-          message("WARNING: Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
-                  "but at least version ${Eigen3_FIND_VERSION} is required")
+          if(NOT Eigen3_FIND_QUIETLY)
+              message("WARNING: Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
+                      "but at least version ${Eigen3_FIND_VERSION} is required")
+          endif()
       else()
           set(EIGEN3_VERSION_OK TRUE)
       endif()

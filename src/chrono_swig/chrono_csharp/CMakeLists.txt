@@ -71,8 +71,8 @@ if(CH_ENABLE_MODULE_IRRLICHT)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
 endif()
 
-if(CH_ENABLE_MODULE_FSI)
-  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI")
+if(CH_ENABLE_MODULE_FSI_SPH)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI_SPH")
 endif()
 
 if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
@@ -418,7 +418,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     add_dependencies(Chrono_csharp_vehicle Chrono_csharp_postprocess)
   endif()
   
-  if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_FSI_SPH)
+  if(CH_ENABLE_MODULE_FSI_SPH)
     target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_fsi Chrono_fsisph)
   endif()
 
@@ -582,6 +582,65 @@ if (DBG_SCRIPT)
   message("SWIG_REAL_NAME:  Chrono_csharp_robot")
 endif()
 
+#-----------------------------------------------------------------------------
+# MODULE for the ros csharp wrapper
+#-----------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_ROS)
+
+  message(STATUS "Add C# ROS module")
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/ros")
+
+  # Interface files
+  set(INTERFACE_FILE_ROS ChModuleROS_csharp.i)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${INTERFACE_FILE_ROS} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${INTERFACE_FILE_ROS} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${INTERFACE_FILE_ROS} PROPERTIES COMPILE_OPTIONS "-w401,503")
+  endif()
+
+  # Create the SWIG module
+  swig_add_library(Chrono_csharp_ros LANGUAGE csharp SOURCES ${INTERFACE_FILE_ROS})
+  target_link_libraries(Chrono_csharp_ros PRIVATE Chrono_core Chrono_ros)
+
+  # Ensure that the library file is generated in the bin/ directory
+  set_target_properties(Chrono_csharp_ros PROPERTIES
+                        PROJECT_LABEL "Chrono_csharp_ros"
+                        OUTPUT_NAME   "Chrono_csharp_ros"
+                        LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
+                        SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+                        )
+
+  target_compile_definitions(Chrono_csharp_ros PRIVATE "CH_IGNORE_DEPRECATED")
+  target_compile_definitions(Chrono_csharp_ros PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(Chrono_csharp_ros Chrono_core)
+  add_dependencies(Chrono_csharp_ros Chrono_ros)
+  add_dependencies(Chrono_csharp_ros Chrono_csharp_core)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(TARGETS Chrono_csharp_ros
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
+  else()
+    install(TARGETS Chrono_csharp_ros
+            EXPORT ChronoTargets
+            LIBRARY DESTINATION lib)
+  endif()
+
+  if (DBG_SCRIPT)
+    message("Module name:     Chrono_csharp_ros")
+    message("SWIG_REAL_NAME:  Chrono_csharp_ros")
+  endif()
+
+endif()
+
 
 #-------------------------------------------------------------------------------
 # Install files
@@ -626,6 +685,11 @@ install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/robot/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
 
+if(CH_ENABLE_MODULE_ROS)
+install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/ros/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
+endif()
 
 # Template project
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -718,6 +782,9 @@ if(CH_USE_CSHARP_WRAPPER)
   if(CH_ENABLE_MODULE_SENSOR)
     list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/sensor")
   endif()
+  if(CH_ENABLE_MODULE_ROS)
+    list(APPEND CHRONO_CSHARP_MODULE_SOURCE_DIRS "${PROJECT_BINARY_DIR}/chrono_csharp/ros")
+  endif()
 
   set(_chrono_csharp_module_dirs_arg "")
   if(CHRONO_CSHARP_MODULE_SOURCE_DIRS)
@@ -760,6 +827,9 @@ if(CH_USE_CSHARP_WRAPPER)
   endif()
   if(CH_ENABLE_MODULE_SENSOR)
     add_dependencies(Chrono_csharp_wrapper Chrono_csharp_sensor)
+  endif()
+  if(CH_ENABLE_MODULE_ROS)
+    add_dependencies(Chrono_csharp_wrapper Chrono_csharp_ros)
   endif()
 
   if(WIN32)

@@ -40,5 +40,5 @@ rm -rf build_eigen
 cmake -G "${BUILD_SYSTEM}" -B build_eigen -S download_eigen
 
 echo -e "\n------------------------ Build and install Eigen\n"
-# cmake --build build_eigen --config Release
+cmake --build build_eigen --config Release
 cmake --install build_eigen --config Release --prefix ${EIGEN_INSTALL_DIR}

@@ -8,7 +8,7 @@ option(CH_ENABLE_MODULE_POSTPROCESS "Enable the Chrono Postprocess module" OFF)
 
 # Return now if this module is not enabled
 if(NOT CH_ENABLE_MODULE_POSTPROCESS)
-	RETURN()
+  return()
 endif()
 
 message(STATUS "\n==== Chrono Postprocess module ====\n")
@@ -20,6 +20,7 @@ find_package(Gnuplot QUIET)
 if(GNUPLOT_FOUND)
   message(STATUS "Gnuplot executable: ${GNUPLOT_EXECUTABLE}")
   message(STATUS "Gnuplot version:    ${GNUPLOT_VERSION_STRING}")
+  set(CHRONO_HAS_GNUPLOT "#define CHRONO_HAS_GNUPLOT" PARENT_SCOPE)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -50,7 +51,6 @@ source_group("" FILES
 
 add_library(Chrono_postprocess ${Chrono_POSTPROCESS_SOURCES} ${Chrono_POSTPROCESS_HEADERS})
 add_library(Chrono::postprocess ALIAS Chrono_postprocess)
-
 
 set_target_properties(Chrono_postprocess PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 

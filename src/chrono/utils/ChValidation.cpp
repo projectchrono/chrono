@@ -16,20 +16,26 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsValidation.h"
+#include <iterator>
+
+#include "chrono/utils/ChUtils.h"
+#include "chrono/utils/ChValidation.h"
 
 namespace chrono {
 namespace utils {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-bool ChValidation::Process(const std::string& sim_filename, const std::string& ref_filename, char delim) {
+
+bool ChValidation::Process(const std::string& sim_filename, const std::string& ref_filename) {
     // Read the simulation results file.
-    m_num_rows = ReadDataFile(sim_filename, delim, m_sim_headers, m_sim_data);
-    m_num_cols = m_sim_headers.size();
+    m_sim_data = ReadDataFile(sim_filename, m_sim_headers);
+    m_num_cols = m_sim_data.size();
+    m_num_rows = m_sim_data[0].size();
 
     // Read the reference data file.
-    size_t num_ref_rows = ReadDataFile(ref_filename, delim, m_ref_headers, m_ref_data);
+    m_ref_data = ReadDataFile(ref_filename, m_ref_headers);
+    auto num_ref_cols = m_ref_data.size();
+    auto num_ref_rows = (size_t)m_ref_data[0].size();
 
     // Resize the arrays of norms to zero length
     // (needed if we return with an error below)
@@ -38,22 +44,23 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
     m_INF_norms.resize(0);
 
     // Perform some sanity checks.
-    if (m_num_cols != m_ref_headers.size()) {
+    if (m_num_cols != num_ref_cols) {
         std::cout << "ERROR: the number of columns in the two files is different:" << std::endl;
         std::cout << "   File " << sim_filename << " has " << m_num_cols << " columns" << std::endl;
-        std::cout << "   File " << ref_filename << " has " << m_ref_headers.size() << " columns" << std::endl;
+        std::cout << "   File " << ref_filename << " has " << num_ref_cols << " columns" << std::endl;
         return false;
     }
-
-    if (m_num_rows != num_ref_rows) {
-        std::cout << "ERROR: the number of rows in the two files is different:" << std::endl;
-        std::cout << "   File " << sim_filename << " has " << m_num_rows << " columns" << std::endl;
-        std::cout << "   File " << ref_filename << " has " << num_ref_rows << " columns" << std::endl;
-        return false;
+    size_t n = m_num_rows;
+    if (m_num_rows > num_ref_rows) {
+        std::cout << "WARNING: simulation data has more time points than reference data:" << std::endl;
+        std::cout << "   Simulation file " << sim_filename << " has " << m_num_rows << " data points" << std::endl;
+        std::cout << "   Reference file " << ref_filename << " has " << num_ref_rows << " data points" << std::endl;
+        std::cout << "   Processing up to t = " << m_ref_data[0].tail(1) << std::endl;
+        n = num_ref_rows;
     }
 
     // Ensure that the first columns (time) are the same.
-    if (L2norm(m_sim_data[0] - m_ref_data[0]) > 1e-10) {
+    if ((m_sim_data[0].head(n) - m_ref_data[0].head(n)).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -65,16 +72,14 @@ bool ChValidation::Process(const std::string& sim_filename, const std::string& r
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<Eigen::Infinity>();
     }
 
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     // Resize the arrays of norms to zero length
     // (needed if we return with an error below)
@@ -82,28 +87,32 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     m_RMS_norms.resize(0);
     m_INF_norms.resize(0);
 
-    // Read the simulation results file.
+    // Simulation data
     m_num_cols = sim_data.size();
+    m_num_rows = (size_t)sim_data[0].size();
     if (m_num_cols < 1) {
         std::cout << "ERROR: no values in simulation data structure." << std::endl;
         return false;
     }
 
-    m_num_rows = sim_data[0].size();
+    // Reference data
+    auto num_ref_cols = ref_data.size();
+    auto num_ref_rows = (size_t)ref_data[0].size();
 
     // Perform some sanity checks.
-    if (m_num_cols != ref_data.size()) {
+    if (m_num_cols != num_ref_cols) {
         std::cout << "ERROR: the number of columns in the two structures is different:" << std::endl;
         std::cout << "   Simulation data has " << m_num_cols << " columns" << std::endl;
         std::cout << "   Reference data has " << ref_data.size() << " columns" << std::endl;
         return false;
     }
-
-    if (m_num_rows != ref_data[0].size()) {
-        std::cout << "ERROR: the number of rows in the two structures is different:" << std::endl;
-        std::cout << "   Simulation data has " << m_num_rows << " rows" << std::endl;
-        std::cout << "   Reference data has " << ref_data[0].size() << " rows" << std::endl;
-        return false;
+    size_t n = m_num_rows;
+    if (m_num_rows > num_ref_rows) {
+        std::cout << "WARNING: simulation data has more time points than reference data:" << std::endl;
+        std::cout << "   Simulation data has " << m_num_rows << " data points" << std::endl;
+        std::cout << "   Reference data has " << ref_data[0].size() << " data points" << std::endl;
+        std::cout << "   Processing up to t = " << ref_data[0].tail(1) << std::endl;
+        n = num_ref_rows;
     }
 
     // Cache simulation and reference data. Set headers to empty values.
@@ -118,7 +127,7 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
     }
 
     // Ensure that the first columns (time) are the same.
-    if (L2norm(m_sim_data[0] - m_ref_data[0]) > 1e-10) {
+    if ((m_sim_data[0].head(n) - m_ref_data[0].head(n)).lpNorm<2>() > 1e-10) {
         std::cout << "ERROR: time sequences do not match." << std::endl;
         return false;
     }
@@ -130,20 +139,19 @@ bool ChValidation::Process(const Data& sim_data, const Data& ref_data) {
 
     // Calculate norms of the differences.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1] - m_ref_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1].head(n) - m_ref_data[col + 1].head(n)).lpNorm<Eigen::Infinity>();
     }
 
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-bool ChValidation::Process(const std::string& sim_filename, char delim) {
+bool ChValidation::Process(const std::string& sim_filename) {
     // Read the simulation results file.
-    m_num_rows = ReadDataFile(sim_filename, delim, m_sim_headers, m_sim_data);
-    m_num_cols = m_sim_headers.size();
+    m_sim_data = ReadDataFile(sim_filename, m_sim_headers);
+    m_num_cols = m_sim_data.size();
+    m_num_rows = m_sim_data[0].size();
 
     // Resize arrays of norms.
     m_L2_norms.resize(m_num_cols - 1);
@@ -152,16 +160,14 @@ bool ChValidation::Process(const std::string& sim_filename, char delim) {
 
     // Calculate norms of the column vectors.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1]).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1]).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1]).lpNorm<Eigen::Infinity>();
     }
 
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 bool ChValidation::Process(const Data& sim_data) {
     // Resize the arrays of norms to zero length
     // (needed if we return with an error below)
@@ -171,12 +177,11 @@ bool ChValidation::Process(const Data& sim_data) {
 
     // Read the simulation results file.
     m_num_cols = sim_data.size();
+    m_num_rows = sim_data[0].size();
     if (m_num_cols < 1) {
         std::cout << "ERROR: no values in simulation data structure." << std::endl;
         return false;
     }
-
-    m_num_rows = sim_data[0].size();
 
     // Cache simulation data. Set headers to empty values.
     m_sim_data.resize(m_num_cols);
@@ -193,56 +198,62 @@ bool ChValidation::Process(const Data& sim_data) {
 
     // Calculate norms of the column vectors.
     for (size_t col = 0; col < m_num_cols - 1; col++) {
-        m_L2_norms[col] = L2norm(m_sim_data[col + 1]);
-        m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1]);
-        m_INF_norms[col] = INFnorm(m_sim_data[col + 1]);
+        m_L2_norms[col] = (m_sim_data[col + 1]).lpNorm<2>();
+        m_RMS_norms[col] = (m_sim_data[col + 1]).rmsNorm();
+        m_INF_norms[col] = (m_sim_data[col + 1]).lpNorm<Eigen::Infinity>();
     }
 
     return true;
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChValidation::L2norm(const DataVector& v) {
-    return std::sqrt((v * v).sum());
+
+ChValidation::Data ChValidation::CreateData(const std::vector<std::vector<double>>& columns) {
+    if (columns.empty())
+        return Data();
+
+    auto num_cols = columns.size();
+    auto num_rows = columns[0].size();
+    Data data(num_cols);
+    for (size_t col = 0; col < num_cols; col++) {
+        std::vector<double>& tmp = const_cast<std::vector<double>&>(columns[col]);
+        data[col] = Eigen::Map<ChVectorDynamic<>>(tmp.data(), num_rows);
+    }
+
+    return data;
 }
 
-double ChValidation::RMSnorm(const DataVector& v) {
-    return std::sqrt((v * v).sum() / v.size());
-}
-
-double ChValidation::INFnorm(const DataVector& v) {
-    return std::abs(v).max();
-}
-
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-size_t ChValidation::ReadDataFile(const std::string& filename, char delim, Headers& headers, Data& data) {
+
+ChValidation::Data ChValidation::ReadDataFile(const std::string& filename, Headers& headers) {
     std::ifstream ifile(filename);
     std::string line;
 
-    // Count the number of lines in the file then rewind the input file stream.
+    // Count the number of lines in the file then rewind the input file stream
     size_t num_lines = std::count(std::istreambuf_iterator<char>(ifile), std::istreambuf_iterator<char>(), '\n');
     ifile.seekg(0, ifile.beg);
 
-    size_t num_data_points = num_lines - 3;
+    // Skip top comment lines (lines starting with '#')
+    size_t num_comments = 0;
+    while (true) {
+        std::getline(ifile, line);
+        if (line[0] == '#')
+            num_comments++;
+        else
+            break;
+    }
 
-    // Skip the first two lines.
-    std::getline(ifile, line);
-    std::getline(ifile, line);
+    // Read the column headers (assumed space-separated)
+    {
+        std::stringstream iss(line);
+        std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(),
+                  std::back_inserter(headers));
+    }
 
-    // Read the line with column headers.
-    std::getline(ifile, line);
-    std::stringstream iss1(line);
-    std::string col_header = "";
-
-    while (std::getline(iss1, col_header, delim))
-        headers.push_back(col_header);
-
+    // Create and load data
+    size_t num_data_points = num_lines - num_comments - 1;
     size_t num_cols = headers.size();
-
-    // Resize data
-    data.resize(num_cols);
+    Data data(num_cols);
     for (size_t col = 0; col < num_cols; col++)
         data[col].resize(num_data_points);
 
@@ -254,8 +265,9 @@ size_t ChValidation::ReadDataFile(const std::string& filename, char delim, Heade
             iss >> data[col][row];
         row++;
     }
+    ChAssertAlways(row == num_data_points);
 
-    return row;
+    return data;
 }
 
 // -----------------------------------------------------------------------------
@@ -265,11 +277,11 @@ size_t ChValidation::ReadDataFile(const std::string& filename, char delim, Heade
 // given tolerance and false otherwise.
 // It is assumed that the input files are TAB-delimited.
 // -----------------------------------------------------------------------------
-bool Validate(const std::string& sim_filename,
-              const std::string& ref_filename,
-              ChNormType norm_type,
-              double tolerance,
-              DataVector& norms) {
+bool ChValidation::Test(const std::string& sim_filename,
+                        const std::string& ref_filename,
+                        NormType norm_type,
+                        double tolerance,
+                        DataVector& norms) {
     ChValidation validator;
 
     if (!validator.Process(sim_filename, ref_filename))
@@ -279,13 +291,13 @@ bool Validate(const std::string& sim_filename,
     norms.resize(num_cols);
 
     switch (norm_type) {
-        case L2_NORM:
+        case NormType::L2:
             norms = validator.GetL2norms();
             break;
-        case RMS_NORM:
+        case NormType::RMS:
             norms = validator.GetRMSnorms();
             break;
-        case INF_NORM:
+        case NormType::INF:
             norms = validator.GetINFnorms();
             break;
     }
@@ -304,7 +316,11 @@ bool Validate(const std::string& sim_filename,
 // function returns true if the norms of all column differences are below the
 // given tolerance and false otherwise.
 // -----------------------------------------------------------------------------
-bool Validate(const Data& sim_data, const Data& ref_data, ChNormType norm_type, double tolerance, DataVector& norms) {
+bool ChValidation::Test(const Data& sim_data,
+                        const Data& ref_data,
+                        NormType norm_type,
+                        double tolerance,
+                        DataVector& norms) {
     ChValidation validator;
 
     if (!validator.Process(sim_data, ref_data))
@@ -314,13 +330,13 @@ bool Validate(const Data& sim_data, const Data& ref_data, ChNormType norm_type, 
     norms.resize(num_cols);
 
     switch (norm_type) {
-        case L2_NORM:
+        case NormType::L2:
             norms = validator.GetL2norms();
             break;
-        case RMS_NORM:
+        case NormType::RMS:
             norms = validator.GetRMSnorms();
             break;
-        case INF_NORM:
+        case NormType::INF:
             norms = validator.GetINFnorms();
             break;
     }
@@ -340,7 +356,7 @@ bool Validate(const Data& sim_data, const Data& ref_data, ChNormType norm_type, 
 // are below the given tolerance and false otherwise.
 // It is assumed that the input file is TAB-delimited.
 // -----------------------------------------------------------------------------
-bool Validate(const std::string& sim_filename, ChNormType norm_type, double tolerance, DataVector& norms) {
+bool ChValidation::Test(const std::string& sim_filename, NormType norm_type, double tolerance, DataVector& norms) {
     ChValidation validator;
 
     if (!validator.Process(sim_filename))
@@ -350,13 +366,13 @@ bool Validate(const std::string& sim_filename, ChNormType norm_type, double tole
     norms.resize(num_cols);
 
     switch (norm_type) {
-        case L2_NORM:
+        case NormType::L2:
             norms = validator.GetL2norms();
             break;
-        case RMS_NORM:
+        case NormType::RMS:
             norms = validator.GetRMSnorms();
             break;
-        case INF_NORM:
+        case NormType::INF:
             norms = validator.GetINFnorms();
             break;
     }
@@ -375,7 +391,7 @@ bool Validate(const std::string& sim_filename, ChNormType norm_type, double tole
 // function returns true if the norms of all columns, excluding the first one,
 // are below the given tolerance and false otherwise.
 // -----------------------------------------------------------------------------
-bool Validate(const Data& sim_data, ChNormType norm_type, double tolerance, DataVector& norms) {
+bool ChValidation::Test(const Data& sim_data, NormType norm_type, double tolerance, DataVector& norms) {
     ChValidation validator;
 
     if (!validator.Process(sim_data))
@@ -385,13 +401,13 @@ bool Validate(const Data& sim_data, ChNormType norm_type, double tolerance, Data
     norms.resize(num_cols);
 
     switch (norm_type) {
-        case L2_NORM:
+        case NormType::L2:
             norms = validator.GetL2norms();
             break;
-        case RMS_NORM:
+        case NormType::RMS:
             norms = validator.GetRMSnorms();
             break;
-        case INF_NORM:
+        case NormType::INF:
             norms = validator.GetINFnorms();
             break;
     }
@@ -402,6 +418,17 @@ bool Validate(const Data& sim_data, ChNormType norm_type, double tolerance, Data
     }
 
     return true;
+}
+
+std::string ChValidation::GetNormTypeAsString(NormType type) {
+    switch (type) {
+        case NormType::L2:
+            return "L2";
+        case NormType::RMS: 
+          return "RMS";
+        case NormType::INF:
+            return "L-infinity";
+    }
 }
 
 // -----------------------------------------------------------------------------

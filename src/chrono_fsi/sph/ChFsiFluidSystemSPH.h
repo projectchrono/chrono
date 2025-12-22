@@ -53,14 +53,19 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct CH_FSI_API ElasticMaterialProperties {
-        double density;         ///< bulk density (default: 1000.0)
-        double Young_modulus;   ///< Young's modulus (default: 1e6)
-        double Poisson_ratio;   ///< Poisson's ratio (default: 0.3)
-        double mu_I0;           ///< reference inertia number (default: 0.03)
-        double mu_fric_s;       ///< friction mu_s (default: 0.7)
-        double mu_fric_2;       ///< mu_2 constant in mu=mu(I) (default: 0.7)
-        double average_diam;    ///< average particle diameter (default: 0.005)
-        double cohesion_coeff;  ///< cohesion coefficient (default: 0)
+        double density;              ///< bulk density (default: 1000.0)
+        double Young_modulus;        ///< Young's modulus (default: 1e6)
+        double Poisson_ratio;        ///< Poisson's ratio (default: 0.3)
+        double mu_I0;                ///< reference inertia number (default: 0.03)
+        double mu_fric_s;            ///< friction mu_s (default: 0.7)
+        double mu_fric_2;            ///< mu_2 constant in mu=mu(I) (default: 0.7)
+        double average_diam;         ///< average particle diameter (default: 0.005)
+        double cohesion_coeff;       ///< cohesion coefficient (default: 0)
+        RheologyCRM rheology_model;  ///< rheology model (default: MU_OF_I)
+        double mcc_M;                // CSL line slope
+        double mcc_kappa;            // Compression index
+        double mcc_lambda;           // Swelling index
+        double mcc_v_lambda;         // Specific volume at reference pressure of 1000 Pa
 
         ElasticMaterialProperties();
     };
@@ -86,15 +91,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_diffusion_AFST;   ///< shifting coefficient used in diffusion (default: 2.0)
         double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
-        bool use_density_based_projection;         ///< (ISPH only, default: false)
+        bool use_density_based_projection;             ///< (ISPH only, default: false)
         bool use_consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool use_consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
-        double artificial_viscosity;               ///< artificial viscosity coefficient (default: 0.02)
-        bool use_delta_sph;                        ///< use delta SPH (default: true)
-        double delta_sph_coefficient;              ///< delta SPH coefficient (default: 0.1)
-        double free_surface_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
-        int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
-        bool use_variable_time_step;               ///< use variable time step (default: false)
+        double artificial_viscosity;                   ///< artificial viscosity coefficient (default: 0.02)
+        bool use_delta_sph;                            ///< use delta SPH (default: true)
+        double delta_sph_coefficient;                  ///< delta SPH coefficient (default: 0.1)
+        double free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
+                                        ///< field is computed and compared to this threshold. Particles with divergence
+                                        ///< less than this threshold are considered free surface particles (CRM only,
+                                        ///< default: 2.0)
+        int num_proximity_search_steps;  ///< number of steps between updates to neighbor lists (default: 4)
+        bool use_variable_time_step;     ///< use variable time step (default: false)
 
         SPHParameters();
     };
@@ -347,13 +355,15 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                         double mu,
                         const ChVector3d& vel = ChVector3d(0),
                         const ChVector3d& tauXxYyZz = ChVector3d(0),
-                        const ChVector3d& tauXyXzYz = ChVector3d(0));
+                        const ChVector3d& tauXyXzYz = ChVector3d(0),
+                        const double pc = 1e3);
 
     /// Add an SPH particle with current properties to the SPH system.
     void AddSPHParticle(const ChVector3d& pos,
                         const ChVector3d& vel = ChVector3d(0),
                         const ChVector3d& tauXxYyZz = ChVector3d(0),
-                        const ChVector3d& tauXyXzYz = ChVector3d(0));
+                        const ChVector3d& tauXyXzYz = ChVector3d(0),
+                        const double pc = 1e3);
 
     /// Create SPH particles in the specified box volume.
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
@@ -453,11 +463,31 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeInterior(double rad, double height, bool polar) const;
 
+    /// Create interior marker points for a truncated cone of specified radius and height.
+    /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created inside the truncated cone, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
+    std::vector<ChVector3d> CreatePointsTruncatedConeInterior(double rad,
+                                                              double rad_tip,
+                                                              double height,
+                                                              bool polar) const;
+
     /// Create exterior marker points for a cone of specified radius and height.
     /// The cone is assumed centered at the origin and aligned with the Z axis.
     /// Markers are created outside the cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeExterior(double rad, double height, bool polar) const;
+
+    /// Create exterior marker points for a truncated cone of specified radius and height.
+    /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created outside the truncated cone, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
+    std::vector<ChVector3d> CreatePointsTruncatedConeExterior(double rad,
+                                                              double rad_tip,
+                                                              double height,
+                                                              bool polar) const;
 
     /// Create marker points filling a cylindrical annulus of specified radii and height.
     /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
@@ -623,7 +653,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters
     bool m_force_proximity_search;
 
-    std::unique_ptr<FsiDataManager> m_data_mgr;       ///< FSI data manager
+    std::unique_ptr<FsiDataManager> m_data_mgr;          ///< FSI data manager
     std::unique_ptr<SphFluidDynamics> m_fluid_dynamics;  ///< fluid system
     std::unique_ptr<SphBceManager> m_bce_mgr;            ///< BCE manager
 

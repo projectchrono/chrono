@@ -112,6 +112,9 @@ class CH_MODELS_API IndustrialRobot {
     /// Unlink external body from robot (if previously attached) and potentially set it to 'fixed' thereafter.
     void DetachBody(std::shared_ptr<ChBody> body_attach, bool setfix = false);
 
+    /// Check if external body has been kinematically attached by robot (eg. gripped by end-effector).
+    bool IsBodyAttached() const { return m_body_attached; }
+
     /// Update internal encoder to keep track of distance travelled by motors.
     /// NB: call this function at runtime and get reading with GetEncoderReading() function.
     virtual void UpdateEncoder();

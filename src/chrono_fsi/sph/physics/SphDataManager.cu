@@ -48,7 +48,7 @@ namespace sph {
 zipIterSphD SphMarkerDataD::iterator(int offset) {
     return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin() + offset, velMasD.begin() + offset,
                                                         rhoPresMuD.begin() + offset, tauXxYyZzD.begin() + offset,
-                                                        tauXyXzYzD.begin() + offset));
+                                                        tauXyXzYzD.begin() + offset, pcEvSvD.begin() + offset));
 }
 
 void SphMarkerDataD::resize(size_t s) {
@@ -57,12 +57,13 @@ void SphMarkerDataD::resize(size_t s) {
     rhoPresMuD.resize(s);
     tauXxYyZzD.resize(s);
     tauXyXzYzD.resize(s);
+    pcEvSvD.resize(s);
 }
 
 zipIterSphH SphMarkerDataH::iterator(int offset) {
     return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin() + offset, velMasH.begin() + offset,
                                                         rhoPresMuH.begin() + offset, tauXxYyZzH.begin() + offset,
-                                                        tauXyXzYzH.begin() + offset));
+                                                        tauXyXzYzH.begin() + offset, pcEvSvH.begin() + offset));
 }
 
 void SphMarkerDataH::resize(size_t s) {
@@ -71,6 +72,7 @@ void SphMarkerDataH::resize(size_t s) {
     rhoPresMuH.resize(s);
     tauXxYyZzH.resize(s);
     tauXyXzYzH.resize(s);
+    pcEvSvH.resize(s);
 }
 
 //---------------------------------------------------------------------------------------
@@ -214,7 +216,8 @@ void FsiDataManager::AddSphParticle(Real3 pos,
                                     Real mu,
                                     Real3 vel,
                                     Real3 tauXxYyZz,
-                                    Real3 tauXyXzYz) {
+                                    Real3 tauXyXzYz,
+                                    Real pc) {
     sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->h));
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
@@ -222,6 +225,14 @@ void FsiDataManager::AddSphParticle(Real3 pos,
     //// TODO: do this only for elasticSPH!
     sphMarkers_H->tauXyXzYzH.push_back(tauXyXzYz);
     sphMarkers_H->tauXxYyZzH.push_back(tauXxYyZz);
+    // Initial condition from -
+    // https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
+    //// TODO: Make sure that the parameter is set (creates dependency on when AddSphParticle is called)
+    Real confining_stress = pres;
+    Real p1 = 1000;
+    Real Sv = paramsH->mcc_v_lambda - paramsH->mcc_lambda * std::log(pc / p1) +
+              paramsH->mcc_kappa * std::log(pc / confining_stress);
+    sphMarkers_H->pcEvSvH.push_back(mR3(pc, 0.0, Sv));
 }
 
 void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
@@ -232,6 +243,8 @@ void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
     //// TODO: do this only for elasticSPH!
     sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));
     sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
+    //// TODO: Figure out how to initialize the correct Sv without putting the burden on the user
+    sphMarkers_H->pcEvSvH.push_back(mR3(1e3, 0.0, 0.0));
 }
 
 void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
@@ -384,7 +397,6 @@ void FsiDataManager::ResetData() {
     //// TODO: elasticSPH only
     thrust::fill(derivTauXxYyZzD.begin(), derivTauXxYyZzD.end(), zero3);
     thrust::fill(derivTauXyXzYzD.begin(), derivTauXyXzYzD.end(), zero3);
-
     //// Time step vectors
     thrust::fill(courantViscousTimeStepD.begin(), courantViscousTimeStepD.end(), std::numeric_limits<Real>::max());
     thrust::fill(accelerationTimeStepD.begin(), accelerationTimeStepD.end(), std::numeric_limits<Real>::max());
@@ -409,11 +421,13 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         sortedSphMarkers2_D->rhoPresMuD.reserve(new_capacity);
         sortedSphMarkers2_D->tauXxYyZzD.reserve(new_capacity);
         sortedSphMarkers2_D->tauXyXzYzD.reserve(new_capacity);
+        sortedSphMarkers2_D->pcEvSvD.reserve(new_capacity);
         sortedSphMarkers1_D->posRadD.reserve(new_capacity);
         sortedSphMarkers1_D->velMasD.reserve(new_capacity);
         sortedSphMarkers1_D->rhoPresMuD.reserve(new_capacity);
         sortedSphMarkers1_D->tauXxYyZzD.reserve(new_capacity);
         sortedSphMarkers1_D->tauXyXzYzD.reserve(new_capacity);
+        sortedSphMarkers1_D->pcEvSvD.reserve(new_capacity);
         freeSurfaceIdD.reserve(new_capacity);
         vel_XSPH_D.reserve(new_capacity);
         courantViscousTimeStepD.reserve(new_capacity);
@@ -437,11 +451,13 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
     sortedSphMarkers2_D->rhoPresMuD.resize(numExtended);
     sortedSphMarkers2_D->tauXxYyZzD.resize(numExtended);
     sortedSphMarkers2_D->tauXyXzYzD.resize(numExtended);
+    sortedSphMarkers2_D->pcEvSvD.resize(numExtended);
     sortedSphMarkers1_D->posRadD.resize(numExtended);
     sortedSphMarkers1_D->velMasD.resize(numExtended);
     sortedSphMarkers1_D->rhoPresMuD.resize(numExtended);
     sortedSphMarkers1_D->tauXxYyZzD.resize(numExtended);
     sortedSphMarkers1_D->tauXyXzYzD.resize(numExtended);
+    sortedSphMarkers1_D->pcEvSvD.resize(numExtended);
     derivVelRhoD.resize(numExtended);
     derivTauXxYyZzD.resize(numExtended);
     derivTauXyXzYzD.resize(numExtended);
@@ -458,11 +474,13 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         sortedSphMarkers2_D->rhoPresMuD.shrink_to_fit();
         sortedSphMarkers2_D->tauXxYyZzD.shrink_to_fit();
         sortedSphMarkers2_D->tauXyXzYzD.shrink_to_fit();
+        sortedSphMarkers2_D->pcEvSvD.shrink_to_fit();
         sortedSphMarkers1_D->posRadD.shrink_to_fit();
         sortedSphMarkers1_D->velMasD.shrink_to_fit();
         sortedSphMarkers1_D->rhoPresMuD.shrink_to_fit();
         sortedSphMarkers1_D->tauXxYyZzD.shrink_to_fit();
         sortedSphMarkers1_D->tauXyXzYzD.shrink_to_fit();
+        sortedSphMarkers1_D->pcEvSvD.shrink_to_fit();
         derivVelRhoD.shrink_to_fit();
         derivTauXxYyZzD.shrink_to_fit();
         derivTauXyXzYzD.shrink_to_fit();
@@ -520,6 +538,7 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     thrust::copy(sphMarkers_H->rhoPresMuH.begin(), sphMarkers_H->rhoPresMuH.end(), sphMarkers_D->rhoPresMuD.begin());
     thrust::copy(sphMarkers_H->tauXxYyZzH.begin(), sphMarkers_H->tauXxYyZzH.end(), sphMarkers_D->tauXxYyZzD.begin());
     thrust::copy(sphMarkers_H->tauXyXzYzH.begin(), sphMarkers_H->tauXyXzYzH.end(), sphMarkers_D->tauXyXzYzD.begin());
+    thrust::copy(sphMarkers_H->pcEvSvH.begin(), sphMarkers_H->pcEvSvH.end(), sphMarkers_D->pcEvSvD.begin());
 
     fsiBodyState_D->Resize(countersH->numFsiBodies);
     fsiBodyState_H->Resize(countersH->numFsiBodies);
@@ -809,6 +828,7 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
     total_bytes += sphMarkers_D->rhoPresMuD.capacity() * sizeof(Real4);
     total_bytes += sphMarkers_D->tauXxYyZzD.capacity() * sizeof(Real3);
     total_bytes += sphMarkers_D->tauXyXzYzD.capacity() * sizeof(Real3);
+    total_bytes += sphMarkers_D->pcEvSvD.capacity() * sizeof(Real3);
 
     // Sorted SPH marker data (state 1)
     total_bytes += sortedSphMarkers1_D->posRadD.capacity() * sizeof(Real4);
@@ -816,12 +836,15 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
     total_bytes += sortedSphMarkers1_D->rhoPresMuD.capacity() * sizeof(Real4);
     total_bytes += sortedSphMarkers1_D->tauXxYyZzD.capacity() * sizeof(Real3);
     total_bytes += sortedSphMarkers1_D->tauXyXzYzD.capacity() * sizeof(Real3);
+    total_bytes += sortedSphMarkers1_D->pcEvSvD.capacity() * sizeof(Real3);
 
     // Sorted SPH marker data (state 2)
     total_bytes += sortedSphMarkers2_D->posRadD.capacity() * sizeof(Real4);
     total_bytes += sortedSphMarkers2_D->velMasD.capacity() * sizeof(Real3);
     total_bytes += sortedSphMarkers2_D->rhoPresMuD.capacity() * sizeof(Real4);
-
+    total_bytes += sortedSphMarkers2_D->tauXxYyZzD.capacity() * sizeof(Real3);
+    total_bytes += sortedSphMarkers2_D->tauXyXzYzD.capacity() * sizeof(Real3);
+    total_bytes += sortedSphMarkers2_D->pcEvSvD.capacity() * sizeof(Real3);
     // Proximity data
     total_bytes += markersProximity_D->gridMarkerHashD.capacity() * sizeof(uint);
     total_bytes += markersProximity_D->gridMarkerIndexD.capacity() * sizeof(uint);

@@ -84,16 +84,19 @@ endif()
 
 target_compile_definitions(Chrono_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_IRRLICHT>)
 target_compile_definitions(Chrono_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:IGNORE_DEPRECATED_WARNING>)
-if(MSVC)
-  target_compile_options(Chrono_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4996>)  # deprecated function or class member
-endif()
 
 target_link_libraries(Chrono_irrlicht PRIVATE Chrono_core)
 target_link_libraries(Chrono_irrlicht PUBLIC Irrlicht::Irrlicht)
 
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(Chrono_irrlicht PRIVATE ${MAC_LIBS})
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif(MSVC)
+  target_compile_options(Chrono_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4996>)  # deprecated function or class member
+else()
+  target_compile_options(Chrono_irrlicht PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-stringop-overflow>)
 endif()
 
 install(TARGETS Chrono_irrlicht

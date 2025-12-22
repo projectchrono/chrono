@@ -137,12 +137,15 @@ if(MSVC)
   set_target_properties(Chrono_dem PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_DEM>)
 if(MSVC)
   target_compile_options(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4996>)  # deprecated function or class member
   target_compile_options(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4996>) # CUDA Deprecation: The type will be removed in the next major release
   target_compile_options(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>) # CUDA unreferenced formal parameter
 endif()
+
+target_compile_options(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
+
+target_compile_definitions(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_DEM>)
 
 target_link_libraries(Chrono_dem PRIVATE Chrono_core)
 

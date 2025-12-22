@@ -16,9 +16,18 @@ message(STATUS "TDPF-based Chrono::FSI submodule")
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
-    set(CH_ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    set(CH_ENABLE_MODULE_FSI_TDPF OFF CACHE BOOL "Enable the Chrono::TDPF FSI module" FORCE)
     return()
 endif()
+
+#-----------------------------------------------------------------------------
+# Allow using a HydroChrono tree different than the submodule in
+# src/chrono_thirdparty
+#-----------------------------------------------------------------------------
+
+set(CH_HYDROCHRONO_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HydroChrono" CACHE PATH "Path to top-level HydroChrono directory")
+
+include_directories(${CH_HYDROCHRONO_DIR}/include)
 
 #-----------------------------------------------------------------------------
 # List all files for the TDPF-based Chrono::FSI library
@@ -31,6 +40,12 @@ set(FSITDPF_BASE_FILES
     ChFsiFluidSystemTDPF.cpp
 )
 source_group("" FILES ${FSITDPF_BASE_FILES})
+
+# --------------- HydroChrono FILES
+
+set(FSITDPF_HC_FILES
+)
+source_group("tdpf" FILES ${FSITDPF_HC_FILES})
 
 # --------------- 3rd party STB FILES
 
@@ -70,8 +85,9 @@ install(FILES ${FSITDPF_CONFIG_FILE} DESTINATION include/chrono_fsi/tdpf)
 message(STATUS "  Add Chrono_fsitdpf library")
 
 add_library(Chrono_fsitdpf
-    ${FSITDPF_BASE_FILES}
     ${FSITDPF_CONFIG_FILE}
+    ${FSITDPF_BASE_FILES}
+    ${FSITDPF_HC_FILES}
 )
 add_library(Chrono::fsitdpf ALIAS Chrono_fsitdpf)
 

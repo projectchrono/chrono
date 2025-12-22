@@ -47,8 +47,8 @@ typedef thrust::device_vector<Real3>::iterator r3IterD;
 /// typedef device iterators for shorthand SPH operation of thrust vectors of Real4
 typedef thrust::device_vector<Real4>::iterator r4IterD;
 
-/// typedef device tuple for holding SPH data pos,vel,[rho,pressure,mu,type]
-typedef thrust::tuple<r4IterD, r3IterD, r4IterD, r3IterD, r3IterD> iterTupleSphD;
+/// typedef device tuple for holding SPH data pos,vel,[rho,pressure,mu,type],tauXxYyZz,tauXyXzYz,pc
+typedef thrust::tuple<r4IterD, r3IterD, r4IterD, r3IterD, r3IterD, r3IterD> iterTupleSphD;
 typedef thrust::zip_iterator<iterTupleSphD> zipIterSphD;
 
 /// typedef host iterators for shorthand SPH operation of thrust vectors of Real3
@@ -57,8 +57,8 @@ typedef thrust::host_vector<Real3>::iterator r3IterH;
 /// typedef host iterators for shorthand SPH operation of thrust vectors of Real4
 typedef thrust::host_vector<Real4>::iterator r4IterH;
 
-/// typedef host tuple for holding SPH data pos,vel,[rho,pressure,mu,type]
-typedef thrust::tuple<r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleH;
+/// typedef host tuple for holding SPH data pos,vel,[rho,pressure,mu,type],tauXxYyZz,tauXyXzYz,pc
+typedef thrust::tuple<r4IterH, r3IterH, r4IterH, r3IterH, r3IterH, r3IterH> iterTupleH;
 typedef thrust::zip_iterator<iterTupleH> zipIterSphH;
 
 /// typedef device iterators for shorthand rigid body states:
@@ -82,6 +82,8 @@ struct SphMarkerDataD {
     thrust::device_vector<Real4> rhoPresMuD;  ///< Vector of the rho+pressure+mu+type of particles
     thrust::device_vector<Real3> tauXxYyZzD;  ///< Vector of the total stress (diagonal) of particles
     thrust::device_vector<Real3> tauXyXzYzD;  ///< Vector of the total stress (off-diagonal) of particles
+    thrust::device_vector<Real3>
+        pcEvSvD;  ///< Vector of the compressive pressure, volumetric strain rate, and specific volume of particles
 
     zipIterSphD iterator(int offset);
     void resize(size_t s);
@@ -94,7 +96,8 @@ struct SphMarkerDataH {
     thrust::host_vector<Real4> rhoPresMuH;  ///< Vector of the rho+pressure+mu+type of particles
     thrust::host_vector<Real3> tauXxYyZzH;  ///< Vector of the total stress (diagonal) of particles
     thrust::host_vector<Real3> tauXyXzYzH;  ///< Vector of the total stress (off-diagonal) of particles
-
+    thrust::host_vector<Real3>
+        pcEvSvH;  ///< Vector of the compressive pressure, volumetric strain rate, and specific volume of particles
     zipIterSphH iterator(int offset);
     void resize(size_t s);
 };
@@ -241,7 +244,8 @@ struct FsiDataManager {
                         Real mu,
                         Real3 vel = mR3(0.0),
                         Real3 tauXxYyZz = mR3(0.0),
-                        Real3 tauXyXzYz = mR3(0.0));
+                        Real3 tauXyXzYz = mR3(0.0),
+                        Real pc = 1e3);
 
     /// Add a BCE marker of given type at the specified position and with specified velocity.
     void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);

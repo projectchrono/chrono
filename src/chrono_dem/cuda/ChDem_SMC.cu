@@ -509,8 +509,9 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
             for (unsigned int i = 0; i < nSpheres; i++) {
                 for (unsigned int j = 0; j < MAX_SPHERES_TOUCHED_BY_SPHERE; j++) {
                     float3 history_UU = user_friction_history[MAX_SPHERES_TOUCHED_BY_SPHERE * i + j];
-                    float3 history_SU = make_float3(history_UU.x / LENGTH_SU2UU, history_UU.y / LENGTH_SU2UU,
-                                                    history_UU.z / LENGTH_SU2UU);
+                    float3 history_SU = make_float3(history_UU.x / (float)LENGTH_SU2UU,  //
+                                                    history_UU.y / (float)LENGTH_SU2UU,  //
+                                                    history_UU.z / (float)LENGTH_SU2UU);
                     contact_history_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j) = history_SU;
                 }
             }

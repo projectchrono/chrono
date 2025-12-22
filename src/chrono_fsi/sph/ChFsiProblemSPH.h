@@ -128,7 +128,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
       public:
-        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL) {}
+        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL), pre_pressure_scale0(1.01) {}
         ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
         virtual ~ParticlePropertiesCallback() {}
 
@@ -140,12 +140,14 @@ class CH_FSI_API ChFsiProblemSPH {
             rho0 = sysSPH.GetDensity();
             mu0 = sysSPH.GetViscosity();
             v0 = VNULL;
+            pre_pressure_scale0 = 1.01;
         }
 
         double p0;
         double rho0;
         double mu0;
         ChVector3d v0;
+        double pre_pressure_scale0;
     };
 
     /// Register a callback for setting SPH particle initial properties.
@@ -246,6 +248,8 @@ class CH_FSI_API ChFsiProblemSPH {
     std::string GetPhysicsProblemString() const { return m_sysSPH->GetPhysicsProblemString(); }
     std::string GetSphIntegrationSchemeString() const { return m_sysSPH->GetSphIntegrationSchemeString(); }
 
+    void SetActiveDomain(const ChVector3d& box_dim) { m_sysSPH->SetActiveDomain(box_dim); }
+
   protected:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
@@ -332,9 +336,11 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
     /// The SPH particle and BCE marker locations are assumed to be provided on an integer grid.
     /// Locations in real space are generated using the specified grid separation value and the
     /// patch translated to the specified position.
-    void Construct(const std::string& sph_file,  ///< filename with SPH grid particle positions
-                   const std::string& bce_file,  ///< filename with BCE grid marker positions
-                   const ChVector3d& pos         ///< reference position
+    void Construct(const std::string& sph_file,      ///< filename with SPH grid particle positions
+                   const std::string& bce_file,      ///< filename with BCE grid marker positions
+                   const ChVector3d& pos,            ///< reference position,
+                   bool use_grid_coordinates = true  ///< if true, uses the data in the file as integer grid
+                                                     ///< coordinates, otherwise uses physical positions
     );
 
     /// Construct SPH particles and optionally BCE markers in a box of given dimensions.

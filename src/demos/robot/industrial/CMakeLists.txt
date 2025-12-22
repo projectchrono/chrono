@@ -2,7 +2,6 @@
 # ------------------------------------------------------------------------------
 
 if(NOT CH_ENABLE_MODULE_IRRLICHT)
-  message(STATUS "  Warning: the Industrial projects require Chrono::Irrlicht")
   return()
 endif()
 

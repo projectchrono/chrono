@@ -19,7 +19,7 @@
 #include "chrono/fea/ChBuilderBeam.h"
 
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/utils/ChValidation.h"
 
 #include "chrono/fea/ChMesh.h"
 

@@ -83,7 +83,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     m_timer_setup_assembly.stop();
 
     if (write_matrix)
-        WriteMatrix("LS_" + frame_id + "_A.dat", m_mat);
+        WriteMatrix(output_dir + "/LS_" + frame_id + "_A.dat", m_mat);
 
     // Let the concrete solver perform the facorization
     m_timer_setup_solvercall.start();
@@ -91,7 +91,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     m_timer_setup_solvercall.stop();
 
     if (write_matrix)
-        WriteMatrix("LS_" + frame_id + "_F.dat", m_mat);
+        WriteMatrix(output_dir + "/LS_" + frame_id + "_F.dat", m_mat);
 
     if (verbose) {
         cout << "  Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << endl;
@@ -123,7 +123,7 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     m_timer_solve_assembly.stop();
 
     if (write_matrix)
-        WriteVector("LS_" + frame_id + "_b.dat", m_rhs);
+        WriteVector(output_dir + "/LS_" + frame_id + "_b.dat", m_rhs);
 
     // Let the concrete solver compute the solution
     m_timer_solve_solvercall.start();
@@ -131,7 +131,7 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     m_timer_solve_solvercall.stop();
 
     if (write_matrix)
-        WriteVector("LS_" + frame_id + "_x.dat", m_sol);
+        WriteVector(output_dir + "/LS_" + frame_id + "_x.dat", m_sol);
 
     // Scatter solution vector to the system descriptor
     m_timer_solve_assembly.start();
