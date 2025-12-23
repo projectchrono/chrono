@@ -98,8 +98,10 @@ void ChTimestepperImplicit::Advance(double dt) {
 //   - only at the beginning of the very first step
 // If using JacobianUpdate::AUTOMATIC, a matrix update occurs:
 //   - on a convergence failure with out of date Jacobian
-//
 void ChTimestepperImplicit::OnAdvance(double dt) {
+    // Clear the log_buffer
+    log_buffer.str("");
+
     // On entry, call_setup is true only:
     // - at the first iteration on the first step
     // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
@@ -158,8 +160,11 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             if (jacobian_update_method == JacobianUpdate::EVERY_ITERATION)
                 call_setup = true;
 
-            if (verbose && call_setup)
-                cout << "  Call Setup" << endl;
+            if (call_setup) {
+                if (verbose)
+                    cout << "  Call Setup" << endl;
+                log_buffer << "Call Setup" << endl;
+            }
 
             // Solve linear system and increment state
             Increment();
@@ -237,10 +242,14 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             // re-attempt step with smaller step-size
             if (verbose)
                 cout << "  Reduce stepsize to " << h << endl;
+            log_buffer << "Reduce stepsize to " << h << endl;
 
             // bail out if stepsize reaches minimum allowable
             if (h < h_min) {
                 cerr << "  [ERROR] Integrator at minimum stepsize. Exiting." << endl;
+                cerr << "\n-----\nConvergence tests over the last step:" << endl;
+                cerr << log_buffer.str() << endl;
+                cerr << "-----" << endl;
                 throw std::runtime_error("Reached minimum allowable step size.");
             }
 
@@ -252,6 +261,9 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
 
             if (!accept_terminated) {
                 cerr << "  [ERROR] Newton did not converge with up-to-date or non-modifiable Jacobian. Exiting." << endl;
+                cerr << "\n-----\nConvergence tests over the last step:" << endl;
+                cerr << log_buffer.str() << endl;
+                cerr << "-----" << endl;
                 throw std::runtime_error("Newton did not converge with up-to-date Jacobian.");
             }
 
@@ -322,6 +334,13 @@ bool ChTimestepperImplicit::CheckConvergence(int it) {
             cout << "  Conv. rate = " << convergence_rate;
         cout << endl;
     }
+
+    // Append to log buffer
+    log_buffer << "Newton iteration: " << it;
+    log_buffer << "  |R| = " << R_nrm << "  |Qc| = " << Qc_nrm << "  |Ds| = " << Ds_nrm << "  |Dl| = " << Dl_nrm;
+    if (it >= 2)
+        log_buffer << "  Conv. rate = " << convergence_rate;
+    log_buffer << "\n";
 
     if ((R_nrm < 1 && Qc_nrm < 1) || (Ds_nrm < 1 && Dl_nrm < 1))
         pass = true;

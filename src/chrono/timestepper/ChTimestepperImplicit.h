@@ -16,6 +16,7 @@
 #define CH_TIMESTEPPER_IMPLICIT_H
 
 #include <array>
+#include <sstream>
 
 #include "chrono/timestepper/ChTimestepper.h"
 
@@ -256,6 +257,8 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     double h_min;                       ///< minimum allowable stepsize
     double h;                           ///< internal stepsize
     unsigned int num_successful_steps;  ///< number of successful steps
+
+    std::ostringstream log_buffer;
 };
 
 /// Euler implicit for II order systems.
