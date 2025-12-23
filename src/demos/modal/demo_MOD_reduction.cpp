@@ -385,7 +385,6 @@ int main(int argc, char* argv[]) {
     vis.AddLogo();
     vis.AddSkyBox();
     vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
-    vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
     vis.AddTypicalLights();
 
     // This is for GUI tweaking of system parameters..
