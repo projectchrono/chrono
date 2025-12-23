@@ -91,6 +91,14 @@ CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserRGBA8BufferPtr, ChFilterRGBA8Access, ChFilterRGBA8AccessName>();
 }
 
+// -----------------------------------------------------------------------------
+// retriever function for image semantic data in semantic format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserSemanticBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserSemanticBufferPtr, ChFilterSemanticAccess, ChFilterSemanticAccessName>();
+}
 
 // -----------------------------------------------------------------------------
 // retriever function for image depth data as float values
