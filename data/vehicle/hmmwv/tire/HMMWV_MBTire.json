@@ -39,7 +39,6 @@
   },
 
   "Numerical Settings": {
-    "Stiff": false,
-    "Compute Force Jacobian": false
+    "Stiff": false
   }
 }

@@ -111,10 +111,6 @@ void MBTire::Create(const rapidjson::Document& d) {
             bool is_stiff = d["Numerical Settings"]["Stiff"].GetBool();
             IsStiff(is_stiff);
         }
-        if (d["Numerical Settings"].HasMember("Compute Force Jacobian")) {
-            bool force_jacobian = d["Numerical Settings"]["Compute Force Jacobian"].GetBool();
-            ForceJacobianCalculation(force_jacobian);
-        }
     }
 }
 

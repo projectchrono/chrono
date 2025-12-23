@@ -147,7 +147,6 @@ int main() {
     else
         tire->SetContactSurfaceType(ChTire::ContactSurfaceType::NODE_CLOUD, 0.02, 11);
     tire->IsStiff(false);
-    tire->ForceJacobianCalculation(false);
     tire->SetStepsize(step_size);
     tire->Initialize(wheel);
     tire->SetVisualizationType(VisualizationType::MESH);

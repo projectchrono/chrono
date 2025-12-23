@@ -72,10 +72,6 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     /// If stiff, Jacobian information will be generated.
     void IsStiff(bool val);
 
-    /// Force Jacobian calculation for debugging purposes (default: false).
-    /// Note that the Jacobian is used in integratino only if the tire element is declared stiff.
-    void ForceJacobianCalculation(bool val);
-
     /// Set contact material properties.
     void SetTireContactMaterial(const ChContactMaterialData& mat_data);
 
@@ -424,8 +420,7 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
     ChVector3d m_wheel_force;         // applied wheel spindle force (in global frame)
     ChVector3d m_wheel_torque;        // applied wheel spindle torque (in body frame)
 
-    bool m_stiff;      // true if loads are stiff (triggers Jacobian calculation)
-    bool m_force_jac;  // force Jacobian calculation (for debugging)
+    bool m_stiff;  // true if loads are stiff (triggers Jacobian calculation)
 
     ChMBTire* m_tire;  // owner ChMBTire object
 

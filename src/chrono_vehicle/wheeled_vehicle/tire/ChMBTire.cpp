@@ -40,7 +40,6 @@ ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name) {
     m_model = chrono_types::make_shared<MBTireModel>();
     m_model->m_tire = this;
     m_model->m_stiff = false;
-    m_model->m_force_jac = false;
 }
 
 void ChMBTire::SetTireGeometry(const std::vector<double>& ring_radii,
@@ -82,10 +81,6 @@ void ChMBTire::SetRadialSpringCoefficients(double kR, double cR) {
 
 void ChMBTire::IsStiff(bool val) {
     m_model->m_stiff = val;
-}
-
-void ChMBTire::ForceJacobianCalculation(bool val) {
-    m_model->m_force_jac = val;
 }
 
 void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
@@ -1234,7 +1229,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             load->wheel = m_wheel.get();
             load->p_times_a = p_times_a;
 
-            load->Initialize(m_stiff || m_force_jac);
+            load->Initialize(m_stiff);
 
             m_pressure_loads.push_back(load);
             m_num_pressure_loads++;
@@ -1261,7 +1256,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->k = m_kC;
             spring->c = m_cC;
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_grid_lin_springs.push_back(spring);
             m_num_grid_lin_springs++;
@@ -1289,7 +1284,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
 
             spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_edge_lin_springs.push_back(spring);
             m_num_edge_lin_springs++;
@@ -1312,7 +1307,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->k = m_kT;
             spring->c = m_cT;
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_grid_lin_springs.push_back(spring);
             m_num_grid_lin_springs++;
@@ -1337,7 +1332,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
 
             spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_edge_lin_springs.push_back(spring);
             m_num_edge_lin_springs++;
@@ -1366,7 +1361,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->k = m_kB;
             spring->c = m_cB;
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_grid_rot_springs.push_back(spring);
             m_num_grid_rot_springs++;
@@ -1401,7 +1396,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
 
             spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_edge_rot_springs.push_back(spring);
             m_num_edge_rot_springs++;
@@ -1428,7 +1423,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->k = m_kB;
             spring->c = m_cB;
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_grid_rot_springs.push_back(spring);
             m_num_grid_rot_springs++;
@@ -1457,7 +1452,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
 
             spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
-            spring->Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff);
 
             m_edge_rot_springs.push_back(spring);
             m_num_edge_rot_springs++;
@@ -1904,7 +1899,7 @@ void MBTireModel::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
 }
 
 void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    if (!m_stiff && !m_force_jac)
+    if (!m_stiff)
         return;
 
     for (auto& load : m_pressure_loads)
