@@ -80,6 +80,7 @@ auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
 ChTireStaticTestRig::Mode test_mode = ChTireStaticTestRig::Mode::TEST_R;
 
 bool verbose_solvers = false;
+bool matrix_write = false;
 bool debug_output = false;
 bool gnuplot_output = true;
 
@@ -171,7 +172,7 @@ int main() {
     if (hht) {
         hht->SetAlpha(-0.2);
         hht->SetMaxIters(10);
-        hht->SetAbsTolerances(1e-2, 1e2);
+        hht->SetAbsTolerances(1e2, 1e2);
         hht->SetRelTolerance(1e-3);
         hht->SetStepControl(false);
         hht->SetMinStepSize(1e-5);
@@ -194,7 +195,7 @@ int main() {
 
     cout << "Tire: " << std::quoted(tire->GetName()) << "  template: " << tire->GetTemplateName() << endl;
 
-    sys->EnableSolverMatrixWrite(true, out_dir);
+    sys->EnableSolverMatrixWrite(matrix_write, out_dir);
 
     // -----------------------------
     // Create and configure test rig

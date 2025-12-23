@@ -336,7 +336,7 @@ void ChTireStaticTestRig::StateTransition(double time) {
                 cout << "\nt = " << time << endl;
                 cout << "  num. contacts:    " << m_system->GetNumContacts() << endl;
                 cout << "  reference height: " << m_spindle_z_ref << endl;
-                cout << "  switch to State::COMPRESSING (nominal_load = " << m_r_load << ")" << endl;
+                cout << "  switch to State::COMPRESSING (nominal load = " << m_r_load << " N)" << endl;
             }
             break;
         }
@@ -350,9 +350,9 @@ void ChTireStaticTestRig::StateTransition(double time) {
                 else
                     new_state = State::DISPLACING;
                 cout << "\nt = " << time << endl;
-                cout << "  radial load:  " << current_load;
-                cout << "  nominal load: " << m_r_load << endl;
-                cout << "  switch to state: " << StateName(new_state) << endl;
+                cout << "  radial load:  " << current_load << " N";
+                cout << "  nominal load: " << m_r_load << " N" << endl;
+                cout << "  switch to " << StateName(new_state) << endl;
             }
             break;
         }
@@ -384,21 +384,24 @@ void ChTireStaticTestRig::Output(double time) {
 
     if (m_state == State::COMPRESSING && m_mode != Mode::TEST_R)
         return;
+    
+    if (time < m_transition_time + m_transition_delay)
+        return;
 
     // Write current outputs (in mm, deg, N, Nm)
     m_csv << time;
 
     switch (m_mode) {
         case Mode::TEST_R: {
-            m_csv << 1e-3 * (m_spindle_z_ref - m_spindle->GetPos().z()) << m_motor_r->GetMotorForce();
+            m_csv << 1e3 * (m_spindle_z_ref - m_spindle->GetPos().z()) << m_motor_r->GetMotorForce();
             break;
         }
         case Mode::TEST_X: {
-            m_csv << 1e-3 * std::abs(m_plate_body->GetPos().x()) << m_motor_x->GetMotorForce();
+            m_csv << 1e3 * std::abs(m_plate_body->GetPos().x()) << m_motor_x->GetMotorForce();
             break;
         }
         case Mode::TEST_Y: {
-            m_csv << 1e-3 * std::abs(m_plate_body->GetPos().y()) << m_motor_y->GetMotorForce();
+            m_csv << 1e3 * std::abs(m_plate_body->GetPos().y()) << m_motor_y->GetMotorForce();
             break;
         }
         case Mode::TEST_Z: {
