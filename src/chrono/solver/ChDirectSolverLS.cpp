@@ -101,7 +101,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
         cout << "     call learner?   " << call_learner << endl;
         cout << "     call reserve?   " << call_reserve << endl;
         cout << "     timer assembly matrix:   " << m_timer_setup_assembly.GetTimeSeconds() << " s" << endl;
-        cout << "     timer analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << "s" << endl;
+        cout << "     timer analyze+factorize: " << m_timer_setup_solvercall.GetTimeSeconds() << " s" << endl;
     }
 
     m_setup_call++;

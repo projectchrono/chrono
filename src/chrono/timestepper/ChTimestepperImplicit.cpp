@@ -65,6 +65,9 @@ void ChTimestepperImplicit::SetJacobianUpdateMethod(JacobianUpdate method) {
 }
 
 void ChTimestepperImplicit::Advance(double dt) {
+    if (verbose)
+        cout << "Start integration step.  dt = " << dt << endl;
+
     // Initialize step counters
     num_step_iters = 0;
     num_step_setups = 0;
@@ -73,8 +76,8 @@ void ChTimestepperImplicit::Advance(double dt) {
     // Call the integrator-specific advance method
     try {
         OnAdvance(dt);
-    } catch (const std::exception&) {
-        throw;
+    } catch (const std::exception& err) {
+        throw err;
     }
 
     // Update cumulative counters
