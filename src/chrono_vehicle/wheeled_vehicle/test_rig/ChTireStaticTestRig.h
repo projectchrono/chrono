@@ -99,7 +99,7 @@ class CH_VEHICLE_API ChTireStaticTestRig {
                                     double Young_modulus  ///< contact material Young's modulus [Pa]
     );
 
-    /// Set time delay before switching state (default: 0.1 s).
+    /// Set time delay before testing for state transitions (default: 0.1 s).
     void SetStateTransitionDelay(double delay) { m_transition_delay = delay; }
 
     /// Enable output and specify whether results should be plotted using Gnuplot (default: false).
@@ -194,7 +194,7 @@ class CH_VEHICLE_API ChTireStaticTestRig {
 
     Mode m_mode;                ///< test mode
     State m_state;              ///< current state (phase)
-    double m_transition_delay;  ///< time delay before switching state
+    double m_transition_delay;  ///< time delay before testing for state transitions
     double m_transition_time;   ///< time of last state transition
     double m_spindle_z_ref;     ///< reference spindle z for calculating radial deflection
 

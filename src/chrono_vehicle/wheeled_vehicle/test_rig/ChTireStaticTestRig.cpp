@@ -321,9 +321,6 @@ void ChTireStaticTestRig::UpdateActuators(double time) {
 }
 
 void ChTireStaticTestRig::StateTransition(double time) {
-    ////if (time < m_transition_time + m_transition_delay)
-    ////    return;
-
     State new_state = m_state;
 
     switch (m_state) {
@@ -347,7 +344,7 @@ void ChTireStaticTestRig::StateTransition(double time) {
             auto current_load = m_motor_r->GetMotorForce();
 
             // End compression phase when reaching the prescribed radial load
-            if (current_load > m_r_load) {
+            if (time > m_transition_time + m_transition_delay && current_load > m_r_load) {
                 if (m_mode == Mode::TEST_R)
                     new_state = State::DONE;
                 else
@@ -415,9 +412,12 @@ void ChTireStaticTestRig::Output(double time) {
 }
 
 void ChTireStaticTestRig::WriteOutput() {
-    std::string out_file = m_outdir + "results.txt";
+    // Return now if no experiment data was produced
+    if (m_csv.Stream().tellp() == std::streampos(0))
+        return;
 
     // Write output file
+    std::string out_file = m_outdir + "results.txt";
     std::string header;
     std::string x_label;
     std::string y_label;
@@ -444,7 +444,6 @@ void ChTireStaticTestRig::WriteOutput() {
             break;
     }
     m_csv.WriteToFile(out_file);
-
     cout << "Output written to " << std::quoted(out_file) << endl;
 
     // Plot results
@@ -455,6 +454,7 @@ void ChTireStaticTestRig::WriteOutput() {
     cout << "ERROR: GnuPlot not available. Enable the Chrono::Postprocess module." << endl;
     return;
 #else
+
     std::string gplfile = m_outdir + "/plot.gpl";
     postprocess::ChGnuPlot mplot(gplfile);
 
