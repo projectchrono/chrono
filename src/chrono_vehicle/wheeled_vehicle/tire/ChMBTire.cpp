@@ -321,9 +321,9 @@ void MBTireModel::NodePressure::CalculateJacobian(double Kfactor, double Rfactor
 
     auto A = CalculateJacobianBlock(Kfactor, Rfactor);
 
-    J.block(0, 0, 3, 3) = A;        // block for F and node
-    J.block(0, 3, 3, 3) = -A;       // block for F and wheel translational states
-    J.block(0, 6, 3, 3).setZero();  // block for and wheel rotational states
+    J.setZero();
+    J.block(0, 0, 3, 3) = A;   // block for F and node
+    J.block(0, 3, 3, 3) = -A;  // block for F and wheel translational states
 
     /*
     CalculateJacobianFD(Kfactor, Rfactor);
