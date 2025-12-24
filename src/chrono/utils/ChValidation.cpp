@@ -429,6 +429,7 @@ std::string ChValidation::GetNormTypeAsString(NormType type) {
         case NormType::INF:
             return "L-infinity";
     }
+    return "unknown";
 }
 
 // -----------------------------------------------------------------------------
