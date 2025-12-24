@@ -158,7 +158,7 @@ const LinkData rear_links[] = {
 };
 
 // List of joints in a limb chain
-//     name, parent_link, child_link, fixed?, xyz, rpy, axis
+//     name, parent_link, child_link, is_fixed?, xyz, rpy, axis
 
 const int num_joints = 10;
 
@@ -327,8 +327,7 @@ bool ContactManager::OnReportContact(const ChVector3d& pA,
     if (!a && !b)
         return true;
 
-    std::cout << "   " << (a ? bodyA->GetName() : "other") << " - " << (b ? bodyB->GetName() : "other")
-              << std::endl;
+    std::cout << "   " << (a ? bodyA->GetName() : "other") << " - " << (b ? bodyB->GetName() : "other") << std::endl;
 
     m_num_contacts++;
 
@@ -394,7 +393,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
 
 // =============================================================================
 
-RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool fixed)
+RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool is_fixed)
     : m_owns_system(true),
       m_wheel_mode(ActuationMode::SPEED),
       m_contact_reporter(new ContactManager),
@@ -411,7 +410,7 @@ RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool fixed
     m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     m_system->GetSolver()->AsIterative()->SetMaxIterations(150);
 
-    Create(has_sled, fixed);
+    Create(has_sled, is_fixed);
 
     //// TODO: currently, only NSC multicore systems support user override of composite materials
     if (contact_method == ChContactMethod::NSC) {
@@ -419,7 +418,7 @@ RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool fixed
     }
 }
 
-RoboSimian::RoboSimian(ChSystem* system, bool has_sled, bool fixed)
+RoboSimian::RoboSimian(ChSystem* system, bool has_sled, bool is_fixed)
     : m_owns_system(false),
       m_system(system),
       m_wheel_mode(ActuationMode::SPEED),
@@ -429,7 +428,7 @@ RoboSimian::RoboSimian(ChSystem* system, bool has_sled, bool fixed)
       m_wheel_friction(0.8f),
       m_outdir(""),
       m_root("results") {
-    Create(has_sled, fixed);
+    Create(has_sled, is_fixed);
 
     //// TODO: currently, only NSC multicore systems support user override of composite materials
     if (system->GetContactMethod() == ChContactMethod::NSC) {
@@ -478,7 +477,7 @@ std::shared_ptr<ChContactMaterial> DefaultContactMaterial(ChContactMethod contac
     }
 }
 
-void RoboSimian::Create(bool has_sled, bool fixed) {
+void RoboSimian::Create(bool has_sled, bool is_fixed) {
     auto contact_method = m_system->GetContactMethod();
 
     // Set default collision model envelope commensurate with model dimensions.
@@ -495,7 +494,7 @@ void RoboSimian::Create(bool has_sled, bool fixed) {
     m_link_material = DefaultContactMaterial(contact_method);
     m_wheelDD_material = DefaultContactMaterial(contact_method);
 
-    m_chassis = chrono_types::make_shared<RS_Chassis>("chassis", fixed, m_chassis_material, m_system);
+    m_chassis = chrono_types::make_shared<RS_Chassis>("chassis", is_fixed, m_chassis_material, m_system);
 
     if (has_sled)
         m_sled = chrono_types::make_shared<RS_Sled>("sled", m_sled_material, m_system);
@@ -964,7 +963,7 @@ void RS_Part::AddCollisionShapes() {
 
 // =============================================================================
 
-RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
+RS_Chassis::RS_Chassis(const std::string& name, bool is_fixed, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : RS_Part(name, mat, system), m_collide(false) {
     double mass = 46.658335;
     ChVector3d com(0.040288, -0.001937, -0.073574);
@@ -976,7 +975,7 @@ RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChCo
     m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
     m_body->SetInertiaXY(inertia_xy);
-    m_body->SetFixed(fixed);
+    m_body->SetFixed(is_fixed);
     system->Add(m_body);
 
     // Create the set of primitive shapes
@@ -1228,7 +1227,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             child_body->EnableCollision(m_collide_links);
 
         // Weld joints
-        if (joints[i].fixed) {
+        if (joints[i].is_fixed) {
             auto joint = chrono_types::make_shared<ChLinkLockLock>();
             joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, calcJointFrame(X_GC, joints[i].axis));
