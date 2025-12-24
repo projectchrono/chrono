@@ -155,7 +155,7 @@ class CH_MODELS_API TrajectoryInterpolatorOperationSpace : public TrajectoryInte
 
     std::shared_ptr<ChFunctionSequence> SetupSpaceFunction(SpacefunType spacefun_type);
 
-    std::vector<ChCoordsysd> m_waypoints = {};                     ///< input trajectory waypoints to interpolate
+    const std::vector<ChCoordsysd>* m_waypoints = nullptr;         ///< input trajectory waypoints to interpolate
     std::shared_ptr<ChFunctionPositionLine> m_posfun = nullptr;    ///< geometric position function
     std::shared_ptr<ChFunctionSequence> m_pos_spacefun = nullptr;  ///< time function to evaluate position
     std::shared_ptr<ChFunctionRotation> m_rotfun = nullptr;        ///< geometric rotation function
@@ -212,7 +212,7 @@ class CH_MODELS_API TrajectoryInterpolatorJointSpace : public TrajectoryInterpol
     virtual void AutoComputeTrajectoryDurations() override;
 
     unsigned int m_num_joints = 0;
-    std::vector<ChVectorDynamic<>> m_waypoints = {};
+    const std::vector<ChVectorDynamic<>>* m_waypoints = nullptr;
     SpacefunType m_spacefun_type = SpacefunType::LINEAR;
     std::vector<std::shared_ptr<ChFunctionSequence>> m_motfuns = {};
 };
