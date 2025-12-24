@@ -32,6 +32,7 @@ namespace ipc {
 struct CameraData {
     char topic_name[128];  ///< ROS topic name for publishing
     char frame_id[64];     ///< Frame ID for the image
+    char encoding[64];     ///< Image encoding format, such as "rgba8" or "32FC1"
     uint32_t width;        ///< Image width in pixels
     uint32_t height;       ///< Image height in pixels
     uint32_t step;         ///< Row stride in bytes (width * bytes_per_pixel)
