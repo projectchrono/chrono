@@ -122,7 +122,7 @@
 %include "../../../chrono_vehicle/terrain/SCMTerrain.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
 %include "../../../chrono_vehicle/terrain/CRMTerrain.h"
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
