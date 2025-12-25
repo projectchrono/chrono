@@ -191,7 +191,6 @@ linux:ubuntu22.04-clang:test:
     - echo "Build PyChrono and deploy via Anaconda..."
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
-    - export CONDA_NPY=19
     - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - bash Miniconda3-latest-Linux-x86_64.sh -b
     - export PATH=$HOME/miniconda3/bin:$PATH
@@ -462,7 +461,6 @@ macos-apple:sonoma:test:
 .macos-deploy-base:
   extends: .macos
   before_script:
-    - export CONDA_NPY=19
     - brew install wget
     - ARCHITECTURE=`uname -m`
     - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-$ARCHITECTURE.sh -O ~/miniconda.sh
