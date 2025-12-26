@@ -37,7 +37,7 @@ linux:doxygen:deploy:
   before_script:
     - TZ=America/Chicago
     - ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone  
-    - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget doxygen
+    - apt-get update; apt-get install -y git python3-pip graphviz rsync wget doxygen openssh-client
     #- pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
     # - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
     # - tar -xf doxygen-1.8.16.linux.bin.tar.gz
