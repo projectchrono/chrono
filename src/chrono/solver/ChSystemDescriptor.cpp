@@ -474,8 +474,8 @@ void ChSystemDescriptor::SystemProductUpper(ChVectorDynamic<>& result,
                                             const ChVectorDynamic<>& l,
                                             bool negate_lambda) {
     double lambda_sign = negate_lambda ? -1 : +1;
-    unsigned int n_q = CountActiveVariables();
-    double c_a = GetMassFactor();
+    n_q = CountActiveVariables();
+    c_a = GetMassFactor();
 
     result.setZero(n_q);
 
@@ -506,7 +506,7 @@ void ChSystemDescriptor::SystemProductLower(ChVectorDynamic<>& result,
                         const ChVectorDynamic<>& l,
                         bool negate_lambda) {
     double lambda_sign = negate_lambda ? -1 : +1;
-    unsigned int n_c = CountActiveConstraints();
+    n_c = CountActiveConstraints();
     result.setZero(n_c);
 
     // 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
