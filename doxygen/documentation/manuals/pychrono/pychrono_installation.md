@@ -22,14 +22,14 @@ To install a PyChrono conda module, do the following:
 2. We strongly recommend to use a dedicated conda environment and install the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
 
    To create a `chrono` environment with Python 3.12, use:
-   
-```
+
+   ```
    conda create -n chrono python=3.12
-```   
+   ```   
    Then activate that environment:
-```
+   ```
    conda activate chrono
-```
+   ```
    so that all subsequent conda commands occur within that environment.
 
 3. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  Consult the list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files) and download the appropriate archive (tar.bz2). 
