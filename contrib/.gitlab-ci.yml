@@ -32,7 +32,7 @@ linux:doxygen:deploy:
   tags:
   - linux
   image:
-    name: ubuntu:focal
+    name: ubuntu:noble
   stage: deploy
   before_script:
     - TZ=America/Chicago
