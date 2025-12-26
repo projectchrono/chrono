@@ -32,22 +32,22 @@ To install a PyChrono conda module, do the following:
    ```
    so that all subsequent conda commands occur within that environment.
 
-3. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  Consult the list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files) and download the appropriate archive (tar.bz2). 
+3. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  Consult the list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files). 
 
    PyChrono packages built from a Chrono release version have label 'release'; PyChrono packages built from the latest Chrono development code have label 'main'.
 
 
 4. Install the PyChrono conda package. If you want to install the latest developmental branch, run
 
-```
+   ```
    conda install projectchrono::pychrono -c conda-forge
-```
+   ```
 
-Otherwise, run with the specific version code you want to install, for example:
+   Otherwise, run with the specific version code you want to install, for example:
 
-```
+   ```
    conda install projectchrono::pychrono=9.0.1=py312hf1de3a3_6463 -c conda-forge
-```
+   ```
 
 <div class="ce-warning">
 vsg3d module and ROS module are not yet available in the conda version of PyChrono. To use them you might need to "Build Python modules from the C++ API"
