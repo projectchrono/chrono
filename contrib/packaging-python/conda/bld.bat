@@ -20,7 +20,7 @@ REM For chrono::sensor, we are using the machine's CUDA and optix installation s
 REM Keep an eye on this in the future. Ideally, all packages we use to build pyChrono should come from anaconda
 
 mkdir cmake_began
-cmake -G "Visual Studio 17 2022" -T "v142,cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" ^
+cmake -G "Visual Studio 17 2022" -T "v143,cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^
