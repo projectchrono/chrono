@@ -12,11 +12,11 @@ Building Chrono from sources requires a C++ compiler and the [CMake](https://cma
 
 #### Recommended compilers {#compilers}
 
-- Windows: **MSVC** Visual Studio 2019 or newer.
+- Windows: **MSVC** Visual Studio 2022 or newer.
   ([VS 2022 Community Edition](https://visualstudio.microsoft.com/downloads/) free download)<br>
   Note: the C++ compiler is not installed by default; make sure to install the C++ toolchain during VS setup.
-- Linux: **GNU** C++ compiler for Linux-based platforms (version 4.9 or newer)
-- Linux: **LLVM Clang** C and C++ compiler (version 1.6 or newer)
+- Linux: **GNU** C++ compiler for Linux-based platforms (version 11 or newer)
+- Linux: **LLVM Clang** C and C++ compiler (version 14 or newer)
 - MacOS: **Clang** through Xcode Package.
   ([Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12/) free download)
 

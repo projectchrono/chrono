@@ -19,17 +19,12 @@ To install a PyChrono conda module, do the following:
 
 1. Install the [Anaconda](https://www.anaconda.com/download/) Python distribution. <br>
 
+2. We strongly recommend to use a dedicated conda environment and install the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
 
-2. Optionally add the `conda-forge` channel to the list of channels:
+   To create a `chrono` environment with Python 3.12, use:
+   
 ```
-   conda config --add channels https://conda.anaconda.org/conda-forge
-```   
-
-3. We strongly recommend to use a dedicated conda environment and install the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
-
-   To create a `chrono` environment with Python 3.10, use:
-```
-   conda create -n chrono python=3.10
+   conda create -n chrono python=3.12
 ```   
    Then activate that environment:
 ```
@@ -37,64 +32,28 @@ To install a PyChrono conda module, do the following:
 ```
    so that all subsequent conda commands occur within that environment.
 
-4. Install the necessary dependencies.<br>
-   **Attention**: Install the following packages using the versions specified below, in the order given, and *before* installing the PyChrono conda package itself, which is done in a subsequent step!<br><br>
-
-   - Intel MKL package (required for PyChrono demos using the Pardiso direct sparse linear solver, for Numpy, and for PythonOCC):
-   ```
-   conda install -c conda-forge mkl=2020
-   ```
-   - Numpy package (required for the Chrono::Sensor module):
-   ```
-   conda install -c conda-forge numpy=1.24.0
-   ```
-   - Irrlicht, for run-time visualization:
-   ```
-   conda install -c conda-forge irrlicht=1.8.5
-   ```
-   - Pythonocc-core, for Chrono::Cascade support:
-   ``` 
-   conda install -c conda-forge pythonocc-core=7.9.0
-   ```
-   - Gnuplot, for graphing data: 
-   ``` 
-   conda install conda-forge::gnuplot
-   ```
-   - For Chrono::Sensor support:
-     - Requires NVIDIA graphics driver 515.xx +
-     - Install CUDA 11.7:
-   ```
-     conda install -c nvidia/label/cuda-12.3.0 cuda-toolkit
-   ```
-     - install GLFW: 
-   ```
-     conda install -c conda-forge glfw
-   ```
-
-5. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  Consult the list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files) and download the appropriate archive (tar.bz2). 
+3. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  Consult the list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files) and download the appropriate archive (tar.bz2). 
 
    PyChrono packages built from a Chrono release version have label 'release'; PyChrono packages built from the latest Chrono development code have label 'main'.
 
 
-6. Install the PyChrono conda package downloaded in step 5 above (for release or development Chrono code, a given operating system, and built for a given Python version):
-```
-   conda install <pychrono_package>.tar.bz2
-```    
+4. Install the PyChrono conda package. If you want to install the latest developmental branch, run
 
-   Note that installing the default conda package (latest package with label 'main' for your current operating system and Python version):
 ```
-   conda install -c projectchrono pychrono
+   conda install projectchrono::pychrono -c conda-forge
 ```
-   may not always work as expected. We strongly recommend downloading the appropriate PyChrono installation archive and install it from a local file as described above.
+
+Otherwise, run with the specific version code you want to install, for example:
+
+```
+   conda install projectchrono::pychrono=9.0.1=py312hf1de3a3_6463 -c conda-forge
+```
 
 <div class="ce-warning">
-In general, no changes to PYTHONPATH are required when installing the PyChrono conda package.  The exception is MacOS Apple silicon for which PYTHONPATH must be changed (or created if not present) to include the path to the PyChrono *.so libraries. For example:
-```
-export PYTHONPATH=$HOME/opt/anaconda3/envs/chrono/share/chrono/python
-```
+vsg3d module and ROS module are not yet available in the conda version of PyChrono. To use them you might need to "Build Python modules from the C++ API"
 </div>
 
-   
+
 
 
 ## B) Build Python modules from the C++ API
