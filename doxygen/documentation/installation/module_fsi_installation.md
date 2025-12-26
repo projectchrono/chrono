@@ -27,12 +27,10 @@ The **FSI module** allows users to:
 - To **run** applications based on this module an NVIDIA GPU card is required.
 - To **build** this module and applications based on it, a CUDA installation and appropriate compiler are required
 - This module has been build/tested on the following:
-   - Windows, MS Visual Studio 2019, CUDA 12.3.0 (Pascal GPU architecture)
-   - Arch Linux, GCC 11.1, CUDA 11.5.0 (Pascal GPU architectures)
-   - Arch Linux, LLVM 13.0, CUDA 11.5.0 (Pascal GPU architectures)
-   - Ubuntu 20.04 Linux, GCC 9.3, CUDA 10.1.0 (Pascal GPU architectures)
+   - Windows, MS Visual Studio 2022, CUDA 12.8.93 (Ampere GPU architecture)
+   - Ubuntu 22.04 Linux, GCC 11.4, CUDA 12.8.93 (Turing GPU architecture)
    - Ubuntu 22.04 Linux, GCC 11.3, CUDA 12.3.0 (Hopper GPU architecture)
-   - Fedora 33 Linux, GCC 9.4, CUDA 11.3.1 (Pascal, Volta, Turing, and Ampere GPU architectures)
+   - Ubuntu 24.04 Linux, GCC 13.3, CUDA 13.0.0 (Blackwell GPU architecture)
 
 ## Building instructions
 

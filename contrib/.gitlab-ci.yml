@@ -37,10 +37,10 @@ linux:doxygen:deploy:
   before_script:
     - TZ=America/Chicago
     - ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone  
-    - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget
+    - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget doxygen
     #- pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
-    - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
-    - tar -xf doxygen-1.8.16.linux.bin.tar.gz
+    # - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
+    # - tar -xf doxygen-1.8.16.linux.bin.tar.gz
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
     # This private key is only useable from specific IPs, so it should be okay to
@@ -52,7 +52,7 @@ linux:doxygen:deploy:
     # Cache a verified host pubkey from file to avoid MITM attacks
     - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
   script:
-    - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
+    # - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
     - cd doxygen
     - doxygen Doxyfile
     # - doxygen Doxyfile_Generate_Search_Index
