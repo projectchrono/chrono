@@ -84,6 +84,9 @@ std::vector<uint8_t> ChROSCameraHandler::GetSerializedData(double time) {
     strncpy(header.frame_id, m_camera->GetName().c_str(), sizeof(header.frame_id) - 1);
     header.frame_id[sizeof(header.frame_id) - 1] = '\0';
     
+    strncpy(header.encoding, std::string("rgba8").c_str(), sizeof(header.encoding) - 1);
+    header.encoding[sizeof(header.encoding) - 1] = '\0';
+
     header.width = width;
     header.height = height;
     header.step = step;
