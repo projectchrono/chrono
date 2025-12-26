@@ -1,8 +1,10 @@
 c_compiler:
   - clang     # [osx]
+  - vs2022    # [win]
 
 cxx_compiler:
   - clangxx   # [osx]
+  - vs2022    # [win]
 
 cuda_compiler:
   - cuda-nvcc

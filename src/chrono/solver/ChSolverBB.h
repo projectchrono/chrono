@@ -22,10 +22,12 @@ namespace chrono {
 /// @addtogroup chrono_solver
 /// @{
 
-/// An iterative solver based on modified Krylov iteration of spectral projected gradients with Barzilai-Borwein.
+/// An iterative solver based on modified Krylov iteration of Spectral Projected Gradients with Barzilai-Borwein.
 ///
-/// The Barzilai-Borwein solver can use diagonal preconditioning (enabled by default).
-///
+/// Notes:
+/// - can not solve problems including stiffness or damping blocks in system descriptor (e.g. coming from FEA)
+/// - diagonal preconditioning is available (enabled by default)
+/// 
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
 class ChApi ChSolverBB : public ChIterativeSolverVI {

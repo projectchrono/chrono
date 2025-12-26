@@ -49,7 +49,6 @@ find_package(Irrlicht MODULE REQUIRED)
 
 if(NOT Irrlicht_FOUND)
   message("WARNING: Irrlicht not found; disabling Chrono::Irrlicht")
-  set(CH_ENABLE_MODULE_IRRLICHT OFF CACHE BOOL "Enable the Chrono::Irrlicht module" FORCE)
   return()
 endif()
 

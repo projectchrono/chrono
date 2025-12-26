@@ -15,10 +15,6 @@
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChConstants.h"
 
-using std::cout;
-using std::cerr;
-using std::endl;
-
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -31,8 +27,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
     if (sysd.HasKRBlocks()) {
-        cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices." << endl;
-        throw std::runtime_error("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
+        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness or damping matrices." << std::endl;
+        throw std::runtime_error("ChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness or damping matrices.");
     }
 
     // Tuning of the spectral gradient search
@@ -55,7 +51,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
-        cout << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << endl;
+        std::cout << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << std::endl;
 
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> ml_candidate(nc);
@@ -226,7 +222,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 double lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
                 lambda = std::max(sigma_min * lambda, std::min(sigma_max * lambda, lambdanew));
                 if (verbose)
-                    cout << " Repeat Armijo, new lambda=" << lambda << endl;
+                    std::cout << " Repeat Armijo, new lambda=" << lambda << std::endl;
             } else {
                 armijo_repeat = false;
             }
@@ -317,13 +313,14 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             AtIterationEnd(maxd, maxdeltalambda, iter);
 
         if (verbose)
-            cout << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda << endl;
+            std::cout << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda
+                      << std::endl;
 
         m_iterations++;
 
         if (maxd < m_tolerance) {
             if (verbose)
-                cout << "Converged at iter: " << iter << " with residual: " << maxd << endl;
+                std::cout << "Converged at iter: " << iter << " with residual: " << maxd << std::endl;
             break;
         }
     }
@@ -348,7 +345,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     }
 
     if (verbose)
-        cout << "-----" << endl;
+        std::cout << "-----" << std::endl;
 
     return lastgoodres;
 }

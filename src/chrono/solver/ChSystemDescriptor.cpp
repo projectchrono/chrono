@@ -469,6 +469,56 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
     }
 }
 
+void ChSystemDescriptor::SystemProductUpper(ChVectorDynamic<>& result,
+                                            const ChVectorDynamic<>& v,
+                                            const ChVectorDynamic<>& l,
+                                            bool negate_lambda) {
+    double lambda_sign = negate_lambda ? -1 : +1;
+    n_q = CountActiveVariables();
+    c_a = GetMassFactor();
+
+    result.setZero(n_q);
+
+    // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
+
+    // 1.1)  do  M*x.q
+    for (const auto& var : m_variables) {
+        if (var->IsActive()) {
+            var->AddMassTimesVectorInto(result, v, c_a);
+        }
+    }
+
+    // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
+    for (const auto& krm_block : m_KRMblocks) {
+        krm_block->AddMatrixTimesVectorInto(result, v);
+    }
+
+    // 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
+    for (const auto& constr : m_constraints) {
+        if (constr->IsActive()) {
+            constr->AddJacobianTransposedTimesScalarInto(result, lambda_sign * l(constr->GetOffset()));
+        }
+    }
+}
+
+void ChSystemDescriptor::SystemProductLower(ChVectorDynamic<>& result,
+                        const ChVectorDynamic<>& v,
+                        const ChVectorDynamic<>& l,
+                        bool negate_lambda) {
+    double lambda_sign = negate_lambda ? -1 : +1;
+    n_c = CountActiveConstraints();
+    result.setZero(n_c);
+
+    // 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
+    for (const auto& constr : m_constraints) {
+        if (constr->IsActive()) {
+            int s_c = constr->GetOffset();
+            constr->AddJacobianTimesVectorInto(result(s_c), v);   // result.l_i += [C_q_i]*x.q
+            result(s_c) += constr->GetComplianceTerm() * lambda_sign * l(s_c);  // result.l_i += [E]*x.l_i
+        }
+    }
+}
+
 void ChSystemDescriptor::ConstraintsProject(ChVectorDynamic<>& multipliers) {
     FromVectorToConstraints(multipliers);
 

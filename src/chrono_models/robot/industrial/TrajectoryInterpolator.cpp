@@ -52,7 +52,7 @@ void TrajectoryInterpolatorOperationSpace::Setup(double motion_time_tot,
                                                  SpacefunType rot_spacefun_type,
                                                  std::vector<double>* durations) {
     // Set data
-    m_waypoints = waypoints;
+    m_waypoints = &waypoints;
     m_motion_time_tot = motion_time_tot;
     m_posfun_type = posfun_type;
     m_pos_spacefun_type = pos_spacefun_type;
@@ -67,7 +67,7 @@ void TrajectoryInterpolatorOperationSpace::Setup(double motion_time_tot,
             check_motion_time_tot += d;
 
         if (check_motion_time_tot != m_motion_time_tot) {
-            std::cerr << "Sum of durations is different from total motion time" << std::endl;
+            std::cerr << "Sum of durations is different from total motion time\n";
             throw std::invalid_argument("Sum of durations is different from total motion time");
         }
     } else {
@@ -150,7 +150,7 @@ void TrajectoryInterpolatorOperationSpace::SetupRotationFunction() {
 std::shared_ptr<ChFunctionSequence> TrajectoryInterpolatorOperationSpace::SetupSpaceFunction(
     SpacefunType spacefun_type) {
     auto spacefun = chrono_types::make_shared<ChFunctionSequence>();
-    auto num_motions = m_waypoints.size() - 1;
+    auto num_motions = m_waypoints->size() - 1;
 
     switch (m_rot_spacefun_type) {
         // LINEAR
@@ -221,17 +221,17 @@ std::shared_ptr<ChFunctionSequence> TrajectoryInterpolatorOperationSpace::SetupS
 }
 
 std::vector<ChVector3d> TrajectoryInterpolatorOperationSpace::GetPositions() const {
-    std::vector<ChVector3d> positions(m_waypoints.size());
+    std::vector<ChVector3d> positions(m_waypoints->size());
     for (auto i = 0; i < positions.size(); ++i) {
-        positions[i] = m_waypoints[i].pos;
+        positions[i] = (*m_waypoints)[i].pos;
     }
     return positions;
 }
 
 std::vector<ChQuaterniond> TrajectoryInterpolatorOperationSpace::GetRotations() const {
-    std::vector<ChQuaterniond> rots(m_waypoints.size());
+    std::vector<ChQuaterniond> rots(m_waypoints->size());
     for (auto i = 0; i < rots.size(); ++i) {
-        rots[i] = m_waypoints[i].rot;
+        rots[i] = (*m_waypoints)[i].rot;
     }
     return rots;
 }
@@ -242,26 +242,26 @@ ChCoordsysd TrajectoryInterpolatorOperationSpace::GetInterpolation(double time) 
 }
 
 void TrajectoryInterpolatorOperationSpace::SetDurations(const std::vector<double>& durations) {
-    if (durations.size() != m_waypoints.size() - 1) {
-        std::cerr << "Invalid durations size" << std::endl;
+    if (durations.size() != m_waypoints->size() - 1) {
+        std::cerr << "Invalid durations size\n";
         throw std::invalid_argument("Invalid durations size");
     }
     m_durations = durations;
 }
 
 void TrajectoryInterpolatorOperationSpace::AutoComputeTrajectoryDurations() {
-    std::vector<double> path_lengths(m_waypoints.size() - 1);
+    std::vector<double> path_lengths(m_waypoints->size() - 1);
     double path_length_tot = 0;
-    for (auto i = 0; i < m_waypoints.size() - 1; ++i) {
+    for (auto i = 0; i < m_waypoints->size() - 1; ++i) {
         // measure traj lengths in cartesian space
-        path_lengths[i] = (m_waypoints[i + 1].pos - m_waypoints[i].pos).Length();
+        path_lengths[i] = ((*m_waypoints)[i + 1].pos - (*m_waypoints)[i].pos).Length();
         path_length_tot += path_lengths[i];
     }
 
     // Measure durations and cumulative times
     m_durations.clear();  // clear, for safety
     m_cumul_times = {0};
-    for (auto i = 0; i < m_waypoints.size() - 1; ++i) {
+    for (auto i = 0; i < m_waypoints->size() - 1; ++i) {
         double duration = path_lengths[i] / path_length_tot * m_motion_time_tot;
         m_durations.push_back(duration);
         m_cumul_times.push_back(m_cumul_times.back() + duration);  // cumulative time
@@ -284,7 +284,7 @@ void TrajectoryInterpolatorJointSpace::Setup(double motion_time_tot,
                                              std::vector<double>* durations) {
     // Set data
     m_motion_time_tot = motion_time_tot;
-    m_waypoints = waypoints;
+    m_waypoints = &waypoints;
     m_spacefun_type = spacefun;
     m_num_joints = waypoints[0].size();
 
@@ -296,7 +296,7 @@ void TrajectoryInterpolatorJointSpace::Setup(double motion_time_tot,
             check_motion_time_tot += d;
 
         if (check_motion_time_tot != m_motion_time_tot) {
-            std::cerr << "Sum of durations is different from total motion time" << std::endl;
+            std::cerr << "Sum of durations is different from total motion time\n";
             throw std::invalid_argument("Sum of durations is different from total motion time");
         }
     } else {
@@ -309,8 +309,8 @@ void TrajectoryInterpolatorJointSpace::Setup(double motion_time_tot,
     }
 
     // Populate motion functions
-    for (auto w = 0; w < m_waypoints.size() - 1; ++w) {
-        ChVectorDynamic<> delta_waypoint = m_waypoints[w + 1] - m_waypoints[w];
+    for (auto w = 0; w < waypoints.size() - 1; ++w) {
+        ChVectorDynamic<> delta_waypoint = waypoints[w + 1] - waypoints[w];
 
         for (unsigned int j = 0; j < m_num_joints; ++j) {
             double path_dist = delta_waypoint[j];
@@ -347,7 +347,7 @@ ChVectorDynamic<> TrajectoryInterpolatorJointSpace::GetInterpolation(double time
 }
 
 void TrajectoryInterpolatorJointSpace::SetDurations(const std::vector<double>& durations) {
-    if (durations.size() != m_waypoints.size() - 1) {
+    if (durations.size() != m_waypoints->size() - 1) {
         std::cerr << "Invalid durations size" << std::endl;
         throw std::invalid_argument("Invalid durations size");
     }
@@ -355,18 +355,18 @@ void TrajectoryInterpolatorJointSpace::SetDurations(const std::vector<double>& d
 }
 
 void TrajectoryInterpolatorJointSpace::AutoComputeTrajectoryDurations() {
-    std::vector<double> path_lengths(m_waypoints.size() - 1);
+    std::vector<double> path_lengths(m_waypoints->size() - 1);
     double path_length_tot = 0;
-    for (auto i = 0; i < m_waypoints.size() - 1; ++i) {
+    for (auto i = 0; i < m_waypoints->size() - 1; ++i) {
         // measure traj lengths in joint space
-        path_lengths[i] = (m_waypoints[i + 1] - m_waypoints[i]).norm();
+        path_lengths[i] = ((*m_waypoints)[i + 1] - (*m_waypoints)[i]).norm();
         path_length_tot += path_lengths[i];
     }
 
     // Measure durations and cumulative times
     m_durations.clear();  // clear, for safety
     m_cumul_times = {0};
-    for (auto i = 0; i < m_waypoints.size() - 1; ++i) {
+    for (auto i = 0; i < m_waypoints->size() - 1; ++i) {
         double duration = path_lengths[i] / path_length_tot * m_motion_time_tot;
         m_durations.push_back(duration);
         m_cumul_times.push_back(m_cumul_times.back() + duration);  // cumulative time

@@ -52,7 +52,7 @@ include(${SWIG_USE_FILE})
 set(CHRONO_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
 
 # Set SWIG flags.  Disable selected SWIG warnings 
-# set(CMAKE_SWIG_FLAGS "-c++;-w401,503,833")
+set(CMAKE_SWIG_FLAGS "-w325,402,453,516,842")
 
 if(DBG_SCRIPT)
   message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")

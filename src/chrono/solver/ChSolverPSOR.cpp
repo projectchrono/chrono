@@ -27,6 +27,11 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
+    if (sysd.HasKRBlocks()) {
+        std::cerr << "\n\nChSolverPSOR: Can NOT use PSOR solver if there are stiffness or damping matrices." << std::endl;
+        throw std::runtime_error("ChSolverPSOR: Can NOT use PSOR solver if there are stiffness or damping matrices.");
+    }
+
     m_iterations = 0;
     maxviolation = 0;
     double maxdeltalambda = 0.;
@@ -61,7 +66,8 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
 
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(),
+                                                          mvariables[iv]->Force());  // q = [M]'*fb
     }
 
     // 3)  For all items with variables, add the effect of initial (guessed)
@@ -94,7 +100,8 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
             // skip computations if constraint not active.
             if (mconstraints[ic]->IsActive()) {
                 // compute residual  c_i = [Cq_i]*q + b_i + cfm_i*l_i
-                double mresidual = mconstraints[ic]->ComputeJacobianTimesState() + mconstraints[ic]->GetRightHandSide() +
+                double mresidual = mconstraints[ic]->ComputeJacobianTimesState() +
+                                   mconstraints[ic]->GetRightHandSide() +
                                    mconstraints[ic]->GetComplianceTerm() * mconstraints[ic]->GetLagrangeMultiplier();
 
                 // true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)

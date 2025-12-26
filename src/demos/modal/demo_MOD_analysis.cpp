@@ -299,9 +299,7 @@ int main(int argc, char* argv[]) {
     vis.AddLogo();
     vis.AddSkyBox();
     vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
-    vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
-    vis.AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis.AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddTypicalLights();
     vis.AddUserEventReceiver(&receiver);
     vis.GetGUIEnvironment()->addStaticText(
         L"Press 1: fixed cantilever\n"
