@@ -32,7 +32,8 @@ linux:doxygen:deploy:
   tags:
   - linux
   image:
-    name: ubuntu:noble
+    # We should use an old version of doxygen since syntax changes are required in the latest
+    name: ubuntu:focal
   stage: deploy
   before_script:
     - TZ=America/Chicago
