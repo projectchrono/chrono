@@ -52,7 +52,7 @@ struct ChROSBodyData {
 };
 
 /// Publishes pose, twist, and acceleration information for a ChBody.
-/// Creates three publishers: <topic>/pose, <topic>/twist, <topic>/accel
+/// Creates three publishers: [topic]/pose, [topic]/twist, [topic]/accel
 class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
   public:
     ChROSBodyHandler(double update_rate, std::shared_ptr<ChBody> body, const std::string& topic = "~/");

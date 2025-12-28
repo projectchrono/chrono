@@ -34,10 +34,10 @@
 namespace chrono {
 namespace ros {
 namespace ipc {
-    struct Message;
+struct Message;
 }
-}
-}
+}  // namespace ros
+}  // namespace chrono
 
 namespace chrono {
 namespace ros {
@@ -64,7 +64,6 @@ class CH_ROS_API ChROSHandler {
     /// Initializes the handler. Must be implemented by derived classes. This is called after rclcpp::init().
     /// In IPC mode, this is only called in the subprocess. In direct mode, called in main process.
     /// Here the underlying ROS objects (e.g. publisher, subscription) should be created.
-    /// @param interface The interface to the ROS node
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) = 0;
 
     /// Get the period which this handler operates at
@@ -72,82 +71,70 @@ class CH_ROS_API ChROSHandler {
 
     /// Get the number of times Tick() has been called
     const uint64_t GetTickCount() const { return m_tick_count; }
-    
+
     /// Check if this handler is a publisher (data flows from Chrono to ROS)
     /// Default is true. Override to false for subscribers.
     virtual bool IsPublisher() const { return true; }
-    
+
     /// Get the message type of this handler.
     /// Must be implemented by derived classes to identify the IPC message type.
-    /// @return The IPC message type for this handler
+    /// Returns the IPC message type for this handler.
     typedef chrono::ros::ipc::MessageType MessageType;
-    virtual chrono::ros::ipc::MessageType GetMessageType() const { return static_cast<chrono::ros::ipc::MessageType>(0); }
+    virtual chrono::ros::ipc::MessageType GetMessageType() const {
+        return static_cast<chrono::ros::ipc::MessageType>(0);
+    }
 
     /// Get serialized data from this handler for IPC transmission.
     /// Framework calls this in main process for publishers.
     /// Handler should extract Chrono data and return as byte vector.
     /// Default implementation calls Tick() for backward compatibility.
-    /// @param time Current simulation time
-    /// @return Serialized data as byte vector (empty if not supported)
-    virtual std::vector<uint8_t> GetSerializedData(double time) {
-        return std::vector<uint8_t>();  // Empty by default
-    }
-    
+    /// Returns serialized data as byte vector (empty if not supported).
+    virtual std::vector<uint8_t> GetSerializedData(double time) { return std::vector<uint8_t>(); }
+
     /// Publish data to ROS from serialized bytes.
     /// Framework calls this in subprocess (or direct mode) for publishers.
     /// Handler should deserialize and publish to ROS topics.
     /// Default implementation does nothing for backward compatibility.
-    /// @param data Serialized data bytes
-    /// @param interface ROS interface to use for publishing
-    virtual void PublishFromSerialized(const std::vector<uint8_t>& data, 
-                                       std::shared_ptr<ChROSInterface> interface) {
-        // Default: no-op for backward compatibility
-    }
-    
+    virtual void PublishFromSerialized(const std::vector<uint8_t>& data,          ///< serialized data bytes
+                                       std::shared_ptr<ChROSInterface> interface  ///< ROS interface for publishing
+    ) {}
+
     /// Apply data to Chrono from serialized bytes.
     /// Framework calls this in main process for subscribers.
     /// Handler should deserialize and apply to Chrono objects.
     /// Default implementation does nothing for backward compatibility.
-    /// @param data Serialized data bytes
-    virtual void ApplyFromSerialized(const std::vector<uint8_t>& data) {
-        // Default: no-op for backward compatibility
-    }
-    
+    virtual void ApplyFromSerialized(const std::vector<uint8_t>& data) {}
+
     /// Setup subscriber in subprocess to send data back to main process.
     /// Framework calls this in subprocess for subscribers.
     /// Handler should create ROS subscription and call callback with serialized data.
     /// Default implementation does nothing for backward compatibility.
-    /// @param interface ROS interface to use for subscribing
-    /// @param callback Function to call with serialized data when ROS message arrives
-    virtual void SubscribeAndForward(std::shared_ptr<ChROSInterface> interface,
-                                     std::function<void(const std::vector<uint8_t>&)> callback) {
-        // Default: no-op for backward compatibility
-    }
-    
+    virtual void SubscribeAndForward(
+        std::shared_ptr<ChROSInterface> interface,                 ///< interface ROS interface to use for subscribing
+        std::function<void(const std::vector<uint8_t>&)> callback  ///< called serialized data when ROS message arrives
+    ) {}
+
     /// Handle incoming IPC message from ROS subscriber (bidirectional communication).
     /// Override this in handlers that receive data from ROS via IPC.
     /// Base implementation does nothing - only bidirectional subscribers override this.
-    /// @param msg The incoming IPC message to process
-    virtual void HandleIncomingMessage(const ipc::Message& msg) {
-        // Default: do nothing - only bidirectional subscribers override this
-    }
-    
+    virtual void HandleIncomingMessage(const ipc::Message& msg) {}
+
     /// Returns true if this handler processes incoming IPC messages.
     /// Override to return true in bidirectional subscriber handlers.
     virtual bool SupportsIncomingMessages() const { return false; }
 
   protected:
     /// Constructor for the ChROSHandler
-    /// @param update_rate Update rate with which the handler should tick relative to the simulation clock. NOTE: A
-    ///   update_rate of 0 indicates tick should be called on each update of the simulation.
+    /// 'update_rate' is the rate with which the handler should tick relative to the simulation clock.
+    /// NOTE: an update_rate of 0 indicates tick should be called on each update of the simulation.
     explicit ChROSHandler(double update_rate);
 
     /// Increment the tick count
     void IncrementTickCount() { m_tick_count++; }
 
   private:
-    const double m_update_rate;  ///< Update rate of the handler
-    uint64_t m_tick_count;  ///< Number of times Tick() has been called
+    const double m_update_rate;             ///< Update rate of the handler
+    uint64_t m_tick_count;                  ///< Number of times Tick() has been called
     double m_time_elapsed_since_last_tick;  ///< Time elapsed since last tick
 };
 

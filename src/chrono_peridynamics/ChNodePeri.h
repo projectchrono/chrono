@@ -109,21 +109,23 @@ class ChApiPeridynamics ChNodePeri : public fea::ChNodeFEAxyz, public ChContacta
     /// Apply the force, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
     /// The force F and its application point are specified in the absolute reference frame.
-    virtual void ContactForceLoadResidual_F(const ChVector3d& F,  ///< force
-                                            const ChVector3d& T,  ///< torque
-                                            const ChVector3d& abs_point,
-                                            ChVectorDynamic<>& R) override;
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,          ///< force
+                                            const ChVector3d& T,          ///< torque
+                                            const ChVector3d& abs_point,  ///< force application point
+                                            ChVectorDynamic<>& R          ///< syystem-wide generalized force
+                                            ) override;
 
     /// Apply the given force at the given point and load the generalized force array.
     /// The force and its application point are specified in the gloabl frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector3d& F,  ///< force
-                                 const ChVector3d& T,  ///< torque
-                                 const ChVector3d& point,
-                                 const ChState& state_x,
-                                 ChVectorDynamic<>& Q,
-                                 int offset) override;
+    virtual void ContactComputeQ(const ChVector3d& F,      ///< force
+                                 const ChVector3d& T,      ///< torque
+                                 const ChVector3d& point,  ///< applocation point
+                                 const ChState& state_x,   ///< system state vector
+                                 ChVectorDynamic<>& Q,     ///< system generalized force vector
+                                 int offset                ///< offset in system-wide vectors
+                                 ) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,

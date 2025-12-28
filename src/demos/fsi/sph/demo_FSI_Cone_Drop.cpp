@@ -508,7 +508,8 @@ int main(int argc, char* argv[]) {
     // ==============================
     // Create cone
     // ==============================
-    double volume, mass;
+    double volume;
+    double mass;
     ChMatrix33<> inertia;
     double cone_z_pos, cone_z_vel, cone_length, cone_diameter;
     if (cone_type == 1) {
@@ -516,7 +517,7 @@ int main(int argc, char* argv[]) {
         CalculateConeProperties(cone_30.length, cone_30.diameter, cone_30.mass, Hdrop, g, fzDim, initial_spacing,
                                 volume, mass, inertia, cone_z_pos, cone_z_vel, cone_length, cone_diameter);
 
-    } else if (cone_type == 2) {
+    } else {
         cone_60 cone_60;
         CalculateConeProperties(cone_60.length, cone_60.diameter, cone_60.mass, Hdrop, g, fzDim, initial_spacing,
                                 volume, mass, inertia, cone_z_pos, cone_z_vel, cone_length, cone_diameter);

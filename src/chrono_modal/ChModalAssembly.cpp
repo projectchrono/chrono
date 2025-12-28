@@ -52,8 +52,9 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
 
     m_full_forces_internal = other.m_full_forces_internal;
 
-    //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,
-    /// internal_otherphysicslist)
+    //// TODO
+    //// deep copy of the object lists
+    //// (internal_bodylist, internal_linklist, internal_meshlist, internal_otherphysicslist)
 }
 
 ChModalAssembly::~ChModalAssembly() {
@@ -113,9 +114,9 @@ void ChModalAssembly::Clear() {
 // Assembly a sparse matrix by bordering square H with rectangular Cq.
 //    HCQ = [ H  Cq' ]
 //          [ Cq  0  ]
-void util_sparse_assembly_2x2symm(ChSparseMatrix& HCQ,       ///< resulting square sparse matrix
-                                  const ChSparseMatrix& H,   ///< square sparse H matrix, [n_v, n_v]
-                                  const ChSparseMatrix& Cq,  ///< rectangular sparse Cq [n_c, n_v]
+void util_sparse_assembly_2x2symm(ChSparseMatrix& HCQ,       // resulting square sparse matrix
+                                  const ChSparseMatrix& H,   // square sparse H matrix, [n_v, n_v]
+                                  const ChSparseMatrix& Cq,  // rectangular sparse Cq [n_c, n_v]
                                   bool resize_and_reserve = true) {
     unsigned int n_v = H.rows();
     unsigned int n_c = Cq.rows();
@@ -155,8 +156,8 @@ void util_sparse_assembly_2x2symm(ChSparseMatrix& HCQ,       ///< resulting squa
 }
 
 void util_convert_to_colmajor(
-    Eigen::SparseMatrix<double, Eigen::ColMajor, int>& H_col,  ///< resulting sparse matrix (column major)
-    const ChSparseMatrix& H)                                   ///< input sparse matrix (row major)
+    Eigen::SparseMatrix<double, Eigen::ColMajor, int>& H_col,  // resulting sparse matrix (column major)
+    const ChSparseMatrix& H)                                   // input sparse matrix (row major)
 {
     H_col.resize(H.rows(), H.cols());
     H_col.reserve(H.nonZeros());
@@ -2378,9 +2379,9 @@ void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x,
     }
 }
 
-void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
-                                        ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-                                        const double c)          ///< a scaling factor
+void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                                        ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                        const double c)          // a scaling factor
 {
     ChAssembly::IntLoadResidual_F(off, R, c);  // parent
 
@@ -2605,10 +2606,10 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
     }
 }
 
-void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-                                         ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                                         const ChVectorDynamic<>& w,  ///< the w vector
-                                         const double c               ///< a scaling factor
+void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
+                                         ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                                         const ChVectorDynamic<>& w,  // the w vector
+                                         const double c               // a scaling factor
 ) {
     if (!m_is_model_reduced) {
         ChAssembly::IntLoadResidual_Mv(off, R, w, c);  // parent
@@ -2663,10 +2664,10 @@ void ChModalAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynam
     }
 }
 
-void ChModalAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                          ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                          const ChVectorDynamic<>& L,  ///< the L vector
-                                          const double c               ///< a scaling factor
+void ChModalAssembly::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                          ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                          const ChVectorDynamic<>& L,  // the L vector
+                                          const double c               // a scaling factor
 ) {
     ChAssembly::IntLoadResidual_CqL(off_L, R, L, c);  // parent
 
@@ -2693,11 +2694,11 @@ void ChModalAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offs
     }
 }
 
-void ChModalAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                          ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                          const double c,            ///< a scaling factor
-                                          bool do_clamp,             ///< apply clamping to c*C?
-                                          double recovery_clamp      ///< value for min/max clamping of c*C
+void ChModalAssembly::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                          const double c,            // a scaling factor
+                                          bool do_clamp,             // apply clamping to c*C?
+                                          double recovery_clamp      // value for min/max clamping of c*C
 ) {
     ChAssembly::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);  // parent
 
@@ -2725,9 +2726,9 @@ void ChModalAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
     }
 }
 
-void ChModalAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in Qc residual
-                                           ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*Ct
-                                           const double c             ///< a scaling factor
+void ChModalAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc residual
+                                           ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
+                                           const double c             // a scaling factor
 ) {
     ChAssembly::IntLoadConstraint_Ct(off_L, Qc, c);  // parent
 
