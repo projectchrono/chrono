@@ -104,7 +104,7 @@ std::vector<uint8_t> ChROSMyHandler::GetSerializedData(double time) {
     return buffer;
 }
 ```
-
+ 
 ### 2. Subprocess (`_ros.cpp`)
 
 This file is **only** compiled into the ROS node executable. It uses `rclcpp` to publish the data.

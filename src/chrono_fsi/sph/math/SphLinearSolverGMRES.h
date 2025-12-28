@@ -34,31 +34,31 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_solver
-/// @{
+// @addtogroup fsi_solver
+// @{
 
-/// GMRES iterative linear solver.
+// GMRES iterative linear solver.
 class SphLinearSolverGMRES : public ChFsiLinearSolver {
   public:
-    /// Constructor of the SphLinearSolverGMRES class.
+    // Constructor of the SphLinearSolverGMRES class.
     SphLinearSolverGMRES(Real mrel_res = 1e-8, Real mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false)
         : ChFsiLinearSolver(SolverType::GMRES, mrel_res, mabs_res, mmax_iter, mverbose) {}
 
-    /// Destructor of the SphLinearSolverGMRES class.
+    // Destructor of the SphLinearSolverGMRES class.
     ~SphLinearSolverGMRES() {}
 
-    /// Solve the linear system on the device.
+    // Solve the linear system on the device.
     virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b)
         override;
 
-    /// Set the restart parameter in the GMRES method.
+    // Set the restart parameter in the GMRES method.
     void SetRestart(int R) { restart = R; }
 
   private:
     int restart = 100;
 };
 
-/// @} fsi_solver
+// @} fsi_solver
 
 }  // namespace sph
 }  // end namespace fsi

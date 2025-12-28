@@ -38,7 +38,7 @@ There are two prerequisites for building the Chrono VSG module:
   - [draco](github.com/google/draco) 1.5.7
 
 The two approaches for building and installing the VSG dependencies are described in the next two sections.
-For the reasons detailed above, We **strongly recommend** using the provided VSG [build scripts](#vsg_scripts).
+For the reasons detailed above, We **strongly recommend** using the provided VSG build scripts.
 
 ### 1. VSG Framework
 
@@ -65,7 +65,7 @@ The VSG libraries are themselves under active development, and so is vsgFramewor
   </div>
 
 
-### 2. VSG build scripts {#vsg_scripts}
+### 2. VSG build scripts
 
 With the VSG libraries themselves under active development, their latest versions may be incompatible with the current Chrono::VSG code. To ensure compatibility between the Chrono::VSG and its VSG dependencies, we provide (with the Chrono source code) a set of scripts which download specific code versions of the VSG dependencies, build all necessary libraries, and install them in a user-specified location.
 

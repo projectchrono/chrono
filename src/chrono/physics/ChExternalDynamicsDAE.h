@@ -112,7 +112,7 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
                                 ) = 0;
 
     /// Calculate a linear combination of the Jacobians of the generalized force with respect to the DAE states.
-    /// Must load J = alpha * dF/dy + beta * dF/dyd, for given alpha and beta.
+    /// Must load \f$J = alpha * dF/dy + beta * dF/dyd\f$, for given alpha and beta.
     /// Only used if the physics item is declared as stiff.  If provided, load J into the provided matrix 'J'
     /// (already set to zero before the call) and return 'true'. In that case, the user-provided Jacobian will
     /// overwrite the default finite-difference approximation. Note that a derived class must always implement
@@ -141,7 +141,7 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     }
 
     /// Calculate the constraint violation partial derivative with respect to time.
-    /// Must load ct = \partial c / \partial t, for c = c(t,y).
+    /// Must load \f$ct = \partial c / \partial t\f$, for \f$c = c(t,y)\f$.
     /// This function is optional and only used is the system is rheonomous. If provided, load the constraint
     /// derivatives in the provided vector 'c' and return 'true'. In that case, this overrides the default finite
     /// difference approximation.

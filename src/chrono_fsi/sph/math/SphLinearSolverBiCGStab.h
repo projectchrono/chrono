@@ -33,17 +33,17 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_solver
-/// @{
+// @addtogroup fsi_solver
+// @{
 
-/// BiCG-Stab iterative linear solver.
+// BiCG-Stab iterative linear solver.
 class SphLinearSolverBiCGStab : public ChFsiLinearSolver {
   public:
-    /// Constructor of the SphLinearSolverBiCGStab class.
+    // Constructor of the SphLinearSolverBiCGStab class.
     SphLinearSolverBiCGStab(Real mrel_res = 1e-8, Real mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false)
         : ChFsiLinearSolver(SolverType::BICGSTAB, mrel_res, mabs_res, mmax_iter, mverbose) {}
 
-    /// Destructor of the SphLinearSolverBiCGStab class.
+    // Destructor of the SphLinearSolverBiCGStab class.
     ~SphLinearSolverBiCGStab() {}
 
     /// Solves the linear system on the device.
@@ -53,7 +53,7 @@ class SphLinearSolverBiCGStab : public ChFsiLinearSolver {
   private:
 };
 
-/// @} fsi_solver
+// @} fsi_solver
 
 }  // namespace sph
 }  // end namespace fsi
