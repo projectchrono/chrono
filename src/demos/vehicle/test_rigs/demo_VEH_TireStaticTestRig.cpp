@@ -218,7 +218,7 @@ int main() {
 
     // Set test parameters
     rig.SetNominalRadialLoad(3600 * g);
-    rig.SetStateTransitionDelay(0.1);
+    rig.SetStateTransitionDelay(100 * step_size);
     rig.SetDropSpeed(0.1);
     rig.SetRadialLoadSpeed(0.01);
     rig.SetLongitudinalLoadSpeed(0.1);
