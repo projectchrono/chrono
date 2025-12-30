@@ -18,9 +18,8 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/input_output/ChCheckpointASCII.h"
-
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -108,6 +107,7 @@ int main(int argc, char* argv[]) {
     bool cp_created = false;
 
     // Simulation loop
+    ChRealtimeStepTimer rt_timer;
     double h = 1e-3;
     double t = 0;
 
@@ -139,9 +139,12 @@ int main(int argc, char* argv[]) {
             }
             // Simulate 2nd system
             sys2.DoStepDynamics(h);
+            // Force time of sys1 (for display purposes)
+            sys1.SetChTime(sys2.GetChTime());
         }
 
         t += h;
+        rt_timer.Spin(h);
     }
 
     return 0;
