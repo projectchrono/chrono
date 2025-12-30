@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis =
-        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Euler Beams", ChVector3d(-0.1, 0.2, -0.2));
+        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Euler Beams", ChVector3d(-0.2, 0.4, -0.4));
 
     // THE SIMULATION LOOP
 

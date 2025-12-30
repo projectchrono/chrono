@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Abaqus wheel",     //
-                                         ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0),  //
+                                         ChVector3d(2.0, 2.8, -2.4), ChVector3d(0, tire_rad, 0),  //
                                          true, "Node speed", colormap_range, colormap_type);
 
     // SIMULATION LOOP

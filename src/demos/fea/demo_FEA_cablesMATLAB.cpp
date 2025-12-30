@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis =
-        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (Matlab)", ChVector3d(0, 0.6, -1.0));
+        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (Matlab)", ChVector3d(0, 1.2, -2.0));
 
     // Change solver to Matlab external linear solver.
     ChMatlabEngine matlab_engine;

@@ -324,7 +324,7 @@ void DPCapPress(const std::string& out_dir) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
-                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -696,7 +696,7 @@ void ShellBrickContact(const std::string& out_dir) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
-                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -987,7 +987,7 @@ void SimpleBoxContact(const std::string& out_dir) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
-                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1300,7 +1300,7 @@ void SoilBin(const std::string& out_dir) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
-                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1781,7 +1781,7 @@ void BendingQuasiStatic(const std::string& out_dir) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
-                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -2001,7 +2001,7 @@ void SwingingShell(const std::string& out_dir) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
-                                         ChVector3d(-0.4, -0.3, -0.5), ChVector3d(0.0, 0.5, -0.1));
+                                         ChVector3d(-0.8, -0.6, -1.0), ChVector3d(0.0, 0.5, -0.1));
 
     // ----------------------------------
     // Perform a dynamic time integration

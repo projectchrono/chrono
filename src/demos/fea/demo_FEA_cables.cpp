@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM",         //
-                                         ChVector3d(-0.4, -0.15, -0.9), ChVector3d(0, -0.4, -0.3),  //
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM",        //
+                                         ChVector3d(-0.8, -0.3, -1.8), ChVector3d(0, -0.4, -0.3),  //
                                          true, "Mz (Nm)", colormap_range, colormap_type);
 
     // Set integrator

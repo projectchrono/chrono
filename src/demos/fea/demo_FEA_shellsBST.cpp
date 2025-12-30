@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "BST triangle shell",
-                                         ChVector3d(1, 0.3, 1.3), ChVector3d(0.5, -0.3, 0.5));
+                                         ChVector3d(2.0, 0.6, 2.6), ChVector3d(0.5, -0.3, 0.5));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

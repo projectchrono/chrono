@@ -70,7 +70,7 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(cam_pos, cam_target);
+            vis_irr->AddCamera(0.5 * cam_pos, cam_target);
             vis_irr->AddTypicalLights();
             vis_irr->AddLightWithShadow(ChVector3d(1.0, 25.0, -5.0), ChVector3d(0, 0, 0), 35, 0.2, 35, 35, 512,
                                         ChColor(0.6f, 0.8f, 1.0f));
@@ -94,7 +94,7 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
             vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle(title);
             vis_vsg->EnableSkyBox();
-            vis_vsg->AddCamera(2.0 * cam_pos, cam_target);
+            vis_vsg->AddCamera(cam_pos, cam_target);
             vis_vsg->SetCameraAngleDeg(50);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

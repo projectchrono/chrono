@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     // Run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys,
                                          "Rotor with simplified blade: steady state statics & dynamics",
-                                         ChVector3d(1.0, 0.3, 10.0));
+                                         ChVector3d(2.0, 0.6, 20.0));
 
     // --------------------------
     // TEST
