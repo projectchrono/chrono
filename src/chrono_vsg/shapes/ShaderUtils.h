@@ -23,13 +23,15 @@
 namespace chrono {
 namespace vsg3d {
 
-vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options);
+vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options, bool skipZbuffer = false);
 
 vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options> options,
                                                 std::shared_ptr<ChVisualMaterial> material);
 
 vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options,
-                                                   VkPrimitiveTopology topology);
+                                                   VkPrimitiveTopology topology,
+                                                   float line_width,
+                                                   bool skipZbuffer = false);
 
 vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Options> options,
                                                   std::shared_ptr<ChVisualMaterial> material,

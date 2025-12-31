@@ -27,7 +27,7 @@ namespace vehicle {
 ChSuspension::ChSuspension(const std::string& name) : ChPart(name) {}
 
 ChSuspension::~ChSuspension() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_spindle[0]->GetSystem();
@@ -53,8 +53,8 @@ void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
 }
 
 void ChSuspension::Synchronize(double time) {
-    m_spindle[LEFT]->EmptyAccumulators();
-    m_spindle[RIGHT]->EmptyAccumulators();
+    m_spindle[LEFT]->EmptyTireAccumulator();
+    m_spindle[RIGHT]->EmptyTireAccumulator();
 }
 
 void ChSuspension::AddVisualizationAssets(VisualizationType vis) {
@@ -75,10 +75,10 @@ void ChSuspension::RemoveVisualizationAssets() {
 }
 
 void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, double width) {
-    m_spindle_shapes[side] = ChVehicleGeometry::AddVisualizationCylinder(m_spindle[side],               //
-                                                                         ChVector3d(0, width / 2, 0),   //
-                                                                         ChVector3d(0, -width / 2, 0),  //
-                                                                         radius);
+    m_spindle_shapes[side] = utils::ChBodyGeometry::AddVisualizationCylinder(m_spindle[side],               //
+                                                                             ChVector3d(0, width / 2, 0),   //
+                                                                             ChVector3d(0, -width / 2, 0),  //
+                                                                             radius);
 }
 
 void ChSuspension::ApplyParkingBrake(bool brake) {
@@ -92,8 +92,25 @@ void ChSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
                               const ChVector3d& location,
                               double left_ang_vel,
                               double right_ang_vel) {
+    m_parent = chassis;
+    m_rel_loc = location;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::SUSPENSION);
+
+    // Create spindle bodies and attach a force accumulator for each one
+    m_spindle[VehicleSide::LEFT] = chrono_types::make_shared<ChSpindle>();
+    m_spindle[VehicleSide::RIGHT] = chrono_types::make_shared<ChSpindle>();
+    m_spindle[VehicleSide::LEFT]->SetName(m_name + "_spindle_L");
+    m_spindle[VehicleSide::RIGHT]->SetName(m_name + "_spindle_R");
+    m_spindle[VehicleSide::LEFT]->AddTireAccumulator();
+    m_spindle[VehicleSide::RIGHT]->AddTireAccumulator();
+    chassis->GetSystem()->AddBody(m_spindle[VehicleSide::LEFT]);
+    chassis->GetSystem()->AddBody(m_spindle[VehicleSide::RIGHT]);
+
+    // Let derived classes complete construction of the suspension mechanism
+    Construct(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 }  // end namespace vehicle

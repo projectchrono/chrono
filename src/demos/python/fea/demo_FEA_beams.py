@@ -18,19 +18,13 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: PyChrono using  beam finite elements");
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 
 # ---------------------------------------------------------------------
 #
 #  Create the simulation system and add items
 #
 
-
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 ## Create a mesh, that is a container for groups
@@ -145,14 +139,14 @@ sys.Add(mesh)
 # asset that is internally managed) by setting  proper
 # coordinates and vertex colors as in the FEM elements.
 
-visualizebeamA = chrono.ChVisualShapeFEA(mesh)
+visualizebeamA = chrono.ChVisualShapeFEA()
 visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
-visualizebeamA.SetColorscaleMinMax(-0.4, 0.4)
+visualizebeamA.SetColormapRange(-0.4, 0.4)
 visualizebeamA.SetSmoothFaces(True)
 visualizebeamA.SetWireframe(False)
 mesh.AddVisualShapeFEA(visualizebeamA)
 
-visualizebeamC = chrono.ChVisualShapeFEA(mesh)
+visualizebeamC = chrono.ChVisualShapeFEA()
 visualizebeamC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 visualizebeamC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 visualizebeamC.SetSymbolsThickness(0.006)
@@ -166,7 +160,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('FEA beams')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0.1, 0.1, 0.2))
 vis.AddTypicalLights()

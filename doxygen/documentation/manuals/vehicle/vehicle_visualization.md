@@ -3,7 +3,24 @@ Visualization {#vehicle_visualization}
 
 \tableofcontents
 
-Chrono::Vehicle provides visualization support both for run-time interactive simulations, as well as for high-quality post-processing rendering for generating animations.  Currently, run-time simulation support expands on the underlying [Chrono::Irrlicht](@ref irrlicht_module) module for sequential simulations or the more computationally efficient but more limited [Chrono::OpenGL](@ref opengl_module) module for parallel simulations involving large-scale granular terrain representations.  Support for ray-traced renderings of individual simulation frames is offered through utility functions that can be called from within the simulation loop to export data files with current visualization assets information and a POV-Ray script that can batch-process these files to generate frame images.
+Chrono::Vehicle provides visualization support both for run-time interactive simulations, as well as for high-quality post-processing rendering for generating animations.
+Run-time simulation support expands on the underlying [Chrono::VSG](@ref vsg_module) and [Chrono::Irrlicht](@ref irrlicht_module) modules. The former is the recommended run-time visualization system, especially for vehicle simulations on CRM deformable terrain (not supported by the Irrlicht-based visualization system).
+Support for ray-traced renderings of individual simulation frames is offered through utility functions that can be called from within the simulation loop to export data files with current visualization assets information and a POV-Ray script that can batch-process these files to generate frame images.
+Alternatively, one can use the [ChronoBlender](@ref introduction_chrono_blender) plugin for postprocessing in Blender.
+
+## VSG-based run-time visualization {#vehicle_visualization_vsg}
+
+The vehicle VSG-based run-time visualization uses a customized plugin to the base Chrono::VSG run-time visualization system to provide vehicle-specific capabilities, such as:
+- vehicle-centric camera ("chase cam")
+- display of vehicle-specific information
+- control over visibility of individual vehicle subsystems
+- etc.
+
+The following images are snapshots from Chrono::Vehicle simulations.
+
+<img src="http://www.projectchrono.org/assets/manual/vis_vsg_wheeled.png" width="600" />
+
+<img src="http://www.projectchrono.org/assets/manual/vis_vsg_tracked.png" width="600" />
 
 ## Irrlicht-based run-time visualization {#vehicle_visualization_irrlicht}
 
@@ -21,16 +38,6 @@ The following images are snapshots from Chrono::Vehicle simulations.
 <img src="http://www.projectchrono.org/assets/manual/vehicle/visualization/vis_irrlicht_tracked.png" width="600" />
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/visualization/vis_irrlicht_tracked_2.png" width="600" />
-
-## OpenGL-based run-time visualization {#vehicle_visualization_opengl}
-
-Chrono::Vehicle simulations can also be visualized at run-time using the Chrono::OpenGL module.  This provides a more expeditious and computationally more efficient visualization, especially for large-scale simulation (such as those involving a vehicle interacting with granular terrain).
-
-The following images are snapshots from Chrono::Vehicle simulations.
-
-<img src="http://www.projectchrono.org/assets/manual/vehicle/visualization/vis_opengl_wheeled.png" width="600" />
-
-<img src="http://www.projectchrono.org/assets/manual/vehicle/visualization/vis_opengl_tracked.png" width="600" />
 
 ## Off-line rendering with POV-Ray {#vehicle_visualization_povray}
 

@@ -148,8 +148,8 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     //    DynamicVector<real> temp(data_manager->num_rigid_bodies * 6, 0.0);
     //    DynamicVector<real> output(num_rigid_contacts * 3, 0.0);
     //
-    //    // DynamicVector<real> temp(data_manager->num_fluid_bodies * 3, 0.0);
-    //    // DynamicVector<real> output(data_manager->num_fluid_bodies, 0.0);
+    //    // DynamicVector<real> temp(data_manager->num_particles * 3, 0.0);
+    //    // DynamicVector<real> output(data_manager->num_particles, 0.0);
     //
     //    /////
     //    double t1 = 0;
@@ -204,15 +204,15 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     int num_tangential = 2 * num_rigid_contacts;
     int num_spinning = 3 * num_rigid_contacts;
 
-    uint num_fluid_fluid = data_manager->node_container->GetNumConstraints();
-    uint nnz_fluid_fluid = data_manager->node_container->GetNumNonZeros();
+    uint num_particle_particle = data_manager->node_container->GetNumConstraints();
+    uint nnz_particle_particle = data_manager->node_container->GetNumNonZeros();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-    int nnz_total = nnz_bilaterals + nnz_fluid_fluid;
-    int num_rows = num_bilaterals + num_fluid_fluid;
+    int nnz_total = nnz_bilaterals + nnz_particle_particle;
+    int num_rows = num_bilaterals + num_particle_particle;
 
     switch (data_manager->settings.solver.solver_mode) {
         case SolverMode::NORMAL:
@@ -319,14 +319,14 @@ void ChIterativeSolverMulticoreNSC::SetR() {
     const DynamicVector<real>& R_full = data_manager->host_data.R_full;
 
     uint num_rigid_contacts = 0;
-    uint num_rigid_fluid = 0;
+    uint num_rigid_particle = 0;
     if (data_manager->cd_data) {
         num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
-        num_rigid_fluid = data_manager->cd_data->num_rigid_fluid_contacts * 3;
+        num_rigid_particle = data_manager->cd_data->num_rigid_particle_contacts * 3;
     }
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
+    uint num_particles = data_manager->num_particles;
     R.resize(data_manager->num_constraints);
     reset(R);
 
@@ -334,12 +334,12 @@ void ChIterativeSolverMulticoreNSC::SetR() {
         R = R_full;
     } else {
         subvector(R, num_unilaterals, num_bilaterals) = subvector(R_full, num_unilaterals, num_bilaterals);
-        subvector(R, num_unilaterals + num_bilaterals, num_rigid_fluid) =
-            subvector(R_full, num_unilaterals + num_bilaterals, num_rigid_fluid);
+        subvector(R, num_unilaterals + num_bilaterals, num_rigid_particle) =
+            subvector(R_full, num_unilaterals + num_bilaterals, num_rigid_particle);
 
         // TODO: Set R in the associated 3dof container
-        subvector(R, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies) =
-            subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies);
+        subvector(R, num_unilaterals + num_bilaterals + num_rigid_particle, num_particles) =
+            subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_particle, num_particles);
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {

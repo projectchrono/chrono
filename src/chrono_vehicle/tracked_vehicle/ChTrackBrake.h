@@ -35,8 +35,8 @@ class CH_VEHICLE_API ChTrackBrake : public ChPart {
     virtual ~ChTrackBrake() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
-                            std::shared_ptr<ChSprocket> sprocket  ///< associated sprocket subsystem
+    void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
+                    std::shared_ptr<ChSprocket> sprocket  ///< associated sprocket subsystem
     );
 
     /// Update the brake subsystem for the given braking driver input.
@@ -55,6 +55,11 @@ class CH_VEHICLE_API ChTrackBrake : public ChPart {
 
   protected:
     ChTrackBrake(const std::string& name);
+
+    /// Construct the concrete brake by providing the sprocket's revolute link.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
+                           std::shared_ptr<ChSprocket> sprocket  ///< associated sprocket subsystem
+                           ) = 0;
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;

@@ -41,7 +41,7 @@ void ChLoaderUVWdistributed::ComputeQ(ChVectorDynamic<>* state_x, ChVectorDynami
             // Compute mNF= N(u,v,w)'*F
             loadable->ComputeNF(Ulroots[i], Vlroots[i], Wlroots[i], mNF, detJ, mF, state_x, state_w);
             // Compute Q+= mNF * detJ * wi * 1/6
-            mNF *= (detJ * weight[i] * (1. / 6.));  // (the 1/6 coefficient is not in the table);
+            mNF *= (detJ * weight[i] * CH_1_6);  // (the 1/6 coefficient is not in the table);
             Q += mNF;
         }
     } else if (loadable->IsTrianglePrismIntegrationNeeded()) {

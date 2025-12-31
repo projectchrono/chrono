@@ -155,6 +155,9 @@ class ChVector2 {
     /// Scale this vector by a scalar: this *= s
     void Scale(const Real s);
 
+    /// Set this vector to its component-wise absolute values.
+    void Abs();
+
     /// Return the dot product with another vector: result = this ^ B
     Real Dot(const ChVector2<Real>& B) const;
 
@@ -579,7 +582,7 @@ inline bool ChVector2<Real>::Equals(const ChVector2<Real>& other) const {
 
 template <class Real>
 inline bool ChVector2<Real>::Equals(const ChVector2<Real>& other, Real tol) const {
-    return (fabs(other.m_data[0] - m_data[0]) < tol) && (fabs(other.m_data[1] - m_data[1]) < tol);
+    return (std::abs(other.m_data[0] - m_data[0]) < tol) && (std::abs(other.m_data[1] - m_data[1]) < tol);
 }
 
 template <class Real>
@@ -607,13 +610,19 @@ inline void ChVector2<Real>::Scale(const Real s) {
 }
 
 template <class Real>
+inline void ChVector2<Real>::Abs() {
+    m_data[0] = std::abs(m_data[0]);
+    m_data[1] = std::abs(m_data[1]);
+}
+
+template <class Real>
 inline Real ChVector2<Real>::Dot(const ChVector2<Real>& B) const {
     return (m_data[0] * B.m_data[0]) + (m_data[1] * B.m_data[1]);
 }
 
 template <class Real>
 inline Real ChVector2<Real>::Length() const {
-    return sqrt(Length2());
+    return std::sqrt(Length2());
 }
 
 template <class Real>
@@ -623,7 +632,7 @@ inline Real ChVector2<Real>::Length2() const {
 
 template <class Real>
 inline Real ChVector2<Real>::LengthInf() const {
-    return std::max(fabs(m_data[0]), fabs(m_data[1]));
+    return std::max(std::abs(m_data[0]), std::abs(m_data[1]));
 }
 
 template <class Real>
@@ -662,7 +671,7 @@ inline void ChVector2<Real>::Rotate(Real angle) {
 
 template <class Real>
 inline int ChVector2<Real>::GetMaxComponent() const {
-    return (fabs(m_data[0]) > fabs(m_data[1])) ? 0 : 1;
+    return (std::abs(m_data[0]) > std::abs(m_data[1])) ? 0 : 1;
 }
 
 template <class Real>

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // ROS Handler for communicating magnetometer information
@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler_ipc.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
@@ -35,7 +36,7 @@ ChROSMagnetometerHandler::ChROSMagnetometerHandler(std::shared_ptr<ChMagnetomete
 ChROSMagnetometerHandler::ChROSMagnetometerHandler(double update_rate,
                                                    std::shared_ptr<ChMagnetometerSensor> imu,
                                                    const std::string& topic_name)
-    : ChROSHandler(update_rate), m_imu(imu), m_topic_name(topic_name) {}
+    : ChROSHandler(update_rate), m_imu(imu), m_topic_name(topic_name), m_running_average({0, 0, 0}) {}
 
 bool ChROSMagnetometerHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterMagnetAccess, ChFilterMagnetAccessName>(m_imu)) {
@@ -46,33 +47,48 @@ bool ChROSMagnetometerHandler::Initialize(std::shared_ptr<ChROSInterface> interf
         return false;
     }
 
-    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::MagneticField>(m_topic_name, 1);
-
-    m_mag_msg.header.frame_id = m_imu->GetName();
-
     return true;
 }
 
-void ChROSMagnetometerHandler::Tick(double time) {
+std::vector<uint8_t> ChROSMagnetometerHandler::GetSerializedData(double time) {
+    if (time == m_last_time) {
+        return m_last_serialized_data;
+    }
+
+    // if (!ShouldTick(time)) {
+    //     return {};
+    // }
+
     auto imu_ptr = m_imu->GetMostRecentBuffer<UserMagnetBufferPtr>();
     if (!imu_ptr->Buffer) {
         // TODO: Is this supposed to happen?
-        std::cout << "Magnetometer buffer is not ready. Not ticking." << std::endl;
-        return;
+        // std::cout << "Magnetometer buffer is not ready. Not ticking." << std::endl;
+        return {};
     }
 
     MagnetData imu_data = imu_ptr->Buffer[0];
-    m_mag_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
-    m_mag_msg.magnetic_field.x = imu_data.X;
-    m_mag_msg.magnetic_field.y = imu_data.Y;
-    m_mag_msg.magnetic_field.z = imu_data.Z;
+    
+    ipc::MagnetometerData msg;
+    strncpy(msg.topic_name, m_topic_name.c_str(), sizeof(msg.topic_name) - 1);
+    strncpy(msg.frame_id, m_imu->GetName().c_str(), sizeof(msg.frame_id) - 1);
+    
+    msg.magnetic_field[0] = imu_data.X;
+    msg.magnetic_field[1] = imu_data.Y;
+    msg.magnetic_field[2] = imu_data.Z;
 
     // Update the covariance matrix
-    // The ChMagnetometerSensor does not currently support covariances, so we'll
-    // use the imu message to store a rolling average of the covariance
-    m_mag_msg.magnetic_field_covariance = CalculateCovariance(imu_data);
+    auto covariance = CalculateCovariance(imu_data);
+    IncrementTickCount();
+    std::memcpy(msg.magnetic_field_covariance, covariance.data(), sizeof(msg.magnetic_field_covariance));
 
-    m_publisher->publish(m_mag_msg);
+    std::vector<uint8_t> buffer(sizeof(ipc::MagnetometerData));
+    std::memcpy(buffer.data(), &msg, sizeof(ipc::MagnetometerData));
+
+    m_last_time = time;
+    m_last_serialized_data = buffer;
+    m_last_data_struct = msg;
+
+    return buffer;
 }
 
 std::array<double, 9> ChROSMagnetometerHandler::CalculateCovariance(const MagnetData& imu_data) {

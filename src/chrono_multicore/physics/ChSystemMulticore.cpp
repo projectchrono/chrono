@@ -36,7 +36,7 @@
 
 namespace chrono {
 
-ChSystemMulticore::ChSystemMulticore() : ChSystem() {
+ChSystemMulticore::ChSystemMulticore(const std::string& name) : ChSystem(name) {
     data_manager = new ChMulticoreDataManager();
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
@@ -149,7 +149,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
             body->VariablesQbIncrementPosition(this->GetStep());
             body->VariablesQbSetSpeed(this->GetStep());
 
-            body->Update(ch_time);
+            body->Update(ch_time, true);
 
             // update the position and rotation vectors
             pos_pointer[i] = (real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z()));
@@ -166,7 +166,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
             shaft->Variables().State()(0) = velocities[offset + i];
             shaft->VariablesQbIncrementPosition(GetStep());
             shaft->VariablesQbSetSpeed(GetStep());
-            shaft->Update(ch_time);
+            shaft->Update(ch_time, true);
         }
     }
 
@@ -187,7 +187,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
     }
 
     for (int i = 0; i < assembly.otherphysicslist.size(); i++) {
-        assembly.otherphysicslist[i]->Update(ch_time);
+        assembly.otherphysicslist[i]->Update(ch_time, true);
     }
 
     data_manager->node_container->UpdatePosition(ch_time);
@@ -426,7 +426,7 @@ void ChSystemMulticore::UpdateMotorLinks() {
     }
 }
 
-// Update all fluid nodes
+// Update all 3-DOF particles
 void ChSystemMulticore::Update3DOFBodies() {
     data_manager->node_container->Update3DOF(ch_time);
 }
@@ -561,7 +561,7 @@ void ChSystemMulticore::Setup() {
 
     // Calculate the total number of degrees of freedom (6 per rigid body, 1 per shaft, 1 per motor).
     data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
-                            data_manager->num_fluid_bodies * 3;
+                            data_manager->num_particles * 3;
 
     // Set variables that are stored in the ChSystem class
     assembly.m_num_bodies_active = data_manager->num_rigid_bodies;
@@ -573,14 +573,13 @@ void ChSystemMulticore::Setup() {
     m_num_constr_bil = 0;
     m_num_constr_uni = 0;
     if (data_manager->cd_data)
-        ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
-                    data_manager->cd_data->num_fluid_contacts;
+        ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts +
+                    data_manager->cd_data->num_particle_contacts;
     assembly.m_num_bodies_sleep = 0;
     assembly.m_num_bodies_fixed = 0;
 }
 
 void ChSystemMulticore::RecomputeThreads() {
-#ifdef _OPENMP
     timer_accumulator.insert(timer_accumulator.begin(), data_manager->system_timer.GetTime("step"));
     timer_accumulator.pop_back();
 
@@ -612,7 +611,6 @@ void ChSystemMulticore::RecomputeThreads() {
         omp_set_num_threads(data_manager->settings.min_threads);
     }
     frame_threads++;
-#endif
 }
 
 void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
@@ -653,8 +651,8 @@ unsigned int ChSystemMulticore::GetNumContacts() {
     if (!data_manager->cd_data)
         return 0;
 
-    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
-           data_manager->cd_data->num_fluid_contacts;
+    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts +
+           data_manager->cd_data->num_particle_contacts;
 }
 
 // -------------------------------------------------------------
@@ -696,7 +694,6 @@ settings_container* ChSystemMulticore::GetSettings() {
 void ChSystemMulticore::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
     ChSystem::SetNumThreads(num_threads_chrono, num_threads_chrono, num_threads_eigen);
 
-#ifdef _OPENMP
     int max_avail_threads = omp_get_num_procs();
 
     if (num_threads_chrono > max_avail_threads) {
@@ -704,20 +701,13 @@ void ChSystemMulticore::SetNumThreads(int num_threads_chrono, int num_threads_co
         std::cout << "larger than maximum available (" << max_avail_threads << ")" << std::endl;
     }
     omp_set_num_threads(num_threads_chrono);
-#else
-    std::cout << "WARNING! OpenMP not enabled" << std::endl;
-#endif
 }
 
 void ChSystemMulticore::EnableThreadTuning(int min_threads, int max_threads) {
-#ifdef _OPENMP
     data_manager->settings.perform_thread_tuning = true;
     data_manager->settings.min_threads = min_threads;
     data_manager->settings.max_threads = max_threads;
     omp_set_num_threads(min_threads);
-#else
-    std::cout << "WARNING! OpenMP not enabled" << std::endl;
-#endif
 }
 
 // -------------------------------------------------------------

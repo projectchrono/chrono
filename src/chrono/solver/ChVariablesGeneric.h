@@ -19,13 +19,10 @@
 
 namespace chrono {
 
-/// Specialized class for representing a N-DOF item for a system, that is an item with mass matrix and associate
-/// variables. The main difference from the base class ChVariables is that the base class does not create any mass
-/// matrix, while this minimal specialization at least creates a NxN mass matrix. Of course a generic (uncompressed) NxN
-/// matrix is used. This means that, for example, this class could  be used for 3D rigid bodies if N=6, however it would
-/// be better to implement a more optimized class which does not create a full 6x6 matrix (since only few elements on
-/// the diagonal would be different from 0 in case of rigid bodies), so use the ChVariablesBody in this case..
-
+/// Class for representing an N-DOF item with mass matrix and associated variables.
+/// This class creates an NxN generic, dense mass matrix. While this type of variables could be used for a rigid body
+/// (with N=6), it is more efficient to create specialized classes which do not use a full 6x6 matrix, but rather manage
+/// only non-zero entries in the mass matrix of a rigid body (i.e., the mass, inertia moments, and inertia products).
 class ChApi ChVariablesGeneric : public ChVariables {
   public:
     ChVariablesGeneric(unsigned int dof = 1);

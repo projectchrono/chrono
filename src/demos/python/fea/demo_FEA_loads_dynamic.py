@@ -17,7 +17,10 @@ import errno
 import os
 import copy
 
-out_dir = chrono.GetChronoOutputPath() + "FEA_LOADS"  # Output directory
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
+out_dir = chrono.GetChronoOutputPath() + "FEA_Loads_Dynamic/"
 
 print("Copyright (c) 2017 projectchrono.org ")
 
@@ -138,14 +141,14 @@ load_container.Add(custom_load)
 # -----------------------------------------------------------------
 # Set visualization of the FEM mesh.
 
-beam_visA = chrono.ChVisualShapeFEA(mesh)
+beam_visA = chrono.ChVisualShapeFEA()
 beam_visA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
-beam_visA.SetColorscaleMinMax(-400, 200)
+beam_visA.SetColormapRange(-400, 200)
 beam_visA.SetSmoothFaces(True)
 beam_visA.SetWireframe(False)
 mesh.AddVisualShapeFEA(beam_visA)
 
-beam_visB = chrono.ChVisualShapeFEA(mesh)
+beam_visB = chrono.ChVisualShapeFEA()
 beam_visB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 beam_visB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 beam_visB.SetSymbolsThickness(0.006)
@@ -159,7 +162,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Loads on beams')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0.5, 0.0, -3.0), chrono.ChVector3d(0.5, 0.0, 0.0))
 vis.AddTypicalLights()

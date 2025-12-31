@@ -28,6 +28,9 @@
 namespace chrono {
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
 /// This supports component mode synthesis (CMS) to do substructuring, hence an assembly becomes a "modal body"
 /// where many "internal" DOFs of finite elements will be reduced to few modal modes that are superimposed
@@ -390,7 +393,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Updates all the auxiliary data and children of
     /// bodies, forces, links, given their current state.
-    virtual void Update(bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void ForceToRest() override;
@@ -801,7 +804,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
 
     SetupInitial();
     Setup();
-    Update();
+    Update(ChTime, true);
 
     Initialize();
 
@@ -894,6 +897,8 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         StreamOut(R_red, fileR_red);
     }
 }
+
+/// @} modal
 
 }  // end namespace modal
 

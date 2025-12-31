@@ -1,27 +1,50 @@
+if(NOT (CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG))
+  message(STATUS "Warning: the MBS C# projects require Chrono::Irrlicht or Chrono::VSG")
+  return()
+endif()
+
 set(DEMOS
-    demo_MBS_ballSMC
-    demo_MBS_earthquake
-    demo_MBS_link_bushing
+    demo_CS_MBS_ballSMC
+    demo_CS_MBS_earthquake
+    demo_CS_MBS_link_bushing
 )
 
-message(STATUS "-------------------")
-message(STATUS "C# MBS Chrono demos")
-message(STATUS "-------------------")
+# ----------------------------------------------------------------------
 
-# Look for a Chrono installation
-find_package(Chrono
-             COMPONENTS CSharp
-             OPTIONAL_COMPONENTS Irrlicht
-             CONFIG)
+set(MODULE_LIST)
+list(APPEND MODULE_LIST "core")
+if(CH_ENABLE_MODULE_IRRLICHT)
+  list(APPEND MODULE_LIST "irrlicht")
+endif()
+if(CH_ENABLE_MODULE_VSG)
+  list(APPEND MODULE_LIST "vsg")
+endif()
 
-# Append to the parent's lists of DLLs (and make them visible)
-list(APPEND ALL_DLL_NAMES       "${CHRONO_DLL_NAMES}")
-list(APPEND ALL_DEPENDENCY_DLLS "${CHRONO_DEPENDENCY_DLLS}")
-set(ALL_DLL_NAMES       "${ALL_DLL_NAMES}"       PARENT_SCOPE)
-set(ALL_DEPENDENCY_DLLS "${ALL_DEPENDENCY_DLLS}" PARENT_SCOPE)
+set(CHRONO_CSHARP_SOURCES)
+set(_chrono_csharp_source_desc "")
+# Wrapper DLL saves embedding .cs files into every exe
+if(CHRONO_CSHARP_USING_WRAPPER)
+  set(_chrono_csharp_source_desc "using chrono_csharp_wrapper.dll")
+else()
+  CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
+  list(LENGTH CHRONO_CSHARP_SOURCES NUM_CSHARP_FILES)
+  set(_chrono_csharp_source_desc "embedding ${NUM_CSHARP_FILES} SWIG sources")
+endif()
 
-# Add C# executables
+message(STATUS "  C# mbs demos;     ${_chrono_csharp_source_desc}")
+
+# ----------------------------------------------------------------------
+
 foreach(PROGRAM ${DEMOS})
-  message(STATUS "...add ${PROGRAM}")
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
+  chrono_configure_csharp_demo(${PROGRAM})
+  
+  # Add preprocessor defines based on available visual modules
+  if(CH_ENABLE_MODULE_IRRLICHT)
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DOTNET_REFERENCES_COPY_LOCAL TRUE)
+    target_compile_options(${PROGRAM} PRIVATE "/define:CHRONO_IRRLICHT")
+  endif()
+  if(CH_ENABLE_MODULE_VSG)
+    target_compile_options(${PROGRAM} PRIVATE "/define:CHRONO_VSG")
+  endif()
 endforeach()

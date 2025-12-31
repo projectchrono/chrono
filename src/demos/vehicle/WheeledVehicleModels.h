@@ -18,6 +18,9 @@
 
 #pragma once
 
+#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
+
 #include "chrono_models/vehicle/artcar/ARTcar.h"
 #include "chrono_models/vehicle/jeep/Cherokee.h"
 #include "chrono_models/vehicle/bmw/BMW_E90.h"
@@ -716,8 +719,8 @@ void HMMWV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chas
     hmmwv->SetChassisCollisionType(chassis_collision_type);
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(init_pos);
-    hmmwv->SetEngineType(EngineModelType::SHAFTS);
-    hmmwv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
+    hmmwv->SetEngineType(EngineModelType::SIMPLE_MAP);
+    hmmwv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_CVT);
     hmmwv->SetDriveType(DrivelineTypeWV::AWD);
     hmmwv->UseTierodBodies(true);
     hmmwv->SetSteeringType(SteeringTypeWV::PITMAN_ARM);

@@ -19,19 +19,13 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: FEA of the Jeffcott rotor passing through resonance.");
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 
 # ---------------------------------------------------------------------
 #
 #  Create the simulation system and add items
 #
 
-
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 mesh = fea.ChMesh()
@@ -144,12 +138,12 @@ rotmotor1.SetMotorFunction(f_ramp)
 
 # Attach a visualization of the FEM mesh.
 
-mvisualizebeamA = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamA = chrono.ChVisualShapeFEA()
 mvisualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizebeamA.SetSmoothFaces(True)
 mesh.AddVisualShapeFEA(mvisualizebeamA)
 
-mvisualizebeamC = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamC = chrono.ChVisualShapeFEA()
 mvisualizebeamC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 mvisualizebeamC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizebeamC.SetSymbolsThickness(0.006)
@@ -164,7 +158,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Test FEA: the Jeffcott rotor with IGA beams')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 1, 4), chrono.ChVector3d(beam_L/2, 0, 0))
 vis.AddTypicalLights()

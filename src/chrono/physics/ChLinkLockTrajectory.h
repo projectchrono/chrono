@@ -65,9 +65,8 @@ class ChApi ChLinkLockTrajectory : public ChLinkLockLock {
                     std::shared_ptr<ChLine> line    ///< the line on body2 to be followed by the point on body1
     );
 
-    /// Overrides the parent class function. Here it moves the
-    /// constraint mmain marker tangent to the line.
-    virtual void UpdateTime(double mytime) override;
+    /// Update time-dependent quantities: move the constraint main marker tangent to the line.
+    virtual void UpdateTime(double time) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

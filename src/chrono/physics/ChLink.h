@@ -66,18 +66,10 @@ class ChApi ChLink : public ChLinkBase {
 
     // UPDATING FUNCTIONS
 
-    /// Given new time, current body state, update time-dependent quantities in link state,
-    /// for example motion laws, moving markers, etc.
-    /// Default: do nothing except setting new time.
-    virtual void UpdateTime(double mytime);
-
     /// This function, called by the owner ChSystem at least once per integration step,
     /// updates any auxiliary data of the link (e.g. internal states, forces, Jacobian matrices).
     /// This base version, by default, simply updates the time.
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    /// As above, but with current time
-    virtual void Update(bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Called from a external package (i.e. a plugin, a CAD app.) to report that time has changed.
     virtual void UpdatedExternalTime(double prevtime, double time) {}

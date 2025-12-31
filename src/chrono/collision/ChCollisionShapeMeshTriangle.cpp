@@ -54,6 +54,14 @@ ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle(
     this->sradius = sphere_radius;
 }
 
+ChAABB ChCollisionShapeMeshTriangle::GetBoundingBox() const {
+    ChAABB aabb;
+    aabb += ChAABB(*V1, *V1);
+    aabb += ChAABB(*V2, *V2);
+    aabb += ChAABB(*V3, *V3);
+    return aabb;
+}
+
 void ChCollisionShapeMeshTriangle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChCollisionShapeMeshTriangle>();

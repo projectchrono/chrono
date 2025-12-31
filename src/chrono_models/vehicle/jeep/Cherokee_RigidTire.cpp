@@ -19,7 +19,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/jeep/Cherokee_RigidTire.h"
 
 namespace chrono {
@@ -40,15 +40,13 @@ const std::string Cherokee_RigidTire::m_meshFile_left = "jeep/Cherokee_Tire.obj"
 const std::string Cherokee_RigidTire::m_meshFile_right = "jeep/Cherokee_Tire.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 Cherokee_RigidTire::Cherokee_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void Cherokee_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

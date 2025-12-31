@@ -14,21 +14,6 @@
 //  'import pychrono.ros'
 
 
-%define MODULEIMPORT
-"
-try:
-  if __package__ or "." in __name__:
-      from . import _ros
-  else:
-      import _ros
-except ImportError as e:
-  import os
-  if "ROS_DISTRO" not in os.environ or "AMENT_PREFIX_PATH" not in os.environ:
-    raise Exception("Cannot import ros. It appears like you haven't sourced your ROS installation.")
-  raise e
-"
-%enddef
-
 %module(directors="1") ros
 
 
@@ -73,6 +58,18 @@ except ImportError as e:
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
 #ifdef CHRONO_SENSOR
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
+
+#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChSegmentationCamera.h"
+#include "chrono_sensor/sensors/ChDepthCamera.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
+
+#include "chrono_sensor/sensors/ChIMUSensor.h"
+
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
@@ -98,6 +95,8 @@ using namespace chrono::ros;
 // Undefine ChApi and CH_ROS_API otherwise SWIG gives a syntax error
 #define ChApi
 #define CH_ROS_API
+#define CH_SENSOR_API
+
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 // Include other .i configuration files for SWIG. 
@@ -182,9 +181,15 @@ using namespace chrono::ros;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 
-%include "../../../chrono/core/ChFrame.h"    
+#ifdef CHRONO_SENSOR
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChSensor.i"
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChOptixSensor.i"
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChIMUSensor.i"
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChGPSSensor.i"
+#endif
 
 %include "../../../chrono_ros/ChROSManager.h"
+
 %include "../../../chrono_ros/ChROSHandler.h"
 %include "../../../chrono_ros/ChROSInterface.h"
 %include "../../../chrono_ros/handlers/ChROSClockHandler.h"
@@ -232,125 +237,17 @@ using namespace chrono::ros;
 
 %ignore chrono::ros::ChROSInterface::GetNode;
 
+#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 //
 // ADD PYTHON CODE
 //
 
 %pythoncode %{
 
-from typing import List
-
-import rclpy
-import rclpy.executors
-import rclpy.node
-
-from pychrono.ros import ChROSManager
-
-class ChROSSingleThreadedExecutor(rclpy.executors.SingleThreadedExecutor):
-
-  def spin_some(self, timeout_sec: float = 0):
-    while True:
-      try:
-        handler, entity, node = self.wait_for_ready_callbacks(max_duration)
-      except ShutdownException:
-          pass
-      except TimeoutException:
-          pass
-      except ConditionReachedException:
-          pass
-      else:
-        handler()
-        if handler.exception() is not None:
-          raise handler.exception()
-
-        handler.result() # raise any exceptions
-
-      # break since we've received an exception
-      break
-
-class ChROSPythonInterface:
-  def __init__(self, node_name: str):
-    self.node_name = node_name
-
-    self.executor: rclpy.executors.Executor = None
-    self.node: rclpy.node.Node = None
-
-  def Initialize(self, args = None):
-    if not rclpy.ok():
-      print("Initializing rclpy.")
-      rclpy.init(args=args)
-
-    # TODO: make options available to user?
-    self.executor = ChROSSingleThreadedExecutor()
-
-    self.node = rclpy.create_node(self.node_name)
-    self.executor.add_node(self.node)
-
-    print(f"Initialized ChROSPythonInterface: {self.node_name}")
-
-  def SpinSome(self, max_duration: float = 0):
-    if rclpy.ok():
-      self.executor.spin_once(timeout_sec=max_duration)
-
-  def GetNode(self) -> rclpy.node.Node:
-    return self.node 
-
 class ChROSPythonManager(ChROSManager):
-  """Override the base implemenation to allow for python defined handlers."""
-
-  def __init__(self, node_name: str = "chrono_ros_node"):
-    super().__init__(node_name)
-
-    self.interface_py = ChROSPythonInterface(f"{node_name}_py")
-    self.handlers_py: List[ChROSHandler] = []
-
-    self._update_rclpy: bool = False
-
-  def Initialize(self, force: bool = False):
-    super().Initialize()
-
-    self._update_rclpy = len(self.handlers_py) > 0 or force
-    if not self._update_rclpy:
-      return
-
-    self.interface_py.Initialize()
-
-    i = 0
-    while i < len(self.handlers_py):
-      handler = self.handlers_py[i]
-      if not handler.Initialize(self.interface_py):
-        print("Failed to initialize ROS handler. Will remove handler and continue.")
-        self.handlers_py.pop(i)
-      else:
-        i += 1
-
-  def Update(self, time, step):
-    rclcpp_ok = super().Update(time, step)
-
-    if not self._update_rclpy:
-      return rclcpp_ok
-
-    for handler in self.handlers_py:
-      handler.Update(time, step)
-
-    self.interface_py.SpinSome()
-
-    return rclcpp_ok and rclpy.ok()
-
-  def RegisterPythonHandler(self, handler: ChROSHandler):
-    self.handlers_py.append(handler)
-
-  def GetPythonInterface(self) -> ChROSPythonInterface:
-    return self.interface_py
-
-  @property
-  def update_rclpy(self) -> bool:
-    return self._update_rclpy
-
-  @update_rclpy.setter
-  def update_rclpy(self, value: bool):
-    self._update_rclpy = value
+    def __init__(self, node_name="chrono_ros_node"):
+        super().__init__(node_name)
 
 %}
-
+#endif              // --------------------------------------------------------------------- PYTHON
 

@@ -102,7 +102,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
     /// Fix or release this shaft.
     /// If set to true, the shaft does not move, regardless of applied loads.
-    void SetFixed(bool fixed);
+    void SetFixed(bool state);
 
     /// Return true if the shaft is set to fixed.
     bool IsFixed() const { return fixed; }
@@ -110,16 +110,15 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Enable limit on shaft speed (default: false).
     void SetLimitSpeed(bool limit) { limitspeed = limit; }
 
-    /// If use sleeping= true, shafts which do not rotate for too long time will be deactivated, for optimization.
-    /// The realism is limited, but the simulation is faster.
-    void SetSleepingAllowed(bool sleeping) { use_sleeping = sleeping; }
+    /// If sleeping is allowed, shafts which do not rotate for too long time will be deactivated.
+    void SetSleepingAllowed(bool state) { use_sleeping = state; }
 
     ///  Return true if this shaft is allowed to go to sleep.
     bool IsSleepingAllowed() const { return use_sleeping; }
 
     /// Force the shaft in sleeping mode or not.
     /// Note: Usually this state change is not handled by users, because it is mostly automatic.
-    void SetSleeping(bool ms) { sleeping = ms; }
+    void SetSleeping(bool state) { sleeping = state; }
 
     /// Tell if the shaft is actually in sleeping state.
     bool IsSleeping() const { return sleeping; }
@@ -151,7 +150,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,

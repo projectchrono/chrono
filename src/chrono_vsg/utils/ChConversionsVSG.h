@@ -18,6 +18,9 @@
 #include <vsg/maths/mat4.h>
 #include <vsg/maths/vec3.h>
 
+#include <vsgImGui/imgui.h>
+
+#include "chrono/assets/ChColor.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vsg/ChApiVSG.h"
@@ -53,6 +56,11 @@ class CH_VSG_API dmat4CH : public dmat4 {
 };
 
 }  // namespace vsg
+
+class CH_VSG_API ImVec4CH : public ImVec4 {
+  public:
+    ImVec4CH(const chrono::ChColor& color, float alpha);
+};
 
 inline std::ostream& operator<<(std::ostream& out, const vsg::vec2& v) {
     out << v.x << "  " << v.y;

@@ -20,7 +20,7 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -79,15 +79,16 @@ void ChTrackShoeBandANCF::SetWebMeshProperties(std::shared_ptr<fea::ChMaterialSh
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                     const ChVector3d& location,
-                                     const ChQuaternion<>& rotation) {
-    // Initialize base class (create tread body)
-    ChTrackShoeBand::Initialize(chassis, location, rotation);
+void ChTrackShoeBandANCF::Construct(std::shared_ptr<ChChassis> chassis,
+                                    const ChVector3d& location,
+                                    const ChQuaternion<>& rotation) {
+    // Invoke base class (construct m_shoe body)
+    ChTrackShoeBand::Construct(chassis, location, rotation);
 
     // Express the tread body location and orientation in global frame.
-    ChVector3d loc = chassis->TransformPointLocalToParent(location);
-    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    auto chassis_body = chassis->GetBody();
+    ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis_body->GetRot() * rotation;
     ChVector3d xdir = rot.GetAxisX();
     ChVector3d ydir = rot.GetAxisY();
     ChVector3d zdir = rot.GetAxisZ();
@@ -252,26 +253,29 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChChassis> chassis,
                                      const std::vector<ChCoordsys<>>& component_pos) {
     // Check the number of provided locations and orientations.
     assert(component_pos.size() == 2);
 
     // Initialize at origin.
-    Initialize(chassis, VNULL, QUNIT);
+    ChTrackShoe::Initialize(chassis, VNULL, QUNIT);
+
+    auto chassis_body = chassis->GetBody();
 
     // Overwrite absolute body locations and orientations.
-    m_shoe->SetPos(chassis->TransformPointLocalToParent(component_pos[0].pos));
-    m_shoe->SetRot(chassis->GetRot() * component_pos[0].rot);
+    m_shoe->SetPos(chassis_body->TransformPointLocalToParent(component_pos[0].pos));
+    m_shoe->SetRot(chassis_body->GetRot() * component_pos[0].rot);
 
     // Overwrite absolute node locations and orientations.
 
-    auto rot = chassis->GetRot() * component_pos[1].rot;
+    auto rot = chassis_body->GetRot() * component_pos[1].rot;
     ChVector3d xdir = rot.GetAxisX();
     ChVector3d ydir = rot.GetAxisY();
     ChVector3d zdir = rot.GetAxisZ();
 
-    ChVector3d seg_loc = chassis->TransformPointLocalToParent(component_pos[1].pos) - (0.5 * GetWebLength()) * xdir -
+    ChVector3d seg_loc = chassis_body->TransformPointLocalToParent(component_pos[1].pos) -
+                         (0.5 * GetWebLength()) * xdir -
                          (0.5 * GetBeltWidth()) * ydir;
 
     int num_elements_length = GetNumElementsLength();
@@ -349,7 +353,7 @@ void ChTrackShoeBandANCF::UpdateInertiaProperties() {
     m_web_mesh->ComputeMassProperties(mesh_mass, mesh_com, mesh_inertia);
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     composite.AddComponent(ChFrame<>(mesh_com, QUNIT), mesh_mass, mesh_inertia);
 
@@ -487,21 +491,9 @@ ChVector3d ChTrackShoeBandANCF::GetTension() const {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    ExportBodyList(jsonDocument, bodies);
-}
-
-void ChTrackShoeBandANCF::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    database.WriteBodies(bodies);
+void ChTrackShoeBandANCF::PopulateComponentList() {
+    m_bodies.push_back(m_shoe);
 }
 
 }  // end namespace vehicle

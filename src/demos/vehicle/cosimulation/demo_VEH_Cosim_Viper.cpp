@@ -27,7 +27,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -39,11 +39,11 @@
 #ifdef CHRONO_MULTICORE
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
-#ifdef CHRONO_GPU
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
+#ifdef CHRONO_DEM
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularDEM.h"
 #endif
 
 using std::cout;
@@ -221,15 +221,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 #endif
-#ifndef CHRONO_GPU
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_GPU) {
+#ifndef CHRONO_DEM
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_DEM) {
         if (rank == 0)
-            cout << "Chrono::Gpu is required for GRANULAR_GPU terrain type!" << endl;
+            cout << "Chrono::Dem is required for GRANULAR_DEM terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
 #endif
-#ifndef CHRONO_FSI
+#ifndef CHRONO_FSI_SPH
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH) {
         if (rank == 0)
             cout << "Chrono::FSI is required for GRANULAR_SPH terrain type!" << endl;
@@ -281,12 +281,10 @@ int main(int argc, char** argv) {
         }
         auto driver = chrono_types::make_shared<MyDriver>(0.2);
         viper->SetDriver(driver);
-        viper->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
         viper->SetVerbose(verbose);
         viper->SetInitialLocation(ChVector3d(init_loc.x(), init_loc.y(), 0.5));
         viper->SetInitialYaw(0);
         viper->SetStepSize(step_size);
-        viper->SetNumThreads(1);
         viper->SetOutDir(out_dir, suffix);
         if (renderRT)
             viper->EnableRuntimeVisualization(render_fps);
@@ -306,10 +304,9 @@ int main(int argc, char** argv) {
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
         auto tire =
-            new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile("cosim/viper/Viper_RigidTire_cyl.json"));
+            new ChVehicleCosimTireNodeRigid(rank - 2, GetVehicleDataFile("cosim/viper/Viper_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
-        tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
 
         node = tire;
@@ -400,9 +397,9 @@ int main(int argc, char** argv) {
                 break;
             }
 
-            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_GPU: {
-#ifdef CHRONO_GPU
-                auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(terrain_specfile);
+            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_DEM: {
+#ifdef CHRONO_DEM
+                auto terrain = new ChVehicleCosimTerrainNodeGranularDEM(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
@@ -431,7 +428,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);

@@ -51,16 +51,16 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// For a double-pin track shoe, this function returns the force between the track shoe body and connector(s).
     virtual ChVector3d GetTension() const override;
 
-    /// Initialize this track shoe subsystem.
+    /// Construct this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
     /// This version initializes the bodies of a double-pin track shoe such that
     /// the center of the track shoe subsystem is at the specified location and all
     /// bodies have the specified orientation.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) override;
 
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -93,19 +93,18 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     virtual double GetConnectorRadius() const = 0;
 
     /// Initialize this two-connector double-pin track shoe system.
-    /// For a one-connector double-pin, the location of the connector body is assumed to be at the midpoint between the
-    /// provided left and right locations.
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                    const ChVector3d& loc_shoe,             ///< [in] location of shoe body
-                    const ChQuaternion<>& rot_shoe,         ///< [in] orientation of shoe body
-                    const ChVector3d& loc_connector_L,      ///< [in] location of left connector body
-                    const ChVector3d& loc_connector_R,      ///< [in] location of right connector body
-                    const ChQuaternion<>& rot_connector     ///< [in] orientation of connector bodies
+    /// This version specifies the locations of the shoe and connector bodies separately, as dictated by and assembly
+    /// algorithm. For a one-connector double-pin, the location of the connector body is assumed to be at the midpoint
+    /// between the provided left and right locations.
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis body
+                    const ChVector3d& loc_shoe,          ///< [in] location of shoe body
+                    const ChQuaternion<>& rot_shoe,      ///< [in] orientation of shoe body
+                    const ChVector3d& loc_connector_L,   ///< [in] location of left connector body
+                    const ChVector3d& loc_connector_R,   ///< [in] location of right connector body
+                    const ChQuaternion<>& rot_connector  ///< [in] orientation of connector bodies
     );
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     // Note: the one-connector, reduced model uses only the bodies, joints, and RSDA from the left side.
 
@@ -114,13 +113,13 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     std::shared_ptr<ChBody> m_connector_L;  ///< left connector body
     std::shared_ptr<ChBody> m_connector_R;  ///< right connector body
 
-    std::shared_ptr<ChVehicleJoint> m_joint_L;  ///< shoe - left connector joint
-    std::shared_ptr<ChVehicleJoint> m_joint_R;  ///< shoe - right connector joint
+    std::shared_ptr<ChJoint> m_joint_L;  ///< shoe - left connector joint
+    std::shared_ptr<ChJoint> m_joint_R;  ///< shoe - right connector joint
     std::shared_ptr<ChLinkRSDA> m_rsda_L;       ///< optional RSDA on left revolute
     std::shared_ptr<ChLinkRSDA> m_rsda_R;       ///< optional RSDA on right revolute
 
-    std::shared_ptr<ChVehicleJoint> m_connection_joint_L;  ///< connection to neighboring track shoe
-    std::shared_ptr<ChVehicleJoint> m_connection_joint_R;  ///< connection to neighboring track shoe
+    std::shared_ptr<ChJoint> m_connection_joint_L;  ///< connection to neighboring track shoe
+    std::shared_ptr<ChJoint> m_connection_joint_R;  ///< connection to neighboring track shoe
     std::shared_ptr<ChLinkRSDA> m_connection_rsda_L;       ///< optional RSDA on connection
     std::shared_ptr<ChLinkRSDA> m_connection_rsda_R;       ///< optional RSDA on connection
 
@@ -146,11 +145,11 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     );
 
     /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    /// This version used with the two-conector topology.
+    /// This version used with the two-connector topology.
     void AddConnectorVisualization2(std::shared_ptr<ChBody> connector, VisualizationType vis);
 
     /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    /// This version used with the one-conector topology.
+    /// This version used with the one-connector topology.
     void AddConnectorVisualization1(std::shared_ptr<ChBody> connector, VisualizationType vis);
 
     virtual void EnableTrackBendingStiffness(bool val) override final;

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/functions/ChFunctionPositionSetpoint.h"
 #include "chrono/functions/ChFunctionConst.h"
 
@@ -84,7 +86,7 @@ void ChFunctionPositionSetpoint::SetSetpoint(ChVector3d p_setpoint, double s) {
 ChVector3d ChFunctionPositionSetpoint::GetPos(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return P;
-    return P + P_ds * (s - S) + P_dsds * pow((s - S), 2);
+    return P + P_ds * (s - S) + P_dsds * std::pow((s - S), 2);
 }
 
 ChVector3d ChFunctionPositionSetpoint::GetLinVel(double s) const {

@@ -18,14 +18,11 @@ import errno
 import os
 
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
-out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
-
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
+out_dir = chrono.GetChronoOutputPath() + "FEA_Shells_BST/"
 
 # Create (if needed) output directory
 try:
@@ -34,7 +31,7 @@ except OSError as exc:
     if exc.errno != errno.EEXIST:
        print("Error creating output directory " )
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 
@@ -281,14 +278,14 @@ if (False) :
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
 
-mvisualizeshellA = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellA = chrono.ChVisualShapeFEA()
 #mvisualizeshellA.SetSmoothFaces(True)
 #mvisualizeshellA.SetWireframe(True)
 mvisualizeshellA.SetShellResolution(2)
 #mvisualizeshellA.SetBackfaceCull(True)
 mesh.AddVisualShapeFEA(mvisualizeshellA)
 
-mvisualizeshellB = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellB = chrono.ChVisualShapeFEA()
 mvisualizeshellB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizeshellB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
 mvisualizeshellB.SetSymbolsThickness(0.006)
@@ -301,7 +298,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024, 768)
 vis.SetWindowTitle('Shells FEA test: triangle BST elements')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(1, .3, 1.3), chrono.ChVector3d(.5, -.3, .5))
 vis.AddTypicalLights()

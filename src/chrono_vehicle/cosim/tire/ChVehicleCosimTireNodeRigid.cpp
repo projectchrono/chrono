@@ -26,7 +26,6 @@
 //// - allow for different geometry (currently rigid mesh only)
 
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 using std::cout;
 using std::endl;
@@ -41,6 +40,10 @@ ChVehicleCosimTireNodeRigid::ChVehicleCosimTireNodeRigid(int index, const std::s
     m_tire_rgd = std::static_pointer_cast<ChRigidTire>(m_tire);  // cache tire as ChRigidTire
 }
 
+void ChVehicleCosimTireNodeRigid::Advance(double step_size) {
+    m_system->SetChTime(m_system->GetChTime() + step_size);
+}
+
 void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector3d& init_loc) {
     assert(m_tire_rgd->UseContactMesh());
 
@@ -53,10 +56,10 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
     // Tire mesh geometry and contact material
     auto trimesh = m_tire_rgd->GetContactMesh();
     auto cmat = std::static_pointer_cast<ChContactMaterialSMC>(m_tire_rgd->GetContactMaterial());
-    m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
-    m_geometry.m_materials.push_back(ChContactMaterialData(cmat->GetSlidingFriction(), cmat->GetRestitution(),
-                                                           cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
-                                                           cmat->GetKn(), cmat->GetGn(), cmat->GetKt(), cmat->GetGt()));
+    m_geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
+    m_geometry.materials.push_back(ChContactMaterialData(cmat->GetSlidingFriction(), cmat->GetRestitution(),
+                                                         cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
+                                                         cmat->GetKn(), cmat->GetGn(), cmat->GetKt(), cmat->GetGt()));
 
     // Preprocess the tire mesh and store neighbor element information for each vertex.
     // Calculate mesh triangle areas.
@@ -103,30 +106,47 @@ void ChVehicleCosimTireNodeRigid::ApplySpindleForce(const TerrainForce& spindle_
 }
 
 void ChVehicleCosimTireNodeRigid::OnOutputData(int frame) {
-    // Append to results output file
-    if (m_outf.is_open()) {
-        std::string del("  ");
-
-        m_outf << frame << del;
-        m_outf << m_force.point.x() << del << m_force.point.y() << del << m_force.point.z() << del;
-        m_outf << m_force.force.x() << del << m_force.force.y() << del << m_force.force.z() << del;
-        m_outf << m_force.moment.x() << del << m_force.moment.y() << del << m_force.moment.z() << del;
-        m_outf << endl;
+    // Write fixed mesh information
+    if (frame == 0) {
+        ChWriterCSV csv(" ");
+        WriteTireMeshInformation(csv);
+        std::string filename = m_node_out_dir + "/mesh_info.dat";
+        csv.WriteToFile(filename);
     }
 
-    // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
-    WriteTireStateInformation(csv);
-    WriteTireMeshInformation(csv);
+    // Write current mesh state
+    {
+        ChWriterCSV csv(" ");
+        csv << m_system->GetChTime() << endl;
+        WriteTireStateInformation(csv);
+        std::string filename = OutputFilename(m_node_out_dir + "/simulation", "mesh_state", "dat", frame + 1, 5);
+        csv.WriteToFile(filename);
+        if (m_verbose)
+            cout << "[Tire node   ] write output file ==> " << filename << endl;
+    }
 
-    std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.WriteToFile(filename);
-
-    if (m_verbose)
-        cout << "[Tire node   ] write output file ==> " << filename << endl;
+    // Write current terrain forces
+    {
+        ChWriterCSV csv(" ");
+        csv << m_system->GetChTime() << endl;
+        WriteTireTerrainForces(csv);
+        std::string filename = OutputFilename(m_node_out_dir + "/simulation", "terrain_force", "dat", frame + 1, 5);
+        csv.WriteToFile(filename);
+    }
 }
 
-void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(ChWriterCSV& csv) {
+    // Print tire mesh connectivity
+    int num_triangles = m_tire_rgd->GetContactMesh()->GetNumTriangles();
+    csv << num_triangles << endl;
+
+    const std::vector<ChVector3i>& triangles = m_tire_rgd->GetContactMesh()->GetIndicesVertexes();
+    for (int ie = 0; ie < num_triangles; ie++) {
+        csv << triangles[ie] << endl;
+    }
+}
+
+void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(ChWriterCSV& csv) {
     // Write number of vertices
     int num_vertices = m_tire_rgd->GetContactMesh()->GetNumVertices();
     csv << num_vertices << endl;
@@ -141,15 +161,11 @@ void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::ChWriterCSV& 
         csv << vel[in] << endl;
 }
 
-void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::ChWriterCSV& csv) {
-    // Print tire mesh connectivity
-    int num_triangles = m_tire_rgd->GetContactMesh()->GetNumTriangles();
-    csv << num_triangles << endl;
-
-    const std::vector<ChVector3i>& triangles = m_tire_rgd->GetContactMesh()->GetIndicesVertexes();
-    for (int ie = 0; ie < num_triangles; ie++) {
-        csv << triangles[ie] << endl;
-    }
+void ChVehicleCosimTireNodeRigid::WriteTireTerrainForces(ChWriterCSV& csv) {
+    // Write forces reduced to the spindle body
+    csv << m_force.point << endl;
+    csv << m_force.force << endl;
+    csv << m_force.moment << endl;
 }
 
 void ChVehicleCosimTireNodeRigid::OutputVisualizationData(int frame) {

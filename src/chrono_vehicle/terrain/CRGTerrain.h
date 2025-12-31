@@ -67,7 +67,11 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// Set the road visualization mode (mesh or boundary lines).
     /// Default: mesh.
     void UseMeshVisualization(bool val) { m_use_vis_mesh = val; }
-
+    
+    /// Set optional mesh simplification, like left/right excitation, also good for flat surface roads
+    /// Default: show original mesh, maybe slow
+    void SimplifyMesh(bool val) { m_simplified_mesh = val; }
+    
     /// Set coefficient of friction.
     /// The default value is 0.8
     void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
@@ -160,6 +164,7 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?
+    bool m_simplified_mesh;            ///< simplified mesh to speed up graphics?
     float m_friction;                  ///< contact coefficient of friction
 
     std::string m_mesh_name;

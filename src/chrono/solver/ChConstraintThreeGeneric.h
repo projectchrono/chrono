@@ -61,7 +61,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b matrices
     ///  - the g_i product
-    virtual void Update_auxiliary() override;
+    virtual void UpdateAuxiliary() override;
 
     /// Compute the product between the Jacobian of this constraint, [Cq_i], and the vector of variables.
     /// In other words, perform the operation:

@@ -65,6 +65,7 @@ ChVector3<double> GetAngAccParent() const          {return $self->GetAngAccParen
 
 // Methods inherited from ChContactable
 void AddCollisionModel(std::shared_ptr<ChCollisionModel> model)                         {$self->AddCollisionModel(model);}
+void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape)                         {$self->AddCollisionShape(shape);}
 void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {$self->AddCollisionShape(shape, frame);}
 std::shared_ptr<ChCollisionModel> GetCollisionModel()                                   {return $self->GetCollisionModel();}
 };
@@ -95,7 +96,7 @@ std::shared_ptr<ChCollisionModel> GetCollisionModel()                           
 %template(ChMarkerList) std::vector< std::shared_ptr<chrono::ChMarker> >;
  
 %shared_ptr(chrono::ChContactable) 
-%shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::ChContactable_1vars)
 %shared_ptr(chrono::ChBody)
 
 // Forward ref
@@ -106,7 +107,6 @@ std::shared_ptr<ChCollisionModel> GetCollisionModel()                           
 
 // Parse the header file to generate wrappers
 %include "../../../chrono/physics/ChContactable.h"  
-%template(ChContactable1vars6) chrono::ChContactable_1vars<6>;
 %include "../../../chrono/physics/ChBody.h"  
 
 

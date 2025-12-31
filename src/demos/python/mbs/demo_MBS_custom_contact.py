@@ -17,12 +17,6 @@ import math
 
 print ("Example: demonstration of using friction models")
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-# chrono.SetChronoDataPath('../../../../data/')
-
-
 # Helper class to define a cylindrical shape
 class MyObstacle:
     def __init__(self, r, pos):
@@ -219,7 +213,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Custom contact demo')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(8, 8, -6))
 vis.AddTypicalLights()

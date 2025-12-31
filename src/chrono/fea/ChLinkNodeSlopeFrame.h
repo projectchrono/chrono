@@ -86,7 +86,7 @@ class ChApi ChLinkNodeSlopeFrame : public ChLinkBase {
     ChVector3d GetReactionOnBody() const;
 
     /// Update all auxiliary data of the gear transmission at given time.
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

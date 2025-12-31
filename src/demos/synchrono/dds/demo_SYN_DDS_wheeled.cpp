@@ -20,9 +20,9 @@
 #include <chrono>
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
@@ -33,7 +33,7 @@
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -124,25 +124,25 @@ class DriverWrapper : public ChDriver {
   public:
     DriverWrapper(ChVehicle& vehicle) : ChDriver(vehicle) {}
 
-    /// Update the state of this driver system at the specified time.
+    // Update the state of this driver system at the specified time.
     virtual void Synchronize(double time) override {
-        if (irr_driver) {
-            irr_driver->Synchronize(time);
-            m_throttle = irr_driver->GetThrottle();
-            m_steering = irr_driver->GetSteering();
-            m_braking = irr_driver->GetBraking();
+        if (m_driver) {
+            m_driver->Synchronize(time);
+            m_throttle = m_driver->GetThrottle();
+            m_steering = m_driver->GetSteering();
+            m_braking = m_driver->GetBraking();
         }
     }
 
-    /// Advance the state of this driver system by the specified time step.
+    // Advance the state of this driver system by the specified time step.
     virtual void Advance(double step) override {
-        if (irr_driver)
-            irr_driver->Advance(step);
+        if (m_driver)
+            m_driver->Advance(step);
     }
 
-    void Set(std::shared_ptr<ChInteractiveDriverIRR> irr_driver) { this->irr_driver = irr_driver; }
+    void Set(std::shared_ptr<ChInteractiveDriver> driver) {m_driver = driver; }
 
-    std::shared_ptr<ChInteractiveDriverIRR> irr_driver;
+    std::shared_ptr<ChInteractiveDriver> m_driver;
 };
 
 // =============================================================================
@@ -228,11 +228,24 @@ int main(int argc, char* argv[]) {
     syn_manager.Initialize(vehicle.GetSystem());
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile("terrain/RigidPlane.json"));
 
     // Create the vehicle Irrlicht interface
     IrrAppWrapper app;
     DriverWrapper driver(vehicle);
+
+    // Create the interactive driver system
+    auto irr_driver = chrono_types::make_shared<ChInteractiveDriver>(vehicle);
+    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+    double throttle_time = 1.0;  // time to go from 0 to +1
+    double braking_time = 0.3;   // time to go from 0 to +1
+    irr_driver->SetSteeringDelta(render_step_size / steering_time);
+    irr_driver->SetThrottleDelta(render_step_size / throttle_time);
+    irr_driver->SetBrakingDelta(render_step_size / braking_time);
+    irr_driver->Initialize();
+
+    driver.Set(irr_driver);
+
     if (cli.HasValueInVector<int>("irr", node_id)) {
         auto temp_app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         temp_app->SetWindowTitle("SynChrono Wheeled Vehicle Demo");
@@ -240,22 +253,9 @@ int main(int argc, char* argv[]) {
         temp_app->Initialize();
         temp_app->AddTypicalLights();
         temp_app->AttachVehicle(&vehicle);
-
-        // Create the interactive driver system
-        auto irr_driver = chrono_types::make_shared<ChInteractiveDriverIRR>(*temp_app);
-
-        // Set the time response for steering and throttle keyboard inputs.
-        double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-        double throttle_time = 1.0;  // time to go from 0 to +1
-        double braking_time = 0.3;   // time to go from 0 to +1
-        irr_driver->SetSteeringDelta(render_step_size / steering_time);
-        irr_driver->SetThrottleDelta(render_step_size / throttle_time);
-        irr_driver->SetBrakingDelta(render_step_size / braking_time);
-
-        irr_driver->Initialize();
+        temp_app->AttachDriver(irr_driver.get());
 
         app.Set(temp_app);
-        driver.Set(irr_driver);
     }
 
     // ---------------
@@ -346,43 +346,43 @@ void GetVehicleModelFiles(VehicleType type,
                           double& cam_distance) {
     switch (type) {
         case VehicleType::SEDAN:
-            vehicle = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-            engine = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/Sedan.json");
+            vehicle = GetVehicleDataFile("sedan/vehicle/Sedan_Vehicle.json");
+            engine = GetVehicleDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("sedan/tire/Sedan_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/Sedan.json");
             cam_distance = 6.0;
             break;
         case VehicleType::HMMWV:
-            vehicle = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
-            engine = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
-            transmission = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
-            tire = vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/HMMWV.json");
+            vehicle = GetVehicleDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
+            engine = GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
+            transmission = GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
+            tire = GetVehicleDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/HMMWV.json");
             cam_distance = 6.0;
             break;
         case VehicleType::UAZ:
-            vehicle = vehicle::GetDataFile("uaz/vehicle/UAZBUS_SAEVehicle.json");
-            engine = vehicle::GetDataFile("uaz/powertrain/UAZBUS_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("uaz/powertrain/UAZBUS_AutomaticTransmissioniSimpleMap.json");
-            tire = vehicle::GetDataFile("uaz/tire/UAZBUS_TMeasyTireFront.json");
-            zombie = synchrono::GetDataFile("vehicle/UAZBUS.json");
+            vehicle = GetVehicleDataFile("uaz/vehicle/UAZBUS_SAEVehicle.json");
+            engine = GetVehicleDataFile("uaz/powertrain/UAZBUS_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("uaz/powertrain/UAZBUS_AutomaticTransmissioniSimpleMap.json");
+            tire = GetVehicleDataFile("uaz/tire/UAZBUS_TMeasyTireFront.json");
+            zombie = GetSynchronoDataFile("vehicle/UAZBUS.json");
             cam_distance = 6.0;
             break;
         case VehicleType::CITYBUS:
-            vehicle = vehicle::GetDataFile("citybus/vehicle/CityBus_Vehicle.json");
-            engine = vehicle::GetDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/CityBus.json");
+            vehicle = GetVehicleDataFile("citybus/vehicle/CityBus_Vehicle.json");
+            engine = GetVehicleDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("citybus/tire/CityBus_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/CityBus.json");
             cam_distance = 14.0;
             break;
         case VehicleType::MAN:
-            vehicle = vehicle::GetDataFile("MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json");
-            engine = vehicle::GetDataFile("MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json");
-            transmission = vehicle::GetDataFile("MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json");
-            tire = vehicle::GetDataFile("MAN_Kat1/tire/MAN_5t_TMeasyTire.json");
-            zombie = synchrono::GetDataFile("vehicle/MAN_8WD.json");
+            vehicle = GetVehicleDataFile("MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json");
+            engine = GetVehicleDataFile("MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("MAN_Kat1/tire/MAN_5t_TMeasyTire.json");
+            zombie = GetSynchronoDataFile("vehicle/MAN_8WD.json");
             cam_distance = 12.0;
             break;
     }

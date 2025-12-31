@@ -100,7 +100,7 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     double torque_react;                     ///< reaction torque
     ChConstraintTwoGenericBoxed constraint;  ///< used as an interface to the solver
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;

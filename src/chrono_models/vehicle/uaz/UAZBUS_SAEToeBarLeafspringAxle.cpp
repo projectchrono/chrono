@@ -202,24 +202,26 @@ UAZBUS_SAEToeBarLeafspringAxle::UAZBUS_SAEToeBarLeafspringAxle(const std::string
     ChVector3d Ma = preload.Cross(ra);
     ChVector3d Mb = preload.Cross(rb);
 
-    double KrotLatA = m_lat_spring_trans_A * pow(ra.Length(), 2.0);
-    double KrotLatB = m_lat_spring_trans_B * pow(rb.Length(), 2.0);
+    double KrotLatA = m_lat_spring_trans_A * std::pow(ra.Length(), 2.0);
+    double KrotLatB = m_lat_spring_trans_B * std::pow(rb.Length(), 2.0);
 
-    double KrotVertA = m_vert_spring_trans_A * pow(ra.Length(), 2.0);
-    double KrotVertB = m_vert_spring_trans_B * pow(rb.Length(), 2.0);
+    double KrotVertA = m_vert_spring_trans_A * std::pow(ra.Length(), 2.0);
+    double KrotVertB = m_vert_spring_trans_B * std::pow(rb.Length(), 2.0);
 
     double rest_angle_A = Ma.y() / KrotVertA;
     double rest_angle_B = Mb.y() / KrotVertB;
 
     double damping_factor = 0.05;
 
-    m_latRotSpringCBA = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
-    m_latRotSpringCBB = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatB, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBA =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBB =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatB, KrotLatA * damping_factor, 0);
 
     m_vertRotSpringCBA =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
     m_vertRotSpringCBB =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
 
     m_auxSpringForceCB = chrono_types::make_shared<UAZBUS_AuxSpringForceFront>(
         m_auxSpringCoefficient, m_auxSpringMinLength, m_auxSpringMaxLength);

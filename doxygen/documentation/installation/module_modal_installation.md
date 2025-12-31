@@ -3,11 +3,9 @@ Install the MODAL module {#module_modal_installation}
 
 [TOC]
 
-This module allows Chrono to perform **modal analysis** and **modal reduction** also on large Chrono systems thanks to iterative shift-and-invert eigenvalue solvers leveraging sparse matrices.
+Chrono::Modal enables **modal analysis** and **modal reduction** on large Chrono systems thanks to iterative shift-and-invert eigenvalue solvers leveraging sparse matrices.
 
 An extended description of the module can be found in the [Chrono::Modal](@ref manual_modal) user manual.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
 
 
 ## Requirements
@@ -20,17 +18,14 @@ Read [the introduction to modules](modularity.html) for a technical background o
 
 ## Building instructions
 
-1. Download the [Spectra](https://spectralib.org/) library from its GIThub page. This can be done directly by pressing *Code/Download Zip* in the GIThub page, 
-   or by using a client like Sourcetree to pull from the GIThub repository. 
-   **NOTE! we need the development version of the Spectra libray, because the 1.0 version in the master branch does not include the Krylov-Schur solver yet. Therefore, use this link: [https://github.com/yixuan/spectra/tree/develop](https://github.com/yixuan/spectra/tree/develop)**
+1. Download the [Spectra](https://spectralib.org/) library from its GitHub page. You can either download the source code as a zip file, or else clone the git repository.
+   **NOTE** we need the development version of the Spectra library, as the only one that includes the Krylov-Schur solver Therefore, use this link: [https://github.com/yixuan/spectra/tree/develop](https://github.com/yixuan/spectra/tree/develop)
    
-2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
-   the CMake window, you must add the following steps:
+2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
   
-3. Set the `ENABLE_MODULE_MODAL` as 'ON', then press 'Configure' (to refresh the variable list)
+3. Set `CH_ENABLE_MODULE_MODAL` to 'ON'.
 
-4. Set the `SPECTRA_INCLUDE_DIR` to the path where you downloaded your Spectra library (in detail, its include/ directory).
-   For example, it could be `C:/engines/spectra/include`
+4. Set the `SpectraINCLUDE_DIR` to the path to the include directory in the Spectra install.  For example, it could be `C:/Packages/spectra/include`.
  
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

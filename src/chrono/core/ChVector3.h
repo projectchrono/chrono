@@ -19,10 +19,11 @@
 #include <cmath>
 #include <limits>
 
+#include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/serialization/ChOutputASCII.h"
+#include "chrono/serialization/ChArchiveASCII.h"
 
 namespace chrono {
 
@@ -197,6 +198,9 @@ class ChVector3 {
 
     /// Scale this vector by a scalar: this *= s
     void Scale(Real s);
+
+    /// Set this vector to its component-wise absolute values.
+    void Abs();
 
     /// Set this vector to the cross product of A and B: this = A x B
     void Cross(const ChVector3<Real>& A, const ChVector3<Real>& B);
@@ -429,13 +433,13 @@ ChVector3<RealA> Vmax(const ChVector3<RealA>& va, const ChVector3<RealA>& vb) {
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
 double VangleYZplane(const ChVector3<RealA>& va) {
-    return asin(Vdot(va, ChVector3<RealA>(1, 0, 0)));
+    return std::asin(Vdot(va, ChVector3<RealA>(1, 0, 0)));
 }
 
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
 double VangleYZplaneNorm(const ChVector3<RealA>& va) {
-    return acos(Vdot(va, ChVector3<RealA>(1, 0, 0)));
+    return std::acos(Vdot(va, ChVector3<RealA>(1, 0, 0)));
 }
 
 // Gets the angle of the projection on the YZ plane respect to
@@ -449,7 +453,7 @@ double VangleRX(const ChVector3<RealA>& va) {
     vproj = Vnorm(vproj);
     if (vproj.x() == 1)
         return 0;
-    return acos(vproj.y());
+    return std::acos(vproj.y());
 }
 
 // The reverse of the two previous functions, gets the vector
@@ -459,12 +463,12 @@ template <class RealA>
 ChVector3<RealA> VfromPolar(double norm_angle, double pol_angle) {
     ChVector3d res;
     double projlen;
-    res.x() = cos(norm_angle);  // 1) rot 'norm.angle'about z
-    res.y() = sin(norm_angle);
+    res.x() = std::cos(norm_angle);  // 1) rot 'norm.angle'about z
+    res.y() = std::sin(norm_angle);
     res.z() = 0;
     projlen = res.y();
-    res.y() = projlen * cos(pol_angle);
-    res.z() = projlen * sin(pol_angle);
+    res.y() = projlen * std::cos(pol_angle);
+    res.z() = projlen * std::sin(pol_angle);
     return res;
 }
 
@@ -825,6 +829,13 @@ inline void ChVector3<Real>::Scale(Real s) {
 }
 
 template <class Real>
+inline void ChVector3<Real>::Abs() {
+    m_data[0] = std::abs(m_data[0]);
+    m_data[1] = std::abs(m_data[1]);
+    m_data[2] = std::abs(m_data[2]);
+}
+
+template <class Real>
 inline void ChVector3<Real>::Cross(const ChVector3<Real>& A, const ChVector3<Real>& B) {
     m_data[0] = (A.m_data[1] * B.m_data[2]) - (A.m_data[2] * B.m_data[1]);
     m_data[1] = (A.m_data[2] * B.m_data[0]) - (A.m_data[0] * B.m_data[2]);
@@ -845,7 +856,7 @@ inline Real ChVector3<Real>::Dot(const ChVector3<Real>& B) const {
 
 template <class Real>
 inline Real ChVector3<Real>::Length() const {
-    return sqrt(Length2());
+    return std::sqrt(Length2());
 }
 
 template <class Real>
@@ -1016,11 +1027,14 @@ inline void ChVector3<Real>::ArchiveIn(ChArchiveIn& archive_in) {
 // -----------------------------------------------------------------------------
 // Reversed operators
 
-/// Operator for scaling the vector by a scalar value, as s*V
+/// Operator for scaling the vector by a scalar value, as s*V.
 template <class Real>
 ChVector3<Real> operator*(Real s, const ChVector3<Real>& V) {
     return ChVector3<Real>(V.x() * s, V.y() * s, V.z() * s);
 }
+
+/// Operator for scaling an integer vector by a double scalar, as s*V.
+ChApi ChVector3d operator*(double s, const ChVector3i& V);
 
 }  // end namespace chrono
 

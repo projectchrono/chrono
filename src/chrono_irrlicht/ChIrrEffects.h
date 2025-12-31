@@ -1378,6 +1378,8 @@ inline EffectHandler::EffectHandler(irr::IrrlichtDevice* dev,
     bool tempTexFlagMipMaps = driver->getTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS);
     bool tempTexFlag32 = driver->getTextureCreationFlag(irr::video::ETCF_ALWAYS_32_BIT);
 
+    device->grab();
+
     ScreenRTT = driver->addRenderTargetTexture(ScreenRTTSize);
     ScreenQuad.rt[0] = driver->addRenderTargetTexture(ScreenRTTSize);
     ScreenQuad.rt[1] = driver->addRenderTargetTexture(ScreenRTTSize);
@@ -1509,6 +1511,8 @@ inline EffectHandler::~EffectHandler() {
 
     if (DepthRTT)
         driver->removeTexture(DepthRTT);
+
+    device->drop();
 }
 
 inline void EffectHandler::setScreenRenderTargetResolution(const irr::core::dimension2du& resolution) {

@@ -55,7 +55,7 @@ class Model(object):
              self.vis = chronoirr.ChVisualSystemIrrlicht()
              self.vis.AttachSystem(self.rev_pend_sys)
              self.vis.Initialize()
-             self.vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+             self.vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
              self.vis.AddSkyBox()
              self.vis.AddCamera(chrono.ChVector3d(0.5,0.5,1.0))
              self.vis.AddTypicalLights()

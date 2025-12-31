@@ -23,7 +23,7 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
@@ -59,6 +59,8 @@ void ChTire::SetContactSurfaceType(ContactSurfaceType type, double dim, int coll
 // -----------------------------------------------------------------------------
 void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_wheel = wheel;
+    m_parent = wheel;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::TIRE);
 
     //// RADU TODO
     //// Properly account for offset in adjusting inertia.
@@ -67,7 +69,7 @@ void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     wheel->GetSpindle()->SetInertiaXX(wheel->GetSpindle()->GetInertiaXX() + GetAddedInertia());
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------
@@ -107,7 +109,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const st
     ChQuaternion<> rot = left ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
-    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_vis_mesh_file), true, true);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -325,8 +327,8 @@ void ChTire::ConstructAreaDepthTable(double disc_radius, ChFunctionInterp& areaD
     double depStep = depMax / double(n_lookup - 1);
     for (size_t i = 0; i < n_lookup; i++) {
         double dep = depStep * double(i);
-        double alpha = 2.0 * acos(1.0 - dep / disc_radius);
-        double area = 0.5 * disc_radius * disc_radius * (alpha - sin(alpha));
+        double alpha = 2.0 * std::acos(1.0 - dep / disc_radius);
+        double area = 0.5 * disc_radius * disc_radius * (alpha - std::sin(alpha));
         areaDep.AddPoint(area, dep);
     }
 }
@@ -359,7 +361,7 @@ bool ChTire::DiscTerrainCollisionEnvelope(
         double x = -disc_radius + x_step * double(i);
         ChVector3d pTest = disc_center + x * longitudinal;
         double q = terrain.GetHeight(pTest + voffset);
-        double a = ChWorldFrame::Height(pTest) - sqrt(disc_radius * disc_radius - x * x);
+        double a = ChWorldFrame::Height(pTest) - std::sqrt(disc_radius * disc_radius - x * x);
         if (q > a) {
             A += q - a;
         }
@@ -381,7 +383,7 @@ bool ChTire::DiscTerrainCollisionEnvelope(
         return false;
 
     // Contact point (lowest point on disc).
-    ChVector3d ptD = disc_center + (disc_radius - depth) * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
+    ChVector3d ptD = disc_center + (disc_radius - depth) * Vcross(disc_normal, dir1 / std::sqrt(sinTilt2));
 
     // Find terrain height at lowest point. No contact if lowest point is above the terrain.
     normal = terrain.GetNormal(ptD + 2.0 * voffset);
@@ -452,7 +454,7 @@ ChVector3d ChTire::EstimateInertia(double tire_width,    // tire width [mm]
 
     double m_sidewall = rho * VolumeCyl(r_tire - t, r_rim, t);
     double Irot_sidewall = InertiaRotCyl(m_sidewall, r_tire - t, r_rim);
-    double Itip_sidewall = InertiaTipCyl(m_sidewall, r_tire - t, r_rim, t) + m_sidewall * pow(r_steiner, 2.0);
+    double Itip_sidewall = InertiaTipCyl(m_sidewall, r_tire - t, r_rim, t) + m_sidewall * std::pow(r_steiner, 2.0);
 
     // Return composite tire inertia.
     return ChVector3d(Itip_tread + 2 * Itip_sidewall, Irot_tread + 2 * Irot_sidewall, Itip_tread + 2 * Itip_sidewall);

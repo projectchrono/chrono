@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Marcel Offermans
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 
 #include "chrono_vehicle/powertrain/ManualTransmissionShafts.h"
 

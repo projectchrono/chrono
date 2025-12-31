@@ -16,7 +16,7 @@
 //  The obstacle is defined by three parameters
 //  - aa:        approach angle 180 deg = flat, aa < 180 deg = mound, aa > 180 deg = trench
 //  - length:    obstacle length for mound, base length for trench
-//  - obsheight: allways >= 0, obstacle height for mound, obstacle depth for trench
+//  - obsheight: always >= 0, obstacle height for mound, obstacle depth for trench
 //
 // =============================================================================
 
@@ -69,7 +69,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     } else if (aa <= 175.0) {
         // mound obstacle
         ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
-        ramp_length = m_obsheight / tan(ramp_angle);
+        ramp_length = m_obsheight / std::tan(ramp_angle);
         m_x[0] = m_xmin;
         m_x[1] = m_x[0] + ramp_length;
         m_x[2] = m_xmin + m_obslength - ramp_length;
@@ -89,7 +89,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     } else {
         // trench obstacle
         ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
-        ramp_length = m_obsheight / tan(ramp_angle);
+        ramp_length = m_obsheight / std::tan(ramp_angle);
         if (m_obslength <= 0.0) {
             m_obslength = 0.1;
         }

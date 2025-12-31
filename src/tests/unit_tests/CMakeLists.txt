@@ -23,9 +23,65 @@ if("${isSystemDir}" STREQUAL "-1")
 endif("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
+
+# Enable creation of "application bundles" on MacOSX, necessary for Irrlicht-based demos.
+# For simplicity and consistency, we enable here MACOSX_BUNDLE for all subsequent programs.
+
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE OFF)
+    set(MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in")
+endif()
+
+#--------------------------------------------------------------
 # Add path to googletest
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include)
+
+#--------------------------------------------------------------
+
+# Convenience function to build and install unit tests from a list
+function(build_utests ADD_TESTS TESTS LIBS)
+
+    # Get optional list of additional files
+    if(${ARGC} GREATER 3)
+      set(EXTRA_FILES ${ARGV3})
+    else()
+      set(EXTRA_FILES "")
+    endif()
+
+    # A hack to set the working directory in which to execute the CTest runs.
+    # This is needed for tests that need to access the Chrono data directory (since we use a relative path to it)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
+    else()
+        set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
+    endif()
+
+    # Build all tests in the list TESTS, linking to LIBS
+    foreach(PROGRAM ${TESTS})
+        add_executable(${PROGRAM} ${PROGRAM}.cpp ${EXTRA_FILES})
+        source_group(""  FILES ${PROGRAM}.cpp ${EXTRA_FILES})
+    
+        set_target_properties(${PROGRAM} PROPERTIES FOLDER tests)
+        if(APPLE)
+          set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+        endif()
+        if(MSVC)
+          set_target_properties(${PROGRAM} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+          set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+        endif()
+
+        target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+        target_link_libraries(${PROGRAM} ${LIBS} gtest_main)
+        
+        install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+        if(${ADD_TESTS})
+           add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+           set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
+        endif()
+    endforeach()
+
+endfunction()
 
 #--------------------------------------------------------------
 # Propagate to subdirectories
@@ -46,7 +102,7 @@ if(BUILD_TESTING_FEA)
   ADD_SUBDIRECTORY(fea)
 endif()
 
-if(ENABLE_MODULE_MODAL)
+if(CH_ENABLE_MODULE_MODAL)
   option(BUILD_TESTING_MODAL "Build unit tests for Modal module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_MODAL)
   if(BUILD_TESTING_MODAL)
@@ -54,7 +110,7 @@ if(ENABLE_MODULE_MODAL)
   endif()
 endif()
 
-if(ENABLE_MODULE_VEHICLE)
+if(CH_ENABLE_MODULE_VEHICLE)
   option(BUILD_TESTING_VEHICLE "Build unit tests for Vehicle module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_VEHICLE)
   if(BUILD_TESTING_VEHICLE)
@@ -62,7 +118,7 @@ if(ENABLE_MODULE_VEHICLE)
   endif()
 endif()
 
-if(ENABLE_MODULE_MULTICORE)
+if(CH_ENABLE_MODULE_MULTICORE)
   option(BUILD_TESTING_MULTICORE "Build unit tests for Multicore module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_MULTICORE)
   if(BUILD_TESTING_MULTICORE)
@@ -71,7 +127,7 @@ if(ENABLE_MODULE_MULTICORE)
   endif()
 endif()
 
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
   option(BUILD_TESTING_SENSOR "Build unit tests for Sensor module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_SENSOR)
   if(BUILD_TESTING_SENSOR)
@@ -79,7 +135,7 @@ if(ENABLE_MODULE_SENSOR)
   endif()
 endif()
 
-if(ENABLE_MODULE_ROS)
+if(CH_ENABLE_MODULE_ROS)
   option(BUILD_TESTING_ROS "Build unit tests for ROS module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_ROS)
   if(BUILD_TESTING_ROS)
@@ -87,7 +143,7 @@ if(ENABLE_MODULE_ROS)
   endif()
 endif()
 
-if(ENABLE_MODULE_PARSERS)
+if(CH_ENABLE_MODULE_PARSERS)
   option(BUILD_TESTING_PARSERS "Build unit tests for Parsers module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_PARSERS)
   if(BUILD_TESTING_PARSERS)
@@ -95,7 +151,7 @@ if(ENABLE_MODULE_PARSERS)
   endif()
 endif()
 
-if(ENABLE_MODULE_SYNCHRONO)
+if(CH_ENABLE_MODULE_SYNCHRONO)
   option(BUILD_TESTING_SYNCHRONO "Build unit tests for SynChrono module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_SYNCHRONO)
   if(BUILD_TESTING_SYNCHRONO)
@@ -103,19 +159,19 @@ if(ENABLE_MODULE_SYNCHRONO)
   endif()
 endif()
 
-if(ENABLE_MODULE_GPU)
-  option(BUILD_TESTING_GPU "Build unit tests for Gpu module" TRUE)
-  mark_as_advanced(FORCE BUILD_TESTING_GPU)
-  if(BUILD_TESTING_GPU)
-    ADD_SUBDIRECTORY(gpu)
+if(CH_ENABLE_MODULE_DEM)
+  option(BUILD_TESTING_DEM "Build unit tests for DEM module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_DEM)
+  if(BUILD_TESTING_DEM)
+    ADD_SUBDIRECTORY(dem)
   endif()
 endif()
 
-if(ENABLE_MODULE_FSI)
-  option(BUILD_TESTING_FSI "Build unit tests for FSI module" TRUE)
-  mark_as_advanced(FORCE BUILD_TESTING_FSI)
-  if(BUILD_TESTING_FSI)
-    ADD_SUBDIRECTORY(fsi)
+if(CH_ENABLE_MODULE_FSI_SPH)
+  option(BUILD_TESTING_FSI_SPH "Build unit tests for FSI_SPH module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_FSI_SPH)
+  if(BUILD_TESTING_FSI_SPH)
+    ADD_SUBDIRECTORY(fsi/sph)
   endif()
 endif()
 

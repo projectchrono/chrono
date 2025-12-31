@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChFrame.h"
@@ -59,16 +60,16 @@
 
 #include "chrono/fea/ChMesh.h"
 
+#include "chrono/input_output/ChOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleOutput.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChWorldFrame.h"
@@ -77,10 +78,9 @@
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
-
-#ifdef SWIGPYTHON
+// moved up the file order to ensure this is included in this group - otherwise a build without irrlicht/vsg fails (i.e. Chrono Unity)
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
-#endif
+
 
 // Wheeled vehicle
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -93,6 +93,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
+#include "chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
@@ -148,6 +149,13 @@ using namespace chrono::vehicle::m113;
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define CH_VEHICLE_API 
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI_SPH
+#define CH_FSI_API
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
 #define ChApi
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #define CH_DEPRECATED(msg)
@@ -159,16 +167,18 @@ using namespace chrono::vehicle::m113;
 // Include other .i configuration files for SWIG. 
 %include "std_string.i"
 %include "std_vector.i"
+%include "std_pair.i"
 %include "typemaps.i"
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
+#endif             // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
 
-#ifdef SWIGPYTHON
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %include "std_wstring.i"
 %include "wchar.i"
 %include "python/cwstring.i"
-#endif
-
+#endif             // --------------------------------------------------------------------- PYTHON
 
 //
 // A- ENABLE SHARED POINTERS
@@ -191,17 +201,23 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChContactable)
-%shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::ChContactable_1vars)
+%shared_ptr(chrono::ChContactable_2vars)
+%shared_ptr(chrono::ChContactable_3vars)
 %shared_ptr(chrono::fea::ChMesh)
-
 
 %shared_ptr(chrono::ChCollisionModel)
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
 
-
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_FSI_SPH
+%shared_ptr(chrono::vehicle::CRMTerrain)
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
 
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChCoordsys.i"
@@ -236,15 +252,35 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "../../../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChTexture.i"
 %import(module = "pychrono.core") "../../../chrono/fea/ChMesh.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 
+%import(module = "pychrono.core") "../../../chrono/input_output/ChOutput.h"
+%import(module = "pychrono.core") "../../../chrono/input_output/ChCheckpoint.h"
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+
+#ifdef CHRONO_FSI_SPH
+%import(module = "pychrono.fsi") "chrono_swig/interface/fsi/ChFsiProblemSPH.i"
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
+#ifdef CHRONO_VSG
+#define CH_VSG_API
+%import(module = "pychrono.vsg3d") "chrono_swig/interface/vsg/ChVisualSystemVSG.i"
+#endif
+
+
+#ifdef CHRONO_IRRLICHT
+#define ChApiIrr 
+%import(module = "pychrono.irrlicht") "dimension2d.h"
+%import(module = "pychrono.irrlicht") "../irrlicht/ChVisualSystemIrrlicht.i"
+#endif
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
 If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't handle them.
 Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the model namespaces
 */
-
-
 
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 %shared_ptr(chrono::vehicle::ChPart)
@@ -255,9 +291,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChBrakeShafts)
 %shared_ptr(chrono::vehicle::BrakeSimple)
 %shared_ptr(chrono::vehicle::BrakeShafts)
-%shared_ptr(chrono::vehicle::ChVehicleJoint)
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
+%shared_ptr(chrono::vehicle::ChSpindle)
 %shared_ptr(chrono::vehicle::ChWheeledVehicle)
 %shared_ptr(chrono::vehicle::ChWheeledTrailer)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
@@ -270,13 +306,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %shared_ptr(chrono::vehicle::ChTransmission)
 
-// Expose for both python and csharp
 %shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
-
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
 
+%shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChIdler)
 %shared_ptr(chrono::vehicle::ChTrackWheel)
@@ -320,30 +355,16 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
 %template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
-
-#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-
-  #ifdef CHRONO_IRRLICHT
-    #define ChApiIrr 
-    #define IRRLICHT_API
-    #define _IRR_DEPRECATED_
-    %include "chrono_swig/interface/vehicle/ChVehicleVisualSystemIrrlicht.i"
-  #endif
-
-#endif             // ----------------------------------------------------------------- end PYTHON
-
 // TODO: 
 //%include "rapidjson.i"
-
 //%include "../../../chrono_vehicle/ChApiVehicle.h"
-%ignore chrono::vehicle::TrackedCollisionFamily::Enum;
-%ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
+%ignore chrono::vehicle::VehicleCollisionFamily::Enum;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
+%ignore chrono::vehicle::OutputInformation;
+%ignore chrono::vehicle::VehiclePartTag;
 %include "../../../chrono_vehicle/ChSubsysDefs.h"
-%include "../chrono_models/vehicle/ChVehicleModelDefs.h"
-//TODO: conversion from std::vectors of ChVehicleOutput
-%include "../../../chrono_vehicle/ChVehicleOutput.h"
-%include "../../../chrono_vehicle/ChVehicleModelData.h"
+%include "chrono_models/vehicle/ChVehicleModelDefs.h"
+%include "../../../chrono_vehicle/ChVehicleDataPath.h"
 %include "../../../chrono_vehicle/ChPart.h"
 %include "../../../chrono_vehicle/ChWorldFrame.h"
 %include "ChChassis.i"
@@ -355,13 +376,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
 %include "ChTerrain.i"
-%include "ChVehicleGeometry.i"
 // Place these after the ChEngine and ChTransmission and ChPowertrain base wraps
 %include "chrono_swig/interface/models/PowertrainModels.i"
-
-#ifdef SWIGPYTHON
-%include "../../../chrono_vehicle/ChVehicleVisualSystem.h"
-#endif
 
 //TODO: antirollbar
 
@@ -370,10 +386,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChSubchassis.i"
 %include "ChSuspension.i"
 %include "ChDriveline.i"
-
-
-
-%include "../../../chrono_vehicle/ChVehicleJoint.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -387,6 +399,15 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChTire.i"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChSpindle.h"
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// Mark override methods to avoid CS0114 warnings in Unity and instruct SWIG how to generate the correct overrides of virtual
+%csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize(double, const DriverInputs&) "public override"
+%csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize(double, const DriverInputs&, const ChTerrain&) "public override"
+%csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize(double, const DriverInputs&) "public override"
+%csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize(double, const DriverInputs&, const ChTerrain&) "public override"
+#endif             // --------------------------------------------------------------------- CSHARP
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
@@ -405,12 +426,25 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "vehicleUtils.i"
 
-#ifdef SWIGCSHARP
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// Import ChVisualSystem base class unconditionally (ChVehicleVisualSystem inherits from it)
+// Python gets this via module imports from pychrono.irrlicht or pychrono.vsg3d into appropriate module
+// but C# Unity with no visualisation module but with this vehicle module needs an unconditional
+// for SWIG to understand the inheritance
+%import "chrono_swig/interface/core/ChVisualSystem.i"
+#endif             // --------------------------------------------------------------------- CSHARP
+
+%include "../../../chrono_vehicle/ChVehicleVisualSystem.h" 
+
 #ifdef CHRONO_IRRLICHT
-// Place Irrlicht after everything else so SWIG is aware of how to translate
-// This interface file invokes Irrlicht library and therefore Visual Studio Linker dependencies need specifying
+  #define ChApiIrr 
+  #define IRRLICHT_API
+  #define _IRR_DEPRECATED_
   %include "ChVehicleVisualSystemIrrlicht.i"
 #endif
+
+#ifdef CHRONO_VSG
+  %include "ChVehicleVisualSystemVSG.i"
 #endif
 
 //
@@ -448,12 +482,19 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChSubchassis, ChBalancer)
 
-%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChRigidTire)
-%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChReissnerTire)
+
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChForceElementTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMeasyTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMsimpleTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac89Tire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac02Tire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFialaTire)
+
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChDeformableTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChANCFTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFEATire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChReissnerTire)
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimple)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimpleMap)
@@ -480,3 +521,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)
+
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, FlatTerrain)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, RigidTerrain)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, SCMTerrain)

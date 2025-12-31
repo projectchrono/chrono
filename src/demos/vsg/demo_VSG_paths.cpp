@@ -31,7 +31,7 @@ using namespace chrono::vsg3d;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     //
@@ -148,7 +148,6 @@ int main(int argc, char* argv[]) {
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Paths");
     vis->AddCamera(ChVector3d(0, 8, -10));
-    vis->SetLogoVisible(true);
     vis->Initialize();
 
     // This means that contactforces will be shown in Irrlicht application

@@ -18,12 +18,6 @@ import math as m
 
 print (" Demo of using the assets sys to create shapes for Irrlicht visualization")
 
-
-# The path to the Chrono directory containing various assets(meshes, textures, data files)
-# is automatically set, relative to the default lcoation of this demo.
-# If running from a different directory, you must change the path to the data directory with:
-# chrono.SetChronoDataPath('relative/path/to/data/directory')
-
 # Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
@@ -226,7 +220,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Chrono::Irrlicht visualization')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(-2, 3, -4))
 vis.AddTypicalLights()

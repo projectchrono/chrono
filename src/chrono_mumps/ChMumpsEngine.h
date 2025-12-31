@@ -18,16 +18,16 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono_mumps/ChApiMumps.h"
 
-#include <dmumps_c.h>
+#include "dmumps_c.h"
 #define USE_COMM_WORLD -987654
 
 /* macro s.t. indices match documentation */
-#define ICNTL(I) icntl[(I)-1]
-#define CNTL(I) cntl[(I)-1]
-#define INFO(I) info[(I)-1]
-#define INFOG(I) infog[(I)-1]
-#define RINFO(I) rinfo[(I)-1]
-#define RINFOG(I) rinfog[(I)-1]
+#define ICNTL(I) icntl[(I) - 1]
+#define CNTL(I) cntl[(I) - 1]
+#define INFO(I) info[(I) - 1]
+#define INFOG(I) infog[(I) - 1]
+#define RINFO(I) rinfo[(I) - 1]
+#define RINFOG(I) rinfog[(I) - 1]
 
 namespace chrono {
 
@@ -53,6 +53,9 @@ class ChApiMumps ChMumpsEngine {
 
     ChMumpsEngine();
     ~ChMumpsEngine();
+
+    /// Set the number of OpenMP threads for MUMPS.
+    void SetNumThreads(int num_threads);
 
     /// Set the problem matrix and the right-hand side.
     void SetProblem(const ChSparseMatrix& Z, ChVectorRef rhs);

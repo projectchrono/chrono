@@ -12,6 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
 using namespace chrono;
@@ -100,7 +102,7 @@ uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
         alpha = 1.95 / data_manager->measures.solver.lambda_max;
     }
     real gmma = 1e-4;
-    real gdiff = 1.0 / pow(size, 2.0);
+    real gdiff = 1.0 / std::pow(size, 2.0);
     real neg_BB1_fallback = 0.11;
     real neg_BB2_fallback = 0.12;
     ml = gamma;

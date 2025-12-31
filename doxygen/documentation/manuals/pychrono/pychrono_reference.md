@@ -1,8 +1,8 @@
 PyChrono technology reference {#pychrono_reference}
 ==========================
 
-PyChrono is a Python wrapper for Chrono::Engine. It is a set of
-Python modules that correspond to units of Chrono::Engine, as
+PyChrono is a Python wrapper for Chrono. It is a set of
+Python modules that correspond to units of Chrono, as
 shown in this scheme:
 
 ![](http://www.projectchrono.org/assets/manual/Units_python.png)
@@ -16,8 +16,8 @@ Not all the functionalities of the C++ API can be mapped 1:1 to the
 Python API, of course. Python is an interpreted language that differs
 from C++ for many reasons, so there are some differences and
 limitations, but also advantages. If you already used the C++ API of
-Chrono::Engine, you will find that this documentation is useful for
-easily jumping into the PyChrono::Engine development.
+Chrono, you will find that this documentation is useful for
+easily jumping into the PyChrono development.
 
 ### Object creation
 
@@ -57,7 +57,7 @@ handles pointing to it.
 
 ### Templated classes
 
-Currently there is no support for templated clases in Python. So, all the C++ classes relying on templates need to be wrapped in Python in order to provide the most relevant specializations. Since the most fundamental templated classes offer aliases for the most common specialization those names are reflected also in the Python wrapper.
+Currently there is no support for templated classes in Python. So, all the C++ classes relying on templates need to be wrapped in Python in order to provide the most relevant specializations. Since the most fundamental templated classes offer aliases for the most common specialization those names are reflected also in the Python wrapper.
 
 ~~~~~~~~~~~~~~~{.py}
 chrono.ChVector3d         # as ChVector3d  in C++
@@ -109,14 +109,14 @@ eg. one uses myquaternion.e0 in Python, instead of myquaternion.e0() in C++.
 ### Shared pointers
 
 Except for vectors, matrices, etc., most of the complex objects that you
-create with the Chrono::Engine API are managed via C++ shared pointers.
+create with the Chrono API are managed via C++ shared pointers.
 This is the case of ChBody parts, ChLink constraints, etc. Shared
 pointers are a C++ technology that allows the user to create objects and
 do not worry about deletion, because deletion is managed automatically.
-In the Chrono::Engine C++ API such shared pointers are based on
+In the Chrono C++ API such shared pointers are based on
 templates; as we said previously templates are not supported in Python,
 but this is not an issue, because PyChrono **automatically handle objects with shared pointers if necessary**
-PyChrono::Engine.
+PyChrono.
 
 This is an example of **shared pointers in C++** :
 
@@ -131,7 +131,7 @@ my_link_BC = chrono.ChLinkLockRevolute()
 ~~~~~~~~~~~~~~~
 
 <div class="ce-info">
-When you create a shared pointer object in PyChrono::Engine, also 
+When you create a shared pointer object in PyChrono, also 
 the referenced object is created. For instance, in the last example, 
 a revolute joint is created at the same line. 
 If you need other shared pointers to the same object, simply type 
@@ -169,8 +169,8 @@ mybody = chrono.CastToChBody(ptr_to_contactable)
 
 ### Nested classes
 
-SWIG does not currently support nested clases in Python (see http://www.swig.org/Doc4.0/SWIGPlus.html#SWIGPlus_nested_classes). Nested classes can be either ignored or, such as in PyChrono, flattened. This is automatically done for every nested class in Chrono.
-This means that PyChrono equivalents of nested C++ classes will be in the upper namespace level, as you may see in the followig example:
+SWIG does not currently support nested classes in Python (see http://www.swig.org/Doc4.0/SWIGPlus.html#SWIGPlus_nested_classes). Nested classes can be either ignored or, such as in PyChrono, flattened. This is automatically done for every nested class in Chrono.
+This means that PyChrono equivalents of nested C++ classes will be in the upper namespace level, as you may see in the following example:
 
 ~~~~~~~~~~~~~~~cpp
 // class inheriting ReportContactCallback in C++
@@ -184,7 +184,7 @@ In Python we have:
 ~~~~~~~~~~~~~~~py
 # class inheriting ReportContactCallback in Python
 class ContactReporter(chrono.ReportContactCallback): ...etc...
-#the same princliple applies to enum classes:
+#the same principle applies to enum classes:
 vehicle.SetChassisVisualizationType(pychrono.vehicle.VisualizationType_MESH)
 ~~~~~~~~~~~~~~~
 
@@ -213,7 +213,7 @@ my_system.GetSystemDescriptor()
 ~~~~~~~~~~~~~~~
 
 <div class="ce-info">
-As the development of PyChrono::Engine proceeds, the latter case will
+As the development of PyChrono proceeds, the latter case will
 happen less and less frequently. Tell us if you encounter this type of
 problem in some function, so we can fix it.
 </div>

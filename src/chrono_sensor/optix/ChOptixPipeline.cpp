@@ -18,8 +18,12 @@
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_HAS_CXX17
+    #include <filesystem>
+#endif
 
 #include <optix_stack_size.h>
 #include <optix_stubs.h>
@@ -249,6 +253,13 @@ void ChOptixPipeline::CleanMaterials() {
 }
 
 void ChOptixPipeline::CompileBaseShaders() {
+    if (m_debug) {
+#ifdef CHRONO_HAS_CXX17
+        std::cout << "Current directory: " << std::filesystem::current_path() << std::endl;
+        std::cout << "Shader directory:  " << GetSensorShaderDir() << std::endl;
+#endif
+    }
+
     OptixModuleCompileOptions module_compile_options = {};
     if (m_debug) {
         module_compile_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
@@ -362,7 +373,7 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
     // camera pinhole raygen
     CreateOptixProgramGroup(m_camera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_camera_raygen_module, "__raygen__camera");
-    // // camera fov lens raygen
+    // camera fov lens raygen
     // CreateOptixProgramGroup(m_camera_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
     //                         m_camera_raygen_module, "__raygen__camera_fov_lens");
     
@@ -374,7 +385,7 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
     CreateOptixProgramGroup(m_segmentation_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_camera_raygen_module, "__raygen__segmentation");
     
-    // // segmentation fov lens raygen
+    // segmentation fov lens raygen
     // CreateOptixProgramGroup(m_segmentation_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
     //                         m_camera_raygen_module, "__raygen__segmentation_fov_lens");
     // lidar single raygen
@@ -419,7 +430,7 @@ void ChOptixPipeline::UpdateBackground(Background b) {
         if (md_miss_texture_sampler) {
             CUDA_ERROR_CHECK(cudaDestroyTextureObject(md_miss_texture_sampler));
         }
-        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex, false, false);
+        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex, false, true);
         miss_rec.data.camera_miss.env_map = md_miss_texture_sampler;
     }
 
@@ -1087,7 +1098,7 @@ unsigned int ChOptixPipeline::GetNVDBMaterial(std::vector<std::shared_ptr<ChVisu
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_nvdb_vol_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
-    mat_record.data.num_blended_materials = mat_list.size();
+    mat_record.data.num_blended_materials = (unsigned int)mat_list.size();
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);

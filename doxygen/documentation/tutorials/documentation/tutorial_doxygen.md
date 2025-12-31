@@ -96,7 +96,7 @@ Otherwise there is a custom Python distribution called [Enthough](http://enthoug
 Here is another example:
 ~~~
 {{Details|content=
-The files for this demo can be found in the directory ''C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions''. The directory contains all the parts needed for this assembly.
+The files for this demo can be found in the directory ''C:\Documents\chrono\src\demos\mbs''. The directory contains all the sources needed for this example.
 }}
 ~~~
 
@@ -104,7 +104,7 @@ and the code that should be put into markdown
 
 ~~~
 <div class=well>
-The files for this demo can be found in the directory ```C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions``` . The directory contains all the parts needed for this assembly.
+The files for this demo can be found in the directory ```C:\Documents\chrono\src\demos\mbs``` . The directory contains all the sources needed for this example.
 </div>
 ~~~
 

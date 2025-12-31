@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
@@ -39,7 +41,7 @@ using namespace chrono::irrlicht;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -71,8 +73,8 @@ int main(int argc, char* argv[]) {
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
         double angle = e * (2 * CH_PI / 8.0);
-        hexpos.z() = 0.3 * cos(angle);
-        hexpos.x() = 0.3 * sin(angle);
+        hexpos.z() = 0.3 * std::cos(angle);
+        hexpos.x() = 0.3 * std::sin(angle);
         ChMatrix33<> hexrot(QuatFromAngleY(angle));
 
         std::shared_ptr<ChNodeFEAxyz> hnode1_lower;
@@ -143,9 +145,9 @@ int main(int argc, char* argv[]) {
     // Visualization of the FEM mesh.
     {
         // Mesh visualization - speed
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-        vis_mesh->SetColorscaleMinMax(0.0, 5.50);
+        vis_mesh->SetColormapRange(0.0, 5.50);
         vis_mesh->SetShrinkElements(true, 0.85);
         vis_mesh->SetSmoothFaces(true);
         mesh->AddVisualShapeFEA(vis_mesh);
@@ -153,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     {
         // Mesh visualization - reference configuration (wireframe)
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         vis_mesh->SetWireframe(true);
         vis_mesh->SetDrawInUndeformedReference(true);
@@ -162,7 +164,7 @@ int main(int argc, char* argv[]) {
 
     {
         // Node visualization - positions
-        auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
         vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         vis_nodes->SetSymbolsThickness(0.006);

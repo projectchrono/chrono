@@ -28,7 +28,7 @@ namespace sensor {
 /// @{
 
 /// Sensor class for constructing sensors from a JSON specification file.
-class CH_SENSOR_API Sensor : ChSensor {
+class CH_SENSOR_API Sensor : public ChSensor {
   public:
     /// Create sensor from specified JSON file
     /// @param filename Path and filename for the JSON file.

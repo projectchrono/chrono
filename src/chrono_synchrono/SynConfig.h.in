@@ -18,7 +18,7 @@
 
 // -----------------------------------------------------------------------------
 
-// If FastDDS support was enabled, define CHRONO_FASTDDS
-@CHRONO_FASTDDS@
+// If FastDDS support was enabled, define CHRONO_SYNCHRONO_USE_FASTDDS
+@CHRONO_SYNCHRONO_USE_FASTDDS@
 
 #endif

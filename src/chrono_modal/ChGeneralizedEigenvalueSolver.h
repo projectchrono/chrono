@@ -42,6 +42,9 @@ void ChApiModal CountNonZerosForEachRowTransposed(const ChSparseMatrix& Q_transp
 
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Helper function to solve any kind of generalized eigenvalue problem even with multiple requests.
 /// The eigenvectors are also filtered to avoid duplicates with the same frequency.
 /// This means that only one of the complex eigenvectors that come in conjugate pairs is stored.
@@ -485,8 +488,9 @@ int Solve(EigSolverType& eig_solver,
     return found_eigs;
 }
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

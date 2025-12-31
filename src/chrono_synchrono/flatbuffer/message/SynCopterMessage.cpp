@@ -29,10 +29,10 @@ namespace Copter = SynFlatBuffers::Agent::Copter;
 SynCopterStateMessage::SynCopterStateMessage(AgentKey source_key, AgentKey destination_key)
     : SynMessage(source_key, destination_key) {}
 
-void SynCopterStateMessage::SetState(double time, SynPose chassis, std::vector<SynPose> props) {
-    this->time = time;
-    this->chassis = chassis;
-    this->props = props;
+void SynCopterStateMessage::SetState(double t, SynPose chassis_pose, std::vector<SynPose> prop_poses) {
+    time = t;
+    chassis = chassis_pose;
+    props = prop_poses;
 }
 
 void SynCopterStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
@@ -122,14 +122,14 @@ FlatBufferMessage SynCopterDescriptionMessage::ConvertToFlatBuffers(flatbuffers:
                                          m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 }
 
-void SynCopterDescriptionMessage::SetVisualizationFiles(const std::string& chassis_vis_file,
-                                                        const std::string& propeller_vis_file) {
-    this->chassis_vis_file = chassis_vis_file;
-    this->propeller_vis_file = propeller_vis_file;
+void SynCopterDescriptionMessage::SetVisualizationFiles(const std::string& chassis_visualization_file,
+                                                        const std::string& propeller_visualization_file) {
+    this->chassis_vis_file = chassis_visualization_file;
+    this->propeller_vis_file = propeller_visualization_file;
 }
 
-void SynCopterDescriptionMessage::SetNumProps(int num_props) {
-    this->num_props = num_props;
+void SynCopterDescriptionMessage::SetNumProps(int number_props) {
+    num_props = number_props;
 }
 
 }  // namespace synchrono

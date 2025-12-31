@@ -32,15 +32,21 @@ void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& l
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::IDLER);
 
+    // Call concrete construction function here, to create the carrier body!
+    Construct(chassis, location, track);
+
+    // Initialize the idler wheel, then override the tag of its body
     m_idler_wheel->Initialize(chassis, GetCarrierBody(), location, track);
+    m_idler_wheel->GetBody()->SetTag(m_obj_tag);
 
     // Set collision flags for the idler wheel body
-    m_idler_wheel->GetBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::IDLERS);
-    m_idler_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::WHEELS);
+    m_idler_wheel->GetBody()->GetCollisionModel()->SetFamily(VehicleCollisionFamily::IDLER_FAMILY);
+    m_idler_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TRACK_WHEEL_FAMILY);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 void ChIdler::SetOutput(bool state) {
@@ -57,6 +63,25 @@ void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
         m_idler_wheel->ExportComponentList(jsonSubDocument);
         jsonDocument.AddMember("idler wheel", jsonSubDocument, jsonDocument.GetAllocator());
     }
+}
+
+void ChIdler::Output(ChOutput& database) const {
+    ChPart::Output(database);
+
+    database.WriteSection(m_idler_wheel->GetName());
+    m_idler_wheel->Output(database);
+}
+
+void ChIdler::WriteCheckpoint(ChCheckpoint& database) const {
+    ChPart::WriteCheckpoint(database);
+
+    m_idler_wheel->WriteCheckpoint(database);
+}
+
+void ChIdler::ReadCheckpoint(ChCheckpoint& database) {
+    ChPart::ReadCheckpoint(database);
+
+    m_idler_wheel->ReadCheckpoint(database);
 }
 
 }  // end namespace vehicle

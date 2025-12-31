@@ -10,11 +10,14 @@ using namespace chrono;
 %};
 
 %shared_ptr(chrono::ChContactMaterial)
+%shared_ptr(chrono::ChContactMaterialData)
 %shared_ptr(chrono::ChContactMaterialNSC)
 %shared_ptr(chrono::ChContactMaterialSMC)
 %shared_ptr(chrono::ChContactMaterialComposite)
 %shared_ptr(chrono::ChContactMaterialCompositeNSC)
 %shared_ptr(chrono::ChContactMaterialCompositeSMC)
+
+%template(vector_ChContactMaterialData) std::vector<chrono::ChContactMaterialData>;
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/physics/ChContactMaterial.h"  

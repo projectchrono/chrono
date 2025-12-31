@@ -1,0 +1,37 @@
+chrono-version: 9.0
+
+model:
+  name: FSI object drop
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
+
+  multibody_model:      "model_mbs.yaml"
+  multibody_simulation: "simulation_mbs.yaml"
+  #multibody_simulation: "../../simulations/basic_mbs.yaml"
+
+  fluid_model:          "model_sph.yaml"
+  fluid_simulation:     "simulation_sph.yaml"
+  #fluid_simulation:     "../../simulations/basic_sph.yaml"
+
+  fsi_bodies: 
+    - name: object
+      shapes:
+        - type: CYLINDER
+          dimensions: [0.9, 0.9, 0.15]
+          location: [0, 0, 0]
+          axis: [1, 0, 0]
+          radius: 0.12
+          length: 0.20
+        
+simulation:
+  time_step: 1e-4
+  end_time: -1
+
+visualization:
+  render_fps: 100
+
+output:
+  output_fps: 100

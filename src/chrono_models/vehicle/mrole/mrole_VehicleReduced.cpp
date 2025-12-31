@@ -18,9 +18,9 @@
 
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/mrole/mrole_VehicleReduced.h"
 #include "chrono_models/vehicle/mrole/mrole_Chassis.h"
@@ -123,7 +123,7 @@ mrole_VehicleReduced::~mrole_VehicleReduced() {}
 // -----------------------------------------------------------------------------
 void mrole_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystem.
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
+    m_chassis->Initialize(this, chassisPos, chassisFwdVel, VehicleCollisionFamily::CHASSIS_FAMILY);
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).

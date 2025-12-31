@@ -85,8 +85,8 @@ ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() : linear_limit(
     time_constant = 1 / (CH_2PI * 35);
 }
 
-void ChHydraulicDirectionalValve4x3::SetCharacteristicParameters(double linear_limit, double Q, double dp) {
-    this->linear_limit = linear_limit;
+void ChHydraulicDirectionalValve4x3::SetCharacteristicParameters(double limit, double Q, double dp) {
+    linear_limit = limit;
     Cv = Q / std::sqrt(dp);
 }
 
@@ -94,8 +94,8 @@ void ChHydraulicDirectionalValve4x3::SetTimeConstantFrequency(double fm45) {
     time_constant = 1 / (CH_2PI * fm45);
 }
 
-void ChHydraulicDirectionalValve4x3::SetValveDeadZone(double dead_zone) {
-    this->dead_zone = dead_zone;
+void ChHydraulicDirectionalValve4x3::SetValveDeadZone(double deadzone) {
+    dead_zone = deadzone;
 }
 
 void ChHydraulicDirectionalValve4x3::SetInitialSpoolPosition(double U) {
@@ -167,12 +167,12 @@ ChHydraulicThrottleValve::ChHydraulicThrottleValve() : valveD(0.006), Do(850), l
 
 void ChHydraulicThrottleValve::SetParameters(double valve_diameter,
                                              double oil_density,
-                                             double linear_limit,
-                                             double Cd) {
-    this->valveD = valve_diameter;
-    this->Do = oil_density;
-    this->linear_limit = linear_limit;
-    this->Cd = Cd;
+                                             double limit,
+                                             double discharge_coeff) {
+    valveD = valve_diameter;
+    Do = oil_density;
+    linear_limit = limit;
+    Cd = discharge_coeff;
 
     double A = CH_PI * valveD * valveD / 4;
     Cv = Cd * A * std::sqrt(2 / Do);

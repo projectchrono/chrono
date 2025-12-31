@@ -17,7 +17,7 @@ Finally, Chrono::Vehicle includes several closed-looped driver system models, ba
 
 ## Interactive driver {#vehicle_driver_interactive}
 
-The interactive drivers [ChInteractiveDriverIRR](@ref chrono::vehicle::ChInteractiveDriverIRR) (for the Irrlicht-based run-time visualization system) and [ChInteractiveDriverVSG](@ref chrono::vehicle::ChInteractiveDriverVSG) (for the VSG-based run-time visualization system) can control (steer/accelerate/brake) a simulated vehicle through user input. 
+The interactive driver [ChInteractiveDriver](@ref chrono::vehicle::ChInteractiveDriver) (for both the VSG- and Irrlicht-based run-time visualization systems) can control (steer/accelerate/brake) a simulated vehicle through user input. 
 These interactive drivers rely on keyboard and controller event handlers for the respective run-time visualization systems.
 
 Other features of this driver subsystem model include:
@@ -105,7 +105,7 @@ Some important vehicle test maneuvers are based on time-dependent steering/throt
 An ASCII data file with driver inputs contains four columns, for time (s), steering input (a non-dimensional quantity in \f$[-1,1]\f$, with \f$-1\f$ indicating full steering to the left), throttle input (a non-dimensional quantity between \f$[0,1]\f$, with \f$1\f$ indicating full throttle), and braking (a non-dimensional quantity between \f$[0,1]\f$, with \f$1\f$ indicating full braking force).
 
 A sample driver data file is listed below
-\include "../../data/vehicle/generic/driver/Sample_Maneuver.txt"
+\include "data/vehicle/generic/driver/Sample_Maneuver.txt"
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/curves/DataDriver.png" width="500" />
 

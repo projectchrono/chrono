@@ -50,14 +50,14 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "RotaryArm"; }
 
-    /// Initialize this steering subsystem.
+    /// Construct this steering subsystem.
     /// The steering subsystem is initialized by attaching it to the specified chassis at the specified location (with
     /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
     /// the chassis reference frame).
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) override;
 
     /// Add visualization assets for the steering subsystem.
     /// This default implementation uses primitives.
@@ -128,9 +128,7 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     std::shared_ptr<ChLinkMotorRotationAngle> m_revolute;  ///< handle to the chassis-arm revolute joint
 
   private:
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     // Flag indicating that the inertia matrices for the upright and control arms
     // are provided in vehicle-aligned centroidal frames

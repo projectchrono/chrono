@@ -19,23 +19,32 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
+#include "FEAvisualization.h"
 #include "FEAcables.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+// Select run-time visualization
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// Set integration step size
+double step = 1e-3;
 
 // Select solver type (SPARSE_QR, SPARSE_LU, or MINRES).
 ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
 
+// Create output file with node positions and directions
+bool output = false;
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
@@ -56,20 +65,34 @@ int main(int argc, char* argv[]) {
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by
     // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
     // Irrlicht or POVray or whatever postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+
+    ChColormap::Type colormap_type = ChColormap::Type::JET;
+    ChVector2d colormap_range(-0.01, 0.01);
+
+    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_beam_A->SetColorscaleMinMax(-0.4, 0.4);
+    vis_beam_A->SetColormap(colormap_type);
+    vis_beam_A->SetColormapRange(colormap_range);
     vis_beam_A->SetSmoothFaces(true);
     vis_beam_A->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_beam_A);
 
-    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     vis_beam_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_beam_B->SetSymbolsThickness(0.006);
     vis_beam_B->SetSymbolsScale(0.01);
     vis_beam_B->SetZbufferHide(false);
     mesh->AddVisualShapeFEA(vis_beam_B);
+
+    // Create output directory
+    std::string out_dir = GetChronoOutputPath() + "FEA_cables/";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    ChWriterCSV csv(" ");
+    csv << mesh->GetNumNodes() << "\n" << std::endl;
 
     // Set solver and solver settings
     switch (solver_type) {
@@ -108,25 +131,34 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Cables FEM");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0, 0.6, -1.0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM",        //
+                                         ChVector3d(-0.8, -0.3, -1.8), ChVector3d(0, -0.4, -0.3),  //
+                                         true, "Mz (Nm)", colormap_range, colormap_type);
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     while (vis->Run()) {
+        if (output) {
+            csv << sys.GetChTime() << std::endl;
+            for (const auto& node : mesh->GetNodes()) {
+                auto nodeD = std::dynamic_pointer_cast<ChNodeFEAxyzD>(node);
+                if (!nodeD)
+                    continue;
+                csv << nodeD->GetPos() << "    " << nodeD->GetSlope1() << std::endl;
+            }
+            csv << std::endl;
+        }
+
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-        sys.DoStepDynamics(0.01);
+        sys.DoStepDynamics(step);
+    }
+
+    if (output) {
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

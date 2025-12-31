@@ -25,7 +25,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
@@ -36,7 +36,7 @@
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/agent/SynSCMTerrainAgent.h"
 #include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -178,14 +178,13 @@ int main(int argc, char* argv[]) {
     terrain->SetPlotType(SCMTerrain::PLOT_SINKAGE, 0, 0.1);
     terrain->SetMeshWireframe(true);
 
-    // The physics do not change when you add a moving patch, you just make it much easier for the SCM
-    // implementation to do its job by restricting where it has to look for contacts
-    terrain->AddMovingPatch(hmmwv.GetVehicle().GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
+    // Enable an active domain associated with the entire vehicle
+    terrain->AddActiveDomain(hmmwv.GetVehicle().GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
     if (flat_patch) {
         terrain->Initialize(size_x, size_y, 1 / dpu);
     } else {
-        terrain->Initialize(vehicle::GetDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
+        terrain->Initialize(GetVehicleDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
     }
 
     // Create an SCMTerrainAgent and add it to the SynChrono manager
@@ -272,7 +271,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            (float)CH_PI / 3                                // FOV
+            (float)CH_PI_3                                // FOV
         );
 
         overhead_camera->SetName("Overhead Cam");

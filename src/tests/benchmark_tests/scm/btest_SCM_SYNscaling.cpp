@@ -28,7 +28,7 @@
 #endif
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
@@ -40,7 +40,7 @@
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/agent/SynSCMTerrainAgent.h"
 #include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -78,8 +78,8 @@ bool chrono_collsys = false;
 // Number of SCM and collision threads
 int nthreads = 4;
 
-// Moving patches under each wheel
-bool wheel_patches = false;
+// Active domains for each wheel
+bool wheel_domains = false;
 
 // Better conserve mass by displacing soil to the sides of a rut
 const bool bulldozing = false;
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
     nthreads = cli.GetAsType<int>("nthreads");
-    wheel_patches = cli.GetAsType<bool>("wheel_patches");
+    wheel_domains = cli.GetAsType<bool>("wheel_domains");
     parallel_tracks = cli.GetAsType<bool>("parallel_tracks");
 
     chrono_collsys = cli.GetAsType<bool>("csys");
@@ -293,15 +293,15 @@ int main(int argc, char* argv[]) {
             10);  // number of concentric vertex selections subject to erosion
     }
 
-    if (wheel_patches) {
-        // Optionally, enable moving patch feature (multiple patches around each wheel)
+    if (wheel_domains) {
+        // Optionally, enable active domains feature (multiple domains around each wheel)
         for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
-            terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
-            terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+            terrain.AddActiveDomain(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+            terrain.AddActiveDomain(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
         }
     } else {
-        // Optionally, enable moving patch feature (single patch around vehicle chassis)
-        terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
+        // Optionally, enable active domains feature (single domain around vehicle chassis)
+        terrain.AddActiveDomain(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
     }
 
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
@@ -457,8 +457,8 @@ void AddCommandLineOptions(ChCLI& cli) {
     cli.AddOption<int>("Test", "n,nthreads", "Number threads", std::to_string(nthreads));
     cli.AddOption<bool>("Test", "c,csys", "Use Chrono multicore collision system (false: Bullet)",
                         std::to_string(chrono_collsys));
-    cli.AddOption<bool>("Test", "w,wheel_patches", "Use separate patches under each wheel (false: single patch)",
-                        std::to_string(wheel_patches));
+    cli.AddOption<bool>("Test", "w,wheel_domains", "Use separate patches under each wheel (false: single domain)",
+                        std::to_string(wheel_domains));
     cli.AddOption<bool>("Test", "p,parallel_tracks", "Initialize vehicles on parallel tracks (false: criss-cross)",
                         std::to_string(parallel_tracks));
     cli.AddOption<int>("Test", "v,vis", "Run-time visualization rank", std::to_string(vis_rank));

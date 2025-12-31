@@ -32,7 +32,7 @@ ChRotaryArm::ChRotaryArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 ChRotaryArm::~ChRotaryArm() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_revolute->GetSystem();
@@ -43,14 +43,9 @@ ChRotaryArm::~ChRotaryArm() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
-                             const ChVector3d& location,
-                             const ChQuaternion<>& rotation) {
-    ChSteering::Initialize(chassis, location, rotation);
-
-    m_parent = chassis;
-    m_rel_xform = ChFrame<>(location, rotation);
-
+void ChRotaryArm::Construct(std::shared_ptr<ChChassis> chassis,
+                            const ChVector3d& location,
+                            const ChQuaternion<>& rotation) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -85,6 +80,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the Pitman arm body
     m_link = chrono_types::make_shared<ChBody>();
     m_link->SetName(m_name + "_arm");
+    m_link->SetTag(m_obj_tag);
     m_link->SetPos(0.5 * (points[ARM_L] + points[ARM_C]));
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getPitmanArmMass());
@@ -115,6 +111,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetName(m_name + "_revolute");
+    m_revolute->SetTag(m_obj_tag);
     m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.GetQuaternion()));
     auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
     m_revolute->SetAngleFunction(motor_fun);
@@ -143,7 +140,7 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     // Visualization for arm
-    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pC, m_pL, getPitmanArmRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_link, m_pC, m_pL, getPitmanArmRadius());
 }
 
 void ChRotaryArm::RemoveVisualizationAssets() {
@@ -165,29 +162,11 @@ void ChRotaryArm::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotaryArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    ExportBodyList(jsonDocument, bodies);
+void ChRotaryArm::PopulateComponentList() {
+    m_bodies.push_back(m_link);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChRotaryArm::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute);
 }
 
 }  // end namespace vehicle

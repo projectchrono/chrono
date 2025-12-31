@@ -76,7 +76,7 @@ bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm) {
 
 bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(std::ostream& mstream) {
     mstream << std::setprecision(9) << std::defaultfloat;
-    mstream << "# Convex hulls obtained with Chrono::Engine\n"
+    mstream << "# Convex hulls obtained with Chrono\n"
             << "# convex decomposition (.chulls format: only vertexes)\n";
 
     for (unsigned int ih = 0; ih < this->GetHullCount(); ih++) {
@@ -237,7 +237,7 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTr
 //
 
 void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(std::ostream& mstream) {
-    mstream << "# Convex hulls obtained with Chrono::Engine \n# convex decomposition \n\n";
+    mstream << "# Convex hulls obtained with Chrono \n# convex decomposition \n\n";
     NxU32 vcount_base = 1;
     NxU32 vcount_total = 0;
     NxU32 tcount_total = 0;
@@ -437,7 +437,7 @@ bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, Ch
 //
 
 void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(std::ostream& mstream) {
-    mstream << "# Convex hulls obtained with Chrono::Engine \n# convex decomposition \n\n";
+    mstream << "# Convex hulls obtained with Chrono \n# convex decomposition \n\n";
 
     char buffer[200];
 

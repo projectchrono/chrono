@@ -111,7 +111,7 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
     void AtIterationEnd(double mmaxviolation, double mdeltalambda, unsigned int iternum);
 
   protected:
-    /// Indicate whether ot not the Solve() phase requires an up-to-date problem matrix.
+    /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// Typically, this is the case for iterative solvers (as the matrix is needed for
     /// the matrix-vector operations).
     virtual bool SolveRequiresMatrix() const override { return true; }

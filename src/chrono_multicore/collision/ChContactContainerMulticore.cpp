@@ -12,18 +12,20 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 
-#include "chrono_multicore/collision/ChContactContainerMulticore.h"
-#include "chrono_multicore/physics/ChSystemMulticore.h"
-//
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChParticleCloud.h"
 
+#include "chrono/multicore_math/thrust.h"
+
+#include "chrono_multicore/collision/ChContactContainerMulticore.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+
 namespace chrono {
 
 ChContactContainerMulticore::ChContactContainerMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
-    contactlist_6_6.clear();
-    n_added_6_6 = 0;
+    contacts.clear();
+    n_added = 0;
 }
 
 ChContactContainerMulticore::ChContactContainerMulticore(const ChContactContainerMulticore& other)
@@ -36,27 +38,27 @@ ChContactContainerMulticore::~ChContactContainerMulticore() {
 }
 
 void ChContactContainerMulticore::RemoveAllContacts() {
-    std::list<ChContact_6_6*>::iterator itercontact = contactlist_6_6.begin();
-    while (itercontact != contactlist_6_6.end()) {
-        delete (*itercontact);
-        (*itercontact) = 0;
-        ++itercontact;
+    auto iter = contacts.begin();
+    while (iter != contacts.end()) {
+        delete *iter;
+        *iter = nullptr;
+        ++iter;
     }
-    contactlist_6_6.clear();
-    lastcontact_6_6 = contactlist_6_6.begin();
-    n_added_6_6 = 0;
+    contacts.clear();
+    last_contact = contacts.begin();
+    n_added = 0;
 }
 
 void ChContactContainerMulticore::BeginAddContact() {
-    lastcontact_6_6 = contactlist_6_6.begin();
-    n_added_6_6 = 0;
+    last_contact = contacts.begin();
+    n_added = 0;
 }
 
 void ChContactContainerMulticore::EndAddContact() {
     // remove contacts that are beyond last contact
-    while (lastcontact_6_6 != contactlist_6_6.end()) {
-        delete (*lastcontact_6_6);
-        lastcontact_6_6 = contactlist_6_6.erase(lastcontact_6_6);
+    while (last_contact != contacts.end()) {
+        delete *last_contact;
+        last_contact = contacts.erase(last_contact);
     }
 }
 
@@ -141,7 +143,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
         }
 
         // Invoke callback function
-        bool proceed = callback->OnReportContact(pA, pB, contact_plane, depth[i], erad[i], force, torque, bodyA, bodyB);
+        bool proceed = callback->OnReportContact(pA, pB, contact_plane, depth[i], erad[i], force, torque, bodyA, bodyB, -1);
         if (!proceed)
             break;
     }

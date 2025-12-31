@@ -20,7 +20,7 @@
 #include <cmath>
 
 #include "chrono_models/vehicle/feda/FEDA_TMsimpleTire.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 namespace chrono {
 namespace vehicle {

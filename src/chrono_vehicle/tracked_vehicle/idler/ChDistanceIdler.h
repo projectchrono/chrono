@@ -16,7 +16,7 @@
 // An idler consists of the idler wheel and a carrier body. The carrier body is
 // connected to the chassis and the idler wheel to the carrier. A linear
 // actuator connects the carrier body and a link body (the chassis or a
-// supsension arm).
+// suspension arm).
 //
 // An idler subsystem is defined with respect to a frame centered at the origin
 // of the idler wheel.
@@ -47,7 +47,7 @@ class ChTrackAssembly;
 
 /// Base class for an idler subsystem with a fixed distance tensioner.
 /// An idler consists of the idler wheel and a carrier body. The carrier body is connected to the chassis and the idler
-/// wheel to the carrier. A linear actuator connects the carrier body and a link body (the chassis or a supsension arm).
+/// wheel to the carrier. A linear actuator connects the carrier body and a link body (the chassis or a suspension arm).
 class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
   public:
     ChDistanceIdler(const std::string& name);
@@ -62,15 +62,15 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     /// Get the tensioner motor element.
     std::shared_ptr<ChLinkLockLinActuator> GetTensioner() const { return m_tensioner; }
 
-    /// Initialize this idler subsystem.
+    /// Construct this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
     /// respect to and expressed in the reference frame of the chassis). It is assumed that the idler subsystem
     /// reference frame is always aligned with the chassis reference frame. A derived idler subsystem template class
     /// must extend this default implementation and specify contact geometry for the idler wheel.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) override;
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.
@@ -114,9 +114,7 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     /// Return the set distance in the tensioner.
     virtual double GetTensionerDistance() const = 0;
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChBody> m_carrier;                   ///< carrier body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;      ///< carrier-chassis revolute joint

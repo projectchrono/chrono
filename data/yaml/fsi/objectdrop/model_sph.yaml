@@ -1,0 +1,66 @@
+chrono-version: 9.0
+
+model:
+  name: Box water tank
+  physics_problem: CFD
+  geometry_type: CARTESIAN
+  #geometry_type: CYLINDRICAL
+
+  angle_degrees: true
+ 
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
+  fluid_properties:
+    density: 1000.0
+    viscosity: 1.0
+    characteristic_length: 1.0
+
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 1.2
+
+  fluid_domain:
+    # Box domain (CARTESIAN)
+    dimensions: [0.8, 0.8, 1.2]
+    box_origin: [0, 0, 0]
+    box_walls: 
+      x: [true, true]   # negative, positive
+      y: [true, true]   # negative, positive
+      z: [true, false]  # negative, positive
+
+    # Annulus domain (CYLINDRICAL)
+    #inner_radius: 0.2
+    #outer_radius: 0.8
+    #height: 1.8
+    #cyl_origin: [0, 0, 0]
+    #cyl_walls:
+    #  side: [false, false]  # interior, exterior
+    #  z:    [false, false]
+
+  #container:
+    # Box container (CARTESIAN) 
+    #dimensions: [0.8, 0.8, 1.2]
+    #box_origin: [0, 0, 0]
+    #box_walls: 
+    #  x: [true, true]   # negative, positive
+    #  y: [true, true]   # negative, positive
+    #  z: [true, false]  # negative, positive
+
+    # Cylindrical container (CYLINDRICAL)
+    #inner_radius: 0.2
+    #outer_radius: 0.8
+    #height: 1.8
+    #cyl_origin: [0, 0, 0]
+    #cyl_walls:
+    #  side: [false, false]  # interior, exterior
+    #  z:    [false, false]
+
+  #computational_domain:
+  #  aabb_min: [-1, -1, -1]
+  #  aabb_max: [1, 1, 1]
+  #  x_bc_type: NONE
+  #  y_bc_type: NONE
+  #  z_bc_type: NONE
+   

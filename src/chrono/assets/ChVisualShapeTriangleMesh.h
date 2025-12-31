@@ -32,6 +32,7 @@ namespace chrono {
 class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
   public:
     ChVisualShapeTriangleMesh();
+    ChVisualShapeTriangleMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials = true);
     ~ChVisualShapeTriangleMesh() {}
 
     std::shared_ptr<ChTriangleMeshConnected> GetMesh() { return trimesh; }
@@ -57,6 +58,9 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     bool FixedConnectivity() const { return fixed_connectivity; }
     void SetModifiedVertices(std::vector<int> vertices) { modified_vertices = vertices; }
     const std::vector<int>& GetModifiedVertices() const { return modified_vertices; }
+
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return trimesh->GetBoundingBox(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

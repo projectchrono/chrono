@@ -49,15 +49,15 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
     virtual ChVector3d GetTension() const override;
 
-    /// Initialize this track shoe subsystem.
+    /// Construct this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
     /// A derived class must extend this default implementation and specify the contact
     /// geometry for the track shoe body.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) override;
 
   protected:
     virtual void InitializeInertiaProperties() override;
@@ -80,9 +80,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
   private:
     /// Connect this track shoe to the specified neighbor.
@@ -95,7 +93,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
 
     virtual void EnableTrackBendingStiffness(bool val) override;
 
-    std::shared_ptr<ChVehicleJoint> m_joint;  ///< connection to neighboring track shoe
+    std::shared_ptr<ChJoint> m_joint;  ///< connection to neighboring track shoe
     std::shared_ptr<ChLinkRSDA> m_rsda;       ///< optional RSDA on connection
 
     friend class ChSprocketSinglePin;

@@ -10,6 +10,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChContactContainer.h"
@@ -165,12 +167,13 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_Radius,
+                                 double distance,
+                                 double eff_Radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         ChMatrix33<>& mplanecoord = const_cast<ChMatrix33<>&>(plane_coord);
         ChVector3d v1 = pA;
         ChVector3d v2;
@@ -188,6 +191,10 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
                 break;
             case ContactsDrawMode::CONTACT_NORMALS:
                 v2 = pA + vn * clen;
+
+                v1 = pB;
+                v2 = pB - vn * clen;
+
                 mcol = irr::video::SColor(200, 0, 100, 255);
                 break;
             case ContactsDrawMode::CONTACT_FORCES_N:
@@ -243,12 +250,13 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         char buffer[25];
         irr::core::vector3df mpos((irr::f32)pA.x(), (irr::f32)pA.y(), (irr::f32)pA.z());
         irr::core::position2d<s32> spos =
@@ -790,8 +798,8 @@ void drawCircle(ChVisualSystemIrrlicht* vis,
 
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = CH_2PI * (double)iu / (double)resolution;
-        ChVector3d V1(radius * cos(phaseA), radius * sin(phaseA), 0);
-        ChVector3d V2(radius * cos(phaseB), radius * sin(phaseB), 0);
+        ChVector3d V1(radius * std::cos(phaseA), radius * std::sin(phaseA), 0);
+        ChVector3d V2(radius * std::cos(phaseB), radius * std::sin(phaseB), 0);
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
     }
@@ -830,8 +838,8 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
-        ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-        ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+        ChVector3d V1(heightA, radius * std::cos(phaseA), radius * std::sin(phaseA));
+        ChVector3d V2(heightB, radius * std::cos(phaseB), radius * std::sin(phaseB));
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
         heightA = heightB;
@@ -899,11 +907,12 @@ void drawGrid(ChVisualSystemIrrlicht* vis,
 
 // Easy-to-use function to draw color map 2D legend
 void drawColorbar(ChVisualSystemIrrlicht* vis,
+                  const ChColormap& colormap,
                   double vmin,
                   double vmax,
                   const std::string& label,
-                  int mx,
-                  int my,
+                  int x,
+                  int y,
                   int sx,
                   int sy) {
     irr::video::IVideoDriver* driver = vis->GetVideoDriver();
@@ -915,28 +924,28 @@ void drawColorbar(ChVisualSystemIrrlicht* vis,
     int steps = 10;
     double ystep = ((double)sy / (double)steps);
     for (int i = 0; i < steps; ++i) {
-        double mv_up = vmax - (vmax - vmin) * ((double)(i) / (double)steps);
-        double mv_dw = vmax - (vmax - vmin) * ((double)(i + 1) / (double)steps);
-        core::rect<s32> mrect(mx, my + (s32)(i * ystep), mx + sx, my + (s32)((i + 1) * ystep));
-        ChColor c_up = ChColor::ComputeFalseColor(mv_up, vmin, vmax, false);
-        ChColor c_dw = ChColor::ComputeFalseColor(mv_dw, vmin, vmax, false);
+        double v_up = vmax - (vmax - vmin) * ((double)(i) / (double)steps);
+        double v_dw = vmax - (vmax - vmin) * ((double)(i + 1) / (double)steps);
+        core::rect<s32> rect(x, y + (s32)(i * ystep), x + sx, y + (s32)((i + 1) * ystep));
+        ChColor c_up = colormap.Get(v_up, vmin, vmax);
+        ChColor c_dw = colormap.Get(v_dw, vmin, vmax);
         video::SColor col_up(255, u32(255 * c_up.R), u32(255 * c_up.G), u32(255 * c_up.B));
         video::SColor col_dw(255, u32(255 * c_dw.R), u32(255 * c_dw.G), u32(255 * c_dw.B));
-        driver->draw2DRectangle(mrect, col_up, col_up, col_dw, col_dw);
+        driver->draw2DRectangle(rect, col_up, col_up, col_dw, col_dw);
 
         if (font) {
             char buffer[100];
-            snprintf(buffer, sizeof(buffer), "%g", mv_up);
+            snprintf(buffer, sizeof(buffer), "%g", v_up);
             font->draw(irr::core::stringw(buffer).c_str(),
-                       core::rect<s32>(mrect.UpperLeftCorner.X + sx + 6, mrect.UpperLeftCorner.Y - 5,
-                                       mrect.LowerRightCorner.X + sx + 6, mrect.LowerRightCorner.Y - 5),
+                       core::rect<s32>(rect.UpperLeftCorner.X + sx + 6, rect.UpperLeftCorner.Y - 5,
+                                       rect.LowerRightCorner.X + sx + 6, rect.LowerRightCorner.Y - 5),
                        irr::video::SColor(255, 0, 0, 0));
-            driver->draw2DLine(irr::core::position2d<s32>(mrect.UpperLeftCorner.X + sx - 4, mrect.UpperLeftCorner.Y),
-                               irr::core::position2d<s32>(mrect.UpperLeftCorner.X + sx, mrect.UpperLeftCorner.Y),
+            driver->draw2DLine(irr::core::position2d<s32>(rect.UpperLeftCorner.X + sx - 4, rect.UpperLeftCorner.Y),
+                               irr::core::position2d<s32>(rect.UpperLeftCorner.X + sx, rect.UpperLeftCorner.Y),
                                irr::video::SColor(255, 100, 100, 100));
         }
     }
-    font->draw(irr::core::stringw(label.c_str()).c_str(), core::rect<s32>(mx, my + sy + 5, mx + 100, my + sy + 20),
+    font->draw(irr::core::stringw(label.c_str()).c_str(), core::rect<s32>(x, y + sy + 5, x + 100, y + sy + 20),
                irr::video::SColor(255, 0, 0, 0));
 }
 
@@ -1079,11 +1088,11 @@ void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double
 // Draw a line arrow in 3D space with given color.
 // -----------------------------------------------------------------------------
 void drawArrow(ChVisualSystemIrrlicht* vis,
-               ChVector3d start,
-               ChVector3d end,
-               ChVector3d plane_normal,
+               const ChVector3d& start,
+               const ChVector3d& end,
+               const ChVector3d& plane_normal,
                bool sharp,
-               ChColor col,
+               const ChColor& col,
                bool use_Zbuffer) {
     drawSegment(vis, start, end, col, use_Zbuffer);  // main segment
     ChVector3d dir = (end - start).GetNormalized();
@@ -1099,6 +1108,24 @@ void drawArrow(ChVisualSystemIrrlicht* vis,
     }
     drawSegment(vis, end, p1, col, use_Zbuffer);  // arrow segment 1
     drawSegment(vis, end, p2, col, use_Zbuffer);  // arrow segment 2
+}
+
+// -----------------------------------------------------------------------------
+// Draw a label in 3D scene at given position.
+// -----------------------------------------------------------------------------
+void drawLabel3D(ChVisualSystemIrrlicht* vis,
+                 const std::string& text,
+                 const ChVector3d& position,
+                 const ChColor& color,
+                 bool use_Zbuffer) {
+    irr::core::position2di spos =
+        vis->GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(
+            irr::core::vector3dfCH(position));
+    auto font = vis->GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/arial8.xml").c_str());
+    if (font) {
+        font->draw(text.c_str(), irr::core::rect<irr::s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10),
+                   tools::ToIrrlichtSColor(color));
+    }
 }
 
 }  // end namespace tools

@@ -370,7 +370,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         // Add to report
         m_report.bodies.insert(std::make_pair(part_pair.first, newBody));
 
-        // // std::cout << "body " << part_pair.first << " is at " << part.loc[0] << "," << part.loc[1] << "," <<
+        // std::cout << "body " << part_pair.first << " is at " << part.loc[0] << "," << part.loc[1] << "," <<
         //  part.loc[2]
         //       << "|" << newBody->GetRot().e0() << "," << newBody->GetRot().e1() << "," << newBody->GetRot().e2() <<
         //       ","

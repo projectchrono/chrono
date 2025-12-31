@@ -30,12 +30,14 @@
 // and numerical integration implementations.
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChConstants.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/input_output/ChWriterCSV.h"
+//#include "chrono/utils/ChValidation.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
@@ -103,14 +105,14 @@ int main(int argc, char* argv[]) {
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
         // Node location
-        double loc_x = cylRadius * sin((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x);
+        double loc_x = cylRadius * std::sin((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x);
         double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-        double loc_z = cylRadius * (1 - cos((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x));
+        double loc_z = cylRadius * (1 - std::cos((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x));
 
         // Node direction
-        double dir_x = -sin(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
+        double dir_x = -std::sin(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
         double dir_y = 0;
-        double dir_z = cos(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
+        double dir_z = std::cos(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
 
         // Create the node
         auto node =
@@ -190,18 +192,20 @@ int main(int argc, char* argv[]) {
     mystepper->SetAbsTolerances(1e-2);
     mystepper->SetVerbose(true);
 
-    /*utils::Data m_data;
+    /*
+    ChValidation::Data m_data;
     m_data.resize(4);
     for (size_t col = 0; col < 4; col++)
         m_data[col].resize(num_steps);
-    utils::ChWriterCSV csv(" ");
-    std::ifstream file2("UT_ANCFShellOrtGrav.txt");*/
+    ChWriterCSV csv(" ");
+    std::ifstream file2("UT_ANCFShellOrtGrav.txt");
+    */
 
     for (unsigned int it = 0; it < num_steps; it++) {
         sys.DoStepDynamics(time_step);
         std::cout << "Time t = " << sys.GetChTime() << "s \n";
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
-        // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
+        // std::cout << "mystepper->GetNumStepIterations()= " << mystepper->GetNumStepIterations() << "\n";
         // Check vertical displacement of the shell tip
         double AbsVal = std::abs(nodetip->pos.z() - FileInputMat(it, 1));
         if (AbsVal > precision) {
@@ -209,14 +213,18 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        /* // Code snippet to generate golden file
+        /* 
+        // Code snippet to generate golden file
         m_data[0][it] = sys.GetChTime();
         m_data[1][it] = nodetip->pos.z; // Note that z component is the second row
         m_data[2][it] = nodetip->pos.x;
         m_data[3][it] = nodetip->pos.y;
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << std::endl;
-        csv.WriteToFile("UT_ANCFShellOrtGrav.txt");*/
+        csv.WriteToFile("UT_ANCFShellOrtGrav.txt");
+        */
     }
+
     std::cout << "Unit test check succeeded \n";
+
     return 0;
 }

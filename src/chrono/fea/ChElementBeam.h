@@ -25,21 +25,10 @@ namespace fea {
 
 /// Base class for most structural elements of 'beam' type.
 class ChApi ChElementBeam : public ChElementGeneric {
-  protected:
-    double mass;
-    double length;
-
   public:
-    ChElementBeam() {
-        length = 0;  // will be computed by Setup(), later
-        mass = 0;    // will be computed by Setup(), later
-    }
+    ChElementBeam() : length(1), mass(1) {}
 
     virtual ~ChElementBeam() {}
-
-    //
-    // beam-specific functions
-    //
 
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscissa 'eta'.
@@ -62,15 +51,19 @@ class ChApi ChElementBeam : public ChElementGeneric {
     virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) = 0;
 
     /// The full mass of the beam, (with const. section, density, etc.)
-    double GetMass() { return this->mass; }
+    double GetMass() { return mass; }
 
     /// The rest length of the bar
-    double GetRestLength() { return this->length; }
+    double GetRestLength() { return length; }
 
     /// Set the rest length of the bar (usually this should be automatically done
     /// when SetupInitial is called on beams element, given the current state, but one
     /// might need to override this, ex for precompressed beams etc).
-    void SetRestLength(double ml) { this->length = ml; }
+    void SetRestLength(double ml) { length = ml; }
+
+  protected:
+    double mass;
+    double length;
 };
 
 /// @} fea_elements

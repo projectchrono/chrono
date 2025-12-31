@@ -23,9 +23,11 @@
 #include <cmath>
 #include <vector>
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/collision/ChConvexDecomposition.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -89,7 +91,7 @@ unsigned int image_width = 1920;
 unsigned int image_height = 1080;
 
 // Camera's horizontal field of view
-float fov = (float)(CH_PI / 3);
+float fov = (float)(CH_PI_3);
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;
@@ -166,7 +168,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
     ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
-    utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
+    utils::LoadConvexMesh(GetVehicleDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
     // Assemble the tire contact from 15 segments, properly offset.
@@ -187,7 +189,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 
     // Visualization
     auto trimesh =
-        ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -278,16 +280,16 @@ int main(int argc, char* argv[]) {
     ////                                5,    // number of erosion refinements per timestep
     ////                                10);  // number of concentric vertex selections subject to erosion
 
-    // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
+    // Optionally, enable active domains feature (single domain around vehicle chassis)
+    terrain.AddActiveDomain(my_hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
-    // Optionally, enable moving patch feature (multiple patches around each wheel)
+    // Optionally, enable active domains feature (multiple domains around each wheel)
     ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
-    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+    ////    terrain.AddActiveDomain(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+    ////    terrain.AddActiveDomain(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
     ////}
 
-    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    ////terrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 80, 16);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
 
@@ -311,6 +313,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
+    vis->AddGuiColorbar("Sinkage", {0, 0.1}, ChColormap::Type::JET, false);
 
     // -----------------
     // Initialize output
@@ -392,7 +395,6 @@ int main(int argc, char* argv[]) {
         // Render scene
         vis->BeginScene();
         vis->Render();
-        tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30);
         vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {

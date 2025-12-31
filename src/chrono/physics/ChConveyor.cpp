@@ -258,11 +258,11 @@ void ChConveyor::SetSystem(ChSystem* m_system) {
     internal_link->SetSystem(m_system);
 }
 
-void ChConveyor::Update(double mytime, bool update_assets) {
+void ChConveyor::Update(double time, bool update_assets) {
     // inherit parent class function
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
-    conveyor_truss->Update(mytime, update_assets);
+    conveyor_truss->Update(time, update_assets);
 
     if (conveyor_truss->IsFixed()) {
         double largemass = 100000;
@@ -281,13 +281,13 @@ void ChConveyor::Update(double mytime, bool update_assets) {
     // keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
     conveyor_plate->SetPosDt(conveyor_truss->GetPosDt() + (ChVector3d(conveyor_speed, 0, 0) >> (*conveyor_truss)));
 
-    conveyor_plate->Update(mytime, update_assets);
+    conveyor_plate->Update(time, update_assets);
 
     std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetAngularCoeff(-conveyor_speed);
     // always zero pos. offset (trick):
     std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetStartVal(+conveyor_speed * GetChTime());
 
-    internal_link->Update(mytime, update_assets);
+    internal_link->Update(time, update_assets);
 }
 
 void ChConveyor::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {

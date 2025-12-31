@@ -19,7 +19,7 @@
 
 // Include these before ChMatrixEigenExtensions
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/serialization/ChOutputASCII.h"
+#include "chrono/serialization/ChArchiveASCII.h"
 
 // -----------------------------------------------------------------------------
 
@@ -183,6 +183,10 @@ using ChArrayConstRef = const Eigen::Ref<const Eigen::Array<T, Eigen::Dynamic, 1
 /// Sparse matrix representation.
 /// A ChSparseMatrix is an Eigen SparseMatrix with double coefficients, row-major storage order, and int indices.
 using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
+
+/// Sparse complex matrix representation.
+/// A ChComplexSparseMatrix is an Eigen matrix with complex coefficients, column-major storage order, and int indices.
+using ChComplexSparseMatrix = Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>;
 
 // -----------------------------------------------------------------------------
 

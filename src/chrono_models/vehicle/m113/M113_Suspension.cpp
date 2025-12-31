@@ -94,8 +94,8 @@ M113_Suspension::M113_Suspension(const std::string& name,
 
     // Create bushing data (if enabled)
     if (use_bushings) {
-        m_bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
-        m_bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+        m_bushing_data = chrono_types::make_shared<ChJoint::BushingData>();
+        m_bushing_data = chrono_types::make_shared<ChJoint::BushingData>();
         m_bushing_data->K_lin = 35000000;
         m_bushing_data->K_rot = 300;
         m_bushing_data->D_lin = 100;

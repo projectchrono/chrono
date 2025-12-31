@@ -39,6 +39,10 @@ using namespace chrono;
 				const int c = $self->cols();
 				return c;
 				}			
+			ChMatrix33<double> __rmul__(double s) {
+				ChMatrix33<double> r = (*$self) * s;
+				return r;
+			}
 
 		/*
 					// these functions are also argument-templated, so we need to specify the types

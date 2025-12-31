@@ -46,6 +46,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotionImposed.h"
+#include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChNodeBase.h"
@@ -74,14 +75,20 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChBodyGeometry.h"
+
+#include "chrono/input_output/ChOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 using namespace chrono::fea;
 %}
 
@@ -90,6 +97,20 @@ using namespace chrono::fea;
 #define ChApi 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #define CH_DEPRECATED(msg)
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// I'm not certain if this is a python issue also, so wrap only for csharp for now
+// Stop SWIG from generating a baked literal for the __FILENAME__ macro
+%ignore __FILENAME__;
+%inline %{
+// if needed there can be a pinvoke func instead of a broken char constant that SWIG produces from the macro
+inline const char* ChUtils_GetFilename() {
+    return __FILE__ + SOURCE_PATH_SIZE;
+}
+%}
+// make the new function visible as a public static for c#
+%csmethodmodifiers ChUtils_GetFilename "public static"
+#endif             // --------------------------------------------------------------------- CSHARP
 
 %ignore CH_ENUM_MAPPER_BEGIN;
 %ignore CH_ENUM_VAL;
@@ -172,10 +193,9 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChContactable)
-%shared_ptr(chrono::ChContactable_1vars<3>)
-%shared_ptr(chrono::ChContactable_1vars<6>)
-%shared_ptr(chrono::ChContactable_3vars<3,3,3>)
-%shared_ptr(chrono::ChContactable_3vars<6,6,6>)
+%shared_ptr(chrono::ChContactable_1vars)
+%shared_ptr(chrono::ChContactable_2vars)
+%shared_ptr(chrono::ChContactable_3vars)
 %shared_ptr(chrono::ChIndexedNodes)
 %shared_ptr(chrono::ChContactMaterialNSC)
 %shared_ptr(chrono::ChContactMaterialSMC)
@@ -197,7 +217,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChParticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
-%shared_ptr(chrono::ChParticleCloud)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
@@ -257,31 +276,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkLockPointSpline)
 %shared_ptr(chrono::ChLinkMotionImposed)
 %shared_ptr(chrono::ChLinkBushing)
-
-
-%shared_ptr(chrono::ChGeometry)
-%shared_ptr(chrono::ChLine)
-%shared_ptr(chrono::ChVolume)
-%shared_ptr(chrono::ChSurface)
-%shared_ptr(chrono::ChBox)
-%shared_ptr(chrono::ChSphere)
-%shared_ptr(chrono::ChCylinder)
-%shared_ptr(chrono::ChCapsule)
-%shared_ptr(chrono::ChCone)
-%shared_ptr(chrono::ChEllipsoid)
-%shared_ptr(chrono::ChLineArc)
-%shared_ptr(chrono::ChLineSegment)
-%shared_ptr(chrono::ChLineNurbs)
-%shared_ptr(chrono::ChLinePath)
-%shared_ptr(chrono::ChLinePoly)
-%shared_ptr(chrono::ChLineBezier)
-%shared_ptr(chrono::ChLineCam)
-%shared_ptr(chrono::ChLineBSpline)
-%shared_ptr(chrono::ChTriangle)
-%shared_ptr(chrono::ChSurfaceNurbs)
-%shared_ptr(chrono::ChTriangleMesh)
-%shared_ptr(chrono::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChTriangleMeshSoup)
+%shared_ptr(chrono::ChJoint)
 
 // Cross-inheritance for callbacks that must be inherited.
 // Put these 'director' features _before_ class wrapping declaration.
@@ -310,9 +305,11 @@ using namespace chrono::fea;
 
 //  core/  classes
 %include "ChClassFactory.i"
-%include "../../../chrono/core/ChGlobal.h"
+%include "../../../chrono/core/ChDataPath.h"
 //%include "ChArchive.i"
 %include "ChMatrix.i"
+%include "ChVector2.i"
+#define ChVector2d ChVector2d
 %include "ChVector3.i"
 #define ChVector3d ChVector3d
 %include "ChQuaternion.i"
@@ -328,10 +325,10 @@ using namespace chrono::fea;
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 
+%include "ChMassProperties.i" // needed by ChTriangleMeshConnected in ChGeometry.i
+
 // geometry/   classes
 %include "ChGeometry.i"
-
-
 
 
 //collision classes
@@ -348,6 +345,10 @@ using namespace chrono::fea;
 %include "../../../chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 
+// utils classes
+%include "ChBodyGeometry.i"
+%include "ChUtilsSamplers.i"
+
 // functions/   classes
 %include "ChFunction.i"
 
@@ -356,13 +357,13 @@ using namespace chrono::fea;
 
 // assets
 %include "ChColor.i"
+%include "ChColormap.i"
 %include "ChVisualMaterial.i"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"
 %include "ChTexture.i"
 %include "ChCamera.i"
 %include "../../../chrono/assets/ChGlyphs.h"
-%include "ChVisualSystem.i"
 
 // physics/  classes
 %include "ChControllers.i"
@@ -417,19 +418,24 @@ using namespace chrono::fea;
 %include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
 %include "ChLinkBushing.i"
+%include "../../../chrono/physics/ChJoint.h"
 
-
+%include "ChVisualSystem.i" // ChVisualSystem needs to be put after ChSystem
 
 // Utils
 // for hulls and meshing
 %include "../../../chrono/collision/ChConvexDecomposition.h"
 
+%include "../../../chrono/input_output/ChWriterCSV.h"
+%include "../../../chrono/input_output/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChConstants.h"
 %include "../../../chrono/utils/ChUtils.h"
-%include "../../../chrono/utils/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
+
+%include "../../../chrono/input_output/ChOutput.h"
+%include "../../../chrono/input_output/ChCheckpoint.h"
 
 %include "ChParticleFactory.i"
 //

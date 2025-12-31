@@ -26,7 +26,6 @@
 #include <vector>
 #include <utility>
 
-#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 #include "chrono/core/ChCubicSpline.h"
@@ -67,7 +66,7 @@ class CH_VEHICLE_API ChTrackTestRigRoadDriver : public ChTrackTestRigDriver {
     double m_speed;               ///< vehicle speed over road profile
     ChCubicSpline* m_curve_road;  ///< spline for road profile
     double m_min;                 ///< first value of road x
-    double m_max;                 ///< last value fo road x
+    double m_max;                 ///< last value of road x
     bool m_ended;                 ///< flag indicating end of input data
 };
 

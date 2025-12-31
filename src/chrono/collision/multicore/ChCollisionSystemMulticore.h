@@ -28,8 +28,6 @@
 #include "chrono/collision/multicore/ChBroadphase.h"
 #include "chrono/collision/multicore/ChNarrowphase.h"
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
-
 namespace chrono {
 
 // forward references
@@ -126,11 +124,10 @@ class ChApi ChCollisionSystemMulticore : public ChCollisionSystem {
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override {}
 
     /// Perform a ray-hit test with all collision models.
-    /// Currently not implemented.
     virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const override;
 
     /// Perform a ray-hit test with the specified collision model.
-    /// Currently not implemented.
+    /// Currently NOT implemented.
     virtual bool RayHit(const ChVector3d& from,
                         const ChVector3d& to,
                         ChCollisionModel* model,

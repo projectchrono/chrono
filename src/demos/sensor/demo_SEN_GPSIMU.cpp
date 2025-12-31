@@ -31,7 +31,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_sensor/sensors/ChNoiseModel.h"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
@@ -265,10 +265,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a CSV writer to record the IMU data
-    utils::ChWriterCSV imu_csv(" ");
+    ChWriterCSV imu_csv(" ");
 
     // Create a CSV writer to record the GPS data
-    utils::ChWriterCSV gps_csv(" ");
+    ChWriterCSV gps_csv(" ");
 
     // ---------------
     // Simulate system

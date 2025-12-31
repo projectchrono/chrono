@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
                                                        true);  // origin, rad, angle start&end
     line->SetLineGeometry(my_arc);
     line->SetColor(ChColor(1.0f, 0.3f, 0));
-    line->SetThickness(10.0);
+    line->SetThickness(0.02);
     body->AddVisualShape(line);
 
     // ==Asset== Attach a video camera.

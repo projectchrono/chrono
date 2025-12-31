@@ -43,9 +43,6 @@
 // If module MUMPS was enabled, define CHRONO_MUMPS
 @CHRONO_MUMPS@
 
-// If module OPENGL was enabled, define CHRONO_OPENGL
-@CHRONO_OPENGL@
-
 // If module PARSERS was enabled, define CHRONO_PARSERS
 @CHRONO_PARSERS@
 
@@ -64,8 +61,14 @@
 // If module FSI was enabled, define CHRONO_FSI
 @CHRONO_FSI@
 
-// If module GPU was enabled, define CHRONO_GPU
-@CHRONO_GPU@
+// If FSI_SPH module was enabled, define CHRONO_FSI_SPH
+@CHRONO_FSI_SPH@
+
+// If FSI_TDPF module was enabled, define CHRONO_FSI_TDPF
+@CHRONO_FSI_TDPF@
+
+// If module DEM was enabled, define CHRONO_DEM
+@CHRONO_DEM@
 
 // If module SYNCHRONO was enabled, define CHRONO_SYNCHRONO
 @CHRONO_SYNCHRONO@
@@ -81,6 +84,20 @@
 
 // If module FMI was enabled, define CHRONO_FMI
 @CHRONO_FMI@
+
+// -----------------------------------------------------------------------------
+// C++ standard support
+// -----------------------------------------------------------------------------
+
+// If Chrono was built with C++17 support, define CHRONO_HAS_CXX17
+@CHRONO_HAS_CXX17@
+
+// -----------------------------------------------------------------------------
+// GnuPlot
+// -----------------------------------------------------------------------------
+
+// If GnuPlot was found, define CHRONO_HAS_GNUPLOT
+@CHRONO_HAS_GNUPLOT@
 
 // -----------------------------------------------------------------------------
 // OpenMP settings
@@ -102,11 +119,8 @@
 @CHRONO_OMP_30@
 @CHRONO_OMP_40@
 
-// If OpenMP support was enabled in the main ChronoEngine library, define CHRONO_OPENMP_ENABLED
+// If OpenMP support was enabled, define CHRONO_OPENMP_ENABLED
 @CHRONO_OPENMP_ENABLED@
-
-// If TBB support was enabled in the main ChronoEngine library, define CHRONO_TBB_ENABLED
-@CHRONO_TBB_ENABLED@
 
 // -----------------------------------------------------------------------------
 
@@ -215,5 +229,11 @@
 
 // Always use double in custom multicore collision detection
 #define USE_COLLISION_DOUBLE
+
+// -----------------------------------------------------------------------------
+// Length of the path to the Chrono source directory
+// -----------------------------------------------------------------------------
+
+#define SOURCE_PATH_SIZE @SOURCE_PATH_SIZE@
 
 #endif

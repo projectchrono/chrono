@@ -178,7 +178,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double DREFF = 0;               // Peak value of e.r.r.
         double FREFF = 0;               // High load stiffness e.r.r.
         double FNOMIN = 0;              // Nominal wheel load
-        double TIRE_MASS = 0;           // Tire mass (if belt dynmics is used)
+        double TIRE_MASS = 0;           // Tire mass (if belt dynamics is used)
         double QFZ1 = 0.0;              // Variation of vertical stiffness with deflection (linear)
         double QFZ2 = 0.0;              // Variation of vertical stiffness with deflection (quadratic)
         double QFZ3 = 0.0;              // Variation of vertical stiffness with inclination angle
@@ -373,6 +373,18 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
+    /// Get current internal dynamics ODE states (if any).
+    virtual void GetInternalStates(ChVector2d& states) const override {
+        states[0] = m_states.brx;
+        states[1] = m_states.bry;
+    }
+
+    /// Set the internal dynamics ODE states (if any).
+    virtual void SetInternalStates(const ChVector2d& states) {
+        m_states.brx = states[0];
+        m_states.bry = states[1];
+    }
+
     struct TireStates {
         double mu_scale;         // scaling factor for tire patch forces
         double mu_road;          // actual road friction coefficient
@@ -396,6 +408,10 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     };
 
     TireStates m_states;
+
+    // The Dahl ODE can be integrated by BDF1 or Trapezoidal Rule
+    // both work, BDF1 is less accurate
+    const bool m_use_bdf1{false};
 };
 
 /// @} vehicle_wheeled_tire

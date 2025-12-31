@@ -1,24 +1,28 @@
 set(DEMOS
-    demo_CH_buildsystem
+    demo_CS_CH_buildsystem
 )
 
-message(STATUS "---------------------")
-message(STATUS "C# basic Chrono demos")
-message(STATUS "---------------------")
+# ----------------------------------------------------------------------
 
-# Look for a Chrono installation
-find_package(Chrono
-             COMPONENTS CSharp
-             CONFIG)
+set(MODULE_LIST)
+list(APPEND MODULE_LIST "core")
 
-# Append to the parent's lists of DLLs (and make them visible)
-list(APPEND ALL_DLL_NAMES       "${CHRONO_DLL_NAMES}")
-list(APPEND ALL_DEPENDENCY_DLLS "${CHRONO_DEPENDENCY_DLLS}")
-set(ALL_DLL_NAMES       "${ALL_DLL_NAMES}"       PARENT_SCOPE)
-set(ALL_DEPENDENCY_DLLS "${ALL_DEPENDENCY_DLLS}" PARENT_SCOPE)
+set(CHRONO_CSHARP_SOURCES)
+set(_chrono_csharp_source_desc "")
+# Prefer the managed wrapper when available so each demo stays tiny; otherwise embed generated SWIG sources directly (original approach)
+if(CHRONO_CSHARP_USING_WRAPPER)
+  set(_chrono_csharp_source_desc "using chrono_csharp_wrapper.dll")
+else()
+  CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
+  list(LENGTH CHRONO_CSHARP_SOURCES NUM_CSHARP_FILES)
+  set(_chrono_csharp_source_desc "embedding ${NUM_CSHARP_FILES} SWIG sources")
+endif()
 
-# Add C# executables
+message(STATUS "  C# core demos;    ${_chrono_csharp_source_desc}")
+
+# ----------------------------------------------------------------------
+
 foreach(PROGRAM ${DEMOS})
-  message(STATUS "...add ${PROGRAM}")
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
+  chrono_configure_csharp_demo(${PROGRAM})
 endforeach()

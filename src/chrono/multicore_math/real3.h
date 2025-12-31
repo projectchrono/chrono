@@ -29,28 +29,28 @@ namespace chrono {
 /// Chrono::Multicore triplet (3-dimensional vector).
 class ChApi real3 {
   public:
-    CUDA_HOST_DEVICE inline real3() { array[3] = 0; }
-    CUDA_HOST_DEVICE inline explicit real3(real a) {
+    inline real3() { array[3] = 0; }
+    inline explicit real3(real a) {
         array[0] = a;
         array[1] = a;
         array[2] = a;
         array[3] = 0;
     }
-    CUDA_HOST_DEVICE inline real3(real a, real b, real c) {
+    inline real3(real a, real b, real c) {
         array[0] = a;
         array[1] = b;
         array[2] = c;
         array[3] = 0;
     }
-    CUDA_HOST_DEVICE inline real3(const real3& v) {
+    inline real3(const real3& v) {
         array[0] = v.x;
         array[1] = v.y;
         array[2] = v.z;
         array[3] = 0;
     }
-    CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
-    CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
-    CUDA_HOST_DEVICE inline real3& operator=(const real3& rhs) {
+    inline real operator[](unsigned int i) const { return array[i]; }
+    inline real& operator[](unsigned int i) { return array[i]; }
+    inline real3& operator=(const real3& rhs) {
         x = rhs.x;
         y = rhs.y;
         z = rhs.z;
@@ -90,62 +90,62 @@ class ChApi real3 {
     };
 };
 
-CUDA_HOST_DEVICE ChApi real3 Set3(real x);
-CUDA_HOST_DEVICE ChApi real3 Set3(real x, real y, real z);
+ChApi real3 Set3(real x);
+ChApi real3 Set3(real x, real y, real z);
 
-CUDA_HOST_DEVICE ChApi real3 operator+(const real3& a, real b);
-CUDA_HOST_DEVICE ChApi real3 operator-(const real3& a, real b);
-CUDA_HOST_DEVICE ChApi real3 operator*(const real3& a, real b);
-CUDA_HOST_DEVICE ChApi real3 operator/(const real3& a, real b);
+ChApi real3 operator+(const real3& a, real b);
+ChApi real3 operator-(const real3& a, real b);
+ChApi real3 operator*(const real3& a, real b);
+ChApi real3 operator/(const real3& a, real b);
 
-CUDA_HOST_DEVICE ChApi real3 operator+(const real3& a, const real3& b);
-CUDA_HOST_DEVICE ChApi real3 operator-(const real3& a, const real3& b);
-CUDA_HOST_DEVICE ChApi real3 operator*(const real3& a, const real3& b);
-CUDA_HOST_DEVICE ChApi real3 operator/(const real3& a, const real3& b);
+ChApi real3 operator+(const real3& a, const real3& b);
+ChApi real3 operator-(const real3& a, const real3& b);
+ChApi real3 operator*(const real3& a, const real3& b);
+ChApi real3 operator/(const real3& a, const real3& b);
 
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(*, real, real3);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(/, real, real3);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(+, real, real3);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(-, real, real3);
+ChApi OPERATOR_EQUALS_PROTO(*, real, real3);
+ChApi OPERATOR_EQUALS_PROTO(/, real, real3);
+ChApi OPERATOR_EQUALS_PROTO(+, real, real3);
+ChApi OPERATOR_EQUALS_PROTO(-, real, real3);
 
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(*, real3, real3);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(/, real3, real3);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(+, real3, real3);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(-, real3, real3);
+ChApi OPERATOR_EQUALS_PROTO(*, real3, real3);
+ChApi OPERATOR_EQUALS_PROTO(/, real3, real3);
+ChApi OPERATOR_EQUALS_PROTO(+, real3, real3);
+ChApi OPERATOR_EQUALS_PROTO(-, real3, real3);
 
-CUDA_HOST_DEVICE ChApi real3 operator-(const real3& a);
-CUDA_HOST_DEVICE ChApi real3 operator*(real lhs, const real3& rhs);
-CUDA_HOST_DEVICE ChApi real3 operator/(real lhs, const real3& rhs);
+ChApi real3 operator-(const real3& a);
+ChApi real3 operator*(real lhs, const real3& rhs);
+ChApi real3 operator/(real lhs, const real3& rhs);
 
-CUDA_HOST_DEVICE ChApi bool operator<(const real3& lhs, const real3& rhs);
-CUDA_HOST_DEVICE ChApi bool operator>(const real3& lhs, const real3& rhs);
-CUDA_HOST_DEVICE ChApi bool operator==(const real3& lhs, const real3& rhs);
+ChApi bool operator<(const real3& lhs, const real3& rhs);
+ChApi bool operator>(const real3& lhs, const real3& rhs);
+ChApi bool operator==(const real3& lhs, const real3& rhs);
 
-CUDA_HOST_DEVICE ChApi real3 Cross(const real3& b, const real3& c);
-CUDA_HOST_DEVICE ChApi real Dot(const real3& v1, const real3& v2);
-CUDA_HOST_DEVICE ChApi real Dot(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 Normalize(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 Sqrt(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 Round(const real3& v);
-CUDA_HOST_DEVICE ChApi real Length(const real3& v);
-CUDA_HOST_DEVICE ChApi real Length2(const real3& v1);
-CUDA_HOST_DEVICE ChApi real SafeLength(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 SafeNormalize(const real3& v, const real3& safe = real3(0));
-CUDA_HOST_DEVICE ChApi real Max(const real3& a);
-CUDA_HOST_DEVICE ChApi real Min(const real3& a);
-CUDA_HOST_DEVICE ChApi real3 Max(const real3& a, const real3& b);
-CUDA_HOST_DEVICE ChApi real3 Min(const real3& a, const real3& b);
-CUDA_HOST_DEVICE ChApi real3 Max(const real3& a, const real& b);
-CUDA_HOST_DEVICE ChApi real3 Min(const real3& a, const real& b);
-CUDA_HOST_DEVICE ChApi bool IsZero(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 Abs(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 Sign(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 Clamp(const real3& v, real max_length);
-CUDA_HOST_DEVICE ChApi real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
-CUDA_HOST_DEVICE ChApi real3 OrthogonalVector(const real3& v);
-CUDA_HOST_DEVICE ChApi real3 UnitOrthogonalVector(const real3& v);
-CUDA_HOST_DEVICE ChApi void Sort(real& a, real& b, real& c);
-CUDA_HOST_DEVICE ChApi void Print(real3 v, const char* name);
+ChApi real3 Cross(const real3& b, const real3& c);
+ChApi real Dot(const real3& v1, const real3& v2);
+ChApi real Dot(const real3& v);
+ChApi real3 Normalize(const real3& v);
+ChApi real3 Sqrt(const real3& v);
+ChApi real3 Round(const real3& v);
+ChApi real Length(const real3& v);
+ChApi real Length2(const real3& v1);
+ChApi real SafeLength(const real3& v);
+ChApi real3 SafeNormalize(const real3& v, const real3& safe = real3(0));
+ChApi real Max(const real3& a);
+ChApi real Min(const real3& a);
+ChApi real3 Max(const real3& a, const real3& b);
+ChApi real3 Min(const real3& a, const real3& b);
+ChApi real3 Max(const real3& a, const real& b);
+ChApi real3 Min(const real3& a, const real& b);
+ChApi bool IsZero(const real3& v);
+ChApi real3 Abs(const real3& v);
+ChApi real3 Sign(const real3& v);
+ChApi real3 Clamp(const real3& v, real max_length);
+ChApi real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
+ChApi real3 OrthogonalVector(const real3& v);
+ChApi real3 UnitOrthogonalVector(const real3& v);
+ChApi void Sort(real& a, real& b, real& c);
+ChApi void Print(real3 v, const char* name);
 
 /// @} chrono_mc_math
 

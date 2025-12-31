@@ -18,6 +18,7 @@
 #define CHROTUTILS_H
 
 #include <vector>
+#include <cmath>
 
 #include "chrono/core/ChMatrix33.h"
 
@@ -92,11 +93,11 @@ void RotCo(const int cid, const T1& phi, const ChVector3d& p, T2* const cf) {
     }
 
     const T2 ID(1.);
-    T2 pd(sqrt(phi2));
-    cf[0] = sin(pd) / pd;  // a = sin(phi)/phi
+    T2 pd(std::sqrt(phi2));
+    cf[0] = std::sin(pd) / pd;  // a = sin(phi)/phi
     if (cid == 1)
         return;
-    cf[1] = (ID - cos(pd)) / phi2;  // b = (1.-cos(phi))/phi2
+    cf[1] = (ID - std::cos(pd)) / phi2;  // b = (1.-cos(phi))/phi2
     if (cid == 2)
         return;
     cf[2] = (ID - cf[0]) / phi2;  // c = (1.-a)/phi2
@@ -253,7 +254,7 @@ ChVector3d VecRot(const ChMatrix33<>& Phi) {
         unit[1] = 0.5 * (Phi(0, 2) - Phi(2, 0));
         unit[2] = 0.5 * (Phi(1, 0) - Phi(0, 1));
         sinphi = unit.Length();
-        double phi = atan2(sinphi, cosphi);
+        double phi = std::atan2(sinphi, cosphi);
         CoeffA(ChVector3d(phi, 0., 0.), ChVector3d(phi, 0., 0.), &a);
         unit /= a;
     } else {
@@ -272,10 +273,10 @@ ChVector3d VecRot(const ChMatrix33<>& Phi) {
             maxcol = 2;
             col = eet.GetAxisZ();
         }
-        unit = (col / sqrt(eet(maxcol, maxcol) * (1. - cosphi)));
+        unit = (col / std::sqrt(eet(maxcol, maxcol) * (1. - cosphi)));
         ChStarMatrix33<> unitx(unit);
         sinphi = -(unitx * Phi).trace() / 2.;
-        unit *= atan2(sinphi, cosphi);
+        unit *= std::atan2(sinphi, cosphi);
     }
     return unit;
 }

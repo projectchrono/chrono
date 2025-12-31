@@ -20,17 +20,19 @@
 #include <cstdio>
 #include <vector>
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_models/robot/robosimian/RoboSimian.h"
-#include "chrono_models/robot/robosimian/RoboSimianVisualSystemIrrlicht.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 double time_step = 5e-4;
 
@@ -241,15 +243,15 @@ int main(int argc, char* argv[]) {
 
     // Set visualization modes (default: all COLLISION)
 
-    ////robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeLimb(robosimian::FL, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::FR, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::RL, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::RR, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::NONE);
-    ////robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::MESH);
+    ////robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeLimb(robosimian::FL, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::FR, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::RL, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::RR, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimbs(VisualizationType::NONE);
+    ////robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeSled(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeLimbs(VisualizationType::MESH);
 
     // Initialize Robosimian robot
 
@@ -311,7 +313,7 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    auto vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(my_sys);
     vis->SetWindowTitle("RoboSimian - Rigid terrain");
     vis->SetWindowSize(800, 600);
@@ -321,8 +323,6 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector3d(1, -2.75, 0.2), ChVector3d(1, 0, 0));
     vis->AddLight(ChVector3d(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector3d(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
-    ////vis->AddLightWithShadow(ChVector3d(10.0, -6.0, 3.0), ChVector3d(0, 0, 0), 3, -10, 10, 40, 512);
-    ////vis->EnableShadows();
 
     // ---------------------------------
     // Run simulation for specified time

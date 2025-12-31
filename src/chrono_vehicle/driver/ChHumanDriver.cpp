@@ -33,7 +33,7 @@
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
@@ -306,7 +306,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     // define field of view angle of the driver +-10 deg
     const double ny = 10.0 * CH_DEG_TO_RAD;
     // which speed to choose?
-    // search intervalls for longitudinal controller
+    // search intervals for longitudinal controller
     double d_long = 0;
     bool i_restrict = false;
     bool j_restrict = false;
@@ -314,8 +314,8 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     ChVector3d Lip_G;
     ChVector3d Rj_G;
     ChVector3d Rjp_G;
-    ChVector3d r_rv = t_g + tan(ny) * n_g;
-    ChVector3d r_lv = t_g - tan(ny) * n_g;
+    ChVector3d r_rv = t_g + std::tan(ny) * n_g;
+    ChVector3d r_lv = t_g - std::tan(ny) * n_g;
     while (!i_restrict && !j_restrict) {
         size_t i_next = GetNextI();
         size_t j_next = GetNextJ();

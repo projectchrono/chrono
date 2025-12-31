@@ -59,10 +59,10 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
     auto& cd_data = data_manager->cd_data;  // collision system data
 
     // Currently, we only consider contacts between rigid bodies
-    ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelA->GetContactable());
-    ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelB->GetContactable());
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
 
-    if (mmboA && mmboB) {
+    if (contactableA && contactableB) {
         // Geometric information for added contact.
         int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex();
         int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex();
@@ -105,10 +105,10 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo) {
     auto& cd_data = data_manager->cd_data;  // collision system data
 
     // Currently, we only consider contacts between rigid bodies
-    ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelA->GetContactable());
-    ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelB->GetContactable());
+    auto contactableA = cinfo.modelA->GetContactable();
+    auto contactableB = cinfo.modelB->GetContactable();
 
-    if (mmboA && mmboB) {
+    if (contactableA && contactableB) {
         cd_data->norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
         cd_data->cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));

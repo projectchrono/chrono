@@ -19,8 +19,7 @@
 
 namespace chrono {
 
-/// Specialized class for representing a N-DOF item for a system, that is an item with a diagonal mass matrix and
-/// associated variables.
+/// Class for representing an N-DOF item with a diagonal mass matrix and associated variables.
 class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
   public:
     ChVariablesGenericDiagonalMass(unsigned int dof = 1);

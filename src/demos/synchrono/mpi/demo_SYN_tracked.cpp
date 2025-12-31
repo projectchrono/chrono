@@ -20,9 +20,9 @@
 #include <chrono>
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
@@ -33,7 +33,7 @@
 #include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
 #include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -121,25 +121,25 @@ class DriverWrapper : public ChDriver {
   public:
     DriverWrapper(ChVehicle& vehicle) : ChDriver(vehicle) {}
 
-    /// Update the state of this driver system at the specified time.
+    // Update the state of this driver system at the specified time.
     virtual void Synchronize(double time) override {
-        if (irr_driver) {
-            irr_driver->Synchronize(time);
-            m_throttle = irr_driver->GetThrottle();
-            m_steering = irr_driver->GetSteering();
-            m_braking = irr_driver->GetBraking();
+        if (m_driver) {
+            m_driver->Synchronize(time);
+            m_throttle = m_driver->GetThrottle();
+            m_steering = m_driver->GetSteering();
+            m_braking = m_driver->GetBraking();
         }
     }
 
-    /// Advance the state of this driver system by the specified time step.
+    // Advance the state of this driver system by the specified time step.
     virtual void Advance(double step) override {
-        if (irr_driver)
-            irr_driver->Advance(step);
+        if (m_driver)
+            m_driver->Advance(step);
     }
 
-    void Set(std::shared_ptr<ChInteractiveDriverIRR> irr_driver) { this->irr_driver = irr_driver; }
+    void Set(std::shared_ptr<ChInteractiveDriver> driver) { m_driver = driver; }
 
-    std::shared_ptr<ChInteractiveDriverIRR> irr_driver;
+    std::shared_ptr<ChInteractiveDriver> m_driver;
 };
 
 // =============================================================================
@@ -214,11 +214,24 @@ int main(int argc, char* argv[]) {
     syn_manager.Initialize(vehicle.GetSystem());
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile("terrain/RigidPlane.json"));
 
     // Create the vehicle Irrlicht interface
     IrrAppWrapper app;
     DriverWrapper driver(vehicle);
+
+    // Create the interactive driver system
+    auto irr_driver = chrono_types::make_shared<ChInteractiveDriver>(vehicle);
+    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+    double throttle_time = 1.0;  // time to go from 0 to +1
+    double braking_time = 0.3;   // time to go from 0 to +1
+    irr_driver->SetSteeringDelta(render_step_size / steering_time);
+    irr_driver->SetThrottleDelta(render_step_size / throttle_time);
+    irr_driver->SetBrakingDelta(render_step_size / braking_time);
+    irr_driver->Initialize();
+
+    driver.Set(irr_driver);
+
     if (cli.HasValueInVector<int>("irr", node_id)) {
         auto temp_app = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
         temp_app->SetWindowTitle("SynChrono Tracked Vehicle Demo");
@@ -226,22 +239,9 @@ int main(int argc, char* argv[]) {
         temp_app->Initialize();
         temp_app->AddTypicalLights();
         temp_app->AttachVehicle(&vehicle);
-
-        // Create the interactive driver system
-        auto irr_driver = chrono_types::make_shared<ChInteractiveDriverIRR>(*temp_app);
-
-        // Set the time response for steering and throttle keyboard inputs.
-        double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-        double throttle_time = 1.0;  // time to go from 0 to +1
-        double braking_time = 0.3;   // time to go from 0 to +1
-        irr_driver->SetSteeringDelta(render_step_size / steering_time);
-        irr_driver->SetThrottleDelta(render_step_size / throttle_time);
-        irr_driver->SetBrakingDelta(render_step_size / braking_time);
-
-        irr_driver->Initialize();
+        temp_app->AttachDriver(irr_driver.get());
 
         app.Set(temp_app);
-        driver.Set(irr_driver);
     }
 
     // ---------------
@@ -332,10 +332,10 @@ void GetVehicleModelFiles(VehicleType type,
                           double& cam_distance) {
     switch (type) {
         case VehicleType::M113:
-            vehicle = vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json");
-            engine = vehicle::GetDataFile("M113/powertrain/M113_EngineSimple.json");
-            transmission = vehicle::GetDataFile("M113/powertrain/M113_AutomaticTransmissionSimpleMap.json");
-            zombie = synchrono::GetDataFile("vehicle/M113.json");
+            vehicle = GetVehicleDataFile("M113/vehicle/M113_Vehicle_SinglePin.json");
+            engine = GetVehicleDataFile("M113/powertrain/M113_EngineSimple.json");
+            transmission = GetVehicleDataFile("M113/powertrain/M113_AutomaticTransmissionSimpleMap.json");
+            zombie = GetSynchronoDataFile("vehicle/M113.json");
             cam_distance = 8.0;
             break;
     }

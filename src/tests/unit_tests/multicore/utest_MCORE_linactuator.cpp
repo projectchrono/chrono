@@ -19,15 +19,16 @@
 #include "chrono/ChConfig.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
-#include "unit_testing.h"
+#include "../ut_utils.h"
 
 using namespace chrono;
 
@@ -298,25 +299,30 @@ TEST_P(ChLinActuatorTest, simulate) {
     double time = 0;
 
     if (animate) {
-#ifdef CHRONO_OPENGL
-        opengl::ChVisualSystemOpenGL vis;
-        vis.AttachSystem(sys);
-        vis.SetWindowTitle("");
-        vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::WIREFRAME);
-        vis.Initialize();
-        vis.AddCamera(ChVector3d(0, -10, 0), ChVector3d(0, 0, 0));
-        vis.SetCameraVertical(CameraVerticalDir::Z);
+#ifdef CHRONO_VSG
+        auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+        vis->AttachSystem(sys);
+        vis->SetWindowTitle("Unit test");
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        vis->AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
+        vis->SetWindowSize(1280, 720);
+        vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+        vis->EnableSkyBox();
+        vis->SetCameraAngleDeg(40.0);
+        vis->SetLightIntensity(1.0f);
+        vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows();
+        vis->Initialize();
 
         while (time < time_end) {
             // Advance simulation by one step.
             sys->DoStepDynamics(time_step);
-            vis.Render();
+            vis->Render();
             time += time_step;
             VerifySolution(time);
         }
 #else
-        std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
+        std::cout << "Run-time visualization not available.  Cannot animate mechanism." << std::endl;
         FAIL();
 #endif
     } else {

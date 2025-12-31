@@ -42,6 +42,9 @@ class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
     /// Get the ellipsoid axes.
     ChVector3d GetAxes() const { return gellipsoid.GetAxes(); }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return gellipsoid.GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

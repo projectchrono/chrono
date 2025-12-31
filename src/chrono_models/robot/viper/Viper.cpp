@@ -42,7 +42,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChShaftBodyConstraint.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono/utils/ChUtils.h"
 
@@ -724,6 +724,12 @@ void ViperSpeedDriver::Update(double time) {
     if (time < m_ramp)
         speed = m_speed * (time / m_ramp);
     drive_speeds = {speed, speed, speed, speed};
+}
+
+void ViperDirectControl::SetDirectControl(std::array<double, 4> m_drive_speeds, std::array<double, 4> m_steer_angles, std::array<double, 4> m_lift_angles){
+    drive_speeds = m_drive_speeds;
+    steer_angles = m_steer_angles;
+    lift_angles = m_lift_angles;
 }
 
 }  // namespace viper

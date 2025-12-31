@@ -49,6 +49,7 @@
 #include <vector>
 
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/solver/ChSolver.h"
 
@@ -71,12 +72,24 @@
 #include "chrono_models/robot/copters/Copter.h"
 #include "chrono_models/robot/copters/Little_Hexy.h"
 
+#include "chrono_models/robot/industrial/IndustrialRobot.h"
+#include "chrono_models/robot/industrial/IndustrialRobotSCARA.h"
+#include "chrono_models/robot/industrial/IndustrialRobotSCARA_CAD.h"
+#include "chrono_models/robot/industrial/IndustrialRobot6dof.h"
+#include "chrono_models/robot/industrial/IndustrialRobot6dofCAD.h"
+#include "chrono_models/robot/industrial/IndustrialKinematics.h"
+#include "chrono_models/robot/industrial/IndustrialKinematicsSCARA.h"
+#include "chrono_models/robot/industrial/IndustrialKinematics6dofSpherical.h"
+#include "chrono_models/robot/industrial/IndustrialKinematicsNdofNumerical.h"
+#include "chrono_models/robot/industrial/TrajectoryInterpolator.h"
+
 using namespace chrono;
 using namespace chrono::robosimian;
 using namespace chrono::viper;
 using namespace chrono::curiosity;
 using namespace chrono::turtlebot;
 using namespace chrono::copter;
+using namespace chrono::industrial;
 
 %}
 
@@ -105,10 +118,40 @@ using namespace chrono::copter;
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
 
-
 %template(vector_int) std::vector< int >;
 %template(limb_data) std::array<double, 8>;
 %template(Actuation) std::array<std::array<double, 8>, 4>;
+%template(array_2) std::array<double, 2>;
+%template(array_3) std::array<double, 3>;
+%template(array_4) std::array<double, 4>;
+%template(array_5) std::array<double, 5>;
+
+%template(array_ChCoordsysd_7) std::array< chrono::ChCoordsys<double>, 7 >;
+%template(vector_ChFunction) std::vector< std::shared_ptr<chrono::ChFunction> >;
+%template(vector_ChFunctionSetpoint) std::vector< std::shared_ptr<chrono::ChFunctionSetpoint> >;
+%template(vector_ChLinkMotor) std::vector< std::shared_ptr<chrono::ChLinkMotor> >;
+
+#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
+%rename(CollisionFamily_LIMB_FR) chrono::robosimian::CollisionFamily::Enum::LIMB_FR;
+%rename(CollisionFamily_LIMB_RR) chrono::robosimian::CollisionFamily::Enum::LIMB_RR;
+%rename(CollisionFamily_LIMB_RL) chrono::robosimian::CollisionFamily::Enum::LIMB_RL;
+%rename(CollisionFamily_LIMB_FL) chrono::robosimian::CollisionFamily::Enum::LIMB_FL;
+%rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::Enum::CHASSIS;
+%rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::Enum::SLED;
+%rename(CollisionFamily_WHEEL_DD) chrono::robosimian::CollisionFamily::Enum::WHEEL_DD;
+
+%rename(CollisionFlags_NONE) chrono::robosimian::CollisionFlags::Enum::NONE;
+%rename(CollisionFlags_CHASSIS) chrono::robosimian::CollisionFlags::Enum::CHASSIS;
+%rename(CollisionFlags_SLED) chrono::robosimian::CollisionFlags::Enum::SLED;
+%rename(CollisionFlags_LIMBS) chrono::robosimian::CollisionFlags::Enum::LIMBS;
+%rename(CollisionFlags_WHEELS) chrono::robosimian::CollisionFlags::Enum::WHEELS;
+%rename(CollisionFlags_ALL) chrono::robosimian::CollisionFlags::Enum::ALL;
+#endif              // --------------------------------------------------------------------- PYTHON
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%rename(CollisionFamily_Enum) chrono::robosimian::CollisionFamily::Enum;
+%rename(CollisionFlags_Enum) chrono::robosimian::CollisionFlags::Enum;
+#endif             // --------------------------------------------------------------------- CSHARP
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -125,6 +168,10 @@ using namespace chrono::copter;
 
 //from core module:
 %shared_ptr(chrono::ChFunction)
+%shared_ptr(chrono::ChFunctionSetpoint)
+%shared_ptr(chrono::ChFunctionSetpointCallback)
+%shared_ptr(chrono::ChFunctionPosition)
+%shared_ptr(chrono::ChFunctionPositionLine)
 %shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
 %shared_ptr(chrono::ChPhysicsItem)
@@ -151,6 +198,7 @@ using namespace chrono::copter;
 %shared_ptr(chrono::viper::ViperDriver)
 %shared_ptr(chrono::viper::ViperDCMotorControl)
 %shared_ptr(chrono::viper::ViperSpeedDriver)
+%shared_ptr(chrono::viper::ViperDirectControl)
 
 %shared_ptr(chrono::curiosity::CuriosityPart)
 %shared_ptr(chrono::curiosity::CuriosityChassis)
@@ -174,6 +222,19 @@ using namespace chrono::copter;
 %shared_ptr(chrono::turtlebot::Turtlebot_TopPlate)
 %shared_ptr(chrono::turtlebot::Turtlebot_Rod_Long)
 
+%shared_ptr(chrono::industrial::IndustrialRobot)
+%shared_ptr(chrono::industrial::IndustrialRobotSCARA)
+%shared_ptr(chrono::industrial::IndustrialRobotSCARA_CAD)
+%shared_ptr(chrono::industrial::IndustrialRobot6dof)
+%shared_ptr(chrono::industrial::IndustrialRobot6dofCAD)
+%shared_ptr(chrono::industrial::IndustrialKinematics)
+%shared_ptr(chrono::industrial::IndustrialKinematicsSCARA)
+%shared_ptr(chrono::industrial::IndustrialKinematics6dofSpherical)
+%shared_ptr(chrono::industrial::IndustrialKinematicsNdofNumerical)
+%shared_ptr(chrono::industrial::TrajectoryInterpolator)
+%shared_ptr(chrono::industrial::TrajectoryInterpolatorOperationSpace)
+%shared_ptr(chrono::industrial::TrajectoryInterpolatorJointSpace)
+
 //
 // B- INCLUDE HEADERS
 //
@@ -193,14 +254,15 @@ using namespace chrono::copter;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 //%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystemNSC.i"
 //%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystemSMC.i"
@@ -213,20 +275,20 @@ using namespace chrono::copter;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
-%import(module = "pychrono.core") "../chrono/functions/ChFunctionBase.h"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
-%import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
-%import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionBase.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionSetpoint.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionPosition.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionPositionLine.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChContactMaterial.i"
+%import(module = "pychrono.core") "chrono/fea/ChContinuumMaterial.h"
+%import(module = "pychrono.core") "chrono/physics/ChPhysicsItem.h"
 
-%import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
-%import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
-%import(module = "pychrono.core") "../chrono/assets/ChVisualShapeTriangleMesh.h"
+%import(module = "pychrono.core") "chrono/physics/ChBodyFrame.h"
+%import(module = "pychrono.core") "chrono/physics/ChLinkBase.h"
+%import(module = "pychrono.core") "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 %rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::CHASSIS;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;
-%rename(VisualizationType_NONE) chrono::robosimian::VisualizationType::NONE;
-%rename(VisualizationType_MESH) chrono::robosimian::VisualizationType::MESH;
-%rename(VisualizationType_COLLISION) chrono::robosimian::VisualizationType::COLLISION;
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
 
 %ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
@@ -242,6 +304,16 @@ using namespace chrono::copter;
 %template(ChCopter4) chrono::copter::Copter<4>;
 %include "../../../chrono_models/robot/copters/Little_Hexy.h"
 
+%include "../../../chrono_models/robot/industrial/IndustrialRobot.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobotSCARA.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobotSCARA_CAD.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobot6dof.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobot6dofCAD.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematics.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematicsSCARA.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematics6dofSpherical.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematicsNdofNumerical.h"
+%include "../../../chrono_models/robot/industrial/TrajectoryInterpolator.h"
 
 
 //
@@ -290,16 +362,6 @@ using namespace chrono::copter;
 			   }
 		};
 
-%extend chrono::turtlebot::TurtleBot{
-		public:
-			TurtleBot(chrono::ChSystem* system,
-               const chrono::ChVector3d& robot_pos,
-               const chrono::ChQuaternion<double>& robot_rot){
-			   
-			   auto selfpoint = std::make_shared<chrono::turtlebot::TurtleBot>(system, robot_pos, robot_rot, nullptr);
-			   return selfpoint.get();
-			   }
-		};
 //
 // ADD PYTHON CODE
 //

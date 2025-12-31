@@ -36,7 +36,7 @@ There are many approaches to co-simulation. The method described in this tutoria
 
 In the schematic above, suppose that the system is defined by 
 variables \f$ \mathbf{X} = \{ \mathbf{X}_{CE}, \mathbf{X}_{S}\} \f$, 
-which are splitted so that Chrono deals with 
+which are split so that Chrono deals with 
 \f$ \mathbf{X}_{CE} \f$ while Simulink deals with 
 \f$ \mathbf{X}_{S} \f$. 
 

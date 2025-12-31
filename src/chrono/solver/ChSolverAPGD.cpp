@@ -70,7 +70,6 @@ double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
 }
 
 double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
-    bool verbose = false;
     const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     const std::vector<ChVariables*>& mvariables = sysd.GetVariables();
     if (verbose)
@@ -80,7 +79,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // Update auxiliary data in all constraints before starting,
     // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        mconstraints[ic]->Update_auxiliary();
+        mconstraints[ic]->UpdateAuxiliary();
 
     double L, t;
     double theta;
@@ -190,7 +189,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         }  // (14) endwhile
 
         // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2
-        thetaNew = (-theta * theta + theta * sqrt(theta * theta + 4.0)) / 2.0;
+        thetaNew = (-theta * theta + theta * std::sqrt(theta * theta + 4.0)) / 2.0;
 
         // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
         Beta = theta * (1.0 - theta) / (theta * theta + thetaNew);

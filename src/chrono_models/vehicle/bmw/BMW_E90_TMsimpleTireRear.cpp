@@ -21,7 +21,7 @@
 #include <cmath>
 
 #include "chrono_models/vehicle/bmw/BMW_E90_TMsimpleTireRear.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 namespace chrono {
 namespace vehicle {

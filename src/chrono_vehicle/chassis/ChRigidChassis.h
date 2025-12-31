@@ -46,24 +46,24 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     virtual std::string GetTemplateName() const override { return "RigidChassis"; }
 
     /// Specifies whether or not collision shapes were defined.
-    bool HasCollision() const { return m_geometry.m_has_collision; }
+    bool HasCollision() const { return m_geometry.HasCollision(); }
 
     /// Specifies whether or not visualization primitives were defined.
-    bool HasPrimitives() const { return m_geometry.m_has_primitives; }
+    bool HasPrimitives() const { return m_geometry.HasVisualizationPrimitives(); }
 
     /// Specifies whether or not a visualization mesh was defined.
-    bool HasMesh() const { return m_geometry.m_has_mesh; }
+    bool HasMesh() const { return m_geometry.HasVisualizationMesh(); }
 
     /// Get the name of the Wavefront file with chassis visualization mesh.
     /// An empty string is returned if no mesh was specified.
-    const std::string& GetMeshFilename() const { return m_geometry.m_vis_mesh_file; }
+    const std::string& GetMeshFilename() const { return m_geometry.vis_model_file; }
 
-    /// Initialize the chassis at the specified global position and orientation.
-    virtual void Initialize(ChSystem* system,                ///< [in] containing system
-                            const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
-                            double chassisFwdVel,            ///< [in] initial chassis forward velocity
-                            int collision_family = 0         ///< [in] chassis collision family
-                            ) override;
+    /// Construct the rigid chassis at the specified global position and orientation.
+    virtual void Construct(ChVehicle* vehicle,              ///< [in] containing vehicle
+                           const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
+                           double chassisFwdVel,            ///< [in] initial chassis forward velocity
+                           int collision_family             ///< [in] chassis collision family
+                           ) override;
 
     /// Enable/disable contact for the chassis.
     /// This function controls contact of the chassis with all other collision shapes in the simulation. Must be called
@@ -77,11 +77,7 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    ChVehicleGeometry m_geometry;  ///< collection of visualization and collision shapes
-
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    utils::ChBodyGeometry m_geometry;  ///< collection of visualization and collision shapes
 };
 
 // -----------------------------------------------------------------------------
@@ -98,28 +94,28 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
     virtual std::string GetTemplateName() const override { return "RigidChassisRear"; }
 
     /// Specifies whether or not collision shapes were defined.
-    bool HasCollision() const { return m_geometry.m_has_collision; }
+    bool HasCollision() const { return m_geometry.HasCollision(); }
 
     /// Specifies whether or not visualization primitives were defined.
-    bool HasPrimitives() const { return m_geometry.m_has_primitives; }
+    bool HasPrimitives() const { return m_geometry.HasVisualizationPrimitives(); }
 
     /// Specifies whether or not a visualization mesh was defined.
-    bool HasMesh() const { return m_geometry.m_has_mesh; }
+    bool HasMesh() const { return m_geometry.HasVisualizationMesh(); }
 
     /// Get the name of the Wavefront file with chassis visualization mesh.
     /// An empty string is returned if no mesh was specified.
-    const std::string& GetMeshFilename() const { return m_geometry.m_vis_mesh_file; }
+    const std::string& GetMeshFilename() const { return m_geometry.vis_model_file; }
 
-    /// Enable/disable contact for the chassis. This function controls contact of
-    /// the chassis with all other collision shapes in the simulation.
+    /// Enable/disable contact for the chassis.
+    /// This function controls contact of the chassis with all other collision shapes in the simulation.
     virtual void EnableCollision(bool state) override { m_body->EnableCollision(state); }
 
-    /// Initialize the rear chassis relative to the specified front chassis.
+    /// Construct the rear chassis relative to the specified front chassis.
     /// The orientation is set to be the same as that of the front chassis while the location is based on the connector
     /// position on the front and rear chassis.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
-                            int collision_family = 0             ///< [in] chassis collision family
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
+                           int collision_family                 ///< [in] chassis collision family
+                           ) override;
 
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -128,11 +124,7 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    ChVehicleGeometry m_geometry;  ///< collection of visualization and collision shapes
-
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    utils::ChBodyGeometry m_geometry;  ///< collection of visualization and collision shapes
 };
 
 /// @} vehicle

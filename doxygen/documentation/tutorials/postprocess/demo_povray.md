@@ -15,7 +15,7 @@ Note: the same assets can be used to render animations in real-time in the inter
 # Example 1
 
 Create a @ref chrono::ChBody, and attach some 'assets' that define 3D shapes. 
-These shapes can be shown by Irrlicht, OpenGL, or POV postprocessing.
+These shapes can be shown by VSG, Irrlicht, or POV postprocessing.
 Note: these assets are independent from collision shapes.
 
 \snippet demo_POST_povray1.cpp Example 1

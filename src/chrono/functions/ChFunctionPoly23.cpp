@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/functions/ChFunctionPoly23.h"
 
 namespace chrono {
@@ -33,7 +35,7 @@ double ChFunctionPoly23::GetVal(double x) const {
     if (x > m_x_end)
         return m_ampl;
     else {
-        ret = m_ampl * ((3 * (pow(((x - m_x_start) / A), 2))) - 2 * (pow(((x - m_x_start) / A), 3)));
+        ret = m_ampl * ((3 * (std::pow(((x - m_x_start) / A), 2))) - 2 * (std::pow(((x - m_x_start) / A), 3)));
     }
     return ret;
 }
@@ -44,7 +46,7 @@ double ChFunctionPoly23::GetDer(double x) const {
     if ((x < m_x_start) || (x > m_x_end))
         ret = 0;
     else {
-        ret = m_ampl * (6 * ((x - m_x_start) / pow(A, 2)) - 6 * (pow((x - m_x_start), 2) / pow(A, 3)));
+        ret = m_ampl * (6 * ((x - m_x_start) / std::pow(A, 2)) - 6 * (std::pow((x - m_x_start), 2) / std::pow(A, 3)));
     }
     return ret;
 }
@@ -55,7 +57,7 @@ double ChFunctionPoly23::GetDer2(double x) const {
     if ((x < m_x_start) || (x > m_x_end))
         ret = 0;
     else {
-        ret = m_ampl * (6 * (1 / pow(A, 2)) - 12 * ((x - m_x_start) / pow(A, 3)));
+        ret = m_ampl * (6 * (1 / std::pow(A, 2)) - 12 * ((x - m_x_start) / std::pow(A, 3)));
     }
     return ret;
 }

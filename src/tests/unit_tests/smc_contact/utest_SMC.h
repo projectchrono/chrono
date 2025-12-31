@@ -19,7 +19,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #ifdef SMC_MULTICORE
     #include "chrono_multicore/physics/ChSystemMulticore.h"
@@ -79,9 +79,9 @@ std::shared_ptr<ChBody> AddWall(ChSystem* sys,
                                 ChVector3d init_v,
                                 bool wall) {
     // Set parameters for the containing bin
-    ChVector3d inertia((1.0 / 12.0) * mass * (pow(size.y(), 2) + pow(size.z(), 2)),
-                       (1.0 / 12.0) * mass * (pow(size.x(), 2) + pow(size.z(), 2)),
-                       (1.0 / 12.0) * mass * (pow(size.x(), 2) + pow(size.y(), 2)));
+    ChVector3d inertia((1.0 / 12.0) * mass * (std::pow(size.y(), 2) + std::pow(size.z(), 2)),
+                       (1.0 / 12.0) * mass * (std::pow(size.x(), 2) + std::pow(size.z(), 2)),
+                       (1.0 / 12.0) * mass * (std::pow(size.x(), 2) + std::pow(size.y(), 2)));
     ChQuaternion<> rot(1, 0, 0, 0);
 
     // Create container. Set body parameters and container collision model

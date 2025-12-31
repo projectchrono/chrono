@@ -18,11 +18,6 @@ import numpy as np
 
 print ("Example: create a slider crank and plot results");
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 # ---------------------------------------------------------------------
 #
 #  Create the simulation sys and add items
@@ -111,7 +106,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Crank demo')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(1,1,3), chrono.ChVector3d(0,1,0))
 vis.AddTypicalLights()

@@ -24,6 +24,7 @@ namespace vehicle {
 
 ChVehicleVisualSystem::ChVehicleVisualSystem()
     : m_vehicle(nullptr),
+      m_driver(nullptr),
       m_terrain(nullptr),
       m_stepsize(1e-3),
       m_camera_point(ChVector3d(1, 0, 0)),
@@ -44,10 +45,7 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_vehicle = vehicle;
 
     // Attach the vehicle's Chrono system to the visualization system
-    //// RADU TOOD
-    //// Is this good enough for cases where the vehicle does NOT own the system?
-    if (m_systems.empty())
-        AttachSystem(vehicle->GetSystem());
+    AttachSystem(vehicle->GetSystem());
 
     // Create a vehicle chase-cam and associate it with the vehicle
     // Attention: order of calls is important here!
@@ -60,7 +58,11 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_camera->SetMultLimits(m_camera_minMult, m_camera_maxMult);
 }
 
-void ChVehicleVisualSystem::AttachTerrain(vehicle::ChTerrain* terrain) {
+void ChVehicleVisualSystem::AttachDriver(ChDriver* driver) {
+    m_driver = driver;
+}
+
+void ChVehicleVisualSystem::AttachTerrain(ChTerrain* terrain) {
     m_terrain = terrain;
 }
 
@@ -100,6 +102,13 @@ void ChVehicleVisualSystem::SetChaseCameraPosition(const ChVector3d& pos) {
     if (m_camera)
         m_camera->SetCameraPos(m_camera_pos);
 }
+
+void ChVehicleVisualSystem::SetChaseCameraPosition(const ChVector3d& camera_pos, const ChVector3d& camera_target) {
+    m_camera_pos = camera_pos;
+    if (m_camera)
+        m_camera->SetCameraPos(m_camera_pos, camera_target);
+}
+
 void ChVehicleVisualSystem::SetChaseCameraAngle(double angle) {
     m_camera_angle = angle;
     if (m_camera)

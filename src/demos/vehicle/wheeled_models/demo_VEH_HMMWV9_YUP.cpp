@@ -20,10 +20,10 @@
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
@@ -112,17 +112,17 @@ int main(int argc, char* argv[]) {
     auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, terrainHeight, 0), QuatFromAngleX(-CH_PI_2)),
                                   terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
 
     ////// "Mesh" patch (mesh assumed to be defined in a Y up frame)
-    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), vehicle::GetDataFile("terrain/meshes/bump_YUP.obj"),
+    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), GetVehicleDataFile("terrain/meshes/bump_YUP.obj"),
     ////                              "ground", 0.005);
-    ////patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    ////patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
 
     ////// "Height-field map" patch (extents are in the forward and lateral directions of the world frame)
-    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),
+    ////auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(), GetVehicleDataFile("terrain/height_maps/bump64.bmp"),
     ////                              "field_mesh", 64.0, 64.0, 0.0, 3.0);
-    ////patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
+    ////patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
 
     terrain.Initialize();
 
@@ -144,6 +144,13 @@ int main(int argc, char* argv[]) {
     driver.GetSteeringController().SetGains(0.8, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
+#elif
+    // Interactive driver
+    ChInteractiveDriver driver(hmmwv.GetVehicle());
+    driver.SetSteeringDelta(0.06);
+    driver.SetThrottleDelta(0.02);
+    driver.SetBrakingDelta(0.06);
+    driver.Initialize();
 #endif
 
     // Vehicle Irrlicht run-time visualization
@@ -157,6 +164,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(ChVector3d(0, 0.01, 0), ChWorldFrame::Quaternion()), ChColor(1, 0, 0));
     vis->AttachVehicle(&hmmwv.GetVehicle());
+    vis->AttachDriver(&driver);
 
 #ifdef USE_PATH_FOLLOWER
     // Visualization of controller points (sentinel & target)
@@ -166,13 +174,6 @@ int main(int argc, char* argv[]) {
     ballT->SetColor(ChColor(0, 1, 0));
     int iballS = vis->AddVisualModel(ballS, ChFrame<>());
     int iballT = vis->AddVisualModel(ballT, ChFrame<>());
-#elif
-    // Interactive driver
-    ChInteractiveDriverIRR driver(*vis);
-    driver.SetSteeringDelta(0.06);
-    driver.SetThrottleDelta(0.02);
-    driver.SetBrakingDelta(0.06);
-    driver.Initialize();
 #endif
 
     // ---------------

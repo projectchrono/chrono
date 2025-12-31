@@ -46,9 +46,9 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed(const ChLinkMotorLinearSpeed& oth
 
 ChLinkMotorLinearSpeed::~ChLinkMotorLinearSpeed() {}
 
-void ChLinkMotorLinearSpeed::Update(double mytime, bool update_assets) {
+void ChLinkMotorLinearSpeed::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMotorLinear::Update(mytime, update_assets);
+    ChLinkMotorLinear::Update(time, update_assets);
 
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset

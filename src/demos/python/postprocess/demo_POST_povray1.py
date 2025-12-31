@@ -13,7 +13,7 @@
 print ("Third tutorial: use the postprocess module.");
 
 
-# Load the Chrono::Engine core module and the postprocessing module!
+# Load the Chrono core module and the postprocessing module!
 import pychrono as chrono
 import pychrono.postprocess as postprocess
 

@@ -38,8 +38,12 @@ class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline {
     ~SimpleDriveline() {}
 
     virtual double GetFrontTorqueFraction() const override { return m_front_torque_frac; }
+
     virtual double GetFrontDifferentialMaxBias() const override { return m_front_diff_bias; }
     virtual double GetRearDifferentialMaxBias() const override { return m_rear_diff_bias; }
+
+    virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
+    virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -47,6 +51,8 @@ class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline {
     double m_front_torque_frac;
     double m_front_diff_bias;
     double m_rear_diff_bias;
+    double m_front_conicalgear_ratio;
+    double m_rear_conicalgear_ratio;
 };
 
 /// @} vehicle_wheeled_driveline

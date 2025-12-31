@@ -43,7 +43,7 @@ class ChApi ChLinkLockPointSpline : public ChLinkLockLock {
     void SetTolerance(double tol) { tolerance = tol; }
 
     /// Update link at current configuration (moves the constraint main marker tangent to the line).
-    virtual void UpdateTime(double mytime) override;
+    virtual void UpdateTime(double time) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

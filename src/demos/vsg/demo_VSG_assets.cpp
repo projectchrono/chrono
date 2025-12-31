@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -294,7 +296,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(ChVector2i(1200, 800));
     vis->SetWindowPosition(ChVector2i(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");
-    vis->SetUseSkyBox(true);
+    vis->EnableSkyBox();
     vis->AddCamera(ChVector3d(-8, 8, -16));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0f);
@@ -316,7 +318,7 @@ int main(int argc, char* argv[]) {
 
     auto sceneMesh2 = chrono_types::make_shared<ChVisualShapeModelFile>();
     sceneMesh2->SetFilename(GetChronoDataFile("models/bunny.glb"));
-    int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector3d(-5, 0, 5)));
+    int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector3d(-2, 0, -8), QuatFromAngleY(CH_PI)));
     if (bunndyId == -1)
         std::cerr << "Could not get bunny!" << std::endl;
 
@@ -366,8 +368,7 @@ int main(int argc, char* argv[]) {
                         ChFrame<>(ChVector3d(-6, 1, -5 - 0.4), QUNIT));
     vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                         ChFrame<>(ChVector3d(-6, 1, -5 + 0.4), QUNIT));
-    vis->SetShadows(true);
-    vis->SetLogoVisible(true);
+    vis->EnableShadows();
     vis->Initialize();
 
     // Create output directory
@@ -380,13 +381,16 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer rt;
     double step_size = 0.01;
     unsigned int frame_number = 0;
-    while (vis->Run()) {
-        double time = sys.GetChTime();
-        if (frame_number == 42) {
-            vis->WriteImageToFile(out_dir + "/assets.png");  // does not work with frame == 0!
-        }
 
-        vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector3d(0, 3.5 + 0.5 * sin(CH_PI * time / 10), 3), Zup));
+    while (vis->Run()) {
+        ////if (frame_number > 2 && frame_number <= 100) {
+        ////    std::string imgName("/assets-");
+        ////    imgName.append(std::to_string(frame_number) + ".png");
+        ////    vis->WriteImageToFile(out_dir + imgName);  // does not work with frame == 0!
+        ////}
+
+        double time = sys.GetChTime();
+        vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector3d(0, 3.5 + 0.5 * std::sin(CH_PI * time / 10), 3), Zup));
         vis->UpdateVisualModel(teapotId2, ChFrame<>(ChVector3d(-5, 3.5, 3), Zup * QuatFromAngleY(time / 20)));
         vis->UpdateVisualModel(boxId, ChFrame<>(ChVector3d(0, 0.01 * time, 0), QUNIT));
         vis->UpdateVisualModel(ellId, ChFrame<>(ellPos, Zup * QuatFromAngleY(0.2 * time) * QuatFromAngleZ(0.1 * time)));

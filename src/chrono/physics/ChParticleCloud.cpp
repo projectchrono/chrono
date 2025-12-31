@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChContactMaterialNSC.h"
@@ -27,13 +27,19 @@ namespace chrono {
 // CLASS FOR A PARTICLE
 // -----------------------------------------------------------------------------
 
-ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
+ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(&variables);
+}
 
 ChParticle::ChParticle(const ChParticle& other) : ChParticleBase(other) {
     container = other.container;
     UserForce = other.UserForce;
     UserTorque = other.UserTorque;
     variables = other.variables;
+
+    m_contactable_variables.clear();
+    m_contactable_variables.push_back(&variables);
 }
 
 ChParticle::~ChParticle() {}
@@ -55,6 +61,13 @@ ChParticle& ChParticle::operator=(const ChParticle& other) {
     variables = other.variables;
 
     return *this;
+}
+
+// Lightweight helper so bulk writers can assign coordinates without constructing ChVector3d temporaries
+void ChParticle::SetPosComponents(double x, double y, double z) {
+    m_csys.pos.x() = x;
+    m_csys.pos.y() = y;
+    m_csys.pos.z() = z;
 }
 
 void ChParticle::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
@@ -109,8 +122,8 @@ void ChParticle::ContactForceLoadResidual_F(const ChVector3d& F,
     ChVector3d torque1_loc = Vcross(m_p1_loc, force1_loc);
     if (!T.IsNull())
         torque1_loc += this->TransformDirectionParentToLocal(T);
-    R.segment(Variables().GetOffset() + 0, 3) += F.eigen();
-    R.segment(Variables().GetOffset() + 3, 3) += torque1_loc.eigen();
+    R.segment(variables.GetOffset() + 0, 3) += F.eigen();
+    R.segment(variables.GetOffset() + 3, 3) += torque1_loc.eigen();
 }
 
 void ChParticle::ContactComputeQ(const ChVector3d& F,
@@ -131,9 +144,9 @@ void ChParticle::ContactComputeQ(const ChVector3d& F,
 
 void ChParticle::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) {
     ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
 
@@ -146,32 +159,40 @@ void ChParticle::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     if (second)
         Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
 
-    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+    tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = Jx1.row(2);
+
+    tuple_N->Cq1().segment(3, 3) = Jr1.row(0);
+    tuple_U->Cq1().segment(3, 3) = Jr1.row(1);
+    tuple_V->Cq1().segment(3, 3) = Jr1.row(2);
 }
 
-void ChParticle::ComputeJacobianForRollingContactPart(
-    const ChVector3d& abs_point,
-    ChMatrix33<>& contact_plane,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-    bool second) {
+void ChParticle::ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      ChConstraintTuple* jacobian_tuple_N,
+                                                      ChConstraintTuple* jacobian_tuple_U,
+                                                      ChConstraintTuple* jacobian_tuple_V,
+                                                      bool second) {
     ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetRotMat();
     if (!second)
         Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_U.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_V.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
+
+    tuple_N->Cq1().segment(0, 3).setZero();
+    tuple_U->Cq1().segment(0, 3).setZero();
+    tuple_V->Cq1().segment(0, 3).setZero();
+
+    tuple_N->Cq1().segment(3, 3) = Jr1.row(0);
+    tuple_U->Cq1().segment(3, 3) = Jr1.row(1);
+    tuple_V->Cq1().segment(3, 3) = Jr1.row(2);
 }
 
 ChPhysicsItem* ChParticle::GetPhysicsItem() {
@@ -314,6 +335,33 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     }
 
     particles.push_back(newp);
+}
+
+// GPU set data
+// Bulk loader for double-precision position arrays (XYZXYZ...)
+void ChParticleCloud::SetParticlePositions(const double* positions, size_t count) {
+    const size_t n = std::min(count, particles.size());
+    if (n == 0 || positions == nullptr)
+        return;
+
+    const double* xyz = positions;
+    for (size_t i = 0; i < n; ++i, xyz += 3) {
+        particles[i]->SetPosComponents(xyz[0], xyz[1], xyz[2]);
+    }
+}
+
+// Bulk loader for single-precision position arrays, promoting to double internally
+void ChParticleCloud::SetParticlePositions(const float* positions, size_t count) {
+    const size_t n = std::min(count, particles.size());
+    if (n == 0 || positions == nullptr)
+        return;
+
+    const float* xyz = positions;
+    for (size_t i = 0; i < n; ++i, xyz += 3) {
+        particles[i]->SetPosComponents(static_cast<double>(xyz[0]),
+                                       static_cast<double>(xyz[1]),
+                                       static_cast<double>(xyz[2]));
+    }
 }
 
 ChColor ChParticleCloud::GetVisualColor(unsigned int n) const {
@@ -640,12 +688,8 @@ ChVector3d ChParticleCloud::GetInertiaXY() const {
     return iner;
 }
 
-void ChParticleCloud::Update(bool update_assets) {
-    ChParticleCloud::Update(GetChTime(), update_assets);
-}
-
-void ChParticleCloud::Update(double mytime, bool update_assets) {
-    ChTime = mytime;
+void ChParticleCloud::Update(double time, bool update_assets) {
+    ChPhysicsItem::Update(time, update_assets);
 
     // TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.
@@ -667,7 +711,7 @@ void ChParticleCloud::EnableCollision(bool state) {
         return;
 
     // Nothing to do if no collision system or the system was not initialized
-    // (in the latter case, the collsion model will be processed at initialization)
+    // (in the latter case, the collision model will be processed at initialization)
     auto coll_sys = GetSystem()->GetCollisionSystem();
     if (!coll_sys || !coll_sys->IsInitialized())
         return;

@@ -32,8 +32,12 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    Eigen::MatrixXf a;
+    a.resize(3,3);
 
     ChSystemNSC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));

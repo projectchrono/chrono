@@ -78,7 +78,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
                                ) override;
 
     /// Return terrain contact geometry and material information for one track shoe.
-    virtual ChVehicleGeometry GetTrackShoeContactGeometry() const override;
+    virtual utils::ChBodyGeometry GetTrackShoeContactGeometry() const override;
 
     /// Return mass of one track shoe.
     virtual double GetTrackShoeMass() const override;
@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Impose spindle angular speed as dictated by an attached DBP rig.
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
 
-    void WriteBodyInformation(utils::ChWriterCSV& csv);
+    void WriteBodyInformation(ChWriterCSV& csv);
 
     virtual void OnRender() override;
 

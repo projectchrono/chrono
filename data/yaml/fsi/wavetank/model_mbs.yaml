@@ -1,0 +1,22 @@
+chrono-version: 9.0
+
+model:
+  name: Ball
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
+  bodies:
+    - name: ball
+      location: [0, 0, 0.6]
+      mass: 4.0
+      inertia:
+        moments: [0.023, 0.023, 0.023]
+      visualization:
+        shapes:
+          - type: SPHERE
+            location: [0, 0, 0]
+            radius: 0.12
+            color: [0.6, 0.2, 0.2]

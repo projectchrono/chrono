@@ -74,20 +74,31 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// reference frame is always aligned with the chassis reference frame.
     /// A derived track wheel subsystem template class must extend this default
     /// implementation and specify contact geometry for the track wheel.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                    std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                    ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
     /// Log current constraint violations.
     void LogConstraintViolations();
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
   protected:
     /// Construct a road-wheel subsystem with given name.
     ChTrackWheel(const std::string& name);
+
+    /// Construct the concrete track wheel subsystem.
+    /// The track wheel subsystem is initialized by attaching it to the specified
+    /// carrier body at the specified location (with respect to and expressed in the
+    /// reference frame of the chassis). It is assumed that the track wheel subsystem
+    /// reference frame is always aligned with the chassis reference frame.
+    /// A derived track wheel subsystem template class must extend this default
+    /// implementation and specify contact geometry for the track wheel.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                           std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) = 0;
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
@@ -95,7 +106,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChBody> m_wheel;                 ///< track wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< wheel revolute joint

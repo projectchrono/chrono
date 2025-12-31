@@ -73,7 +73,7 @@ double PolarDecomposition::Compute(const double* M, double* Q, double* S, double
         double MadjT_one = oneNorm(MadjTk);
         double MadjT_inf = infNorm(MadjTk);
 
-        double gamma = sqrt(sqrt((MadjT_one * MadjT_inf) / (M_oneNorm * M_infNorm)) / fabs(det));
+        double gamma = std::sqrt(std::sqrt((MadjT_one * MadjT_inf) / (M_oneNorm * M_infNorm)) / std::fabs(det));
         double g1 = gamma * 0.5;
         double g2 = 0.5 / (gamma * det);
 

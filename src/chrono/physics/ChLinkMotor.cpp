@@ -29,9 +29,9 @@ ChLinkMotor::ChLinkMotor(const ChLinkMotor& other) : ChLinkMateGeneric(other) {
 
 ChLinkMotor::~ChLinkMotor() {}
 
-void ChLinkMotor::Update(double mytime, bool update_assets) {
-    ChLinkMateGeneric::Update(mytime, update_assets);
-    m_func->Update(mytime);
+void ChLinkMotor::Update(double time, bool update_assets) {
+    ChLinkMateGeneric::Update(time, update_assets);
+    m_func->Update(time);
 }
 
 void ChLinkMotor::ArchiveOut(ChArchiveOut& archive_out) {

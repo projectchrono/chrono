@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/physics/ChLinkLockTrajectory.h"
 
@@ -52,7 +54,7 @@ void ChLinkLockTrajectory::SetTrajectory(std::shared_ptr<ChLine> mline) {
 }
 
 void ChLinkLockTrajectory::UpdateTime(double time) {
-    ChTime = time;
+    ChLinkLock::UpdateTime(time);
 
     double tstep = FD_STEP_HIGH;
     double tr_time = space_fx->GetVal(time);
@@ -73,13 +75,13 @@ void ChLinkLockTrajectory::UpdateTime(double time) {
         marker2->ImposeRelativeTransform(ChFrame<>());
         deltaC.pos = result;
         deltaC_dt.pos = (resultB - resultA) * (1 / (2 * tstep));
-        deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
+        deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / std::pow(2 * tstep, 2));
         /*
         // if line coordinate is relative to absolute space:
         ChMatrix33<> mw(marker2->GetAbsCoordsys().rot);
         deltaC.pos = mw.transpose() * (result - marker2->GetAbsCoordsys().pos);  //// CORRECT?
         deltaC_dt.pos = mw.transpose() * ((resultB - resultA) * (1 / (2 * tstep)));
-        deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2)));
+        deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / std::pow(2 * tstep, 2)));
         */
 
         deltaC.rot = QUNIT;

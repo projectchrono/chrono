@@ -67,7 +67,7 @@ class ChApi ChLoadNodeXYZRot : public ChLoadCustom {
     /// when using implicit integrators.
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 
     ChVector3d computed_abs_force;
     ChVector3d computed_abs_torque;
@@ -111,7 +111,7 @@ class ChApi ChLoadNodeXYZRotForceAbs : public ChLoadNodeXYZRot {
 
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////

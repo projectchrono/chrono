@@ -43,7 +43,7 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
 
     virtual void Setup() override {}
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F

@@ -20,11 +20,6 @@ import pychrono.vehicle as veh
 
 import math
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 # If true, use provided callback to change soil properties based on location
 var_params = True
 
@@ -126,9 +121,9 @@ sys.Add(motor)
 # ------------------------
 
 # Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-# a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
+# a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
 terrain = veh.SCMTerrain(sys)
-terrain.SetPlane(chrono.ChCoordsysd(chrono.ChVector3d(0,0.2,0), chrono.QuatFromAngleX(-math.pi/2)))
+terrain.SetReferenceFrame(chrono.ChCoordsysd(chrono.ChVector3d(0,0.2,0), chrono.QuatFromAngleX(-math.pi/2)))
 terrain.Initialize(2.0, 6.0, 0.04)
 
 my_params = MySoilParams()
@@ -159,7 +154,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1280,720)
 vis.SetWindowTitle('Deformable soil')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(2.0,1.4,0.0), chrono.ChVector3d(0,tire_rad,0))
 vis.AddTypicalLights()

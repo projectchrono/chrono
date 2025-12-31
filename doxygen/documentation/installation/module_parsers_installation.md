@@ -3,9 +3,7 @@ Install the PARSERS module {#module_parsers_installation}
 
 [TOC]
 
-This module provides various import utilities.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
+Chrono::Parsers provides various import utilities.
 
 
 ## Features
@@ -41,6 +39,11 @@ These scripts (`buildURDF.bat` and `buildURDF.sh`, for Windows and Linux, respec
 3. Run the script (`.\buildURDF.bat` or `sh buildURDF.sh`, as appropriate) from the location of the script copy. This will create a temporary directory where all source repositories will be cloned and a set of directories where the individual URDF dependencies are built.
 4. The install directory will contain, under `URDF_INSTALL_DIR/CMake` (on Windows) and under subdirectories `URDF_INSTALL_DIR/***/cmake` (on Linux)) all URDF CMake project configuration scripts required to configure Chrono with the Chrono::Parser module enabled.
 
+<div class="ce-warning">
+The Chrono YAML parser relies on the 3rd-party library `yaml-cpp` (included with the Chrono distribution).
+Due to a bug in yaml-cpp, this 3rd-party library cannot be built on Windows with a Visual Studio version **older than 2022**.
+If VS 2019 or older is detected, YAML support is disabled in the Chrono::Parsers module.
+</div>
 
 ## Building instructions
 
@@ -48,7 +51,7 @@ Once the necessary dependencies are installed, perform the following steps to co
 
 1. Repeat the instructions for the [full Chrono installation](@ref tutorial_install_chrono)
    
-2. During CMake configuration, set `ENABLE_MODULE_PARSERS` to 'on', then press 'Configure'
+2. During CMake configuration, set `CH_ENABLE_MODULE_PARSERS` to 'on', then press 'Configure'
 
 3. When prompted, provide the paths to the various URDF project configuration scripts (`urdfdom_DIR`, `urdfdom_headers_DIR`, and `console_bridge_DIR`). Assuming the dependencies were installed as described above, all these CMake variables should be set to `<URDF_INSATALL_DIR>/CMake` on Windows, while on Linux they should be `<URDF_INSTALL_DIR>/lib/urdfdom/cmake`, `<URDF_INSTALL_DIR>/lib/urdfdom_headers/cmake`, and `<URDF_INSTALL_DIR>/lib/console_bridge/cmake`, respectively.
 

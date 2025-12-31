@@ -35,7 +35,7 @@
     @defgroup vsg_module VSG module
     @brief Runtime visualization with VSG
 
-    This module can be used to provide 3D realtime rendering in Chrono::Engine.
+    This module can be used to provide 3D realtime rendering in Chrono.
 
     For additional information, see:
     - the [installation guide](@ref module_vsg_installation)

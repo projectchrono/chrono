@@ -71,7 +71,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     virtual double GetOutputDriveshaftTorque() const = 0;
 
     /// Return the transmission output speed of the motorshaft.
-    /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
+    /// This represents the output from the transmission subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const = 0;
 
     /// Return the reaction torque on the chassis body.
@@ -84,14 +84,14 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// Shift down.
     virtual void ShiftDown() = 0;
 
-  protected:
-    ChTransmission(const std::string& name = "");
-
     /// Return this object as an automatic transmission.
     virtual ChAutomaticTransmission* asAutomatic() { return nullptr; }
 
     /// Return this object as a manual transmission.
     virtual ChManualTransmission* asManual() { return nullptr; }
+
+  protected:
+    ChTransmission(const std::string& name = "");
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
@@ -128,7 +128,6 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
 
     friend class ChPowertrainAssembly;
     friend class ChVehicleVisualSystemIrrlicht;
-    friend class ChInteractiveDriverIRR;
     friend class ChVehicleVisualSystemVSG;
     friend class ChVehicleKeyboardHandlerVSG;
     friend class ChVehicleGuiComponentVSG;

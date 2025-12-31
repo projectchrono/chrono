@@ -116,14 +116,14 @@ void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
 
     // VISUALIZATION ASSETS:
 
-    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
+    visualizebeamA->SetColormapRange(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizebeamC->SetSymbolsThickness(0.2);
@@ -208,14 +208,14 @@ void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
 
     // VISUALIZATION ASSETS:
 
-    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
+    visualizebeamA->SetColormapRange(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizebeamC->SetSymbolsThickness(0.2);
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
 
     // CREATE THE MODEL
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // no gravity used here
@@ -299,9 +299,7 @@ int main(int argc, char* argv[]) {
     vis.AddLogo();
     vis.AddSkyBox();
     vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
-    vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
-    vis.AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis.AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddTypicalLights();
     vis.AddUserEventReceiver(&receiver);
     vis.GetGUIEnvironment()->addStaticText(
         L"Press 1: fixed cantilever\n"
@@ -347,7 +345,7 @@ int main(int argc, char* argv[]) {
 
             previous_current_example_id = current_example_id;
 
-            sys.Update();
+            sys.Update(true);
             vis.BindAll();
 
             modal_solver.Solve(sys.GetAssembly(), eigvects, eigvals, freq, damping_ratios);

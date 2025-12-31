@@ -31,15 +31,14 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChConstants.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadsBeam.h"
 #include "chrono/fea/ChMesh.h"
+//#include "chrono/utils/ChValidation.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -65,10 +64,9 @@ int main(int argc, char* argv[]) {
     }
     fileMid.close();
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
     unsigned int num_steps = 200;
-    utils::Data m_data;  // Matrices to store data
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
@@ -82,11 +80,11 @@ int main(int argc, char* argv[]) {
     double rho = 0.0;
 
     auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
-    diam = sqrt(1e-6 / CH_PI) * 2.0 * f_const;
+    diam = std::sqrt(1e-6 / CH_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
-    msection_cable->SetYoungModulus(1e9 / pow(f_const, 4));
-    msection_cable->SetInertia(CH_PI / 4.0 * pow(diam / 2, 4));
-    rho = 8000 / pow(f_const, 2);
+    msection_cable->SetYoungModulus(1e9 / std::pow(f_const, 4));
+    msection_cable->SetInertia(CH_PI / 4.0 * std::pow(diam / 2, 4));
+    rho = 8000 / std::pow(f_const, 2);
     msection_cable->SetDensity(rho);
 
     // Create the nodes
@@ -168,12 +166,16 @@ int main(int argc, char* argv[]) {
         mystepper->SetAbsTolerances(1e-14);
     }
 
-    /* m_data.resize(7);
-     utils::ChWriterCSV csv(" ");
-     std::ifstream file2("UT_ANCFBeam.txt");
+    /*
+    m_data.resize(7);
+    ChWriterCSV csv(" ");
+    std::ifstream file2("UT_ANCFBeam.txt");
 
-     for (size_t col = 0; col < 7; col++)
-         m_data[col].resize(num_steps);*/
+    ChValidation::Data m_data;  // Matrices to store data
+    m_data.resize(7);
+    for (size_t col = 0; col < 7; col++)
+        m_data[col].resize(num_steps);
+    */
 
     for (unsigned int it = 0; it < num_steps; it++) {
         sys.DoStepDynamics(0.0001);
@@ -192,6 +194,7 @@ int main(int argc, char* argv[]) {
         }
     }
     std::cout << "Unit test check succeeded \n";
+
     /*
     // This code snippet creates the benchmark file.
     m_data[0][it] = sys.GetChTime();
@@ -205,7 +208,8 @@ int main(int argc, char* argv[]) {
     m_data[6][it] << std::endl;
     // Advance system state
     std::cout << "Time t = " << sys.GetChTime() << "s \n";
-    csv.WriteToFile("UT_ANCFBeam.txt"); */
+    csv.WriteToFile("UT_ANCFBeam.txt"); 
+    */
 
     return 0;
 }

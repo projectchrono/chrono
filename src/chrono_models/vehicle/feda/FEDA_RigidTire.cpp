@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/feda/FEDA_RigidTire.h"
 
 namespace chrono {
@@ -38,15 +38,13 @@ const ChVector3d FEDA_RigidTire::m_inertia(6.39, 11.31, 6.39);
 const std::string FEDA_RigidTire::m_meshFile = "feda/meshes/feda_tire_fine.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 FEDA_RigidTire::FEDA_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("feda/meshes/feda_tire_fine.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("feda/meshes/feda_tire_fine.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void FEDA_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

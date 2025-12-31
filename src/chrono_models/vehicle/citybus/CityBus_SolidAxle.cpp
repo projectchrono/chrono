@@ -113,13 +113,13 @@ const double CityBus_SolidAxleRear::m_twin_tire_dist = 0.33528;
 // Constructors
 // -----------------------------------------------------------------------------
 CityBus_SolidAxleFront::CityBus_SolidAxleFront(const std::string& name) : ChSolidAxle(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
-    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient);
 }
 
 CityBus_SolidAxleRear::CityBus_SolidAxleRear(const std::string& name) : ChSolidAxle(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
-    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

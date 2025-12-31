@@ -626,7 +626,7 @@ void test_anchorchain() {
             hht_stepper->SetVerbose(false);
             hht_stepper->SetStepControl(false);
             hht_stepper->SetAlpha(-0.2);
-            hht_stepper->SetModifiedNewton(false);
+            hht_stepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
         }
 
         auto DoDynamicsUnderImpulse = [&](const ChVector3d& vec_f, const std::string& filename) {

@@ -25,9 +25,8 @@
 #include "chrono/physics/ChHydraulicActuator.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -52,7 +51,7 @@ int main(int argc, char* argv[]) {
     auto actuator = chrono_types::make_shared<ChHydraulicActuator3>();
     actuator->SetInputFunction(chrono_types::make_shared<ChFunctionSine>(1.0, 5.0));
     actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
-    actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
+    actuator->Cylinder().SetInitialChamberPressures(4.163e6, 3.461e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);
     actuator->SetActuatorInitialLength(0.5);
     actuator->Initialize();
@@ -80,7 +79,7 @@ int main(int argc, char* argv[]) {
     double t = 0;
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     auto y0 = actuator->GetInitialStates();
     csv << t << 0 << y0.format(rowFmt) << std::endl;
 
@@ -104,7 +103,7 @@ int main(int argc, char* argv[]) {
         gplot.SetGrid();
         gplot.SetLabelX("time");
         gplot.SetLabelY("Y");
-        gplot.SetTitle("Hydro Input");
+        gplot.SetOutputWindowTitle("Hydraulic Input");
         gplot.Plot(out_file, 1, 3, "U", " with lines lt -1 lw 2");
     }
     {
@@ -112,7 +111,7 @@ int main(int argc, char* argv[]) {
         gplot.SetGrid();
         gplot.SetLabelX("time");
         gplot.SetLabelY("Y");
-        gplot.SetTitle("Hydro Force");
+        gplot.SetOutputWindowTitle("Hydraulic Force");
         gplot.Plot(out_file, 1, 2, "F", " with lines lt -1 lw 2");
     }
 #endif

@@ -35,6 +35,7 @@ namespace modal {
 template <typename ScalarType>
 class ChModalVisualSystemIrrlicht;
 
+/// Custom Irrlicht event receiver for modal analysis visualization.
 template <typename ScalarType>
 class ChModalEventReceiver : public irr::IEventReceiver {
   public:
@@ -94,6 +95,7 @@ class ChModalEventReceiver : public irr::IEventReceiver {
     ChModalVisualSystemIrrlicht<ScalarType>* m_modal_vsys;
 };
 
+/// Customized Chrono Irrlicht visualization for modal analaysis.
 template <typename ScalarType>
 class ChModalVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
   public:
@@ -107,7 +109,7 @@ class ChModalVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
     /// Initialize the visualization system.
     virtual void Initialize() override;
 
-    virtual void BeginScene(bool backBuffer, bool zBuffer, ChColor color) override;
+    virtual void BeginScene(bool backBuffer, bool zBuffer) override;
 
     using irrlicht::ChVisualSystemIrrlicht::BeginScene;
 
@@ -251,8 +253,8 @@ void ChModalVisualSystemIrrlicht<ScalarType>::Initialize() {
 }
 
 template <typename ScalarType>
-inline void ChModalVisualSystemIrrlicht<ScalarType>::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
-    ChVisualSystemIrrlicht::BeginScene(backBuffer, zBuffer, color);
+inline void ChModalVisualSystemIrrlicht<ScalarType>::BeginScene(bool backBuffer, bool zBuffer) {
+    ChVisualSystemIrrlicht::BeginScene(backBuffer, zBuffer);
 
     // check if the timer is running, if not, start it
 
@@ -277,7 +279,7 @@ inline void ChModalVisualSystemIrrlicht<ScalarType>::BeginScene(bool backBuffer,
     m_assembly->IntStateIncrement(0, assembly_state_new, m_assembly_initial_state, 0, assembly_state_delta);
     m_assembly->IntStateScatter(0, assembly_state_new, 0, assembly_v_dummy, time_dummy, true);
 
-    m_assembly->Update();
+    m_assembly->Update(time_dummy, true);
 
     OnUpdate(m_systems[0]);
 }

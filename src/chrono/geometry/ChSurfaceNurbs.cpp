@@ -74,9 +74,9 @@ void ChSurfaceNurbs::Setup(
     int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
     int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
     ChMatrixDynamic<ChVector3d>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
-    ChVectorDynamic<>* mknots_u,  // knots u, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* mknots_v,  // knots v, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
-    ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
+    ChVectorDynamic<>* mknots_u,    // knots u, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
+    ChVectorDynamic<>* mknots_v,    // knots v, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
+    ChMatrixDynamic<>* new_weights  // weights, size nuxnv. If not provided, all weights as 1.
 ) {
     if (morder_u < 1)
         throw std::invalid_argument("ChSurfaceNurbs::Setup requires u order >= 1.");
@@ -94,7 +94,7 @@ void ChSurfaceNurbs::Setup(
     if (mknots_v && mknots_v->size() != (mpoints.cols() + morder_v + 1))
         throw std::invalid_argument("ChSurfaceNurbs::Setup: knots_v must have size=n_points_v+order_v+1");
 
-    if (weights && (weights->rows() != mpoints.rows() || weights->cols() != mpoints.cols()))
+    if (new_weights && (new_weights->rows() != mpoints.rows() || new_weights->cols() != mpoints.cols()))
         throw std::invalid_argument("ChSurfaceNurbs::Setup: weights matrix must have size as point matrix");
 
     this->p_u = morder_u;
@@ -116,8 +116,8 @@ void ChSurfaceNurbs::Setup(
         ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(this->knots_v, p_v);
     }
 
-    if (weights)
-        this->weights = *weights;
+    if (new_weights)
+        this->weights = *new_weights;
     else
         this->weights.setConstant(n_u, n_v, 1.0);
 }

@@ -30,17 +30,17 @@ def main() :
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
     vehicle.Initialize(chrono.ChCoordsysd(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
-    vehicle.SetChassisVisualizationType(veh.VisualizationType_MESH)
-    vehicle.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetWheelVisualizationType(veh.VisualizationType_MESH)
+    vehicle.SetChassisVisualizationType(chrono.VisualizationType_MESH)
+    vehicle.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    vehicle.SetWheelVisualizationType(chrono.VisualizationType_MESH)
 
     # Create and initialize the vehicle tires
     for axle in vehicle.GetAxles() :
         tireL = veh.TMeasyTire(vehicle_tire_file)
-        vehicle.InitializeTire(tireL, axle.m_wheels[0], veh.VisualizationType_MESH)
+        vehicle.InitializeTire(tireL, axle.m_wheels[0], chrono.VisualizationType_MESH)
         tireR = veh.TMeasyTire(vehicle_tire_file)
-        vehicle.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_MESH)
+        vehicle.InitializeTire(tireR, axle.m_wheels[1], chrono.VisualizationType_MESH)
 
     # Create and initialize the powertrain systems
     engine = veh.ReadEngineJSON(vehicle_engine_file)
@@ -51,16 +51,16 @@ def main() :
     # Create and initialize the trailer
     trailer = veh.WheeledTrailer(vehicle.GetSystem(), trailer_file)
     trailer.Initialize(vehicle.GetChassis())
-    trailer.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    trailer.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    trailer.SetWheelVisualizationType(veh.VisualizationType_NONE)
+    trailer.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    trailer.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    trailer.SetWheelVisualizationType(chrono.VisualizationType_NONE)
 
     # Create and initialize the trailer tires
     for axle in trailer.GetAxles() :
         tireL = veh.TMeasyTire(trailer_tire_file)
-        trailer.InitializeTire(tireL, axle.m_wheels[0], veh.VisualizationType_PRIMITIVES)
+        trailer.InitializeTire(tireL, axle.m_wheels[0], chrono.VisualizationType_PRIMITIVES)
         tireR = veh.TMeasyTire(trailer_tire_file)
-        trailer.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_PRIMITIVES)
+        trailer.InitializeTire(tireR, axle.m_wheels[1], chrono.VisualizationType_PRIMITIVES)
 
     vehicle.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -68,29 +68,27 @@ def main() :
     terrain = veh.RigidTerrain(vehicle.GetSystem(), rigidterrain_file)
     terrain.Initialize()
 
-    # Create the vehicle Irrlicht interface
-    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    vis.SetWindowTitle('Sedan+Trailer (JSON specification)')
-    vis.SetWindowSize(1280, 1024)
-    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
-    vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    vis.AddLightDirectional()
-    vis.AddSkyBox()
-    vis.AttachVehicle(vehicle)
-
-    driver = veh.ChInteractiveDriverIRR(vis)
-
-    # Set the time response for steering and throttle keyboard inputs.
-    # NOTE: this is not exact, since we do not render quite at the specified FPS.
+    # Create the driver
+    driver = veh.ChInteractiveDriver(vehicle)
     steering_time = 1.0;  # time to go from 0 to +1 (or from 0 to -1)
     throttle_time = 1.0;  # time to go from 0 to +1
     braking_time = 0.3;   # time to go from 0 to +1
     driver.SetSteeringDelta(render_step_size / steering_time)
     driver.SetThrottleDelta(render_step_size / throttle_time)
     driver.SetBrakingDelta(render_step_size / braking_time)
-
     driver.Initialize()
+
+    # Create the vehicle Irrlicht interface
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    vis.SetWindowTitle('Sedan+Trailer (JSON specification)')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
+    vis.AddLightDirectional()
+    vis.AddSkyBox()
+    vis.AttachVehicle(vehicle)
+    vis.AttachDriver(driver)
 
     # ---------------
     # Simulation loop
@@ -125,25 +123,18 @@ def main() :
 
 # =============================================================================
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # JSON files for vehicle model
-vehicle_file = veh.GetDataFile('sedan/vehicle/Sedan_Vehicle.json')
-vehicle_tire_file = veh.GetDataFile('sedan/tire/Sedan_TMeasyTire.json')
-vehicle_engine_file = veh.GetDataFile('sedan/powertrain/Sedan_EngineSimpleMap.json')
-vehicle_transmission_file = veh.GetDataFile('sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json')
+vehicle_file = veh.GetVehicleDataFile('sedan/vehicle/Sedan_Vehicle.json')
+vehicle_tire_file = veh.GetVehicleDataFile('sedan/tire/Sedan_TMeasyTire.json')
+vehicle_engine_file = veh.GetVehicleDataFile('sedan/powertrain/Sedan_EngineSimpleMap.json')
+vehicle_transmission_file = veh.GetVehicleDataFile('sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json')
 
 # JSON files for trailer model
-trailer_file = veh.GetDataFile('ultra_tow/UT_Trailer.json')
-trailer_tire_file = veh.GetDataFile('ultra_tow/UT_TMeasyTire.json')
+trailer_file = veh.GetVehicleDataFile('ultra_tow/UT_Trailer.json')
+trailer_tire_file = veh.GetVehicleDataFile('ultra_tow/UT_TMeasyTire.json')
 
 # JSON files for terrain
-rigidterrain_file = veh.GetDataFile('terrain/RigidPlane.json')
+rigidterrain_file = veh.GetVehicleDataFile('terrain/RigidPlane.json')
 
 # Initial vehicle position
 initLoc = chrono.ChVector3d(0, 0, 0.5)

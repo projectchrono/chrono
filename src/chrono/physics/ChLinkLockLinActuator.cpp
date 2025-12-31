@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChLinkLockLinActuator.h"
 
 namespace chrono {
@@ -32,9 +34,8 @@ ChLinkLockLinActuator::ChLinkLockLinActuator(const ChLinkLockLinActuator& other)
     dist_funct = std::shared_ptr<ChFunction>(other.dist_funct->Clone());
 }
 
-void ChLinkLockLinActuator::UpdateTime(double mytime) {
-    // First, inherit to parent class
-    ChLinkLockLock::UpdateTime(mytime);
+void ChLinkLockLinActuator::UpdateTime(double time) {
+    ChLinkLockLock::UpdateTime(time);
 
     // Move (well, rotate...) marker 2 to align it in actuator direction
 
@@ -82,7 +83,7 @@ void ChLinkLockLinActuator::UpdateTime(double mytime) {
     tang_speed.x() = 0;                     // only z-y coords in relative tang speed vector
     double len_absdist = Vlength(absdist);  // don't divide by zero
     if (len_absdist > 1E-6)
-        deltaC_dtdt.pos.x() -= pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
+        deltaC_dtdt.pos.x() -= std::pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
 
     deltaC.rot = QUNIT;  // no relative rotations imposed!
     deltaC_dt.rot = QNULL;

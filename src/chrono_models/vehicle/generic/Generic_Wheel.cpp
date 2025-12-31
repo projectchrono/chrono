@@ -35,11 +35,11 @@ const double Generic_Wheel::m_width = 0.22;
 
 Generic_Wheel::Generic_Wheel(const std::string& name) : ChWheel(name) {}
 
-void Generic_Wheel::Initialize(std::shared_ptr<ChChassis> chassis,
-                               std::shared_ptr<ChBody> spindle,
-                               VehicleSide side,
-                               double offset) {
-    ChWheel::Initialize(chassis, spindle, side, offset);
+void Generic_Wheel::Construct(std::shared_ptr<ChChassis> chassis,
+                              std::shared_ptr<ChSpindle> spindle,
+                              VehicleSide side,
+                              double offset) {
+    ChWheel::Construct(chassis, spindle, side, offset);
 
     ChContactMaterialData mat_info;
     auto material = mat_info.CreateMaterial(spindle->GetSystem()->GetContactMethod());

@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -26,6 +27,11 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
+    if (sysd.HasKRBlocks()) {
+        std::cerr << "\n\nChSolverPSOR: Can NOT use PSOR solver if there are stiffness or damping matrices." << std::endl;
+        throw std::runtime_error("ChSolverPSOR: Can NOT use PSOR solver if there are stiffness or damping matrices.");
+    }
+
     m_iterations = 0;
     maxviolation = 0;
     double maxdeltalambda = 0.;
@@ -35,7 +41,7 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
     // 1)  Update auxiliary data in all constraints before starting,
     //     that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        mconstraints[ic]->Update_auxiliary();
+        mconstraints[ic]->UpdateAuxiliary();
 
     // Average all g_i for the triplet of contact constraints n,u,v.
     //
@@ -46,7 +52,7 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
             gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
             j_friction_comp++;
             if (j_friction_comp == 3) {
-                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
+                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
                 mconstraints[ic - 2]->SetSchurComplement(average_g_i);
                 mconstraints[ic - 1]->SetSchurComplement(average_g_i);
                 mconstraints[ic - 0]->SetSchurComplement(average_g_i);
@@ -60,7 +66,8 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
 
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(),
+                                                          mvariables[iv]->Force());  // q = [M]'*fb
     }
 
     // 3)  For all items with variables, add the effect of initial (guessed)
@@ -93,7 +100,8 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
             // skip computations if constraint not active.
             if (mconstraints[ic]->IsActive()) {
                 // compute residual  c_i = [Cq_i]*q + b_i + cfm_i*l_i
-                double mresidual = mconstraints[ic]->ComputeJacobianTimesState() + mconstraints[ic]->GetRightHandSide() +
+                double mresidual = mconstraints[ic]->ComputeJacobianTimesState() +
+                                   mconstraints[ic]->GetRightHandSide() +
                                    mconstraints[ic]->GetComplianceTerm() * mconstraints[ic]->GetLagrangeMultiplier();
 
                 // true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)

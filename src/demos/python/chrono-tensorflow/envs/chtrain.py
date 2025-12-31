@@ -9,11 +9,6 @@ import pychrono as chrono
 import chtrain_ant
 import chtrain_pendulum
 
-# Properly set path to Chrono data directory, taking into account the location of the chrono-tensorflow
-# demos relative to the other PyChrono demos.
-# If running from a different directory, you must change this path accordingly.
-chrono.SetChronoDataPath('../../' + chrono.GetChronoDataPath())
-
 def Init(env_name, render):
        if env_name=='ChronoAnt':
               return chtrain_ant.Model(render)

@@ -31,6 +31,9 @@ class ChUnsymGenEigenvalueSolver;
 
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Modal solver for damped systems of the form (-w^2*M + i*w*R + K)*x = 0  s.t. Cq*x = 0.
 /// with complex w (where w.length() = undamped nat.freq)
 class ChApiModal ChModalSolverDamped : public ChModalSolver {
@@ -91,8 +94,9 @@ class ChApiModal ChModalSolverDamped : public ChModalSolver {
     std::shared_ptr<ChUnsymGenEigenvalueSolver> m_solver;
 };
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

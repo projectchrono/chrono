@@ -19,11 +19,14 @@ software.
 
 // #define NOMINMAX
 #include <algorithm>
-#include "cbtCEtriangleShape.h"
+#include <stdio.h>
+
+#include "BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
 #include "BulletCollision/CollisionShapes/cbtCollisionMargin.h"
 #include "LinearMath/cbtQuaternion.h"
+
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
-#include <stdio.h>
+#include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 
 using namespace chrono;
 
@@ -58,30 +61,19 @@ cbtCEtriangleShape::cbtCEtriangleShape(const ChVector3d* mp1,
 }
 
 cbtVector3 cbtCEtriangleShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec0) const {
-    cbtVector3 supVec(cbtScalar(0.), cbtScalar(0.), cbtScalar(0.));
-    cbtScalar newDot, maxDot = cbtScalar(-BT_LARGE_FLOAT);
-    cbtVector3 vtx;
-    vtx = cbtVector3((cbtScalar)this->p1->x(), (cbtScalar)this->p1->y(), (cbtScalar)this->p1->z());
-    newDot = vec0.dot(vtx);
-    if (newDot > maxDot) {
-        maxDot = newDot;
-        supVec = vtx;
-    }
-    vtx = cbtVector3((cbtScalar)this->p2->x(), (cbtScalar)this->p2->y(), (cbtScalar)this->p2->z());
-    newDot = vec0.dot(vtx);
-    if (newDot > maxDot) {
-        maxDot = newDot;
-        supVec = vtx;
-    }
-    vtx = cbtVector3((cbtScalar)this->p3->x(), (cbtScalar)this->p3->y(), (cbtScalar)this->p3->z());
-    newDot = vec0.dot(vtx);
-    if (newDot > maxDot) {
-        maxDot = newDot;
-        supVec = vtx;
-    }
+    auto v1 = cbtVector3CH(*p1);
+    auto v2 = cbtVector3CH(*p2);
+    auto v3 = cbtVector3CH(*p3);
 
-    return supVec;  //+ vec0.normalized()*this->sphereswept_rad; //// TODO  add the sphereswept_rad layer (but gives
-                    //seldom jittering.. why?)
+    cbtScalar d1 = vec0.dot(v1);
+    cbtScalar d2 = vec0.dot(v2);
+    cbtScalar d3 = vec0.dot(v3);
+
+    cbtVector3 sup = (d1 > d2) ? (d1 > d3) ? v1 : v3 : (d2 > d3) ? v2 : v3;
+
+    return sup;
+    //// TODO  add the sphereswept_rad layer (but sometimes results in jittering.. why?)
+    ////return sup + vec0.normalized() * sphereswept_rad;
 }
 
 void cbtCEtriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,
@@ -91,15 +83,14 @@ void cbtCEtriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const
 }
 
 void cbtCEtriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const {
-    //// TODO 
+    //// TODO
     // as an approximation, take the inertia of an average radius sphere
 
     cbtTransform ident;
     ident.setIdentity();
 
-    cbtVector3 halfExtents;
-    double radius = std::max((*p2 - *p1).Length(), (*p3 - *p1).Length());
-    halfExtents.setValue((cbtScalar)(radius), (cbtScalar)(radius), (cbtScalar)(radius));
+    cbtScalar radius = (cbtScalar)std::max((*p2 - *p1).Length(), (*p3 - *p1).Length());
+    cbtVector3 halfExtents(radius, radius, radius);
 
     cbtScalar margin = CONVEX_DISTANCE_MARGIN;
 
@@ -117,26 +108,22 @@ void cbtCEtriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inert
 }
 
 void cbtCEtriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const {
-    cbtVector3 p1_w = t.getOrigin() + t.getBasis() * cbtVector3((cbtScalar)this->p1->x(), (cbtScalar)this->p1->y(),
-                                                                (cbtScalar)this->p1->z());
-    cbtVector3 p2_w = t.getOrigin() + t.getBasis() * cbtVector3((cbtScalar)this->p2->x(), (cbtScalar)this->p2->y(),
-                                                                (cbtScalar)this->p2->z());
-    cbtVector3 p3_w = t.getOrigin() + t.getBasis() * cbtVector3((cbtScalar)this->p3->x(), (cbtScalar)this->p3->y(),
-                                                                (cbtScalar)this->p3->z());
+    cbtVector3 p1_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p1);
+    cbtVector3 p2_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p2);
+    cbtVector3 p3_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p3);
 
-    ChCollisionModelBullet* triModel = (ChCollisionModelBullet*)this->getUserPointer();
+    ChCollisionModelBullet* triModel = (ChCollisionModelBullet*)getUserPointer();
 
     cbtVector3 venvelope(triModel->GetEnvelope(), triModel->GetEnvelope(), triModel->GetEnvelope());
-    cbtVector3 vsphereswept((cbtScalar)this->sphereswept_rad, (cbtScalar)this->sphereswept_rad,
-                            (cbtScalar)this->sphereswept_rad);
+    cbtVector3 vsphereswept((cbtScalar)sphereswept_rad, (cbtScalar)sphereswept_rad, (cbtScalar)sphereswept_rad);
 
-    aabbMin = cbtVector3((cbtScalar)std::min(std::min(p1_w.x(), p2_w.x()), p3_w.x()),
-                         (cbtScalar)std::min(std::min(p1_w.y(), p2_w.y()), p3_w.y()),
-                         (cbtScalar)std::min(std::min(p1_w.z(), p2_w.z()), p3_w.z())) -
-              venvelope - vsphereswept;
+    aabbMin =
+        cbtVector3(std::min(std::min(p1_w.x(), p2_w.x()), p3_w.x()), std::min(std::min(p1_w.y(), p2_w.y()), p3_w.y()),
+                   std::min(std::min(p1_w.z(), p2_w.z()), p3_w.z())) -
+        venvelope - vsphereswept;
 
-    aabbMax = cbtVector3((cbtScalar)std::max(std::max(p1_w.x(), p2_w.x()), p3_w.x()),
-                         (cbtScalar)std::max(std::max(p1_w.y(), p2_w.y()), p3_w.y()),
-                         (cbtScalar)std::max(std::max(p1_w.z(), p2_w.z()), p3_w.z())) +
-              venvelope + vsphereswept;
+    aabbMax =
+        cbtVector3(std::max(std::max(p1_w.x(), p2_w.x()), p3_w.x()), std::max(std::max(p1_w.y(), p2_w.y()), p3_w.y()),
+                   std::max(std::max(p1_w.z(), p2_w.z()), p3_w.z())) +
+        venvelope + vsphereswept;
 }

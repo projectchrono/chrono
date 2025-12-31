@@ -17,12 +17,12 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
@@ -53,9 +53,6 @@ using namespace chrono::sensor;
 // Initial vehicle location and orientation
 ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
-
-enum DriverMode { DEFAULT, RECORD, PLAYBACK };
-DriverMode driver_mode = DEFAULT;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::MESH;
@@ -198,20 +195,37 @@ int main(int argc, char* argv[]) {
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/height_maps/test64.bmp"), 128,
                                      128, 0, 4);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/meshes/test.obj"));
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
 
     terrain.Initialize();
+
+    // ------------------------
+    // Create the driver system
+    // ------------------------
+
+    // Create the interactive driver system
+    ChInteractiveDriver driver(my_hmmwv.GetVehicle());
+
+    // Set the time response for steering and throttle keyboard inputs.
+    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+    double throttle_time = 1.0;  // time to go from 0 to +1
+    double braking_time = 0.3;   // time to go from 0 to +1
+    driver.SetSteeringDelta(render_step_size / steering_time);
+    driver.SetThrottleDelta(render_step_size / throttle_time);
+    driver.SetBrakingDelta(render_step_size / braking_time);
+
+    driver.Initialize();
 
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
@@ -222,6 +236,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
+    vis->AttachDriver(&driver);
 
     // -----------------
     // Initialize output
@@ -239,42 +254,14 @@ int main(int argc, char* argv[]) {
         terrain.ExportMeshPovray(out_dir);
     }
 
-    // Initialize output file for driver inputs
-    std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::ChWriterCSV driver_csv(" ");
-
     // Set up vehicle output
     my_hmmwv.GetVehicle().SetChassisOutput(true);
     my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
     my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
-    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    my_hmmwv.GetVehicle().SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
     my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
-
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
-    // Create the interactive driver system
-    ChInteractiveDriverIRR driver(*vis);
-
-    // Set the time response for steering and throttle keyboard inputs.
-    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
-
-    // If in playback mode, attach the data file to the driver system and
-    // force it to playback the driver inputs.
-    if (driver_mode == PLAYBACK) {
-        driver.SetInputDataFile(driver_file);
-        driver.SetInputMode(ChInteractiveDriver::InputMode::DATAFILE);
-    }
-
-    driver.Initialize();
 
     // ---------------
     // Simulation loop
@@ -376,41 +363,43 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
-    // auto lidar = chrono_types::make_shared<ChLidarSensor>(
-    //     my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
-    //     lidar_update_rate,                                                 // update rate
-    //     chrono::ChFrame<double>({0, 0, 2}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose from body
-    //     horizontal_samples,                                                // horizontal samples
-    //     vertical_samples,                                                  // vertical samples/channels
-    //     lidar_hfov,                                                        // horizontal field of view
-    //     lidar_vmax, lidar_vmin, lidar_max_distance                         // vertical field of view
-    // );
-    // lidar->SetName("Lidar Sensor");
-    // lidar->SetLag(1 / lidar_update_rate);
-    // lidar->SetCollectionWindow(0);
+    /*
+     auto lidar = chrono_types::make_shared<ChLidarSensor>(
+         my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
+         lidar_update_rate,                                                 // update rate
+         chrono::ChFrame<double>({0, 0, 2}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose from body
+         horizontal_samples,                                                // horizontal samples
+         vertical_samples,                                                  // vertical samples/channels
+         lidar_hfov,                                                        // horizontal field of view
+         lidar_vmax, lidar_vmin, lidar_max_distance                         // vertical field of view
+     );
+     lidar->SetName("Lidar Sensor");
+     lidar->SetLag(1 / lidar_update_rate);
+     lidar->SetCollectionWindow(0);
 
-    // if (sensor_vis)
-    //     // Renders the raw lidar data
-    //     lidar->PushFilter(
-    //         chrono_types::make_shared<ChFilterVisualize>(horizontal_samples, vertical_samples, "Raw Lidar Data"));
+     if (sensor_vis)
+         // Renders the raw lidar data
+         lidar->PushFilter(
+             chrono_types::make_shared<ChFilterVisualize>(horizontal_samples, vertical_samples, "Raw Lidar Data"));
 
-    // // Convert the range,intensity data to a point cloud (XYZI)
-    // lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
+     // Convert the range,intensity data to a point cloud (XYZI)
+     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
 
-    // if (sensor_vis)
-    //     // Renders the point cloud
-    //     lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3.0f, "Lidar Point
-    //     Cloud"));
+     if (sensor_vis)
+         // Renders the point cloud
+         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3.0f, "Lidar Point
+         Cloud"));
 
-    // if (sensor_save)
-    //     // Save the XYZI data
-    //     lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>(sens_dir + "/lidar/"));
+     if (sensor_save)
+         // Save the XYZI data
+         lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>(sens_dir + "/lidar/"));
 
-    // // Provides the host access to this XYZI buffer
-    // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
+     // Provides the host access to this XYZI buffer
+     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
 
-    // // add sensor to the manager
-    // manager->AddSensor(lidar);
+     // add sensor to the manager
+     manager->AddSensor(lidar);
+     */
 
     // ---------------
     // Simulate system
@@ -454,12 +443,6 @@ int main(int argc, char* argv[]) {
         // Collect output data from modules (for inter-module communication)
         DriverInputs driver_inputs = driver.GetInputs();
 
-        // Driver output
-        if (driver_mode == RECORD) {
-            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
-                       << std::endl;
-        }
-
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
@@ -479,10 +462,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-    }
-
-    if (driver_mode == RECORD) {
-        driver_csv.WriteToFile(driver_file);
     }
 
     return 0;

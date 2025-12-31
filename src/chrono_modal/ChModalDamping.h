@@ -22,6 +22,9 @@
 namespace chrono {
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 // forward reference
 class ChModalAssembly;
 
@@ -182,8 +185,9 @@ class ChApiModal ChModalDampingCustom : public ChModalDamping {
     ChSparseMatrix reduced_R;
 };
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

@@ -28,44 +28,45 @@ ChCone::ChCone(const ChCone& source) {
 
 // -----------------------------------------------------------------------------
 
-double ChCone::GetVolume(double radius, double height) {
-    return CH_PI * radius * radius * height / 3.0;
+double ChCone::CalcVolume(double radius, double height) {
+    return CH_PI_3 * radius * radius * height;
 }
 
 double ChCone::GetVolume() const {
-    return GetVolume(r, h);
+    return CalcVolume(r, h);
 }
 
-ChMatrix33<> ChCone::GetGyration(double radius, double height) {
-    double Ixx = (3.0 / 80.0) * (height * height) + (3.0 / 20.0) * (radius * radius);
+ChMatrix33<> ChCone::CalcGyration(double radius, double height) {
+    double Ixx = (3.0 / 20.0) * (radius * radius) + (1.0 / 10.0) * (height * height);
 
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = Ixx;
-    J(1, 1) = (3.0 / 10.0) * (radius * radius);
-    J(2, 2) = Ixx;
+    J(1, 1) = Ixx;
+    J(2, 2) = (3.0 / 10.0) * (radius * radius);
 
     return J;
 }
 
 ChMatrix33<> ChCone::GetGyration() const {
-    return GetGyration(r, h);
+    return CalcGyration(r, h);
 }
 
-ChAABB ChCone::GetBoundingBox(double radius, double height) {
-    return ChAABB(ChVector3d(-radius, -radius, 0), ChVector3d(+radius, +radius, height));
+ChAABB ChCone::CalcBoundingBox(double radius, double height) {
+    return ChAABB(ChVector3d(-radius, -radius, -height / 2),  //
+                  ChVector3d(+radius, +radius, +height / 2));
 }
 
 ChAABB ChCone::GetBoundingBox() const {
-    return GetBoundingBox(r, h);
+    return CalcBoundingBox(r, h);
 }
 
-double ChCone::GetBoundingSphereRadius(double radius, double height) {
+double ChCone::CalcBoundingSphereRadius(double radius, double height) {
     return std::sqrt(height * height / 4 + radius * radius);
 }
 
 double ChCone::GetBoundingSphereRadius() const {
-    return GetBoundingSphereRadius(r, h);
+    return CalcBoundingSphereRadius(r, h);
 }
 
 // -----------------------------------------------------------------------------

@@ -21,17 +21,17 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------
 
     // Create the vehicle system
-    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::SMC);
+    TrackedVehicle vehicle(GetVehicleDataFile(vehicle_file), ChContactMethod::SMC);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
@@ -178,39 +178,21 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     // ------------------
 
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    RigidTerrain terrain(vehicle.GetSystem(), GetVehicleDataFile(rigidterrain_file));
     terrain.Initialize();
 
     // ----------------------------
     // Create the powertrain system
     // ----------------------------
 
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_file));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_file));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(engine_file));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(transmission_file));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("JSON Band-Tracked Vehicle Demo");
-    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&vehicle);
-
-    // ------------------------
     // Create the driver system
-    // ------------------------
-
-    ChInteractiveDriverIRR driver(*vis);
+    ChInteractiveDriver driver(vehicle);
 
     // Set the time response for keyboard inputs.
     double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
@@ -221,11 +203,23 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(render_step_size / braking_time);
 
     driver.Initialize();
-#else
 
+    // Create the vehicle Irrlicht application
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("JSON Band-Tracked Vehicle Demo");
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
+    vis->SetChaseCameraMultipliers(1e-4, 10);
+    vis->Initialize();
+    vis->AddLightDirectional();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&vehicle);
+    vis->AttachDriver(&driver);
+#else
     // Create a default driver (always returns 1 for throttle, 0 for all other inputs)
     MyDriver driver;
-
+    driver.Initialize();
 #endif
 
     // -----------------
@@ -257,7 +251,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup chassis position output with column headers
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
     csv.Stream().precision(6);
     csv << "Time (s)"
@@ -268,7 +262,7 @@ int main(int argc, char* argv[]) {
     // Set up vehicle output
     ////vehicle.SetChassisOutput(true);
     ////vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    vehicle.SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
     ////vehicle.ExportComponentList(out_dir + "/component_list.json");
@@ -342,7 +336,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
     integrator->SetVerbose(verbose_integrator);
 
     // ---------------
@@ -463,7 +457,6 @@ int main(int argc, char* argv[]) {
 
         cout << "Step: " << step_number;
         cout << "   Time: " << time;
-        cout << "   Number of Iterations: " << integrator->GetNumIterations();
         cout << "   Step Time: " << step_timing;
         cout << "   Total Time: " << total_timing;
         cout << endl;

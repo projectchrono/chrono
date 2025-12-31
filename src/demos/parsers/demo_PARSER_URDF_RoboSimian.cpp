@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     auto limb3_wheel = robot.GetChBody("limb3_link8");
     auto limb4_wheel = robot.GetChBody("limb4_link8");
 
-    // Enable collsion and set contact material for selected bodies of the robot
+    // Enable collision and set contact material for selected bodies of the robot
     sled->EnableCollision(true);
     limb1_wheel->EnableCollision(true);
     limb2_wheel->EnableCollision(true);
@@ -235,15 +235,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("RoboSimian URDF demo");
             vis_vsg->AddCamera(camera_loc, camera_lookat);
-            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2i(400, 100));
-            vis_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
-            vis_vsg->SetUseSkyBox(false);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            ////vis_vsg->SetShadows(true);
-            vis_vsg->SetWireFrameMode(false);
+            ////vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

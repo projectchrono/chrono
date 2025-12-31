@@ -21,7 +21,15 @@
 namespace chrono {
 namespace vehicle {
 
-ChTrackedVehicleVisualSystemVSG::ChTrackedVehicleVisualSystemVSG() : ChVehicleVisualSystemVSG(), m_tvehicle(nullptr) {}
+ChTrackedVehicleVisualSystemVSG::ChTrackedVehicleVisualSystemVSG()
+    : ChVehicleVisualSystemVSG(),
+      m_tvehicle(nullptr),
+      m_chassis_visible(true),
+      m_sprocket_visible(true),
+      m_idler_visible(true),
+      m_suspension_visible(true),
+      m_shoe_visible(true),
+      m_wheel_visible(true) {}
 
 void ChTrackedVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     ChVehicleVisualSystemVSG::AttachVehicle(vehicle);
@@ -53,6 +61,71 @@ void ChTrackedVehicleVisualSystemVSG::AppendGUIStats() {
         ImGui::TableNextColumn();
         ImGui::Text(" R: %+5.1f RPM", sprk_speed_R);
         ImGui::TableNextRow();
+        ImGui::EndTable();
+    }
+
+    if (ImGui::BeginTable("Subsystems", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        uint16_t vtag = m_vehicle->GetVehicleTag();
+
+        ImGui::TableNextColumn();
+        static bool chassis_visible = true;
+        if (ImGui::Checkbox("Chassis", &chassis_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::CHASSIS);
+            m_chassis_visible = !m_chassis_visible;
+            SetBodyObjVisibility(m_chassis_visible, tag);
+            SetLinkObjVisibility(m_chassis_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool sprocket_visible = true;
+        if (ImGui::Checkbox("Sprockets", &sprocket_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::SPROCKET);
+            m_sprocket_visible = !m_sprocket_visible;
+            SetBodyObjVisibility(m_sprocket_visible, tag);
+            SetLinkObjVisibility(m_sprocket_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool idler_visible = true;
+        if (ImGui::Checkbox("Idlers", &idler_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::IDLER);
+            m_idler_visible = !m_idler_visible;
+            SetBodyObjVisibility(m_idler_visible, tag);
+            SetLinkObjVisibility(m_idler_visible, tag);
+            SetSpringVisibility(m_idler_visible, tag);
+            SetSegmentVisibility(m_idler_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool suspension_visible = true;
+        if (ImGui::Checkbox("Suspension", &suspension_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::TRACK_SUSPENSION);
+            m_suspension_visible = !m_suspension_visible;
+            SetBodyObjVisibility(m_suspension_visible, tag);
+            SetLinkObjVisibility(m_suspension_visible, tag);
+            SetSpringVisibility(m_suspension_visible, tag);
+            SetSegmentVisibility(m_suspension_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool shoe_visible = true;
+        if (ImGui::Checkbox("Track shoes", &shoe_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::SHOE);
+            m_shoe_visible = !m_shoe_visible;
+            SetBodyObjVisibility(m_shoe_visible, tag);
+            SetLinkObjVisibility(m_shoe_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool wheel_visible = true;
+        if (ImGui::Checkbox("Track wheels", &wheel_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::TRACK_WHEEL);
+            m_wheel_visible = !m_wheel_visible;
+            SetBodyObjVisibility(m_wheel_visible, tag);
+            SetLinkObjVisibility(m_wheel_visible, tag);
+        }
+
         ImGui::EndTable();
     }
 }

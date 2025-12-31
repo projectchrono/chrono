@@ -38,6 +38,14 @@
 %template(ChQuaterniond) chrono::ChQuaternion<double>; 
 %template(ChQuaternionf) chrono::ChQuaternion<float>; 
 
+%extend chrono::ChQuaternion<double>{
+		public:
+			ChQuaternion<double> __rmul__(const chrono::ChQuaternion<double>& q) {
+				ChQuaternion<double> r = (*$self) * q;
+				return r;
+			}
+		};
+
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 // This is needed because a std::vector<ChQuaternion<double>

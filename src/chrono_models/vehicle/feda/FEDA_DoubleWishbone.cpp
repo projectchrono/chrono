@@ -125,7 +125,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
           m_coilSpringF0(coilSpringF0),
           m_P0(p0) {
         // percalculations
-        double A0 = pow(m_piston_radius, 2.0) * CH_PI;
+        double A0 = std::pow(m_piston_radius, 2.0) * CH_PI;
         double V0 = m_cylinder_compression_length * A0;
         m_airSpringF0 = m_P0 * A0;
         std::cout << "Fzero = " << m_airSpringF0 << "N\n";
@@ -177,7 +177,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
             // std::cout << "Rebound Deflection: " << defl_rebound << " m\n";
         }
 
-        force = m_airSpringF0 * pow(m_hf0, m_kappa) / pow(m_hf0 - defl_spring, m_kappa) + defl_spring * m_k +
+        force = m_airSpringF0 * std::pow(m_hf0, m_kappa) / std::pow(m_hf0 - defl_spring, m_kappa) + defl_spring * m_k +
                 m_coilSpringF0 + m_bump.GetVal(defl_bump) - m_rebound.GetVal(defl_rebound);
         // std::cout << "d =" << defl_spring << " m\n";
         return force;
@@ -358,8 +358,8 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
             const double degr_compression = 2.45786;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
         case 3: {
             // passive damper with high damping effect
@@ -368,8 +368,8 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;
             const double degr_compression = 11.579;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
     }
 }
@@ -395,8 +395,8 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
             const double degr_compression = 2.45786;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
         case 3: {
             // passive damper with high damping effect
@@ -405,8 +405,8 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;
             const double degr_compression = 11.579;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
     }
 }
@@ -428,13 +428,13 @@ FEDA_DoubleWishboneRear::~FEDA_DoubleWishboneRear() {
      */
 }
 
-void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
-                                          std::shared_ptr<ChSubchassis> subchassis,
-                                          std::shared_ptr<ChSteering> steering,
-                                          const ChVector3d& location,
-                                          double left_ang_vel,
-                                          double right_ang_vel) {
-    ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+void FEDA_DoubleWishboneFront::Construct(std::shared_ptr<ChChassis> chassis,
+                                         std::shared_ptr<ChSubchassis> subchassis,
+                                         std::shared_ptr<ChSteering> steering,
+                                         const ChVector3d& location,
+                                         double left_ang_vel,
+                                         double right_ang_vel) {
+    ChDoubleWishbone::Construct(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
 
     if (m_damper_mode == 1) {
         m_shockODE = new FEDA_ShockODE;
@@ -443,13 +443,13 @@ void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
     }
 }
 
-void FEDA_DoubleWishboneRear::Initialize(std::shared_ptr<ChChassis> chassis,
-                                         std::shared_ptr<ChSubchassis> subchassis,
-                                         std::shared_ptr<ChSteering> steering,
-                                         const ChVector3d& location,
-                                         double left_ang_vel,
-                                         double right_ang_vel) {
-    ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+void FEDA_DoubleWishboneRear::Construct(std::shared_ptr<ChChassis> chassis,
+                                        std::shared_ptr<ChSubchassis> subchassis,
+                                        std::shared_ptr<ChSteering> steering,
+                                        const ChVector3d& location,
+                                        double left_ang_vel,
+                                        double right_ang_vel) {
+    ChDoubleWishbone::Construct(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
     if (m_damper_mode == 1) {
         m_shockODE = new FEDA_ShockODE;
         GetShock(LEFT)->RegisterODE(m_shockODE);

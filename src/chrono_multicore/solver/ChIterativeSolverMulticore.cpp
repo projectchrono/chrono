@@ -41,7 +41,7 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
+    uint num_particles = data_manager->num_particles;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
@@ -61,7 +61,7 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
     // Each motor has one "mass" entry
-    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3);
+    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_particles * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M_inv.resize(num_dof, num_dof);
@@ -128,7 +128,7 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
+    uint num_particles = data_manager->num_particles;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
@@ -144,7 +144,7 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
     // Each motor has one "mass" entry
-    M.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3);
+    M.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_particles * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M.resize(num_dof, num_dof);

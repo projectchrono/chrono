@@ -59,7 +59,7 @@ class ChApi ChNarrowphase {
     void ClearContacts();
 
     /// Perform narrowphase collision detection.
-    /// This function generates rigid-rigid, fluid-fluid, and rigid-fluid collisions, as applicable.
+    /// This function generates rigid-rigid, particle-particle, and rigid-particle collisions, as applicable.
     /// Collision detection results are loaded in the shared data object (see ChCollisionData).
     void Process();
 
@@ -121,13 +121,13 @@ class ChApi ChNarrowphase {
     /// shape.
     void PreprocessLocalToParent();
 
-    /// Perform collision detection fluid-fluid.
-    void ProcessFluid();
+    /// Perform collision detection particle-particle.
+    void ProcessParticles();
 
-    /// Perform collision detection involving rigid shapes (rigid-rigid and rigid-fluid).
+    /// Perform collision detection involving rigid shapes (rigid-rigid and rigid-particle).
     void ProcessRigids();
     void ProcessRigidRigid();
-    void ProcessRigidFluid();
+    void ProcessRigidParticle();
 
     void DispatchMPR();
     void DispatchPRIMS();
@@ -138,31 +138,25 @@ class ChApi ChNarrowphase {
     std::shared_ptr<ChCollisionData> cd_data;
 
     std::vector<char> contact_rigid_active;
-    std::vector<char> contact_rigid_fluid_active;
-    std::vector<char> contact_fluid_active;
+    std::vector<char> contact_rigid_particle_active;
+    std::vector<char> contact_particle_active;
     std::vector<uint> contact_index;
 
     uint num_potential_rigid_contacts;
-    uint num_potential_fluid_contacts;
-    uint num_potential_rigid_fluid_contacts;
+    uint num_potential_particle_contacts;
+    uint num_potential_rigid_particle_contacts;
 
     Algorithm algorithm;
 
     std::vector<uint> f_bin_intersections;
     std::vector<uint> f_bin_number;
-    std::vector<uint> f_bin_number_out;  //// TODO: rename to f_bin_active
-    std::vector<uint> f_bin_fluid_number;
+    std::vector<uint> f_bin_number_active;
+    std::vector<uint> f_bin_particle_number;
     std::vector<uint> f_bin_start_index;
     std::vector<uint> is_rigid_bin_active;
     std::vector<int> ff_bin_ids;
     std::vector<int> ff_bin_starts;
     std::vector<int> ff_bin_ends;
-
-    std::vector<uint> t_bin_intersections;
-    std::vector<uint> t_bin_number;
-    std::vector<uint> t_bin_number_out;
-    std::vector<uint> t_bin_fluid_number;
-    std::vector<uint> t_bin_start_index;
 
     friend class ChCollisionSystemMulticore;
     friend class ChCollisionSystemChronoMulticore;

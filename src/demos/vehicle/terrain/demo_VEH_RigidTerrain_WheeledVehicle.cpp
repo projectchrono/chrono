@@ -19,22 +19,21 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -84,7 +83,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_JSON
     // Create the terrain from JSON specification file
-    RigidTerrain terrain(hmmwv.GetSystem(), vehicle::GetDataFile("terrain/RigidPatches.json"), true);
+    RigidTerrain terrain(hmmwv.GetSystem(), GetVehicleDataFile("terrain/RigidPatches.json"), true);
 #else
     // Create the terrain patches programatically
     RigidTerrain terrain(hmmwv.GetSystem());
@@ -93,39 +92,39 @@ int main(int argc, char* argv[]) {
         auto patch1_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch1_mat->SetFriction(0.9f);
         patch1_mat->SetRestitution(0.01f);
-        auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(-16, 0, 0), QUNIT), 32, 20);
+        auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(-16, 0, 0.08), QUNIT), 32, 20);
         patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-        patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
+        patch1->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
         auto patch2_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch2_mat->SetFriction(0.9f);
         patch2_mat->SetRestitution(0.01f);
         auto patch2 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(16, 0, 0.08), QUNIT), 32, 20);
         patch2->SetColor(ChColor(1.0f, 0.5f, 0.5f));
-        patch2->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
+        patch2->SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 20, 20);
 
         auto patch3_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch3_mat->SetFriction(0.9f);
         patch3_mat->SetRestitution(0.01f);
         auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector3d(0, -42, 0), QUNIT),
-                                       vehicle::GetDataFile("terrain/meshes/bump.obj"));
+                                       GetVehicleDataFile("terrain/meshes/bump.obj"));
         patch3->SetColor(ChColor(0.5f, 0.5f, 0.8f));
-        patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
+        patch3->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
 
         auto patch4_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch4_mat->SetFriction(0.9f);
         patch4_mat->SetRestitution(0.01f);
-        auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector3d(0, 42, 0), QUNIT),
-                                       vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
-        patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
+        auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector3d(0, 42, 0), QuatFromAngleZ(CH_PI_2)),
+                                       GetVehicleDataFile("terrain/height_maps/convex64.bmp"), 64.0, 64.0, 0.0, 3.0);
+        patch4->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
     }
-
+    
     if (false) {
         auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch_mat->SetFriction(0.9f);
         patch_mat->SetRestitution(0.01f);
         auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, 10), QUNIT),
-                                      vehicle::GetDataFile("terrain/multilayer/multilayer-terrain.obj"));
+                                      GetVehicleDataFile("terrain/multilayer/multilayer-terrain.obj"));
     }
 
     terrain.Initialize();
@@ -137,10 +136,14 @@ int main(int argc, char* argv[]) {
     double throttle_time = 1.0;          // time to go from 0 to +1
     double braking_time = 0.3;           // time to go from 0 to +1
 
-    // Create the vehicle run-time visualization interface and the interactive driver
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    std::shared_ptr<ChDriver> driver;
+    // Create an interactive driver
+    ChInteractiveDriver driver(hmmwv.GetVehicle());
+    driver.SetSteeringDelta(render_step_size / steering_time);
+    driver.SetThrottleDelta(render_step_size / throttle_time);
+    driver.SetBrakingDelta(render_step_size / braking_time);
+    driver.Initialize();
 
+    // Create the vehicle run-time visualization interface
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -150,6 +153,7 @@ int main(int argc, char* argv[]) {
         vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
+    std::shared_ptr<ChVehicleVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
@@ -162,15 +166,9 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
             vis_irr->AttachVehicle(&hmmwv.GetVehicle());
-
-            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
-            driver_irr->SetSteeringDelta(render_step_size / steering_time);
-            driver_irr->SetThrottleDelta(render_step_size / throttle_time);
-            driver_irr->SetBrakingDelta(render_step_size / braking_time);
-            driver_irr->Initialize();
+            vis_irr->AttachDriver(&driver);
 
             vis = vis_irr;
-            driver = driver_irr;
 #endif
             break;
         }
@@ -181,28 +179,23 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Rigid Terrain Demo");
-            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 8.0, 0.75);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
+            vis_vsg->AttachDriver(&driver);
             vis_vsg->AttachTerrain(&terrain);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
+            vis_vsg->EnableSkyBox();
             vis_vsg->Initialize();
 
-            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
-            driver_vsg->SetSteeringDelta(render_step_size / steering_time);
-            driver_vsg->SetThrottleDelta(render_step_size / throttle_time);
-            driver_vsg->SetBrakingDelta(render_step_size / braking_time);
-            driver_vsg->Initialize();
-
             vis = vis_vsg;
-            driver = driver_vsg;
 #endif
             break;
         }
     }
 
-    ////utils::ChWriterCSV out(" ");
+    ////ChWriterCSV out(" ");
     ////for (int ix = 0; ix < 20; ix++) {
     ////    double x = ix * 1.0;
     ////    for (int iy = 0; iy < 100; iy++) {
@@ -227,16 +220,16 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Get driver inputs
-        DriverInputs driver_inputs = driver->GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
-        driver->Synchronize(time);
+        driver.Synchronize(time);
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver->Advance(step_size);
+        driver.Advance(step_size);
         terrain.Advance(step_size);
         hmmwv.Advance(step_size);
         vis->Advance(step_size);

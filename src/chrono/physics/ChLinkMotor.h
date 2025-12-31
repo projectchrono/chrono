@@ -48,7 +48,7 @@ class ChApi ChLinkMotor : public ChLinkMateGeneric {
     virtual ChLinkMotor* Clone() const override { return new ChLinkMotor(*this); }
 
     /// Update state of the LinkMotor.
-    virtual void Update(double mytime, bool update_assets) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

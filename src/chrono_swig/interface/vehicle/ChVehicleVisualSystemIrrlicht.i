@@ -8,32 +8,26 @@
 
 %{
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
-#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace irr::scene; // This is inserted for the extend functions that use it
 
-// InteractiveDriverIRR includes
-#ifdef SWIGCSHARP
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-    #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
-#endif
-
 %}
 
+// Expose for both python and csharp
+%shared_ptr(chrono::vehicle::ChSuspensionTestRig)
+%shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
+%shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
 
 #ifdef SWIGCSHARP
-
-    // InteractiveDriverIRR
-    %include "../../../chrono/core/ChBezierCurve.h"
-    %import "ChDriver.i" // make SWIG aware of the ChDriver interface file
-    %shared_ptr(chrono::vehicle::ChInteractiveDriverIRR)
-    %shared_ptr(chrono::vehicle::ChSuspensionTestRigInteractiveDriverIRR)
 
     %ignore chrono::vehicle::ChJoystickAxisIRR; // Ignore this for now Using an alias enum, SWIG can't translate the irr namespace right.
 
@@ -50,6 +44,7 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     %shared_ptr(chrono::vehicle::ChVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChTrackedVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht)
+    %shared_ptr(chrono::vehicle::ChSuspensionTestRigVisualSystemIRR)
 
     // Process headers - SWIG gets very confused between the various namespaces. Tricky to solve easily.
     // As it stands, with this ordering, an instance of ChWheeledVehicleVisualSystemIrrlicht currently has inherited access to
@@ -62,17 +57,14 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     // Extending the missing functions is a workaround
     //
 
-    // Visual Systems, in SWIG order, 1- ChVehicleVisualSystem, 2- ChVehicleVisualSystemIrrlicht, 3 - ChVisualSystemIrrlicht
-    %include "../../../chrono_vehicle/ChVehicleVisualSystem.h"  
-    %include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
-    %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"    
-    // Includes for interactive driver
-    %include "../../../chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-    %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
-    %DefSharedPtrDynamicCast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
+    // Visual Systems, in SWIG order, 1- ChVehicleVisualSystem (in base ChModuleVehicle.i), 2- ChVisualSystemIrrlicht, 3- ChVehicleVisualSystemIrrlicht
+    // Ensure both base classes are fully defined before the derived MI class to avoid incomplete base warnings in C#.
+    %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"
+    %include "../../../chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h"
 
     // Manual extensions
     // extending ChVisualSystemIrrlicht methods which are in the irrlicht namespace
@@ -105,7 +97,7 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     }
 
     %extend chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht {
-        void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png")) {
+        void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chrono_alpha.png")) {
             $self->chrono::irrlicht::ChVisualSystemIrrlicht::AddLogo(logo_filename);
         }
     }
@@ -135,23 +127,26 @@ using namespace irr::scene; // This is inserted for the extend functions that us
 
 #endif
 
-// Seperate out existing Python
+// Separate out existing Python
 #ifdef SWIGPYTHON
     // Set up shared pointers prior to header inclusions
-    %shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
     %shared_ptr(chrono::vehicle::ChVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChTrackedVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht)
+    %shared_ptr(chrono::vehicle::ChSuspensionTestRigVisualSystemIRR)
 
     %import(module = "pychrono.irrlicht") "chrono_swig/interface/irrlicht/ChVisualSystemIrrlicht.i"
     %include "../../../chrono_vehicle/ChVehicleVisualSystem.h"
-    %include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+    %include "../../../chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h"
+
     //%DefSharedPtrDynamicCast2NS(chrono::irrlicht, chrono::vehicle, ChVisualSystemIrrlicht, ChVehicleVisualSystemIrrlicht)
     //%DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChVehicleVisualSystemIrrlicht)
     %DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChTrackedVehicleVisualSystemIrrlicht)
     %DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChWheeledVehicleVisualSystemIrrlicht)
     //%DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystemIrrlicht, ChTrackedVehicleVisualSystemIrrlicht)
     //%DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystemIrrlicht, ChWheeledVehicleVisualSystemIrrlicht)
+    %DefSharedPtrDynamicCast2NS(chrono::irrlicht, chrono::vehicle, ChVisualSystemIrrlicht, ChSuspensionTestRigVisualSystemIRR)
 #endif

@@ -32,7 +32,7 @@
     @defgroup cascade_module CASCADE module
     @brief Tools for interoperation with CAD files.
 
-    This module allows using the OpenCASCADE solid modeling kernel in Chrono::Engine.
+    This module allows using the OpenCASCADE solid modeling kernel in Chrono.
 
     For additional information, see:
     - the [installation guide](@ref module_cascade_installation)

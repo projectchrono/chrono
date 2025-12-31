@@ -163,21 +163,26 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     double m_dimX;  ///< patch length (X direction)
     double m_dimY;  ///< patch width (Y direction)
 
+    std::vector<ChVector3d> m_path_points;  ///< vehicle path (optional)
+
     // Communication data
 
     bool m_wheeled;                  ///< comm node (true: TIRE nodes, false: tracked MBS node)
     InterfaceType m_interface_type;  ///< communication interface (body or mesh)
     int m_num_objects;               ///< number of interacting objects
 
-    std::vector<ChAABB> m_aabb;                 ///< AABB of collision models for interacting objects
-    std::vector<ChVehicleGeometry> m_geometry;  ///< contact geometry and materials for interacting objects
-    std::vector<double> m_load_mass;            ///< vertical load on interacting objects
-    std::vector<int> m_obj_map;                 ///< mapping from interacting object to shape
+    std::vector<ChVector3d> m_init_loc;                              ///< initial locations of interacting objects
+    std::vector<ChAABB> m_aabb;                                      ///< AABB of geometry of interacting objects
+    std::vector<std::shared_ptr<utils::ChBodyGeometry>> m_geometry;  ///< geometry of interacting objects
+    std::vector<double> m_load_mass;                                 ///< vertical load on interacting objects
+    std::vector<int> m_obj_map;                                      ///< mapping from interacting object to shape
 
     std::vector<MeshState> m_mesh_state;        ///< mesh state (used for MESH communication)
     std::vector<BodyState> m_rigid_state;       ///< rigid state (used for BODY communication interface)
     std::vector<MeshContact> m_mesh_contact;    ///< mesh contact forces (used for MESH communication interface)
     std::vector<TerrainForce> m_rigid_contact;  ///< rigid contact force (used for BODY communication interface)
+
+    ChVector3d m_chassis_loc;  ///< current chassis location
 
   private:
     void InitializeTireData();

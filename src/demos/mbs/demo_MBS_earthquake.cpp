@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/functions/ChFunctionSine.h"
@@ -54,15 +56,15 @@ void create_column(ChSystemNSC& sys,
     std::vector<ChVector3d> mpoints;
     for (int i = 0; i < col_nedges; ++i) {
         double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
-        double x = col_radius_hi * cos(alpha);
-        double z = col_radius_hi * sin(alpha);
+        double x = col_radius_hi * std::cos(alpha);
+        double z = col_radius_hi * std::sin(alpha);
         double y = col_base + col_height;
         mpoints.push_back(ChVector3d(x, y, z));
     }
     for (int i = 0; i < col_nedges; ++i) {
         double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
-        double x = col_radius_lo * cos(alpha);
-        double z = col_radius_lo * sin(alpha);
+        double x = col_radius_lo * std::cos(alpha);
+        double z = col_radius_lo * std::sin(alpha);
         double y = col_base;
         mpoints.push_back(ChVector3d(x, y, z));
     }
@@ -156,7 +158,7 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(&sys);
             vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("Collisions between objects");
+            vis_irr->SetWindowTitle("Earthquake simulation");
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
@@ -176,15 +178,15 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetWindowTitle("Chrono VSG Assets");
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->SetWindowTitle("Earthquake simulation");
+            vis_vsg->EnableSkyBox();
             vis_vsg->AddCamera(ChVector3d(1, 8, -15));
             vis_vsg->SetCameraAngleDeg(50);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

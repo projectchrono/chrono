@@ -19,7 +19,7 @@
 
 #include "chrono/ChConfig.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/mrole/mrole.h"
 #include "chrono_models/vehicle/mrole/mrole_RigidTire.h"

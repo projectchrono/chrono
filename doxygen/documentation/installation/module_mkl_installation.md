@@ -3,11 +3,7 @@ Install the Pardiso MKL module {#module_mkl_installation}
 
 [TOC]
 
-This is an optional module that enables Chrono to use the Intel MKL Pardiso solver.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
-
-This module provides access to the third-party Intel MKL Pardiso sparse direct linear solver.
+Chrono::PardisoMKL is an optional module that exposes the direct sparse linear solver Pardiso from the Intel MKL library.
 The interface to Pardiso is provided by [Eigen](https://eigen.tuxfamily.org/dox/classEigen_1_1PardisoLU.html).
 
 ## Features
@@ -20,51 +16,31 @@ Two Chrono-specific features are implemented:
 Look at the [API section](group__mkl__module.html) of this module for more details.
 
 ## Requirements
-[Intel MKL Library]: https://software.intel.com/en-us/mkl
+
+This module requires the [Intel MKL Library](https://software.intel.com/en-us/mkl).
+Note that Intel MKL can be installed stand-alone or as part of the Intel oneAPI [Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html).
+
+- On Linux, the MKL Library can be installed using the distribution's package manager by following Intel's [installation instructions](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html?operatingsystem=linux&distributions=aptpackagemanager). 
+- On Windows, follow the Intel MKL Library [installation instructions](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html). 
+
+
+<div class="ce-warning">
+<span style="color:red; font-weight:bold">ATTENTION!</span><br>
+Eigen3 was **not** updated to work with oneAPI and MKL 2025.<br>
+Intel MKL 2023 is known to work fine with Eigen (and therefore Chrono) on both Linux and Windows.
+</div>
 
 ## Building instructions
-
-### Linux
-1. The MKL Library can be installed using the APT Package Manager by following the installation instructions spelled out [here](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html?operatingsystem=linux&distributions=aptpackagemanager). You can also choose various different Installers from the drop down menu on the webpage if you prefer not to use APT.  
-
-2. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure to set `ENABLE_MODULE_PARDISO_MKL` to `ON`.<br>
-    The CMake output window on Linux systems should return the following (note that the MATH library is not required.):
-~~~~~
- Find MKL libraries
-    MKL include dirs:   /opt/intel/oneapi/mkl/latest/include
-    MKL libraries:      /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_rt.so
-    IOMP5 library:      /opt/intel/oneapi/compiler/2024.0/lib/libiomp5.so
-    MATH library:       MATH_LIBRARY-NOTFOUND
-    MKL library dirs:   /opt/intel/oneapi/mkl/latest/lib/intel64;/opt/intel/oneapi/compiler/2024.0/lib
-~~~~~  
-
-3. Press 'Generate' and build the project.
-
-Building this module will produce an additional shared library, called **ChronoEngine_pardisomkl**, which can be linked to your application.<br>
-On Linux, the file extension will be .so.
-
-### Windows
-1. Install the Intel MKL Library following the [Get Started Guide](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html). 
-
-   If you are *not* installing to the default directory, then you have to set the environment variable `MKLROOT` to point to the MKL folder, for example:<br>
-    `<install_folder>/Intel/oneAPI/mkl` (Windows + MKL>=2020)<br>
-	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/mkl` (Windows + MKL=2016..2019)
 	
-2. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure that also the option `ENABLE_MODULE_PARDISO_MKL` is set to `ON`.<br>
-    The CMake output window, on Windows OS, should return the following:<br>(Please mind that the MATH library is not required.)
-~~~~~
-   MKL include dirs:   C:/Program Files (x86)/Intel/oneAPI/mkl/latest/include
-   MKL libraries:      C:/Program Files (x86)/Intel/oneAPI/mkl/latest/lib/intel64/mkl_rt.lib
-   IOMP5 library:      C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win/libiomp5md.lib
-   MATH library:       C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win/libmmd.lib
-   MKL library dirs:   C:/Program Files (x86)/Intel/oneAPI/mkl/latest/lib/intel64;C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win
-~~~~~
+1. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure that also the option `CH_ENABLE_MODULE_PARDISO_MKL` is set to `ON`.
 
-3. Press 'Generate' and build the project.
+2. If prompted, set MKL_DIR to the directory with a CMake configuration file for MKL. Depending on the OS, this will be something like:
+    - `C:/Program Files (x86)/Intel/oneAPI/mkl/2023.0.0/lib/cmake/mkl` (Windows)
+	- `/opt/intel/oneapi/mkl/latest/lib/cmake/mkl` (Linux)
 
-Building this module will produce an additional shared library, called **ChronoEngine_pardisomkl**, which can be linked to your application.<br>
-On Windows, the file extension will be .dll.
+3. Press 'Configure' again and then 'Generate'
 
+4. Building this module will produce an additional shared library, called **Chrono_pardisomkl**, which can be linked to your application.
 
 ## How to use it
 

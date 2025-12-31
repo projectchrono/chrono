@@ -29,10 +29,10 @@ namespace chrono {
 /// Geometric object representing a NURBS spline.
 class ChApi ChLineNurbs : public ChLine {
   public:
-    std::vector<ChVector3d> points;
-    ChVectorDynamic<> weights;
-    ChVectorDynamic<> knots;
-    int p;
+    std::vector<ChVector3d> m_points;
+    ChVectorDynamic<> m_weights;
+    ChVectorDynamic<> m_knots;
+    int m_p;
 
   public:
     /// Constructor. By default, a segment (order = 1, two points on X axis, at -1, +1)
@@ -54,7 +54,7 @@ class ChApi ChLineNurbs : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLineNurbs* Clone() const override { return new ChLineNurbs(*this); }
 
-    virtual int GetComplexity() const override { return (int)points.size(); }
+    virtual int GetComplexity() const override { return (int)m_points.size(); }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector3d Evaluate(double U) const override;
@@ -67,24 +67,24 @@ class ChApi ChLineNurbs : public ChLine {
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
-    double ComputeUfromKnotU(double u) const { return (u - knots(p)) / (knots(knots.size() - 1 - p) - knots(p)); }
+    double ComputeUfromKnotU(double u) const;
 
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:
-    double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
+    double ComputeKnotUfromU(double U) const;
 
     /// Access the points
-    std::vector<ChVector3d>& Points() { return points; }
+    std::vector<ChVector3d>& Points() { return m_points; }
 
     /// Access the weights
-    ChVectorDynamic<>& Weights() { return weights; }
+    ChVectorDynamic<>& Weights() { return m_weights; }
 
     /// Access the knots
-    ChVectorDynamic<>& Knots() { return knots; }
+    ChVectorDynamic<>& Knots() { return m_knots; }
 
     /// Get the order of spline
-    int GetOrder() { return p; }
+    int GetOrder() { return m_p; }
 
     /// Initial easy setup from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.

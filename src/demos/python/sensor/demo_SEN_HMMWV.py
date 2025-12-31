@@ -70,9 +70,19 @@ def main():
         patch_mat.SetYoungModulus(2e7)
     patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM,
                              terrainLength, terrainWidth)
-    patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+    patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
+
+    # Create the interactive driver system
+    driver = veh.ChInteractiveDriver(hmmwv.GetVehicle())
+    steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
+    throttle_time = 1.0  # time to go from 0 to +1
+    braking_time = 0.3   # time to go from 0 to +1
+    driver.SetSteeringDelta(render_step_size / steering_time)
+    driver.SetThrottleDelta(render_step_size / throttle_time)
+    driver.SetBrakingDelta(render_step_size / braking_time)
+    driver.Initialize()
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
@@ -80,10 +90,11 @@ def main():
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv.GetVehicle())
+    vis.AttachDriver(driver)
 
     # Initialize output
 
@@ -97,23 +108,10 @@ def main():
     hmmwv.GetVehicle().SetChassisOutput(True)
     hmmwv.GetVehicle().SetSuspensionOutput(0, True)
     hmmwv.GetVehicle().SetSteeringOutput(0, True)
-    hmmwv.GetVehicle().SetOutput(veh.ChVehicleOutput.ASCII, out_dir, "output", 0.1)
+    hmmwv.GetVehicle().SetOutput(chrono.ChOutput.Type_ASCII, chrono.ChOutput.Mode_FRAMES, out_dir, "output", 0.1)
 
     # Generate JSON information with available output channels
     hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json")
-
-    # Create the interactive driver system
-    driver = veh.ChInteractiveDriverIRR(vis)
-
-    # Set the time response for steering and throttle keyboard inputs.
-    steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
-    throttle_time = 1.0  # time to go from 0 to +1
-    braking_time = 0.3   # time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time)
-    driver.SetThrottleDelta(render_step_size / throttle_time)
-    driver.SetBrakingDelta(render_step_size / braking_time)
-
-    driver.Initialize()
 
     # Simulation loop
 
@@ -127,7 +125,7 @@ def main():
 
     if (contact_vis):
         vis.SetSymbolScale(1e-4)
-        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES);
+        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES)
 
     # ---------------------------------------------
     # Create a sensor manager and add a point light
@@ -153,8 +151,8 @@ def main():
         fov                    # camera's horizontal field of view
     )
     cam.SetName("Camera Sensor")
-    # cam.SetLag(0);
-    # cam.SetCollectionWindow(0);
+    # cam.SetLag(0)
+    # cam.SetCollectionWindow(0)
 
     # Visualizes the image
     if vis:
@@ -300,22 +298,16 @@ gps_noise_none = sens.ChNoiseNone()
 # Vehicle parameters
 # ------------------
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with:
-# chrono.SetChronoDataPath('path/to/data')
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 1.6)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_MESH
-suspension_vis_type = veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH
+chassis_vis_type = chrono.VisualizationType_MESH
+suspension_vis_type = chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_MESH
+tire_vis_type = chrono.VisualizationType_MESH
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.CollisionType_NONE
@@ -360,8 +352,11 @@ t_end = 1000
 # Time interval between two render frames
 render_step_size = 1.0 / 50  # FPS = 50
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
-out_dir = "SENSOR_OUTPUT/"
+out_dir = chrono.GetChronoOutputPath() + "Sensors_HMMWV/"
 
 # Debug logging
 debug_output = False

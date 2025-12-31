@@ -23,7 +23,7 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
@@ -31,7 +31,7 @@
 
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono_vsg/ChVisualSystemVSG.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -39,6 +39,7 @@
 #include "granular.h"
 
 using namespace chrono;
+using namespace chrono::vsg3d;
 
 using std::cout;
 using std::endl;
@@ -102,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Timed events
     // ------------
 
-    double duration_pose = 0.5;            // Interval to assume initial pose
+    double duration_pose = 0.05;           // Interval to assume initial pose
     double duration_settle_terrain = 1.0;  // Interval to allow granular material settling
     double duration_settle_robot = 0.5;    // Interval to allow robot settling on terrain
     double duration_hold = duration_settle_terrain + duration_settle_robot;
@@ -257,9 +258,9 @@ int main(int argc, char* argv[]) {
     ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
     robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
-    robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
-    robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::MESH);
+    robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    robot.SetVisualizationTypeSled(VisualizationType::MESH);
+    robot.SetVisualizationTypeLimbs(VisualizationType::MESH);
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -316,19 +317,24 @@ int main(int argc, char* argv[]) {
     driver->SetTimeOffsets(duration_pose, duration_hold);
     robot.SetDriver(driver);
 
-    // -----------------
-    // Initialize OpenGL
-    // -----------------
+    // ---------------------------------
+    // Initialize run-time visualization
+    // ---------------------------------
 
-    opengl::ChVisualSystemOpenGL vis;
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     if (render) {
-        vis.AttachSystem(sys);
-        vis.SetWindowTitle("RoboSimian - Granular terrain");
-        vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::WIREFRAME);
-        vis.Initialize();
-        vis.AddCamera(ChVector3d(2, -2, 0), ChVector3d(0, 0, 0));
-        vis.SetCameraVertical(CameraVerticalDir::Z);
+        vis->AttachSystem(sys);
+        vis->SetWindowTitle("RoboSimian - Granular terrain");
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        vis->AddCamera(ChVector3d(2.7, -2.7, 0), ChVector3d(0, 0, 0));
+        vis->SetWindowSize(1280, 720);
+        vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+        vis->EnableSkyBox();
+        vis->SetCameraAngleDeg(40.0);
+        vis->SetLightIntensity(1.0f);
+        vis->SetLightDirection(-1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows();
+        vis->Initialize();
     }
 
     // ---------------------------------
@@ -430,8 +436,8 @@ int main(int argc, char* argv[]) {
         ////}
 
         if (render) {
-            if (vis.Run()) {
-                vis.Render();
+            if (vis->Run()) {
+                vis->Render();
             } else {
                 break;
             }
@@ -482,7 +488,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Demo", "out_fps", "Output frequency [FPS]", "100");
     cli.AddOption<double>("Demo", "pov_fps", "POV-Ray output frequency [FPS]", "100");
     cli.AddOption<bool>("Demo", "drop", "Release robot?", "true");
-    cli.AddOption<bool>("Demo", "render", "OpenGL rendering?", "true");
+    cli.AddOption<bool>("Demo", "render", "Run-time visualization?", "true");
     cli.AddOption<bool>("Demo", "output", "Generate result output files", "true");
     cli.AddOption<bool>("Demo", "pov_output", "Generate POV-Ray output files", "true");
     cli.AddOption<std::string>("Demo", "suffix", "Suffix for output directory names", "");

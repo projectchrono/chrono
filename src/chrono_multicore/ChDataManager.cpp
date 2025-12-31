@@ -26,7 +26,7 @@ using namespace chrono;
 
 ChMulticoreDataManager::ChMulticoreDataManager()
     : num_rigid_bodies(0),
-      num_fluid_bodies(0),
+      num_particles(0),
       num_unilaterals(0),
       num_bilaterals(0),
       num_constraints(0),

@@ -1,4 +1,4 @@
-# Convex hulls obtained with Chrono::Engine 
+# Convex hulls obtained with Chrono 
 # convex decomposition (.chulls format: only vertexes)
 hull
 0.028532000 0.009271000 -0.100000001

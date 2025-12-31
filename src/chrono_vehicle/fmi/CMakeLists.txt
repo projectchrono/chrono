@@ -3,10 +3,10 @@
 #=============================================================================
 
 # Set common output directory for all Chrono::Vehicle FMUs
-set(VEHICLE_FMU_COMPONENT_MAIN_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/vehicleFMU")
+set(VEHICLE_FMU_MAIN_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/vehicleFMU")
 
 # Generate configuration header ChConfigVehicleFMI.h
-set(CHRONO_VEHICLE_FMU_DIR "#define CHRONO_VEHICLE_FMU_DIR \"${VEHICLE_FMU_COMPONENT_MAIN_DIR}/\"")
+set(CHRONO_VEHICLE_FMU_DIR "#define CHRONO_VEHICLE_FMU_DIR \"${VEHICLE_FMU_MAIN_DIR}/\"")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicleFMI.h.in
                ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicleFMI.h)  
 
@@ -14,10 +14,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicleFMI.h.in
 
 if(FMU_EXPORT_SUPPORT)
 
-  message(STATUS "Add Chrono::Vehicle FMI 2.0 FMUs...")
-  add_subdirectory(fmi2)
+  message(STATUS "Add Chrono::Vehicle co-simulation FMUs...")
+  add_subdirectory(cosim)
   
-  ##message(STATUS "Add Chrono::Vehicle FMI 3.0 FMUs...")
-  ##add_subdirectory(fmi3)
+  message(STATUS "Add Chrono::Vehicle model exchange FMUs...")
+  add_subdirectory(modex)
 
 endif()

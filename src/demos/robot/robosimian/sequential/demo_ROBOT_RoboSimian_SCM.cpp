@@ -21,18 +21,20 @@
 #include <vector>
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_models/robot/robosimian/RoboSimian.h"
-#include "chrono_models/robot/robosimian/RoboSimianVisualSystemIrrlicht.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 using std::cout;
 using std::endl;
@@ -96,7 +98,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
     double m_start_time;  // cached time at last location
     double m_avg_speed;   // average speed over last segment
 
-    chrono::utils::ChWriterCSV* m_csv;
+    ChWriterCSV* m_csv;
     ChTimer m_timer;
 };
 
@@ -125,7 +127,7 @@ DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
     m_timer.start();
 
     // Prepare CSV output
-    m_csv = new chrono::utils::ChWriterCSV(",");
+    m_csv = new ChWriterCSV(",");
     *m_csv << "DBP_factor"
            << "DBP_force"
            << "Avg_speed" << endl;
@@ -191,13 +193,13 @@ std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
     auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(robot->GetSystem());
-    terrain->SetPlane(ChCoordsys<>(ChVector3d(length / 2 - offset, 0, height), QUNIT));
+    terrain->SetReferenceFrame(ChCoordsys<>(ChVector3d(length / 2 - offset, 0, height), QUNIT));
     terrain->SetSoilParameters(Kphi, Kc, n, coh, phi, K, E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
     terrain->Initialize(length, width, 1.0 / 64);
 
-    // Enable moving patch feature
-    terrain->AddMovingPatch(robot->GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(3.0, 2.0, 1.0));
+    // Enable active domain feature
+    terrain->AddActiveDomain(robot->GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(3.0, 2.0, 1.0));
 
     return terrain;
 }
@@ -326,15 +328,15 @@ int main(int argc, char* argv[]) {
 
     // Set visualization modes (default: all COLLISION)
 
-    ////robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeLimb(robosimian::FL, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::FR, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::RL, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::RR, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::NONE);
-    ////robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::MESH);
+    ////robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeLimb(robosimian::FL, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::FR, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::RL, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::RR, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimbs(VisualizationType::NONE);
+    ////robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeSled(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeLimbs(VisualizationType::MESH);
 
     // Initialize Robosimian robot
 
@@ -405,9 +407,9 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    std::shared_ptr<robosimian::RoboSimianVisualSystemIrrlicht> vis;
+    std::shared_ptr<ChVisualSystemIrrlicht> vis;
     if (render) {
-        vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
+        vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
         vis->AttachSystem(&my_sys);
         vis->SetWindowTitle("RoboSimian - SCM terrain");
         vis->SetWindowSize(800, 600);
@@ -417,8 +419,6 @@ int main(int argc, char* argv[]) {
         vis->AddCamera(ChVector3d(1, -2.75, 0.2), ChVector3d(1, 0, 0));
         vis->AddLight(ChVector3d(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
         vis->AddLight(ChVector3d(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
-        ////vis->AddLightWithShadow(ChVector3d(10.0, -6.0, 3.0), ChVector3d(0, 0, 0), 3, -10, 10, 40, 512);
-        ////vis->EnableShadows();
     }
 
     // ---------------------------------

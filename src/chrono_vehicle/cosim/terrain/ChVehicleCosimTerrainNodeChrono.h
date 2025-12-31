@@ -42,8 +42,8 @@ namespace vehicle {
  * - ChVehicleCosimTerrainNodeSCM wraps an SCM deformable terrain rectangular patch.
  * - ChVehicleCosimTerrainNodeGranularOMP wraps a deformable terrain rectangular patch modeled with granular material
  * (using the Chrono::Multicore module).
- * - ChVehicleCosimTerrainNodeGranularGPU wraps a deformable terrain rectangular patch modeled with granular material
- * (using the Chrono::GPU module).
+ * - ChVehicleCosimTerrainNodeGranularDEM wraps a deformable terrain rectangular patch modeled with granular material
+ * (using the Chrono::DEM module).
  * - ChVehicleCosimTerrainNodeGranularSPH wraps a deformable terrain rectangular patch modeled with granular material
  * (using the Chrono::FSI module).
  */
@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         RIGID,         ///< rigid terrain
         SCM,           ///< Soil Contact Model
         GRANULAR_OMP,  ///< granular terrain (Chrono::Multicore)
-        GRANULAR_GPU,  ///< granular terrain (Chrono::Gpu)
+        GRANULAR_DEM,  ///< granular terrain (Chrono::Dem)
         GRANULAR_SPH,  ///< continuous representation of granular terrain (Chrono::FSI)
         UNKNOWN        ///< unknown terrain type
     };
@@ -108,7 +108,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Construct a base class terrain node.
     ChVehicleCosimTerrainNodeChrono(Type type,              ///< terrain type
                                     double length,          ///< terrain patch length
-                                    double width,           ///< terain patch width
+                                    double width,           ///< terrain patch width
                                     ChContactMethod method  ///< contact method (SMC or NSC)
     );
 

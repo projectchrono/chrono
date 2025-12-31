@@ -59,9 +59,16 @@ def main():
     patch = terrain.AddPatch(patch_mat, 
                              chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)), 
                              200.0, 100.0)
-    patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+    patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
+    
+    # Create the interactive driver system
+    driver = veh.ChInteractiveDriver(hmmwv.GetVehicle())
+    driver.SetSteeringDelta(0.06)
+    driver.SetThrottleDelta(0.02)
+    driver.SetBrakingDelta(0.06)
+    driver.Initialize()
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
@@ -70,17 +77,11 @@ def main():
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 0.75), 6.0, 0.5)
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
     vis.AddLightDirectional(-60, 300)
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv.GetVehicle())
-
-    # Create the interactive driver system
-    driver = veh.ChInteractiveDriverIRR(vis)
-    driver.SetSteeringDelta(0.06)
-    driver.SetThrottleDelta(0.02)
-    driver.SetBrakingDelta(0.06)
-    driver.Initialize()
+    vis.AttachDriver(driver)
 
     # Simulation loop
     
@@ -111,23 +112,16 @@ def main():
     return 0
 
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 1, 10)
 initYaw = 0
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_PRIMITIVES
-suspension_vis_type =  veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH 
+chassis_vis_type = chrono.VisualizationType_PRIMITIVES
+suspension_vis_type =  chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_MESH
+tire_vis_type = chrono.VisualizationType_MESH 
 
 # Type of tire model (RIGID, RIGID_MESH, FIALA, PAC89)
 tire_model = veh.TireModelType_TMEASY

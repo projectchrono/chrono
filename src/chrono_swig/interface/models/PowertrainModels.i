@@ -111,8 +111,6 @@
 %shared_ptr(chrono::vehicle::m113::M113_EngineSimple)
 %shared_ptr(chrono::vehicle::m113::M113_EngineSimpleMap)
 
-%import "chrono_swig/interface/vehicle/ChPowertrain.i"
-
 // Model:
 
 %include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"

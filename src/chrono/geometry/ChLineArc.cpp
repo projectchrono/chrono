@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/geometry/ChLineArc.h"
 
 namespace chrono {
@@ -45,7 +47,7 @@ ChVector3d ChLineArc::Evaluate(double parU) const {
             ang2 -= CH_2PI;
     }
     double mangle = ang1 * (1 - parU) + ang2 * (parU);
-    ChVector3d localP(radius * cos(mangle), radius * sin(mangle), 0);
+    ChVector3d localP(radius * std::cos(mangle), radius * std::sin(mangle), 0);
     return localP >> origin;  // transform to absolute coordinates
 }
 

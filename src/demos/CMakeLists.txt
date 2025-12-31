@@ -22,14 +22,47 @@ endif("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
-# Enable creation of "application bundles" on MacOSX.
-# This is necessary for Irrlicht-based demos and optional for OpenGL or non-graphics demos.
+# Enable creation of "application bundles" on MacOSX, necessary for Irrlicht-based demos.
 # For simplicity and consistency, we enable here MACOSX_BUNDLE for all subsequent programs.
 
 if(APPLE)
-    set(CMAKE_MACOSX_BUNDLE ON)
+    set(CMAKE_MACOSX_BUNDLE OFF)
     set(MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in")
 endif()
+
+#--------------------------------------------------------------
+
+# Convenience function to build and install demos from a list
+function(build_demos DEMOS LIBS)
+    
+    # Get optional list of additional files
+    if(${ARGC} GREATER 2)
+      set(EXTRA_FILES ${ARGV2})
+    else()
+      set(EXTRA_FILES "")
+    endif()
+    
+    # Build all demos in the list DEMOS, linking to LIBS
+    foreach(PROGRAM ${DEMOS})
+        add_executable(${PROGRAM} ${PROGRAM}.cpp ${EXTRA_FILES})
+        source_group(""  FILES ${PROGRAM}.cpp ${EXTRA_FILES})
+    
+        set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
+        if(APPLE)
+          set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+        endif()
+        if(MSVC)
+          set_target_properties(${PROGRAM} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+          set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+        endif()
+
+        target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+        target_link_libraries(${PROGRAM} ${LIBS})
+        
+        install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+    endforeach()
+
+endfunction()
 
 #--------------------------------------------------------------
 
@@ -59,7 +92,7 @@ if(BUILD_DEMOS_COSIMULATION)
     add_subdirectory(cosimulation)
 endif()
 
-if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
     option(BUILD_DEMOS_MBS "Build demo programs for MBS module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_MBS)
     if(BUILD_DEMOS_MBS)
@@ -67,15 +100,16 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
     endif()
 endif()
 
-if(ENABLE_MODULE_PARSERS)
+if(CH_ENABLE_MODULE_PARSERS)
     option(BUILD_DEMOS_PARSERS "Build demo programs for Parsers module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_PARSERS)
     if(BUILD_DEMOS_PARSERS)
+      add_subdirectory(yaml)
       add_subdirectory(parsers)
     endif()    
 endif()
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     option(BUILD_DEMOS_IRRLICHT "Build demo programs for Irrlicht module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_IRRLICHT)
     if(BUILD_DEMOS_IRRLICHT)
@@ -83,7 +117,7 @@ if(ENABLE_MODULE_IRRLICHT)
     endif()
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     option(BUILD_DEMOS_VSG "Build demo programs for VSG module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_VSG)
     if(BUILD_DEMOS_VSG)
@@ -91,7 +125,7 @@ if(ENABLE_MODULE_VSG)
     endif()
 endif()
 
-if(ENABLE_MODULE_MATLAB)
+if(CH_ENABLE_MODULE_MATLAB)
     option(BUILD_DEMOS_MATLAB "Build demo programs for Matlab module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_MATLAB)
     if(BUILD_DEMOS_MATLAB)
@@ -99,7 +133,7 @@ if(ENABLE_MODULE_MATLAB)
     endif()
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
     option(BUILD_DEMOS_MUMPS "Build demo programs for MUMPS module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_MUMPS)
     if(BUILD_DEMOS_MUMPS)
@@ -107,7 +141,7 @@ if(ENABLE_MODULE_MUMPS)
     endif()
 endif()
 
-if(ENABLE_MODULE_CASCADE)
+if(CH_ENABLE_MODULE_CASCADE)
     option(BUILD_DEMOS_CASCADE "Build demo programs for Cascade module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_CASCADE)
     if(BUILD_DEMOS_CASCADE)
@@ -115,15 +149,15 @@ if(ENABLE_MODULE_CASCADE)
     endif()
 endif()
 
-if(ENABLE_MODULE_GPU)
-    option(BUILD_DEMOS_GPU "Build demo programs for Gpu module" TRUE)
-    mark_as_advanced(FORCE BUILD_DEMOS_GPU)
-    if(BUILD_DEMOS_GPU)
-        add_subdirectory(gpu)
+if(CH_ENABLE_MODULE_DEM)
+    option(BUILD_DEMOS_DEM "Build demo programs for DEM module" TRUE)
+    mark_as_advanced(FORCE BUILD_DEMOS_DEM)
+    if(BUILD_DEMOS_DEM)
+        add_subdirectory(dem)
     endif()
 endif()
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
     option(BUILD_DEMOS_POSTPROCESS "Build demo programs for Postprocess module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_POSTPROCESS)
     if(BUILD_DEMOS_POSTPROCESS)
@@ -131,7 +165,7 @@ if(ENABLE_MODULE_POSTPROCESS)
     endif()
 endif()
 
-if(ENABLE_MODULE_MULTICORE)
+if(CH_ENABLE_MODULE_MULTICORE)
     option(BUILD_DEMOS_MULTICORE "Build demo programs for Multicore module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_MULTICORE)
     if(BUILD_DEMOS_MULTICORE)
@@ -139,15 +173,7 @@ if(ENABLE_MODULE_MULTICORE)
     endif()
 endif()
 
-if(ENABLE_MODULE_OPENGL)
-    option(BUILD_DEMOS_OPENGL "Build demo programs for OpenGL module" TRUE)
-    mark_as_advanced(FORCE BUILD_DEMOS_OPENGL)
-    if(BUILD_DEMOS_OPENGL)
-        add_subdirectory(opengl)
-    endif()
-endif()
-
-if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
+if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     option(BUILD_DEMOS_VEHICLE "Build demo programs for Vehicle module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_VEHICLE)
     if(BUILD_DEMOS_VEHICLE)
@@ -155,15 +181,15 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
     endif()
 endif()
 
-if(ENABLE_MODULE_FSI)
-    option(BUILD_DEMOS_FSI "Build demo programs for FSI module" TRUE)
+if(CH_ENABLE_MODULE_FSI_SPH)
+    option(BUILD_DEMOS_FSI "Build demo programs for FSI_SPH module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_FSI)
     if(BUILD_DEMOS_FSI)
-      add_subdirectory(fsi)
+      add_subdirectory(fsi/sph)
     endif()
 endif()
 
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
     option(BUILD_DEMOS_SENSOR "Build demo programs for Sensor module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_SENSOR)
     if(BUILD_DEMOS_SENSOR)
@@ -171,7 +197,7 @@ if(ENABLE_MODULE_SENSOR)
     endif()
 endif()
 
-if(ENABLE_MODULE_SYNCHRONO)
+if(CH_ENABLE_MODULE_SYNCHRONO)
     option(BUILD_DEMOS_SYNCHRONO "Build demo programs for SynChrono module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_SYNCHRONO)
     if(BUILD_DEMOS_SYNCHRONO)
@@ -179,15 +205,15 @@ if(ENABLE_MODULE_SYNCHRONO)
     endif()
 endif()
 
-if(ENABLE_MODULE_ROS)
-	option(BUILD_DEMOS_ROS "Build demo programs for Chrono::ROS module" TRUE)
+if(CH_ENABLE_MODULE_ROS)
+	option(BUILD_DEMOS_ROS "Build demo programs for ROS module" TRUE)
 	mark_as_advanced(FORCE BUILD_DEMOS_ROS)
 	if(BUILD_DEMOS_ROS)
   		add_subdirectory(ros)
   	endif()
 endif()
 
-if(ENABLE_MODULE_MODAL)
+if(CH_ENABLE_MODULE_MODAL)
     option(BUILD_DEMOS_MODAL "Build demo programs for Modal module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_MODAL)
     if(BUILD_DEMOS_MODAL)
@@ -195,10 +221,57 @@ if(ENABLE_MODULE_MODAL)
     endif()
 endif()
 
-if(ENABLE_MODULE_FMI)
+if(CH_ENABLE_MODULE_FMI)
     option(BUILD_DEMOS_FMI "Build demo programs for FMI support" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_FMI)
     if(BUILD_DEMOS_FMI)
       add_subdirectory(fmi)
+    endif()
+endif()
+
+if(CH_ENABLE_MODULE_PERIDYNAMICS)
+    option(BUILD_DEMOS_PERIDYNAMICS "Build demo programs for Peridynamics module" TRUE)
+    mark_as_advanced(FORCE BUILD_DEMOS_PERIDYNAMICS)
+    if(BUILD_DEMOS_PERIDYNAMICS)
+        add_subdirectory(peridynamics)
+    endif()
+endif()
+
+if(CH_ENABLE_MODULE_CSHARP)
+    option(BUILD_DEMOS_CSHARP "Build demo programs for Csharp module" TRUE)
+    mark_as_advanced(FORCE BUILD_DEMOS_CSHARP)
+    if(BUILD_DEMOS_CSHARP)
+       # Configure the standalone C# demo sub-build, forwarding the wrapper flag so
+       # it knows when chrono_csharp_wrapper.dll should be referenced instead of raw .cs files
+       add_custom_target(Csharp_demos ALL
+             COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}/csharp -B ${PROJECT_BINARY_DIR}/csharp
+                 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                 -DCH_ENABLE_MODULE_VEHICLE:BOOL=${CH_ENABLE_MODULE_VEHICLE}
+                 -DCH_ENABLE_MODULE_SENSOR:BOOL=${CH_ENABLE_MODULE_SENSOR}
+                 -DCH_ENABLE_MODULE_POSTPROCESS:BOOL=${CH_ENABLE_MODULE_POSTPROCESS}
+                 -DCH_ENABLE_MODULE_IRRLICHT:BOOL=${CH_ENABLE_MODULE_IRRLICHT}
+                 -DCH_ENABLE_MODULE_VSG:BOOL=${CH_ENABLE_MODULE_VSG}
+                 -DCH_USE_CSHARP_WRAPPER:BOOL=${CH_USE_CSHARP_WRAPPER}
+             COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/csharp --config $<CONFIG>)
+       add_dependencies(Csharp_demos Chrono_csharp_core)
+       add_dependencies(Csharp_demos Chrono_csharp_robot)
+       if(CH_USE_CSHARP_WRAPPER)
+          add_dependencies(Csharp_demos Chrono_csharp_wrapper)
+          endif()
+       if(CH_ENABLE_MODULE_VEHICLE)
+          add_dependencies(Csharp_demos Chrono_csharp_vehicle)
+       endif()
+       if(CH_ENABLE_MODULE_SENSOR)
+          add_dependencies(Csharp_demos Chrono_csharp_sensor)
+       endif()
+       if(CH_ENABLE_MODULE_POSTPROCESS)
+          add_dependencies(Csharp_demos Chrono_csharp_postprocess)
+       endif()
+       if(CH_ENABLE_MODULE_IRRLICHT)
+          add_dependencies(Csharp_demos Chrono_csharp_irrlicht)
+       endif()
+       if(CH_ENABLE_MODULE_VSG)
+          add_dependencies(Csharp_demos Chrono_csharp_vsg)
+       endif()
     endif()
 endif()

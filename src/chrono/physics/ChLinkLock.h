@@ -128,7 +128,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     const ChConstraintMatrixX6& GetCqw2() const { return Cqw2; }
 
     /// The gamma vector used in dynamics,  [Cq]x''=Qc
-    const ChConstraintVectorX& GetQc() const { return Qc; }
+    const ChConstraintVectorX& GetQc() const { return Q_c; }
 
     /// The Ct vector used in kinematics,  [Cq]x'=Ct
     const ChConstraintVectorX& GetCt() const { return Ct; }
@@ -138,26 +138,28 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     // UPDATE FUNCTIONS
 
+    /// Update time-dependent quantities in link state (e.g., motion laws, moving markers, etc.).
+    virtual void UpdateTime(double mytime);
+
     /// Given current time and body state, computes the constraint differentiation to get the the state matrices Cq1,
     /// Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.
     virtual void UpdateState();
 
     /// Updates the local F, M forces adding penalties from ChLinkLimit objects, if any.
-    virtual void UpdateForces(double mytime) override;
+    virtual void UpdateForces(double time) override;
 
     /// Updates Cqw1 and Cqw2  given updated  Cq1 and Cq2, i.e. computes the jacobians with 'Wl' rotational coordinates
     /// knowing the jacobians for body rotations in quaternion coordinates.
     void UpdateCqw();
 
     /// Full update. Fills-in all the matrices of the link, and does all required calculations by calling specific
-    /// Update functions in sequence: <pre>
-    ///     UpdateTime;
-    ///     UpdateRelMarkerCoords;
-    ///     UpdateState;
-    ///     UpdateCqw
-    ///     UpdateForces;
-    /// </pre>
-    virtual void Update(double mytime, bool update_assets = true) override;
+    /// Update functions in sequence:
+    /// - UpdateTime;
+    /// - UpdateRelMarkerCoords;
+    /// - UpdateState;
+    /// - UpdateCqw
+    /// - UpdateForces;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -226,14 +228,14 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChConstraintMatrixX6 Cqw1;  ///< Jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
     ChConstraintMatrixX6 Cqw2;  ///< Jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
 
-    ChConstraintVectorX Qc;     ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
+    ChConstraintVectorX Q_c;     ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
     ChConstraintVectorX Ct;     ///< partial derivative of the link kin. equation wrt to time
     ChConstraintVectorX react;  ///< {l}, the lagrangians forces in the constraints
 
     // Only for intermediate calculus
     ChMatrixNM<double, 7, BODY_QDOF> Cq1_temp;  //
     ChMatrixNM<double, 7, BODY_QDOF> Cq2_temp;  //   the temporary "lock" jacobians,
-    ChVectorN<double, 7> Qc_temp;               //   i.e. the full x,y,z,r0,r1,r2,r3 joint
+    ChVectorN<double, 7> Q_c_temp;              //   i.e. the full x,y,z,r0,r1,r2,r3 joint
     ChCoordsysd Ct_temp;                        //
 
   public:
@@ -361,8 +363,8 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     ChCoordsysd deltaC_dt;    ///< user-imposed rel. speed
     ChCoordsysd deltaC_dtdt;  ///< user-imposed rel. acceleration
 
-    /// Inherits, and also updates motion laws: deltaC, deltaC_dt, deltaC_dtdt
-    virtual void UpdateTime(double mytime) override;
+    /// Update time-dependent quantities in link state.
+    virtual void UpdateTime(double time) override;
 
     /// Given current time and body state, computes the constraint differentiation to get the
     /// the state matrices Cq1,  Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.

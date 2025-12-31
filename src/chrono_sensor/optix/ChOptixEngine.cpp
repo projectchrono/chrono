@@ -41,6 +41,7 @@
 #include "chrono/assets/ChVisualShapeRoundedBox.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/optix/ChNVDBVolume.h"
@@ -544,8 +545,8 @@ void ChOptixEngine::ConstructScene() {
     for (auto body : m_system->GetBodies()) {
         if (body->GetVisualModel()) {
             for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
-                const auto& shape = shape_instance.first;
-                const auto& shape_frame = shape_instance.second;
+                const auto& shape = shape_instance.shape;
+                const auto& shape_frame = shape_instance.frame;
                 // check if the asset is a ChVisualShape
 
                 // if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -569,19 +570,20 @@ void ChOptixEngine::ConstructScene() {
                 #endif
                 else if (auto sphere_shape = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
                     sphereVisualization(body, sphere_shape, shape_frame);
-
                 } else if (auto cylinder_shape = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
                     cylinderVisualization(body, cylinder_shape, shape_frame);
-
                 } else if (auto trimesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
                     if (!trimesh_shape->IsMutable()) {
                         rigidMeshVisualization(body, trimesh_shape, shape_frame);
-
-                        // added_asset_for_body = true;
                     } else {
                         deformableMeshVisualization(body, trimesh_shape, shape_frame);
                     }
-
+                } else if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+                    auto obj_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
+                    auto obj_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+                    obj_trimesh_shape->SetMesh(obj_trimesh);
+                    obj_trimesh_shape->SetMutable(false);
+                    rigidMeshVisualization(body, obj_trimesh_shape, shape_frame);
                 } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
                 } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
                 } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
@@ -597,12 +599,12 @@ void ChOptixEngine::ConstructScene() {
         }
     }
 
-    // // Assumption made here that other physics items don't have a transform -> not always true!!!
+    // Assumption made here that other physics items don't have a transform -> not always true!!!
     for (auto item : m_system->GetOtherPhysicsItems()) {
         if (item->GetVisualModel()) {
             for (auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-                const auto& shape = shape_instance.first;
-                const auto& shape_frame = shape_instance.second;
+                const auto& shape = shape_instance.shape;
+                const auto& shape_frame = shape_instance.frame;
 
                 auto dummy_body = chrono_types::make_shared<ChBody>();
 

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/fea/ChBeamSectionTaperedTimoshenko.h"
 
 namespace chrono {
@@ -62,10 +64,10 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::SetMainInertiasInMassReference(cons
     // Transformation matrix from the mass center coordinate system to the centerline of beam
     EigenMat5x5 Acog2cl;
     Acog2cl.setZero();
-    double cosphi = cos(mass_phi);
-    double sinphi = sin(mass_phi);
-    double cos2phi = cos(2. * mass_phi);
-    double sin2phi = sin(2. * mass_phi);
+    double cosphi = std::cos(mass_phi);
+    double sinphi = std::sin(mass_phi);
+    double cos2phi = std::cos(2. * mass_phi);
+    double sin2phi = std::sin(2. * mass_phi);
     double cosphi2 = cosphi * cosphi;
     double sinphi2 = sinphi * sinphi;
 
@@ -118,15 +120,15 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::GetMainInertiasInMassReference(doub
     double Tzz_rot = this->Jzz - this->mu * this->My * this->My;
     double Tyz_rot = -this->Jyz + this->mu * this->Mz * this->My;
     // tensor de-rotation up to principal axes
-    double argum = pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2);
+    double argum = std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2);
     if (argum <= 0) {
         mass_phi = 0;
         // Jmyy = 0.5 * (Tzz_rot + Tyy_rot);
         // Jmzz = 0.5 * (Tzz_rot + Tyy_rot);
         // return;
     } else {
-        double discr = sqrt(pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2));
-        mass_phi = -0.5 * atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
+        double discr = std::sqrt(std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2));
+        mass_phi = -0.5 * std::atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
         // Jmyy = 0.5 * (Tzz_rot + Tyy_rot) - discr;
         // Jmzz = 0.5 * (Tzz_rot + Tyy_rot) + discr;
     }
@@ -143,10 +145,10 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::GetMainInertiasInMassReference(doub
     // transformation matrix from the centerline of beam to the mass center coordinate system
     EigenMat5x5 Acl2cog;
     Acl2cog.setZero();
-    double cosphi = cos(mass_phi);
-    double sinphi = sin(mass_phi);
-    double cos2phi = cos(2. * mass_phi);
-    double sin2phi = sin(2. * mass_phi);
+    double cosphi = std::cos(mass_phi);
+    double sinphi = std::sin(mass_phi);
+    double cos2phi = std::cos(2. * mass_phi);
+    double sin2phi = std::sin(2. * mass_phi);
     double cosphi2 = cosphi * cosphi;
     double sinphi2 = sinphi * sinphi;
 
@@ -205,7 +207,7 @@ auto GetAverageValue3 = [](const double mv1, const double mv2) {
         // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
-    return (mv1 + pow(mv1 * mv2, 0.5) + mv2) / 3.0;
+    return (mv1 + std::sqrt(mv1 * mv2) + mv2) * CH_1_3;
 };
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue5 = [](const double mv1, const double mv2) {
@@ -213,7 +215,8 @@ auto GetAverageValue5 = [](const double mv1, const double mv2) {
         // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
-    return (mv1 + pow(mv1 * mv1 * mv1 * mv2, 0.25) + pow(mv1 * mv2, 0.5) + pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
+    return (mv1 + std::pow(mv1 * mv1 * mv1 * mv2, 0.25) + std::sqrt(mv1 * mv2) +
+            std::pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
            5.0;
 };
 
@@ -252,8 +255,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     this->sectionA->GetMainInertiasInMassReference(Jmyy1, Jmzz1, Jmyz1, mass_phi1, Qmy1, Qmz1);
     // double Jmxx1 = Jmyy1 + Jmzz1;
     // rotate the bending and shear stiffnesses from elastic axis to mass axis
-    double cosphi1 = cos(mass_phi1);
-    double sinphi1 = sin(mass_phi1);
+    double cosphi1 = std::cos(mass_phi1);
+    double sinphi1 = std::sin(mass_phi1);
     double EImyy1 = EIyy1 * cosphi1 + EIzz1 * sinphi1;
     double EImzz1 = -EIyy1 * sinphi1 + EIzz1 * cosphi1;
     double GAmyy1 = GAyy1 * cosphi1 + GAzz1 * sinphi1;
@@ -291,8 +294,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     this->sectionB->GetMainInertiasInMassReference(Jmyy2, Jmzz2, Jmyz2, mass_phi2, Qmy2, Qmz2);
     // double Jmxx2 = Jmyy2 + Jmzz2;
     // rotate the bending and shear stiffnesses from elastic axis to mass axis
-    double cosphi2 = cos(mass_phi2);
-    double sinphi2 = sin(mass_phi2);
+    double cosphi2 = std::cos(mass_phi2);
+    double sinphi2 = std::sin(mass_phi2);
     double EImyy2 = EIyy2 * cosphi2 + EIzz2 * sinphi2;
     double EImzz2 = -EIyy2 * sinphi2 + EIzz2 * cosphi2;
     double GAmyy2 = GAyy2 * cosphi2 + GAzz2 * sinphi2;
@@ -421,15 +424,15 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
     double Jmxx = this->avg_sec_par->Jmxx;
 
     // The radii of gyration ry,rz are:
-    // double ry = pow(Iyy / A, 0.5);
-    // double rz = pow(Izz / A, 0.5);
+    // double ry = sqrt(Iyy / A);
+    // double rz = sqrt(Izz / A);
     // We have: Iyy / A == Iyy * pho / (A * pho) = Jyy / mu
     // For wind turbine blade, the above equations are not true, but can be a good approximation.
-    // double ry = pow(Jmyy / mu, 0.5);   // wrong modal results, error up to 5%
-    // double rz = pow(Jmzz / mu, 0.5);   // wrong modal results, error up to 5%
+    // double ry = sqrt(Jmyy / mu);   // wrong modal results, error up to 5%
+    // double rz = sqrt(Jmzz / mu);   // wrong modal results, error up to 5%
 
-    // double ry = pow(EImyy / EA, 0.5);  // run error
-    // double rz = pow(EImzz / EA, 0.5);  // run error
+    // double ry = sqrt(EImyy / EA);  // run error
+    // double rz = sqrt(EImzz / EA);  // run error
 
     // Note: bending inertia has to be switched off!
     double ry = 0;  // Only this setting could give correct modal results
@@ -437,14 +440,14 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
 
     double phiy2 = phiy * phiy;
     double phiz2 = phiz * phiz;
-    double ry_L2 = pow(ry / L, 2.0);
-    double rz_L2 = pow(rz / L, 2.0);
-    double oneplusphiy2 = pow(1 + phiy, 2.0);
-    double oneplusphiz2 = pow(1 + phiz, 2.0);
-    double mAz = (13. / 35. + 7. / 10. * phiy + 1. / 3. * phiy2 + 6. / 5. * rz_L2) / oneplusphiy2;
-    double mAy = (13. / 35. + 7. / 10. * phiz + 1. / 3. * phiz2 + 6. / 5. * ry_L2) / oneplusphiz2;
-    double mBy = (9. / 70. + 3. / 10. * phiy + 1. / 6. * phiy2 - 6. / 5. * rz_L2) / oneplusphiy2;
-    double mBz = (9. / 70. + 3. / 10. * phiz + 1. / 6. * phiz2 - 6. / 5. * ry_L2) / oneplusphiz2;
+    double ry_L2 = std::pow(ry / L, 2.0);
+    double rz_L2 = std::pow(rz / L, 2.0);
+    double oneplusphiy2 = std::pow(1 + phiy, 2.0);
+    double oneplusphiz2 = std::pow(1 + phiz, 2.0);
+    double mAz = (13. / 35. + 7. / 10. * phiy + CH_1_3 * phiy2 + 6. / 5. * rz_L2) / oneplusphiy2;
+    double mAy = (13. / 35. + 7. / 10. * phiz + CH_1_3 * phiz2 + 6. / 5. * ry_L2) / oneplusphiz2;
+    double mBy = (9. / 70. + 3. / 10. * phiy + CH_1_6 * phiy2 - 6. / 5. * rz_L2) / oneplusphiy2;
+    double mBz = (9. / 70. + 3. / 10. * phiz + CH_1_6 * phiz2 - 6. / 5. * ry_L2) / oneplusphiz2;
     double mCy =
         (11. / 210. + 11. / 120. * phiy + 1. / 24. * phiy2 + (1. / 10. - 1. / 2. * phiy) * rz_L2) * L / oneplusphiy2;
     double mCz =
@@ -454,29 +457,29 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
     double mDz =
         (13. / 420. + 3. / 40. * phiz + 1. / 24. * phiz2 - (1. / 10. - 1. / 2. * phiz) * ry_L2) * L / oneplusphiz2;
     double mEy =
-        (1. / 105. + 1. / 60. * phiy + 1. / 120. * phiy2 + (2. / 15. + 1. / 6. * phiy + 1. / 3. * phiy2) * rz_L2) * LL /
+        (1. / 105. + 1. / 60. * phiy + 1. / 120. * phiy2 + (2. / 15. + CH_1_6 * phiy + CH_1_3 * phiy2) * rz_L2) * LL /
         oneplusphiy2;
     double mEz =
-        (1. / 105. + 1. / 60. * phiz + 1. / 120. * phiz2 + (2. / 15. + 1. / 6. * phiz + 1. / 3. * phiz2) * ry_L2) * LL /
+        (1. / 105. + 1. / 60. * phiz + 1. / 120. * phiz2 + (2. / 15. + CH_1_6 * phiz + CH_1_3 * phiz2) * ry_L2) * LL /
         oneplusphiz2;
     double mFy =
-        (1. / 140. + 1. / 60. * phiy + 1. / 120. * phiy2 + (1. / 30. + 1. / 6. * phiy - 1. / 6. * phiy2) * rz_L2) * LL /
+        (1. / 140. + 1. / 60. * phiy + 1. / 120. * phiy2 + (1. / 30. + CH_1_6 * phiy - CH_1_6 * phiy2) * rz_L2) * LL /
         oneplusphiy2;
     double mFz =
-        (1. / 140. + 1. / 60. * phiz + 1. / 120. * phiz2 + (1. / 30. + 1. / 6. * phiz - 1. / 6. * phiz2) * ry_L2) * LL /
+        (1. / 140. + 1. / 60. * phiz + 1. / 120. * phiz2 + (1. / 30. + CH_1_6 * phiz - CH_1_6 * phiz2) * ry_L2) * LL /
         oneplusphiz2;
 
     double mt1 = mu1 * L;
     double mt2 = mu2 * L;
     double mt = mu * L;
 
-    M(0, 0) = mt1 / 3.0;
-    M(6, 6) = mt2 / 3.0;
+    M(0, 0) = mt1 * CH_1_3;
+    M(6, 6) = mt2 * CH_1_3;
     M(6, 0) = mt / 6.0;
     M(0, 6) = M(6, 0);
 
-    M(3, 3) = Jmxx1 * L / 3.0;
-    M(9, 9) = Jmxx2 * L / 3.0;
+    M(3, 3) = Jmxx1 * L * CH_1_3;
+    M(9, 9) = Jmxx2 * L * CH_1_3;
     M(9, 3) = Jmxx * L / 6.0;
     M(3, 9) = M(9, 3);
 
@@ -595,22 +598,22 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     double oneplusphiyz = oneplusphiy * oneplusphiz;
 
     double rAy1 =
-        6. * Jyy1 / (5. * L) * oneplusphiz2 + mu1 * L * (1. / 3. * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
+        6. * Jyy1 / (5. * L) * oneplusphiz2 + mu1 * L * (CH_1_3 * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
     double rAz1 =
-        6. * Jzz1 / (5. * L) * oneplusphiy2 + mu1 * L * (1. / 3. * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
+        6. * Jzz1 / (5. * L) * oneplusphiy2 + mu1 * L * (CH_1_3 * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
     double rAy2 =
-        6. * Jyy2 / (5. * L) * oneplusphiz2 + mu2 * L * (1. / 3. * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
+        6. * Jyy2 / (5. * L) * oneplusphiz2 + mu2 * L * (CH_1_3 * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
     double rAz2 =
-        6. * Jzz2 / (5. * L) * oneplusphiy2 + mu2 * L * (1. / 3. * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
+        6. * Jzz2 / (5. * L) * oneplusphiy2 + mu2 * L * (CH_1_3 * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
     // double rAy =
-    // 6. * Jyy / (5. * L) * oneplusphiz2 + mu * L * (1. / 3. * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
+    // 6. * Jyy / (5. * L) * oneplusphiz2 + mu * L * (CH_1_3 * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
     // double rAz =
-    // 6. * Jzz / (5. * L) * oneplusphiy2 + mu * L * (1. / 3. * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
+    // 6. * Jzz / (5. * L) * oneplusphiy2 + mu * L * (CH_1_3 * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
 
     double rBy =
-        (mu * L * (1. / 6. * phiz2 + 3. / 10. * phiz + 9. / 70.)) * oneplusphiz2 - 6. * Jyy / (5. * L) * oneplusphiz2;
+        (mu * L * (CH_1_6 * phiz2 + 3. / 10. * phiz + 9. / 70.)) * oneplusphiz2 - 6. * Jyy / (5. * L) * oneplusphiz2;
     double rBz =
-        (mu * L * (1. / 6. * phiy2 + 3. / 10. * phiy + 9. / 70.)) * oneplusphiy2 - 6. * Jzz / (5. * L) * oneplusphiy2;
+        (mu * L * (CH_1_6 * phiy2 + 3. / 10. * phiy + 9. / 70.)) * oneplusphiy2 - 6. * Jzz / (5. * L) * oneplusphiy2;
 
     double rCy1 = (mu1 * LL * (1. / 24. * phiz2 + 11. / 120. * phiz + 11. / 210.)) * oneplusphiz2 -
                   (1. / 2. * phiz - 1. / 10.) * Jyy1 * oneplusphiz2;
@@ -631,22 +634,22 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
                  (1. / 2. * phiy - 1. / 10.) * Jzz * oneplusphiy2;
 
     double rEy1 = mu1 * LLL * (1. / 120. * phiz2 + 1. / 60. * phiz + 1. / 105.) * oneplusphiz2 +
-                  L * (1. / 3. * phiz2 + 1. / 6. * phiz + 2. / 15.) * Jyy1 * oneplusphiz2;
+                  L * (CH_1_3 * phiz2 + CH_1_6 * phiz + 2. / 15.) * Jyy1 * oneplusphiz2;
     double rEz1 = mu1 * LLL * (1. / 120. * phiy2 + 1. / 60. * phiy + 1. / 105.) * oneplusphiy2 +
-                  L * (1. / 3. * phiy2 + 1. / 6. * phiy + 2. / 15.) * Jzz1 * oneplusphiy2;
+                  L * (CH_1_3 * phiy2 + CH_1_6 * phiy + 2. / 15.) * Jzz1 * oneplusphiy2;
     double rEy2 = mu2 * LLL * (1. / 120. * phiz2 + 1. / 60. * phiz + 1. / 105.) * oneplusphiz2 +
-                  L * (1. / 3. * phiz2 + 1. / 6. * phiz + 2. / 15.) * Jyy2 * oneplusphiz2;
+                  L * (CH_1_3 * phiz2 + CH_1_6 * phiz + 2. / 15.) * Jyy2 * oneplusphiz2;
     double rEz2 = mu2 * LLL * (1. / 120. * phiy2 + 1. / 60. * phiy + 1. / 105.) * oneplusphiy2 +
-                  L * (1. / 3. * phiy2 + 1. / 6. * phiy + 2. / 15.) * Jzz2 * oneplusphiy2;
+                  L * (CH_1_3 * phiy2 + CH_1_6 * phiy + 2. / 15.) * Jzz2 * oneplusphiy2;
     // double rEy = mu * LLL * (1. / 120. * phiz2 + 1. / 60. * phiz + 1. / 105.) * oneplusphiz2 +
-    // L * (1. / 3. * phiz2 + 1. / 6. * phiz + 2. / 15.) * Jyy * oneplusphiz2;
+    // L * (CH_1_3 * phiz2 + CH_1_6 * phiz + 2. / 15.) * Jyy * oneplusphiz2;
     // double rEz = mu * LLL * (1. / 120. * phiy2 + 1. / 60. * phiy + 1. / 105.) * oneplusphiy2 +
-    // L * (1. / 3. * phiy2 + 1. / 6. * phiy + 2. / 15.) * Jzz * oneplusphiy2;
+    // L * (CH_1_3 * phiy2 + CH_1_6 * phiy + 2. / 15.) * Jzz * oneplusphiy2;
 
     double rFy = (mu * LLL * (1. / 120. * phiz2 + 1. / 60. * phiz + 1. / 140.)) * oneplusphiz2 +
-                 L * (-1. / 6. * phiz2 + 1. / 6. * phiz + 1. / 30.) * Jyy * oneplusphiz2;
+                 L * (-CH_1_6 * phiz2 + CH_1_6 * phiz + 1. / 30.) * Jyy * oneplusphiz2;
     double rFz = (mu * LLL * (1. / 120. * phiy2 + 1. / 60. * phiy + 1. / 140.)) * oneplusphiy2 +
-                 L * (-1. / 6. * phiy2 + 1. / 6. * phiy + 1. / 30.) * Jzz * oneplusphiy2;
+                 L * (-CH_1_6 * phiy2 + CH_1_6 * phiy + 1. / 30.) * Jzz * oneplusphiy2;
 
     double rGy1 = Qy1 / 2. * oneplusphiz;
     double rGz1 = Qz1 / 2. * oneplusphiy;
@@ -655,29 +658,29 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     double rGy = Qy / 2. * oneplusphiz;
     double rGz = Qz / 2. * oneplusphiy;
 
-    double rHy1 = L * (1. / 3. * phiy + 1. / 12.) * Qz1 * oneplusphiy;
-    double rHz1 = L * (1. / 3. * phiz + 1. / 12.) * Qy1 * oneplusphiz;
-    double rHy2 = L * (1. / 3. * phiy + 1. / 12.) * Qz2 * oneplusphiy;
-    double rHz2 = L * (1. / 3. * phiz + 1. / 12.) * Qy2 * oneplusphiz;
-    // double rHy = L * (1. / 3. * phiy + 1. / 12.) * Qz * oneplusphiy;
-    // double rHz = L * (1. / 3. * phiz + 1. / 12.) * Qy * oneplusphiz;
+    double rHy1 = L * (CH_1_3 * phiy + 1. / 12.) * Qz1 * oneplusphiy;
+    double rHz1 = L * (CH_1_3 * phiz + 1. / 12.) * Qy1 * oneplusphiz;
+    double rHy2 = L * (CH_1_3 * phiy + 1. / 12.) * Qz2 * oneplusphiy;
+    double rHz2 = L * (CH_1_3 * phiz + 1. / 12.) * Qy2 * oneplusphiz;
+    // double rHy = L * (CH_1_3 * phiy + 1. / 12.) * Qz * oneplusphiy;
+    // double rHz = L * (CH_1_3 * phiz + 1. / 12.) * Qy * oneplusphiz;
 
-    double rIy = L * (1. / 6. * phiy - 1. / 12.) * Qz * oneplusphiy;
-    double rIz = L * (1. / 6. * phiz - 1. / 12.) * Qy * oneplusphiz;
+    double rIy = L * (CH_1_6 * phiy - 1. / 12.) * Qz * oneplusphiy;
+    double rIz = L * (CH_1_6 * phiz - 1. / 12.) * Qy * oneplusphiz;
 
     double rJyz1 = 6. * Jyz1 / (5. * L) * oneplusphiyz;
     double rJyz2 = 6. * Jyz2 / (5. * L) * oneplusphiyz;
     double rJyz = 6. * Jyz / (5. * L) * oneplusphiyz;
 
-    double rKy = L * (1. / 6. * phiy + 3. / 20.) * Qy * oneplusphiy;
-    double rKz = L * (1. / 6. * phiz + 3. / 20.) * Qz * oneplusphiz;
+    double rKy = L * (CH_1_6 * phiy + 3. / 20.) * Qy * oneplusphiy;
+    double rKz = L * (CH_1_6 * phiz + 3. / 20.) * Qz * oneplusphiz;
 
-    double rLy1 = L * (1. / 3. * phiy + 7. / 20.) * Qy1 * oneplusphiy;
-    double rLz1 = L * (1. / 3. * phiz + 7. / 20.) * Qz1 * oneplusphiz;
-    double rLy2 = L * (1. / 3. * phiy + 7. / 20.) * Qy2 * oneplusphiy;
-    double rLz2 = L * (1. / 3. * phiz + 7. / 20.) * Qz2 * oneplusphiz;
-    // double rLy = L * (1. / 3. * phiy + 7. / 20.) * Qy * oneplusphiy;
-    // double rLz = L * (1. / 3. * phiz + 7. / 20.) * Qz * oneplusphiz;
+    double rLy1 = L * (CH_1_3 * phiy + 7. / 20.) * Qy1 * oneplusphiy;
+    double rLz1 = L * (CH_1_3 * phiz + 7. / 20.) * Qz1 * oneplusphiz;
+    double rLy2 = L * (CH_1_3 * phiy + 7. / 20.) * Qy2 * oneplusphiy;
+    double rLz2 = L * (CH_1_3 * phiz + 7. / 20.) * Qz2 * oneplusphiz;
+    // double rLy = L * (CH_1_3 * phiy + 7. / 20.) * Qy * oneplusphiy;
+    // double rLz = L * (CH_1_3 * phiz + 7. / 20.) * Qz * oneplusphiz;
 
     double rMy1 = (1. / 2. * phiy - 1. / 10.) * Jyz1 * oneplusphiyz;
     double rMz1 = (1. / 2. * phiz - 1. / 10.) * Jyz1 * oneplusphiyz;
@@ -686,11 +689,11 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     double rMy = (1. / 2. * phiy - 1. / 10.) * Jyz * oneplusphiyz;
     double rMz = (1. / 2. * phiz - 1. / 10.) * Jyz * oneplusphiyz;
 
-    double rNyz1 = L * (1. / 12. * phiy + 1. / 12. * phiz + 1. / 3. * phiy * phiz + 2. / 15.) * Jyz1 * oneplusphiyz;
-    double rNyz2 = L * (1. / 12. * phiy + 1. / 12. * phiz + 1. / 3. * phiy * phiz + 2. / 15.) * Jyz2 * oneplusphiyz;
-    // double rNyz = L * (1. / 12. * phiy + 1. / 12. * phiz + 1. / 3. * phiy * phiz + 2. / 15.) * Jyz * oneplusphiyz;
+    double rNyz1 = L * (1. / 12. * phiy + 1. / 12. * phiz + CH_1_3 * phiy * phiz + 2. / 15.) * Jyz1 * oneplusphiyz;
+    double rNyz2 = L * (1. / 12. * phiy + 1. / 12. * phiz + CH_1_3 * phiy * phiz + 2. / 15.) * Jyz2 * oneplusphiyz;
+    // double rNyz = L * (1. / 12. * phiy + 1. / 12. * phiz + CH_1_3 * phiy * phiz + 2. / 15.) * Jyz * oneplusphiyz;
 
-    double rOyz = L * (1. / 12. * phiy + 1. / 12. * phiz - 1. / 6. * phiy * phiz + 1. / 30.) * Jyz * oneplusphiyz;
+    double rOyz = L * (1. / 12. * phiy + 1. / 12. * phiz - CH_1_6 * phiy * phiz + 1. / 30.) * Jyz * oneplusphiyz;
     double rPy = LL * (1. / 24. * phiy + 1. / 30.) * Qy * oneplusphiy;
     double rPz = LL * (1. / 24. * phiz + 1. / 30.) * Qz * oneplusphiz;
 
@@ -701,7 +704,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     // double rQy = LL * (1. / 24. * phiy + 1. / 20.) * Qy * oneplusphiy;
     // double rQz = LL * (1. / 24. * phiz + 1. / 20.) * Qz * oneplusphiz;
 
-    M(0, 0) = mu1 * L / 3.;
+    M(0, 0) = mu1 * L * CH_1_3;
     M(1, 0) = rGz1;
     M(2, 0) = rGy1;
     M(3, 0) = 0.;
@@ -740,7 +743,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     M(10, 2) = rDy;
     M(11, 2) = -rMy;
 
-    M(3, 3) = L * Jxx1 / 3.;
+    M(3, 3) = L * Jxx1 * CH_1_3;
     M(4, 3) = -rQz1;
     M(5, 3) = -rQy1;
 
@@ -770,7 +773,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     M(10, 5) = rOyz;
     M(11, 5) = -rFz;
 
-    M(6, 6) = mu2 * L / 3.;
+    M(6, 6) = mu2 * L * CH_1_3;
     M(7, 6) = -rGz2;
     M(8, 6) = -rGy2;
     M(9, 6) = 0.;
@@ -785,7 +788,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     M(9, 8) = rLz2;
     M(10, 8) = rCy2;
     M(11, 8) = rMy2;
-    M(9, 9) = L * Jxx2 / 3.;
+    M(9, 9) = L * Jxx2 * CH_1_3;
     M(10, 9) = rQz2;
     M(11, 9) = rQy2;
     M(10, 10) = rEy2;

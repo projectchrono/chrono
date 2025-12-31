@@ -13,6 +13,9 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 
@@ -25,6 +28,18 @@ ChVisualShapeModelFile::ChVisualShapeModelFile() : filename(""), scale(1) {
 
 ChVisualShapeModelFile::ChVisualShapeModelFile(const std::string& fname) : filename(fname), scale(1) {
     SetMutable(false);
+}
+
+ChAABB ChVisualShapeModelFile::GetBoundingBox() const {
+    auto ext = filesystem::path(filename).extension();
+    std::shared_ptr<ChTriangleMeshConnected> trimesh;
+    if (ext == "obj" || ext == "OBJ")
+        trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, false);
+    else if (ext == "stl" || ext == "STL")
+        trimesh = ChTriangleMeshConnected::CreateFromSTLFile(filename, true);
+    if (trimesh)
+        return trimesh->GetBoundingBox();
+    return ChAABB();
 }
 
 void ChVisualShapeModelFile::ArchiveOut(ChArchiveOut& archive_out) {

@@ -29,7 +29,7 @@ namespace vehicle {
 ChBalancer::ChBalancer(const std::string& name) : ChSubchassis(name) {}
 
 ChBalancer::~ChBalancer() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     ChChassis::RemoveJoint(m_balancer_joint[0]);
@@ -38,12 +38,7 @@ ChBalancer::~ChBalancer() {
 
 // -----------------------------------------------------------------------------
 
-void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
-    ChSubchassis::Initialize(chassis, location);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChBalancer::Construct(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
     // Express the subchassis reference frame in the absolute coordinate system
     ChFrame<> to_abs(location);
     to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -91,6 +86,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     // Create beam body
     m_beam[side] = chrono_types::make_shared<ChBody>();
     m_beam[side]->SetName(m_name + "_balancer" + suffix);
+    m_beam[side]->SetTag(m_obj_tag);
     m_beam[side]->SetPos(points[BEAM]);
     m_beam[side]->SetRot(chassisRot);
     m_beam[side]->SetMass(GetBalancerBeamMass());
@@ -98,9 +94,10 @@ void ChBalancer::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_beam[side]);
 
     // Attach balancer to chassis through a revolute joint and set joint limits
-    m_balancer_joint[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_balancer" + suffix, m_beam[side], chassis->GetBody(),
+    m_balancer_joint[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::REVOLUTE, m_name + "_rev_balancer" + suffix, m_beam[side], chassis->GetBody(),
         ChFrame<>(points[REVOLUTE], joint_rot), GetBushingData());
+    m_balancer_joint[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_balancer_joint[side]);
 
     if (m_balancer_joint[side]->IsKinematic()) {
@@ -119,7 +116,7 @@ void ChBalancer::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_beam[LEFT]->GetFrameCOMToAbs(), m_beam[LEFT]->GetMass(), m_beam[LEFT]->GetInertia());
     composite.AddComponent(m_beam[RIGHT]->GetFrameCOMToAbs(), m_beam[RIGHT]->GetMass(), m_beam[RIGHT]->GetInertia());
 
@@ -182,41 +179,14 @@ void ChBalancer::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 
-void ChBalancer::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
+void ChBalancer::PopulateComponentList() {
+    m_bodies.push_back(m_beam[0]);
+    m_bodies.push_back(m_beam[1]);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_beam[0]);
-    bodies.push_back(m_beam[1]);
-    ExportBodyList(jsonDocument, bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_balancer_joint[0]->IsKinematic() ? joints.push_back(m_balancer_joint[0]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[0]->GetAsBushing());
-    m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
-}
-
-void ChBalancer::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_beam[0]);
-    bodies.push_back(m_beam[1]);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_balancer_joint[0]->IsKinematic() ? joints.push_back(m_balancer_joint[0]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[0]->GetAsBushing());
-    m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
-                                       : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
-    database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
+    m_balancer_joint[0]->IsKinematic() ? m_joints.push_back(m_balancer_joint[0]->GetAsLink())
+                                       : m_body_loads.push_back(m_balancer_joint[0]->GetAsBushing());
+    m_balancer_joint[1]->IsKinematic() ? m_joints.push_back(m_balancer_joint[1]->GetAsLink())
+                                       : m_body_loads.push_back(m_balancer_joint[1]->GetAsBushing());
 }
 
 }  // end namespace vehicle

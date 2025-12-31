@@ -33,7 +33,7 @@ using std::endl;
 // =============================================================================
 
 // Collision detection system
-ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::MULTICORE;
+ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 
 // =============================================================================
 

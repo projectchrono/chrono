@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
@@ -73,23 +73,25 @@ ChTrackShoeDoublePin::~ChTrackShoeDoublePin() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector3d& location,
-                                      const ChQuaternion<>& rotation) {
-    ChTrackShoeSegmented::Initialize(chassis, location, rotation);
+void ChTrackShoeDoublePin::Construct(std::shared_ptr<ChChassis> chassis,
+                                     const ChVector3d& location,
+                                     const ChQuaternion<>& rotation) {
+    ChTrackShoeSegmented::Construct(chassis, location, rotation);
 
     ChSystem* sys = chassis->GetSystem();
 
     // Express the track shoe location and orientation in global frame.
-    ChVector3d loc = chassis->TransformPointLocalToParent(location);
-    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    auto chassis_body = chassis->GetBody();
+    ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis_body->GetRot() * rotation;
     ChVector3d xdir = rot.GetAxisX();
     ChVector3d ydir = rot.GetAxisY();
 
     // Create the shoe body
     m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetName(m_name + "_shoe");
-    m_shoe->SetTag(TrackedVehicleBodyTag::SHOE_BODY);
+    m_shoe->SetTag(m_obj_tag);
+    m_shoe->SetTag(m_obj_tag);
     m_shoe->SetPos(loc - (0.5 * GetConnectorLength()) * xdir);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetShoeMass());
@@ -102,6 +104,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         case DoublePinTrackShoeType::TWO_CONNECTORS: {
             m_connector_L = chrono_types::make_shared<ChBody>();
             m_connector_L->SetName(m_name + "_connector_L");
+            m_connector_L->SetTag(m_obj_tag);
             m_connector_L->SetPos(loc + (0.5 * GetShoeLength()) * xdir + (0.5 * GetShoeWidth()) * ydir);
             m_connector_L->SetRot(rot);
             m_connector_L->SetMass(GetConnectorMass());
@@ -110,6 +113,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
             m_connector_R = chrono_types::make_shared<ChBody>();
             m_connector_R->SetName(m_name + "_connector_R");
+            m_connector_R->SetTag(m_obj_tag);
             m_connector_R->SetPos(loc + (0.5 * GetShoeLength()) * xdir - (0.5 * GetShoeWidth()) * ydir);
             m_connector_R->SetRot(rot);
             m_connector_R->SetMass(GetConnectorMass());
@@ -124,6 +128,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
             m_connector_L = chrono_types::make_shared<ChBody>();
             m_connector_L->SetName(m_name + "_connector");
+            m_connector_L->SetTag(m_obj_tag);
             m_connector_L->SetPos(loc + (0.5 * GetShoeLength()) * xdir);
             m_connector_L->SetRot(rot);
             m_connector_L->SetMass(mass_connector);
@@ -133,8 +138,8 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Add contact geometry on shoe body
-    m_geometry.CreateCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES, sys->GetContactMethod());
-    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+    m_geometry.CreateCollisionShapes(m_shoe, VehicleCollisionFamily::SHOE_FAMILY, sys->GetContactMethod());
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
 
     // Create collision model for connector bodies
     // Note: even though the connector bodies only collide with the sprocket (through a custom collision detection
@@ -145,30 +150,32 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_connector_R->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
 }
 
-void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChVector3d& loc_shoe,
                                       const ChQuaternion<>& rot_shoe,
                                       const ChVector3d& loc_connector_L,
                                       const ChVector3d& loc_connector_R,
                                       const ChQuaternion<>& rot_connector) {
     // Initialize at origin.
-    Initialize(chassis, VNULL, QUNIT);
+    ChTrackShoe::Initialize(chassis, VNULL, QUNIT);
 
     // Overwrite absolute body locations and orientations.
-    m_shoe->SetPos(chassis->TransformPointLocalToParent(loc_shoe));
-    m_shoe->SetRot(chassis->GetRot() * rot_shoe);
+    auto chassis_body = chassis->GetBody();
+
+    m_shoe->SetPos(chassis_body->TransformPointLocalToParent(loc_shoe));
+    m_shoe->SetRot(chassis_body->GetRot() * rot_shoe);
 
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:
-            m_connector_L->SetPos(chassis->TransformPointLocalToParent(loc_connector_L));
-            m_connector_L->SetRot(chassis->GetRot() * rot_connector);
+            m_connector_L->SetPos(chassis_body->TransformPointLocalToParent(loc_connector_L));
+            m_connector_L->SetRot(chassis_body->GetRot() * rot_connector);
 
-            m_connector_R->SetPos(chassis->TransformPointLocalToParent(loc_connector_R));
-            m_connector_R->SetRot(chassis->GetRot() * rot_connector);
+            m_connector_R->SetPos(chassis_body->TransformPointLocalToParent(loc_connector_R));
+            m_connector_R->SetRot(chassis_body->GetRot() * rot_connector);
             break;
         case DoublePinTrackShoeType::ONE_CONNECTOR:
-            m_connector_L->SetPos(chassis->TransformPointLocalToParent(0.5 * (loc_connector_L + loc_connector_R)));
-            m_connector_L->SetRot(chassis->GetRot() * rot_connector);
+            m_connector_L->SetPos(chassis_body->TransformPointLocalToParent(0.5 * (loc_connector_L + loc_connector_R)));
+            m_connector_L->SetRot(chassis_body->GetRot() * rot_connector);
             break;
     }
 }
@@ -181,7 +188,7 @@ void ChTrackShoeDoublePin::UpdateInertiaProperties() {
     m_xform = m_shoe->GetFrameRefToAbs();
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:
@@ -244,15 +251,15 @@ void ChTrackShoeDoublePin::AddConnectorVisualization2(std::shared_ptr<ChBody> co
     double c_width = GetConnectorWidth();
     double c_radius = GetConnectorRadius();
 
-    ChVehicleGeometry::AddVisualizationCylinder(connector,                                       //
-                                                ChVector3d(-0.5 * c_length, -0.5 * c_width, 0),  //
-                                                ChVector3d(-0.5 * c_length, +0.5 * c_width, 0),  //
-                                                c_radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                       //
+                                                    ChVector3d(-0.5 * c_length, -0.5 * c_width, 0),  //
+                                                    ChVector3d(-0.5 * c_length, +0.5 * c_width, 0),  //
+                                                    c_radius);
 
-    ChVehicleGeometry::AddVisualizationCylinder(connector,                                      //
-                                                ChVector3d(0.5 * c_length, -0.5 * c_width, 0),  //
-                                                ChVector3d(0.5 * c_length, +0.5 * c_width, 0),  //
-                                                c_radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                      //
+                                                    ChVector3d(0.5 * c_length, -0.5 * c_width, 0),  //
+                                                    ChVector3d(0.5 * c_length, +0.5 * c_width, 0),  //
+                                                    c_radius);
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
     connector->AddVisualShape(box, ChFrame<>());
@@ -273,17 +280,17 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
     double c_radius = GetConnectorRadius();
 
     {
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
-                                                    ChVector3d(-0.5 * c_length, +offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(-0.5 * c_length, +offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                 //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                                //
+                                                        ChVector3d(-0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(-0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                 //
+                                                        mat);
 
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
-                                                    ChVector3d(0.5 * c_length, +offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(0.5 * c_length, +offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                               //
+                                                        ChVector3d(0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                //
+                                                        mat);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
@@ -291,17 +298,17 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
     }
 
     {
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
-                                                    ChVector3d(-0.5 * c_length, -offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(-0.5 * c_length, -offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                 //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                                //
+                                                        ChVector3d(-0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(-0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                 //
+                                                        mat);
 
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
-                                                    ChVector3d(0.5 * c_length, -offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(0.5 * c_length, -offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                               //
+                                                        ChVector3d(0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                //
+                                                        mat);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
@@ -370,14 +377,14 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
     loc_R = m_shoe->TransformPointLocalToParent(pShoe_R);
     rot = m_shoe->GetRot() * QuatFromAngleX(CH_PI_2);
 
-    m_joint_L =
-        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin_L", m_connector_L,
-                                                  m_shoe, ChFrame<>(loc_L, rot), track->GetBushingData());
+    m_joint_L = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_pin_L", m_connector_L, m_shoe,
+                                                   ChFrame<>(loc_L, rot), track->GetBushingData());
+    m_joint_L->SetTag(m_obj_tag);
     chassis->AddJoint(m_joint_L);
 
-    m_joint_R =
-        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin_R", m_connector_R,
-                                                  m_shoe, ChFrame<>(loc_R, rot), track->GetBushingData());
+    m_joint_R = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_pin_R", m_connector_R, m_shoe,
+                                                   ChFrame<>(loc_R, rot), track->GetBushingData());
+    m_joint_R->SetTag(m_obj_tag);
     chassis->AddJoint(m_joint_R);
 
     // Optionally, include rotational spring-dampers to model track bending stiffness.
@@ -387,12 +394,14 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
         m_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_L->SetName(m_name + "_rsda_pin_L");
+        m_rsda_L->SetTag(m_obj_tag);
         m_rsda_L->Initialize(m_shoe, m_connector_L, true, ChFrame<>(pShoe_L, z2y), ChFrame<>(pConnector, z2y));
         m_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_L);
 
         m_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_R->SetName(m_name + "_rsda_pin_R");
+        m_rsda_R->SetTag(m_obj_tag);
         m_rsda_R->Initialize(m_shoe, m_connector_R, true, ChFrame<>(pShoe_R, z2y), ChFrame<>(pConnector, z2y));
         m_rsda_R->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_R);
@@ -409,15 +418,17 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
     // Create and initialize revolute bushings between connector bodies and next shoe body.
     rot = m_connector_L->GetRot() * QuatFromAngleX(CH_PI_2);
-    m_connection_joint_L = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_L",
-                                                                     next->GetShoeBody(), m_connector_L,
-                                                                     ChFrame<>(loc_L, rot), track->GetBushingData());
+    m_connection_joint_L =
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_cpin_L", next->GetShoeBody(),
+                                           m_connector_L, ChFrame<>(loc_L, rot), track->GetBushingData());
+    m_connection_joint_L->SetTag(m_obj_tag);
     chassis->AddJoint(m_connection_joint_L);
 
     rot = m_connector_R->GetRot() * QuatFromAngleX(CH_PI_2);
-    m_connection_joint_R = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_R",
-                                                                     next->GetShoeBody(), m_connector_R,
-                                                                     ChFrame<>(loc_R, rot), track->GetBushingData());
+    m_connection_joint_R =
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_cpin_R", next->GetShoeBody(),
+                                           m_connector_R, ChFrame<>(loc_R, rot), track->GetBushingData());
+    m_connection_joint_R->SetTag(m_obj_tag);
     chassis->AddJoint(m_connection_joint_R);
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
@@ -427,6 +438,7 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
         m_connection_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_L->SetName(m_name + "_rsda_cpin_L");
+        m_connection_rsda_L->SetTag(m_obj_tag);
         m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), true, ChFrame<>(pConnector, z2y),
                                         ChFrame<>(pShoe_L, z2y));
         m_connection_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
@@ -434,6 +446,7 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
         m_connection_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_R->SetName(m_name + "_rsda_cpin_R");
+        m_connection_rsda_R->SetTag(m_obj_tag);
         m_connection_rsda_R->Initialize(m_connector_R, next->GetShoeBody(), true, ChFrame<>(pConnector, z2y),
                                         ChFrame<>(pShoe_R, z2y));
         m_connection_rsda_R->RegisterTorqueFunctor(track->GetTorqueFunctor());
@@ -467,13 +480,14 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
 
     if (track->GetBushingData() || m_index != 0) {
         rot = m_shoe->GetRot() * QuatFromAngleX(CH_PI_2);
-        m_joint_L =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin", m_connector_L,
-                                                      m_shoe, ChFrame<>(loc, rot), track->GetBushingData());
+        m_joint_L = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_pin", m_connector_L, m_shoe,
+                                                       ChFrame<>(loc, rot), track->GetBushingData());
+        m_joint_L->SetTag(m_obj_tag);
         chassis->AddJoint(m_joint_L);
     } else {
-        m_joint_L = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph",
-                                                              m_connector_L, m_shoe, ChFrame<>(loc, QUNIT));
+        m_joint_L = chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sph", m_connector_L, m_shoe,
+                                                       ChFrame<>(loc, QUNIT));
+        m_joint_L->SetTag(m_obj_tag);
         chassis->AddJoint(m_joint_L);
     }
 
@@ -484,6 +498,7 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
 
         m_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_L->SetName(m_name + "_rsda_pin");
+        m_rsda_L->SetTag(m_obj_tag);
         m_rsda_L->Initialize(m_shoe, m_connector_L, true, ChFrame<>(pShoe, z2y), ChFrame<>(pConnector, z2y));
         m_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_L);
@@ -498,15 +513,16 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
 
     if (track->GetBushingData() || m_index != 0) {
         rot = m_connector_L->GetRot() * QuatFromAngleX(CH_PI_2);
-        m_connection_joint_L = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin", next->GetShoeBody(), m_connector_L, ChFrame<>(loc, rot),
-            track->GetBushingData());
+        m_connection_joint_L =
+            chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_cpin", next->GetShoeBody(),
+                                               m_connector_L, ChFrame<>(loc, rot), track->GetBushingData());
+        m_connection_joint_L->SetTag(m_obj_tag);
         chassis->AddJoint(m_connection_joint_L);
     } else {
         rot = m_connector_L->GetRot() * QuatFromAngleY(-CH_PI_2);
-        m_connection_joint_L =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_cuniv",
-                                                      next->GetShoeBody(), m_connector_L, ChFrame<>(loc, rot));
+        m_connection_joint_L = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::UNIVERSAL, m_name + "_cuniv", next->GetShoeBody(), m_connector_L, ChFrame<>(loc, rot));
+        m_connection_joint_L->SetTag(m_obj_tag);
         chassis->AddJoint(m_connection_joint_L);
     }
 
@@ -517,6 +533,7 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
 
         m_connection_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_L->SetName(m_name + "_rsda_cpin_L");
+        m_connection_rsda_L->SetTag(m_obj_tag);
         m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), true, ChFrame<>(pConnector, z2y),
                                         ChFrame<>(pShoe, z2y));
         m_connection_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
@@ -535,85 +552,35 @@ ChVector3d ChTrackShoeDoublePin::GetTension() const {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-
-    bodies.push_back(m_shoe);
+void ChTrackShoeDoublePin::PopulateComponentList() {
+    m_bodies.push_back(m_shoe);
 
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:
-            bodies.push_back(m_connector_L);
-            bodies.push_back(m_connector_R);
+            m_bodies.push_back(m_connector_L);
+            m_bodies.push_back(m_connector_R);
 
-            m_joint_L->IsKinematic() ? joints.push_back(m_joint_L->GetAsLink())
-                                     : bushings.push_back(m_joint_L->GetAsBushing());
-            m_joint_R->IsKinematic() ? joints.push_back(m_joint_R->GetAsLink())
-                                     : bushings.push_back(m_joint_R->GetAsBushing());
-            m_connection_joint_L->IsKinematic() ? joints.push_back(m_connection_joint_L->GetAsLink())
-                                                : bushings.push_back(m_connection_joint_L->GetAsBushing());
-            m_connection_joint_R->IsKinematic() ? joints.push_back(m_connection_joint_R->GetAsLink())
-                                                : bushings.push_back(m_connection_joint_R->GetAsBushing());
-
-            break;
-        case DoublePinTrackShoeType::ONE_CONNECTOR:
-            bodies.push_back(m_connector_L);
-
-            m_joint_L->IsKinematic() ? joints.push_back(m_joint_L->GetAsLink())
-                                     : bushings.push_back(m_joint_L->GetAsBushing());
-            m_connection_joint_L->IsKinematic() ? joints.push_back(m_connection_joint_L->GetAsLink())
-                                                : bushings.push_back(m_connection_joint_L->GetAsBushing());
-
-            break;
-    }
-
-    ExportBodyList(jsonDocument, bodies);
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
-}
-
-void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-
-    bodies.push_back(m_shoe);
-
-    switch (m_topology) {
-        case DoublePinTrackShoeType::TWO_CONNECTORS:
-            bodies.push_back(m_connector_L);
-            bodies.push_back(m_connector_R);
-
-            m_joint_L->IsKinematic() ? joints.push_back(m_joint_L->GetAsLink())
-                                     : bushings.push_back(m_joint_L->GetAsBushing());
-            m_joint_R->IsKinematic() ? joints.push_back(m_joint_R->GetAsLink())
-                                     : bushings.push_back(m_joint_R->GetAsBushing());
-            m_connection_joint_L->IsKinematic() ? joints.push_back(m_connection_joint_L->GetAsLink())
-                                                : bushings.push_back(m_connection_joint_L->GetAsBushing());
-            m_connection_joint_R->IsKinematic() ? joints.push_back(m_connection_joint_R->GetAsLink())
-                                                : bushings.push_back(m_connection_joint_R->GetAsBushing());
+            m_joint_L->IsKinematic() ? m_joints.push_back(m_joint_L->GetAsLink())
+                                     : m_body_loads.push_back(m_joint_L->GetAsBushing());
+            m_joint_R->IsKinematic() ? m_joints.push_back(m_joint_R->GetAsLink())
+                                     : m_body_loads.push_back(m_joint_R->GetAsBushing());
+            m_connection_joint_L->IsKinematic() ? m_joints.push_back(m_connection_joint_L->GetAsLink())
+                                                : m_body_loads.push_back(m_connection_joint_L->GetAsBushing());
+            m_connection_joint_R->IsKinematic() ? m_joints.push_back(m_connection_joint_R->GetAsLink())
+                                                : m_body_loads.push_back(m_connection_joint_R->GetAsBushing());
 
             break;
         case DoublePinTrackShoeType::ONE_CONNECTOR:
-            bodies.push_back(m_connector_L);
+            m_bodies.push_back(m_connector_L);
 
-            m_joint_L->IsKinematic() ? joints.push_back(m_joint_L->GetAsLink())
-                                     : bushings.push_back(m_joint_L->GetAsBushing());
-            m_connection_joint_L->IsKinematic() ? joints.push_back(m_connection_joint_L->GetAsLink())
-                                                : bushings.push_back(m_connection_joint_L->GetAsBushing());
+            m_joint_L->IsKinematic() ? m_joints.push_back(m_joint_L->GetAsLink())
+                                     : m_body_loads.push_back(m_joint_L->GetAsBushing());
+            m_connection_joint_L->IsKinematic() ? m_joints.push_back(m_connection_joint_L->GetAsLink())
+                                                : m_body_loads.push_back(m_connection_joint_L->GetAsBushing());
 
             break;
     }
-
-    database.WriteBodies(bodies);
-    database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
 }
 
 }  // end namespace vehicle

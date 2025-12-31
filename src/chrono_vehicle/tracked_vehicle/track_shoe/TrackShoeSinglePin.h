@@ -62,7 +62,7 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual ChVector3d GetLateralContactPoint() const override { return m_pin_center; }
 
     /// Return contact geometry and material for interaction with terrain.
-    virtual ChVehicleGeometry GetGroundContactGeometry() const override { return m_ground_geometry; }
+    virtual utils::ChBodyGeometry GetGroundContactGeometry() const override { return m_ground_geometry; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -78,7 +78,7 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
 
     ChVector3d m_pin_center;
 
-    ChVehicleGeometry m_ground_geometry;
+    utils::ChBodyGeometry m_ground_geometry;
 };
 
 /// @} vehicle_tracked_shoe

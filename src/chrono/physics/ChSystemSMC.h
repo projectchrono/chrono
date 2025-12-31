@@ -52,7 +52,7 @@ class ChApi ChSystemSMC : public ChSystem {
     };
 
     /// Constructor for ChSystemSMC.
-    ChSystemSMC();
+    ChSystemSMC(const std::string& name = "");
 
     /// Copy constructor
     ChSystemSMC(const ChSystemSMC& other);

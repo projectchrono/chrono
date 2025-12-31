@@ -26,6 +26,9 @@
 
 using namespace chrono::fea;
 
+using std::cout;
+using std::endl;
+
 namespace chrono {
 namespace vehicle {
 
@@ -39,7 +42,7 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(ChCollisionModel* 
     auto contactableA = modelA->GetContactable();
     auto contactableB = modelB->GetContactable();
 
-    if (dynamic_cast<fea::ChContactNodeXYZsphere*>(contactableA) ||
+    if (dynamic_cast<fea::ChContactNodeXYZ*>(contactableA) ||
         dynamic_cast<fea::ChContactTriangleXYZ*>(contactableA)) {
         // Reject this candidate pair if contactableB is a track shoe tread body
         for (auto shoe : m_assembly->m_shoes) {
@@ -48,7 +51,7 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(ChCollisionModel* 
         }
     }
 
-    if (dynamic_cast<fea::ChContactNodeXYZsphere*>(contactableB) ||
+    if (dynamic_cast<fea::ChContactNodeXYZ*>(contactableB) ||
         dynamic_cast<fea::ChContactTriangleXYZ*>(contactableB)) {
         // Reject this candidate pair if contactableA is a track shoe tread body
         for (auto shoe : m_assembly->m_shoes) {
@@ -62,7 +65,7 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(ChCollisionModel* 
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, VehicleSide side)
     : ChTrackAssemblyBand(name, side),
       m_contact_type(ContactSurfaceType::TRIANGLE_MESH),
@@ -88,7 +91,7 @@ ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChTrackAssemblyBandANCF::SetRubberLayerMaterial(double rho,
                                                      const ChVector3d& E,
                                                      const ChVector3d& nu,
@@ -135,7 +138,7 @@ void ChTrackAssemblyBandANCF::SetLayerFiberAngles(double angle_1, double angle_2
 // TODO: NEEDS fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
+bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChChassis> chassis) {
     // Only SMC contact is currently possible with FEA
     assert(chassis->GetSystem()->GetContactMethod() == ChContactMethod::SMC);
 
@@ -154,7 +157,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Calculate assembly points
     std::vector<ChVector2d> shoe_points;
-    bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
+    bool ccw = FindAssemblyPoints(chassis->GetBody(), num_shoes, connection_lengths, shoe_points);
 
     // Create and add the mesh container for the track shoe webs to the system
     m_track_mesh = chrono_types::make_shared<ChMesh>();
@@ -196,26 +199,26 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         switch (m_contact_type) {
             case ContactSurfaceType::NODE_CLOUD: {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_material);
+                contact_surf->AddAllNodes(*m_track_mesh, thickness / 2);
                 m_track_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddAllNodes(thickness / 2);
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& node : contact_surf->GetNodes()) {
-                    node->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    node->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+                    node->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+                    node->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
                 }
 
                 break;
             }
             case ContactSurfaceType::TRIANGLE_MESH: {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_material);
+                contact_surf->AddFacesFromBoundary(*m_track_mesh, thickness / 2, false);
                 m_track_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddFacesFromBoundary(thickness / 2, false);
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& face : contact_surf->GetTrianglesXYZ()) {
-                    face->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    face->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+                    face->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+                    face->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
                 }
 
                 break;
@@ -238,26 +241,51 @@ void ChTrackAssemblyBandANCF::RemoveTrackShoes() {
 }
 
 // -----------------------------------------------------------------------------
+
+void ChTrackAssemblyBandANCF::Initialize(std::shared_ptr<ChChassis> chassis,
+                                         const ChVector3d& location,
+                                         bool create_shoes) {
+    ChTrackAssembly::Initialize(chassis, location, create_shoes);
+
+    auto element_type = m_shoes[0]->GetElementType();
+    int element_dof = (element_type == ChTrackShoeBandANCF::ElementType::ANCF_4 ? 24 : 72);
+    cout << "ANCF band track. ";
+    cout << m_track_mesh->GetNumElements() << " elements ";
+    cout << "(" << (element_type == ChTrackShoeBandANCF::ElementType::ANCF_4 ? "ANCF_4" : "ANCF_8") << "). ";
+    cout << m_track_mesh->GetNumNodes() << " nodes. ";
+    cout << (element_type == ChTrackShoeBandANCF::ElementType::ANCF_4 ? "24" : "72") << " dof/element." << endl;
+
+    unsigned int num_constraints = 0;
+    for (const auto& shoe: m_shoes) {
+        for (const auto& connection : shoe->m_connections) {
+            num_constraints += connection->GetNumConstraints();        
+        }
+    }
+
+    cout << "   num. states:      " << m_track_mesh->GetNumElements() * element_dof << endl;
+    cout << "   num. constraints: " << num_constraints << endl;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     m_track_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     m_track_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);

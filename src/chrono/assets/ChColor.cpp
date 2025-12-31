@@ -108,40 +108,6 @@ ChColor ChColor::HSV2RGB(const ChVector3f& hsv) {
     return c;
 }
 
-ChColor ChColor::ComputeFalseColor(double v, double vmin, double vmax, bool out_of_range_as_bw) {
-    ChColor c = {1.0, 1.0, 1.0};  // default white
-    double dv;
-
-    if (out_of_range_as_bw) {
-        if (v < vmin)
-            return ChColor(0, 0, 0);
-        if (v > vmax)
-            return ChColor(1, 1, 1);
-    }
-
-    if (v < vmin)
-        v = vmin;
-    if (v > vmax)
-        v = vmax;
-    dv = vmax - vmin;
-
-    if (v < (vmin + 0.25 * dv)) {
-        c.R = 0;
-        c.G = (float)(4 * (v - vmin) / dv);
-    } else if (v < (vmin + 0.5 * dv)) {
-        c.R = 0;
-        c.B = (float)(1 + 4 * (vmin + 0.25 * dv - v) / dv);
-    } else if (v < (vmin + 0.75 * dv)) {
-        c.R = (float)(4 * (v - vmin - 0.5 * dv) / dv);
-        c.B = 0;
-    } else {
-        c.G = (float)(1 + 4 * (vmin + 0.75 * dv - v) / dv);
-        c.B = 0;
-    }
-
-    return c;
-}
-
 void ChColor::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChColor>();

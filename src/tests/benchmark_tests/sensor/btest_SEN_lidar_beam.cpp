@@ -23,7 +23,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     lidar3->PushFilter(std::make_shared<ChFilterDIAccess>());
     manager->AddSensor(lidar3);
 
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     UserDIBufferPtr data1 = lidar1->GetMostRecentBuffer<UserDIBufferPtr>();
     UserDIBufferPtr data2 = lidar2->GetMostRecentBuffer<UserDIBufferPtr>();

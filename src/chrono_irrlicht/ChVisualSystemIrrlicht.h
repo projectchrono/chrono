@@ -23,6 +23,8 @@
 
 #include <irrlicht.h>
 
+#include "chrono/core/ChVector2.h"
+
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
@@ -35,6 +37,7 @@
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualShapePath.h"
 #include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChColormap.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
@@ -70,11 +73,11 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Enable/disable full-screen mode (default false).
     /// Must be called before Initialize().
-    void SetFullscreen(bool val);
+    void EnableFullscreen(bool val);
 
     /// Enable/disable shadows (default false).
     /// Must be called before Initialize().
-    void SetShadows(bool val);
+    void EnableShadows(bool val);
 
     /// Set the device driver type (default irr::video::EDT_DIRECT3D9).
     /// Must be called before Initialize().
@@ -112,7 +115,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Add a logo in a 3D scene.
     /// Has no effect, unles called after Initialize().
-    void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png"));
+    void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chrono_alpha.png"));
 
     /// Add a camera in an Irrlicht 3D scene.
     /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
@@ -131,6 +134,15 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
                          ) override;
 
     void UpdateGrid(int id, const ChCoordsys<>& csys);
+
+    /// Add a colorbar widget.
+    void AddGuiColorbar(const std::string& title,                     ///< title
+                        const ChVector2d& range,                      ///< data range
+                        ChColormap::Type type,                        ///< colormap type
+                        bool bimodal = false,                         ///< negative/positive
+                        const ChVector2i& pos = ChVector2i(740, 20),  ///< position of top-left colorbar corner
+                        const ChVector2i& size = ChVector2i(30, 300)  ///< colorbar size
+    );
 
     /// Set the location of the specified camera.
     virtual void SetCameraPosition(int id, const ChVector3d& pos) override;
@@ -286,7 +298,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual void BeginScene() override;
 
     /// Clean the canvas at the beginning of each rendering frame.
-    virtual void BeginScene(bool backBuffer, bool zBuffer, ChColor color);
+    virtual void BeginScene(bool backBuffer, bool zBuffer);
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
@@ -378,11 +390,15 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
         ChColor col;
     };
 
-    std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
-    std::vector<GridData> m_grids;                      ///< list of visualization grids
-
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;  ///< scene nodes for physics items
     std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models
+
+    // WARNING: by moving the declaration of these two vectors (m_cameras, m_grids) on top of m_nodes it triggers a very
+    // awkward behaviour for which the Children of CEmptySceneNode gets invalidated, thus triggering an exception when
+    // the destructor of CEmptySceneNode is later called during deletion of the m_device, usually triggered by m_cameras
+    // (if this order is preserved).
+    std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
+    std::vector<GridData> m_grids;                      ///< list of visualization grids
 
     bool m_yup;                                        ///< use Y-up if true, Z-up if false
     std::string m_win_title;                           ///< window title
@@ -402,6 +418,16 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::scene::IMesh* cylinderMesh;
     irr::scene::IMesh* capsuleMesh;
     irr::scene::IMesh* coneMesh;
+
+    // colorbar parameters
+    bool m_draw_colorbar;
+    std::string m_colorbar_title;
+    ChVector2d m_colorbar_range;
+    ChColormap::Type m_colormap_type;
+    std::unique_ptr<ChColormap> m_colormap;
+    ChVector2i m_colorbar_pos;
+    ChVector2i m_colorbar_size;
+    bool m_colormap_bimodal;
 };
 
 /// @} irrlicht_module

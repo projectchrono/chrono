@@ -71,7 +71,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     /// Calculate the mass matrix, expressed in global reference.
-    /// This default implementation (POTENTIALLY VERY INEFFICIENT) should be overriden by derived classes a more
+    /// This default implementation (POTENTIALLY VERY INEFFICIENT) should be overridden by derived classes a more
     /// efficient version.
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
 

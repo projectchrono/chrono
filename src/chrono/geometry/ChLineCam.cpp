@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/geometry/ChLineCam.h"
 
 namespace chrono {
@@ -63,14 +65,14 @@ void ChLineCam::SetRotatingFollower(double mp, double md, double mb0) {
     p = mp;
     d = md;
     b0 = mb0;
-    Rb = sqrt(p * p + d * d - 2 * p * d * cos(b0));
+    Rb = std::sqrt(p * p + d * d - 2 * p * d * std::cos(b0));
 }
 
 void ChLineCam::SetFlatOscillate(double me, double md, double mb0) {
     e = me;
     d = md;
     b0 = mb0;
-    Rb = e + d * sin(b0);
+    Rb = e + d * std::sin(b0);
 }
 
 ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
@@ -104,53 +106,56 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
 
     switch (this->type) {
         case CamType::SLIDEFOLLOWER:
-            g = atan(ydx / (Rb + y));
-            r = sqrt(radius * radius + pow(Rb + y, 2) - 2 * radius * (Rb + y) * cos(g));
-            fshift = asin(radius * sin(g) / r);
+            g = std::atan(ydx / (Rb + y));
+            r = std::sqrt(radius * radius + std::pow(Rb + y, 2) - 2 * radius * (Rb + y) * std::cos(g));
+            fshift = std::asin(radius * std::sin(g) / r);
             if (radius > Rb)
                 fshift = CH_PI - fshift;
             f = a + fshift;
-            q = pow(ydx * ydx + pow(Rb + y, 2), 1.5) / (pow(Rb + y, 2) - ydxdx * (Rb + y) + 2 * (ydx * ydx)) - radius;
+            q = pow(ydx * ydx + std::pow(Rb + y, 2), 1.5) / (std::pow(Rb + y, 2) - ydxdx * (Rb + y) + 2 * (ydx * ydx)) -
+                radius;
             break;
         case CamType::ROTATEFOLLOWER:
             b = b0 + y;
-            u = atan2((p * sin(b) * (1 - ydx)), (d - p * cos(b) * (1 - ydx)));
+            u = std::atan2((p * std::sin(b) * (1 - ydx)), (d - p * std::cos(b) * (1 - ydx)));
             g = CH_PI / 2.0 - b - u;
-            r = sqrt(pow(p * sin(b) - radius * sin(u), 2) + pow(d - p * cos(b) - radius * cos(u), 2));
-            fshift = atan2((p * sin(b) - radius * sin(u)), (d - p * cos(b) - radius * cos(u)));
+            r = std::sqrt(std::pow(p * std::sin(b) - radius * std::sin(u), 2) +
+                     std::pow(d - p * std::cos(b) - radius * std::cos(u), 2));
+            fshift = std::atan2((p * std::sin(b) - radius * std::sin(u)), (d - p * std::cos(b) - radius * std::cos(u)));
             f = (a + fshift);
-            uh =
-                (p * (1 - ydx) * ydx * cos(b + u) - p * ydxdx * sin(b + u)) / (d * cos(u) - p * (1 - ydx) * cos(b + u));
-            q = ((p * cos(b0 + y) * (1 - ydx)) + d) / ((1 + uh) * cos(u)) - radius;
+            uh = (p * (1 - ydx) * ydx * std::cos(b + u) - p * ydxdx * std::sin(b + u)) /
+                 (d * std::cos(u) - p * (1 - ydx) * std::cos(b + u));
+            q = ((p * std::cos(b0 + y) * (1 - ydx)) + d) / ((1 + uh) * std::cos(u)) - radius;
             break;
         case CamType::ECCENTRICFOLLOWER: {
-            double s_dist = sqrt(Rb * Rb - e * e);
+            double s_dist = std::sqrt(Rb * Rb - e * e);
             sa = s_dist + y;
-            g = atan((ydx - ecc) / (s_dist + y));
-            r = sqrt(pow((sa - radius * cos(g)), 2) + pow((ecc + radius * sin(g)), 2));
-            fshift = atan((ecc + radius * sin(g)) / (sa - radius * cos(g)));
+            g = std::atan((ydx - ecc) / (s_dist + y));
+            r = std::sqrt(std::pow((sa - radius * std::cos(g)), 2) + std::pow((ecc + radius * std::sin(g)), 2));
+            fshift = std::atan((ecc + radius * std::sin(g)) / (sa - radius * std::cos(g)));
             if (radius > Rb)
                 fshift = CH_PI + fshift;
             f = a + fshift;
-            q = pow((pow(s_dist + y, 2) + pow(ecc - ydx, 2)), 1.5) /
-                    (pow(s_dist + y, 2) + (ecc - ydx) * (ecc - 2 * ydx) - (s_dist + y) * ydxdx) -
+            q = std::pow((std::pow(s_dist + y, 2) + std::pow(ecc - ydx, 2)), 1.5) /
+                    (std::pow(s_dist + y, 2) + (ecc - ydx) * (ecc - 2 * ydx) - (s_dist + y) * ydxdx) -
                 radius;
             break;
         }
         case CamType::FLAT:
             g = 0;
             B = ydx;
-            r = sqrt(pow(Rb + y, 2) + ydx * ydx);
-            f = a + atan2(ydx, (Rb + y));
+            r = std::sqrt(std::pow(Rb + y, 2) + ydx * ydx);
+            f = a + std::atan2(ydx, (Rb + y));
             q = Rb + y + ydxdx;
             break;
         case CamType::FLATOSCILLATE:
             b = b0 + y;
-            B = (d * cos(b)) / (1 - ydx);
-            g = atan2(ecc, B);
-            r = sqrt(pow(d - ecc * sin(b) - B * cos(b), 2) + pow(B * sin(b) - ecc * cos(b), 2));
-            f = a + atan2((B * sin(b) - ecc * cos(b)), (d - ecc * sin(b) - B * cos(b)));
-            q = (d * sin(b) * (1 - 2 * ydx) + B * ydxdx) / (pow(1 - ydx, 2)) - ecc;
+            B = (d * std::cos(b)) / (1 - ydx);
+            g = std::atan2(ecc, B);
+            r = std::sqrt(std::pow(d - ecc * std::sin(b) - B * std::cos(b), 2) +
+                          std::pow(B * std::sin(b) - ecc * std::cos(b), 2));
+            f = a + std::atan2((B * std::sin(b) - ecc * std::cos(b)), (d - ecc * std::sin(b) - B * std::cos(b)));
+            q = (d * std::sin(b) * (1 - 2 * ydx) + B * ydxdx) / (std::pow(1 - ydx, 2)) - ecc;
             break;
         default:
             g = r = f = 0;
@@ -167,8 +172,8 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     }
 
     res.z() = 0;
-    res.x() = this->center.x() + r * cos(f + phase);
-    res.y() = this->center.y() + r * sin(f + phase);
+    res.x() = this->center.x() + r * std::cos(f + phase);
+    res.y() = this->center.y() + r * std::sin(f + phase);
 
     return res;
 }

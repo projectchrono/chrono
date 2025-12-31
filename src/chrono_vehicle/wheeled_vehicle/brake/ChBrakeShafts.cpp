@@ -24,7 +24,7 @@ namespace vehicle {
 ChBrakeShafts::ChBrakeShafts(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {}
 
 ChBrakeShafts::~ChBrakeShafts() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_shaft->GetSystem();
@@ -35,14 +35,13 @@ ChBrakeShafts::~ChBrakeShafts() {
     sys->Remove(m_clutch);
 }
 
-void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
-                               std::shared_ptr<ChSuspension> suspension,
-                               VehicleSide side) {
-    ChBrake::Initialize(chassis, suspension, side);
-
+void ChBrakeShafts::Construct(std::shared_ptr<ChChassis> chassis,
+                              std::shared_ptr<ChSuspension> suspension,
+                              VehicleSide side) {
     // Create and initialize the brake shaft
     m_shaft = chrono_types::make_shared<ChShaft>();
     m_shaft->SetName(m_name + "_shaft");
+    m_shaft->SetTag(m_obj_tag);
     m_shaft->SetInertia(GetShaftInertia());
     chassis->GetSystem()->AddShaft(m_shaft);
 
@@ -66,6 +65,14 @@ void ChBrakeShafts::Synchronize(double time, double braking) {
     m_modulation = braking;
     m_clutch->SetModulation(braking);
     //// TODO: more here?
+}
+
+// -----------------------------------------------------------------------------
+
+void ChBrakeShafts::PopulateComponentList() {
+    m_shafts.push_back(m_shaft);
+
+    m_couples.push_back(m_clutch);
 }
 
 }  // end namespace vehicle

@@ -36,13 +36,13 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChFilters.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetPoissonRatio(0.3f);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), (float)terrainLength, (float)terrainWidth);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), (float)terrainLength, (float)terrainWidth);
     terrain.Initialize();
 
     // ---------------------------------------------------
@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -566,7 +566,7 @@ ISO3888_Wrapper::ISO3888_Wrapper(double xmin,
     m_rightCones.push_back(m_lineR[5]);
 
     // Prepare path spline definition
-    ChVector3d offset(m_lengthB / 3, 0, 0);
+    ChVector3d offset(m_lengthB * CH_1_3, 0, 0);
     for (size_t i = 0; i < m_lineC.size(); i++) {
         m_inCV.push_back(m_lineC[i] - offset);
         m_outCV.push_back(m_lineC[i] + offset);

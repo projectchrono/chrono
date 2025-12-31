@@ -4,235 +4,92 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
+option(CH_ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 
-IF(NOT ENABLE_MODULE_FSI)
-  #mark_as_advanced(FORCE USE_FSI_DOUBLE)
+if(NOT CH_ENABLE_MODULE_FSI)
   return()
-ENDIF()
+endif()
 
 message(STATUS "\n==== Chrono FSI module ====\n")
 
-# Return now if Eigen version < 3.3.6
-if(EIGEN3_VERSION VERSION_LESS "3.3.6")
-    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
-    set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
-    return()
-endif()
+#-------------------------------------------------------------------------------
+# List files in the generic FSI interface library
+#-------------------------------------------------------------------------------
 
-# Return now if CUDA is not available
-if(NOT CUDA_FOUND)
-    message("Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
-    set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
-    return()
-endif()
+message(STATUS "Generic Chrono::FSI interface library")
 
-#mark_as_advanced(CLEAR USE_FSI_DOUBLE)
-
-# ------------------------------------------------------------------------------
-# Additional options for this module
-# ------------------------------------------------------------------------------
-
-option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
-if(USE_FSI_DOUBLE)
-  set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
-endif()
-
-# ------------------------------------------------------------------------------
-# If using MSVC, disable warnings related to missing DLL interface
-# ------------------------------------------------------------------------------
-
-if(MSVC)
-  #add_compile_options(/wd4251)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
-endif()
-
-# ------------------------------------------------------------------------------
-# Hack to deal with MSVC runtime libraries
-# ------------------------------------------------------------------------------
-
-if(MSVC)
-  if(USE_MSVC_STATIC_RUNTIME)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-  else()
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-  endif()
-endif()
-
-# ----------------------------------------------------------------------------
-# Collect additional include directories necessary for the FSI module.
-# Make some variables visible from parent directory
-# ----------------------------------------------------------------------------
-
-set(CH_FSI_INCLUDES "${CUDA_TOOLKIT_ROOT_DIR}/include")
-set(CH_FSI_LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
-set(CH_FSI_LINKED_LIBRARIES ${CUDA_FRAMEWORK})
-
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cudadevrt_LIBRARY})
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_CUDART_LIBRARY})
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cusparse_LIBRARY})
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cublas_LIBRARY})
-
-message(STATUS "CUDA libraries: ${CH_FSI_LINKED_LIBRARIES}")
-
-list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine)
-
-# ------------------------------------------------------------------------------
-# Add optional run-time visualization support
-# ------------------------------------------------------------------------------
-
-if(ENABLE_MODULE_OPENGL)
-  include_directories(${CH_OPENGL_INCLUDES})
-  set(CH_FSI_INCLUDES ${CH_FSI_INCLUDES} ${CH_OPENGL_INCLUDES})
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-     set(CH_FSI_LINKER_FLAGS  "${CH_FSI_LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
-  endif()
-  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_opengl)
-endif()
-
-if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
-  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_vsg)
-endif()
-
-# ------------------------------------------------------------------------------
-# Make some variables visible from parent directory
-# ------------------------------------------------------------------------------
-
-set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
-
-# ----------------------------------------------------------------------------
-# Generate and install configuration file
-# ----------------------------------------------------------------------------
-
-# Generate the configuration header file using substitution variables.
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFSI.h.in
-               ${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h)
-
-install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
-        DESTINATION include/chrono_fsi)
-
-#-----------------------------------------------------------------------------
-# LIST THE FILES THAT MAKE THE FSI FLUID-SOLID INTERACTION LIBRARY
-#-----------------------------------------------------------------------------
-
-set(ChronoEngine_FSI_FILES
+set(FSI_FILES
     ChApiFsi.h
-    ChSystemFsi.h
-    ChDefinitionsFsi.h
-    ChSystemFsi.cpp
+    ChFsiDefinitions.h
+    ChFsiSystem.h
+    ChFsiSystem.cpp
+    ChFsiFluidSystem.h
+    ChFsiFluidSystem.cpp
+    ChFsiInterface.h
+    ChFsiInterface.cpp
+    ChFsiBenchmark.h
 )
+source_group("" FILES ${FSI_FILES})
 
-source_group("" FILES ${ChronoEngine_FSI_FILES})
+# The generic FSI library has no dependencies on other Chrono modules
+set(DEPENDENCIES_FSI "")
 
-set(ChronoEngine_FSI_PHYSICS_FILES
-    physics/ChParams.h
-    physics/ChFsiInterface.h
-    physics/ChFsiGeneral.h
-    physics/ChSystemFsi_impl.cuh
-    physics/ChBce.cuh
-    physics/ChFluidDynamics.cuh
-    physics/ChCollisionSystemFsi.cuh
-    physics/ChFsiForce.cuh    
-    physics/ChFsiForceExplicitSPH.cuh
-    physics/ChFsiForceI2SPH.cuh
-    physics/ChFsiForceIISPH.cuh
-    physics/ChSphGeneral.cuh
-
-    physics/ChFsiInterface.cpp
-    physics/ChSystemFsi_impl.cu
- 	physics/ChBce.cu
-    physics/ChFluidDynamics.cu
-    physics/ChCollisionSystemFsi.cu
-    physics/ChFsiForce.cu
-    physics/ChFsiForceExplicitSPH.cu
-    physics/ChFsiForceI2SPH.cu
-    physics/ChFsiForceIISPH.cu
-    physics/ChFsiGeneral.cpp
-    physics/ChSphGeneral.cu
-)
-
-source_group(physics FILES ${ChronoEngine_FSI_PHYSICS_FILES})
-
-set(ChronoEngine_FSI_MATH_FILES
-    math/custom_math.h
-    math/ExactLinearSolvers.cuh
-    math/ChFsiLinearSolver.h
-    math/ChFsiLinearSolverBiCGStab.h
-    math/ChFsiLinearSolverGMRES.h
-
-    math/ChFsiLinearSolverBiCGStab.cpp
-    math/ChFsiLinearSolverGMRES.cpp
-)
-
-source_group(math FILES ${ChronoEngine_FSI_MATH_FILES})
-
-set(ChronoEngine_FSI_UTILS_FILES
-    utils/ChUtilsGeneratorFluid.h
-    utils/ChUtilsPrintStruct.h
-    utils/ChUtilsPrintSph.cuh
-    utils/ChUtilsDevice.cuh
-    utils/ChUtilsTypeConvert.h
-
-    utils/ChUtilsGeneratorFluid.cpp
-    utils/ChUtilsPrintSph.cu
-    utils/ChUtilsDevice.cu
-    utils/ChUtilsTypeConvert.cpp
-)
-
-source_group(utils FILES ${ChronoEngine_FSI_UTILS_FILES})
-
-set(ChronoEngine_FSI_VIS_FILES
-    visualization/ChFsiVisualization.h
-    visualization/ChFsiVisualization.cpp
-)
-
-if(ENABLE_MODULE_OPENGL)
-    set(ChronoEngine_FSI_VIS_FILES ${ChronoEngine_FSI_VIS_FILES}
-        visualization/ChFsiVisualizationGL.h
-        visualization/ChFsiVisualizationGL.cpp
-    )
-endif()
-
-if(ENABLE_MODULE_VSG)
-    set(ChronoEngine_FSI_VIS_FILES ${ChronoEngine_FSI_VIS_FILES}
-        visualization/ChFsiVisualizationVSG.h
-        visualization/ChFsiVisualizationVSG.cpp
-    )
-endif()
-
-source_group(visualization FILES ${ChronoEngine_FSI_VIS_FILES})
+set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
-# Create the ChronoEngine_fsi library
+# Create the Chrono_fsi library
 #-----------------------------------------------------------------------------
 
-cuda_add_library(ChronoEngine_fsi
-    ${ChronoEngine_FSI_FILES}
-    ${ChronoEngine_FSI_PHYSICS_FILES}
-    ${ChronoEngine_FSI_MATH_FILES}
-    ${ChronoEngine_FSI_UTILS_FILES}
-    ${ChronoEngine_FSI_VIS_FILES}
+message(STATUS "  Add Chrono_fsi library")
+
+add_library(Chrono_fsi
+    ${FSI_FILES}
+    ${FSI_UTILS_FILES}
 )
+add_library(Chrono::fsi ALIAS Chrono_fsi)
 
-set_target_properties(ChronoEngine_fsi PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_FSI_LINKER_FLAGS}")
+set_target_properties(Chrono_fsi PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 
-target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_API_COMPILE_FSI")
-target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_IGNORE_DEPRECATED")
+if (CH_STATIC)
+  set_target_properties(Chrono_fsi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
-target_link_libraries(ChronoEngine_fsi ${CH_FSI_LINKED_LIBRARIES})
+if(MSVC)
+  target_compile_options(Chrono_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)  # missing DLL interface
+  set_target_properties(Chrono_fsi PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
-install(TARGETS ChronoEngine_fsi
+target_link_libraries(Chrono_fsi PRIVATE Chrono_core)
+
+target_compile_definitions(Chrono_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+
+install(TARGETS Chrono_fsi
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_fsi)
 
+#-------------------------------------------------------------------------------
+# Configure submodules
+#-------------------------------------------------------------------------------
+
+add_subdirectory(sph)
+add_subdirectory(tdpf)
+
+set(DEPENDENCIES_FSI_SPH  ${DEPENDENCIES_FSI_SPH}  PARENT_SCOPE)
+set(DEPENDENCIES_FSI_TDPF ${DEPENDENCIES_FSI_TDPF} PARENT_SCOPE)
+
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way (install all Chrono::FSI headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-        DESTINATION include/chrono_fsi
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")
+DESTINATION include/chrono_fsi
+FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")
+
+# Install 3rd party headers       
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

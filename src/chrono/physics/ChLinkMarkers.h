@@ -124,10 +124,10 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Updates auxiliary forces caused by springs/dampers/etc. which may be connected between the two link bodies.
     /// These forces are considered in the reference coordsystem of marker2 (the main marker), and their application
     /// point is the origin of marker1 (the secondary marker).
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double time);
 
-    /// Complete link update: UpdateTime -> UpdateRelMarkerCoords -> UpdateForces.
-    virtual void Update(double mytime, bool update_assets = true) override;
+    /// Complete link update, including UpdateRelMarkerCoords and UpdateForces.
+    virtual void Update(double time, bool update_assets) override;
 
     /// Adds force to residual R, as R*= F*c
     /// NOTE: here the off offset in R is NOT used because add F at the TWO offsets of the two connected bodies,

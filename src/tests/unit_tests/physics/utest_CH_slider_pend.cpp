@@ -43,10 +43,11 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMate.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/utils/ChValidation.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 
 // =============================================================================
 
@@ -63,7 +64,7 @@ class ODEModel {
   public:
     ODEModel();
     void Simulate(double step, int num_steps);
-    const utils::Data& GetData() const { return m_data; }
+    const ChValidation::Data& GetData() const { return m_data; }
     void WriteData(double step, const std::string& filename);
 
   private:
@@ -77,7 +78,7 @@ class ODEModel {
 
     int m_num_intermediate_steps;
 
-    utils::Data m_data;
+    ChValidation::Data m_data;
 
     void CalcAcceleration();
 };
@@ -101,8 +102,8 @@ void ODEModel::Simulate(double step, int num_steps) {
 
     for (int it = 0; it < num_steps; it++) {
         m_data[0][it] = it * step;
-        m_data[1][it] = m_x1 + 0.5 * l2 * cos(m_phi2);
-        m_data[2][it] = 0.5 * l2 * sin(m_phi2);
+        m_data[1][it] = m_x1 + 0.5 * l2 * std::cos(m_phi2);
+        m_data[2][it] = 0.5 * l2 * std::sin(m_phi2);
         for (int it1 = 0; it1 < m_num_intermediate_steps; it1++) {
             CalcAcceleration();
             m_x1d += step1 * m_x1dd;
@@ -115,11 +116,11 @@ void ODEModel::Simulate(double step, int num_steps) {
 
 void ODEModel::CalcAcceleration() {
     double M11 = m1 + m2;
-    double M12 = -0.5 * m2 * l2 * sin(m_phi2);
+    double M12 = -0.5 * m2 * l2 * std::sin(m_phi2);
     double M22 = 0.25 * m2 * l2 * l2 + J2;
     double det = M11 * M22 - M12 * M12;
-    double f1 = 0.5 * m2 * l2 * cos(m_phi2) * m_phi2d * m_phi2d - k1 * m_x1;
-    double f2 = -0.5 * m2 * l2 * g * cos(m_phi2);
+    double f1 = 0.5 * m2 * l2 * std::cos(m_phi2) * m_phi2d * m_phi2d - k1 * m_x1;
+    double f2 = -0.5 * m2 * l2 * g * std::cos(m_phi2);
     m_x1dd = (M22 * f1 - M12 * f2) / det;
     m_phi2dd = (M11 * f2 - M12 * f1) / det;
 }
@@ -127,9 +128,9 @@ void ODEModel::CalcAcceleration() {
 void ODEModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 3);
 
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
-    for (size_t it = 0; it < m_data[0].size(); ++it) {
+    for (Eigen::Index it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
@@ -143,8 +144,8 @@ class ChronoModel {
   public:
     std::shared_ptr<ChSystemNSC> GetSystem() const { return m_system; }
     void Simulate(double step, int num_steps);
-    const utils::Data& GetData() const { return m_data; }
-    const utils::Data& GetCnstrData() const { return m_cnstr_data; }
+    const ChValidation::Data& GetData() const { return m_data; }
+    const ChValidation::Data& GetCnstrData() const { return m_cnstr_data; }
     void WriteData(double step, const std::string& filename);
 
     virtual std::string GetJointType() const = 0;
@@ -158,8 +159,8 @@ class ChronoModel {
     std::shared_ptr<ChBody> m_ground;
     std::shared_ptr<ChBody> m_slider;
     std::shared_ptr<ChBody> m_pend;
-    utils::Data m_data;
-    utils::Data m_cnstr_data;
+    ChValidation::Data m_data;
+    ChValidation::Data m_cnstr_data;
 };
 
 // Chrono model using LinkLock joints.
@@ -291,9 +292,9 @@ void ChronoModel::Simulate(double step, int num_steps) {
 void ChronoModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 3);
 
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
-    for (size_t it = 0; it < m_data[0].size(); ++it) {
+    for (Eigen::Index it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
@@ -303,7 +304,7 @@ void ChronoModel::WriteData(double step, const std::string& filename) {
 // =============================================================================
 
 template <typename ChronoModelType>
-bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double tol_state, double tol_cnstr) {
+bool test_EULER(double step, int num_steps, const ChValidation::Data& ref_data, double tol_state, double tol_cnstr) {
     // Create Chrono model.
     ChronoModelType model;
     std::shared_ptr<ChSystemNSC> system = model.GetSystem();
@@ -322,26 +323,26 @@ bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double 
     ////model.WriteData(step, "chrono_swing_EULER_IMPL_LIN.txt");
 
     // Validate states (x and y for pendulum body).
-    utils::DataVector norms_state;
-    bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
+    ChValidation::DataVector norms_state;
+    bool check_state = ChValidation::Test(model.GetData(), ref_data, ChValidation::NormType::RMS, tol_state, norms_state);
     std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
               << std::endl;
-    for (size_t col = 0; col < norms_state.size(); col++)
+    for (Eigen::Index col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
     // Validate constraint violations.
-    utils::DataVector norms_cnstr;
-    bool check_cnstr = utils::Validate(model.GetCnstrData(), utils::RMS_NORM, tol_cnstr, norms_cnstr);
+    ChValidation::DataVector norms_cnstr;
+    bool check_cnstr = ChValidation::Test(model.GetCnstrData(), ChValidation::NormType::RMS, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
               << ")" << std::endl;
-    for (size_t col = 0; col < norms_cnstr.size(); col++)
+    for (Eigen::Index col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 
     return check_state && check_cnstr;
 }
 
 template <typename ChronoModelType>
-bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double tol_state, double tol_cnstr) {
+bool test_HHT(double step, int num_steps, const ChValidation::Data& ref_data, double tol_state, double tol_cnstr) {
     // Create Chrono model.
     ChronoModelType model;
     std::shared_ptr<ChSystemNSC> system = model.GetSystem();
@@ -364,19 +365,19 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     ////model.WriteData(step, "chrono_swing_HHT.txt");
 
     // Validate states (x and y for pendulum body).
-    utils::DataVector norms_state;
-    bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
+    ChValidation::DataVector norms_state;
+    bool check_state = ChValidation::Test(model.GetData(), ref_data, ChValidation::NormType::RMS, tol_state, norms_state);
     std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
               << std::endl;
-    for (size_t col = 0; col < norms_state.size(); col++)
+    for (Eigen::Index col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
     // Validate constraint violations.
-    utils::DataVector norms_cnstr;
-    bool check_cnstr = utils::Validate(model.GetCnstrData(), utils::RMS_NORM, tol_cnstr, norms_cnstr);
+    ChValidation::DataVector norms_cnstr;
+    bool check_cnstr = ChValidation::Test(model.GetCnstrData(), ChValidation::NormType::RMS, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
               << ")" << std::endl;
-    for (size_t col = 0; col < norms_cnstr.size(); col++)
+    for (Eigen::Index col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 
     return check_state && check_cnstr;
@@ -394,7 +395,7 @@ int main(int argc, char* argv[]) {
     // Create and simulate the ODE model.
     ODEModel ode_model;
     ode_model.Simulate(step, num_steps);
-    const utils::Data& ref_data = ode_model.GetData();
+    const ChValidation::Data& ref_data = ode_model.GetData();
     ////ode_model.WriteData(step, "ode_swing.txt");
 
     // Perform the timestepper tests.

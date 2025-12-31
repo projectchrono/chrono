@@ -26,7 +26,7 @@
 #include "chrono_synchrono/agent/SynCopterAgent.h"
 #include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

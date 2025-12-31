@@ -328,7 +328,7 @@ void ChBlender::ExportScript(const std::string& filename) {
                 assets_file << "new_object.data.type='ORTHO'" << std::endl;
                 assets_file << "new_object.data.ortho_scale="
                             << double((camera_location - camera_aim).Length() *
-                                      tan(0.5 * camera_angle * chrono::CH_DEG_TO_RAD))
+                                      std::tan(0.5 * camera_angle * chrono::CH_DEG_TO_RAD))
                             << "" << std::endl;
             } else {
                 assets_file << "new_object.data.type='PERSP'" << std::endl;
@@ -377,7 +377,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
     // In a second pass, export shape geometry
     for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
 
         std::ofstream* mfile;
         std::unordered_map<size_t, std::shared_ptr<ChVisualShape>>* m_shapes;
@@ -446,7 +446,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << collection << ".objects.link(new_object)\n"
                    << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                    << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n"
+                   << "    bpy.ops.object.shade_auto_smooth(angle=0.8)\n"
                    << std::endl;
             // radius and height will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
@@ -460,7 +460,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << collection << ".objects.link(new_object)\n"
                    << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                    << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n"
+                   << "    bpy.ops.object.shade_auto_smooth(angle=0.8)\n"
                    << std::endl;
             // radius etc will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
@@ -912,7 +912,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
             *mfile << "new_object.data.type='ORTHO'" << std::endl;
             *mfile << "new_object.data.ortho_scale="
                    << double((camera_instance->GetPosition() - camera_instance->GetAimPoint()).Length() *
-                             tan(0.5 * camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD))
+                             std::tan(0.5 * camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD))
                    << "" << std::endl;
         } else {
             *mfile << "new_object.data.type='PERSP'" << std::endl;
@@ -1000,7 +1000,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
     bool has_stored_assets = false;
     bool has_stored_cameras = false;
     for (const auto& shape_instance : vis_model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
         if (m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) {
             has_stored_assets = true;
             break;
@@ -1036,7 +1036,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
 
         state_file << "[" << std::endl;
         for (const auto& shape_instance : vis_model->GetShapeInstances()) {
-            const auto& shape = shape_instance.first;
+            const auto& shape = shape_instance.shape;
 
             // Process only "known" shapes (i.e., shapes that were included in the assets file)
             if ((m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) ||
@@ -1044,7 +1044,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
                 ChVector3d aux_scale(0, 0, 0);
 
                 std::string shapename("shape_" + unique_bl_id((size_t)shape.get()));
-                const auto& shape_frame = shape_instance.second;
+                const auto& shape_frame = shape_instance.frame;
 
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one
                 // blender mesh asset is used anyway, then use scale here)
@@ -1236,13 +1236,14 @@ void ChBlender::ExportData(const std::string& filename) {
                 virtual bool OnReportContact(
                     const ChVector3d& pA,             // contact pA
                     const ChVector3d& pB,             // contact pB
-                    const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
-                    const double& distance,           // contact distance
-                    const double& eff_radius,         // effective radius of curvature at contact
-                    const ChVector3d& react_forces,   // react.forces (in coordsystem 'plane_coord')
-                    const ChVector3d& react_torques,  // react.torques (if rolling friction)
-                    ChContactable* contactobjA,       // model A (note: could be nullptr)
-                    ChContactable* contactobjB        // model B (note: could be nullptr)
+                    const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+                    double distance,                  // contact distance
+                    double eff_radius,                // effective radius of curvature at contact
+                    const ChVector3d& react_forces,   // react. forces, expressed in 'plane_coord'
+                    const ChVector3d& react_torques,  // react. torques, if rolling friction
+                    ChContactable* contactobjA,       // first contactable object (may be nullptr)
+                    ChContactable* contactobjB,       // second contactable object (may be nullptr)
+                    int constraint_offset             // NSC only, ignored here
                     ) override {
                     if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
                         fabs(react_forces.z()) > 1e-8) {

@@ -95,7 +95,7 @@ double AnalyticalTipDisp(std::shared_ptr<ChElasticityCosseratSimple> elast) {
 
     double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
     double analytic_timoshenko_displ =
-        (tip_load * pow(beamL, 3)) / (3 * elast->GetYoungModulus() * (1. / 12.) * wz * pow(wy, 3)) +
+        (tip_load * std::pow(beamL, 3)) / (3 * elast->GetYoungModulus() * (1. / 12.) * wz * std::pow(wy, 3)) +
         (tip_load * beamL) / (Ks_y * elast->GetShearModulus() * wz * wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
     return analytic_timoshenko_displ;
 }

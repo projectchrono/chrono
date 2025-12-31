@@ -16,11 +16,6 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: demonstration of using friction models")
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-# chrono.SetChronoDataPath('relative/path/to/data/directory/')
-
 # ---------------------------------------------------------------------
 #
 #  Create the simulation sys and add items
@@ -147,7 +142,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Friction demo')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 14, -20))
 vis.AddTypicalLights()

@@ -95,7 +95,7 @@ class ChApi ChLoadBodyForce : public ChLoadCustom {
 
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
 
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -341,7 +341,7 @@ class ChApi ChLoadBodyBodyTorque : public ChLoadBodyBody {
 
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Implement the computation of the body-body force, in local
     /// coordinates of the loc_application_B.

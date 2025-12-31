@@ -47,14 +47,14 @@ ChApi bool LineLineIntersect(const ChVector3d& p1,
                              double* mua,
                              double* mub);
 
-/// Calculate distance between a point p and a line identified with segment dA,dB.
-/// Returns distance and the mu value reference.
-/// tells if the nearest projection of point on line falls into segment (for mu 0...1).
-ChApi double PointLineDistance(const ChVector3d& p,
-                               const ChVector3d& dA,
-                               const ChVector3d& dB,
-                               double& mu,
-                               bool& is_insegment);
+/// Calculate distance between a point B and the segment (A1,A2).
+/// Returns the distance from B to the line and sets the line parameter 'u' such that u=0 indicates that B projects into
+/// A1 and u=1 indicates that B projects into A2. If 0 <= u <= 1, in_segment is set to 'true'.
+ChApi double PointLineDistance(const ChVector3d& B,
+                               const ChVector3d& A1,
+                               const ChVector3d& A2,
+                               double& u,
+                               bool& in_segment);
 
 /// Calculate distance of a point from a triangle surface.
 /// Also computes if projection is inside the triangle. If is_into = true, Bprojected is also computed.
@@ -63,9 +63,9 @@ ChApi double PointTriangleDistance(const ChVector3d& B,
                                    const ChVector3d& A1,
                                    const ChVector3d& A2,
                                    const ChVector3d& A3,
-                                   double& mu,
-                                   double& mv,
-                                   bool& is_into,
+                                   double& u,
+                                   double& v,
+                                   bool& in_triangle,
                                    ChVector3d& Bprojected);
 
 /// Check if the triangle defined by the two given vectors is degenerate.
@@ -100,7 +100,7 @@ inline ChMatrix33<> CalcBiSphereGyration(double radius, double c_dist) {
     double comp1 = 0.4 * radius * radius * (1 + cos_theta);
     double comp2 = -0.2 * radius * radius * (1. / 3. * (-cos_theta * cos_theta * cos_theta - 1) + (1 + cos_theta));
     double comp3 = 2. / 3. * z_prim * z_prim * (1 + cos_theta);
-    double comp4 = 0.5 * radius * z_prim * sqrt(1 - cos_theta * cos_theta);
+    double comp4 = 0.5 * radius * z_prim * std::sqrt(1 - cos_theta * cos_theta);
     double numerator = 2 * (comp1 + comp2 + comp3 + comp4);
     double denominator = 4. / 3. * (1 + cos_theta);
     double Jxx = numerator / denominator;

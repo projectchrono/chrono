@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Load the Chrono::Engine units
+# Load the Chrono units
 import pychrono as chrono
 from pychrono import irrlicht as chronoirr
 import numpy as np
@@ -71,7 +71,7 @@ class Model(object):
           self.vis = chronoirr.ChVisualSystemIrrlicht()
           self.vis.AttachSystem(self.ant_sys)
           self.vis.Initialize()
-          self.vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+          self.vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
           self.vis.AddSkyBox()
           self.vis.AddCamera(chrono.ChVector3d(0,1.5,0))
           self.vis.AddTypicalLights()

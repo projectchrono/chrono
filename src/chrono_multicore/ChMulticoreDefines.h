@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "chrono_multicore/ChApiMulticore.h"
 
 #ifdef __CDT_PARSER__

@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace jeep {
 
-/// @addtogroup vehicle_models_jeep
+/// @addtogroup vehicle_models_cherokee
 /// @{
 
 /// HMMWV automatic transmission model template based on a simple gear-shifting model.
@@ -49,7 +49,7 @@ class CH_MODELS_API Cherokee_AutomaticTransmissionSimpleMap : public ChAutomatic
         ) override;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_cherokee
 
 }  // namespace jeep
 }  // end namespace vehicle

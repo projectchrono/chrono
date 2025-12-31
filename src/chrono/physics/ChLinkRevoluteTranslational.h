@@ -114,7 +114,7 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
 
     /// Perform the update of this joint at the specified time: compute jacobians,
     /// constraint violations, etc. and cache in internal structures
-    virtual void Update(double time, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

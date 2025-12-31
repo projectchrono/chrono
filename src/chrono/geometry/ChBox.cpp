@@ -34,15 +34,15 @@ ChVector3d ChBox::Evaluate(double parU, double parV, double parW) const {
 
 // -----------------------------------------------------------------------------
 
-double ChBox::GetVolume(const ChVector3d& lengths) {
+double ChBox::CalcVolume(const ChVector3d& lengths) {
     return lengths.x() * lengths.y() * lengths.z();
 }
 
 double ChBox::GetVolume() const {
-    return GetVolume(2.0 * hlen);
+    return CalcVolume(2.0 * hlen);
 }
 
-ChMatrix33<> ChBox::GetGyration(const ChVector3d& lengths) {
+ChMatrix33<> ChBox::CalcGyration(const ChVector3d& lengths) {
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = (1.0 / 12.0) * (lengths.y() * lengths.y() + lengths.z() * lengths.z());
@@ -53,10 +53,10 @@ ChMatrix33<> ChBox::GetGyration(const ChVector3d& lengths) {
 }
 
 ChMatrix33<> ChBox::GetGyration() const {
-    return GetGyration(hlen);
+    return CalcGyration(hlen);
 }
 
-ChAABB ChBox::GetBoundingBox(const ChVector3d& lengths) {
+ChAABB ChBox::CalcBoundingBox(const ChVector3d& lengths) {
     auto hlen = lengths / 2;
 
     std::vector<ChVector3d> vertices{
@@ -85,15 +85,15 @@ ChAABB ChBox::GetBoundingBox(const ChVector3d& lengths) {
 }
 
 ChAABB ChBox::GetBoundingBox() const {
-    return GetBoundingBox(2.0 * hlen);
+    return CalcBoundingBox(2.0 * hlen);
 }
 
-double ChBox::GetBoundingSphereRadius(const ChVector3d& lengths) {
+double ChBox::CalcBoundingSphereRadius(const ChVector3d& lengths) {
     return lengths.Length() / 2;
 }
 
 double ChBox::GetBoundingSphereRadius() const {
-    return GetBoundingSphereRadius(2.0 * hlen);
+    return CalcBoundingSphereRadius(2.0 * hlen);
 }
 
 // -----------------------------------------------------------------------------

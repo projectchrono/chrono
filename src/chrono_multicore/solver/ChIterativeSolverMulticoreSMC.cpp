@@ -33,6 +33,9 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactMaterialSMC.h"
+
+#include "chrono/multicore_math/thrust.h"
+
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 #include <thrust/sort.h>
@@ -280,7 +283,7 @@ void function_CalcContactForces(
                 real St = 8 * G_eff * sqrt_Rd;
                 real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
                 real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
-                kn = (2.0 / 3) * Sn;
+                kn = CH_2_3 * Sn;
                 kt = St;
                 gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
                 gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);
@@ -307,8 +310,8 @@ void function_CalcContactForces(
                 real loge = Log(cr_eff);
                 real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
                 char_vel = (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) ? relvel_init : char_vel;
-                kn = (2.0 / 3.0) * Sn;
-                kt = (2.0 / 3.0) * St;
+                kn = CH_2_3 * Sn;
+                kt = CH_2_3 * St;
                 gn = 8.0 * (1.0 - cr_eff) * kn * delta_n / (5.0 * cr_eff * char_vel);
                 gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);  // Need to multiply St by 2/3 here as well ?
             } else {
@@ -330,7 +333,7 @@ void function_CalcContactForces(
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
                 real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
-                kn = (2.0 / 3) * Sn;
+                kn = CH_2_3 * Sn;
                 gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
             } else {
                 real tmp = Sqrt(delta_n);
@@ -602,7 +605,7 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
 // Include contact impulses (linear and rotational) for all bodies that are
 // involved in at least one contact. For each such body, the corresponding
 // entries in the arrays 'ct_body_force' and 'ct_body_torque' contain the
-// cummulative force and torque, respectively, over all contacts involving that
+// cumulative force and torque, respectively, over all contacts involving that
 // body.
 // -----------------------------------------------------------------------------
 void ChIterativeSolverMulticoreSMC::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {

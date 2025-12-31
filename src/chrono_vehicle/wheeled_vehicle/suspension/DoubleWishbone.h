@@ -71,9 +71,9 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual std::shared_ptr<ChVehicleBushingData> getUCABushingData() const override { return m_UCABushingData; }
-    virtual std::shared_ptr<ChVehicleBushingData> getLCABushingData() const override { return m_LCABushingData; }
-    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> getUCABushingData() const override { return m_UCABushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> getLCABushingData() const override { return m_LCABushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
     virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
@@ -114,9 +114,9 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
 
     double m_axleInertia;
 
-    std::shared_ptr<ChVehicleBushingData> m_UCABushingData;
-    std::shared_ptr<ChVehicleBushingData> m_LCABushingData;
-    std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_UCABushingData;
+    std::shared_ptr<ChJoint::BushingData> m_LCABushingData;
+    std::shared_ptr<ChJoint::BushingData> m_tierodBushingData;
 
     double m_springRestLength;
     double m_shockRestLength;

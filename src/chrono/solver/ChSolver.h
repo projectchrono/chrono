@@ -54,7 +54,7 @@ class ChApi ChSolver {
         MINRES,    ///< MINimum RESidual method
         BICGSTAB,  ///< Bi-conjugate gradient stabilized
         // Other
-        CUSTOM,
+        CUSTOM
     };
 
     virtual ~ChSolver() {}
@@ -79,17 +79,20 @@ class ChApi ChSolver {
     /// the matrix to perform the necessary matrix-vector operations.
     virtual bool SolveRequiresMatrix() const = 0;
 
-    /// Performs the solution of the problem.
-    /// This function MUST be implemented in children classes, with specialized methods such as iterative or direct
-    /// solvers.  The system descriptor contains the constraints and variables. Returns true if it successfully solves
-    /// the problem and false otherwise.
-    virtual double Solve(ChSystemDescriptor& sysd) = 0;
+    /// Perform setup operations for the solver.
+    /// This function prepares the solver for subsequent calls to the solve function. The system descriptor contains the
+    /// constraints and variables.
+    /// This function is called only as frequently it is determined that it is appropriate to perform the setup phase.
+    /// The argument `analyze` indicates if a full analysis of the system matrix is required. This is true when a
+    /// structural change in the system was detected (e.g., when a physical component was added to or removed from the
+    /// Chrono system).
+    /// This function must return true if successfull and false otherwise.
+    virtual bool Setup(ChSystemDescriptor& sysd, bool analyze) { return true; }
 
-    /// This function does the setup operations for the solver.
-    /// The purpose of this function is to prepare the solver for subsequent calls to the solve function. The system
-    /// descriptor contains the constraints and variables. This function is called only as frequently it is determined
-    /// that it is appropriate to perform the setup phase.
-    virtual bool Setup(ChSystemDescriptor& sysd) { return true; }
+    /// Solve the linear system.
+    /// The system descriptor contains the constraints and variables.
+    /// The return value is specific to a derived solver class.
+    virtual double Solve(ChSystemDescriptor& sysd) = 0;
 
     /// Set verbose output from solver.
     void SetVerbose(bool mv) { verbose = mv; }
@@ -102,6 +105,12 @@ class ChApi ChSolver {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+    /// Return this solver's type as a string.
+    std::string GetTypeAsString() const { return GetTypeAsString(GetType()); }
+
+    /// Return the provided solver type as a string.
+    static std::string GetTypeAsString(Type type); 
 
   protected:
     ChSolver() : verbose(false) {}

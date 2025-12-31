@@ -140,9 +140,11 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// The subsystem is initialized by attaching it to the specified chassis at the specified location (with respect to
     /// and expressed in the reference frame of the chassis). It is assumed that the track assembly reference frame is
     /// always aligned with the chassis reference frame.
-    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
-                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                    bool create_shoes = true             ///< [in] control creation of the actual track
+    /// All work is done in this base class implementation. Derived classes may override this method to provide
+    /// additional output and/or diagnostics.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                            bool create_shoes = true             ///< [in] control creation of the actual track
     );
 
     /// Return total assembled track length (sum of pitch over all track shoes).
@@ -182,7 +184,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     );
 
     /// Update the state of this track assembly at the current time.
-    /// This version is called if co-simulating with an external terain system.
+    /// This version is called if co-simulating with an external terrain system.
     void Synchronize(double time,                      ///< [in] current time
                      double braking,                   ///< [in] braking driver input
                      const TerrainForces& shoe_forces  ///< [in] vector of tire force structures
@@ -213,14 +215,15 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
-    virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) = 0;
+    virtual bool Assemble(std::shared_ptr<ChChassis> chassis) = 0;
 
     /// Remove all track shoes from assembly.
     virtual void RemoveTrackShoes() = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
+    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
+    virtual void ReadCheckpoint(ChCheckpoint& database) override;
 
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
     ChVector3d m_rel_loc;                   ///< assembly location relative to chassis

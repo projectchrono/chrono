@@ -32,34 +32,33 @@ ChPitmanArmShafts::ChPitmanArmShafts(const std::string& name, bool vehicle_frame
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia), m_rigid(rigid_column) {}
 
 ChPitmanArmShafts::~ChPitmanArmShafts() {
+    if (!IsInitialized())
+        return;
+
     auto sys = m_arm->GetSystem();
-    if (sys) {
-        sys->Remove(m_arm);
-        sys->Remove(m_revolute);
-        sys->Remove(m_revsph);
-        sys->Remove(m_universal);
-        sys->Remove(m_shaft_A);
-        sys->Remove(m_shaft_C);
-        sys->Remove(m_shaft_A1);
-        sys->Remove(m_shaft_C1);
-        sys->Remove(m_shaft_arm);
-        sys->Remove(m_shaft_chassis);
-        sys->Remove(m_shaft_gear);
-        sys->Remove(m_shaft_motor);
-        sys->Remove(m_rigid_connection);
-        sys->Remove(m_spring_connection);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_arm);
+    sys->Remove(m_revolute);
+    sys->Remove(m_revsph);
+    sys->Remove(m_universal);
+    sys->Remove(m_shaft_A);
+    sys->Remove(m_shaft_C);
+    sys->Remove(m_shaft_A1);
+    sys->Remove(m_shaft_C1);
+    sys->Remove(m_shaft_arm);
+    sys->Remove(m_shaft_chassis);
+    sys->Remove(m_shaft_gear);
+    sys->Remove(m_shaft_motor);
+    sys->Remove(m_rigid_connection);
+    sys->Remove(m_spring_connection);
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   const ChVector3d& location,
-                                   const ChQuaternion<>& rotation) {
-    ChSteering::Initialize(chassis, location, rotation);
-
-    m_parent = chassis;
-    m_rel_xform = ChFrame<>(location, rotation);
-
+void ChPitmanArmShafts::Construct(std::shared_ptr<ChChassis> chassis,
+                                  const ChVector3d& location,
+                                  const ChQuaternion<>& rotation) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -94,6 +93,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the steering link body
     m_link = chrono_types::make_shared<ChBody>();
     m_link->SetName(m_name + "_link");
+    m_link->SetTag(m_obj_tag);
     m_link->SetPos(points[STEERINGLINK]);
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getSteeringLinkMass());
@@ -115,6 +115,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the Pitman arm body
     m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetName(m_name + "_arm");
+    m_arm->SetTag(m_obj_tag);
     m_arm->SetPos(points[PITMANARM]);
     m_arm->SetRot(steering_to_abs.GetRot());
     m_arm->SetMass(getPitmanArmMass());
@@ -143,6 +144,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetName(m_name + "_revolute");
+    m_revolute->SetTag(m_obj_tag);
     m_revolute->Initialize(chassisBody, m_arm, ChFrame<>(points[REV], rot.GetQuaternion()));
     sys->AddLink(m_revolute);
 
@@ -155,6 +157,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_universal = chrono_types::make_shared<ChLinkUniversal>();
     m_universal->SetName(m_name + "_universal");
+    m_universal->SetTag(m_obj_tag);
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.GetQuaternion()));
     sys->AddLink(m_universal);
 
@@ -172,6 +175,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_revsph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
     m_revsph->SetName(m_name + "_revsph");
+    m_revsph->SetTag(m_obj_tag);
     m_revsph->Initialize(chassisBody, m_link, ChCoordsys<>(points[REVSPH_R], rot.GetQuaternion()), distance);
     sys->AddLink(m_revsph);
 
@@ -185,22 +189,26 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_shaft_C = chrono_types::make_shared<ChShaft>();
     m_shaft_C->SetName(m_name + "_shaftC");
+    m_shaft_C->SetTag(m_obj_tag);
     m_shaft_C->SetInertia(inertia);
     m_shaft_C->SetFixed(true);
     sys->AddShaft(m_shaft_C);
 
     m_shaft_C1 = chrono_types::make_shared<ChShaft>();
     m_shaft_C1->SetName(m_name + "_shaftC1");
+    m_shaft_C1->SetTag(m_obj_tag);
     m_shaft_C1->SetInertia(inertia);
     sys->AddShaft(m_shaft_C1);
 
     m_shaft_A1 = chrono_types::make_shared<ChShaft>();
     m_shaft_A1->SetName(m_name + "_shaftA1");
+    m_shaft_A1->SetTag(m_obj_tag);
     m_shaft_A1->SetInertia(inertia);
     sys->AddShaft(m_shaft_A1);
 
     m_shaft_A = chrono_types::make_shared<ChShaft>();
     m_shaft_A->SetName(m_name + "_shaftA");
+    m_shaft_A->SetTag(m_obj_tag);
     m_shaft_A->SetInertia(inertia);
     sys->AddShaft(m_shaft_A);
 
@@ -266,7 +274,7 @@ void ChPitmanArmShafts::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(m_rel_xform);
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_link->GetFrameCOMToAbs(), m_link->GetMass(), m_link->GetInertia());
     composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
 
@@ -283,12 +291,12 @@ void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     // Visualization for link
-    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pP, m_pI, getSteeringLinkRadius());
-    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pP, m_pTP, getSteeringLinkRadius());
-    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pI, m_pTI, getSteeringLinkRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_link, m_pP, m_pI, getSteeringLinkRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_link, m_pP, m_pTP, getSteeringLinkRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_link, m_pI, m_pTI, getSteeringLinkRadius());
 
     // Visualization for arm
-    ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pC, m_pL, getPitmanArmRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_arm, m_pC, m_pL, getPitmanArmRadius());
 
     // Visualization for rev-sph link
     m_revsph->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
@@ -365,67 +373,26 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    bodies.push_back(m_arm);
-    ExportBodyList(jsonDocument, bodies);
+void ChPitmanArmShafts::PopulateComponentList() {
+    m_bodies.push_back(m_link);
+    m_bodies.push_back(m_arm);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_shaft_C);
-    shafts.push_back(m_shaft_C1);
-    shafts.push_back(m_shaft_A1);
-    shafts.push_back(m_shaft_A);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_shaft_C);
+    m_shafts.push_back(m_shaft_C1);
+    m_shafts.push_back(m_shaft_A1);
+    m_shafts.push_back(m_shaft_A);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_revsph);
-    joints.push_back(m_universal);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_revolute);
+    m_joints.push_back(m_revsph);
+    m_joints.push_back(m_universal);
 
-    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
-    couples.push_back(m_shaft_motor);
-    couples.push_back(m_shaft_gear);
+    m_couples.push_back(m_shaft_motor);
+    m_couples.push_back(m_shaft_gear);
     if (m_rigid)
-        couples.push_back(m_rigid_connection);
+        m_couples.push_back(m_rigid_connection);
     else
-        couples.push_back(m_spring_connection);
-    ExportCouplesList(jsonDocument, couples);
-}
-
-void ChPitmanArmShafts::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    bodies.push_back(m_arm);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_shaft_C);
-    shafts.push_back(m_shaft_C1);
-    shafts.push_back(m_shaft_A1);
-    shafts.push_back(m_shaft_A);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_revsph);
-    joints.push_back(m_universal);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
-    couples.push_back(m_shaft_motor);
-    couples.push_back(m_shaft_gear);
-    if (m_rigid)
-        couples.push_back(m_rigid_connection);
-    else
-        couples.push_back(m_spring_connection);
-    database.WriteCouples(couples);
+        m_couples.push_back(m_spring_connection);
 }
 
 }  // end namespace vehicle

@@ -18,7 +18,7 @@
 
 using namespace chrono;
 
-ChSystemMulticoreSMC::ChSystemMulticoreSMC() : ChSystemMulticore() {
+ChSystemMulticoreSMC::ChSystemMulticoreSMC(const std::string& name) : ChSystemMulticore(name) {
     contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC>(data_manager);
     contact_container->SetSystem(this);
 

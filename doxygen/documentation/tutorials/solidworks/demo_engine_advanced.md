@@ -13,7 +13,7 @@ Now, the idea is that you can write a more sophisticated Python program to make 
 
 - To spend less time, just copy the ```run_test.py``` from the [demo engine](@ref tutorial_chrono_solidworks_demo_engine) tutorial and rename it as ```run_test_modified.py```. We will work on this file as a template. 
 
-- Open ```run_test_modified.py``` in your Python IDE (for example, Spyder). Read [PyChrono introduction](@ref pychrono_introduction) if you are new to Python programming for Chrono::Engine. 
+- Open ```run_test_modified.py``` in your Python IDE (for example, Spyder). Read [PyChrono introduction](@ref pychrono_introduction) if you are new to Python programming for Chrono. 
 
 Now we are ready to do various modifications to the Python program; here are some ideas.
 
@@ -27,7 +27,7 @@ The files for this demo can be found in the directory ```C:/[install path]/chron
 The unmodified ```run_test_modified.py``` program can be run from the shell as ```run_test_modified.py -f engine4c.py```,
 but if you remove the argument parsing section and add the import statements above, you can run it from the IDE or by simply double-clicking on it, without the need of specifying the -f parameter.
 
-Example: suppose you exported your engine mechanism as engine4c.py. In order to import that Chrono::Engine mechanism in your Python code, write:
+Example: suppose you exported your engine mechanism as engine4c.py. In order to import that Chrono mechanism in your Python code, write:
 
 ~~~{.py}
 exported_items = chrono.ImportSolidWorksSystem('./engine4c')
@@ -76,7 +76,7 @@ If you want to add additional bodies/constraints/springs etc. via programming, i
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_engine2_07.jpg)
 
-- Save the assembly with the **Save as Python** button, exporting it again to Chrono::Engine as ```engine4c.py```. 
+- Save the assembly with the **Save as Python** button, exporting it again to Chrono as ```engine4c.py```. 
 
 - Now in your ```run_test_modified.py``` you can fetch that coordinate system as a *ChMarker* object! Just use the ```SearchMarker``` statement: 
 ~~~{.py}
@@ -177,7 +177,7 @@ pov_exporter.SetCamera(chrono.ChVector3d(0.4,0.6,0.9), chrono.ChVector3d(0.2,0,0
 
 ##Change material of shape visualization {#manual_sw_material}
 
-Maybe that your 3D rendering looks too dull because all surfaces, by default, look like white chalk. However you can pich one object and change its appearance by tweaking the POVray materials. The idea is that you can add additional objects of ```ChAsset``` type into each moving part; one of these ChAsset objects could belong to the ```ChPovRayAssetCustom``` class, that allows you to add optional POVray statement to the rendering scripts that are generated for a specific shape. Look how this is achieved by using this bit of code:
+Maybe that your 3D rendering looks too dull because all surfaces, by default, look like white chalk. However you can pick one object and change its appearance by tweaking the POVray materials. The idea is that you can add additional objects of ```ChAsset``` type into each moving part; one of these ChAsset objects could belong to the ```ChPovRayAssetCustom``` class, that allows you to add optional POVray statement to the rendering scripts that are generated for a specific shape. Look how this is achieved by using this bit of code:
 
 ~~~{.py}
 shaft_povmat = postprocess.ChPovRayAssetCustomShared()
@@ -246,13 +246,13 @@ pov_exporter.SetShowCOGs(1, 0.05)
 
 ![](http://www.projectchrono.org/assets/manual/Tutorial_engine2_03.jpg)
 
-The center of mass is computed automatically by SolidWorks when you export the mechanism to the Chrono::Engine .py file, and depends on the density of the materials that you assigned to the parts in SolidWorks interface.
+The center of mass is computed automatically by SolidWorks when you export the mechanism to the Chrono .py file, and depends on the density of the materials that you assigned to the parts in SolidWorks interface.
 
 
 
 ##Show coordinate frames     {#manual_sw_showframes}
 
-Suppose you want to visualize the reference coordinate sytems of each ChBodyAuxRef body: this is the code that you need:
+Suppose you want to visualize the reference coordinate systems of each ChBodyAuxRef body: this is the code that you need:
 
 ~~~{.py}
 pov_exporter.SetShowFrames(1, 0.05)

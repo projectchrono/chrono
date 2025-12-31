@@ -31,7 +31,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -128,7 +128,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
         if (d["Sprocket"].HasMember("Output")) {
             output = d["Sprocket"]["Output"].GetBool() ? +1 : -1;
         }
-        ReadSprocket(vehicle::GetDataFile(file_name), output);
+        ReadSprocket(GetVehicleDataFile(file_name), output);
         m_sprocket_loc = ReadVectorJSON(d["Sprocket"]["Location"]);
     }
 
@@ -136,7 +136,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
     {
         assert(d.HasMember("Brake"));
         std::string file_name = d["Brake"]["Input File"].GetString();
-        m_brake = ReadTrackBrakeJSON(vehicle::GetDataFile(file_name));
+        m_brake = ReadTrackBrakeJSON(GetVehicleDataFile(file_name));
         if (d["Brake"].HasMember("Output")) {
             m_brake->SetOutput(d["Brake"]["Output"].GetBool());
         }
@@ -146,7 +146,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
     {
         assert(d.HasMember("Idler"));
         std::string file_name = d["Idler"]["Input File"].GetString();
-        m_idler = ReadIdlerJSON(vehicle::GetDataFile(file_name));
+        m_idler = ReadIdlerJSON(GetVehicleDataFile(file_name));
         if (d["Idler"].HasMember("Output")) {
             m_idler->SetOutput(d["Idler"]["Output"].GetBool());
         }
@@ -166,7 +166,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
         if (d["Suspension Subsystems"][i].HasMember("Lock Arm")) {
             lock_arm = d["Suspension Subsystems"][i]["Lock Arm"].GetBool();
         }
-        m_suspensions[i] = ReadTrackSuspensionJSON(vehicle::GetDataFile(file_name), has_shock, lock_arm);
+        m_suspensions[i] = ReadTrackSuspensionJSON(GetVehicleDataFile(file_name), has_shock, lock_arm);
         if (d["Suspension Subsystems"][i].HasMember("Output")) {
             m_suspensions[i]->SetOutput(d["Suspension Subsystems"][i]["Output"].GetBool());
         }
@@ -182,7 +182,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
         m_roller_locs.resize(m_num_rollers);
         for (int i = 0; i < m_num_rollers; i++) {
             std::string file_name = d["Rollers"][i]["Input File"].GetString();
-            m_rollers[i] = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
+            m_rollers[i] = ReadTrackWheelJSON(GetVehicleDataFile(file_name));
             if (d["Rollers"][i].HasMember("Output")) {
                 m_rollers[i]->SetOutput(d["Rollers"][i]["Output"].GetBool());
             }
@@ -199,7 +199,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
             output = d["Track Shoes"]["Output"].GetBool() ? +1 : -1;
         }
         m_num_track_shoes = d["Track Shoes"]["Number Shoes"].GetInt();
-        ReadTrackShoes(vehicle::GetDataFile(file_name), m_num_track_shoes, output);
+        ReadTrackShoes(GetVehicleDataFile(file_name), m_num_track_shoes, output);
 
         if (d["Track Shoes"].HasMember("RSDA Data")) {
             double k = d["Track Shoes"]["RSDA Data"]["Stiffness Rotational"].GetDouble();

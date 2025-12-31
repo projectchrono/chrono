@@ -67,6 +67,8 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
     /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
     virtual double GetMotorLoad() const override { return motor_load; }
 
+    ChVariablesGeneric& Variables() { return variable; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -90,7 +92,7 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
     virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,

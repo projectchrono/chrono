@@ -31,7 +31,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -149,7 +149,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
 
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<ChTrackTestRigChassis>();
-    m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
+    m_chassis->Initialize(this, ChCoordsys<>(), 0);
     m_chassis->SetFixed(true);
 
     // Disable detracking control if requested
@@ -374,25 +374,25 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
     // Platform (on post body)
-    ChVehicleGeometry::AddVisualizationCylinder(post,                              //
-                                                ChVector3d(0, 0, 0),               //
-                                                ChVector3d(0, 0, -m_post_height),  //
-                                                m_post_radius,                     //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(post,                              //
+                                                    ChVector3d(0, 0, 0),               //
+                                                    ChVector3d(0, 0, -m_post_height),  //
+                                                    m_post_radius,                     //
+                                                    mat);
 
     // Piston (on post body)
-    ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
-                                                ChVector3d(0, 0, -m_post_height),       //
-                                                ChVector3d(0, 0, -15 * m_post_height),  //
-                                                m_post_radius / 6.0,                    //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(post,                                   //
+                                                    ChVector3d(0, 0, -m_post_height),       //
+                                                    ChVector3d(0, 0, -15 * m_post_height),  //
+                                                    m_post_radius / 6.0,                    //
+                                                    mat);
 
     // Post sleeve (on chassis/ground body)
-    ChVehicleGeometry::AddVisualizationCylinder(chassis,                                                //
-                                                post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
-                                                post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
-                                                m_post_radius / 4.0,                                    //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(chassis,                                                //
+                                                    post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
+                                                    post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
+                                                    m_post_radius / 4.0,                                    //
+                                                    mat);
 }
 
 // -----------------------------------------------------------------------------
@@ -401,7 +401,7 @@ void ChTrackTestRig::SetTrackAssemblyOutput(bool state) {
     m_track->SetOutput(state);
 }
 
-void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
+void ChTrackTestRig::Output(int frame, ChOutput& database) const {
     database.WriteTime(frame, m_system->GetChTime());
 
     if (m_track->OutputEnabled()) {
@@ -412,7 +412,7 @@ void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
 void ChTrackTestRig::SetPlotOutput(double output_step) {
     m_plot_output = true;
     m_plot_output_step = output_step;
-    m_csv = new utils::ChWriterCSV(" ");
+    m_csv = new ChWriterCSV(" ");
 }
 
 void ChTrackTestRig::CollectPlotData(double time) {

@@ -153,7 +153,7 @@ HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name, bo
     double frc[] = {-322095.536, -240521.166, -174535.686, -122406.996, -82402.997, -52791.592, -31840.681,
                     -17818.165,  -8991.945,   -3629.923,   0,           3629.923,   8991.945,   17818.165,
                     31840.681,   52791.592,   82402.997,   122406.996,  174535.686, 240521.166, 322095.536};
-    auto springCB = chrono_types::make_shared<NonlinearSpringForce>(0);
+    auto springCB = chrono_types::make_shared<utils::NonlinearSpringForce>(0);
     for (int i = 0; i < 21; i++) {
       springCB->add_pointK(def[i], frc[i]);
     }
@@ -178,7 +178,7 @@ HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name, bool
     double frc[] = {-711719.272, -531468.245, -385663.250, -270476.949, -182082.006, -116651.084, -70356.846,
                     -39371.956,  -19869.076,  -8020.869,   0,           8020.869,    19869.076,   39371.956,
                     70356.846,   116651.084,  182082.006,  270476.949,  385663.250,  531468.245,  711719.272};
-    auto springCB = chrono_types::make_shared<NonlinearSpringForce>(0);
+    auto springCB = chrono_types::make_shared<utils::NonlinearSpringForce>(0);
     for (int i = 0; i < 21; i++) {
       springCB->add_pointK(def[i], frc[i]);
     }

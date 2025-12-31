@@ -112,11 +112,11 @@ double Sedan_ShockForce::evaluate(double time, double rest_length, double length
 // Constructors
 // -----------------------------------------------------------------------------
 Sedan_DoubleWishbone::Sedan_DoubleWishbone(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient, m_springPreload);
-    auto sptr = std::static_pointer_cast<LinearSpringForce>(m_springForceCB);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient, m_springPreload);
+    auto sptr = std::static_pointer_cast<utils::LinearSpringForce>(m_springForceCB);
     sptr->enable_stops(m_springRestLength - 0.04, m_springRestLength + 0.04);
     sptr->set_stops(2.0 * m_springCoefficient, 2.0 * m_springCoefficient);
-    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
+    m_shockForceCB = chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

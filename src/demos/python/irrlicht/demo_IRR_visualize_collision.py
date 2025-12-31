@@ -38,11 +38,6 @@ class DebugDrawer(chrono.VisualizationCallback):
 
 # -----------------------------------------------------------------------------
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('relative/path/to/data/directory/')
-
 print( "Copyright (c) 2022 projectchrono.org")
 
 # Create sys, contact material, and bodies
@@ -82,7 +77,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Collision visualization demo')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 8 , 6))
 vis.AddTypicalLights()

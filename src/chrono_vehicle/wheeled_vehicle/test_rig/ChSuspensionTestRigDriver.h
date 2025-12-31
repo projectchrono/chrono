@@ -42,11 +42,20 @@ class CH_VEHICLE_API ChSuspensionTestRigDriver {
     /// Get the driver steering input (in the range [-1,+1]).
     double GetSteering() const { return m_steering; }
 
-    /// Get the left post vertical displacement inputs (each in the range [-1,+1]).
+    /// Set the value for the driver steering input.
+    void SetSteering(double val, double min_val = -1, double max_val = 1);
+
+    /// Get all left post vertical displacement inputs (each in the range [-1,+1]).
     const std::vector<double>& GetDisplacementLeft() const { return m_displLeft; }
 
-    /// Get the right post vertical displacement inputs (each in the range [-1,+1]).
+    /// Set the value for the driver left post displacement input.
+    void SetDisplacementLeft(int axle, double val, double min_val = -1, double max_val = 1);
+
+    /// Get all right post vertical displacement inputs (each in the range [-1,+1]).
     const std::vector<double>& GetDisplacementRight() const { return m_displRight; }
+
+    /// Set the value for the driver right post displacement input.
+    void SetDisplacementRight(int axle, double val, double min_val = -1, double max_val = 1);
 
     /// Get the left post displacement rates of change.
     const std::vector<double>& GetDisplacementSpeedLeft() const { return m_displSpeedLeft; }
@@ -71,24 +80,13 @@ class CH_VEHICLE_API ChSuspensionTestRigDriver {
     ChSuspensionTestRigDriver();
 
     /// Initialize this driver system.
-    virtual void Initialize(int naxles);
+    virtual void Initialize(int num_axles);
 
     /// Update the state of this driver system at the current time.
     virtual void Synchronize(double time);
 
-    /// Get string message.
-    virtual std::string GetInfoMessage() const { return ""; }
+    int m_naxles;  ///< number of actuated axles
 
-    /// Set the value for the driver left post displacement input.
-    void SetDisplacementLeft(int axle, double val, double min_val = -1, double max_val = 1);
-
-    /// Set the value for the driver right post displacement input.
-    void SetDisplacementRight(int axle, double val, double min_val = -1, double max_val = 1);
-
-    /// Set the value for the driver steering input.
-    void SetSteering(double val, double min_val = -1, double max_val = 1);
-
-    int m_naxles;                           ///< number of actuated axles
     std::vector<double> m_displLeft;        ///< current value of left post displacements
     std::vector<double> m_displRight;       ///< current value of right post displacements
     std::vector<double> m_displSpeedLeft;   ///< current value of left post displacement rates of change

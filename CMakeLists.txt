@@ -9,13 +9,15 @@
 #-----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.18)
+# Features achievable with later versions of CMake:
+# - install(IMPORTED_RUNTIME_ARTIFACTS) CMake 3.21
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
+    message(FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 #-----------------------------------------------------------------------------
@@ -191,40 +193,59 @@ string(REGEX REPLACE "(\r?\n)+$" "" DATE "${DATE}")
 
 #set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
 set(CPACK_GENERATOR "ZIP")
-#set(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};ChronoEngine;ALL;/")
-#set(CPACK_NSIS_DISPLAY_NAME "ChronoEngine")
+#set(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};Chrono;ALL;/")
+#set(CPACK_NSIS_DISPLAY_NAME "Chrono")
 #set(CPACK_PACKAGE_DESCRIPTION_FILE "/home/andy/vtk/CMake/Copyright.txt")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ChronoEngine is a multibody-dynamics package")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Chrono is a multibody-dynamics package")
 #set(CPACK_PACKAGE_EXECUTABLES "ccmake;CMake")
-set(CPACK_PACKAGE_FILE_NAME "ChronoEngine-${CPACK_SYSTEM_NAME}-${CPACK_BUILD_TYPE}-${DATE}")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "ChronoEngine")
-set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "ChronoEngine")
-set(CPACK_PACKAGE_NAME "ChronoEngine")
+set(CPACK_PACKAGE_FILE_NAME "Chrono-${CPACK_SYSTEM_NAME}-${CPACK_BUILD_TYPE}-${DATE}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Chrono")
+set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "Chrono")
+set(CPACK_PACKAGE_NAME "Chrono")
 set(CPACK_PACKAGE_VENDOR "UWSBEL")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 #set(CPACK_RESOURCE_FILE_WELCOME "/home/andy/vtk/CMake/Templates/CPack.GenericWelcome.txt")
 set(CPACK_SOURCE_GENERATOR "TGZ")
-#set(CPACK_SOURCE_PACKAGE_FILE_NAME "ChronoEngine")
+#set(CPACK_SOURCE_PACKAGE_FILE_NAME "Chrono")
 set(CPACK_SOURCE_STRIP_FILES "")
 #set(CPACK_STRIP_FILES "bin/ccmake;bin/cmake;bin/cpack;bin/ctest")
 #set(CPACK_TOPLEVEL_TAG "Linux-x64")
 
-#------------------------------------------------------------
-# Install destinations for data and demo programs
-#------------------------------------------------------------
+#--------------------------------------------------------------------------
+# Destination directories for data and Chrono::Sensor shaders in BUILD tree
+#--------------------------------------------------------------------------
+
+get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+if(MULTI_CONFIG)
+    set(CH_BUILD_DATA "${CMAKE_BINARY_DIR}/bin/data")
+    set(CH_BUILD_SENSOR_SHADERS "${CMAKE_BINARY_DIR}/bin/sensor_shaders")
+    message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
+    message(STATUS "  Data directory copied to: ${CMAKE_BINARY_DIR}/bin/data/")
+    message(STATUS "  Binaries will be created in ${CMAKE_BINARY_DIR}/bin/<CONFIGURATION>/")
+else()
+    set(CH_BUILD_DATA "${CMAKE_BINARY_DIR}/data")
+    set(CH_BUILD_SENSOR_SHADERS "${CMAKE_BINARY_DIR}/sensor_shaders")
+    message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
+    message(STATUS "  Data directory copied to: ${CMAKE_BINARY_DIR}/data/")
+    message(STATUS "  Binaries will be created in ${CMAKE_BINARY_DIR}/bin/")
+endif()
+
+#------------------------------------------------------------------------
+# Destination directories for data, shaders, and programs in INSTALL tree
+# (relative to CMAKE_CURRENT_SOURCE_DIR)
+#------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_INSTALL_DATA "data")
+    set(CH_INSTALL_SENSOR_SHADERS "sensor_shaders")
     set(CH_INSTALL_DEMO "bin")
-    set(CH_INSTALL_SAMPLE_PROJ "template_project")
-    set(CH_INSTALL_SAMPLE_PROJ_COSIM "template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "bin")
 else()
     set(CH_INSTALL_DATA "share/chrono/data")
+    set(CH_INSTALL_SENSOR_SHADERS "share/chrono/sensor_shaders")
     set(CH_INSTALL_DEMO "share/chrono/bin")
-    set(CH_INSTALL_SAMPLE_PROJ "share/chrono/template_project")
-    set(CH_INSTALL_SAMPLE_PROJ_COSIM "share/chrono/template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "share/chrono/python")
 endif()
 
@@ -232,24 +253,20 @@ endif()
 # Copy data directory to BUILD tree 
 # Install data directory 
 # Install sample template_project
+# Install blender import script
 #------------------------------------------------------------
 
-get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(MULTI_CONFIG)
-    file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
-    message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
-    message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/bin/data/")
-    message(STATUS "Binaries will be created in ${CMAKE_BINARY_DIR}/bin/<CONFIGURATION>/")
-else()
-    file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
-    message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
-    message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/data/")
-    message(STATUS "Binaries will be created in ${CMAKE_BINARY_DIR}/bin/")
-endif()
+file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_BUILD_DATA})
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_vehicle_cosim/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ_COSIM})
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION "template_project")
+else()
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION "share/chrono/template_project")
+endif()
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/importer_blender/ DESTINATION "importer_blender")
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

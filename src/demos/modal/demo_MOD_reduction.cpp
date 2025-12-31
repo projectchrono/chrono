@@ -273,7 +273,7 @@ void CreateCantilever(ChSystem& sys,
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     sys.Setup();
-    sys.Update();
+    sys.Update(true);
 
     // modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump");
 
@@ -287,14 +287,14 @@ void CreateCantilever(ChSystem& sys,
 
     // VISUALIZATION ASSETS:
 
-    auto visualizeInternalA = chrono_types::make_shared<ChVisualShapeFEA>(mesh_internal);
+    auto visualizeInternalA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizeInternalA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MY);
-    visualizeInternalA->SetColorscaleMinMax(-600, 600);
+    visualizeInternalA->SetColormapRange(-600, 600);
     visualizeInternalA->SetSmoothFaces(true);
     visualizeInternalA->SetWireframe(false);
     mesh_internal->AddVisualShapeFEA(visualizeInternalA);
 
-    auto visualizeInternalB = chrono_types::make_shared<ChVisualShapeFEA>(mesh_internal);
+    auto visualizeInternalB = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizeInternalB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizeInternalB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizeInternalB->SetSymbolsThickness(0.2);
@@ -302,7 +302,7 @@ void CreateCantilever(ChSystem& sys,
     visualizeInternalB->SetZbufferHide(false);
     mesh_internal->AddVisualShapeFEA(visualizeInternalB);
 
-    auto visualizeBoundaryB = chrono_types::make_shared<ChVisualShapeFEA>(mesh_boundary);
+    auto visualizeBoundaryB = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizeBoundaryB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizeBoundaryB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizeBoundaryB->SetSymbolsThickness(0.4);
@@ -368,7 +368,7 @@ int main(int argc, char* argv[]) {
 
     // CREATE THE MODEL
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // no gravity used here
@@ -385,7 +385,6 @@ int main(int argc, char* argv[]) {
     vis.AddLogo();
     vis.AddSkyBox();
     vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
-    vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
     vis.AddTypicalLights();
 
     // This is for GUI tweaking of system parameters..
@@ -412,7 +411,7 @@ int main(int argc, char* argv[]) {
         hht_stepper->SetVerbose(false);
         hht_stepper->SetStepControl(false);
         hht_stepper->SetAlpha(-0.2);
-        hht_stepper->SetModifiedNewton(true);
+        hht_stepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
     }
 
     UPDATE_EXAMPLE = true;

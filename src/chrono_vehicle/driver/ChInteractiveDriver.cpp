@@ -25,6 +25,8 @@
 #include <climits>
 #include <bitset>
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -61,12 +63,6 @@ void ChInteractiveDriver::SetInputMode(InputMode mode) {
             m_clutch_target = 0;
             m_mode = mode;
             break;
-        case InputMode::DATAFILE:
-            if (m_data_driver) {
-                m_time_shift = m_vehicle.GetSystem()->GetChTime();
-                m_mode = mode;
-            }
-            break;
         case InputMode::JOYSTICK:
             if (HasJoystick())
                 m_mode = mode;
@@ -79,22 +75,6 @@ void ChInteractiveDriver::SetInputMode(InputMode mode) {
     }
 }
 
-void ChInteractiveDriver::SetThrottleDelta(double delta) {
-    m_throttle_delta = delta;
-}
-
-void ChInteractiveDriver::SetSteeringDelta(double delta) {
-    m_steering_delta = delta;
-}
-
-void ChInteractiveDriver::SetBrakingDelta(double delta) {
-    m_braking_delta = delta;
-}
-
-void ChInteractiveDriver::SetClutchDelta(double delta) {
-    m_clutch_delta = delta;
-}
-
 void ChInteractiveDriver::SetGains(double steering_gain,
                                    double throttle_gain,
                                    double braking_gain,
@@ -105,27 +85,47 @@ void ChInteractiveDriver::SetGains(double steering_gain,
     m_clutch_gain = clutch_gain;
 }
 
-void ChInteractiveDriver::SetInputDataFile(const std::string& filename) {
-    // Embed a DataDriver
-    m_data_driver = chrono_types::make_shared<ChDataDriver>(m_vehicle, filename, false);
+// -----------------------------------------------------------------------------
+
+void ChInteractiveDriver::IncreaseThrottle() {
+    m_throttle_target = ChClamp(m_throttle_target + m_throttle_delta, 0.0, +1.0);
+    if (m_throttle_target > 0)
+        m_braking_target = ChClamp(m_braking_target - m_braking_delta * 3, 0.0, +1.0);
+}
+
+void ChInteractiveDriver::DecreaseThrottle() {
+    m_throttle_target = ChClamp(m_throttle_target - m_throttle_delta * 3, 0.0, +1.0);
+    if (m_throttle_target <= 0)
+        m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
+}
+
+void ChInteractiveDriver::SteeringLeft() {
+    m_steering_target = ChClamp(m_steering_target + m_steering_delta, -1.0, +1.0);
+}
+
+void ChInteractiveDriver::SteeringRight() {
+    m_steering_target = ChClamp(m_steering_target - m_steering_delta, -1.0, +1.0);
+}
+
+void ChInteractiveDriver::IncreaseClutch() {
+    m_clutch_target = ChClamp(m_clutch_target + m_clutch_delta, 0.0, +1.0);
+}
+
+void ChInteractiveDriver::DecreaseClutch() {
+    m_clutch_target = ChClamp(m_clutch_target - m_clutch_delta, 0.0, +1.0);
+}
+
+void ChInteractiveDriver::SteeringCenter() {
+    m_steering_target = 0.0;
+}
+
+void ChInteractiveDriver::ReleasePedals() {
+    m_throttle_target = 0.0;
+    m_braking_target = 0.0;
+    m_clutch_target = 0.0;
 }
 
 // -----------------------------------------------------------------------------
-
-void ChInteractiveDriver::Synchronize(double time) {
-    // Do nothing if no embedded DataDriver.
-    if (m_mode != InputMode::DATAFILE || !m_data_driver)
-        return;
-
-    // Call the update function of the embedded DataDriver, with shifted time.
-    m_data_driver->Synchronize(time - m_time_shift);
-
-    // Use inputs from embedded DataDriver
-    m_throttle = m_data_driver->GetThrottle();
-    m_steering = m_data_driver->GetSteering();
-    m_braking = m_data_driver->GetBraking();
-    m_clutch = m_data_driver->GetClutch();
-}
 
 void ChInteractiveDriver::Advance(double step) {
     // Do nothing if not in KEYBOARD mode.

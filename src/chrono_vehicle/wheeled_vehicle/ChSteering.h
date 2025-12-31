@@ -45,9 +45,9 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     /// The steering subsystem is initialized by attaching it to the specified chassis at the specified location (with
     /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
     /// the chassis reference frame).
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                    const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
     );
 
     /// Update the state of this steering subsystem at the current time.
@@ -63,6 +63,15 @@ class CH_VEHICLE_API ChSteering : public ChPart {
   protected:
     /// Construct a steering subsystem with given name.
     ChSteering(const std::string& name);
+
+    /// Construct the concrete steering subsystem.
+    /// The steering subsystem is initialized by attaching it to the specified chassis at the specified location (with
+    /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
+    /// the chassis reference frame).
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) = 0;
 
     ChFrame<> m_rel_xform;           ///< location and orientation relative to associated chassis
     std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link

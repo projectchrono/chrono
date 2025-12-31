@@ -116,7 +116,7 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
 // -----------------------------------------------------------------------------
 void ChLinkUniversal::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChLink::UpdateTime(time);
+    ChLink::Update(time, update_assets);
 
     // Express the joint frames in absolute frame
     ChFrame<> frame1_abs = m_frame1 >> *m_body1;

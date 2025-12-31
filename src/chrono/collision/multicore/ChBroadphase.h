@@ -48,7 +48,7 @@ class ChApi ChBroadphase {
     void OffsetAABB();
     void ComputeTopLevelResolution();
     void RigidBoundingBox();
-    void FluidBoundingBox();
+    void ParticleBoundingBox();
 
     std::shared_ptr<ChCollisionData> cd_data;
 

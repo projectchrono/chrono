@@ -32,7 +32,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
             cli.Help();
             return 1;
     }
-    crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
+    crg_road_file = GetVehicleDataFile(cli.GetAsType<std::string>("roadfile"));
     speed = cli.GetAsType<double>("speed");
 
     // ----------------
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
     vis->AttachVehicle(&my_feda.GetVehicle());
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->SetShadows(true);
+    vis->EnableShadows();
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

@@ -28,7 +28,6 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
@@ -39,9 +38,6 @@
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -60,7 +56,6 @@ static constexpr int tag_obstacles = 100;
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the Chrono system and set solver parameters
-// - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, double width, ChContactMethod method)
     : ChVehicleCosimTerrainNodeChrono(Type::RIGID, length, width, method), m_radius_p(0.01) {
@@ -81,6 +76,11 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
+
+    // Set associated path
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method)
@@ -105,6 +105,11 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string
 
     // Read rigid terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Set associated path
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {
@@ -211,8 +216,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     vis_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
     vis_mat->SetTextureScale(m_dimX, m_dimY);
 
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, 0.2), ChVector3d(0, 0, -0.1),
-                          ChQuaternion<>(1, 0, 0, 0), true, vis_mat);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, 0.2),
+                          ChVector3d(m_dimX / 2, 0, -0.1), QUNIT, true, vis_mat);
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
@@ -313,9 +318,9 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    auto nv = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->GetNumVertices();
-    auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
-    auto material = m_geometry[i_shape].m_materials[i_mat].CreateMaterial(m_method);
+    auto nv = m_geometry[i_shape]->coll_meshes[0].trimesh->GetNumVertices();
+    auto i_mat = m_geometry[i_shape]->coll_meshes[0].matID;
+    auto material = m_geometry[i_shape]->materials[i_mat].CreateMaterial(m_method);
 
     double mass_p = m_load_mass[i_shape] / nv;
     ChVector3d inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector3d(1, 1, 1);
@@ -357,12 +362,12 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->EnableCollision(true);
 
     // Create visualization assets (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
+    m_geometry[i_shape]->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Create collision shapes
-    for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
-        mesh.m_radius = m_radius_p;
-    m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
+    for (auto& mesh : m_geometry[i_shape]->coll_meshes)
+        mesh.radius = m_radius_p;
+    m_geometry[i_shape]->CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->DisallowCollisionsWith(1);
 
@@ -386,8 +391,7 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
         vsys_vsg->SetWindowTitle("Terrain Node (Rigid)");
         vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetUseSkyBox(false);
-        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
@@ -409,18 +413,6 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
         vsys_irr->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
 
         m_vsys = vsys_irr;
-#elif defined(CHRONO_OPENGL)
-        auto vsys_gl = chrono_types::make_shared<opengl::ChVisualSystemOpenGL>();
-        vsys_gl->AttachSystem(m_system);
-        vsys_gl->SetWindowTitle("Terrain Node (Rigid)");
-        vsys_gl->SetWindowSize(1280, 720);
-        vsys_gl->SetRenderMode(opengl::SOLID);
-        vsys_gl->Initialize();
-        vsys_gl->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        vsys_gl->SetCameraProperties(0.05f);
-        vsys_gl->SetCameraVertical(CameraVerticalDir::Z);
-
-        m_vsys = vsys_gl;
 #endif
     }
 }
@@ -486,11 +478,8 @@ void ChVehicleCosimTerrainNodeRigid::OnRender() {
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track) {
-        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
-        ChVector3d cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
-        m_vsys->UpdateCamera(m_cam_pos, cam_point);
-    }
+    if (m_track)
+        m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
     m_vsys->BeginScene();
     m_vsys->Render();

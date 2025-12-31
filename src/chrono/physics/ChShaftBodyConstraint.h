@@ -86,7 +86,7 @@ class ChApi ChShaftBodyRotation : public ChPhysicsItem {
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
     /// Update all auxiliary data of the gear transmission at given time.
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -193,7 +193,7 @@ class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
     /// Update all auxiliary data of the gear transmission at given time.
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;

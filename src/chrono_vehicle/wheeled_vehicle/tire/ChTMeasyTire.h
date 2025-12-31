@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Template for the "Tire Model made Easy". Our implementation is a basic version
-// of the algorithms in http://www.tmeasy.de/, a comercial tire simulation code
+// of the algorithms in http://www.tmeasy.de/, a commercial tire simulation code
 // developed by Prof. Dr. Georg Rill.
 //
 //
@@ -79,7 +79,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
 
     /// Get the tire slip angle computed internally by the TMsimple model (in radians).
     /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
-    double GetSlipAngle_internal() const { return atan(-m_states.sy); }
+    double GetSlipAngle_internal() const { return std::atan(-m_states.sy); }
 
     /// Get the tire longitudinal slip computed internally by the TMsimple model.
     /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
@@ -232,16 +232,29 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
+    /// Get current internal dynamics ODE states (if any).
+    virtual void GetInternalStates(ChVector2d& states) const override {
+        states[0] = m_states.brx;
+        states[1] = m_states.bry;
+    }
+
+    /// Set the internal dynamics ODE states (if any).
+    virtual void SetInternalStates(const ChVector2d& states) {
+        m_states.brx = states[0];
+        m_states.bry = states[1];
+    }
+
     void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
     void tmxy_combined(double& f, double& fos, double s, double df0, double sm, double fm, double ss, double fs);
     double AlignmentTorque(double fy);
 
     // linear interpolation
-    double InterpL(double w1, double w2) { return w1 + (w2 - w1) * (m_states.q - 1.0); };
+    double InterpL(double w1, double w2) { return w1 + (w2 - w1) * (m_states.q - 1.0); }
+
     // quadratic interpolation
     double InterpQ(double w1, double w2) {
         return (m_states.q) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (m_states.q));
-    };
+    }
 
     struct TireStates {
         double sx;               // Longitudinal Slip State (sx)
@@ -249,7 +262,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
         double q;                // Fz/Fz_nom
         double gamma;            // Inclination Angle
         double muscale;          // Scaling factor for Tire/Road friction
-        double vta;              // absolut transport velocity
+        double vta;              // absolute transport velocity
         double vsx;              // Longitudinal slip velocity
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis, filtered by running avg,
@@ -274,6 +287,10 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     };
 
     TireStates m_states;
+
+    // The Dahl ODE can be integrated by BDF1 or Trapezoidal Rule
+    // both work, BDF1 is less accurate
+    const bool m_use_bdf1{false};
 };
 
 }  // end namespace vehicle

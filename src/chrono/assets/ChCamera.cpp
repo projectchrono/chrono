@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCamera.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -26,7 +27,7 @@ ChCamera::ChCamera()
       upvector(VECT_Y),
       angle(50),
       fov(3),
-      hvratio(4.0 / 3),
+      hvratio(CH_4_3),
       isometric(false){};
 
 void ChCamera::ArchiveOut(ChArchiveOut& archive) {

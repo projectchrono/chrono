@@ -36,7 +36,7 @@
 #include "chrono/fea/ChMesh.h"
 
 // Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+// of Chrono belong to this namespace and its children...
 
 using namespace chrono;
 using namespace fea;

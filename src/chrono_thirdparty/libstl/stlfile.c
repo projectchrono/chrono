@@ -71,7 +71,7 @@ loadstl(FILE *fp, char *comment, float **vertp, vertex_t *nvertp, vertex_t **tri
 	vht = malloc(vhtcap * sizeof vht[0]);
 	memset(vht, 0, vhtcap * sizeof vht[0]);
 
-	fprintf(stderr, "loadstl: number of triangles: %u, vhtcap %d\n", ntris, vhtcap);
+	////fprintf(stderr, "loadstl: number of triangles: %u, vhtcap %d\n", ntris, vhtcap);
 
 	nverts = 0;
 	for(i = 0; i < ntris; i++){
@@ -100,7 +100,7 @@ loadstl(FILE *fp, char *comment, float **vertp, vertex_t *nvertp, vertex_t **tri
 		attrs[i] = get16(buf + 48);
 	}
 
-	fprintf(stderr, "loadstl: number of verts: %u\n", nverts);
+	////fprintf(stderr, "loadstl: number of verts: %u\n", nverts);
 	free(vht);
 	verts = realloc(verts, nverts * 3*sizeof verts[0]);
 	*vertp = (float *)verts;

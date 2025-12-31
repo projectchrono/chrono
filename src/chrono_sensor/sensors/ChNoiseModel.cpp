@@ -129,7 +129,7 @@ void ChNoiseRandomWalks::AddNoise(ChVector3d& data, float last_ch_time, float ne
         double c_y = sample * m_prev_error_p.y() / (maxD);
         double c_z = sample * m_prev_error_p.z() / (maxD);
 
-        // // Apply another weight
+        // Apply another weight
         c_x = m_sigma * 0.2 * c_x;
         c_y = m_sigma * 0.2 * c_y;
         c_z = m_sigma * 0.2 * c_z;

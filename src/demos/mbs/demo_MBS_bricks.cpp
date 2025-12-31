@@ -87,7 +87,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
     sys.Add(mrigidBall);
 }
 
-// Create a bunch of ChronoENGINE rigid bodies that represent bricks in a Jenga tower
+// Create a bunch of Chrono rigid bodies that represent bricks in a Jenga tower
 void create_jengatower_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -199,16 +199,15 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle("VSG Bricks Demo");
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector3d(-30, 28, -60), ChVector3d(0, 5, 0));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

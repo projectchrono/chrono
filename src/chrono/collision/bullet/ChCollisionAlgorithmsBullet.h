@@ -246,6 +246,48 @@ class cbtCEtriangleShapeCollisionAlgorithm : public cbtActivatingCollisionAlgori
     bool m_isSwapped;
 };
 
+// ================================================================================================
+
+/// Custom override of the default Bullet algorithm for segment-segment collision.
+class cbtSegmentSegmentCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
+  public:
+    cbtSegmentSegmentCollisionAlgorithm(cbtPersistentManifold* mf,
+                                        const cbtCollisionAlgorithmConstructionInfo& ci,
+                                        const cbtCollisionObjectWrapper* col0,
+                                        const cbtCollisionObjectWrapper* col1,
+                                        bool isSwapped);
+    cbtSegmentSegmentCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
+    ~cbtSegmentSegmentCollisionAlgorithm();
+
+    virtual void processCollision(const cbtCollisionObjectWrapper* body0,
+                                  const cbtCollisionObjectWrapper* body1,
+                                  const cbtDispatcherInfo& dispatchInfo,
+                                  cbtManifoldResult* resultOut) override;
+    virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
+                                            cbtCollisionObject* body1,
+                                            const cbtDispatcherInfo& dispatchInfo,
+                                            cbtManifoldResult* resultOut) override;
+    virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
+
+    struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
+        virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                const cbtCollisionObjectWrapper* body0Wrap,
+                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
+    };
+
+  private:
+    void _add_contact(const ChVector3d& candid_pA,
+                      const ChVector3d& candid_pB,
+                      const double dist,
+                      cbtManifoldResult* resultOut,
+                      const double offsetA,
+                      const double offsetB);
+
+    bool m_ownManifold;
+    cbtPersistentManifold* m_manifoldPtr;
+    bool m_isSwapped;
+};
+
 /// @} collision_bullet
 
 }  // namespace chrono

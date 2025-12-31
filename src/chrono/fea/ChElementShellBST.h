@@ -123,16 +123,16 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     virtual unsigned int GetNumCoordsPosLevel() override { return n_usednodes * 3; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int index) override { return 3; }
 
     /// Access the n-th node of this element, not considering those marked with "nullptr" ex. if at boundary n=0..5
-    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[nodes_used_to_six[n]]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int index) override { return m_nodes[nodes_used_to_six[index]]; }
 
     /// Get a handle to the n node of this element, among the three of the triangle part, n=0..2
-    std::shared_ptr<ChNodeFEAxyz> GetNodeMainTriangle(unsigned int n) const { return m_nodes[n]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeMainTriangle(unsigned int index) const { return m_nodes[index]; }
 
     /// Get a handle to the n node from the three of the neighbouring triangles, n=0..2.  Even if nullptr.
-    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbour(unsigned int n) const { return m_nodes[3 + n]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbour(unsigned int index) const { return m_nodes[3 + index]; }
 
     /// Sets the neutral rotations of nodes at once,
     /// assuming the current element position is for zero strain.
@@ -177,18 +177,18 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     void ShapeFunctionsDerivativeV(ShapeVector& Nv, const double u, const double v);
 
     /// Fills the Nx shape function derivative matrix with respect to X local element direction.
-    /// The jacobian Jux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jxu = [d{x,y}/d{u,v}],
+    /// The jacobian Jac_ux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jac_xu = [d{x,y}/d{u,v}],
     /// so that [Nx;Ny]=[Jux]*[Nu;Nv].   Note, may remove u,v parms cause constant
     void ShapeFunctionsDerivativeX(ShapeVector& Nx,
-                                   const ChMatrixNM<double, 2, 2>& Jux,
+                                   const ChMatrixNM<double, 2, 2>& Jac_ux,
                                    const double u,
                                    const double v);
 
     /// Fills the Ny shape function derivative matrix with respect to Y local element direction.
-    /// The jacobian Jux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jxu = [d{x,y}/d{u,v}],
+    /// The jacobian Jac_ux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jac_xu = [d{x,y}/d{u,v}],
     /// so that [Nx;Ny]=[Jux]*[Nu;Nv].   Note, may remove u,v parms cause constant
     void ShapeFunctionsDerivativeY(ShapeVector& Ny,
-                                   const ChMatrixNM<double, 2, 2>& Jux,
+                                   const ChMatrixNM<double, 2, 2>& Jac_ux,
                                    const double u,
                                    const double v);
 

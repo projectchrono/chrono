@@ -38,6 +38,8 @@
 %{
 /* Includes the header in the wrapper code */
 #include "chrono/core/ChFrame.h"
+#include "chrono_parsers/yaml/ChParserYAML.h"
+#include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #include "chrono_parsers/ChParserURDF.h"
 #include "chrono_parsers/ChRobotActuation.h"
 
@@ -60,6 +62,8 @@ using namespace chrono::parsers;
 
 %shared_ptr(chrono::ChFrame<double>)
 %shared_ptr(chrono::ChFunction)  
+%shared_ptr(chrono::parsers::ChLoadController)
+%shared_ptr(chrono::parsers::ChMotorController)
 
 // Undefine ChApiParsers otherwise SWIG gives a syntax error
 #define ChApi 
@@ -75,21 +79,30 @@ using namespace chrono::parsers;
 %include "stdint.i"
 %include "typemaps.i"
 %include "cpointer.i"
-%include "cdata.i"
+%include "cdata.i" 
 
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkMotor.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFunction.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChSystem.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVector3.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChFrame.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyFrame.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBody.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChLinkMotor.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChFunction.i"
 
 %template(Actuation) std::vector<double>;
 
+// Cross-inheritance for callbacks that must be inherited.
+// Put these 'director' features _before_ class wrapping declaration.
+%feature("director") chrono::parsers::ChLoadController;
+%feature("director") chrono::parsers::ChMotorController;
+
 /* Parse the header file to generate wrappers */
-%include "../../../chrono/core/ChFrame.h"    
+%include "../../../chrono/core/ChFrame.h"
+%include "../../../chrono_parsers/yaml/ChParserYAML.h"
+%include "../../../chrono_parsers/yaml/ChParserMbsYAML.h"
 %include "../../../chrono_parsers/ChParserURDF.h"
 // note: unignore these if tinyxml2/urdfdom can be wrapped
 %ignore chrono::parsers::ChParserURDF::CustomProcess;

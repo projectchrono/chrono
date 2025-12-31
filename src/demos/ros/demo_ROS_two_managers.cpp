@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 200, 100);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
     // define ROS handelers' rate
@@ -189,11 +189,11 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
             vis_vsg->SetChaseCameraPosition(ChVector3d(-15, 0, 2.0));
             vis_vsg->AttachVehicle(&hmmwv_1.GetVehicle());
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

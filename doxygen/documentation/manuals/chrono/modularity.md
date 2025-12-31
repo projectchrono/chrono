@@ -13,7 +13,7 @@ This allows to:
 * have smaller size libraries, instead of a big ones;
 * have a better isolation during the development
 
-Each module can be enabled/disabled through the corresponding `ENABLE_MODULE_XXX` in the CMake configuration.
+Each module can be enabled/disabled through the corresponding `CH_ENABLE_MODULE_XXX` in the CMake configuration.
 
 The picture below illustrates how modules can depend on external libraries, 
 whereas the core system of Chrono depends on the underlying operating system only.

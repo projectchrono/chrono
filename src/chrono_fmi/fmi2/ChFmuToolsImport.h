@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono wrappers to fmu_tools FMU import classes for FMI standard 2.0.
+// Chrono wrappers to fmu-forge FMU import classes for FMI standard 2.0.
 //
 // =============================================================================
 
@@ -24,16 +24,19 @@
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/core/ChFrameMoving.h"
 
-// fmu_tools
+// fmu-forge
 #include "fmi2/FmuToolsImport.h"
 
 namespace chrono {
 namespace fmi2 {
 
-using FmuVariable = fmu_tools::fmi2::FmuVariable;
+/// @addtogroup chrono_fmi2
+/// @{
+
+using FmuVariable = fmu_forge::fmi2::FmuVariable;
 
 /// Extension of FmuUnit class for Chrono FMUs.
-class FmuChronoUnit : public fmu_tools::fmi2::FmuUnit {
+class FmuChronoUnit : public fmu_forge::fmi2::FmuUnit {
   public:
     FmuChronoUnit() : FmuUnit() {}
 
@@ -165,6 +168,8 @@ class FmuChronoUnit : public fmu_tools::fmi2::FmuUnit {
         return fmi2OK;
     }
 };
+
+/// @} chrono_fmi2
 
 }  // end namespace fmi2
 }  // end namespace chrono

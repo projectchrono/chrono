@@ -46,7 +46,7 @@ const std::string ChMultiLink::m_pointNames[] = {"SPINDLE  ", "UPRIGHT  ", "UA_F
 ChMultiLink::ChMultiLink(const std::string& name) : ChSuspension(name) {}
 
 ChMultiLink::~ChMultiLink() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_upright[0]->GetSystem();
@@ -81,18 +81,12 @@ ChMultiLink::~ChMultiLink() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChMultiLink::Initialize(std::shared_ptr<ChChassis> chassis,
-                             std::shared_ptr<ChSubchassis> subchassis,
-                             std::shared_ptr<ChSteering> steering,
-                             const ChVector3d& location,
-                             double left_ang_vel,
-                             double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChMultiLink::Construct(std::shared_ptr<ChChassis> chassis,
+                            std::shared_ptr<ChSubchassis> subchassis,
+                            std::shared_ptr<ChSteering> steering,
+                            const ChVector3d& location,
+                            double left_ang_vel,
+                            double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -146,19 +140,17 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     double sign = (side == LEFT) ? -1 : +1;
     auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
-    // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
+    // Initialize spindle body (same orientation as the chassis)
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
     m_upright[side] = chrono_types::make_shared<ChBody>();
     m_upright[side]->SetName(m_name + "_upright" + suffix);
+    m_upright[side]->SetTag(m_obj_tag);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
@@ -177,6 +169,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_upperArm[side] = chrono_types::make_shared<ChBody>();
     m_upperArm[side]->SetName(m_name + "_upperArm" + suffix);
+    m_upperArm[side]->SetTag(m_obj_tag);
     m_upperArm[side]->SetPos(points[UA_CM]);
     m_upperArm[side]->SetRot(rot);
     m_upperArm[side]->SetMass(getUpperArmMass());
@@ -195,6 +188,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_lateral[side] = chrono_types::make_shared<ChBody>();
     m_lateral[side]->SetName(m_name + "_lateral" + suffix);
+    m_lateral[side]->SetTag(m_obj_tag);
     m_lateral[side]->SetPos(points[LAT_CM]);
     m_lateral[side]->SetRot(rot);
     m_lateral[side]->SetMass(getLateralMass());
@@ -213,6 +207,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_trailingLink[side] = chrono_types::make_shared<ChBody>();
     m_trailingLink[side]->SetName(m_name + "_trailingLink" + suffix);
+    m_trailingLink[side]->SetTag(m_obj_tag);
     m_trailingLink[side]->SetPos(points[TL_CM]);
     m_trailingLink[side]->SetRot(rot);
     m_trailingLink[side]->SetMass(getTrailingLinkMass());
@@ -222,6 +217,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     // Create and initialize the revolute joint between upright and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -239,6 +235,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_revoluteUA[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteUA[side]->SetName(m_name + "_revoluteUA" + suffix);
+    m_revoluteUA[side]->SetTag(m_obj_tag);
     m_revoluteUA[side]->Initialize(chassis->GetBody(), m_upperArm[side],
                                    ChFrame<>((points[UA_F] + points[UA_B]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteUA[side]);
@@ -246,12 +243,14 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     // Create and initialize the spherical joint between upright and upper arm.
     m_sphericalUA[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalUA[side]->SetName(m_name + "_sphericalUA" + suffix);
+    m_sphericalUA[side]->SetTag(m_obj_tag);
     m_sphericalUA[side]->Initialize(m_upperArm[side], m_upright[side], ChFrame<>(points[UA_U], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalUA[side]);
 
     // Create and initialize the spherical joint between upright and track rod.
     m_sphericalLateralUpright[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalLateralUpright[side]->SetName(m_name + "_sphericalLateralUpright" + suffix);
+    m_sphericalLateralUpright[side]->SetTag(m_obj_tag);
     m_sphericalLateralUpright[side]->Initialize(m_lateral[side], m_upright[side], ChFrame<>(points[LAT_U], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalLateralUpright[side]);
 
@@ -263,6 +262,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_universalLateralChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalLateralChassis[side]->SetName(m_name + "_universalLateralChassis" + suffix);
+    m_universalLateralChassis[side]->SetTag(m_obj_tag);
     m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis->GetBody(),
                                                 ChFrame<>(points[LAT_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_universalLateralChassis[side]);
@@ -270,6 +270,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     // Create and initialize the spherical joint between upright and trailing link.
     m_sphericalTLUpright[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalTLUpright[side]->SetName(m_name + "_sphericalTLUpright" + suffix);
+    m_sphericalTLUpright[side]->SetTag(m_obj_tag);
     m_sphericalTLUpright[side]->Initialize(m_trailingLink[side], m_upright[side], ChFrame<>(points[TL_U], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalTLUpright[side]);
 
@@ -281,6 +282,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_universalTLChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalTLChassis[side]->SetName(m_name + "_universalTLChassis" + suffix);
+    m_universalTLChassis[side]->SetTag(m_obj_tag);
     m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis->GetBody(),
                                            ChFrame<>(points[TL_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_universalTLChassis[side]);
@@ -296,6 +298,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
         // Create the tierod body
         m_tierod[side] = chrono_types::make_shared<ChBody>();
         m_tierod[side]->SetName(m_name + "_tierodBody" + suffix);
+        m_tierod[side]->SetTag(m_obj_tag);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
         m_tierod[side]->SetRot(rot.GetQuaternion());
         m_tierod[side]->SetMass(getTierodMass());
@@ -303,18 +306,21 @@ void ChMultiLink::InitializeSide(VehicleSide side,
         chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
 
         // Connect tierod body to upright (spherical) and chassis (universal)
-        m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
+        m_sphericalTierod[side] = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
             ChFrame<>(points[TIEROD_U], QUNIT), getTierodBushingData());
+        m_sphericalTierod[side]->SetTag(m_obj_tag);
         chassis->AddJoint(m_sphericalTierod[side]);
-        m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
+        m_universalTierod[side] = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
             ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
+        m_universalTierod[side]->SetTag(m_obj_tag);
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.
         m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
         m_distTierod[side]->SetName(m_name + "_distTierod" + suffix);
+        m_distTierod[side]->SetTag(m_obj_tag);
         m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
         chassis->GetSystem()->AddLink(m_distTierod[side]);
     }
@@ -322,6 +328,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetName(m_name + "_shock" + suffix);
+    m_shock[side]->SetTag(m_obj_tag);
     m_shock[side]->Initialize(chassis->GetBody(), m_trailingLink[side], false, points[SHOCK_C], points[SHOCK_L]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -329,6 +336,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetName(m_name + "_spring" + suffix);
+    m_spring[side]->SetTag(m_obj_tag);
     m_spring[side]->Initialize(chassis->GetBody(), m_trailingLink[side], false, points[SPRING_C], points[SPRING_L]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -338,6 +346,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
@@ -365,7 +374,7 @@ void ChMultiLink::UpdateInertiaProperties() {
     ChMatrix33<> inertiaTrailingLink(getTrailingLinkInertia());
     ChMatrix33<> inertiaUpright(getUprightInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
@@ -597,8 +606,8 @@ void ChMultiLink::AddVisualizationUpperArm(std::shared_ptr<ChBody> arm,
     ChVector3d p_B = arm->TransformPointParentToLocal(pt_B);
     ChVector3d p_U = arm->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
 }
 
 void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -618,23 +627,23 @@ void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     ChVector3d p_U = upright->TransformPointParentToLocal(pt_U);
 
     if (p_UA.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_UA, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_UA, VNULL, radius);
     }
 
     if (p_TR.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_TR, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_TR, VNULL, radius);
     }
 
     if (p_TL.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_TL, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_TL, VNULL, radius);
     }
 
     if (p_T.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_T, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_T, VNULL, radius);
     }
 
     if (p_U.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_U, VNULL, radius);
     }
 }
 
@@ -646,7 +655,7 @@ void ChMultiLink::AddVisualizationLateral(std::shared_ptr<ChBody> rod,
     ChVector3d p_C = rod->TransformPointParentToLocal(pt_C);
     ChVector3d p_U = rod->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(rod, p_C, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(rod, p_C, p_U, radius);
 }
 
 void ChMultiLink::AddVisualizationTrailingLink(std::shared_ptr<ChBody> link,
@@ -659,8 +668,8 @@ void ChMultiLink::AddVisualizationTrailingLink(std::shared_ptr<ChBody> link,
     ChVector3d p_S = link->TransformPointParentToLocal(pt_S);
     ChVector3d p_U = link->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(link, p_C, p_S, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(link, p_S, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(link, p_C, p_S, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(link, p_S, p_U, radius);
 }
 
 void ChMultiLink::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
@@ -671,140 +680,62 @@ void ChMultiLink::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     ChVector3d p_C = tierod->TransformPointParentToLocal(pt_C);
     ChVector3d p_U = tierod->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChMultiLink::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_upright[0]);
-    bodies.push_back(m_upright[1]);
-    bodies.push_back(m_upperArm[0]);
-    bodies.push_back(m_upperArm[1]);
-    bodies.push_back(m_lateral[0]);
-    bodies.push_back(m_lateral[1]);
-    bodies.push_back(m_trailingLink[0]);
-    bodies.push_back(m_trailingLink[1]);
+void ChMultiLink::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    m_bodies.push_back(m_upright[0]);
+    m_bodies.push_back(m_upright[1]);
+    m_bodies.push_back(m_upperArm[0]);
+    m_bodies.push_back(m_upperArm[1]);
+    m_bodies.push_back(m_lateral[0]);
+    m_bodies.push_back(m_lateral[1]);
+    m_bodies.push_back(m_trailingLink[0]);
+    m_bodies.push_back(m_trailingLink[1]);
     if (UseTierodBodies()) {
-        bodies.push_back(m_tierod[0]);
-        bodies.push_back(m_tierod[1]);
+        m_bodies.push_back(m_tierod[0]);
+        m_bodies.push_back(m_tierod[1]);
     }
-    ExportBodyList(jsonDocument, bodies);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteUA[0]);
-    joints.push_back(m_revoluteUA[1]);
-    joints.push_back(m_sphericalUA[0]);
-    joints.push_back(m_sphericalUA[1]);
-    joints.push_back(m_universalLateralChassis[0]);
-    joints.push_back(m_universalLateralChassis[1]);
-    joints.push_back(m_sphericalLateralUpright[0]);
-    joints.push_back(m_sphericalLateralUpright[1]);
-    joints.push_back(m_universalTLChassis[0]);
-    joints.push_back(m_universalTLChassis[1]);
-    joints.push_back(m_sphericalTLUpright[0]);
-    joints.push_back(m_sphericalTLUpright[1]);
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
+    m_joints.push_back(m_revoluteUA[0]);
+    m_joints.push_back(m_revoluteUA[1]);
+    m_joints.push_back(m_sphericalUA[0]);
+    m_joints.push_back(m_sphericalUA[1]);
+    m_joints.push_back(m_universalLateralChassis[0]);
+    m_joints.push_back(m_universalLateralChassis[1]);
+    m_joints.push_back(m_sphericalLateralUpright[0]);
+    m_joints.push_back(m_sphericalLateralUpright[1]);
+    m_joints.push_back(m_universalTLChassis[0]);
+    m_joints.push_back(m_universalTLChassis[1]);
+    m_joints.push_back(m_sphericalTLUpright[0]);
+    m_joints.push_back(m_sphericalTLUpright[1]);
     if (UseTierodBodies()) {
-        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
-        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
-        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
-        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
+        m_sphericalTierod[0]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[0]->GetAsLink())
+                                            : m_body_loads.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[1]->GetAsLink())
+                                            : m_body_loads.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? m_joints.push_back(m_universalTierod[0]->GetAsLink())
+                                            : m_body_loads.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? m_joints.push_back(m_universalTierod[1]->GetAsLink())
+                                            : m_body_loads.push_back(m_universalTierod[1]->GetAsBushing());
     } else {
-        joints.push_back(m_distTierod[0]);
-        joints.push_back(m_distTierod[1]);
+        m_joints.push_back(m_distTierod[0]);
+        m_joints.push_back(m_distTierod[1]);
     }
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChMultiLink::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_upright[0]);
-    bodies.push_back(m_upright[1]);
-    bodies.push_back(m_upperArm[0]);
-    bodies.push_back(m_upperArm[1]);
-    bodies.push_back(m_lateral[0]);
-    bodies.push_back(m_lateral[1]);
-    bodies.push_back(m_trailingLink[0]);
-    bodies.push_back(m_trailingLink[1]);
-    if (UseTierodBodies()) {
-        bodies.push_back(m_tierod[0]);
-        bodies.push_back(m_tierod[1]);
-    }
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteUA[0]);
-    joints.push_back(m_revoluteUA[1]);
-    joints.push_back(m_sphericalUA[0]);
-    joints.push_back(m_sphericalUA[1]);
-    joints.push_back(m_universalLateralChassis[0]);
-    joints.push_back(m_universalLateralChassis[1]);
-    joints.push_back(m_sphericalLateralUpright[0]);
-    joints.push_back(m_sphericalLateralUpright[1]);
-    joints.push_back(m_universalTLChassis[0]);
-    joints.push_back(m_universalTLChassis[1]);
-    joints.push_back(m_sphericalTLUpright[0]);
-    joints.push_back(m_sphericalTLUpright[1]);
-    if (UseTierodBodies()) {
-        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
-        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
-        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
-        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
-                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
-    } else {
-        joints.push_back(m_distTierod[0]);
-        joints.push_back(m_distTierod[1]);
-    }
-    database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_spring[0]);
+    m_tsdas.push_back(m_spring[1]);
+    m_tsdas.push_back(m_shock[0]);
+    m_tsdas.push_back(m_shock[1]);
 }
 
 }  // end namespace vehicle

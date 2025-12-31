@@ -37,7 +37,7 @@ double ChFunctionFillet3::GetVal(double x) const {
         return m_val_start;
     if (x >= m_width)
         return m_val_end;
-    ret = c1 * pow(x, 3) + c2 * pow(x, 2) + c3 * x + c4;
+    ret = c1 * std::pow(x, 3) + c2 * std::pow(x, 2) + c3 * x + c4;
     return ret;
 }
 
@@ -47,7 +47,7 @@ double ChFunctionFillet3::GetDer(double x) const {
         return 0;
     if (x >= m_width)
         return 0;
-    ret = 3 * c1 * pow(x, 2) + 2 * c2 * x + c3;
+    ret = 3 * c1 * std::pow(x, 2) + 2 * c2 * x + c3;
     return ret;
 }
 
@@ -80,14 +80,14 @@ void ChFunctionFillet3::Setup() {
 
     ma(0, 3) = 1.0;
 
-    ma(1, 0) = pow(m_width, 3);
-    ma(1, 1) = pow(m_width, 2);
+    ma(1, 0) = std::pow(m_width, 3);
+    ma(1, 1) = std::pow(m_width, 2);
     ma(1, 2) = m_width;
     ma(1, 3) = 1.0;
 
     ma(2, 2) = 1.0;
 
-    ma(3, 0) = 3 * pow(m_width, 2);
+    ma(3, 0) = 3 * std::pow(m_width, 2);
     ma(3, 1) = 2 * m_width;
     ma(3, 2) = 1.0;
 

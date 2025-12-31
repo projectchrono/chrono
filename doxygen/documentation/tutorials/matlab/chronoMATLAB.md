@@ -6,8 +6,8 @@ Tutorials for users that installed the
 
 - @subpage  tutorial_demo_matlab
 
-  Entry level demo about how to use Matlab(TM) to plot Chrono::Engine data
+  Entry level demo about how to use Matlab(TM) to plot Chrono data
 
 - @subpage  tutorial_demo_chfunctions_plot
 
-  Use Matlab(TM) to plot Chrono::Engine ChFunction objects
+  Use Matlab(TM) to plot Chrono ChFunction objects

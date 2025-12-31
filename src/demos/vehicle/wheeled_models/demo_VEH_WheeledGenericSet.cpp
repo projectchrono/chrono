@@ -22,19 +22,17 @@
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -205,7 +203,7 @@ int main(int argc, char* argv[]) {
                                   ChCoordsys<>(ChVector3d(terrain_x, terrain_y, 0), QUNIT),  //
                                   terrain_size_x, terrain_size_y);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
     // ---------------------------------
@@ -247,17 +245,17 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Generic Vehicles");
-            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->AttachVehicle(&vehicles[i_ego]);
             vis_vsg->SetChaseCamera(VNULL, 8.0, 1.5);
             ////vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
             ////vis_vsg->SetChaseCameraPosition(ChVector3d(-6, terrain_y, 3.0));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

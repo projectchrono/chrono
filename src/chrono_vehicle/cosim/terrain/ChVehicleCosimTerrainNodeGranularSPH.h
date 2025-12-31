@@ -24,11 +24,14 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
+
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -43,7 +46,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
   public:
     /// Create a Chrono::FSI granular SPH terrain node.
     /// No SPH parameters are set.
-    ChVehicleCosimTerrainNodeGranularSPH(double length, double width);
+    ChVehicleCosimTerrainNodeGranularSPH(double length, double width, double depth);
 
     /// Create a Chrono::FSI granular SPH terrain node using parameters from the provided JSON specfile.
     /// See SetFromSpecfile.
@@ -58,13 +61,16 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     void SetFromSpecfile(const std::string& specfile);
 
     /// Specify the SPH terrain properties.
-    void SetPropertiesSPH(const std::string& specfile, double depth);
+    void SetPropertiesSPH(const std::string& specfile);
 
     /// Set properties of granular material.
     void SetGranularMaterial(double radius,   ///< particle radius (default: 0.01)
                              double density,  ///< particle material density (default: 2000)
                              double cohesion  ///< particle material cohesion (default: 0)
     );
+
+    /// Set solid visualization.
+    void SetSolidVisualization(bool show_geometry = true, bool show_bce = true);
 
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system and the proxy bodies, then finalize the underlying FSI system.
@@ -76,10 +82,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
   private:
     enum class ConstructionMethod { PATCH, FILES };
 
-    ChSystemSMC* m_system;                            ///< containing system
-    CRMTerrain* m_terrain;                            ///< CRM terrain
-    std::string m_specfile;                           ///< CRM terrain specification file
-    std::shared_ptr<fsi::ChFsiVisualization> m_vsys;  ///< run-time visualization system
+    ChSystemSMC* m_system;   ///< containing system
+    CRMTerrain* m_terrain;   ///< CRM terrain
+    std::string m_specfile;  ///< CRM terrain specification file name
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsys;  ///< run-time visualization system
+#endif
 
     ConstructionMethod m_terrain_type;  ///< construction method for CRMTerrain
     double m_depth;                     ///< SPH soil depth (PATCH type)
@@ -90,12 +98,16 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_density;   ///< particle material density
     double m_cohesion;  ///< granular material cohesion
 
-    ChAABB m_aabb_particles;   ///< particle AABB
     double m_active_box_size;  ///< size of FSI active domain
 
+    bool m_show_geometry;  ///< show 3D geometry of interacting solids
+    bool m_show_bce;       ///< show BCE markers on interacting solids
+
     virtual ChSystem* GetSystemPostprocess() const override {
+#ifdef CHRONO_VSG
         if (m_vsys)
-            return m_vsys->GetSystem();
+            return &m_vsys->GetSystem(0);
+#endif
         return nullptr;
     }
 

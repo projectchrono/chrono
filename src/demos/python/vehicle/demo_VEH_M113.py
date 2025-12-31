@@ -45,13 +45,13 @@ def main():
     m113.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     m113.Initialize()
 
-    m113.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    m113.SetSprocketVisualizationType(veh.VisualizationType_MESH);
-    m113.SetIdlerVisualizationType(veh.VisualizationType_MESH);
-    m113.SetIdlerWheelVisualizationType(veh.VisualizationType_MESH);
-    m113.SetSuspensionVisualizationType(veh.VisualizationType_MESH);
-    m113.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
-    m113.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
+    m113.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    m113.SetSprocketVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetIdlerVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetIdlerWheelVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetSuspensionVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetRoadWheelVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetTrackShoeVisualizationType(chrono.VisualizationType_MESH);
 
     m113.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -71,9 +71,21 @@ def main():
     patch = terrain.AddPatch(patch_mat, 
                              chrono.CSYSNORM, 
                              terrainLength, terrainWidth)
-    patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+    patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.5, 0.8, 0.5))
     terrain.Initialize()
+    
+    # Create the interactive driver system
+    # ------------------------------------
+
+    driver = veh.ChInteractiveDriver(m113.GetVehicle())
+    steering_time = 0.5  # time to go from 0 to +1 (or from 0 to -1)
+    throttle_time = 1.0  # time to go from 0 to +1
+    braking_time = 0.3   # time to go from 0 to +1
+    driver.SetSteeringDelta(render_step_size / steering_time)
+    driver.SetThrottleDelta(render_step_size / throttle_time)
+    driver.SetBrakingDelta(render_step_size / braking_time)
+    driver.Initialize()
 
     # Create the vehicle Irrlicht interface
     # -------------------------------------
@@ -83,25 +95,11 @@ def main():
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(m113.GetVehicle())
-
-    # Create the interactive driver system
-    # ------------------------------------
-
-    driver = veh.ChInteractiveDriverIRR(vis)
-
-    # Set the time response for steering and throttle keyboard inputs.
-    steering_time = 0.5  # time to go from 0 to +1 (or from 0 to -1)
-    throttle_time = 1.0  # time to go from 0 to +1
-    braking_time = 0.3   # time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time)
-    driver.SetThrottleDelta(render_step_size / throttle_time)
-    driver.SetBrakingDelta(render_step_size / braking_time)
-
-    driver.Initialize()
+    vis.AttachDriver(driver)
 
     # Solver and integrator settings
     # ------------------------------
@@ -146,13 +144,6 @@ def main():
 
     return 0
 
-
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 1.1)

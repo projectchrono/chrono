@@ -15,7 +15,7 @@ Installation
   In this case it is required to have PyChrono or Chrono (C++) to import them.  
   In particular, model exported in
   - Python can be loaded by:
-    - Chrono (C++), if the [PARSERS module](@ref manual_parsers) and at least `ENABLE_MODULE_PYTHON` is enabled or PyChrono is available in the system;
+    - Chrono (C++), if the [PARSERS module](@ref manual_parsers) and at least `CH_ENABLE_MODULE_PYTHON` is enabled or PyChrono is available in the system;
     - PyChrono, if available in the system;
   - C++ requires Chrono (C++) to be available, this option requires to compile C++ code;
   - JSON requires Chrono (C++); currently the import from JSON is not supported in other languages;

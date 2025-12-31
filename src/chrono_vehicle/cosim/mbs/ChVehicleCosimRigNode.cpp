@@ -25,11 +25,10 @@
 #include <set>
 #include <vector>
 
-#include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/physics/ChLoadContainer.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 
@@ -185,15 +184,11 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
                << del << m_system->GetTimerUpdate() << del;
-        if (m_int_type == ChTimestepper::Type::HHT) {
-            m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
-                   << m_integrator->GetNumSolveCalls() << del;
-        }
         m_outf << endl;
     }
 
     // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPosDt()
         << m_chassis->GetRotDt() << endl;

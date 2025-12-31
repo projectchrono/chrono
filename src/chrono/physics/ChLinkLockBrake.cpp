@@ -62,15 +62,10 @@ void ChLinkLockBrake::SetDisabled(bool mdis) {
     BuildLink();
 }
 
-// Update time: just change internal time!
-void ChLinkLockBrake::UpdateTime(double time) {
-    ChTime = time;
-}
-
 // Update forces: if not sticked, apply torque
-void ChLinkLockBrake::UpdateForces(double mytime) {
+void ChLinkLockBrake::UpdateForces(double time) {
     // First, inherit to parent class
-    ChLinkLock::UpdateForces(mytime);
+    ChLinkLock::UpdateForces(time);
 
     if (this->IsDisabled())
         return;

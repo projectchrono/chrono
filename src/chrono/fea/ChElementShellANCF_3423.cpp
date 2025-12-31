@@ -368,7 +368,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
-    A1 = A1 / sqrt(G1dotG1);
+    A1 = A1 / std::sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
 
@@ -377,8 +377,8 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
     ChVector3d AA1;
     ChVector3d AA2;
     ChVector3d AA3;
-    AA1 = A1 * cos(theta) + A2 * sin(theta);
-    AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    AA1 = A1 * std::cos(theta) + A2 * std::sin(theta);
+    AA2 = -A1 * std::sin(theta) + A2 * std::cos(theta);
     AA3 = A3;
 
     /// Beta
@@ -709,7 +709,7 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
-    A1 = A1 / sqrt(G1dotG1);
+    A1 = A1 / std::sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
 
@@ -718,8 +718,8 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
     ChVector3d AA1;
     ChVector3d AA2;
     ChVector3d AA3;
-    AA1 = A1 * cos(theta) + A2 * sin(theta);
-    AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    AA1 = A1 * std::cos(theta) + A2 * std::sin(theta);
+    AA2 = -A1 * std::sin(theta) + A2 * std::cos(theta);
     AA3 = A3;
 
     /// Beta
@@ -1337,7 +1337,7 @@ ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVe
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
-    A1 = A1 / sqrt(G1dotG1);
+    A1 = A1 / std::sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
 
@@ -1737,7 +1737,7 @@ ChVector3d ChElementShellANCF_3423::ComputeNormal(const double U, const double V
     G1xG2[1] = rd(2, 0) * rd(0, 1) - rd(0, 0) * rd(2, 1);
     G1xG2[2] = rd(0, 0) * rd(1, 1) - rd(1, 0) * rd(0, 1);
 
-    double G1xG2nrm = sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    double G1xG2nrm = std::sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
     return G1xG2 / G1xG2nrm;
 }
 
@@ -1787,15 +1787,15 @@ void ChElementShellANCF_3423::Layer::SetupInitial() {
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
-    A1 = A1 / sqrt(G1dotG1);
+    A1 = A1 / std::sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
 
     ChVector3d AA1;
     ChVector3d AA2;
     ChVector3d AA3;
-    AA1 = A1 * cos(m_theta) + A2 * sin(m_theta);
-    AA2 = -A1 * sin(m_theta) + A2 * cos(m_theta);
+    AA1 = A1 * std::cos(m_theta) + A2 * std::sin(m_theta);
+    AA2 = -A1 * std::sin(m_theta) + A2 * std::cos(m_theta);
     AA3 = A3;
 
     ////Beta
@@ -1837,17 +1837,17 @@ void ChElementShellANCF_3423::Layer::SetupInitial() {
     beta(8) = Vdot(AA3, j03);
 
     // Calculate T0: transformation matrix, function of fiber angle (see Yamashita et al, 2015, JCND)
-    m_T0(0, 0) = pow(beta(0), 2);
-    m_T0(1, 0) = pow(beta(1), 2);
+    m_T0(0, 0) = std::pow(beta(0), 2);
+    m_T0(1, 0) = std::pow(beta(1), 2);
     m_T0(2, 0) = 2.0 * beta(0) * beta(1);
-    m_T0(3, 0) = pow(beta(2), 2);
+    m_T0(3, 0) = std::pow(beta(2), 2);
     m_T0(4, 0) = 2.0 * beta(0) * beta(2);
     m_T0(5, 0) = 2.0 * beta(1) * beta(2);
 
-    m_T0(0, 1) = pow(beta(3), 2);
-    m_T0(1, 1) = pow(beta(4), 2);
+    m_T0(0, 1) = std::pow(beta(3), 2);
+    m_T0(1, 1) = std::pow(beta(4), 2);
     m_T0(2, 1) = 2.0 * beta(3) * beta(4);
-    m_T0(3, 1) = pow(beta(5), 2);
+    m_T0(3, 1) = std::pow(beta(5), 2);
     m_T0(4, 1) = 2.0 * beta(3) * beta(5);
     m_T0(5, 1) = 2.0 * beta(4) * beta(5);
 
@@ -1858,10 +1858,10 @@ void ChElementShellANCF_3423::Layer::SetupInitial() {
     m_T0(4, 2) = beta(0) * beta(5) + beta(2) * beta(3);
     m_T0(5, 2) = beta(2) * beta(4) + beta(1) * beta(5);
 
-    m_T0(0, 3) = pow(beta(6), 2);
-    m_T0(1, 3) = pow(beta(7), 2);
+    m_T0(0, 3) = std::pow(beta(6), 2);
+    m_T0(1, 3) = std::pow(beta(7), 2);
     m_T0(2, 3) = 2.0 * beta(6) * beta(7);
-    m_T0(3, 3) = pow(beta(8), 2);
+    m_T0(3, 3) = std::pow(beta(8), 2);
     m_T0(4, 3) = 2.0 * beta(6) * beta(8);
     m_T0(5, 3) = 2.0 * beta(7) * beta(8);
 

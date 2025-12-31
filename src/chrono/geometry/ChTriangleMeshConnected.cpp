@@ -108,7 +108,7 @@ void ChTriangleMeshConnected::Clear() {
     m_properties_per_vertex.clear();
 }
 
-ChAABB ChTriangleMeshConnected::GetBoundingBox(std::vector<ChVector3d> vertices) {
+ChAABB ChTriangleMeshConnected::CalcBoundingBox(std::vector<ChVector3d> vertices) {
     ChAABB bbox;
     for (const auto& v : vertices) {
         bbox.min.x() = std::min(bbox.min.x(), v.x());
@@ -123,7 +123,7 @@ ChAABB ChTriangleMeshConnected::GetBoundingBox(std::vector<ChVector3d> vertices)
 }
 
 ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
-    return GetBoundingBox(m_vertices);
+    return CalcBoundingBox(m_vertices);
 }
 
 // Following function is a modified version of:
@@ -140,24 +140,23 @@ ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
 //                             const int* indices, bool bodyCoords, Real& mass,
 //                             Vector3<Real>& center, Matrix3<Real>& inertia)
 //
-void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
+void ChTriangleMeshConnected::ComputeMassProperties(bool body_coords,
                                                     double& mass,
                                                     ChVector3d& center,
-                                                    ChMatrix33<>& inertia) {
-    const double oneDiv6 = (double)(1.0 / 6.0);
-    const double oneDiv24 = (double)(1.0 / 24.0);
-    const double oneDiv60 = (double)(1.0 / 60.0);
-    const double oneDiv120 = (double)(1.0 / 120.0);
+                                                    ChMatrix33<>& inertia,
+                                                    double scale) const {
+    const double oneDiv24 = 1 / 24.0;
+    const double oneDiv60 = 1 / 60.0;
+    const double oneDiv120 = 1 / 120.0;
 
     // order:  1, x, y, z, x^2, y^2, z^2, xy, yz, zx
-    double integral[10] = {(double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0,
-                           (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0};
+    double integral[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     for (unsigned int i = 0; i < this->GetNumTriangles(); i++) {
         // Get vertices of triangle i.
-        ChVector3d v0 = this->m_vertices[m_face_v_indices[i].x()];
-        ChVector3d v1 = this->m_vertices[m_face_v_indices[i].y()];
-        ChVector3d v2 = this->m_vertices[m_face_v_indices[i].z()];
+        ChVector3d v0 = m_vertices[m_face_v_indices[i].x()];
+        ChVector3d v1 = m_vertices[m_face_v_indices[i].y()];
+        ChVector3d v2 = m_vertices[m_face_v_indices[i].z()];
 
         // Get cross product of edges and normal vector.
         ChVector3d V1mV0 = v1 - v0;
@@ -212,7 +211,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
         integral[9] += N.z() * (v0.x() * g0z + v1.x() * g1z + v2.x() * g2z);
     }
 
-    integral[0] *= oneDiv6;
+    integral[0] *= CH_1_6;
     integral[1] *= oneDiv24;
     integral[2] *= oneDiv24;
     integral[3] *= oneDiv24;
@@ -241,7 +240,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
     inertia(2, 2) = integral[4] + integral[5];
 
     // inertia relative to center of mass
-    if (bodyCoords) {
+    if (body_coords) {
         inertia(0, 0) -= mass * (center.y() * center.y() + center.z() * center.z());
         inertia(0, 1) += mass * center.x() * center.y();
         inertia(0, 2) += mass * center.z() * center.x();
@@ -252,6 +251,18 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
         inertia(2, 1) = inertia(1, 2);
         inertia(2, 2) -= mass * (center.x() * center.x() + center.y() * center.y());
     }
+
+    double s3 = scale * scale * scale;
+    double s5 = s3 * scale * scale;
+
+    mass *= s3;
+    inertia *= s5;
+}
+
+ChMassProperties ChTriangleMeshConnected::ComputeMassProperties(bool body_coords, double scale) const {
+    ChMassProperties mp;
+    ComputeMassProperties(body_coords, mp.mass, mp.com, mp.inertia, scale);
+    return mp;
 }
 
 std::shared_ptr<ChTriangleMeshConnected> ChTriangleMeshConnected::CreateFromWavefrontFile(const std::string& filename,

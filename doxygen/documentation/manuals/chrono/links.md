@@ -33,9 +33,9 @@ Some general information are fundamental to effectively use these classes:
 | 3 | Spherical | Fix translations | @ref chrono::ChLinkMateSpherical "ChLinkMateSpherical" <br> @ref chrono::ChLinkLockSpherical "ChLinkLockSpherical" |
 | 3 | Planar | XY planes are coplanar | @ref chrono::ChLinkLockPlanar "ChLinkLockPlanar" <br> @ref chrono::ChLinkMatePlanar "ChLinkMatePlanar" |
 | 3 | Aligned | Fix rotations | @ref chrono::ChLinkLockAlign "ChLinkLockAlign" |
-| 2 | Revolute+Spherical | Fix distance along Z axis; free rotations | @ref chrono::ChLinkMateDistanceZ "ChLinkMateDistanceZ" <br> @ref chrono::ChLinkRevoluteSpherical "ChLinkRevoluteSpherical"|
+| 2 | Revolute+Spherical | Fix distance wrt rotation axis (Z axis of revolute) | @ref chrono::ChLinkRevoluteSpherical "ChLinkRevoluteSpherical"|
 | 2 | Revolute+Align | Allow translation respect to a rotating frame | @ref chrono::ChLinkRevoluteTranslational "ChLinkRevoluteTranslational" |
-| 2 | Point on a Plane | Z translations are blocked | @ref chrono::ChLinkLockPointPlane "ChLinkLockPointPlane" |
+| 2 | Point on a Plane | Z translations are blocked | @ref chrono::ChLinkMateDistanceZ "ChLinkMateDistanceZ" <br> @ref chrono::ChLinkLockPointPlane "ChLinkLockPointPlane" |
 | 2 | Point on a Line | Point belongs to a given line; free to rotate | @ref chrono::ChLinkLockPointLine "ChLinkLockPointLine" <br> @ref chrono::ChLinkLockPointSpline "ChLinkLockPointSpline" |
 | 2 | Parallel | Z axes are parallel | @ref chrono::ChLinkMateParallel "ChLinkMateParallel" <br> @ref chrono::ChLinkLockParallel "ChLinkLockParallel" |
 | 2 | Orthogonal | X and Y axes are kept orthogonal; Z axes are aligned | @ref chrono::ChLinkMateOrthogonal "ChLinkMateOrthogonal" <br> @ref chrono::ChLinkLockPerpend "ChLinkLockPerpend" |

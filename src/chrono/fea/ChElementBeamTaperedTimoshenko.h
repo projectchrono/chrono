@@ -35,7 +35,7 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
                                              public ChLoadableU,
                                              public ChLoadableUVW,
                                              public ChElementCorotational {
-  private:
+  public:
     // define a tuple to restore the shape functions and derivatives
     using ShapeFunctionN = ChMatrixNM<double, 6, 12>;
     using SFBlock = ChMatrixNM<double, 1, 4>;
@@ -47,7 +47,6 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
                                           ShapeFunction2Blocks,   // restore blocks of second derivatives
                                           ShapeFunction2Blocks>;  // restore blocks of thrid derivatives
 
-  public:
     ChElementBeamTaperedTimoshenko();
 
     ~ChElementBeamTaperedTimoshenko() {}

@@ -55,10 +55,10 @@ class SYN_API SynWheeledVehicleStateMessage : public SynMessage {
 
     ///@brief Set the state variables
     ///
-    ///@param time simulation time
+    ///@param t simulation time
     ///@param chassis vehicle's chassis pose
     ///@param wheels vector of the vehicle's wheel poses
-    void SetState(double time, SynPose chassis, std::vector<SynPose> wheels);
+    void SetState(double t, SynPose chassis_pose, std::vector<SynPose> wheel_poses);
 
     // -------------------------------------------------------------------------------
 
@@ -100,17 +100,17 @@ class SYN_API SynWheeledVehicleDescriptionMessage : public SynMessage {
 
     ///@brief Set the visualization files used for zombie visualization
     ///
-    ///@param chassis_vis_file filename for the chassis zombie visualization
-    ///@param wheel_vis_file filename for the wheel zombie visualization
-    ///@param tire_vis_file filename for the tire zombie visualization
-    void SetVisualizationFiles(const std::string& chassis_vis_file,
-                               const std::string& wheel_vis_file,
-                               const std::string& tire_vis_file);
+    ///@param chassis_visualization_file filename for the chassis zombie visualization
+    ///@param wheel_visualization_file filename for the wheel zombie visualization
+    ///@param tire_visualization_file filename for the tire zombie visualization
+    void SetVisualizationFiles(const std::string& chassis_visualization_file,
+                               const std::string& wheel_visualization_file,
+                               const std::string& tire_visualization_file);
 
     ///@brief Set the total number of wheels for this vehicle
     ///
-    ///@param num_wheels the total number of wheels on the vehicle
-    void SetNumWheels(int num_wheels);
+    ///@param number_wheels the total number of wheels on the vehicle
+    void SetNumWheels(int number_wheels);
 
     // -------------------------------------------------------------------------------
 

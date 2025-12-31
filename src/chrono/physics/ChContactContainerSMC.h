@@ -9,11 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
-// =============================================================================
 
-#ifndef CH_CONTACTCONTAINER_SMC_H
-#define CH_CONTACTCONTAINER_SMC_H
+#ifndef CH_CONTACT_CONTAINER_SMC_H
+#define CH_CONTACT_CONTAINER_SMC_H
 
 #include <algorithm>
 #include <cmath>
@@ -29,54 +27,6 @@ namespace chrono {
 /// Implemented using linked lists of ChContactSMC objects (that is, contacts between two ChContactable objects).
 class ChApi ChContactContainerSMC : public ChContactContainer {
   public:
-    typedef ChContactSMC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactSMC_3_3;
-    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactSMC_6_3;
-    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactSMC_6_6;
-    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactSMC_333_3;
-    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactSMC_333_6;
-    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactSMC_333_333;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactSMC_666_3;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactSMC_666_6;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactSMC_666_333;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactSMC_666_666;
-
-  protected:
-    std::list<ChContactSMC_3_3*> contactlist_3_3;
-    std::list<ChContactSMC_6_3*> contactlist_6_3;
-    std::list<ChContactSMC_6_6*> contactlist_6_6;
-    std::list<ChContactSMC_333_3*> contactlist_333_3;
-    std::list<ChContactSMC_333_6*> contactlist_333_6;
-    std::list<ChContactSMC_333_333*> contactlist_333_333;
-    std::list<ChContactSMC_666_3*> contactlist_666_3;
-    std::list<ChContactSMC_666_6*> contactlist_666_6;
-    std::list<ChContactSMC_666_333*> contactlist_666_333;
-    std::list<ChContactSMC_666_666*> contactlist_666_666;
-
-    int n_added_3_3;
-    int n_added_6_3;
-    int n_added_6_6;
-    int n_added_333_3;
-    int n_added_333_6;
-    int n_added_333_333;
-    int n_added_666_3;
-    int n_added_666_6;
-    int n_added_666_333;
-    int n_added_666_666;
-
-    std::list<ChContactSMC_3_3*>::iterator lastcontact_3_3;
-    std::list<ChContactSMC_6_3*>::iterator lastcontact_6_3;
-    std::list<ChContactSMC_6_6*>::iterator lastcontact_6_6;
-    std::list<ChContactSMC_333_3*>::iterator lastcontact_333_3;
-    std::list<ChContactSMC_333_6*>::iterator lastcontact_333_6;
-    std::list<ChContactSMC_333_333*>::iterator lastcontact_333_333;
-    std::list<ChContactSMC_666_3*>::iterator lastcontact_666_3;
-    std::list<ChContactSMC_666_6*>::iterator lastcontact_666_6;
-    std::list<ChContactSMC_666_333*>::iterator lastcontact_666_333;
-    std::list<ChContactSMC_666_666*>::iterator lastcontact_666_666;
-
-    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
-
-  public:
     ChContactContainerSMC();
     ChContactContainerSMC(const ChContactContainerSMC& other);
     virtual ~ChContactContainerSMC();
@@ -85,10 +35,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     virtual ChContactContainerSMC* Clone() const override { return new ChContactContainerSMC(*this); }
 
     /// Report the number of added contacts.
-    virtual unsigned int GetNumContacts() const override {
-        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666;
-    }
+    virtual unsigned int GetNumContacts() const override { return n_added; }
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() override;
@@ -121,7 +68,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
 
     /// Update state of this contact container: compute jacobians, violations, etc.
     /// and store results in inner structures of contacts.
-    virtual void Update(double mtime, bool update_assets = true) override;
+    virtual void Update(double mtime, bool update_assets) override;
 
     /// Compute contact forces on all contactable objects in this container.
     /// This function caches contact forces in a map.
@@ -150,6 +97,14 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    int n_added;
+    std::list<ChContactSMC*> contacts;
+    std::list<ChContactSMC*>::iterator last_contact;
+
+    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
+
 
   private:
     void InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeSMC& cmat);

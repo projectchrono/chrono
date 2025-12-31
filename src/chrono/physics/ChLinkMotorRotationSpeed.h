@@ -76,7 +76,7 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
 
     bool avoid_angle_drift;
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
 

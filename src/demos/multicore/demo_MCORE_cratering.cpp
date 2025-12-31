@@ -30,15 +30,16 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
@@ -112,12 +113,13 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& cforce,
                                  const ChVector3d& ctorque,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         auto bodyA = static_cast<ChBody*>(modA);
         auto bodyB = static_cast<ChBody*>(modB);
 
@@ -130,7 +132,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     }
 
     ChSystemMulticore* sys;
-    utils::ChWriterCSV csv;
+    ChWriterCSV csv;
 };
 
 // =============================================================================
@@ -193,7 +195,7 @@ int out_fps_dropping = 1200;
 int tag_g = 1;  // all particles will have a tag at least this value
 double r_g = 1e-3;
 double rho_g = 2500;
-double vol_g = (4.0 / 3) * CH_PI * r_g * r_g * r_g;
+double vol_g = CH_4_3 * CH_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
 ChVector3d inertia_g = 0.4 * mass_g * r_g * r_g * ChVector3d(1, 1, 1);
 
@@ -204,7 +206,7 @@ float cr_g = 0.1f;
 // Parameters for the falling ball
 double R_b = 2.54e-2 / 2;
 double rho_b = 700;
-double vol_b = (4.0 / 3) * CH_PI * R_b * R_b * R_b;
+double vol_b = CH_4_3 * CH_PI * R_b * R_b * R_b;
 double mass_b = rho_b * vol_b;
 ChVector3d inertia_b = 0.4 * mass_b * R_b * R_b * ChVector3d(1, 1, 1);
 
@@ -246,12 +248,16 @@ int CreateObjects(ChSystemMulticore* system) {
     mat_c->SetFriction(mu_c);
     mat_c->SetRestitution(cr_c);
 
-    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness,  //
+                              VNULL, QUNIT,                                               //
+                              true, true, false, true);
 #else
     auto mat_c = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_c->SetFriction(mu_c);
 
-    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness,  //
+                              VNULL, QUNIT,                                               //
+                              true, true, false, true);
 #endif
 
     // Create a material for the granular material
@@ -324,7 +330,7 @@ std::shared_ptr<ChBody> CreateFallingBall(ChSystemMulticore* system, double z, d
 
 // -----------------------------------------------------------------------------
 // Find the height of the highest and lowest, respectively, sphere in the
-// granular mix, respectively.  We only look at bodies whith stricty positive
+// granular mix, respectively.  We only look at bodies with stricty positive
 // identifiers (to exclude the containing bin).
 // -----------------------------------------------------------------------------
 double FindHighest(ChSystem* sys) {
@@ -440,11 +446,11 @@ int main(int argc, char* argv[]) {
 
         // Create the falling ball, the granular material, and the container from the checkpoint file.
         cout << "Read checkpoint data from " << checkpoint_file;
-        utils::ReadCheckpoint(sys, checkpoint_file);
+        utils::ReadBodyShapesCheckpoint(sys, checkpoint_file);
         cout << "  done.  Read " << sys->GetBodies().size() << " bodies." << endl;
 
         // Note: we rely on the fact that the ball is the *first* body in the system
-        // (ReadCheckpoint creates bodies in the same order they were created when WriteCheckpoint was called)
+        // (ReadBodyShapesCheckpoint creates bodies in the same order they were created when WriteBodyShapesCheckpoint was called)
         ball = sys->GetBodies().at(0);
 
         // Move the falling ball just above the granular material with a velocity
@@ -484,16 +490,20 @@ int main(int argc, char* argv[]) {
     int num_contacts = 0;
     std::ofstream hfile(height_file);
 
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(sys);
-    vis.SetWindowTitle("Crater Test");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
-    vis.SetCameraVertical(CameraVerticalDir::Z);
-    vis.SetCameraProperties(0.01f);
+#ifdef CHRONO_VSG
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(sys);
+    vis->SetWindowTitle("Crater Test");
+    vis->SetWindowSize(1280, 720);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->EnableSkyBox();
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 #endif
 
     while (time < time_end) {
@@ -516,7 +526,7 @@ int main(int argc, char* argv[]) {
             // Create a checkpoint from the current state.
             if (problem == ProblemPhase::SETTLING && intermediate_checkpoints) {
                 cout << "     Write checkpoint data " << flush;
-                utils::WriteCheckpoint(sys, checkpoint_file);
+                utils::WriteBodyShapesCheckpoint(sys, checkpoint_file);
                 cout << sys->GetBodies().size() << " bodies" << endl;
             }
 
@@ -537,10 +547,10 @@ int main(int argc, char* argv[]) {
         }
 
         // Advance simulation by one step
-#ifdef CHRONO_OPENGL
-        if (vis.Run()) {
+#ifdef CHRONO_VSG
+        if (vis->Run()) {
             sys->DoStepDynamics(time_step);
-            vis.Render();
+            vis->Render();
         } else
             break;
 #else
@@ -566,7 +576,7 @@ int main(int argc, char* argv[]) {
     // Create a checkpoint from the last state
     if (problem == ProblemPhase::SETTLING) {
         cout << "Write checkpoint data to " << checkpoint_file;
-        utils::WriteCheckpoint(sys, checkpoint_file);
+        utils::WriteBodyShapesCheckpoint(sys, checkpoint_file);
         cout << "  done.  Wrote " << sys->GetBodies().size() << " bodies." << endl;
     }
 

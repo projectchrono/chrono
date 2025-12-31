@@ -149,7 +149,7 @@ class ChApi ChLinkRSDA : public ChLink {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    virtual void Update(double time, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 

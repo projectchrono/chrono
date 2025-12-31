@@ -663,9 +663,9 @@ Library {
       BlockType		      SubSystem
       Name		      "CoSimulate1"
       SID		      23
-      Description	      "This block can be used to exchange data with Chrono::Engine.                                 "
-      "                                                     \nA Chrono::Engine program with a running ChCosimulation in"
-      "ferface must be started, it will work as a server; then the Simulink program must be run.\nNote! check that the "
+      Description	      "This block can be used to exchange data with Chrono.                                        "
+      "                                                     \nA Chrono program with a running ChCosimulation interface "
+      "must be started, it will work as a server; then the Simulink program must be run.\nNote! check that the         "
       "dimensions of the exchanged vectors do match!                                                                   "
       "             "
       Ports		      [1, 1]

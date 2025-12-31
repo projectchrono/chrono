@@ -20,7 +20,7 @@
 
 #include "chrono_models/vehicle/kraz/Kraz_tractor_Wheel.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {

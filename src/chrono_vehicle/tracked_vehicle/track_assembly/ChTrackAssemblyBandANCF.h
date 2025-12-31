@@ -84,7 +84,7 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     void SetElementStructuralDamping(double alpha);
 
     /// Set fiber angle for the three layers.
-    void SetLayerFiberAngles(double angle_1,  ///< fiber angle for bottom (outter) rubber layer (default: 0 rad)
+    void SetLayerFiberAngles(double angle_1,  ///< fiber angle for bottom (outer) rubber layer (default: 0 rad)
                              double angle_2,  ///< fiber angle for middle steel layer (default: 0 rad)
                              double angle_3   ///< fiber angle for top (inner) rubber layer (default: 0 rad)
     );
@@ -112,7 +112,13 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
-    virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) override final;
+    virtual bool Assemble(std::shared_ptr<ChChassis> chassis) override final;
+
+    /// Initialize this track assembly subsystem.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis subsystem
+                            const ChVector3d& location,          ///< location relative to the chassis frame
+                            bool create_shoes = true             ///< control creation of the actual track
+    ) override final;
 
     /// Remove all track shoes from assembly.
     virtual void RemoveTrackShoes() override final;

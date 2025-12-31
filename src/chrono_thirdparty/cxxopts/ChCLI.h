@@ -20,6 +20,9 @@
 #ifndef CH_CLI_H
 #define CH_CLI_H
 
+#include <cstdint>
+#include <algorithm>
+
 #include "chrono_thirdparty/cxxopts/cxxopts.hpp"
 
 namespace chrono {
@@ -28,7 +31,8 @@ namespace chrono {
 class ChCLI {
   public:
     /// Constructor
-    ChCLI(const std::string& program, const std::string& help_string= " - command line options") : m_options(program, help_string) {
+    ChCLI(const std::string& program, const std::string& help_string = " - command line options")
+        : m_options(program, help_string) {
         m_options.add_option("", cxxopts::Option("h,help", "Print usage"));
     }
 
@@ -64,7 +68,7 @@ class ChCLI {
     bool CheckHelp() { return m_result->count("help") > 0; }
 
     /// Check if the specified option was passed
-    bool CheckOption(const std::string& option) {return m_result->count(option) > 0; }
+    bool CheckOption(const std::string& option) { return m_result->count(option) > 0; }
 
     /// Check for value in vector
     template <typename T>
@@ -83,27 +87,18 @@ class ChCLI {
     }
 
     template <typename T = bool>
-    void AddOption(const std::string& group,
-                   const std::string& opts,
-                   const std::string& desc,
-                   const std::string& def) {
+    void AddOption(const std::string& group, const std::string& opts, const std::string& desc, const std::string& def) {
         m_options.add_option(group, cxxopts::Option(opts, desc, cxxopts::value<T>()->default_value(def), ""));
     }
 
     template <typename T = bool>
-    void AddOption(const std::string& group,
-                   const std::string& opts,
-                   const std::string& desc) {
+    void AddOption(const std::string& group, const std::string& opts, const std::string& desc) {
         m_options.add_option(group, cxxopts::Option(opts, desc, cxxopts::value<T>()));
     }
 
-    void AddOption(const std::string& group, cxxopts::Option option) {
-        m_options.add_option(group, option);
-    }
+    void AddOption(const std::string& group, cxxopts::Option option) { m_options.add_option(group, option); }
 
-    const cxxopts::OptionValue& Get(const std::string& option) {
-        return (*m_result)[option];
-    }
+    const cxxopts::OptionValue& Get(const std::string& option) { return (*m_result)[option]; }
 
     /// Get option as type
     /// Recommanded way of accessing
@@ -113,9 +108,13 @@ class ChCLI {
             return (*m_result)[option].as<T>();
         } catch (std::domain_error&) {
             if (m_result->count(option) != 0) {
-                std::cerr << "ChCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name() << std::endl;
+                std::cerr << "ChCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name()
+                          << std::endl;
             } else {
-                std::cerr << "Option \"" << option << "\" requested by ChCLI::GetAsType, but has no default value and not present on command line" << std::endl;
+                std::cerr
+                    << "Option \"" << option
+                    << "\" requested by ChCLI::GetAsType, but has no default value and not present on command line"
+                    << std::endl;
             }
             exit(-1);
         }
@@ -130,6 +129,25 @@ class ChCLI {
     cxxopts::Options m_options;                      ///< Command line options
     std::shared_ptr<cxxopts::ParseResult> m_result;  ///< Parsing results
 };
+
+inline void to_lower_inplace(std::string& s) {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+}
+
+inline void trim_inplace(std::string& s) {
+    auto not_space = [](unsigned char c) { return !std::isspace(c); };
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
+    s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
+}
+
+inline bool parse_bool(std::string s) {
+    trim_inplace(s);
+    to_lower_inplace(s);
+    if (s == "true" || s == "1" || s == "yes" || s == "y")
+        return true;
+    else
+        return false;
+}
 
 }  // namespace chrono
 

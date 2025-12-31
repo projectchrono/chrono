@@ -134,7 +134,7 @@ class ChApi ChFunction {
     /// The function is sampled \a samples times, from \a xmin to \a xmax.
     virtual void OutputToASCIIFile(std::ostream& file, double xmin, double xmax, int samples, char delimiter);
 
-    /// Sample function on given interval [\a xmin, \a xmax], up to \a derN derivative (0 being the function ouput
+    /// Sample function on given interval [\a xmin, \a xmax], up to \a derN derivative (0 being the function output
     /// itself). Store interval x=[xmin:step:xmax] and function evaluations as columns into matrix.
     virtual ChMatrixDynamic<> SampleUpToDerN(double xmin, double xmax, double step, int derN = 0);
 

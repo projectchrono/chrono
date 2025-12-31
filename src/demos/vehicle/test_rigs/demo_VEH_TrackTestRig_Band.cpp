@@ -16,18 +16,15 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_MUMPS
     #include "chrono_mumps/ChSolverMumps.h"
@@ -36,6 +33,18 @@
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -47,6 +56,9 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+// Run-time visualization system
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step size
 double step_size = 1e-4;
@@ -91,18 +103,19 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         m_num_contacts++;
 
         auto bodyA = dynamic_cast<ChBody*>(modA);
         auto bodyB = dynamic_cast<ChBody*>(modB);
-        auto vertexA = dynamic_cast<fea::ChContactNodeXYZsphere*>(modA);
-        auto vertexB = dynamic_cast<fea::ChContactNodeXYZsphere*>(modB);
+        auto vertexA = dynamic_cast<fea::ChContactNodeXYZ*>(modA);
+        auto vertexB = dynamic_cast<fea::ChContactNodeXYZ*>(modB);
         auto faceA = dynamic_cast<fea::ChContactTriangleXYZ*>(modA);
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
 
@@ -138,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, ChContactMethod::SMC);
+        rig = new ChTrackTestRig(GetVehicleDataFile(filename), create_track, ChContactMethod::SMC);
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
@@ -177,22 +190,6 @@ int main(int argc, char* argv[]) {
 
     rig->GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    ////ChVector3d target_point = rig->GetPostPosition();
-    ////ChVector3d target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector3d target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-
-    auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Continuous Band Track Test Rig");
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 0.0), 3.0, 0.0);
-    vis->SetChaseCameraPosition(target_point + ChVector3d(-2, 3, 0));
-    vis->SetChaseCameraState(utils::ChChaseCamera::Free);
-    vis->SetChaseCameraAngle(-CH_PI_2);
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-
     // -----------------------------------
     // Create and attach the driver system
     // -----------------------------------
@@ -200,10 +197,10 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<ChTrackTestRigDriver> driver;
     if (use_data_driver) {
         // Driver with inputs from file
-        auto data_driver = new ChTrackTestRigDataDriver(vehicle::GetDataFile(driver_file));
+        auto data_driver = new ChTrackTestRigDataDriver(GetVehicleDataFile(driver_file));
         driver = std::unique_ptr<ChTrackTestRigDriver>(data_driver);
     } else {
-        auto irr_driver = new ChTrackTestRigInteractiveDriverIRR(*vis);
+        auto irr_driver = new ChTrackTestRigInteractiveDriver();
         irr_driver->SetThrottleDelta(1.0 / 50);
         irr_driver->SetDisplacementDelta(1.0 / 250);
         driver = std::unique_ptr<ChTrackTestRigDriver>(irr_driver);
@@ -237,11 +234,45 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(rig);
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChTrackTestRigVisualSystemIRR>();
+            vis_irr->SetWindowSize(1280, 1024);
+            vis_irr->SetWindowTitle("Continuous Band Track Test Rig");
+            vis_irr->AttachTTR(rig);
+            vis_irr->Initialize();
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowTitle("Continuous Band Track Test Rig");
+            vis_vsg->AttachTTR(rig);
+            vis_vsg->Initialize();
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // ---------------------------------------
     // Contact reporter object (for debugging)
@@ -291,7 +322,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     integrator->SetVerbose(verbose_integrator);
 
     // -----------------
@@ -349,10 +380,6 @@ int main(int argc, char* argv[]) {
         // Advance simulation of the rig
         rig->Advance(step_size);
 
-        // Update visualization app
-        vis->Synchronize(rig->GetChTime(), {0, rig->GetThrottleInput(), 0});
-        vis->Advance(step_size);
-
         // Parse all contacts in system
         ////reporter.Process();
 
@@ -364,7 +391,6 @@ int main(int argc, char* argv[]) {
 
         ////cout << "Step: " << step_number;
         ////cout << "   Time: " << time;
-        ////cout << "   Number of Iterations: " << integrator->GetNumIterations();
         ////cout << "   Step Time: " << step_timing;
         ////cout << "   Total Time: " << total_timing;
         ////cout << endl;

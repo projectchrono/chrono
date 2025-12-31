@@ -57,7 +57,7 @@ class CH_VEHICLE_API SemiTrailingArm : public ChSemiTrailingArm {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const override { return m_armBushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> getCABushingData() const override { return m_armBushingData; }
 
   private:
     virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
@@ -87,7 +87,7 @@ class CH_VEHICLE_API SemiTrailingArm : public ChSemiTrailingArm {
     double m_springRestLength;
     double m_shockRestLength;
 
-    std::shared_ptr<ChVehicleBushingData> m_armBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_armBushingData;
 };
 
 /// @} vehicle_wheeled_suspension

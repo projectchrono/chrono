@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
 
     /// Get parameters for modeling bushing in the track shoe connections.
     /// This data is ignored if using kinematic joints to connect the track shoes.
-    std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return m_bushing_data; }
+    std::shared_ptr<ChJoint::BushingData> GetBushingData() const { return m_bushing_data; }
 
   protected:
     /// Default torque functor for implementing track bending stiffness.
@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
     );
 
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_torque_funct;  ///< torque for track bending stiffness
-    std::shared_ptr<ChVehicleBushingData> m_bushing_data;       ///< track pin bushings
+    std::shared_ptr<ChJoint::BushingData> m_bushing_data;       ///< track pin bushings
 };
 
 /// @} vehicle_tracked

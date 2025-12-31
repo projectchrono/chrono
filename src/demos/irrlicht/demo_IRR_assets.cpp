@@ -31,12 +31,17 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
+#include <Eigen/Core>
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    Eigen::MatrixXf a;
+    a.resize(3,3);
 
     // EXAMPLE 1:
 

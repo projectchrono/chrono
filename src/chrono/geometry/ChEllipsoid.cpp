@@ -29,15 +29,15 @@ ChEllipsoid::ChEllipsoid(const ChEllipsoid& source) {
 
 // -----------------------------------------------------------------------------
 
-double ChEllipsoid::GetVolume(const ChVector3d& axes) {
+double ChEllipsoid::CalcVolume(const ChVector3d& axes) {
     return (1 / 6.0) * CH_PI * axes.x() * axes.y() * axes.z();
 }
 
 double ChEllipsoid::GetVolume() const {
-    return GetVolume(2.0 * rad);
+    return CalcVolume(2.0 * rad);
 }
 
-ChMatrix33<> ChEllipsoid::GetGyration(const ChVector3d& axes) {
+ChMatrix33<> ChEllipsoid::CalcGyration(const ChVector3d& axes) {
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = (1.0 / 20.0) * (axes.y() * axes.y() + axes.z() * axes.z());
@@ -48,24 +48,24 @@ ChMatrix33<> ChEllipsoid::GetGyration(const ChVector3d& axes) {
 }
 
 ChMatrix33<> ChEllipsoid::GetGyration() const {
-    return GetGyration(rad);
+    return CalcGyration(rad);
 }
 
-ChAABB ChEllipsoid::GetBoundingBox(const ChVector3d& axes) {
+ChAABB ChEllipsoid::CalcBoundingBox(const ChVector3d& axes) {
     auto rad = 0.5 * axes;
     return ChAABB(-rad, +rad);
 }
 
 ChAABB ChEllipsoid::GetBoundingBox() const {
-    return GetBoundingBox(2.0 * rad);
+    return CalcBoundingBox(2.0 * rad);
 }
 
-double ChEllipsoid::GetBoundingSphereRadius(const ChVector3d& axes) {
+double ChEllipsoid::CalcBoundingSphereRadius(const ChVector3d& axes) {
     return 0.5 * std::max(axes.x(), std::max(axes.y(), axes.z()));
 }
 
 double ChEllipsoid::GetBoundingSphereRadius() const {
-    return GetBoundingSphereRadius(2.0 * rad);
+    return CalcBoundingSphereRadius(2.0 * rad);
 }
 
 // -----------------------------------------------------------------------------

@@ -51,7 +51,7 @@ PROJECT_BRIEF          =
 # pixels and the maximum width should not exceed 200 pixels. Doxygen will copy
 # the logo to the output directory.
 
-PROJECT_LOGO           = logo_chrono_engine_h90.png
+PROJECT_LOGO           = logo_chrono_h90.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
@@ -877,7 +877,10 @@ EXCLUDE                = ../src/chrono/collision/bullet/BulletCollision \
                          ../src/tests/README.md \
                          ../src/chrono_swig/chrono_python/README.md \
                          ../src/chrono_thirdparty/DEM-Engine/thirdparty \
-                         ../src/chrono_thirdparty/DEM-Engine/README.md
+                         ../src/chrono_thirdparty/DEM-Engine/README.md \
+                         ../src/chrono_thirdparty/fmu-forge/README.md \
+                         ../src/chrono_thirdparty/fmu-forge/examples/README.md \
+                         ../src/chrono_thirdparty/HydroChrono/README.md
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -908,7 +911,13 @@ EXCLUDE_PATTERNS       = */src/demos/* \
                          */src/chrono_thirdparty/tinyobjloader \
                          */src/chrono_thirdparty/variant \
                          */src/chrono_thirdparty/filesystem \
-                         */src/chrono_thirdparty/fmu_tools
+                         */src/chrono_thirdparty/fast_matrix_market \
+                         */src/chrono_thirdparty/fmu-forge/rapidxml \
+                         */src/chrono_thirdparty/fmu-forge/miniz-cpp \
+                         */src/chrono_thirdparty/fmu-forge/variant \
+                         */src/chrono_thirdparty/fmu-forge/fmusim \
+                         */src/chrono_thirdparty/yaml-cpp \
+                         */src/chrono_thirdparty/HydroChrono
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -925,7 +934,7 @@ EXCLUDE_SYMBOLS        = a_registration_*
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = ../src/demos/
+EXAMPLE_PATH           = ../
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
@@ -1231,7 +1240,7 @@ HTML_EXTRA_STYLESHEET  =
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = logo_chronoengine_middle.png \
+HTML_EXTRA_FILES       = logo_chrono_middle.png \
 						 doxy-boot.js \
 						 bootstrap-hover-dropdown.min.js \
 						 fonts/glyphicons-halflings-regular.eot \
@@ -1713,7 +1722,7 @@ EXTRA_SEARCH_MAPPINGS  =
 # If the GENERATE_LATEX tag is set to YES, doxygen will generate LaTeX output.
 # The default value is: YES.
 
-GENERATE_LATEX         = YES
+GENERATE_LATEX         = NO
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -2183,7 +2192,7 @@ PREDEFINED             = "ChApi = " \
                          "ChApiPYPARSER = " \
                          "ChApiPYTHON = " \
                          "ChApiCosimulation = " \
-                         "ChApiGPU = "
+                         "ChApiDEM = "
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
@@ -2250,12 +2259,6 @@ EXTERNAL_GROUPS        = YES
 
 EXTERNAL_PAGES         = YES
 
-# The PERL_PATH should be the absolute path and name of the perl script
-# interpreter (i.e. the result of 'which perl').
-# The default file (with absolute path) is: /usr/bin/perl.
-
-PERL_PATH              = /usr/bin/perl
-
 #---------------------------------------------------------------------------
 # Configuration options related to the dot tool
 #---------------------------------------------------------------------------
@@ -2268,15 +2271,6 @@ PERL_PATH              = /usr/bin/perl
 # The default value is: YES.
 
 CLASS_DIAGRAMS         = YES
-
-# You can define message sequence charts within doxygen comments using the \msc
-# command. Doxygen will then run the mscgen tool (see:
-# http://www.mcternan.me.uk/mscgen/)) to produce the chart and insert it in the
-# documentation. The MSCGEN_PATH tag allows you to specify the directory where
-# the mscgen tool resides. If left empty the tool is assumed to be found in the
-# default search path.
-
-MSCGEN_PATH            =
 
 # You can include diagrams made with dia in doxygen documentation. Doxygen will
 # then run dia to produce the diagram and insert it in the documentation. The

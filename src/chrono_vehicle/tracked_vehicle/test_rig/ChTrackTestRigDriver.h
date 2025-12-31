@@ -22,7 +22,7 @@
 
 #include <string>
 #include <vector>
-//
+
 #include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
@@ -80,6 +80,8 @@ class CH_VEHICLE_API ChTrackTestRigDriver {
 
     /// Get string message.
     virtual std::string GetInfoMessage() const { return ""; }
+
+    int m_nposts;  ///< number of actuated posts
 
     std::vector<double> m_displ;       ///< current values of post displacements
     std::vector<double> m_displSpeed;  ///< current value of post displacement rates of change

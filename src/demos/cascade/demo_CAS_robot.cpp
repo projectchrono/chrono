@@ -14,7 +14,7 @@
 //
 //   - load a 3D model saved in STEP format from a CAD
 //   - select some sub assemblies from the STEP model
-//   - make Chrono::Engine objects out of those parts
+//   - make Chrono objects out of those parts
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
@@ -39,10 +39,21 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::cascade;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::NONE;
 
 int main(int argc, char* argv[]) {
-    // 1- Create a ChronoENGINE physical system: all bodies and constraints
+#ifdef CHRONO_IRRLICHT
+    vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+#ifdef CHRONO_VSG
+    vis_type = ChVisualSystem::Type::VSG;
+#endif
+    // Check for valid visualization system
+    if(vis_type == ChVisualSystem::Type::NONE) {
+        std::cout << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
+        return 99;
+    }
+    // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -62,7 +73,8 @@ int main(int argc, char* argv[]) {
     ChCascadeDoc mydoc;
 
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp").c_str());
+    std::cout << "Loading STEP file...\n";
+    bool load_ok = mydoc.LoadSTEP(GetChronoDataFile("/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp").c_str());
 
     // print the contained shapes
     mydoc.Dump(std::cout);
@@ -206,7 +218,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_base_turret;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem8/marker#1"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     // Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
@@ -218,7 +230,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_turret_bicep;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#2"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_turret_bicep >>= root_frame;
@@ -229,7 +241,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_bicep_elbow;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem1/marker#2"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_bicep_elbow >>= root_frame;
@@ -240,7 +252,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_elbow_forearm;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem5/marker#2"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_elbow_forearm >>= root_frame;
@@ -251,7 +263,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_forearm_wrist;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem7/marker#2"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_forearm_wrist >>= root_frame;
@@ -262,7 +274,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_wrist_hand;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem6/marker#2"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_wrist_hand >>= root_frame;
@@ -273,7 +285,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_turret_cylinder;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#3"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_turret_cylinder >>= root_frame;
@@ -284,7 +296,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_cylinder_rod;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem3/marker#2"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_cylinder_rod >>= root_frame;
@@ -295,7 +307,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> frame_marker_rod_bicep;
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem2/marker#2"))
-        ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
+        ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_rod_bicep >>= root_frame;
@@ -436,16 +448,20 @@ int main(int argc, char* argv[]) {
 
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     sys.GetSolver()->AsIterative()->SetMaxIterations(200);
+    sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
 
-    /*
-    // Alternative: the ADMM solver offers higher precision and it can also support FEA + nonsmooth contacts
-    auto solver = chrono_types::make_shared<ChSolverADMM>(); //faster, if MKL enabled:
-    chrono_types::make_shared<ChSolverPardisoMKL>()); solver->EnableWarmStart(true); solver->SetMaxIterations(60);
-    solver->SetRho(1);
-    solver->SetSigma(1e-8);
-    solver->SetStepAdjustPolicy(ChSolverADMM::AdmmStepType::BALANCED_UNSCALED);
-    sys.SetSolver(solver);
-    */
+    
+    //// Alternative: the ADMM solver offers higher precision and it can also support FEA + nonsmooth contacts
+    //auto solver = chrono_types::make_shared<ChSolverADMM>();
+    ////auto solver = chrono_types::make_shared<ChSolverADMM>(chrono_types::make_shared<ChSolverPardisoMKL>());  // faster, if MKL enabled
+    //solver->SetMaxIterations(60);
+    //solver->SetTolerance(1e-6);
+    //solver->EnableWarmStart(true); 
+    //solver->SetRho(1);
+    //solver->SetSigma(1e-8);
+    //solver->SetStepAdjustPolicy(ChSolverADMM::AdmmStepType::BALANCED_UNSCALED);
+    //sys.SetSolver(solver);
+    
 
     // Simulation loop
     ChRealtimeStepTimer realtime_timer;

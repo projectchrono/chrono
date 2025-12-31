@@ -22,10 +22,10 @@
 // =============================================================================
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -33,13 +33,11 @@
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -221,9 +219,9 @@ int main(int argc, char* argv[]) {
     // Create the driver
     // -----------------
 
-    auto path = ChBezierCurve::Read(vehicle::GetDataFile(path_file));
-    ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
-                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
+    auto path = ChBezierCurve::Read(GetVehicleDataFile(path_file));
+    ChPathFollowerDriver driver(vehicle, GetVehicleDataFile(steering_controller_file),
+                                GetVehicleDataFile(speed_controller_file), path, "my_path", target_speed);
     driver.Initialize();
 
     // ---------------------------------
@@ -267,13 +265,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
                                     vehicle_model->CameraHeight());
-            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -302,7 +300,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
     csv.Stream().precision(6);
 
@@ -369,9 +367,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    std::cout << "data at: " << vehicle::GetDataFile(steering_controller_file) << std::endl;
-    std::cout << "data at: " << vehicle::GetDataFile(speed_controller_file) << std::endl;
-    std::cout << "data at: " << vehicle::GetDataFile(path_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(steering_controller_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(speed_controller_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(path_file) << std::endl;
 
     int step_number = 0;
     double time = 0;

@@ -19,9 +19,9 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
@@ -116,13 +116,13 @@ int main(int argc, char* argv[]) {
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::NSC);
 
     auto patch1 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(-25, 0, 0), QUNIT), 200.0, 100.0);
-    patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 100, 50);
+    patch1->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 100, 50);
 
     double s = std::sin(slope);
     double c = std::cos(slope);
     auto patch2 =
         terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(100 * c, 0, 100 * s), QuatFromAngleY(-slope)), 200.0, 20.0);
-    patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 100, 10);
+    patch2->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 100, 10);
 
     terrain.Initialize();
 
@@ -174,13 +174,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachVehicle(&gator.GetVehicle());
             vis_vsg->AttachTerrain(&terrain);
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 9.0, 0.05);
-            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

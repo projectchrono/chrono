@@ -66,8 +66,8 @@ unsigned int horizontal_samples = 100;
 unsigned int vertical_samples = 100;
 
 // Field of View
-float horizontal_fov = float(CH_PI / 2);  // 20 degree scan
-float vertical_fov = float(CH_PI / 3);    // 12 degrees down
+float horizontal_fov = float(CH_PI_2);  // 20 degree scan
+float vertical_fov = float(CH_PI_3);    // 12 degrees down
 
 // camera can have same view as radar
 float aspect_ratio = horizontal_fov / vertical_fov;
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
     //    floor->SetPosDt(ChVector3d(0.1, 0, 0));
     sys.Add(floor);
-    floor->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    floor->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
 
     //    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
     //    wall->SetPos({15,0,4});
@@ -137,19 +137,19 @@ int main(int argc, char* argv[]) {
     box->SetPos({4, 3, 2});
     box->SetFixed(true);
     sys.Add(box);
-    box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    box->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
 
     auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box1->SetPos({4, -3, 2});
     box1->SetFixed(true);
     sys.Add(box1);
-    box1->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    box1->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
 
     auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box2->SetPos({4, 0, 2});
     box2->SetFixed(true);
     sys.Add(box2);
-    box2->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    box2->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
 
     // -----------------------
     // Create a sensor manager

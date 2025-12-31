@@ -25,7 +25,7 @@ namespace vehicle {
 ChChassisConnectorHitch::ChChassisConnectorHitch(const std::string& name) : ChChassisConnector(name) {}
 
 ChChassisConnectorHitch::~ChChassisConnectorHitch() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_joint->GetSystem();
@@ -36,8 +36,6 @@ ChChassisConnectorHitch::~ChChassisConnectorHitch() {
 }
 
 void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
-    ChChassisConnector::Initialize(front, rear);
-
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
     to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
@@ -47,6 +45,12 @@ void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::
     m_joint->SetName(m_name + " joint");
     m_joint->Initialize(front->GetBody(), rear->GetBody(), ChFrame<>(to_abs.GetPos(), QUNIT));
     rear->GetBody()->GetSystem()->AddLink(m_joint);
+
+    ChPart::Initialize();
+}
+
+void ChChassisConnectorHitch::PopulateComponentList() {
+    m_joints.push_back(m_joint);
 }
 
 }  // end namespace vehicle

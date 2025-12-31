@@ -104,7 +104,7 @@ void Little_Hexy::Throttle(double delta) {
 std::vector<ChVector3d> Little_Hexy::getPosVect() {
     std::vector<ChVector3d> ppos;
     for (int i = 0; i < 6; i++) {
-        double ang = CH_PI * (i / 3.0) + CH_PI / 6;
+        double ang = i * CH_PI_3 + CH_PI / 6;
         double R = 0.762;
         ChVector3d pos(std::cos(ang) * R, std::sin(ang) * R, 0.279);
         ppos.push_back(pos);

@@ -19,7 +19,7 @@
 #ifndef CH_TRACKED_VEHICLE_VISUAL_SYSTEM_VSG_H
 #define CH_TRACKED_VEHICLE_VISUAL_SYSTEM_VSG_H
 
-#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/visualization/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 namespace chrono {
@@ -43,6 +43,13 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemVSG : public ChVehicleVisualSys
 
   private:
     ChTrackedVehicle* m_tvehicle;
+
+    bool m_chassis_visible;
+    bool m_sprocket_visible;
+    bool m_idler_visible;
+    bool m_suspension_visible;
+    bool m_shoe_visible;
+    bool m_wheel_visible;
 };
 
 /// @} vehicle_vis

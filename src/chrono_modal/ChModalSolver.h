@@ -23,8 +23,10 @@
 #include <complex>
 
 namespace chrono {
-
 namespace modal {
+
+/// @addtogroup modal
+/// @{
 
 /// Base class for modal solvers.
 /// Contrary to eigensolvers, these classes deals directly with Chrono data structures, creating the appropriate setup
@@ -90,8 +92,9 @@ class ChApiModal ChModalSolver {
     bool m_verbose = false;  ///< if true, additional information is printed during the solution process
 };
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

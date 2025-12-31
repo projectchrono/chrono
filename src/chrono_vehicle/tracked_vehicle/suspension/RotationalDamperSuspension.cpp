@@ -19,7 +19,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -71,11 +71,11 @@ void RotationalDamperSuspension::Create(const rapidjson::Document& d) {
         preload = d["Torsional Spring"]["Preload"].GetDouble();
 
     if (d["Torsional Spring"].HasMember("Spring Constant")) {
-        m_spring_torqueCB = chrono_types::make_shared<LinearSpringTorque>(
+        m_spring_torqueCB = chrono_types::make_shared<utils::LinearSpringTorque>(
             d["Torsional Spring"]["Spring Constant"].GetDouble(), preload);
     } else {
         int num_points = d["Torsional Spring"]["Curve Data"].Size();
-        auto springTorqueCB = chrono_types::make_shared<NonlinearSpringTorque>(preload);
+        auto springTorqueCB = chrono_types::make_shared<utils::NonlinearSpringTorque>(preload);
         for (int i = 0; i < num_points; i++) {
             springTorqueCB->add_pointK(d["Torsional Spring"]["Curve Data"][i][0u].GetDouble(),
                                        d["Torsional Spring"]["Curve Data"][i][1u].GetDouble());
@@ -89,10 +89,10 @@ void RotationalDamperSuspension::Create(const rapidjson::Document& d) {
 
     if (d["Damper"].HasMember("Damping Coefficient")) {
         double damper_c = d["Damper"]["Damping Coefficient"].GetDouble();
-        m_shock_torqueCB = chrono_types::make_shared<LinearDamperTorque>(damper_c);
+        m_shock_torqueCB = chrono_types::make_shared<utils::LinearDamperTorque>(damper_c);
     } else {
         int num_points = d["Damper"]["Curve Data"].Size();
-        auto shockTorqueCB = chrono_types::make_shared<NonlinearDamperTorque>();
+        auto shockTorqueCB = chrono_types::make_shared<utils::NonlinearDamperTorque>();
         for (int i = 0; i < num_points; i++) {
             shockTorqueCB->add_pointC(d["Damper"]["Curve Data"][i][0u].GetDouble(),
                                       d["Damper"]["Curve Data"][i][1u].GetDouble());
@@ -104,7 +104,7 @@ void RotationalDamperSuspension::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Road Wheel Input File"));
 
     std::string file_name = d["Road Wheel Input File"].GetString();
-    m_road_wheel = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
+    m_road_wheel = ReadTrackWheelJSON(GetVehicleDataFile(file_name));
 }
 
 }  // end namespace vehicle

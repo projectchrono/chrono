@@ -71,9 +71,9 @@ void ChLinkNodeFrameGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_
     c_z = mc_z;
 }
 
-void ChLinkNodeFrameGeneric::Update(double mytime, bool update_assets) {
+void ChLinkNodeFrameGeneric::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...
@@ -137,11 +137,11 @@ void ChLinkNodeFrameGeneric::IntLoadResidual_CqL(const unsigned int off_L,    //
         cnt++;
     }
     if (c_y && this->m_constraint2.IsActive()) {
-        m_constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
+        m_constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
         cnt++;
     }
-    if (c_y && this->m_constraint3.IsActive()) {
-        m_constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
+    if (c_z && this->m_constraint3.IsActive()) {
+        m_constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
         // cnt++;
     }
 }
@@ -361,9 +361,9 @@ int ChLinkNodeFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
     return true;
 }
 
-void ChLinkNodeFrame::Update(double mytime, bool update_assets) {
+void ChLinkNodeFrame::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...

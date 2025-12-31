@@ -41,9 +41,9 @@ ChRotationalDamperSuspension::~ChRotationalDamperSuspension() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                              const ChVector3d& location,
-                                              ChTrackAssembly* track) {
+void ChRotationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chassis,
+                                             const ChVector3d& location,
+                                             ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -70,6 +70,7 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
 
     m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetName(m_name + "_arm");
+    m_arm->SetTag(m_obj_tag);
     m_arm->SetPos(points[ARM]);
     m_arm->SetRot(rot);
     m_arm->SetMass(GetArmMass());
@@ -89,21 +90,23 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
     if (m_lock_arm) {
         // Create a weld kinematic joint.
         m_joint =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
+            chrono_types::make_shared<ChJoint>(ChJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
                                                       m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     } else {
         // Create a revolute joint or bushing.
         // The axis of rotation is the y axis of the suspension reference frame.
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_joint",
+        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_joint",
                                                             chassis->GetBody(), m_arm,
                                                             ChFrame<>(points[ARM_CHASSIS], z2y), getArmBushingData());
     }
+    m_joint->SetTag(m_obj_tag);
     chassis->AddJoint(m_joint);
 
     // Create and initialize the rotational spring torque element.
     // The reference RSDA frame is aligned with the chassis frame.
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetName(m_name + "_spring");
+    m_spring->SetTag(m_obj_tag);
     m_spring->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     m_spring->SetRestAngle(GetSpringRestAngle());
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
@@ -113,14 +116,11 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
     if (m_has_shock) {
         m_shock = chrono_types::make_shared<ChLinkRSDA>();
         m_shock->SetName(m_name + "_shock");
+        m_shock->SetTag(m_obj_tag);
         m_shock->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
         m_shock->RegisterTorqueFunctor(GetShockTorqueCallback());
         chassis->GetSystem()->AddLink(m_shock);
     }
-
-    // Invoke the base class implementation. This initializes the associated road wheel.
-    // Note: we must call this here, after the m_arm body is created.
-    ChTrackSuspension::Initialize(chassis, location, track);
 }
 
 void ChRotationalDamperSuspension::InitializeInertiaProperties() {
@@ -131,7 +131,7 @@ void ChRotationalDamperSuspension::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
     composite.AddComponent(m_road_wheel->GetBody()->GetFrameCOMToAbs(), m_road_wheel->GetBody()->GetMass(),
                            m_road_wheel->GetBody()->GetInertia());
@@ -177,29 +177,29 @@ void ChRotationalDamperSuspension::AddVisualizationAssets(VisualizationType vis)
     double radius = GetArmVisRadius();
 
     if ((m_pA - m_pAW).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAW, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAW, radius);
     }
 
     if ((m_pA - m_pAC).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAC, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAC, radius);
     }
 
     // Revolute joint (arm-chassis)
     {
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm,                  //
-                                                    m_pAC - radius * m_dY,  //
-                                                    m_pAC + radius * m_dY,  //
-                                                    1.5 * radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm,                  //
+                                                        m_pAC - radius * m_dY,  //
+                                                        m_pAC + radius * m_dY,  //
+                                                        1.5 * radius);
     }
 
     // Revolute joint (arm-wheel)
     if ((m_pO - m_pAW).Length2() > threshold2) {
         auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>();
         double len = (m_pO - m_pAW).Length();
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm,                                  //
-                                                    m_pO,                                   //
-                                                    m_pAW + (m_pAW - m_pO) * radius / len,  //
-                                                    radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm,                                  //
+                                                        m_pO,                                   //
+                                                        m_pAW + (m_pAW - m_pO) * radius / len,  //
+                                                        radius);
     }
 }
 
@@ -223,45 +223,15 @@ void ChRotationalDamperSuspension::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRotationalDamperSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChTrackSuspension::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm);
-    ExportBodyList(jsonDocument, bodies);
+void ChRotationalDamperSuspension::PopulateComponentList() {
+    m_bodies.push_back(m_arm);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_joint->IsKinematic() ? joints.push_back(m_joint->GetAsLink()) : bushings.push_back(m_joint->GetAsBushing());
-    ExportJointList(jsonDocument, joints);
-    ExportBodyLoadList(jsonDocument, bushings);
+    m_joint->IsKinematic() ? m_joints.push_back(m_joint->GetAsLink()) : m_body_loads.push_back(m_joint->GetAsBushing());
 
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    rot_springs.push_back(m_spring);
+    m_rsdas.push_back(m_spring);
     if (m_has_shock)
-        rot_springs.push_back(m_shock);
-    ExportRotSpringList(jsonDocument, rot_springs);
-}
-
-void ChRotationalDamperSuspension::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-    m_joint->IsKinematic() ? joints.push_back(m_joint->GetAsLink()) : bushings.push_back(m_joint->GetAsBushing());
-    database.WriteJoints(joints);
-    database.WriteBodyLoads(bushings);
-
-    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
-    rot_springs.push_back(m_spring);
-    if (m_has_shock)
-        rot_springs.push_back(m_shock);
-    database.WriteRotSprings(rot_springs);
+        m_rsdas.push_back(m_shock);
 }
 
 }  // end namespace vehicle

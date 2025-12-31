@@ -56,16 +56,16 @@ class CH_VEHICLE_API ChTranslationalDamperSuspension : public ChTrackSuspension 
     /// and follows the right-hand rule.
     virtual double GetCarrierAngle() const override;
 
-    /// Initialize this suspension subsystem.
+    /// Construct this track suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
     /// reference frame is always centered at the location of the road wheel and
     /// aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) override;
 
     /// Return current suspension forces or torques, as appropriate (spring and shock).
     /// A ChTranslationalDamperSuspension returns a torque for the spring and a force for the damper.
@@ -116,14 +116,12 @@ class CH_VEHICLE_API ChTranslationalDamperSuspension : public ChTrackSuspension 
 
     /// Return stiffness and damping data for the arm bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getArmBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getArmBushingData() const { return nullptr; }
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChBody> m_arm;            ///< trailing arm body
-    std::shared_ptr<ChVehicleJoint> m_joint;  ///< joint arm-chassis
+    std::shared_ptr<ChJoint> m_joint;  ///< joint arm-chassis
     std::shared_ptr<ChLinkRSDA> m_spring;     ///< rotational spring
     std::shared_ptr<ChLinkRSDA> m_damper;     ///< optional rotational damper
     std::shared_ptr<ChLinkTSDA> m_shock;      ///< translational shock element

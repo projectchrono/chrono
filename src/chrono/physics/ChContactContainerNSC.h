@@ -9,11 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
-// =============================================================================
 
-#ifndef CH_CONTACTCONTAINER_NSC_H
-#define CH_CONTACTCONTAINER_NSC_H
+#ifndef CH_CONTACT_CONTAINER_NSC_H
+#define CH_CONTACT_CONTAINER_NSC_H
 
 #include <list>
 
@@ -30,20 +28,6 @@ namespace chrono {
 /// that account also for rolling and spinning resistance), but also for '6dof vs 6dof' contactables.
 class ChApi ChContactContainerNSC : public ChContactContainer {
   public:
-    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSC_6_6;
-    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactNSC_6_3;
-    typedef ChContactNSC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactNSC_3_3;
-    typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactNSC_333_3;
-    typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactNSC_333_6;
-    typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactNSC_333_333;
-    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactNSC_666_3;
-    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactNSC_666_6;
-    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactNSC_666_333;
-    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactNSC_666_666;
-
-    typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSCrolling_6_6;
-
-  public:
     ChContactContainerNSC();
     ChContactContainerNSC(const ChContactContainerNSC& other);
     virtual ~ChContactContainerNSC();
@@ -52,10 +36,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
 
     /// Report the number of added contacts.
-    virtual unsigned int GetNumContacts() const override {
-        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
-    }
+    virtual unsigned int GetNumContacts() const override { return n_added + n_added_rolling; }
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() override;
@@ -86,50 +67,16 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// object.
     virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) override;
 
-    /// Class to be used as a NSC-specific callback interface for some user defined action to be taken
-    /// for each contact (already added to the container, maybe with already computed forces).
-    /// It can be used to report or post-process contacts.
-    /// It also tells the offset of the contact (first component, normal) in the vector of lagrangian multipliers,
-    /// if this info is not needed, you can just use ChContactContainer::ReportContactCallback
-    class ChApi ReportContactCallbackNSC {
-      public:
-        virtual ~ReportContactCallbackNSC() {}
-
-        /// Callback used to report contact points already added to the container.
-        /// If it returns false, the contact scanning will be stopped.
-        virtual bool OnReportContact(
-            const ChVector3d& pA,             ///< contact pA
-            const ChVector3d& pB,             ///< contact pB
-            const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
-            const double& distance,           ///< contact distance
-            const double& eff_radius,         ///< effective radius of curvature at contact
-            const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
-            ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
-            ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
-            const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian
-                              ///< multipliers, if already book-keeped
-            ) = 0;
-    };
-
-    /// Scan all the NSC contacts and for each contact executes the OnReportContact() function of the provided callback
-    /// object.
-    virtual void ReportAllContactsNSC(std::shared_ptr<ReportContactCallbackNSC> callback);
-
     /// Report the number of scalar unilateral constraints.
     /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
-    virtual unsigned int GetNumConstraintsUnilateral() override {
-        return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-                    n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
-               6 * (n_added_6_6_rolling);
-    }
+    virtual unsigned int GetNumConstraintsUnilateral() override { return 3 * n_added + 6 * n_added_rolling; }
 
     /// Objects will rebounce only if their relative colliding speed is above this threshold.
     double GetMinBounceSpeed() const { return min_bounce_speed; }
 
     /// Update state of this contact container: compute jacobians, violations, etc.
     /// and store results in inner structures of contacts.
-    virtual void Update(double mtime, bool update_assets = true) override;
+    virtual void Update(double mtime, bool update_assets) override;
 
     /// Compute contact forces on all contactable objects in this container.
     /// This function caches contact forces in a map.
@@ -182,43 +129,13 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
-    std::list<ChContactNSC_6_6*> contactlist_6_6;
-    std::list<ChContactNSC_6_3*> contactlist_6_3;
-    std::list<ChContactNSC_3_3*> contactlist_3_3;
-    std::list<ChContactNSC_333_3*> contactlist_333_3;
-    std::list<ChContactNSC_333_6*> contactlist_333_6;
-    std::list<ChContactNSC_333_333*> contactlist_333_333;
-    std::list<ChContactNSC_666_3*> contactlist_666_3;
-    std::list<ChContactNSC_666_6*> contactlist_666_6;
-    std::list<ChContactNSC_666_333*> contactlist_666_333;
-    std::list<ChContactNSC_666_666*> contactlist_666_666;
+    int n_added;
+    std::list<ChContactNSC*> contacts;
+    std::list<ChContactNSC*>::iterator last_contact;
 
-    std::list<ChContactNSCrolling_6_6*> contactlist_6_6_rolling;
-
-    int n_added_6_6;
-    int n_added_6_3;
-    int n_added_3_3;
-    int n_added_333_3;
-    int n_added_333_6;
-    int n_added_333_333;
-    int n_added_666_3;
-    int n_added_666_6;
-    int n_added_666_333;
-    int n_added_666_666;
-    int n_added_6_6_rolling;
-
-    std::list<ChContactNSC_6_6*>::iterator lastcontact_6_6;
-    std::list<ChContactNSC_6_3*>::iterator lastcontact_6_3;
-    std::list<ChContactNSC_3_3*>::iterator lastcontact_3_3;
-    std::list<ChContactNSC_333_3*>::iterator lastcontact_333_3;
-    std::list<ChContactNSC_333_6*>::iterator lastcontact_333_6;
-    std::list<ChContactNSC_333_333*>::iterator lastcontact_333_333;
-    std::list<ChContactNSC_666_3*>::iterator lastcontact_666_3;
-    std::list<ChContactNSC_666_6*>::iterator lastcontact_666_6;
-    std::list<ChContactNSC_666_333*>::iterator lastcontact_666_333;
-    std::list<ChContactNSC_666_666*>::iterator lastcontact_666_666;
-
-    std::list<ChContactNSCrolling_6_6*>::iterator lastcontact_6_6_rolling;
+    int n_added_rolling;
+    std::list<ChContactNSCrolling*> contacts_rolling;
+    std::list<ChContactNSCrolling*>::iterator last_contact_rolling;
 
     std::unordered_map<ChContactable*, ForceTorque> contact_forces;
 

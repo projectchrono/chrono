@@ -1,0 +1,73 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono::SPH YAML fluid simulation specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+# The `simulation` object contains the schema for the simulation YAML specification.
+#
+# =============================================================================
+
+required: [chrono-version, simulation]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML simulation specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+
+vector3d: &VECTOR3D   # Specification of a ChVector3d
+    type: array
+    items:
+        type: number
+    minItems: 3
+    maxItems: 3
+
+# -----------------------------------------------------------------------------
+# Definition of a Chrono::SPH simulation
+
+simulation:
+  description: |
+    Schema for simulation parameters.
+    This schema defines the SPH parameters, kernel, discretization, numerical integration, and visualization settings.
+  type: object
+  required: [time_step]
+
+  properties:
+  
+    time_step:
+      type: number
+      description: Time step size in seconds.
+      minimum: 0
+    
+    end_time:
+      type: number
+      description: |
+        Total simulation duration in seconds.
+        The simulation will run from t=0 to t=end_time. A negative value indicates na infinite end time.
+      minimum: 0
+      default: -1
+    
+    # TODO
+
+    sph:
+    kernel:
+    discretization:
+    boundary_conditions:
+    integration:
+    proximity_search:
+    particle_shifting:
+    viscosity:
+    output:
+    visualization:
+
+
+  

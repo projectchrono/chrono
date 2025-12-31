@@ -64,8 +64,6 @@ ChShaftsDriveline8WD::~ChShaftsDriveline8WD() {
 void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
-    ChDriveline::Initialize(chassis);
-
     assert(axles.size() >= 4);
     assert(driven_axles.size() == 4);
 
@@ -177,6 +175,8 @@ void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     double omega_driveshaft = 0.5 * (omega_GD_inshaft[0] + omega_GD_inshaft[1]);
     m_driveshaft->SetPosDt(omega_driveshaft);
+
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

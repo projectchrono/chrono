@@ -8,7 +8,6 @@ call conda install --yes -c intel mkl-devel
 Rem needed for libiomp5md.lib
 Rem conda install -c intel openmp
 call conda install -c conda-forge swig=4.0.2 --yes
-call conda install -c dlr-sc opencascade --yes
 call conda install mkl --yes
 call conda install cmake --yes
 call conda install jinja2 --yes

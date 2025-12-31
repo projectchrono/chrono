@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
@@ -89,14 +89,14 @@ int main(int argc, char** argv) {
     std::string crg_road_file;
     if (big_radius) {
         if (right_turn)
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_100m_right.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_100m_right.crg");
         else
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_100m_left.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_100m_left.crg");
     } else {
         if (right_turn)
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_50m_right.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_50m_right.crg");
         else
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_50m_left.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_50m_left.crg");
     }
 
     // ----------------------------
@@ -189,17 +189,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv << "#time speed acc_y deviation" << std::endl;
 
     std::string datafilename = out_dir + "/ssc_accy_data_";
 
-    utils::ChWriterCSV csv_res("\t");
+    ChWriterCSV csv_res("\t");
     csv_res << "#acc_y steer" << std::endl;
 
     std::string resfilename = out_dir + "/ssc_result_data_";
 
-    utils::ChWriterCSV csv_angle("\t");
+    ChWriterCSV csv_angle("\t");
     csv_angle << "#acc_y roll pitch slip_angle" << std::endl;
 
     std::string anglefilename = out_dir + "/ssc_angle_data_";
@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
     vis->SetWindowSize(1200, 800);
     vis->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->SetShadows(true);
+    vis->EnableShadows();
     vis->AttachVehicle(&vehicle);
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
     while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
         double speed = vehicle.GetSpeed();
-        double acc_y = pow(speed, 2) / 50.0;
+        double acc_y = std::pow(speed, 2) / 50.0;
         double roll = vehicle.GetRoll() * CH_RAD_TO_DEG;
         double pitch = vehicle.GetPitch() * CH_RAD_TO_DEG;
         double veh_slip_angle = vehicle.GetSlipAngle() * CH_RAD_TO_DEG;
@@ -267,8 +267,8 @@ int main(int argc, char** argv) {
         auto targetPos = driver.GetSteeringController().GetTargetLocation();
         vis->UpdateVisualModel(sentinelID, ChFrame<>(sentinelPos));
         vis->UpdateVisualModel(targetID, ChFrame<>(targetPos));
-        double deviation =
-            dev_filter.Add(sqrt(pow(sentinelPos[0] - targetPos[0], 2) + pow(sentinelPos[1] - targetPos[1], 2)));
+        double deviation = dev_filter.Add(
+            std::sqrt(std::pow(sentinelPos[0] - targetPos[0], 2) + std::pow(sentinelPos[1] - targetPos[1], 2)));
         if (time > 10)
             csv << time << speed << acc_y << deviation << std::endl;
         if (deviation > max_dev && time > 10) {

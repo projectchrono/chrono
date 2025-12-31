@@ -335,6 +335,8 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
                                    ChVector3d& com,        // ChMesh center of gravity
                                    ChMatrix33<>& inertia)  // ChMesh inertia tensor
 {
+    SetupInitial();
+
     mass = 0;
     com = ChVector3d(0);
     inertia = ChMatrix33<>(1);
@@ -399,6 +401,12 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
     inertia(2, 0) = -mJxz;
     inertia(2, 1) = -mJyz;
     inertia(2, 2) = mJzz;
+}
+
+ChMassProperties ChMesh::ComputeMassProperties() {
+    ChMassProperties mp;
+    ComputeMassProperties(mp.mass, mp.com, mp.inertia);
+    return mp;
 }
 
 void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual

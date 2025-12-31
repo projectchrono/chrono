@@ -20,8 +20,6 @@
 
 #include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChObject.h"
-#include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChVisualModel.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -52,50 +50,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Also add to new collision system / remove from old collision system.
     virtual void SetSystem(ChSystem* m_system);
 
-    /// Add an (optional) visualization model.
-    /// Not that an instance of the given visual model is associated with this physics ite, thus allowing sharing the
-    /// same model among multiple items.
-    void AddVisualModel(std::shared_ptr<ChVisualModel> model);
-
-    /// Access the visualization model (if any).
-    /// Note that this model may be shared with other physics items that may instance it.
-    /// Returns nullptr if no visual model is present.
-    std::shared_ptr<ChVisualModel> GetVisualModel() const;
-
-    /// Add the specified visual shape to the visualization model.
-    /// If this item does not have a visual model, one is created.
-    void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>());
-
-    /// Access the specified visualization shape in the visualization model (if any).
-    /// Note that no range check is performed.
-    std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
-
-    /// Add the specified FEA visualization object to the visualization model.
-    /// If this item does not have a visual model, one is created.
-    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
-
-    /// Access the specified FEA visualization object in the visualization model (if any).
-    /// Note that no range check is performed.
-    std::shared_ptr<ChVisualShapeFEA> GetVisualShapeFEA(unsigned int i) const;
-
-    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
-    /// If the visual model is cloned (for example for a physics item modeling a particle system), this function returns
-    /// the coordinate system of the specified clone.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const { return ChFrame<>(); }
-
-    /// Return the number of clones of the visual model associated with this physics item.
-    /// If the visual model is cloned (for example for a physics item modeling a particle system), this function should
-    /// return the total number of copies of the visual model, including the "original".  The current coordinate frame
-    /// of a given clone can be obtained by calling GetVisualModelFrame() with the corresponding clone identifier.
-    virtual unsigned int GetNumVisualModelClones() const { return 0; }
-
-    /// Attach a ChCamera to this physical item.
-    /// Multiple cameras can be attached to the same physics item.
-    void AddCamera(std::shared_ptr<ChCamera> camera);
-
-    /// Get the set of cameras attached to this physics item.
-    std::vector<std::shared_ptr<ChCamera>> GetCameras() const { return cameras; }
-
     // INTERFACES
     // inherited classes might/should implement some of the following functions
 
@@ -116,7 +70,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// A derived class should invoke ChCollisionSystem::Remove for each of its collision models.
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {}
 
-    /// Synchronize the position and bounding box of any collsion models managed by this physics item.
+    /// Synchronize the position and bounding box of any collision models managed by this physics item.
     virtual void SyncCollisionModels() {}
 
     /// Get the axis-aligned bounding box (AABB) of this object.
@@ -140,13 +94,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
     /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
     /// only if requested).
-    virtual void Update(double time, bool update_assets = true);
-
-    /// Perform an update using the current time.
-    virtual void Update(bool update_assets = true);
-
-    /// Utility function to update only the associated visual assets (if any).
-    void UpdateVisualModel();
+    virtual void Update(double time, bool update_assets) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
@@ -174,7 +122,7 @@ class ChApi ChPhysicsItem : public ChObj {
     unsigned int GetOffset_x() { return offset_x; }
     /// Get offset in the state vector (speed part)
     unsigned int GetOffset_w() { return offset_w; }
-    /// Get offset in the lagrangian multipliers
+    /// Get offset in the Lagrange multipliers
     unsigned int GetOffset_L() { return offset_L; }
 
     /// Set offset in the state vector (position part)
@@ -183,7 +131,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Set offset in the state vector (speed part)
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_w(const unsigned int moff) { offset_w = moff; }
-    /// Set offset in the lagrangian multipliers
+    /// Set offset in the Lagrange multipliers
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_L(const unsigned int moff) { offset_L = moff; }
 
@@ -416,12 +364,9 @@ class ChApi ChPhysicsItem : public ChObj {
   protected:
     ChSystem* system;  ///< parent system
 
-    std::shared_ptr<ChVisualModelInstance> vis_model_instance;  ///< instantiated visualization model
-    std::vector<std::shared_ptr<ChCamera>> cameras;             ///< set of cameras
-
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
-    unsigned int offset_L;  ///< offset in vector of lagrangian multipliers
+    unsigned int offset_L;  ///< offset in vector of Lagrange multipliers
 
   private:
     virtual void SetupInitial() {}

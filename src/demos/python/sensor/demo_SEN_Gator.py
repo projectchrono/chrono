@@ -29,24 +29,20 @@ import os
 
 # =============================================================================
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
-print(chrono.GetChronoDataPath() + 'vehicle/')
+# Initial vehicle location and orientation
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 0.4)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_MESH
-suspension_vis_type = veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_NONE
-tire_vis_type = veh.VisualizationType_MESH
+chassis_vis_type = chrono.VisualizationType_MESH
+suspension_vis_type = chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_NONE
+tire_vis_type = chrono.VisualizationType_MESH
 
 # Poon chassis tracked by the camera
 trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
@@ -131,7 +127,7 @@ patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 600, 600)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 600, 600)
+patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 600, 600)
 terrain.Initialize()
 
 # -------------------------------------
@@ -139,28 +135,26 @@ terrain.Initialize()
 # Create the driver system
 # -------------------------------------
 
-vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-vis.SetWindowTitle('Gator')
-vis.SetWindowSize(1280, 1024)
-vis.SetChaseCamera(trackPoint, 6.0, 0.5)
-vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-vis.AddLightDirectional()
-vis.AddSkyBox()
-vis.AttachVehicle(gator.GetVehicle())
-
 # Create the interactive driver system
-driver = veh.ChInteractiveDriverIRR(vis)
-
-# Set the time response for steering and throttle keyboard inputs.
+driver = veh.ChInteractiveDriver(gator.GetVehicle())
 steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
 throttle_time = 1.0  # time to go from 0 to +1
 braking_time = 0.3   # time to go from 0 to +1
 driver.SetSteeringDelta(render_step_size / steering_time)
 driver.SetThrottleDelta(render_step_size / throttle_time)
 driver.SetBrakingDelta(render_step_size / braking_time)
-
 driver.Initialize()
+
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+vis.SetWindowTitle('Gator')
+vis.SetWindowSize(1280, 1024)
+vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
+vis.AddLightDirectional()
+vis.AddSkyBox()
+vis.AttachVehicle(gator.GetVehicle())
+vis.AttachDriver(driver)
 
 # -----------------------
 # Create a sensor manager

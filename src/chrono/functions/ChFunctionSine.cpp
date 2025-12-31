@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/functions/ChFunctionSine.h"
 
 namespace chrono {
@@ -22,19 +24,24 @@ CH_FACTORY_REGISTER(ChFunctionSine)
 ChFunctionSine::ChFunctionSine(const ChFunctionSine& other) {
     m_ampl = other.m_ampl;
     m_phase = other.m_phase;
+    m_shift = other.m_shift;
     m_angular_rate = other.m_angular_rate;
 }
 
 double ChFunctionSine::GetVal(double x) const {
-    return m_ampl * (sin(m_phase + m_angular_rate * x));
+    return m_ampl * std::sin(m_angular_rate * x + m_phase) + m_shift;
 }
 
 double ChFunctionSine::GetDer(double x) const {
-    return m_ampl * m_angular_rate * (cos(m_phase + m_angular_rate * x));
+    return m_angular_rate * m_ampl * std::cos(m_angular_rate * x + m_phase);
 }
 
 double ChFunctionSine::GetDer2(double x) const {
-    return m_ampl * -m_angular_rate * m_angular_rate * (sin(m_phase + m_angular_rate * x));
+    return -m_angular_rate * m_angular_rate * m_ampl * std::sin(m_angular_rate * x + m_phase);
+}
+
+double ChFunctionSine::GetDer3(double x) const {
+    return -m_angular_rate * m_angular_rate * m_angular_rate * m_ampl * std::cos(m_angular_rate * x + m_phase);
 }
 
 void ChFunctionSine::ArchiveOut(ChArchiveOut& archive_out) {
@@ -45,6 +52,7 @@ void ChFunctionSine::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(m_ampl);
     archive_out << CHNVP(m_phase);
+    archive_out << CHNVP(m_shift);
     archive_out << CHNVP(m_angular_rate);
 }
 
@@ -56,6 +64,7 @@ void ChFunctionSine::ArchiveIn(ChArchiveIn& archive_in) {
     // stream in all member data:
     archive_in >> CHNVP(m_ampl);
     archive_in >> CHNVP(m_phase);
+    archive_in >> CHNVP(m_shift);
     archive_in >> CHNVP(m_angular_rate);
 }
 

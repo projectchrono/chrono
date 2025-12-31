@@ -216,7 +216,7 @@ void purge_debris(ChSystem& sys, int nmaxparticles = 100) {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // Set small collision envelopes for objects that will be created from now on
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     fence2->SetPos(ChVector3d(0, 0, 0.325));
     fence2->SetFixed(true);
 
-    // Create the conveyor belt (this is a pure Chrono::Engine object,
+    // Create the conveyor belt (this is a pure Chrono object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
     auto conveyor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     conveyor_mat->SetFriction(0.35f);

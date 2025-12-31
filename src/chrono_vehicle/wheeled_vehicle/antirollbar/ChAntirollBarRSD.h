@@ -45,23 +45,22 @@ namespace vehicle {
 /// the vehicle.  When attached to a chassis, only an offset is provided.
 class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
   public:
-    ChAntirollBarRSD(const std::string& name  ///< [in] name of the subsystem
-    );
+    ChAntirollBarRSD(const std::string& name);
 
     virtual ~ChAntirollBarRSD();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "AntirollBarRSD"; }
 
-    /// Initialize this anti-roll bar subsystem.
+    /// Construct this anti-roll bar subsystem.
     /// The anti-roll bar subsystem is initialized by attaching it to the specified chassis at the given location (with
     /// respect to and expressed in the reference frame of the chassis) and associating it with the specified suspension
     /// subsystem (assumed to be independent). It is assumed that the anti-roll bar reference frame is always aligned
     /// with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
-                            std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
-                            const ChVector3d& location                 ///< [in] location relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
+                           std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
+                           const ChVector3d& location                 ///< [in] location relative to the chassis frame
+                           ) override;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
@@ -104,9 +103,7 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
                              double radius,
                              const ChColor& color);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 };
 
 /// @} vehicle_wheeled_antirollbar

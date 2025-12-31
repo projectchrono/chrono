@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChMarker.h"
@@ -27,7 +27,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChBody)
 CH_UPCASTING(ChBody, ChPhysicsItem)
 CH_UPCASTING(ChBody, ChBodyFrame)
-CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1vars_6)
+CH_UPCASTING(ChBody, ChContactable)
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 ChBody::ChBody()
@@ -40,9 +40,7 @@ ChBody::ChBody()
       allow_sleeping(true),
       candidate_sleeping(false),
       Xforce(VNULL),
-      Xtorque(VNULL),
-      Force_acc(VNULL),
-      Torque_acc(VNULL) {
+      Xtorque(VNULL) {
     marklist.clear();
     forcelist.clear();
 
@@ -55,6 +53,9 @@ ChBody::ChBody()
     sleep_minwvel = 0.04f;
 
     variables.SetUserData((void*)this);
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(&variables);
 }
 
 ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
@@ -69,12 +70,13 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     variables = other.variables;
     variables.SetUserData((void*)this);
 
+    m_contactable_variables.clear();
+    m_contactable_variables.push_back(&variables);
+
     gyro = other.gyro;
 
     RemoveAllForces();   // also copy-duplicate the forces? Let the user handle this..
     RemoveAllMarkers();  // also copy-duplicate the markers? Let the user handle this..
-
-    ChTime = other.ChTime;
 
     // Copy the collision model if any
     if (other.collision_model) {
@@ -370,29 +372,52 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
     mQInertia = Gl.transpose() * GetInertia() * Gl;
 }
 
-//////
+// -----------------------------------------------------------------------------
 
-void ChBody::EmptyAccumulators() {
-    Force_acc = VNULL;
-    Torque_acc = VNULL;
+unsigned int ChBody::AddAccumulator() {
+    auto idx = accumulators.size();
+    accumulators.push_back(WrenchAccumulator());
+    return (unsigned int)idx;
 }
 
-void ChBody::AccumulateForce(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+void ChBody::EmptyAccumulator(unsigned int idx) {
+    accumulators[idx].force = VNULL;
+    accumulators[idx].torque = VNULL;
+}
+
+void ChBody::AccumulateForce(unsigned int idx, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
     ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
                             : AppliedForceParentToWrenchParent(force, appl_point);
-    Force_acc += w_abs.force;
-    Torque_acc += TransformDirectionParentToLocal(w_abs.torque);
+    accumulators[idx].force += w_abs.force;
+    accumulators[idx].torque += TransformDirectionParentToLocal(w_abs.torque);
 }
 
-void ChBody::AccumulateTorque(const ChVector3d& torque, bool local) {
-    if (local) {
-        Torque_acc += torque;
-    } else {
-        Torque_acc += TransformDirectionParentToLocal(torque);
+void ChBody::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool local) {
+    if (local)
+        accumulators[idx].torque += torque;
+    else
+        accumulators[idx].torque += TransformDirectionParentToLocal(torque);
+}
+
+const ChVector3d& ChBody::GetAccumulatedForce(unsigned int idx) const {
+    return accumulators[idx].force;
+}
+
+const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int idx) const {
+    return accumulators[idx].torque;
+}
+
+//// TODO - get rid of this as soon as ChModalAssembly is dealt with (fixed or removed)
+const ChWrenchd ChBody::GetAccumulatorWrench() const {
+    ChWrenchd wrench;
+    for (const auto& a : accumulators) {
+        wrench.force += a.force;
+        wrench.torque += a.torque;
     }
+    return wrench;
 }
 
-//////
+// -----------------------------------------------------------------------------
 
 void ChBody::ComputeGyro() {
     ChVector3d Wvel = GetAngVelLocal();
@@ -515,73 +540,59 @@ std::shared_ptr<ChForce> ChBody::SearchForce(const std::string& name) const {
     return (force != std::end(forcelist)) ? *force : nullptr;
 }
 
-// These are the members used to UPDATE the body coordinates during the animation.
-// Also the coordinates of forces and markers linked to the body will be updated.
+// -----------------------------------------------------------------------------
 
-void ChBody::UpdateMarkers(double mytime) {
+void ChBody::UpdateMarkers(double time, bool update_assets) {
     for (auto& marker : marklist) {
-        marker->Update(mytime);
+        marker->Update(time, update_assets);
     }
 }
 
-void ChBody::UpdateForces(double mytime) {
-    // Initialize body force (in abs. coords) and torque (in local coords)
-    // with current values from the accumulators.
-    Xforce = Force_acc;
-    Xtorque = Torque_acc;
+void ChBody::UpdateForces(double time, bool update_assets) {
+    // Initialize body forces with gravitational forces (if included in a system)
+    Xforce = system ? system->GetGravitationalAcceleration() * GetMass() : VNULL;
+    Xtorque = VNULL;
 
-    // Accumulate other applied forces
-    ChVector3d mforce;
-    ChVector3d mtorque;
-
-    for (auto& force : forcelist) {
-        // update positions, f=f(t,q)
-        force->Update(mytime);
-
-        force->GetBodyForceTorque(mforce, mtorque);
-        Xforce += mforce;
-        Xtorque += mtorque;
+    // Add forces and torques from body accumulators (if any)
+    for (const auto& a : accumulators) {
+        Xforce += a.force;
+        Xtorque += a.torque;
     }
 
-    // Add gravitational forces
-    if (system) {
-        Xforce += system->GetGravitationalAcceleration() * GetMass();
+    // Accumulate applied generalized forces (if any)
+    for (auto& f : forcelist) {
+        f->Update(time, update_assets);
+
+        ChVector3d force;
+        ChVector3d torque;
+        f->GetBodyForceTorque(force, torque);
+
+        Xforce += force;
+        Xtorque += torque;
     }
 }
 
-void ChBody::UpdateTime(double mytime) {
-    ChTime = mytime;
+void ChBody::Update(double time, bool update_assets) {
+    // Update time and assets
+    ChObj::Update(time, update_assets);
+
+    // Test if body can be set asleep and if so, put it to sleeping
+    ////TrySleeping();
+
+    // Apply limits (if in speed clamping mode) to speeds
+    ClampSpeed();
+
+    // Set the gyroscopic momentum
+    ComputeGyro();
+
+    // Updated associated markers at current body state
+    UpdateMarkers(time, update_assets);
+
+    // Update applied forces at current body state
+    UpdateForces(time, update_assets);
 }
 
-// UpdateALL updates the state and time
-// of the object AND the dependant (linked)
-// markers and forces.
-
-void ChBody::Update(bool update_assets) {
-    // TrySleeping();         // See if the body can fall asleep; if so, put it to sleeping
-    ClampSpeed();   // Apply limits (if in speed clamping mode) to speeds.
-    ComputeGyro();  // Set the gyroscopic momentum.
-
-    // Also update the children "markers" and
-    // "forces" depending on the body current state.
-    UpdateMarkers(ChTime);
-
-    UpdateForces(ChTime);
-
-    // This will update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
-}
-
-// As before, but keeps the current state.
-// Mostly used for world reference body.
-void ChBody::Update(double mytime, bool update_assets) {
-    // For the body:
-    UpdateTime(mytime);
-
-    Update(update_assets);
-}
-
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 void ChBody::SetFixed(bool state) {
     variables.SetDisabled(state);
@@ -643,7 +654,7 @@ void ChBody::EnableCollision(bool state) {
         return;
 
     // Nothing to do if no collision system or the system was not initialized
-    // (in the latter case, the collsion model will be processed at initialization)
+    // (in the latter case, the collision model will be processed at initialization)
     auto coll_sys = GetSystem()->GetCollisionSystem();
     if (!coll_sys || !coll_sys->IsInitialized())
         return;
@@ -765,9 +776,9 @@ void ChBody::ContactComputeQ(const ChVector3d& F,
 
 void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                            ChMatrix33<>& contact_plane,
-                                           ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-                                           ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-                                           ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                           ChConstraintTuple* jacobian_tuple_N,
+                                           ChConstraintTuple* jacobian_tuple_U,
+                                           ChConstraintTuple* jacobian_tuple_V,
                                            bool second) {
     /*
     ChVector3d p1 = TransformPointParentToLocal(abs_point);
@@ -818,68 +829,85 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     // Jr1 = [ p1y*(temp00) - p1z*(temp10), p1z*(temp20) - p1x*(temp00), p1x*(temp10) - p1y*(temp20);
     //       p1y*(temp01) - p1z*(temp11), p1z*(temp21) - p1x*(temp01), p1x*(temp11) - p1y*(temp21);
     //       p1y*(temp02) - p1z*(temp12), p1z*(temp22) - p1x*(temp02), p1x*(temp12) - p1y*(temp22)];
+
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
+
+    auto Cq_N = tuple_N->Cq1();
+    auto Cq_U = tuple_U->Cq1();
+    auto Cq_V = tuple_V->Cq1();
+
     if (!second) {
-        jacobian_tuple_N.Get_Cq()(0) = -contact_plane(0, 0);
-        jacobian_tuple_N.Get_Cq()(1) = -contact_plane(1, 0);
-        jacobian_tuple_N.Get_Cq()(2) = -contact_plane(2, 0);
-        jacobian_tuple_N.Get_Cq()(3) = -p1.y() * temp00 + p1.z() * temp10;
-        jacobian_tuple_N.Get_Cq()(4) = -p1.z() * temp20 + p1.x() * temp00;
-        jacobian_tuple_N.Get_Cq()(5) = -p1.x() * temp10 + p1.y() * temp20;
+        Cq_N(0) = -contact_plane(0, 0);
+        Cq_N(1) = -contact_plane(1, 0);
+        Cq_N(2) = -contact_plane(2, 0);
+        Cq_N(3) = -p1.y() * temp00 + p1.z() * temp10;
+        Cq_N(4) = -p1.z() * temp20 + p1.x() * temp00;
+        Cq_N(5) = -p1.x() * temp10 + p1.y() * temp20;
 
-        jacobian_tuple_U.Get_Cq()(0) = -contact_plane(0, 1);
-        jacobian_tuple_U.Get_Cq()(1) = -contact_plane(1, 1);
-        jacobian_tuple_U.Get_Cq()(2) = -contact_plane(2, 1);
-        jacobian_tuple_U.Get_Cq()(3) = -p1.y() * temp01 + p1.z() * temp11;
-        jacobian_tuple_U.Get_Cq()(4) = -p1.z() * temp21 + p1.x() * temp01;
-        jacobian_tuple_U.Get_Cq()(5) = -p1.x() * temp11 + p1.y() * temp21;
+        Cq_U(0) = -contact_plane(0, 1);
+        Cq_U(1) = -contact_plane(1, 1);
+        Cq_U(2) = -contact_plane(2, 1);
+        Cq_U(3) = -p1.y() * temp01 + p1.z() * temp11;
+        Cq_U(4) = -p1.z() * temp21 + p1.x() * temp01;
+        Cq_U(5) = -p1.x() * temp11 + p1.y() * temp21;
 
-        jacobian_tuple_V.Get_Cq()(0) = -contact_plane(0, 2);
-        jacobian_tuple_V.Get_Cq()(1) = -contact_plane(1, 2);
-        jacobian_tuple_V.Get_Cq()(2) = -contact_plane(2, 2);
-        jacobian_tuple_V.Get_Cq()(3) = -p1.y() * temp02 + p1.z() * temp12;
-        jacobian_tuple_V.Get_Cq()(4) = -p1.z() * temp22 + p1.x() * temp02;
-        jacobian_tuple_V.Get_Cq()(5) = -p1.x() * temp12 + p1.y() * temp22;
+        Cq_V(0) = -contact_plane(0, 2);
+        Cq_V(1) = -contact_plane(1, 2);
+        Cq_V(2) = -contact_plane(2, 2);
+        Cq_V(3) = -p1.y() * temp02 + p1.z() * temp12;
+        Cq_V(4) = -p1.z() * temp22 + p1.x() * temp02;
+        Cq_V(5) = -p1.x() * temp12 + p1.y() * temp22;
     } else {
-        jacobian_tuple_N.Get_Cq()(0) = contact_plane(0, 0);
-        jacobian_tuple_N.Get_Cq()(1) = contact_plane(1, 0);
-        jacobian_tuple_N.Get_Cq()(2) = contact_plane(2, 0);
-        jacobian_tuple_N.Get_Cq()(3) = p1.y() * temp00 - p1.z() * temp10;
-        jacobian_tuple_N.Get_Cq()(4) = p1.z() * temp20 - p1.x() * temp00;
-        jacobian_tuple_N.Get_Cq()(5) = p1.x() * temp10 - p1.y() * temp20;
+        Cq_N(0) = contact_plane(0, 0);
+        Cq_N(1) = contact_plane(1, 0);
+        Cq_N(2) = contact_plane(2, 0);
+        Cq_N(3) = p1.y() * temp00 - p1.z() * temp10;
+        Cq_N(4) = p1.z() * temp20 - p1.x() * temp00;
+        Cq_N(5) = p1.x() * temp10 - p1.y() * temp20;
 
-        jacobian_tuple_U.Get_Cq()(0) = contact_plane(0, 1);
-        jacobian_tuple_U.Get_Cq()(1) = contact_plane(1, 1);
-        jacobian_tuple_U.Get_Cq()(2) = contact_plane(2, 1);
-        jacobian_tuple_U.Get_Cq()(3) = p1.y() * temp01 - p1.z() * temp11;
-        jacobian_tuple_U.Get_Cq()(4) = p1.z() * temp21 - p1.x() * temp01;
-        jacobian_tuple_U.Get_Cq()(5) = p1.x() * temp11 - p1.y() * temp21;
+        Cq_U(0) = contact_plane(0, 1);
+        Cq_U(1) = contact_plane(1, 1);
+        Cq_U(2) = contact_plane(2, 1);
+        Cq_U(3) = p1.y() * temp01 - p1.z() * temp11;
+        Cq_U(4) = p1.z() * temp21 - p1.x() * temp01;
+        Cq_U(5) = p1.x() * temp11 - p1.y() * temp21;
 
-        jacobian_tuple_V.Get_Cq()(0) = contact_plane(0, 2);
-        jacobian_tuple_V.Get_Cq()(1) = contact_plane(1, 2);
-        jacobian_tuple_V.Get_Cq()(2) = contact_plane(2, 2);
-        jacobian_tuple_V.Get_Cq()(3) = p1.y() * temp02 - p1.z() * temp12;
-        jacobian_tuple_V.Get_Cq()(4) = p1.z() * temp22 - p1.x() * temp02;
-        jacobian_tuple_V.Get_Cq()(5) = p1.x() * temp12 - p1.y() * temp22;
+        Cq_V(0) = contact_plane(0, 2);
+        Cq_V(1) = contact_plane(1, 2);
+        Cq_V(2) = contact_plane(2, 2);
+        Cq_V(3) = p1.y() * temp02 - p1.z() * temp12;
+        Cq_V(4) = p1.z() * temp22 - p1.x() * temp02;
+        Cq_V(5) = p1.x() * temp12 - p1.y() * temp22;
     }
 }
 
-void ChBody::ComputeJacobianForRollingContactPart(
-    const ChVector3d& abs_point,
-    ChMatrix33<>& contact_plane,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-    bool second) {
+void ChBody::ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+                                                  ChMatrix33<>& contact_plane,
+                                                  ChConstraintTuple* jacobian_tuple_N,
+                                                  ChConstraintTuple* jacobian_tuple_U,
+                                                  ChConstraintTuple* jacobian_tuple_V,
+                                                  bool second) {
     ChMatrix33<> Jr1 = contact_plane.transpose() * GetRotMat();
     if (!second)
         Jr1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_U.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_V.Get_Cq().segment(0, 3).setZero();
-    jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
+
+    auto Cq_N = tuple_N->Cq1();
+    auto Cq_U = tuple_U->Cq1();
+    auto Cq_V = tuple_V->Cq1();
+
+    Cq_N.segment(0, 3).setZero();
+    Cq_U.segment(0, 3).setZero();
+    Cq_V.segment(0, 3).setZero();
+
+    Cq_N.segment(3, 3) = Jr1.row(0);
+    Cq_U.segment(3, 3) = Jr1.row(1);
+    Cq_V.segment(3, 3) = Jr1.row(2);
 }
 
 ChVector3d ChBody::GetAppliedForce() {
@@ -981,8 +1009,6 @@ void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(gyro);
     archive_out << CHNVP(Xforce);
     archive_out << CHNVP(Xtorque);
-    // archive_out << CHNVP(Force_acc); // not useful in serialization
-    // archive_out << CHNVP(Torque_acc);// not useful in serialization
     archive_out << CHNVP(variables);
     archive_out << CHNVP(max_speed);
     archive_out << CHNVP(max_wvel);

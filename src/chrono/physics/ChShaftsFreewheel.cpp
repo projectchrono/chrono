@@ -82,9 +82,9 @@ double ChShaftsFreewheel::GetCurrentTeethVane() const {
     return jamming_mode ? 0 : (free_forward ? floor((alpha_max - phase) / step) : -floor((-alpha_max + phase) / step));
 }
 
-void ChShaftsFreewheel::Update(double mytime, bool update_assets) {
+void ChShaftsFreewheel::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChShaftsCouple::Update(mytime, update_assets);
+    ChShaftsCouple::Update(time, update_assets);
 
     // update class data
     violation = 0;

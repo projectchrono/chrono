@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // ROS Handler for communicating lidar information
@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSLidarHandler_ipc.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
@@ -24,9 +25,8 @@
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
-#include "sensor_msgs/msg/laser_scan.hpp"
+#include <cstring>
+#include <algorithm>
 
 using namespace chrono::sensor;
 
@@ -39,12 +39,12 @@ class ChROSLidarHandlerImpl {
         : lidar(lidar), topic_name(topic_name) {}
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) = 0;
+    virtual std::vector<uint8_t> GetSerializedData(double time) = 0;
 
   protected:
-    virtual void Tick(double time) = 0;
-
     const std::string topic_name;
     std::shared_ptr<ChLidarSensor> lidar;
+    std::vector<uint8_t> m_serialize_buffer;
 
     friend class ChROSLidarHandler;
 };
@@ -55,47 +55,46 @@ class PointCloud2Impl : public ChROSLidarHandlerImpl {
         : ChROSLidarHandlerImpl(lidar, topic_name) {}
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override {
-        m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name, 1);
-
-        m_msg.header.frame_id = lidar->GetName();
-        m_msg.width = lidar->GetWidth();
-        m_msg.height = lidar->GetHeight();
-        m_msg.is_bigendian = false;
-        m_msg.is_dense = true;
-        m_msg.row_step = sizeof(PixelXYZI) * m_msg.width;
-        m_msg.point_step = sizeof(PixelXYZI);
-        m_msg.data.resize(m_msg.row_step * m_msg.height);
-
-        m_msg.fields.resize(4);
-        const std::string field_names[4] = {"x", "y", "z", "intensity"};
-        for (int i = 0; i < 4; i++) {
-            m_msg.fields[i].name = field_names[i];
-            m_msg.fields[i].offset = sizeof(float) * i;
-            m_msg.fields[i].datatype = sensor_msgs::msg::PointField::FLOAT32;
-            m_msg.fields[i].count = 1;
-        }
-
+        // In IPC mode, we just check if the sensor has the required filter
+        // No publisher creation here - subprocess handles ROS
         return true;
     }
 
-  private:
-    virtual void Tick(double time) override {
+    virtual std::vector<uint8_t> GetSerializedData(double time) override {
         auto pc_ptr = lidar->GetMostRecentBuffer<UserXYZIBufferPtr>();
         if (!pc_ptr->Buffer) {
-            // TODO: Is this supposed to happen?
-            std::cout << "Lidar buffer is not ready. Not ticking." << std::endl;
-            return;
+            return std::vector<uint8_t>();
         }
 
-        m_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
-        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(pc_ptr->Buffer.get());
-        m_msg.data.assign(ptr, ptr + m_msg.row_step * m_msg.height);
+        uint32_t width = lidar->GetWidth();
+        uint32_t height = lidar->GetHeight();
+        size_t point_size = sizeof(PixelXYZI);
+        size_t data_size = width * height * point_size;
 
-        m_publisher->publish(m_msg);
+        // Serialize: header + point data
+        // Use member buffer to avoid reallocation
+        size_t total_size = sizeof(ipc::LidarPointCloudData) + data_size;
+        if (m_serialize_buffer.capacity() < total_size) {
+            m_serialize_buffer.reserve(total_size);
+        }
+        m_serialize_buffer.resize(total_size);
+
+        ipc::LidarPointCloudData* header = reinterpret_cast<ipc::LidarPointCloudData*>(m_serialize_buffer.data());
+        strncpy(header->topic_name, topic_name.c_str(), sizeof(header->topic_name) - 1);
+        header->topic_name[sizeof(header->topic_name) - 1] = '\0';
+        
+        strncpy(header->frame_id, lidar->GetName().c_str(), sizeof(header->frame_id) - 1);
+        header->frame_id[sizeof(header->frame_id) - 1] = '\0';
+
+        header->width = width;
+        header->height = height;
+
+        // Copy point data directly after header
+        uint8_t* data_ptr = m_serialize_buffer.data() + sizeof(ipc::LidarPointCloudData);
+        std::memcpy(data_ptr, pc_ptr->Buffer.get(), data_size);
+
+        return m_serialize_buffer;
     }
-
-    sensor_msgs::msg::PointCloud2 m_msg;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_publisher;
 };
 
 class LaserScanImpl : public ChROSLidarHandlerImpl {
@@ -107,46 +106,54 @@ class LaserScanImpl : public ChROSLidarHandlerImpl {
         if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterDIAccess, ChFilterDIAccessName>(lidar)) {
             return false;
         }
-
-        m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::LaserScan>(topic_name, 1);
-
-        m_msg.header.frame_id = lidar->GetName();
-        m_msg.angle_min = lidar->GetHFOV() / 2.0;
-        m_msg.angle_max = lidar->GetHFOV() / 2.0;
-        m_msg.angle_increment = lidar->GetHFOV() / lidar->GetWidth();
-        m_msg.time_increment = 0.0;  // TODO
-        m_msg.scan_time = 1.0 / lidar->GetUpdateRate();
-        m_msg.range_min = 0.0;
-        m_msg.range_max = lidar->GetMaxDistance();
-
-        m_msg.ranges.resize(lidar->GetWidth());
-        m_msg.intensities.resize(lidar->GetWidth());
-
         return true;
     }
 
-  private:
-    virtual void Tick(double time) override {
+    virtual std::vector<uint8_t> GetSerializedData(double time) override {
         auto pc_ptr = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
         if (!pc_ptr->Buffer) {
-            // TODO: Is this supposed to happen?
-            std::cout << "Lidar buffer is not ready. Not ticking." << std::endl;
-            return;
+            return std::vector<uint8_t>();
         }
 
-        m_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
+        uint32_t count = lidar->GetWidth();
+        size_t ranges_size = count * sizeof(float);
+        size_t intensities_size = count * sizeof(float);
+        size_t total_size = sizeof(ipc::LidarLaserScanData) + ranges_size + intensities_size;
+
+        if (m_serialize_buffer.capacity() < total_size) {
+            m_serialize_buffer.reserve(total_size);
+        }
+        m_serialize_buffer.resize(total_size);
+
+        ipc::LidarLaserScanData* header = reinterpret_cast<ipc::LidarLaserScanData*>(m_serialize_buffer.data());
+        strncpy(header->topic_name, topic_name.c_str(), sizeof(header->topic_name) - 1);
+        header->topic_name[sizeof(header->topic_name) - 1] = '\0';
+        
+        strncpy(header->frame_id, lidar->GetName().c_str(), sizeof(header->frame_id) - 1);
+        header->frame_id[sizeof(header->frame_id) - 1] = '\0';
+
+        // Assume lidar is centered for now
+        header->angle_min = -lidar->GetHFOV() / 2.0;
+        header->angle_max = lidar->GetHFOV() / 2.0;
+        header->angle_increment = lidar->GetHFOV() / lidar->GetWidth();
+        header->time_increment = 0.0;
+        header->scan_time = 1.0 / lidar->GetUpdateRate();
+        header->range_min = 0.0;
+        header->range_max = lidar->GetMaxDistance();
+        header->count = count;
+
+        float* ranges_ptr = reinterpret_cast<float*>(m_serialize_buffer.data() + sizeof(ipc::LidarLaserScanData));
+        float* intensities_ptr = ranges_ptr + count;
 
         auto begin = pc_ptr->Buffer.get();
-        std::transform(begin, begin + lidar->GetWidth(), m_msg.intensities.begin(),
-                       [](const PixelDI& p) { return p.intensity; });
-        std::transform(begin, begin + lidar->GetWidth(), m_msg.ranges.begin(),
-                       [](const PixelDI& p) { return p.range; });
+        // Extract ranges and intensities
+        for (uint32_t i = 0; i < count; ++i) {
+            ranges_ptr[i] = begin[i].range;
+            intensities_ptr[i] = begin[i].intensity;
+        }
 
-        m_publisher->publish(m_msg);
+        return m_serialize_buffer;
     }
-
-    sensor_msgs::msg::LaserScan m_msg;
-    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr m_publisher;
 };
 
 ChROSLidarHandler::ChROSLidarHandler(std::shared_ptr<ChLidarSensor> lidar,
@@ -158,7 +165,7 @@ ChROSLidarHandler::ChROSLidarHandler(double update_rate,
                                      std::shared_ptr<ChLidarSensor> lidar,
                                      const std::string& topic_name,
                                      ChROSLidarHandlerMessageType msg_type)
-    : ChROSHandler(update_rate) {
+    : ChROSHandler(update_rate), m_type(msg_type) {
     switch (msg_type) {
         case ChROSLidarHandlerMessageType::POINT_CLOUD2:
             m_impl = std::make_shared<PointCloud2Impl>(lidar, topic_name);
@@ -179,8 +186,18 @@ bool ChROSLidarHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     return m_impl->Initialize(interface);
 }
 
-void ChROSLidarHandler::Tick(double time) {
-    m_impl->Tick(time);
+std::vector<uint8_t> ChROSLidarHandler::GetSerializedData(double time) {
+    double frame_time = GetUpdateRate() == 0 ? 0 : 1.0 / GetUpdateRate();
+
+    if (m_last_publish_time >= 0 && (time - m_last_publish_time) < frame_time) {
+        return std::vector<uint8_t>();
+    }
+
+    auto data = m_impl->GetSerializedData(time);
+    if (!data.empty()) {
+        m_last_publish_time = time;
+    }
+    return data;
 }
 
 }  // namespace ros

@@ -288,7 +288,7 @@ std::istream& ChArchiveInBinary::read(std::string& val) {
     size_t str_len = 0;
     read(str_len);
     val.resize(str_len);
-    return m_istream.read(val.data(), str_len);
+    return m_istream.read(&val[0], str_len);
 }
 
 template <>

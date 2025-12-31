@@ -7,7 +7,7 @@ Vehicle models {#vehicle_models}
 
 ### HMMWV {#vehicle_models_hmmwv}
 
-HMMWV stands for the High Mobility Multipurpose Wheeled Vehicle familiy. The Chrono example shows the M966 troup carrier. Like the real vehicle it has a double wishbone suspension on both axles and all wheels can be driven. It has a three-gear automatic gearbox with torque converter and a realistic engine subsystem. It takes a pitman-arm steering. The model can use all kinds of tires Chrono has to offer.
+HMMWV stands for the High Mobility Multipurpose Wheeled Vehicle family. The Chrono example shows the M966 troup carrier. Like the real vehicle it has a double wishbone suspension on both axles and all wheels can be driven. It has a three-gear automatic gearbox with torque converter and a realistic engine subsystem. It takes a pitman-arm steering. The model can use all kinds of tires Chrono has to offer.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/HMMWV.png" width="600" />
 
@@ -85,7 +85,7 @@ The UAZ 469 jeep-like vehicle has been used since 1965 in the Soviet Army. It sh
 
 ### Gator {#vehicle_models_gator}
 
-Tha Gator is a model of a John Deere electric utility vehicle instrumented for autonomous driving.  The Gator model uses a single-wishbone suspension in the front and a rigid axle in the rear.  It has a rack-and-pinion steering mechanism and brakes only on the rear wheels.  The electric motor is connected through a differential to the rear wheels.
+The Gator is a model of a John Deere electric utility vehicle instrumented for autonomous driving.  The Gator model uses a single-wishbone suspension in the front and a rigid axle in the rear.  It has a rack-and-pinion steering mechanism and brakes only on the rear wheels.  The electric motor is connected through a differential to the rear wheels.
 
 ### KRAZ {#vehicle_models_kraz}
 
@@ -105,7 +105,7 @@ The generic wheeld vehicle model is a sandbox for testing various templates and 
 
 The M113 is a light tank with aluminium alloy hull and a running gear of Christie type. The first M113 went in service 1960. It is used in many armies of the world and a lot of configurations have been derived from the basic vehicle. The Chrono M113 model shows a troup carrier (2+11 occupants).
 
-The running gear consists of ten road wheels, two sprockets and two idler wheels. The model can be configured whith a single pin track or a double pin track. A third alternative - a rubber band track - is under development. The track tension can be set by means of the special tensioning suspension of the idler wheels. The road wheels are suspended by a bogie/torsion bar system. The drivetrain is modelled as three gear automatic gear box with torque converter in combination of a combustion engine.
+The running gear consists of ten road wheels, two sprockets and two idler wheels. The model can be configured with a single pin track or a double pin track. A third alternative - a rubber band track - is under development. The track tension can be set by means of the special tensioning suspension of the idler wheels. The road wheels are suspended by a bogie/torsion bar system. The drivetrain is modelled as three gear automatic gear box with torque converter in combination of a combustion engine.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/M113.png" width="600" />
 
@@ -115,4 +115,4 @@ The running gear consists of ten road wheels, two sprockets and two idler wheels
 
 The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen). 
 
-Our model is based only on public data available online and information found in literature. Although the original vehicle emplys double-pin tracks, the current Chrono model only implements a single-pin track.
+Our model is based only on public data available online and information found in literature. Although the original vehicle employs double-pin tracks, the current Chrono model only implements a single-pin track.

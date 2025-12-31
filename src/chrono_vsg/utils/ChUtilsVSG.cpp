@@ -189,7 +189,8 @@ vsg::ref_ptr<vsg::Node> createQuad(const vsg::vec3& origin,
 
 vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup) {
     auto data = vsg::read_cast<vsg::Data>(filename, options);
-    if (!data) {
+    if (!data)
+    {
         std::cout << "Error: failed to load cubemap file : " << filename << std::endl;
         return {};
     }
@@ -205,8 +206,7 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
     auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
 
     vsg::PushConstantRanges pushConstantRanges{
-        {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
-                                              // automatically provided by the VSG's DispatchTraversal
+        {VK_SHADER_STAGE_VERTEX_BIT, 0, 128} // projection, view, and model matrices, actual push constant calls automatically provided by the VSG's RecordTraversal
     };
 
     vsg::VertexInputState::Bindings vertexBindingsDescriptions{
@@ -219,8 +219,9 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
     rasterState->cullMode = VK_CULL_MODE_FRONT_BIT;
 
     auto depthState = vsg::DepthStencilState::create();
-    depthState->depthTestEnable = VK_FALSE;
+    depthState->depthTestEnable = VK_TRUE;
     depthState->depthWriteEnable = VK_FALSE;
+    depthState->depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
 
     vsg::GraphicsPipelineStates pipelineStates{
         vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
@@ -230,21 +231,18 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
         vsg::ColorBlendState::create(),
         depthState};
 
-    auto pipelineLayout =
-        vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
+    auto pipelineLayout = vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
     auto pipeline = vsg::GraphicsPipeline::create(pipelineLayout, shaders, pipelineStates);
     auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(pipeline);
 
     // create texture image and associated DescriptorSets and binding
     auto sampler = vsg::Sampler::create();
-    const auto layout = data->getLayout();
-    sampler->maxLod = layout.maxNumMipmaps;
+    sampler->maxLod = data->properties.maxNumMipmaps;
 
     auto texture = vsg::DescriptorImage::create(sampler, data, 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
     auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{texture});
-    auto bindDescriptorSet =
-        vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, descriptorSet);
+    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, descriptorSet);
 
     auto root = vsg::StateGroup::create();
     root->add(bindGraphicsPipeline);
@@ -287,28 +285,34 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
                                             {1.0f, 1.0f, 1.0}});
 
     auto indices = vsg::ushortArray::create({// Back
-                                             0, 2, 1, 1, 2, 3,
+                                             0, 2, 1,
+                                             1, 2, 3,
 
                                              // Front
-                                             6, 4, 5, 7, 6, 5,
+                                             6, 4, 5,
+                                             7, 6, 5,
 
                                              // Left
-                                             10, 8, 9, 11, 10, 9,
+                                             10, 8, 9,
+                                             11, 10, 9,
 
                                              // Right
-                                             14, 13, 12, 15, 13, 14,
+                                             14, 13, 12,
+                                             15, 13, 14,
 
                                              // Bottom
-                                             17, 16, 19, 19, 16, 18,
+                                             17, 16, 19,
+                                             19, 16, 18,
 
                                              // Top
-                                             23, 20, 21, 22, 20, 23});
+                                             23, 20, 21,
+                                             22, 20, 23});
 
     root->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{vertices}));
     root->addChild(vsg::BindIndexBuffer::create(indices));
     root->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
+
     auto xform = vsg::MatrixTransform::create();
-    // auto xform = vsg::MatrixTransform::create(vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0));
     if (yup) {
         xform->matrix = vsg::rotate(-vsg::PI * 0.5, 0.0, 1.0, 0.0);
     } else {

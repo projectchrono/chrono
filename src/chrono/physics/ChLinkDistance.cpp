@@ -29,11 +29,11 @@ class ChLinkDistance_Mode_enum_mapper : public ChLinkDistance {
 };
 
 ChLinkDistance::ChLinkDistance() : m_pos1(VNULL), m_pos2(VNULL), distance(0), curr_dist(0) {
-    this->SetMode(Mode::BILATERAL);
+    SetMode(Mode::BILATERAL);
 }
 
 ChLinkDistance::ChLinkDistance(const ChLinkDistance& other) : ChLink(other) {
-    this->SetMode(other.mode);
+    SetMode(other.mode);
     m_body1 = other.m_body1;
     m_body2 = other.m_body2;
     system = other.system;
@@ -52,8 +52,8 @@ int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> body1,
                                ChVector3d pos2,
                                bool auto_distance,
                                double mdistance,
-                               Mode mode) {
-    this->SetMode(mode);
+                               Mode new_mode) {
+    SetMode(new_mode);
 
     m_body1 = body1.get();
     m_body2 = body2.get();
@@ -105,15 +105,15 @@ ChFramed ChLinkDistance::GetFrame2Rel() const {
     return ChFrame<>(m_pos2, Q_loc2);
 }
 
-void ChLinkDistance::SetMode(Mode mode) {
-    this->mode = mode;
-    mode_sign = (this->mode == Mode::UNILATERAL_MAXDISTANCE ? -1.0 : +1.0);
-    Cx.SetMode(this->mode == Mode::BILATERAL ? ChConstraint::Mode::LOCK : ChConstraint::Mode::UNILATERAL);
+void ChLinkDistance::SetMode(Mode new_mode) {
+    mode = new_mode;
+    mode_sign = (mode == Mode::UNILATERAL_MAXDISTANCE ? -1.0 : +1.0);
+    Cx.SetMode(mode == Mode::BILATERAL ? ChConstraint::Mode::LOCK : ChConstraint::Mode::UNILATERAL);
 }
 
-void ChLinkDistance::Update(double mytime, bool update_assets) {
+void ChLinkDistance::Update(double time, bool update_assets) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::Update(mytime, update_assets);
+    ChLink::Update(time, update_assets);
 
     // compute jacobians
     ChVector3d delta_pos = m_body1->TransformPointLocalToParent(m_pos1) - m_body2->TransformPointLocalToParent(m_pos2);

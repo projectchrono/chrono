@@ -37,7 +37,7 @@
 #include <algorithm>
 
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -551,7 +551,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
 
 void Pac02Tire::SetMFParams() {
     if (!m_tir_file.empty()) {
-        SetMFParamsByFile(vehicle::GetDataFile(m_tir_file));
+        SetMFParamsByFile(GetVehicleDataFile(m_tir_file));
     } else {
         //// TODO
     }

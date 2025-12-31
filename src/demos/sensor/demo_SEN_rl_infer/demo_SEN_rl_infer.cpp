@@ -21,7 +21,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -68,7 +68,7 @@ unsigned int rl_image_width = 80;
 unsigned int rl_image_height = 45;
 
 // Camera's horizontal field of view
-float fov = CH_PI / 3.;
+float fov = CH_PI_3;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;
@@ -202,16 +202,16 @@ int main(int argc, char* argv[]) {
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), terrainLength, terrainWidth);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/height_maps/test64.bmp"),
                                      "test64", 128, 128, 0, 4);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.GetVehicle().SetChassisOutput(true);
     my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
     my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
-    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    my_hmmwv.GetVehicle().SetOutput(ChOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
     my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");

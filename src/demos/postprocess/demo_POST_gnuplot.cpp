@@ -18,7 +18,7 @@
 
 #include <cmath>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/functions/ChFunctionInterp.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         std::string datafilename = out_dir + "/test_gnuplot_data.dat";
         std::ofstream datafile(datafilename);
         for (double x = 0; x < 10; x += 0.1)
-            datafile << x << ", " << sin(x) << ", " << cos(x) << std::endl;
+            datafile << x << ", " << std::sin(x) << ", " << std::cos(x) << std::endl;
 
         // Step 2.
         // Create the plot.
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> my(100);
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
-            double y = sin(x) * exp(-x * 0.2);
+            double y = std::sin(x) * std::exp(-x * 0.2);
             mx(i) = x;
             my(i) = y;
         }
@@ -140,14 +140,14 @@ int main(int argc, char* argv[]) {
         ChFunctionInterp mfun;
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
-            double y = cos(x) * exp(-x * 0.4);
+            double y = std::cos(x) * std::exp(-x * 0.4);
             mfun.AddPoint(x, y);
         }
         // ..or create demo data in two columns of a ChMatrix
         ChMatrixDynamic<> matr(100, 10);
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
-            double y = cos(x) * exp(-x * 0.4);
+            double y = std::cos(x) * std::exp(-x * 0.4);
             matr(i, 2) = x;
             matr(i, 6) = y * 0.4;
         }
@@ -159,6 +159,49 @@ int main(int argc, char* argv[]) {
         mplot.Plot(mx, my, "from x,y ChVectorDynamic", " every 5 pt 1 ps 0.5");
         mplot.Plot(mfun, "from ChFunctionInterp", " with lines lt -1 lc rgb'#00AAEE' ");
         mplot.Plot(matr, 2, 6, "from ChMatrix", " with lines lt 5");
+    }
+
+    {
+        //
+        // EXAMPLE 5
+        //
+
+        // Example of subplot capability.
+
+        // Step 1.
+        // Create some data for plotting.
+        ChVectorDynamic<> time = ChVectorDynamic<>::LinSpaced(20, 0, 6.28);
+        ChVectorDynamic<> x = time.unaryExpr([](double ti) { return 3 * std::sin(2 * ti); });
+        ChVectorDynamic<> xshift = time.unaryExpr([](double ti) { return 3 * std::sin(2 * ti + 1.2); });
+        ChVectorDynamic<> x_t = time.unaryExpr([](double ti) { return 6 * std::cos(2 * ti); });
+        ChVectorDynamic<> x_tt = time.unaryExpr([](double ti) { return -12 * std::sin(2 * ti); });
+
+        // Step 2.
+        // Create the plot.
+        ChGnuPlot mplot(out_dir + "/tmp_gnuplot_5.gpl");
+        mplot.OutputWindow(0);
+        mplot.SetColorSequence(1); // change default color sequence
+        //
+        mplot.StartSubplot(3, 1, 0);
+        mplot.SetGrid();
+        mplot.SetLabelY("x");
+        mplot.SetTitle("Position subplot");
+        mplot.Plot(time, x, "x", "with lines lw 2");
+        mplot.Plot(time, xshift, "xshift", "with lines lw 2");
+        //
+        mplot.StartSubplot(3, 1, 1);
+        mplot.Plot(time, x_t, "", "with lines lw 2");
+        mplot.SetGrid();
+        mplot.SetLabelY("x_t");
+        mplot.SetTitle("Velocity subplot");
+        //
+        mplot.StartSubplot(3, 1, 2);
+        mplot.Plot(time, x_tt, "", "with lines lw 2");
+        mplot.SetLabelX("Time");
+        mplot.SetLabelY("x_{tt}");
+        mplot.SetTitle("Acceleration subplot");
+        //
+        mplot.EndSubplot();
     }
 
     std::cout << "\nCHRONO execution terminated.";

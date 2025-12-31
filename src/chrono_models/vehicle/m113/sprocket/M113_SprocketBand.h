@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBand.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -112,7 +112,7 @@ class CH_MODELS_API M113_SprocketBandLeft : public M113_SprocketBand {
     M113_SprocketBandLeft() : M113_SprocketBand("M113_SprocketLeft") {}
     ~M113_SprocketBandLeft() {}
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;
@@ -124,7 +124,7 @@ class CH_MODELS_API M113_SprocketBandRight : public M113_SprocketBand {
     M113_SprocketBandRight() : M113_SprocketBand("M113_SprocketRight") {}
     ~M113_SprocketBandRight() {}
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;

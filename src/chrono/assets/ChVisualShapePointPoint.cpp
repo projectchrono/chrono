@@ -10,6 +10,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -22,7 +24,7 @@
 namespace chrono {
 
 // Extract two positions from updater if it has any, and then update line geometry from these positions.
-void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
+void ChVisualShapePointPoint::Update(ChObj* updater, const ChFrame<>& frame) {
     if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
         point1 = link_markers->GetMarker1()->GetAbsCoordsys().pos;
         point2 = link_markers->GetMarker2()->GetAbsCoordsys().pos;
@@ -59,6 +61,15 @@ void ChVisualShapeSegment::UpdateLineGeometry(const ChVector3d& endpoint1, const
 
 // Set line geometry as a coil between two end points.
 void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) {
+    // If the visualisation system doesn't need CPU-side geometry (for example - VSG generates
+    // springs procedurally on GPU, irrlicht does its own thing), then no-op return to skip expensive ChLinePath
+    // rebuilds of line vertices (which gets called every timestep on solvers that do full update!)
+    // Primiarly this impacts VSG becasue vsg is drawing the full 'mesh' of the lines every time, causing
+    // cpu to gpu overhead, when we could just keep a gpu side procedural between points
+    if (m_disable_geom_updates) {
+        return;
+    }
+    
     auto linepath = chrono_types::make_shared<ChLinePath>();
 
     // Following part was copied from irrlicht::tools::drawSpring()
@@ -77,8 +88,8 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
-        ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-        ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+        ChVector3d V1(heightA, radius * std::cos(phaseA), radius * std::sin(phaseA));
+        ChVector3d V2(heightB, radius * std::cos(phaseB), radius * std::sin(phaseB));
 
         auto segment = ChLineSegment(mpos.TransformPointLocalToParent(V1), mpos.TransformPointLocalToParent(V2));
         linepath->AddSubLine(segment);
@@ -89,7 +100,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     this->SetLineGeometry(std::static_pointer_cast<ChLine>(linepath));
 }
 
-void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
+void ChVisualShapeRotSpring::Update(ChObj* updater, const ChFrame<>& frame) {
     // Do nothing if not associated with an RSDA.
     auto rsda = dynamic_cast<ChLinkRSDA*>(updater);
     if (!rsda)

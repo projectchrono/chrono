@@ -84,6 +84,8 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     /// Since the state of a EngineShafts is advanced as part of the vehicle state, this function does nothing.
     virtual void Advance(double step) override {}
 
+    virtual void PopulateComponentList() override;
+
     std::shared_ptr<ChShaft> m_motorblock;
     std::shared_ptr<ChShaftBodyRotation> m_motorblock_to_body;
     std::shared_ptr<ChShaftsThermalEngine> m_engine;

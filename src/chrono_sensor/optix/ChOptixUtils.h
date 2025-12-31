@@ -19,15 +19,10 @@
 #ifndef CHOPTIXUTILS_H
 #define CHOPTIXUTILS_H
 
-#ifdef _WIN32
-    #ifndef NOMINMAX
-        #define NOMINMAX
-    #endif
-#endif
-
 #include <optix.h>
 #include <cuda_runtime_api.h>
 #include <nvrtc.h>
+#include <chrono>
 
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShapeBox.h"
@@ -116,12 +111,12 @@ CH_SENSOR_API void GetShaderFromFile(OptixDeviceContext context,
 CH_SENSOR_API void optix_log_callback(unsigned int level, const char* tag, const char* message, void*);
 
 // #ifdef USE_CUDA_NVRTC
-// /// launches ray generation program
-// /// @param context optix device context
-// /// @param module optix module that will be created
-// /// @param file_name the file where the shader program is implemented
-// /// @param module_compile_options compile options for the module
-// /// @param pipeline_compile_options compile options for the pipeline
+// launches ray generation program
+// - context optix device context
+// - module optix module that will be created
+// - file_name the file where the shader program is implemented
+// - module_compile_options compile options for the module
+// - pipeline_compile_options compile options for the pipeline
 // CH_SENSOR_API void GetShaderFromPtx(OptixDeviceContext context,
 //                                     OptixModule& module,
 //                                     std::string file_name,
@@ -189,14 +184,7 @@ void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector3d b, ChV
 
 CH_SENSOR_API void SetSensorShaderDir(const std::string& path);
 
-/*
-/// prefix for ptx file
-const std::string ptx_pre = "ChronoEngine_sensor_generated_";
-/// suffix for ptx file
-const std::string ptx_suff = ".cu.ptx";
-
-extern std::string SENSOR_SHADER_DIR;// = "test"; //std::string(CMAKE_SHADER_OUTPUT_PATH);
-*/
+CH_SENSOR_API const std::string& GetSensorShaderDir();
 
 /// @} sensor_optix
 

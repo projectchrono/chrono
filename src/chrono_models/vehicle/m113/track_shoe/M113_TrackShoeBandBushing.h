@@ -96,7 +96,7 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual double GetTreadThickness() const override { return m_tread_thickness; }
 
     /// Return bushing stiffness and damping data.
-    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const override { return m_bushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> GetBushingData() const override { return m_bushingData; }
 
     /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
     virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
@@ -105,7 +105,7 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    std::shared_ptr<ChVehicleBushingData> m_bushingData;
+    std::shared_ptr<ChJoint::BushingData> m_bushingData;
 
     static const double m_tread_mass;
     static const ChVector3d m_tread_inertias;

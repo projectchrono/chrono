@@ -24,7 +24,7 @@
 // the lateral compliance of the leafspring. The leaves (front and rear) are connected
 // to clampA rsp. clampB via rotational joints around Y. The frontleaf also connects
 // to the chassis with a spherical joint, while the rearleaf connects to the shackle
-// body with a sperical joint. The shackle body connects to the chassis via a
+// body with a spherical joint. The shackle body connects to the chassis via a
 // rotational joint around Y.
 //
 // The vertical stiffnesses are simulated by the rotational springs of the frontleaf
@@ -32,8 +32,8 @@
 // joints of the clamp bodies.
 //
 // For the stiffness parameters the user can take the desired translatoric vertical
-// stiffness devided by two (we have two leaves). The preload can be set as a
-// vertical force devided by two. The conversion to the rotary setup is made
+// stiffness dividedby two (we have two leaves). The preload can be set as a
+// vertical force dividedby two. The conversion to the rotary setup is made
 // automatically.
 //
 // The SAE model allows to consider the correct axle movement due to wheel travel.
@@ -86,7 +86,7 @@ namespace vehicle {
 /// the lateral compliance of the leafspring. The leaves (front and rear) are connected
 /// to clampA rsp. clampB via rotational joints around Y. The frontleaf also connects
 /// to the chassis with a spherical joint, while the rearleaf connects to the shackle
-/// body with a sperical joint. The shackle body connects to the chassis via a
+/// body with a spherical joint. The shackle body connects to the chassis via a
 /// rotational joint around Y.
 ///
 /// The vertical stiffnesses are simulated by the rotational springs of the frontleaf
@@ -94,8 +94,8 @@ namespace vehicle {
 /// joints of the clamp bodies.
 ///
 /// For the stiffness parameters the user can take the desired translatoric vertical
-/// stiffness devided by two (we have two leaves). The preload can be set as a
-/// vertical force devided by two. The conversion to the rotary setup is made
+/// stiffness dividedby two (we have two leaves). The preload can be set as a
+/// vertical force dividedby two. The conversion to the rotary setup is made
 /// automatically.
 ///
 /// The SAE model allows to consider the correct axle movement due to wheel travel.
@@ -127,18 +127,18 @@ class CH_VEHICLE_API ChSAELeafspringAxle : public ChSuspension {
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const final override { return false; }
 
-    /// Initialize this suspension subsystem.
+    /// Construct this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
     /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
     /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
     /// Since this suspension is non-steerable, the steering subsystem is always ignored.
-    virtual void Initialize(
+    virtual void Construct(
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
         const ChVector3d& location,                ///< [in] location relative to the chassis frame
-        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
-        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        double left_ang_vel,                       ///< [in] initial angular velocity of left wheel
+        double right_ang_vel                       ///< [in] initial angular velocity of right wheel
         ) override;
 
     /// Add visualization assets for the suspension subsystem.
@@ -266,13 +266,13 @@ class CH_VEHICLE_API ChSAELeafspringAxle : public ChSuspension {
 
     /// Return stiffness and damping data for the shackle bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getShackleBushingData() const { return nullptr; }
     /// Return stiffness and damping data for the clamp bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getClampBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getClampBushingData() const { return nullptr; }
     /// Return stiffness and damping data for the leafspring bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getLeafspringBushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_axleTube;  ///< axle tube body
 
@@ -281,21 +281,21 @@ class CH_VEHICLE_API ChSAELeafspringAxle : public ChSuspension {
 
     // Leafspring related elements
     std::shared_ptr<ChBody> m_shackle[2];             ///< shackle bodies
-    std::shared_ptr<ChVehicleJoint> m_shackleRev[2];  ///< chassis-shackle rotational joint
+    std::shared_ptr<ChJoint> m_shackleRev[2];  ///< chassis-shackle rotational joint
 
     std::shared_ptr<ChBody> m_frontleaf[2];                  ///< frontleaf bodies
     std::shared_ptr<ChLinkLockSpherical> m_frontleafSph[2];  ///< frontleaf-chassis spherical joint
-    std::shared_ptr<ChVehicleJoint> m_frontleafRev[2];       ///< frontleaf-clampA rotational joint
+    std::shared_ptr<ChJoint> m_frontleafRev[2];       ///< frontleaf-clampA rotational joint
 
     std::shared_ptr<ChBody> m_rearleaf[2];                  ///< rearleaf bodies
     std::shared_ptr<ChLinkLockSpherical> m_rearleafSph[2];  ///< rearleaf-chassis spherical joint
-    std::shared_ptr<ChVehicleJoint> m_rearleafRev[2];       ///< rearleaf-clampB rotational joint
+    std::shared_ptr<ChJoint> m_rearleafRev[2];       ///< rearleaf-clampB rotational joint
 
     std::shared_ptr<ChBody> m_clampA[2];             ///< clampA bodies
-    std::shared_ptr<ChVehicleJoint> m_clampARev[2];  ///< clampA-axleTube rotational joint Z
+    std::shared_ptr<ChJoint> m_clampARev[2];  ///< clampA-axleTube rotational joint Z
 
     std::shared_ptr<ChBody> m_clampB[2];             ///< clampB bodies
-    std::shared_ptr<ChVehicleJoint> m_clampBRev[2];  ///< clampB-axleTube rotational joint Z
+    std::shared_ptr<ChJoint> m_clampBRev[2];  ///< clampB-axleTube rotational joint Z
 
     std::shared_ptr<ChLinkRSDA> m_latRotSpringA[2];  ///< mimics lateral stiffness of frontleaf
     std::shared_ptr<ChLinkRSDA> m_latRotSpringB[2];  ///< mimics lateral stiffness of rearleaf
@@ -327,9 +327,7 @@ class CH_VEHICLE_API ChSAELeafspringAxle : public ChSuspension {
                                      double radius,
                                      const ChColor& color);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

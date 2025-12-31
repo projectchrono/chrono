@@ -21,8 +21,8 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/core/ChGlobal.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/core/ChDataPath.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
@@ -56,12 +56,10 @@ static ChVector2d CalcCircleCenter(const ChVector2d& A, const ChVector2d& B, dou
 // -----------------------------------------------------------------------------
 ChTrackShoeBand::ChTrackShoeBand(const std::string& name) : ChTrackShoe(name) {}
 
-void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                 const ChVector3d& location,
-                                 const ChQuaternion<>& rotation) {
-    ChTrackShoe::Initialize(chassis, location, rotation);
-
-    // Cache the postive (+x) tooth arc position and arc starting and ending angles
+void ChTrackShoeBand::Construct(std::shared_ptr<ChChassis> chassis,
+                                const ChVector3d& location,
+                                const ChQuaternion<>& rotation) {
+    // Cache the positive (+x) tooth arc position and arc starting and ending angles
     ChVector2d tooth_base_p(GetToothBaseLength() / 2, GetWebThickness() / 2);
     ChVector2d tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
     m_center_p = CalcCircleCenter(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
@@ -89,14 +87,16 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_center_m_arc_end = temp;
     }
 
-    // Express the tread body location and orientation in global frame.
-    ChVector3d loc = chassis->TransformPointLocalToParent(location);
-    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    // Express the tread body location and orientation in global frame
+    auto chassis_body = chassis->GetBody();
+
+    ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis_body->GetRot() * rotation;
 
     // Create the tread body
     m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetName(m_name + "_tread");
-    m_shoe->SetTag(TrackedVehicleBodyTag::SHOE_BODY);
+    m_shoe->SetTag(m_obj_tag);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetTreadMass());
@@ -143,8 +143,8 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     auto t_shape = chrono_types::make_shared<ChCollisionShapeBox>(pad_material, t_dims.x(), t_dims.y(), t_dims.z());
     m_shoe->AddCollisionShape(t_shape, ChFrame<>(t_loc, QUNIT));
 
-    m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
 }
 
 // -----------------------------------------------------------------------------
@@ -176,7 +176,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
 
     // Connection to first web segment
     double radius = GetWebThickness() / 4;
-    ChVehicleGeometry::AddVisualizationCylinder(
+    utils::ChBodyGeometry::AddVisualizationCylinder(
         m_shoe,                                                                     //
         ChVector3d(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0),  //
         ChVector3d(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0),  //
@@ -188,7 +188,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
 }
 
 // -----------------------------------------------------------------------------
-// Utilties for writing/exporting the tooth visualization mesh
+// Utilities for writing/exporting the tooth visualization mesh
 // -----------------------------------------------------------------------------
 void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);

@@ -34,9 +34,6 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
     virtual ~ChDriveline() {}
 
-    /// Initialize the driveline.
-    void Initialize(std::shared_ptr<ChChassis> chassis);
-
     /// Update the driveline subsystem.
     /// The motor torque represents the input to the driveline subsystem from the powertrain system.
     /// Apply the provided torque to the driveshaft.

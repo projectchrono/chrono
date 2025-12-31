@@ -1,37 +1,75 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#pragma import_defines (VSG_INSTANCE_POSITIONS, VSG_BILLBOARD, VSG_DISPLACEMENT_MAP, VSG_SKINNING)
+#pragma import_defines (VSG_TEXTURECOORD_0, VSG_TEXTURECOORD_1, VSG_TEXTURECOORD_2, VSG_TEXTURECOORD_3, VSG_BILLBOARD, VSG_INSTANCE_TRANSLATION, VSG_INSTANCE_ROTATION, VSG_INSTANCE_SCALE, VSG_DISPLACEMENT_MAP, VSG_SKINNING, VSG_POINT_SPRITE)
 
 #define VIEW_DESCRIPTOR_SET 0
 #define MATERIAL_DESCRIPTOR_SET 1
+
+#if defined(VSG_TEXTURECOORD_0)
+    layout(location = 2) in vec2 vsg_TexCoord0;
+#endif
+
+#if defined(VSG_TEXTURECOORD_1)
+    layout(location = 3) in vec2 vsg_TexCoord1;
+#endif
+
+#if defined(VSG_TEXTURECOORD_2)
+    layout(location = 4) in vec2 vsg_TexCoord2;
+#endif
+
+#if defined(VSG_TEXTURECOORD_3)
+    layout(location = 5) in vec2 vsg_TexCoord3;
+#endif
+
+#if defined(VSG_TEXTURECOORD_3)
+    #define VSG_TEXCOORD_COUNT 4
+#elif defined(VSG_TEXTURECOORD_2)
+    #define VSG_TEXCOORD_COUNT 3
+#elif defined(VSG_TEXTURECOORD_1)
+    #define VSG_TEXCOORD_COUNT 2
+#else
+    #define VSG_TEXCOORD_COUNT 1
+#endif
 
 layout(push_constant) uniform PushConstants {
     mat4 projection;
     mat4 modelView;
 } pc;
 
-#ifdef VSG_DISPLACEMENT_MAP
-layout(set = MATERIAL_DESCRIPTOR_SET, binding = 6) uniform sampler2D displacementMap;
-#endif
-
 layout(location = 0) in vec3 vsg_Vertex;
 layout(location = 1) in vec3 vsg_Normal;
-layout(location = 2) in vec2 vsg_TexCoord0;
-layout(location = 3) in vec4 vsg_Color;
+layout(location = 6) in vec4 vsg_Color;
 
+#ifdef VSG_DISPLACEMENT_MAP
+layout(set = MATERIAL_DESCRIPTOR_SET, binding = 7) uniform sampler2D displacementMap;
+layout(set = MATERIAL_DESCRIPTOR_SET, binding = 8) uniform DisplacementMapScale
+{
+    vec3 value;
+} displacementMapScale;
+#endif
 
 #ifdef VSG_BILLBOARD
-layout(location = 4) in vec4 vsg_position_scaleDistance;
-#elif defined(VSG_INSTANCE_POSITIONS)
-layout(location = 4) in vec3 vsg_position;
+layout(location = 7) in vec4 vsg_Translation_scaleDistance;
+#endif
+
+#if defined(VSG_INSTANCE_TRANSLATION)
+layout(location = 7) in vec3 vsg_Translation;
+#endif
+
+#if defined(VSG_INSTANCE_ROTATION)
+layout(location = 8) in vec4 vsg_Rotation;
+#endif
+
+#if defined(VSG_INSTANCE_SCALE)
+layout(location = 9) in vec3 vsg_Scale;
 #endif
 
 #ifdef VSG_SKINNING
-layout(location = 5) in ivec4 vsg_JointIndices;
-layout(location = 6) in vec4 vsg_JointWeights;
+layout(location = 10) in ivec4 vsg_JointIndices;
+layout(location = 11) in vec4 vsg_JointWeights;
 
-layout(set = MATERIAL_DESCRIPTOR_SET, binding = 11) buffer JointMatrices
+layout(set = MATERIAL_DESCRIPTOR_SET, binding = 12) readonly buffer JointMatrices
 {
 	mat4 matrices[];
 } joint;
@@ -40,11 +78,15 @@ layout(set = MATERIAL_DESCRIPTOR_SET, binding = 11) buffer JointMatrices
 layout(location = 0) out vec3 eyePos;
 layout(location = 1) out vec3 normalDir;
 layout(location = 2) out vec4 vertexColor;
-layout(location = 3) out vec2 texCoord0;
+layout(location = 3) out vec2 texCoord[VSG_TEXCOORD_COUNT];
+layout(location = 6) out vec3 viewDir;
 
-layout(location = 5) out vec3 viewDir;
-
-out gl_PerVertex{ vec4 gl_Position; };
+out gl_PerVertex{
+    vec4 gl_Position;
+#ifdef VSG_POINT_SPRITE
+    float gl_PointSize;
+#endif
+};
 
 #ifdef VSG_BILLBOARD
 mat4 computeBillboadMatrix(vec4 center_eye, float autoScaleDistance)
@@ -65,14 +107,24 @@ mat4 computeBillboadMatrix(vec4 center_eye, float autoScaleDistance)
 }
 #endif
 
+vec3 rotate(vec4 q, vec3 v)
+{
+    vec3 uv, uuv;
+    vec3 qvec = vec3(q[0], q[1], q[2]);
+    uv = cross(qvec, v);
+    uuv = cross(qvec, uv);
+    uv *= (2.0 * q[3]);
+    uuv *= 2.0;
+    return v + uv + uuv;
+}
+
 void main()
 {
     vec4 vertex = vec4(vsg_Vertex, 1.0);
     vec4 normal = vec4(vsg_Normal, 0.0);
 
 #ifdef VSG_DISPLACEMENT_MAP
-    // TODO need to pass as as uniform or per instance attributes
-    vec3 scale = vec3(1.0, 1.0, 1.0);
+    vec3 scale = displacementMapScale.value;
 
     vertex.xyz = vertex.xyz + vsg_Normal * (texture(displacementMap, vsg_TexCoord0.st).s * scale.z);
 
@@ -100,12 +152,21 @@ void main()
     normal.xyz = normalize(dx * vsg_Normal.x + dy * vsg_Normal.y + dz * vsg_Normal.z);
 #endif
 
-#ifdef VSG_INSTANCE_POSITIONS
-    vertex.xyz = vertex.xyz + vsg_position;
+#ifdef VSG_INSTANCE_SCALE
+    vertex.xyz = vertex.xyz * vsg_Scale;
+#endif
+
+#ifdef VSG_INSTANCE_ROTATION
+    vertex.xyz = rotate(vsg_Rotation, vertex.xyz);
+    normal.xyz = rotate(vsg_Rotation, normal.xyz);
+#endif
+
+#ifdef VSG_INSTANCE_TRANSLATION
+    vertex.xyz = vertex.xyz + vsg_Translation;
 #endif
 
 #ifdef VSG_BILLBOARD
-    mat4 mv = computeBillboadMatrix(pc.modelView * vec4(vsg_position_scaleDistance.xyz, 1.0), vsg_position_scaleDistance.w);
+    mat4 mv = computeBillboadMatrix(pc.modelView * vec4(vsg_Translation_scaleDistance.xyz, 1.0), vsg_Translation_scaleDistance.w);
 #elif defined(VSG_SKINNING)
     // Calculate skinned matrix from weights and joint indices of the current vertex
     mat4 skinMat =
@@ -125,5 +186,24 @@ void main()
     normalDir = (mv * normal).xyz;
 
     vertexColor = vsg_Color;
-    texCoord0 = vsg_TexCoord0;
+
+#ifdef VSG_TEXTURECOORD_0
+    texCoord[0] = vsg_TexCoord0;
+#endif
+
+#ifdef VSG_TEXTURECOORD_1
+    texCoord[1] = vsg_TexCoord1;
+#endif
+
+#ifdef VSG_TEXTURECOORD_2
+    texCoord[2] = vsg_TexCoord2;
+#endif
+
+#ifdef VSG_TEXTURECOORD_3
+    texCoord[3] = vsg_TexCoord3;
+#endif
+
+#ifdef VSG_POINT_SPRITE
+    gl_PointSize = 1.0;
+#endif
 }

@@ -290,23 +290,25 @@ using UserMagnetBufferPtr = std::shared_ptr<SensorHostMagnetBuffer>;
 // Tachometer Data Format and Buffers
 //===================================
 struct TachometerData {
-    float rpm;  ///< rpm of motor shaft
+    float rpm;  // rpm of motor shaft
 };
 /// tachometer host buffer to be used by tachometer filters in the graph
 using SensorHostTachometerBuffer = SensorBufferT<std::shared_ptr<TachometerData[]>>;
 /// pointer to a tachometer buffer on the host that has been moved for safety and can be given to the user
 using UserTachometerBufferPtr = std::shared_ptr<SensorHostTachometerBuffer>;
 
+/*
 //================================
 // Speedometer Data Format and Buffers
 //================================
-// struct EncoderData {
-//     float speed;  ///< speed of object
-// };
-// /// speedometer host buffer to be used by speedometer filters in the graph
-// using SensorHostEncoderBuffer = SensorBufferT<std::shared_ptr<EncoderData[]>>;
-// /// pointer to a speedometer buffer on the host that has been moved to safety and can be given to the user
-// using UserEncoderBufferPtr = std::shared_ptr<SensorHostEncoderBuffer>;
+struct EncoderData {
+    float speed;  // speed of object
+};
+// speedometer host buffer to be used by speedometer filters in the graph
+using SensorHostEncoderBuffer = SensorBufferT<std::shared_ptr<EncoderData[]>>;
+// pointer to a speedometer buffer on the host that has been moved to safety and can be given to the user
+using UserEncoderBufferPtr = std::shared_ptr<SensorHostEncoderBuffer>;
+*/
 
 //============================
 // GPS Data Format and Buffers

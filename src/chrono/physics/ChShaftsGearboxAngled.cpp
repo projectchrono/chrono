@@ -61,9 +61,9 @@ bool ChShaftsGearboxAngled::Initialize(
     return true;
 }
 
-void ChShaftsGearboxAngled::Update(double mytime, bool update_assets) {
+void ChShaftsGearboxAngled::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...

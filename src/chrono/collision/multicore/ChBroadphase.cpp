@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <climits>
 
+#include "chrono/multicore_math/thrust.h"
+
 #include "chrono/collision/multicore/ChBroadphase.h"
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
@@ -102,7 +104,7 @@ void ChBroadphase::RigidBoundingBox() {
 typedef thrust::pair<real3, real3> bbox;
 
 // Reduce a pair of bounding boxes (a,b) to a bounding box containing a and b.
-struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
+struct bbox_reduction {
     bbox operator()(bbox a, bbox b) {
         real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
                          Min(a.first.z, b.first.z));  // lower left corner
@@ -113,19 +115,19 @@ struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
 };
 
 // Convert a point to a bbox containing that point, (point) -> (point, point).
-struct bbox_transformation : public thrust::unary_function<real3, bbox> {
+struct bbox_transformation {
     bbox operator()(real3 point) { return bbox(point, point); }
 };
 
-// Calculate AABB of all fluid particles.
-void ChBroadphase::FluidBoundingBox() {
-    const std::vector<real3>& pos_fluid = *cd_data->state_data.pos_3dof;
+// Calculate AABB of all particles.
+void ChBroadphase::ParticleBoundingBox() {
+    const std::vector<real3>& pos_3dof = *cd_data->state_data.pos_3dof;
     const real radius = cd_data->p_kernel_radius + cd_data->p_collision_envelope;
 
-    bbox res(pos_fluid[0], pos_fluid[0]);
+    bbox res(pos_3dof[0], pos_3dof[0]);
     bbox_transformation unary_op;
     bbox_reduction binary_op;
-    res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
+    res = thrust::transform_reduce(pos_3dof.begin(), pos_3dof.end(), unary_op, res, binary_op);
 
     res.first.x = radius * Floor(res.first.x / radius);
     res.first.y = radius * Floor(res.first.y / radius);
@@ -135,8 +137,8 @@ void ChBroadphase::FluidBoundingBox() {
     res.second.y = radius * Ceil(res.second.y / radius);
     res.second.z = radius * Ceil(res.second.z / radius);
 
-    cd_data->ff_min_bounding_point = res.first - radius * 6;
-    cd_data->ff_max_bounding_point = res.second + radius * 6;
+    cd_data->part_min_bounding_point = res.first - radius * 6;
+    cd_data->part_max_bounding_point = res.second + radius * 6;
 }
 
 void ChBroadphase::DetermineBoundingBox() {
@@ -145,10 +147,10 @@ void ChBroadphase::DetermineBoundingBox() {
     real3 min_point = cd_data->rigid_min_bounding_point;
     real3 max_point = cd_data->rigid_max_bounding_point;
 
-    if (cd_data->state_data.num_fluid_bodies != 0) {
-        FluidBoundingBox();
-        min_point = Min(min_point, cd_data->ff_min_bounding_point);
-        max_point = Max(max_point, cd_data->ff_max_bounding_point);
+    if (cd_data->state_data.num_particles != 0) {
+        ParticleBoundingBox();
+        min_point = Min(min_point, cd_data->part_min_bounding_point);
+        max_point = Max(max_point, cd_data->part_max_bounding_point);
     }
 
     // Inflate the overall bounding box by a small percentage.

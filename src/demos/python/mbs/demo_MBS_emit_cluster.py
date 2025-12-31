@@ -41,8 +41,11 @@ class MyCreatorForAll(chrono.ChRandomShapeCreator_AddBodyCallback):
         self.vis.BindItem(body)
         self.coll.BindItem(body)
 
-        # Other stuff, ex. disable gyroscopic forces for increased integrator stability
+        # Disable gyroscopic forces for increased integrator stability
         body.SetUseGyroTorque(False)
+
+        # Create a force/torque accumulator for this body
+        body.AddAccumulator();
 
 
 
@@ -144,7 +147,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Particle emitter demo')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 14, -20))
 vis.AddTypicalLights()
@@ -168,6 +171,10 @@ sys.GetSolver().AsIterative().SetMaxIterations(40)
 # Turn off default -9.8 downward gravity
 sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
+# Add one force accumulator to each body in the system
+for body in sys.GetBodies():
+    body.AddAccumulator()
+
 # Simulation loop
 stepsize = 1e-2
 
@@ -179,14 +186,12 @@ while vis.Run():
     # Create particle flow
     emitter.EmitParticles(sys, stepsize)
 
-    # Apply custom forcefield (brute force approach..)
-    # A) reset 'user forces accumulators':
+    # A) reset body force accumulators
     for body in sys.GetBodies() :
-        body.EmptyAccumulators()
+        body.EmptyAccumulator(0)
 
 
     # B) store user computed force:
-    # G_constant = 6.674e-11 # gravitational constant
     G_constant = 6.674e-3  # gravitational constant - HACK to speed up simulation
     mlist = list(combinations(sys.GetBodies(), 2))
 
@@ -197,8 +202,8 @@ while vis.Run():
         r_attract = D_attract.Length()
         f_attract = G_constant * (abodyA.GetMass() * abodyB.GetMass()) /(pow(r_attract, 2))
         F_attract = (D_attract / r_attract) * f_attract
-        abodyA.AccumulateForce(F_attract, abodyA.GetPos(), False)
-        abodyB.AccumulateForce(-F_attract, abodyB.GetPos(), False)
+        abodyA.AccumulateForce(0, F_attract, abodyA.GetPos(), False)
+        abodyB.AccumulateForce(0, -F_attract, abodyB.GetPos(), False)
 
     sys.DoStepDynamics(stepsize)
 

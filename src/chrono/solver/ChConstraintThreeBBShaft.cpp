@@ -77,7 +77,7 @@ void ChConstraintThreeBBShaft::SetVariables(ChVariables* mvariables_a,
     Cq_c.setZero();
 }
 
-void ChConstraintThreeBBShaft::Update_auxiliary() {
+void ChConstraintThreeBBShaft::UpdateAuxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]'  etc
     if (variables_a->IsActive()) {

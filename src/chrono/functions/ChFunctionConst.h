@@ -46,6 +46,9 @@ class ChApi ChFunctionConst : public ChFunction {
     /// Returns the function second derivative (i.e. 0)
     virtual double GetDer2(double x) const override { return 0; }
 
+    /// Returns the function third derivative (i.e. 0)
+    virtual double GetDer3(double x) const override { return 0; }
+
     /// Set the constant value of the function.
     void SetConstant(double y_constant) { m_constant = y_constant; }
 

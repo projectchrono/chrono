@@ -22,8 +22,12 @@ namespace chrono {
 /// @addtogroup chrono_solver
 /// @{
 
-/// An iterative solver based on projective fixed point method, with overrelaxation and immediate variable update as in
-/// SOR methods.\n
+/// An iterative solver based on projective fixed-point method, with overrelaxation and immediate variable update as in
+/// SOR methods.
+///
+/// Note: this solver can not be used for problems that include stiffness or damping blocks in system descriptor
+/// (e.g. coming from FEA)
+///
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
 

@@ -45,7 +45,7 @@ class ChApiIrr ChIrrNodeModel : public irr::scene::ISceneNode {
                    irr::s32 id                                ///< Irrlicht identifier
     );
 
-    ~ChIrrNodeModel() {}
+    virtual ~ChIrrNodeModel() {}
 
     /// Get the physics item associated with this scene node.
     std::weak_ptr<ChPhysicsItem> GetPhysicsItem() { return m_physicsitem; }

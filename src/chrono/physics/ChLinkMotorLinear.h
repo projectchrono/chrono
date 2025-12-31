@@ -24,7 +24,7 @@ namespace chrono {
 /// classes for specialized behaviors, for example e.g. chrono::ChLinkMotorLinearPosition
 class ChApi ChLinkMotorLinear : public ChLinkMotor {
   public:
-    /// Type of guide constraint
+    /// Type of guide constraint.
     enum class GuideConstraint { FREE, PRISMATIC, SPHERICAL };
 
     ChLinkMotorLinear();
@@ -36,14 +36,12 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as a pure prismatic guide.
-    /// Note that the Z direction is the motorized one, and is never affected by
-    /// this option.
+    /// Note that the Z direction is the motorized one, and is never affected by this option.
     void SetGuideConstraint(const GuideConstraint mconstraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as a pure prismatic guide.
-    /// Note that the Z direction is the motorized one, and is never affected by
-    /// this option.
+    /// Note that the Z direction is the motorized one, and is never affected by this option.
     void SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz);
 
     /// Get the current actuator displacement.
@@ -64,6 +62,9 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
+    /// Return a string describing the specified motor guide constraint type.
+    static std::string GetGuideTypeString(GuideConstraint type);
+
   protected:
     // aux data for optimization
     double mpos;
@@ -72,7 +73,7 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
 
     int m_actuated_idx;  ///< row index of the actuated constraint (Z axis)
 
-    virtual void Update(double mytime, bool update_assets) override;
+    virtual void Update(double time, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinear, 0)

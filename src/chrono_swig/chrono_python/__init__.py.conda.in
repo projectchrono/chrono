@@ -1,0 +1,77 @@
+# PyChrono conda package.
+# The following imports add the binaries to the modules.
+# Because of the SWIG 4 import style (from . import _<modulename>), pyd/so files in the 
+# PYTHONPATH dir cannot be found and have to be added to the package.
+
+import os
+import pathlib
+
+# Cache directory of this script.
+idir = pathlib.Path(__file__).parent.resolve()
+
+try:
+    from . import core
+    from . import fea
+    ddir = os.path.join(idir, '@PYC_DATA_PATH@')
+    ddir = os.path.join(os.path.realpath(ddir), '')
+    core.SetChronoDataPath(ddir)
+except:
+    pass
+try:
+    from . import vsg3d
+except:
+    pass
+try:
+    from . import fsi
+except:
+    pass
+try:
+    from . import cascade
+except:
+    pass
+try:
+    from . import irrlicht
+except:
+    pass
+try:
+    from . import vehicle
+    ddir = os.path.join(idir, '@PYC_DATA_PATH@')
+    ddir = os.path.join(os.path.realpath(ddir), '')
+    vehicle.SetVehicleDataPath(ddir + "/vehicle/")
+except:
+    pass
+try:
+    from . import postprocess
+except:
+    pass
+try:
+    from . import pardisomkl
+except:
+    pass
+try:
+    from . import sensor
+    sdir = os.path.join(idir, '@PYC_SHADER_PATH@')
+    sdir = os.path.join(os.path.realpath(sdir), '')
+    sensor.SetSensorShaderDir(sdir)
+except:
+    pass
+try:
+    from . import robot
+except:
+    pass
+try:
+    from . import parsers
+except:
+    pass
+try:
+    from . import ros
+except:
+    pass
+
+# The following allows the package "pychrono" to be directly
+# used as C++ namespace chrono:: ie. you just need to type
+#   import pychrono
+# instead of 
+#   import pychrono.core	
+from .core import *
+

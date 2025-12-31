@@ -5,34 +5,29 @@ set(TESTS
     btest_CH_mixerNSC
     )
 
-# ------------------------------------------------------------------------------
-
-include_directories(${CH_INCLUDES})
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
-list(APPEND LIBS "ChronoEngine")
-
-if(ENABLE_MODULE_IRRLICHT)
-  include_directories(${CH_IRRLICHT_INCLUDES})
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-  list(APPEND LIBS "ChronoEngine_irrlicht")
+if(CH_ENABLE_MODULE_PARDISO_MKL OR CH_ENABLE_MODULE_MUMPS)
+  set(TESTS ${TESTS}
+      btest_CH_HHT
+      )
 endif()
 
 # ------------------------------------------------------------------------------
 
-message(STATUS "Benchmark test programs for PHYSICS module...")
+list(APPEND LIBS Chrono_core)
 
-foreach(PROGRAM ${TESTS})
-    message(STATUS "...add ${PROGRAM}")
+if(CH_ENABLE_MODULE_IRRLICHT)
+  list(APPEND LIBS "Chrono_irrlicht")
+endif()
 
-    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
-    source_group(""  FILES "${PROGRAM}.cpp")
+if(CH_ENABLE_MODULE_PARDISO_MKL)
+  list(APPEND LIBS "Chrono_pardisomkl")
+endif()
 
-    set_target_properties(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${COMPILER_FLAGS}"
-        LINK_FLAGS "${LINKER_FLAGS}")
-    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    target_link_libraries(${PROGRAM} ${LIBS} benchmark_main)
-    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-endforeach(PROGRAM)
+if(CH_ENABLE_MODULE_MUMPS)
+  list(APPEND LIBS Chrono_mumps)
+endif()
+
+# ------------------------------------------------------------------------------
+
+message(STATUS "Add benchmark test programs for PHYSICS module")
+build_btests("${TESTS}" "${LIBS}")

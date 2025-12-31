@@ -75,20 +75,23 @@ namespace gator {}
 /// Namespace for the FMTV vehicle models
 namespace fmtv {}
 
-/// namespace for the ARTcar vehicle model
+/// Namespace for the ARTcar vehicle model
 namespace artcar {}
 
-/// namespace for the Kraz truck vehicle model
+/// Namespace for the Kraz truck vehicle model
 namespace kraz {}
 
-/// namespace for the Mercedes G500 vehicle model
+/// Namespace for the Mercedes G500 vehicle model
 namespace gclass {}
 
-/// namespace for the Duro vehicle model
+/// Namespace for the Duro vehicle model
 namespace duro {}
 
-/// namespace for the Unimog 401 vehicle model
+/// Namespace for the Unimog 401 vehicle model
 namespace unimog {}
+
+/// Namespace for the Jeep Cherokee vehicle model
+namespace jeep {}
 
 /// @} vehicle_models
 

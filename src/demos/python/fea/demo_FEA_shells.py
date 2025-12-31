@@ -20,8 +20,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
+
 # Output directory
-out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS"
+out_dir = chrono.GetChronoOutputPath() + "FEA_Shells/"
 
 print( "Copyright (c) 2017 projectchrono.org")
 
@@ -33,7 +36,7 @@ except OSError as exc:
        print("Error creating output directory " )
 
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 # Create a mesh, that is a container for groups
@@ -345,12 +348,12 @@ if (bench3):
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-mvisualizeshellA = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellA = chrono.ChVisualShapeFEA()
 mvisualizeshellA.SetSmoothFaces(True)
 mvisualizeshellA.SetWireframe(True)
 mesh.AddVisualShapeFEA(mvisualizeshellA)
 
-mvisualizeshellC = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellC = chrono.ChVisualShapeFEA()
 mvisualizeshellC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizeshellC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 mvisualizeshellC.SetSymbolsThickness(0.05)
@@ -363,7 +366,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Shells FEA')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 6.0, -10))
 vis.AddTypicalLights()
@@ -382,8 +385,6 @@ ts.SetMaxIters(5)
 ts.SetAbsTolerances(1e-12, 1e-12)
 
 timestep = 0.1
-sys.Setup()
-sys.Update()
 
 rec_X = []
 rec_Y = []

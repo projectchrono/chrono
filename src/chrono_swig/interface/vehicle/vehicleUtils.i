@@ -13,9 +13,6 @@
 %shared_ptr(chrono::vehicle::CirclePath)
 %shared_ptr(chrono::vehicle::DoubleLaneChangePath)
 
-%import "ChPowertrain.i"
-%import "ChChassis.i"
-%import "ChSteering.i"
 %import "../../../chrono_vehicle/ChVehicle.h"
 
 // Parse the header file to generate wrappers

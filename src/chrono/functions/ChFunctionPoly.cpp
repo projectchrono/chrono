@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/functions/ChFunctionPoly.h"
 
 namespace chrono {
@@ -30,7 +32,7 @@ ChFunctionPoly::ChFunctionPoly(const ChFunctionPoly& other) {
 double ChFunctionPoly::GetVal(double x) const {
     double total = 0;
     for (int i = 0; i <= m_coeffs.size(); i++) {
-        total += (m_coeffs[i] * pow(x, (double)i));
+        total += (m_coeffs[i] * std::pow(x, (double)i));
     }
     return total;
 }
@@ -38,7 +40,7 @@ double ChFunctionPoly::GetVal(double x) const {
 double ChFunctionPoly::GetDer(double x) const {
     double total = 0;
     for (int i = 1; i <= m_coeffs.size(); i++) {
-        total += ((double)i * m_coeffs[i] * pow(x, ((double)(i - 1))));
+        total += ((double)i * m_coeffs[i] * std::pow(x, ((double)(i - 1))));
     }
     return total;
 }
@@ -46,7 +48,7 @@ double ChFunctionPoly::GetDer(double x) const {
 double ChFunctionPoly::GetDer2(double x) const {
     double total = 0;
     for (int i = 2; i <= m_coeffs.size(); i++) {
-        total += ((double)(i * (i - 1)) * m_coeffs[i] * pow(x, ((double)(i - 2))));
+        total += ((double)(i * (i - 1)) * m_coeffs[i] * std::pow(x, ((double)(i - 2))));
     }
     return total;
 }

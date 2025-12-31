@@ -3,12 +3,7 @@ Install the VEHICLE module   {#module_vehicle_installation}
 
 [TOC]
 
-This is an optional module that enables template-based ground vehicle 
-modeling and simulation within Chrono.
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
-
+Chrono::Vehicle is a module that enables template-based ground vehicle modeling and simulation within Chrono.
 
 ## Features
 
@@ -18,7 +13,7 @@ For more detail, read the [Chrono::Vehicle](@ref manual_vehicle) section of the 
 
 ## Dependencies
 
-- This module has no additional dependenies
+- This module has no additional dependencies
 - Use the [CRGTerrain](@ref vehicle_terrain_crg) feature requires the [OpenCRG](https://www.asam.net/standards/detail/opencrg/) library. 
 
 For run-time visualization, it is recommended to enable and install the [Chrono::VSG](@ref module_vsg_installation) module and/or the [Chrono::Irrlicht](@ref module_irrlicht_installation) module. 
@@ -37,13 +32,13 @@ These scripts (`buildOpenCRG.bat` and `buildOpenCRG.sh`, for Windows and Linux, 
 
 ## Building instructions
    
-1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
+1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
    
-2. Set the `ENABLE_MODULE_VEHICLE` as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set `CH_ENABLE_MODULE_VEHICLE` to 'on'.
 	 
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
-If enabling OpenCRG support (`ENABLE_OPENCRG`), you will be prompted to provide the location of a local installation of OpenCRG, including the location of the headers, library, and (Windows only) the location of the OpenCRG DLL.
+If enabling OpenCRG support (`CH_ENABLE_OPENCRG`), you will be prompted to provide the location of a local installation of OpenCRG, including the location of the headers, library, and (Windows only) the location of the OpenCRG DLL.
 
 
 ## How to use it

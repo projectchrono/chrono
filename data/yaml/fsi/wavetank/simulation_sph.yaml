@@ -1,0 +1,77 @@
+# ------------------------------------------------------------------------------
+# Basic rigid MBS simulation
+# ------------------------------------------------------------------------------
+
+fluid_dynamics_solver: SPH
+chrono-version: 9.0
+
+simulation:  
+  time_step: 1e-4
+  end_time: 100
+
+  sph:
+     eos_type: TAIT
+     use_delta_sph: true
+     delta_sph_coefficient: 0.1
+     max_velocity: 4.538
+     min_distance_coefficient: 0.01
+     density_reinit_steps: 200000
+     use_density_based_projection: false
+
+  kernel:
+     kernel_type: CUBIC_SPLINE
+     initial_spacing: 0.025
+     d0_multiplier: 1
+
+  discretization:
+     use_consistent_gradient_discretization: false
+     use_consistent_laplacian_discretization: false
+
+  boundary_conditions:
+     boundary_method: ADAMI
+     num_bce_layers: 4
+
+  integration:
+     integration_scheme: RK2
+     use_variable_time_step: false
+
+  proximity_search:
+     num_proximity_search_steps: 1
+
+  particle_shifting:
+     shifting_method: DIFUSSION
+     shifting_diffusion_A: 1.0
+     shifting_diffusion_AFSM: 3.0
+     shifting_diffusion_AFST: 2.0
+
+  viscosity:
+     viscosity_method: ARTIFICIAL_UNILATERAL
+     artificial_viscosity: 0.02
+  
+  output:
+      type: NONE
+      mode: FRAMES
+      fps: 20
+      output_directory: "."
+
+  visualization:
+      sph_markers: true
+      bndry_bce_markers: true
+      rigid_bce_markers: false
+      flex_bce_markers: false
+      active_boxes: false
+      color_map:
+         type: VELOCITY
+         map: FAST
+         min: 0.0
+         max: 1.0
+      visibility:
+         SPH: true
+         BCE: true
+         mode: ANY
+         planes:
+             - point: [0, 0, 0]
+               normal: [0, -1, 0]
+      output:
+         save_images: false
+         output_directory: "."

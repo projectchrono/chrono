@@ -19,7 +19,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/bmw/BMW_E90_RearWheel.h"
 #include "chrono_thirdparty/filesystem/path.h"
 

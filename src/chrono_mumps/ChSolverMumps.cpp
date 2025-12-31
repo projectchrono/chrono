@@ -18,8 +18,8 @@
 namespace chrono {
 
 ChSolverMumps::ChSolverMumps(int num_threads) {
-    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
-    ChOMP::SetNumThreads(nthreads);
+    //ChOMP::SetNumThreads(num_threads);
+    m_engine.SetNumThreads(num_threads);
 }
 
 void ChSolverMumps::EnableNullPivotDetection(bool val, double threshold) {
@@ -46,10 +46,24 @@ void ChSolverMumps::SetMatrixSymmetryType(MatrixSymmetryType symmetry) {
     }
 }
 
-bool ChSolverMumps::FactorizeMatrix() {
+bool ChSolverMumps::FactorizeMatrix(bool analyze) {
     m_engine.SetMatrix(m_mat);
-    auto mumps_err = m_engine.MumpsCall(ChMumpsEngine::mumps_JOB::ANALYZE_FACTORIZE);
-    return (mumps_err == 0);
+    
+    if (analyze) {
+        auto err_A = m_engine.MumpsCall(ChMumpsEngine::mumps_JOB::ANALYZE);
+        if (err_A != 0) {
+            std::cerr << "Mumps ANALYZE failed with error code " << err_A << std::endl;
+            return false;
+        }
+    }
+
+    auto err_F = m_engine.MumpsCall(ChMumpsEngine::mumps_JOB::FACTORIZE);
+    if (err_F != 0) {
+        std::cerr << "Mumps FACTORIZE failed with error code " << err_F << std::endl;
+        return false;
+    }
+    
+    return true;
 }
 
 bool ChSolverMumps::SolveSystem() {

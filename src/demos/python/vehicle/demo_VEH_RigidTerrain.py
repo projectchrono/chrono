@@ -40,11 +40,11 @@ def main():
     hmmwv.SetTireStepSize(tire_step_size)
     hmmwv.Initialize()
 
-    hmmwv.SetChassisVisualizationType(veh.VisualizationType_NONE)
-    hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetWheelVisualizationType(veh.VisualizationType_MESH)
-    hmmwv.SetTireVisualizationType(veh.VisualizationType_MESH)
+    hmmwv.SetChassisVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetWheelVisualizationType(chrono.VisualizationType_MESH)
+    hmmwv.SetTireVisualizationType(chrono.VisualizationType_MESH)
 
     hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -56,31 +56,38 @@ def main():
     patch1_mat.SetRestitution(0.01)
     patch1 = terrain.AddPatch(patch1_mat, chrono.ChCoordsysd(chrono.ChVector3d(-16, 0, 0), chrono.QUNIT), 32, 20)
     patch1.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
-    patch1.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 20, 20)
+    patch1.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 20, 20)
 
     patch2_mat = chrono.ChContactMaterialNSC()
     patch2_mat.SetFriction(0.9)
     patch2_mat.SetRestitution(0.01)
     patch2 = terrain.AddPatch(patch2_mat, chrono.ChCoordsysd(chrono.ChVector3d(16, 0, 0.15), chrono.QUNIT), 32, 30);
     patch2.SetColor(chrono.ChColor(1.0, 0.5, 0.5))
-    patch2.SetTexture(veh.GetDataFile("terrain/textures/concrete.jpg"), 20, 20)
+    patch2.SetTexture(veh.GetVehicleDataFile("terrain/textures/concrete.jpg"), 20, 20)
 
     patch3_mat = chrono.ChContactMaterialNSC()
     patch3_mat.SetFriction(0.9)
     patch3_mat.SetRestitution(0.01)
     patch3 = terrain.AddPatch(patch3_mat, chrono.ChCoordsysd(chrono.ChVector3d(0, -42, 0), chrono.QUNIT),
-                              veh.GetDataFile("terrain/meshes/bump.obj"))
+                              veh.GetVehicleDataFile("terrain/meshes/bump.obj"))
     patch3.SetColor(chrono.ChColor(0.5, 0.5, 0.8))
-    patch3.SetTexture(veh.GetDataFile("terrain/textures/dirt.jpg"), 6.0, 6.0)
+    patch3.SetTexture(veh.GetVehicleDataFile("terrain/textures/dirt.jpg"), 6.0, 6.0)
 
     patch4_mat = chrono.ChContactMaterialNSC()
     patch4_mat.SetFriction(0.9)
     patch4_mat.SetRestitution(0.01)
     patch4 = terrain.AddPatch(patch4_mat, chrono.ChCoordsysd(chrono.ChVector3d(0, 42, 0), chrono.QUNIT),
-                              veh.GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0)
-    patch4.SetTexture(veh.GetDataFile("terrain/textures/grass.jpg"), 6.0, 6.0)
+                              veh.GetVehicleDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0)
+    patch4.SetTexture(veh.GetVehicleDataFile("terrain/textures/grass.jpg"), 6.0, 6.0)
 
     terrain.Initialize()
+    
+    # Create the interactive driver system
+    driver = veh.ChInteractiveDriver(hmmwv.GetVehicle())
+    driver.SetSteeringDelta(0.02)
+    driver.SetThrottleDelta(0.02)
+    driver.SetBrakingDelta(0.06)
+    driver.Initialize()
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
@@ -88,17 +95,11 @@ def main():
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 0.75), 6.0, 0.5)
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv.GetVehicle())
-
-    # Create the interactive driver system
-    driver = veh.ChInteractiveDriverIRR(vis)
-    driver.SetSteeringDelta(0.02)
-    driver.SetThrottleDelta(0.02)
-    driver.SetBrakingDelta(0.06)
-    driver.Initialize()
+    vis.AttachDriver(driver)
 
     hmmwv.GetVehicle().EnableRealtime(True)
 
@@ -128,12 +129,6 @@ def main():
     return 0
 
 
-
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Simulation step sizes
 step_size = 2e-3;

@@ -50,9 +50,9 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of using the Multicore module.
 
--   @subpage tutorial_table_of_content_chrono_gpu
+-   @subpage tutorial_table_of_content_chrono_dem
 
-    Examples of granular dynamics problems using the GPU module.
+    Examples of granular dynamics problems using the DEM module.
 
 -   @subpage tutorial_table_of_content_chrono_python
 
@@ -69,10 +69,6 @@ auto my_body = chrono_types::make_shared<ChBody>();
 -   @subpage tutorial_table_of_content_chrono_cascade
 
     Examples of loading CAD models.
-
--   @subpage tutorial_table_of_content_chrono_opengl
-
-    Examples of run-time visualization with the OpenGL module.
 
 -   @subpage tutorial_table_of_content_chrono_sensor
 

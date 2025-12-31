@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
         chrono::ChMatrixNM<double, 2, 3> B(A);
         B(1, 2) += 0.01;
         std::cout << "matrix B = A with B(1,2) incremented by 0.01\n" << B << std::endl;
-        std::cout << "|A-B| < 0.1?   " << A.equals(B, 0.1) << std::endl;
-        std::cout << "|A-B| < 0.001? " << A.equals(B, 0.001) << std::endl;
+        std::cout << "|A-B| < 0.1?   " << A.isApprox(B, 0.1) << std::endl;
+        std::cout << "|A-B| < 0.001? " << A.isApprox(B, 0.001) << std::endl;
 
         chrono::ChVectorDynamic<> v(3);
         v << 2, 3, 4;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
 
         // Tolerance comparison
         B(1, 2) += 0.001;
-        if (A.equals(B, 0.002)) {
+        if (A.isApprox(B, 0.002)) {
             std::cout << "Matrices are equal within tol 0.002 \n";
         }
     }

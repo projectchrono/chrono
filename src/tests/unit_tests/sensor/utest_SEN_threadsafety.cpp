@@ -51,6 +51,7 @@ TEST(ChFilterAccess, data_access_safety) {
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    ////manager->SetVerbose(true);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(

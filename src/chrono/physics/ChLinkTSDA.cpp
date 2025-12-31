@@ -265,7 +265,7 @@ void ChLinkTSDA::ComputeJacobians(double time,                 // current time
 // -----------------------------------------------------------------------------
 
 void ChLinkTSDA::Update(double time, bool update_assets) {
-    ChTime = time;
+    ChLink::Update(time, update_assets);
 
     // Pack states and state derivatives for the two connected bodies and ODE states (if present)
     ChState state_x(14 + m_nstates, nullptr);
@@ -294,9 +294,6 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
         // Restore the states (may have been perturbed during Jacobian calculation)
         m_states = state_w.segment(12, m_nstates);
     }
-
-    // Update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
 
     // TODO: DARIOM double check if correct
     ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();

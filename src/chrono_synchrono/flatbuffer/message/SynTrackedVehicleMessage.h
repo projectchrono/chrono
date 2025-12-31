@@ -53,18 +53,18 @@ class SynTrackedVehicleStateMessage : public SynMessage {
 
     ///@brief Set the state variables
     ///
-    ///@param time simulation time
-    ///@param chassis vehicle's chassis pose
-    ///@param track_shoes vehicle's track shoe poses
-    ///@param sprockets vehicle's sprocket poses
-    ///@param idlers vehicle's idler poses
+    ///@param t simulation time
+    ///@param chassis_pose vehicle's chassis pose
+    ///@param track_shoe_poses vehicle's track shoe poses
+    ///@param sprocket_poses vehicle's sprocket poses
+    ///@param idler_poses vehicle's idler poses
     ///@param road_wheels vehicle's road wheel poses
-    void SetState(double time,
-                  SynPose chassis,
-                  std::vector<SynPose> track_shoes,
-                  std::vector<SynPose> sprockets,
-                  std::vector<SynPose> idlers,
-                  std::vector<SynPose> road_wheels);
+    void SetState(double t,
+                  SynPose chassis_pose,
+                  std::vector<SynPose> track_shoe_poses,
+                  std::vector<SynPose> sprocket_poses,
+                  std::vector<SynPose> idler_poses,
+                  std::vector<SynPose> road_wheel_poses);
 
     // -------------------------------------------------------------------------------
 
@@ -107,33 +107,33 @@ class SynTrackedVehicleDescriptionMessage : public SynMessage {
 
     ///@brief Set the visualization files
     ///
-    ///@param chassis_vis_file file name for chassis zombie visualization
-    ///@param track_shoe_vis_file file name for track shoe zombie visualization
-    ///@param left_sprocket_vis_file file name for the left sprocket zombie visualization
-    ///@param right_sprocket_vis_file file name for the right sprocket zombie visualization
-    ///@param left_idler_vis_file file name for the left idler zombie visualization
-    ///@param right_idler_vis_file file name for the right idler zombie visualization
-    ///@param left_road_wheel_vis_file file name for the left road wheel zombie visualization
-    ///@param right_road_wheel_vis_file file name for the right road wheel zombie visualization
-    void SetVisualizationFiles(const std::string& chassis_vis_file,
-                               const std::string& track_shoe_vis_file,
-                               const std::string& left_sprocket_vis_file,
-                               const std::string& right_sprocket_vis_file,
-                               const std::string& left_idler_vis_file,
-                               const std::string& right_idler_vis_file,
-                               const std::string& left_road_wheel_vis_file,
-                               const std::string& right_road_wheel_vis_file);
+    ///@param chassis_visualization_file file name for chassis zombie visualization
+    ///@param track_shoe_visualization_file file name for track shoe zombie visualization
+    ///@param left_sprocket_visualization_file file name for the left sprocket zombie visualization
+    ///@param right_sprocket_visualization_file file name for the right sprocket zombie visualization
+    ///@param left_idler_visualization_file file name for the left idler zombie visualization
+    ///@param right_idler_visualization_file file name for the right idler zombie visualization
+    ///@param left_road_wheel_visualization_file file name for the left road wheel zombie visualization
+    ///@param right_road_wheel_visualization_file file name for the right road wheel zombie visualization
+    void SetVisualizationFiles(const std::string& chassis_visualization_file,
+                               const std::string& track_shoe_visualization_file,
+                               const std::string& left_sprocket_visualization_file,
+                               const std::string& right_sprocket_visualization_file,
+                               const std::string& left_idler_visualization_file,
+                               const std::string& right_idler_visualization_file,
+                               const std::string& left_road_wheel_visualization_file,
+                               const std::string& right_road_wheel_visualization_file);
 
     ///@brief Set the number of each assembly component
     ///
-    ///@param num_track_shoes number of track shoes the zombie vehicle has
-    ///@param num_sprockets number of sprockets the zombie vehicle has
-    ///@param num_idlers number of idlers the zombie vehicle has
-    ///@param num_road_wheels number of road wheels the zombie vehicle has
-    void SetNumAssemblyComponents(int num_track_shoes,   //
-                                  int num_sprockets,     //
-                                  int num_idlers,        //
-                                  int num_road_wheels);  //
+    ///@param number_track_shoes number of track shoes the zombie vehicle has
+    ///@param number_sprockets number of sprockets the zombie vehicle has
+    ///@param number_idlers number of idlers the zombie vehicle has
+    ///@param number_road_wheels number of road wheels the zombie vehicle has
+    void SetNumAssemblyComponents(int number_track_shoes,   //
+                                  int number_sprockets,     //
+                                  int number_idlers,        //
+                                  int number_road_wheels);  //
 
     // -------------------------------------------------------------------------------
 

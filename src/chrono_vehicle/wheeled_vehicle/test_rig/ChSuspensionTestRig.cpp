@@ -26,7 +26,7 @@
 
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
@@ -140,7 +140,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& spec_filename)
     assert(type.compare("SuspensionTestRig") == 0);
 
     assert(d.HasMember("Vehicle Input File"));
-    m_vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(d["Vehicle Input File"].GetString()),
+    m_vehicle = chrono_types::make_shared<WheeledVehicle>(GetVehicleDataFile(d["Vehicle Input File"].GetString()),
                                                           ChContactMethod::SMC);
 
     assert(d.HasMember("Test Axle Indices"));
@@ -415,11 +415,12 @@ void ChSuspensionTestRig::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 
-void ChSuspensionTestRig::SetOutput(ChVehicleOutput::Type type,
+void ChSuspensionTestRig::SetOutput(ChOutput::Type type,
+                                    ChOutput::Mode mode,
                                     const std::string& out_dir,
                                     const std::string& out_name,
                                     double output_step) {
-    m_vehicle->SetOutput(type, out_dir, out_name, output_step);
+    m_vehicle->SetOutput(type, mode, out_dir, out_name, output_step);
 }
 
 void ChSuspensionTestRig::SetPlotOutput(double output_step) {
@@ -735,25 +736,25 @@ void ChSuspensionTestRigPlatform::AddPostVisualization(std::shared_ptr<ChBody> p
     auto mat = chrono_types::make_shared<ChVisualMaterial>();
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
-    ChVehicleGeometry::AddVisualizationCylinder(post,                              //
-                                                ChVector3d(0, 0, 0),               //
-                                                ChVector3d(0, 0, -m_post_height),  //
-                                                m_post_radius,                     //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(post,                              //
+                                                    ChVector3d(0, 0, 0),               //
+                                                    ChVector3d(0, 0, -m_post_height),  //
+                                                    m_post_radius,                     //
+                                                    mat);
 
     // Piston (on post body)
-    ChVehicleGeometry::AddVisualizationCylinder(post,                                     //
-                                                ChVector3d(0, 0, -m_post_height),         //
-                                                ChVector3d(0, 0, -10.0 * m_post_height),  //
-                                                m_post_radius / 6.0,                      //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(post,                                     //
+                                                    ChVector3d(0, 0, -m_post_height),         //
+                                                    ChVector3d(0, 0, -10.0 * m_post_height),  //
+                                                    m_post_radius / 6.0,                      //
+                                                    mat);
 
     // Post sleeve (on chassis/ground body)
-    ChVehicleGeometry::AddVisualizationCylinder(m_vehicle->GetChassisBody(),                            //
-                                                post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
-                                                post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
-                                                m_post_radius / 4.0,                                    //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_vehicle->GetChassisBody(),                            //
+                                                    post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
+                                                    post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
+                                                    m_post_radius / 4.0,                                    //
+                                                    mat);
 }
 
 double ChSuspensionTestRigPlatform::CalcDisplacementOffset(int axle) {
@@ -879,10 +880,10 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 }
 
 void ChSuspensionTestRigPushrod::AddRodVisualization(std::shared_ptr<ChBody> rod, const ChColor& color) {
-    auto cyl = ChVehicleGeometry::AddVisualizationCylinder(rod,                              //
-                                                           ChVector3d(0, 0, 0),              //
-                                                           ChVector3d(0, 0, -m_rod_length),  //
-                                                           m_rod_radius);
+    auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(rod,                              //
+                                                               ChVector3d(0, 0, 0),              //
+                                                               ChVector3d(0, 0, -m_rod_length),  //
+                                                               m_rod_radius);
     cyl->SetColor(color);
 }
 

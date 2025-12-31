@@ -60,11 +60,11 @@ def main():
     hmmwv.SetTireType(veh.TireModelType_RIGID)
     hmmwv.Initialize()
 
-    hmmwv.SetChassisVisualizationType(veh.VisualizationType_NONE)
-    hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
-    hmmwv.SetTireVisualizationType(veh.VisualizationType_MESH)
+    hmmwv.SetChassisVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetWheelVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv.SetTireVisualizationType(chrono.VisualizationType_MESH)
 
     hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -84,8 +84,8 @@ def main():
                               3e4    # Damping (Pa s/m), proportional to negative vertical speed (optional)
     )
 
-    # Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(hmmwv.GetChassisBody(), chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(5, 3, 1))
+    # Optionally, enable active domains feature (single domain around vehicle chassis)
+    terrain.AddActiveDomain(hmmwv.GetChassisBody(), chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(5, 3, 1))
 
     # Set plot type for SCM (false color plotting)
     terrain.SetPlotType(veh.SCMTerrain.PLOT_SINKAGE, 0, 0.1);
@@ -99,7 +99,7 @@ def main():
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5)
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv.GetVehicle())
@@ -135,12 +135,6 @@ def main():
 
     return 0
   
-
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # SCM patch dimensions
 terrainHeight = 0

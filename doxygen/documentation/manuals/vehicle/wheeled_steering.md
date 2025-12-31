@@ -28,7 +28,7 @@ The hardpoints are:
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/PitmanArm_points.png" width="600" />
 
 A sample JSON file with the specification of a PitmanArm steering mechanism is:
-\include "../../data/vehicle/hmmwv/steering/HMMWV_PitmanArm.json"
+\include "data/vehicle/hmmwv/steering/HMMWV_PitmanArm.json"
 
 ## Rack-pinion {#wheeled_steering_rack_pinion}
 
@@ -51,7 +51,7 @@ The hardpoints are:
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/RackPinion_points.png" width="600" />
 
 A sample JSON file with the specification of a RackPinion steering mechanism is:
-\include "../../data/vehicle/hmmwv/steering/HMMWV_RackPinion.json"
+\include "data/vehicle/hmmwv/steering/HMMWV_RackPinion.json"
 
 
 ## Rotary arm {#wheeled_steering_rotary_arm}
@@ -71,4 +71,4 @@ The hardpoints are:
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/RotaryArm_points.png" width="600" />
 
 A sample JSON file with the specification of a RotaryArm steering mechanism is:
-\include "../../data/vehicle/uaz/steering/UAZBUS_RotaryArm.json"
+\include "data/vehicle/uaz/steering/UAZBUS_RotaryArm.json"

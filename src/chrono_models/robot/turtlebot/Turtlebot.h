@@ -330,7 +330,7 @@ class CH_MODELS_API TurtleBot {
     TurtleBot(ChSystem* system,
               const ChVector3d& robot_pos,
               const ChQuaternion<>& robot_rot,
-              std::shared_ptr<ChContactMaterial> wheel_mat = nullptr);
+              std::shared_ptr<ChContactMaterial> wheel_mat = {});
     ~TurtleBot();
 
     /// Initialize the turtlebot robot using current parameters.

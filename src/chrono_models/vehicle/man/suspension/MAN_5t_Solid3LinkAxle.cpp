@@ -126,7 +126,7 @@ MAN_5t_Solid3LinkAxle::MAN_5t_Solid3LinkAxle(const std::string& name) : ChSolidT
     m_springForceCB = chrono_types::make_shared<MAN_5t_SpringForceRear>(m_springCoefficient1, m_springCoefficient2,
                                                                         m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
+    m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(
         m_damperCoefCompression, m_damperDegresCompression, m_damperCoefExpansion, m_damperDegresExpansion);
 }
 

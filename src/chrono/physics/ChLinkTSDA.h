@@ -68,6 +68,9 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Get current states.
     const ChVectorDynamic<>& GetStates() const { return m_states; }
 
+    /// Overwrite the states.
+    void SetStates(const ChVectorDynamic<>& states) { m_states = states; }
+
     /// Get the spring rest (free) length.
     double GetRestLength() const { return m_rest_length; }
 
@@ -197,7 +200,7 @@ class ChApi ChLinkTSDA : public ChLink {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
 

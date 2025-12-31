@@ -51,7 +51,7 @@ class CH_MODELS_API M113_Suspension : public ChTranslationalDamperSuspension {
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
     /// Return bushing data.
-    virtual std::shared_ptr<ChVehicleBushingData> getArmBushingData() const override { return m_bushing_data; }
+    virtual std::shared_ptr<ChJoint::BushingData> getArmBushingData() const override { return m_bushing_data; }
 
     /// Return the free (rest) angle of the spring element.
     virtual double GetSpringRestAngle() const override { return 0; }
@@ -67,7 +67,7 @@ class CH_MODELS_API M113_Suspension : public ChTranslationalDamperSuspension {
 
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_spring_torqueCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shock_forceCB;
-    std::shared_ptr<ChVehicleBushingData> m_bushing_data;
+    std::shared_ptr<ChJoint::BushingData> m_bushing_data;
 
     static const double m_arm_mass;
     static const ChVector3d m_arm_inertia;

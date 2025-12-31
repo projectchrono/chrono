@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -78,7 +78,7 @@ class CH_MODELS_API Marder_RoadWheelLeft : public Marder_RoadWheel {
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;
@@ -92,7 +92,7 @@ class CH_MODELS_API Marder_RoadWheelRight : public Marder_RoadWheel {
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetVehicleDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshFile;

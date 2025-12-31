@@ -16,35 +16,64 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemSMC.h"
+
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkNodeSlopeFrame.h"
-#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
+#include "demos/SetChronoSolver.h"
+#include "demos/fea/FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+using std::cout;
+using std::cerr;
+using std::endl;
+
+// -----------------------------------------------------------------------------
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    // Create Chrono system
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
+    // Solver and integrator settings
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
-    std::cout << "-----------------------------------------------------------\n";
+    double step_size = 1e-2;
+    auto solver_type = ChSolver::Type::MINRES;
+    auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    SetChronoSolver(sys, solver_type, integrator_type);
+
+    if (auto ls_it = std::dynamic_pointer_cast<ChIterativeSolverLS>(sys.GetSolver())) {
+        ls_it->SetMaxIterations(100);
+        ls_it->SetTolerance(1e-10);
+        ls_it->EnableDiagonalPreconditioner(true);
+    }
+
+    if (auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
+        hht->SetAlpha(-0.2);
+        hht->SetMaxIters(5);
+        hht->SetAbsTolerances(1e-2);
+        hht->SetStepControl(true);
+        hht->SetMinStepSize(1e-4);
+        ////hht->SetVerbose(true);
+    }
+
     std::cout << "-----------------------------------------------------------\n";
     std::cout << "     ANCF Shell Elements demo with implicit integration    \n";
     std::cout << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
     // Geometry of the plate
     double plate_lenght_x = 1;
     double plate_lenght_y = 0.1;
@@ -85,14 +114,13 @@ int main(int argc, char* argv[]) {
             node->SetFixed(true);
 
         // Add node to mesh
-        my_mesh->AddNode(node);
+        mesh->AddNode(node);
     }
 
-    // Get a handle to the tip node.
-    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
+    // Get a handle to the tip node
+    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(TotalNumNodes - 1));
 
-    // Create an orthotropic material.
-    // All layers for all elements share the same material.
+    // Create an orthotropic material; all layers for all elements share the same material
     double rho = 500;
     ChVector3d E(2.1e7, 2.1e7, 2.1e7);
     ChVector3d nu(0.3, 0.3, 0.3);
@@ -107,104 +135,70 @@ int main(int argc, char* argv[]) {
         int node2 = (i / numDiv_x) * N_x + i % numDiv_x + 1 + N_x;
         int node3 = (i / numDiv_x) * N_x + i % numDiv_x + N_x;
 
-        // Create the element and set its nodes.
+        // Create the element and set its nodes
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
 
         // Set element dimensions
         element->SetDimensions(dx, dy);
 
-        // Add a single layers with a fiber angle of 0 degrees.
+        // Add a single layers with a fiber angle of 0 degrees
         element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
         // Set other element properties
         element->SetAlphaDamp(0.0);  // Structural damping for this element
 
         // Add element to mesh
-        my_mesh->AddElement(element);
+        mesh->AddElement(element);
     }
 
     // Add the mesh to the system
-    sys.Add(my_mesh);
+    sys.Add(mesh);
 
-    // -------------------------------------
-    // Options for visualization in irrlicht
-    // -------------------------------------
+    // Options for FEA visualization
 
-    auto visualizemeshA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    visualizemeshA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    visualizemeshA->SetColorscaleMinMax(0.0, 5.50);
-    visualizemeshA->SetShrinkElements(true, 0.85);
-    visualizemeshA->SetSmoothFaces(true);
-    my_mesh->AddVisualShapeFEA(visualizemeshA);
+    auto shapeA = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    shapeA->SetColormapRange(0.0, 5.50);
+    shapeA->SetShrinkElements(true, 0.85);
+    shapeA->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(shapeA);
 
-    auto visualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    visualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-    visualizemeshB->SetWireframe(true);
-    visualizemeshB->SetDrawInUndeformedReference(true);
-    my_mesh->AddVisualShapeFEA(visualizemeshB);
+    auto shapeB = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+    shapeB->SetWireframe(true);
+    shapeB->SetDrawInUndeformedReference(true);
+    mesh->AddVisualShapeFEA(shapeB);
 
-    auto visualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    visualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    visualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    visualizemeshC->SetSymbolsThickness(0.004);
-    my_mesh->AddVisualShapeFEA(visualizemeshC);
+    auto shapeC = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    shapeC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    shapeC->SetSymbolsThickness(0.004);
+    mesh->AddVisualShapeFEA(shapeC);
 
-    auto visualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    visualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
-    visualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    visualizemeshD->SetSymbolsScale(1);
-    visualizemeshD->SetColorscaleMinMax(-0.5, 5);
-    visualizemeshD->SetZbufferHide(false);
-    my_mesh->AddVisualShapeFEA(visualizemeshD);
+    auto shapeD = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    shapeD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    shapeD->SetSymbolsScale(1);
+    shapeD->SetColormapRange(-0.5, 5);
+    shapeD->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(shapeD);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("ANCF Shells");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0.4, 0.3, 0.1), ChVector3d(0.0, 0.0, -0.1));
-    vis->AttachSystem(&sys);
-
-    // ----------------------------------
-    // Perform a dynamic time integration
-    // ----------------------------------
-
-    // Set up solver
-    auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    sys.SetSolver(solver);
-    solver->SetMaxIterations(100);
-    solver->SetTolerance(1e-10);
-    solver->EnableDiagonalPreconditioner(true);
-
-    // Set up integrator
-    auto stepper = chrono_types::make_shared<ChTimestepperHHT>(&sys);
-    sys.SetTimestepper(stepper);
-    // Alternative way of changing the integrator:
-    ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
-    ////auto stepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
-
-    stepper->SetAlpha(-0.2);
-    stepper->SetMaxIters(5);
-    stepper->SetAbsTolerances(1e-2);
-    stepper->SetStepControl(true);
-    stepper->SetMinStepSize(1e-4);
-    ////stepper->SetVerbose(true);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Shells 3423",
+                                         ChVector3d(0.4, 0.3, 0.1), ChVector3d(0.0, 0.0, -0.1));
 
     // Simulation loop
-
+    ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-        sys.DoStepDynamics(0.01);
+        sys.DoStepDynamics(step_size);
+        realtime_timer.Spin(step_size);
     }
 
     return 0;

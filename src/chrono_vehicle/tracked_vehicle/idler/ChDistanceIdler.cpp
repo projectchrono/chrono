@@ -16,7 +16,7 @@
 // An idler consists of the idler wheel and a carrier body. The carrier body is
 // connected to the chassis and the idler wheel to the carrier. A linear
 // actuator connects the carrier body and a link body (the chassis or a
-// supsension arm).
+// suspension arm).
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -68,7 +68,7 @@ ChDistanceIdler::~ChDistanceIdler() {
     }
 }
 
-void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
+void ChDistanceIdler::Construct(std::shared_ptr<ChChassis> chassis,
                                  const ChVector3d& location,
                                  ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system
@@ -86,6 +86,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the carrier body
     m_carrier = chrono_types::make_shared<ChBody>();
     m_carrier->SetName(m_name + "_carrier");
+    m_carrier->SetTag(m_obj_tag);
     m_carrier->SetPos(m_points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetCarrierMass());
@@ -95,6 +96,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the revolute joint between carrier and chassis
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetName(m_name + "_carrier_pin");
+    m_revolute->SetTag(m_obj_tag);
     m_revolute->Initialize(chassis->GetBody(), m_carrier,
                            ChFrame<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
@@ -111,13 +113,10 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     auto arm = track->GetTrackSuspensions().back()->GetCarrierBody();
     m_tensioner = chrono_types::make_shared<ChLinkLockLinActuator>();
     m_tensioner->SetName(m_name + "_tensioner");
+    m_tensioner->SetTag(m_obj_tag);
     m_tensioner->SetActuatorFunction(motfun);
     m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(m_points[MOTOR_ARM]), ChFrame<>(m_points[MOTOR_CARRIER]));
     chassis->GetSystem()->AddLink(m_tensioner);
-
-    // Invoke the base class implementation. This initializes the associated idler wheel.
-    // Note: we must call this here, after the m_carrier body is created.
-    ChIdler::Initialize(chassis, location, track);
 }
 
 void ChDistanceIdler::InitializeInertiaProperties() {
@@ -128,7 +127,7 @@ void ChDistanceIdler::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_carrier->GetFrameCOMToAbs(), m_carrier->GetMass(), m_carrier->GetInertia());
     composite.AddComponent(m_idler_wheel->GetBody()->GetFrameCOMToAbs(), m_idler_wheel->GetBody()->GetMass(),
                            m_idler_wheel->GetBody()->GetInertia());
@@ -157,35 +156,35 @@ void ChDistanceIdler::AddVisualizationAssets(VisualizationType vis) {
 
     // Carrier-chassis revolute joint
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
-                                                               ChVector3d(pR.x(), pC.y() - radius, pR.z()),  //
-                                                               ChVector3d(pR.x(), pC.y() + radius, pR.z()),  //
-                                                               3 * radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                                    //
+                                                                   ChVector3d(pR.x(), pC.y() - radius, pR.z()),  //
+                                                                   ChVector3d(pR.x(), pC.y() + radius, pR.z()),  //
+                                                                   3 * radius);
         cyl->SetColor(carrier_col);
     }
 
     // Carrier-wheel revolute joint
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
-                                                               ChVector3d(pW.x(), pC.y() - radius, pW.z()),  //
-                                                               ChVector3d(pW.x(), pC.y() + radius, pW.z()),  //
-                                                               2 * radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                                    //
+                                                                   ChVector3d(pW.x(), pC.y() - radius, pW.z()),  //
+                                                                   ChVector3d(pW.x(), pC.y() + radius, pW.z()),  //
+                                                                   2 * radius);
         cyl->SetColor(carrier_col);
     }
 
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
-                                                               ChVector3d(pR.x(), pC.y(), pR.z()),  //
-                                                               ChVector3d(pW.x(), pC.y(), pW.z()),  //
-                                                               radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                           //
+                                                                   ChVector3d(pR.x(), pC.y(), pR.z()),  //
+                                                                   ChVector3d(pW.x(), pC.y(), pW.z()),  //
+                                                                   radius);
         cyl->SetColor(carrier_col);
     }
 
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
-                                                               ChVector3d(pW.x(), pC.y(), pW.z()),  //
-                                                               ChVector3d(pM.x(), pC.y(), pM.z()),  //
-                                                               radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                           //
+                                                                   ChVector3d(pW.x(), pC.y(), pW.z()),  //
+                                                                   ChVector3d(pM.x(), pC.y(), pM.z()),  //
+                                                                   radius);
         cyl->SetColor(carrier_col);
     }
 
@@ -214,31 +213,12 @@ void ChDistanceIdler::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChDistanceIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    ExportBodyList(jsonDocument, bodies);
+void ChDistanceIdler::PopulateComponentList() {
+    m_bodies.push_back(m_carrier);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_tensioner);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChDistanceIdler::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_tensioner);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute);
+    m_joints.push_back(m_tensioner);
 }
 
 }  // end namespace vehicle

@@ -23,19 +23,9 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChLineArc.h"
-#include "chrono/utils/ChCompositeInertia.h"
+#include "chrono/physics/ChMassProperties.h"
 
-#include <TopExp_Explorer.hxx>
 #include <TopoDS_Wire.hxx>
-#include <TopoDS_Builder.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
-#include <BRepPrimAPI_MakePrism.hxx>
-#include <Geom_TrimmedCurve.hxx>
-#include <GC_MakeArcOfCircle.hxx>
-#include <GC_MakeSegment.hxx>
-#include <gp_Circ.hxx>
 
 namespace chrono {
 namespace cascade {
@@ -62,17 +52,29 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
     ChCascadeBodyEasy(TopoDS_Shape& shape,                               ///< OpenCASCADE shape
                       double density,                                    ///< density
                       std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tesselation parameters
-                      bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
-                      std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
+                      bool create_collision = false,                     ///< create collision shape
+                      std::shared_ptr<ChContactMaterial> mat = nullptr   ///< surface contact material
     );
 
     /// Creates a body plus adds a visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density. The COG is automatically displaced, and the
     /// reference position is initialized as shape location. Kept here for backward compatibility.
-    ChCascadeBodyEasy(TopoDS_Shape& shape,    ///< OpenCASCADE shape
-                      double density,         ///< density
-                      bool visualize = true,  ///< if true, uses a triangulated shape for visualization
-                      bool collide = false,   ///< if true, add a collision shape that uses the triangulation of shape
+    ChCascadeBodyEasy(TopoDS_Shape& shape,                              ///< OpenCASCADE shape
+                      double density,                                   ///< density
+                      bool create_visualization = true,                 ///< create triangulated shape for visualization
+                      bool create_collision = false,                    ///< create collision shape
+                      std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
+    );
+
+    /// Creates a body by searching the given name in the given Cascade document. If the shape is not found, do nothing.
+    /// Optionally add a visualization shape and a collision shape.
+    /// Mass and inertia are set automatically depending on density.
+    /// The COG is automatically displaced, and the reference position is initialized as shape location.
+    ChCascadeBodyEasy(const std::string& shape_name,                    ///< shape name
+                      const ChCascadeDoc& doc,                          ///< Cascade document
+                      double density,                                   ///< density
+                      bool create_visualization = true,                 ///< create triangulated shape for visualization
+                      bool create_collision = false,                    ///< create collision shape
                       std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
     );
 
@@ -80,8 +82,8 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
     void Init(TopoDS_Shape& shape,                               ///< OpenCASCADE shape
               double density,                                    ///< density
               std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tesselation parameters
-              bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
-              std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
+              bool create_collision = false,                     ///< create collision shape
+              std::shared_ptr<ChContactMaterial> mat = nullptr   ///< surface contact material
     );
 
   public:
@@ -116,7 +118,7 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
         double thickness,                                          ///< thickness in Z direction
         double density,                                            ///< density
         std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
-        bool collide = false,  ///< if true, add a 2D collision shape that uses the outer profile of the face
+        bool create_collision = false,                    ///< create 2D collision shape using the face outer profile
         std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );
 
@@ -125,14 +127,13 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
     /// profiles should be at different Z depths, and not intersecting along Z distance, because no boolean 'join'
     /// operation is done and in case they overlap by some amount, the computation of inertia and mass would be
     /// overestimated (i.e. each extruded profile is considered separately).
-    void AddProfile(
-        std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,  ///< profile of face, in XY plane
-        std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,  ///< profiles of holes, in XY plane
-        double mhickness,                                          ///< thickness in Z direction
-        double density,                                            ///< density
-        std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
-        bool collide = false,  ///< if true, add a 2D collision shape that uses the outer profile of the face
-        std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
+    void AddProfile(std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,  ///< profile of face, in XY plane
+                    std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,  ///< profiles of holes, in XY plane
+                    double thickness,                                          ///< thickness in Z direction
+                    double density,                                            ///< density
+                    std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
+                    bool create_collision = false,  ///< create 2D collision shape using the face outer profile
+                    std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );
 
     void ClearProfiles();

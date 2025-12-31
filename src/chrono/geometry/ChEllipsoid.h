@@ -70,16 +70,16 @@ class ChApi ChEllipsoid : public ChVolume {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Return the volume of this type of solid with given dimensions.
-    static double GetVolume(const ChVector3d& axes);
+    static double CalcVolume(const ChVector3d& axes);
 
     /// Return the gyration matrix of this type of solid with given dimensions.
-    static ChMatrix33<> GetGyration(const ChVector3d& axes);
+    static ChMatrix33<> CalcGyration(const ChVector3d& axes);
 
     /// Return the bounding box of this type of solid with given dimensions.
-    static ChAABB GetBoundingBox(const ChVector3d& axes);
+    static ChAABB CalcBoundingBox(const ChVector3d& axes);
 
     /// Return the radius of a bounding sphere.
-    static double GetBoundingSphereRadius(const ChVector3d& axes);
+    static double CalcBoundingSphereRadius(const ChVector3d& axes);
 
     ChVector3d rad;  ///< ellipsoid semiaxes
 };

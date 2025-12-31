@@ -17,12 +17,6 @@ import pychrono.postprocess as postprocess
 # We will create two directories for saving some files, we need this:
 import os
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-
 # ---------------------------------------------------------------------
 #
 #  Create the simulation system and add items

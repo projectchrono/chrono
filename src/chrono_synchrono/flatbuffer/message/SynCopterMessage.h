@@ -53,10 +53,10 @@ class SYN_API SynCopterStateMessage : public SynMessage {
 
     ///@brief Set the state variables
     ///
-    ///@param time simulation time
-    ///@param chassis copter's chassis pose
-    ///@param props vector of the copter's propellers poses
-    void SetState(double time, SynPose chassis, std::vector<SynPose> props);
+    ///@param t simulation time
+    ///@param chassis_pose copter's chassis pose
+    ///@param prop_poses vector of the copter's propellers poses
+    void SetState(double t, SynPose chassis_pose, std::vector<SynPose> prop_poses);
 
     // -------------------------------------------------------------------------------
 
@@ -90,14 +90,15 @@ class SYN_API SynCopterDescriptionMessage : public SynMessage {
 
     ///@brief Set the visualization files used for zombie visualization
     ///
-    ///@param chassis_vis_file filename for the chassis zombie visualization
-    ///@param prop_vis_file filename for the propellers zombie visualization
-    void SetVisualizationFiles(const std::string& chassis_vis_file, const std::string& prop_vis_file);
+    ///@param chassis_visualization_file filename for the chassis zombie visualization
+    ///@param propeller_visualization_file filename for the propellers zombie visualization
+    void SetVisualizationFiles(const std::string& chassis_visualization_file,
+                               const std::string& propeller_visualization_file);
 
     ///@brief Set the total number of propellers for this copter
     ///
-    ///@param num_props the total number of propellers on the copter
-    void SetNumProps(int num_props);
+    ///@param number_props the total number of propellers on the copter
+    void SetNumProps(int number_props);
 
     ///@brief Get the number of propellers for this copter
     int GetNumProps() const { return num_props; }

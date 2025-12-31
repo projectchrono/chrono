@@ -64,19 +64,19 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const final override { return true; }
 
-    /// Initialize this suspension subsystem.
+    /// Construct this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
     /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
     /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
     /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
     /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
-    virtual void Initialize(
+    virtual void Construct(
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
         const ChVector3d& location,                ///< [in] location relative to the chassis frame
-        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
-        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        double left_ang_vel,                       ///< [in] initial angular velocity of left wheel
+        double right_ang_vel                       ///< [in] initial angular velocity of right wheel
         ) override;
 
     /// Add visualization assets for the suspension subsystem.
@@ -240,7 +240,7 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     /// Return stiffness and damping data for the tierod bushings.
     /// Used only if tierod bodies are defined (see UseTierodBody).
     /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
-    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getTierodBushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_upright[2];       ///< upright bodies (left/right)
     std::shared_ptr<ChBody> m_upperArm[2];      ///< upper arm bodies (left/right)
@@ -256,8 +256,8 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     std::shared_ptr<ChLinkLockSpherical> m_sphericalTLUpright[2];  ///< upright-trailing link spherical (left/right)
 
     std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
+    std::shared_ptr<ChJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
+    std::shared_ptr<ChJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (left/right)
@@ -303,9 +303,7 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
                                        const ChVector3d pt_U,
                                        double radius);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

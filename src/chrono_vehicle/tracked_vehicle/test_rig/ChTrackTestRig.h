@@ -27,7 +27,7 @@
 #include <string>
 
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
@@ -60,6 +60,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Destructor
     ~ChTrackTestRig();
+
+    /// Get the attached driver (if any).
+    std::shared_ptr<ChTrackTestRigDriver> GetDriver() const { return m_driver; }
 
     /// Set driver system.
     void SetDriver(std::shared_ptr<ChTrackTestRigDriver> driver);
@@ -196,7 +199,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
                               const ChColor& color);
 
     /// Output data for all modeling components in the track test rig system.
-    virtual void Output(int frame, ChVehicleOutput& database) const override;
+    virtual void Output(int frame, ChOutput& database) const override;
 
     /// Collect data for plotting
     void CollectPlotData(double time);
@@ -218,7 +221,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::shared_ptr<ChTrackTestRigDriver> m_driver;  ///< driver system
     double m_throttle_input;                         ///< current driver throttle input
     std::vector<double> m_displ_input;               ///< current post displacement inputs
-    std::string m_driver_logfile;                    ///< name of optioinal driver log file
+    std::string m_driver_logfile;                    ///< name of optional driver log file
 
     double m_ride_height;   ///< ride height
     double m_displ_offset;  ///< post displacement offset (to set reference position)
@@ -242,9 +245,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     bool m_plot_output;
     double m_plot_output_step;
     double m_next_plot_output_time;
-    utils::ChWriterCSV* m_csv;
+    ChWriterCSV* m_csv;
 
-    friend class ChTrackTestRigVisualSystemIrrlicht;
+    friend class ChTrackTestRigVisualSystemIRR;
+    friend class ChTrackTestRigVisualSystemVSG;
 };
 
 /// @} vehicle_tracked_test_rig

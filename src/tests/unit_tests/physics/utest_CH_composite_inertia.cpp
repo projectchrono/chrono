@@ -18,7 +18,7 @@
 
 #include "gtest/gtest.h"
 
-#include "chrono/utils/ChCompositeInertia.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/core/ChRotation.h"
 
 using namespace chrono;
@@ -41,13 +41,13 @@ TEST(CompositeInertia, hemispheres) {
 
     double r = 1.5;
     double rho = 50;
-    double mass = (2.0 / 3.0) * CH_PI * rho * std::pow(r, 3);
+    double mass = CH_2_3 * CH_PI * rho * std::pow(r, 3);
     double offset = (3.0 / 8.0) * r;
     double Jxx = (83.0 / 320.0) * mass * r * r;
     double Jyy = Jxx;
     double Jzz = (2.0 / 5.0) * mass * r * r;
 
-    utils::CompositeInertia comp;
+    CompositeInertia comp;
 
     comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height + offset), ChQuaternion<>(1, 0, 0, 0)), mass,
                       ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
@@ -93,7 +93,7 @@ TEST(CompositeInertia, boxes) {
     ChMatrix33<> inertia1(ChVector3d(mass1 * (hy1 * hy1 + hz1 * hz1) / 3, mass1 * (hx1 * hx1 + hz1 * hz1) / 3,
                                      mass1 * (hx1 * hx1 + hy1 * hy1) / 3));
 
-    utils::CompositeInertia comp;
+    CompositeInertia comp;
 
     for (int ix = 0; ix < nx; ix++) {
         double cx = ix * 2 * (hx - hx1) / (nx - 1.0) + center.x() - hx + hx1;
@@ -130,10 +130,10 @@ TEST(CompositeInertia, hollow_sphere) {
     double rho = 50;
 
     // Hollow sphere as a composite
-    utils::CompositeInertia comp;
+    CompositeInertia comp;
 
-    double mass_out = (4.0 / 3.0) * CH_PI * rho * std::pow(r_out, 3);
-    double mass_in = (4.0 / 3.0) * CH_PI * rho * std::pow(r_in, 3);
+    double mass_out = CH_4_3 * CH_PI * rho * std::pow(r_out, 3);
+    double mass_in = CH_4_3 * CH_PI * rho * std::pow(r_in, 3);
 
     double J_out = (2.0 / 5.0) * mass_out * r_out * r_out;
     double J_in = (2.0 / 5.0) * mass_in * r_in * r_in;
@@ -146,7 +146,7 @@ TEST(CompositeInertia, hollow_sphere) {
     ChMatrix33<> c_inertia = comp.GetInertia();
 
     // Inertia properties of hollow sphere
-    double s_mass = (4.0 / 3.0) * CH_PI * rho * (std::pow(r_out, 3) - std::pow(r_in, 3));
+    double s_mass = CH_4_3 * CH_PI * rho * (std::pow(r_out, 3) - std::pow(r_in, 3));
     double s_J =
         (2.0 / 5.0) * s_mass * (std::pow(r_out, 5) - std::pow(r_in, 5)) / (std::pow(r_out, 3) - std::pow(r_in, 3));
     ChMatrix33<> s_inertia(s_J);

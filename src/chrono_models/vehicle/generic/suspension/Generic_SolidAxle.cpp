@@ -76,8 +76,8 @@ const double Generic_SolidAxle::m_springRestLength = 0.3948;
 // Constructor
 // -----------------------------------------------------------------------------
 Generic_SolidAxle::Generic_SolidAxle(const std::string& name) : ChSolidAxle(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
-    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

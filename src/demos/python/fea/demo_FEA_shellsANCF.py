@@ -32,11 +32,6 @@ def CastNode(nb):
     return nodeFead
 
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 time_step = 1e-3
 
 sys = chrono.ChSystemSMC()
@@ -139,30 +134,30 @@ sys.Add(mesh)
 # Options for visualization in irrlicht
 # -------------------------------------
 
-visualizemeshA = chrono.ChVisualShapeFEA(mesh)
+visualizemeshA = chrono.ChVisualShapeFEA()
 visualizemeshA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
-visualizemeshA.SetColorscaleMinMax(0.0, 5.50)
+visualizemeshA.SetColormapRange(0.0, 5.50)
 visualizemeshA.SetShrinkElements(True, 0.85)
 visualizemeshA.SetSmoothFaces(True)
 mesh.AddVisualShapeFEA(visualizemeshA)
 
-visualizemeshB = chrono.ChVisualShapeFEA(mesh)
+visualizemeshB = chrono.ChVisualShapeFEA()
 visualizemeshB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 visualizemeshB.SetWireframe(True)
 visualizemeshB.SetDrawInUndeformedReference(True)
 mesh.AddVisualShapeFEA(visualizemeshB)
 
-visualizemeshC = chrono.ChVisualShapeFEA(mesh)
+visualizemeshC = chrono.ChVisualShapeFEA()
 visualizemeshC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
 visualizemeshC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 visualizemeshC.SetSymbolsThickness(0.004)
 mesh.AddVisualShapeFEA(visualizemeshC)
 
-visualizemeshD = chrono.ChVisualShapeFEA(mesh)
+visualizemeshD = chrono.ChVisualShapeFEA()
 visualizemeshD.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_ELEM_TENS_STRAIN)
 visualizemeshD.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 visualizemeshD.SetSymbolsScale(1)
-visualizemeshD.SetColorscaleMinMax(-0.5, 5)
+visualizemeshD.SetColormapRange(-0.5, 5)
 visualizemeshD.SetZbufferHide(False)
 mesh.AddVisualShapeFEA(visualizemeshD)
 
@@ -172,7 +167,7 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('ANCF shells')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(-0.4, -1.3, 0.0), chrono.ChVector3d(0.0, 0.5, -0.1))
 vis.AddTypicalLights()

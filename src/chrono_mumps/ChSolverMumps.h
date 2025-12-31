@@ -53,7 +53,7 @@ See ChSystemDescriptor for more information about the problem formulation and th
 */
 class ChApiMumps ChSolverMumps : public ChDirectSolverLS {
   public:
-    ChSolverMumps(int num_threads = 0);
+    ChSolverMumps(int num_threads = 1);
     ~ChSolverMumps() {}
     virtual Type GetType() const override { return Type::MUMPS; }
 
@@ -68,7 +68,7 @@ class ChApiMumps ChSolverMumps : public ChDirectSolverLS {
 
   private:
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() override;
+    virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.

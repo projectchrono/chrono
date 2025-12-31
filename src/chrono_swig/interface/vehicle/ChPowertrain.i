@@ -55,6 +55,21 @@
 // Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/ChPowertrainAssembly.h"
 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// Mark override methods to ensure swig knows how to handle overides of base classes (for Unity)
+%csmethodmodifiers chrono::vehicle::ChEngineSimple::GetTemplateName "public override"
+%csmethodmodifiers chrono::vehicle::ChEngineSimple::GetMotorSpeed "public override"
+%csmethodmodifiers chrono::vehicle::ChEngineSimple::GetOutputMotorshaftTorque "public override"
+
+%csmethodmodifiers chrono::vehicle::ChEngineSimpleMap::GetTemplateName "public override"
+%csmethodmodifiers chrono::vehicle::ChEngineSimpleMap::GetMotorSpeed "public override"
+%csmethodmodifiers chrono::vehicle::ChEngineSimpleMap::GetOutputMotorshaftTorque "public override"
+
+%csmethodmodifiers chrono::vehicle::ChEngineShafts::GetTemplateName "public override"
+%csmethodmodifiers chrono::vehicle::ChEngineShafts::GetMotorSpeed "public override"
+%csmethodmodifiers chrono::vehicle::ChEngineShafts::GetOutputMotorshaftTorque "public override"
+%csmethodmodifiers chrono::vehicle::ChEngineShafts::GetChassisReactionTorque "public override"
+#endif             // --------------------------------------------------------------------- CSHARP
 
 %include "../../../chrono_vehicle/powertrain/ChEngineSimple.h"
 %include "../../../chrono_vehicle/powertrain/ChEngineSimpleMap.h"

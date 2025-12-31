@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <climits>
 
+#include "chrono/multicore_math/thrust.h"
+
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionInfo.h"
 
@@ -38,8 +40,8 @@ using namespace chrono::mc_utils;
 ChNarrowphase::ChNarrowphase()
     : algorithm(Algorithm::HYBRID),
       num_potential_rigid_contacts(0),
-      num_potential_fluid_contacts(0),
-      num_potential_rigid_fluid_contacts(0),
+      num_potential_particle_contacts(0),
+      num_potential_rigid_particle_contacts(0),
       cd_data(nullptr) {}
 
 void ChNarrowphase::ClearContacts() {
@@ -55,21 +57,21 @@ void ChNarrowphase::ClearContacts() {
 }
 
 void ChNarrowphase::Process() {
-    if (cd_data->state_data.num_fluid_bodies != 0) {
-        ProcessFluid();
+    if (cd_data->state_data.num_particles != 0) {
+        ProcessParticles();
     }
     if (cd_data->num_rigid_shapes != 0) {
         ProcessRigids();
     } else {
-        cd_data->c_counts_rigid_fluid.clear();
-        cd_data->num_rigid_fluid_contacts = 0;
+        cd_data->c_counts_rigid_particle.clear();
+        cd_data->num_rigid_particle_contacts = 0;
     }
 }
 
 void ChNarrowphase::ProcessRigids() {
     num_potential_rigid_contacts = cd_data->num_rigid_contacts;
-    num_potential_rigid_fluid_contacts = cd_data->num_rigid_fluid_contacts;
-    num_potential_fluid_contacts = cd_data->num_fluid_contacts;
+    num_potential_rigid_particle_contacts = cd_data->num_rigid_particle_contacts;
+    num_potential_particle_contacts = cd_data->num_particle_contacts;
 
     ClearContacts();
 
@@ -80,8 +82,8 @@ void ChNarrowphase::ProcessRigids() {
         ProcessRigidRigid();
     }
 
-    if (cd_data->state_data.num_fluid_bodies != 0) {
-        ProcessRigidFluid();
+    if (cd_data->state_data.num_particles != 0) {
+        ProcessRigidParticle();
     }
 }
 
@@ -393,26 +395,26 @@ inline int GridHash(int x, int y, int z, const vec3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
 
-void ChNarrowphase::ProcessFluid() {
+void ChNarrowphase::ProcessParticles() {
     // Readability replacements
-    const int num_fluid_bodies = cd_data->state_data.num_fluid_bodies;
-    if (num_fluid_bodies == 0)
+    const int num_particles = cd_data->state_data.num_particles;
+    if (num_particles == 0)
         return;
 
     const real radius = cd_data->p_kernel_radius + cd_data->p_collision_envelope;
     const real collision_envelope = cd_data->p_collision_envelope;
-    const real3& min_bounding_point = cd_data->ff_min_bounding_point;
-    const real3& max_bounding_point = cd_data->ff_max_bounding_point;
+    const real3& min_bounding_point = cd_data->part_min_bounding_point;
+    const real3& max_bounding_point = cd_data->part_max_bounding_point;
 
-    const std::vector<real3>& pos_fluid = *cd_data->state_data.pos_3dof;
-    std::vector<real3>& sorted_pos_fluid = *cd_data->state_data.sorted_pos_3dof;
+    const std::vector<real3>& pos_3dof = *cd_data->state_data.pos_3dof;
+    std::vector<real3>& sorted_pos_3dof = *cd_data->state_data.sorted_pos_3dof;
 
-    std::vector<int>& neighbor_fluid_fluid = cd_data->neighbor_3dof_3dof;
+    std::vector<int>& neighbor_3dof_3dof = cd_data->neighbor_3dof_3dof;
     std::vector<int>& contact_counts = cd_data->c_counts_3dof_3dof;
     std::vector<int>& particle_indices = cd_data->particle_indices_3dof;
     std::vector<int>& reverse_mapping = cd_data->reverse_mapping_3dof;
-    vec3& bins_per_axis = cd_data->ff_bins_per_axis;
-    uint& num_fluid_contacts = cd_data->num_fluid_contacts;
+    vec3& bins_per_axis = cd_data->part_bins_per_axis;
+    uint& num_particle_contacts = cd_data->num_particle_contacts;
 
     const real radius_envelope = radius + collision_envelope;
     const real radius_squared = radius_envelope * radius_envelope;
@@ -423,13 +425,13 @@ void ChNarrowphase::ProcessFluid() {
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     //====================================
-    neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
-    contact_counts.resize(num_fluid_bodies);
-    particle_indices.resize(num_fluid_bodies);
-    reverse_mapping.resize(num_fluid_bodies);
-    ff_bin_ids.resize(num_fluid_bodies);
+    neighbor_3dof_3dof.resize(num_particles * max_neighbors);
+    contact_counts.resize(num_particles);
+    particle_indices.resize(num_particles);
+    reverse_mapping.resize(num_particles);
+    ff_bin_ids.resize(num_particles);
     //====================================
-    sorted_pos_fluid.resize(num_fluid_bodies);
+    sorted_pos_3dof.resize(num_particles);
     //====================================
     ff_bin_starts.resize(grid_size);
     ff_bin_ends.resize(grid_size);
@@ -437,12 +439,12 @@ void ChNarrowphase::ProcessFluid() {
     Thrust_Fill(ff_bin_starts, 0);
     Thrust_Fill(ff_bin_ends, 0);
     Thrust_Fill(contact_counts, 0);
-    Thrust_Fill(neighbor_fluid_fluid, 0);
+    Thrust_Fill(neighbor_3dof_3dof, 0);
     //====================================
 
 #pragma omp parallel for
-    for (int i = 0; i < num_fluid_bodies; i++) {
-        real3 p = pos_fluid[i];
+    for (int i = 0; i < num_particles; i++) {
+        real3 p = pos_3dof[i];
         ff_bin_ids[i] = GridHash(GridCoord(p.x, inv_bin_edge, min_bounding_point.x),
                                  GridCoord(p.y, inv_bin_edge, min_bounding_point.y),
                                  GridCoord(p.z, inv_bin_edge, min_bounding_point.z), bins_per_axis);
@@ -452,9 +454,9 @@ void ChNarrowphase::ProcessFluid() {
     Thrust_Sort_By_Key(ff_bin_ids, particle_indices);
 
 #pragma omp parallel for
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < num_particles; i++) {
         int index = particle_indices[i];
-        sorted_pos_fluid[i] = pos_fluid[index];
+        sorted_pos_3dof[i] = pos_3dof[index];
 
         reverse_mapping[index] = i;
 
@@ -468,14 +470,14 @@ void ChNarrowphase::ProcessFluid() {
                 ff_bin_ends[p] = i;
             }
         }
-        if (i == num_fluid_bodies - 1) {
+        if (i == num_particles - 1) {
             ff_bin_ends[c] = i + 1;
         }
     }
 
 #pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        real3 xi = sorted_pos_fluid[p];
+    for (int p = 0; p < num_particles; p++) {
+        real3 xi = sorted_pos_3dof[p];
         const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
         const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
         const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
@@ -489,11 +491,11 @@ void ChNarrowphase::ProcessFluid() {
                     const int cellEnd = ff_bin_ends[cellIndex];
                     for (int q = cellStart; q < cellEnd; ++q) {
                         // if (q == p) { continue; }  // disabled this so that we get self contact
-                        const real3 xj = sorted_pos_fluid[q];
+                        const real3 xj = sorted_pos_3dof[q];
                         const real3 xij = xi - xj;
                         if (Dot(xij) < radius_squared) {
                             if (contact_count < max_neighbors) {
-                                neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
+                                neighbor_3dof_3dof[p * max_neighbors + contact_count] = q;
                                 ++contact_count;
                             }
                         }
@@ -504,25 +506,25 @@ void ChNarrowphase::ProcessFluid() {
         contact_counts[p] = contact_count;
     }
 
-    num_fluid_contacts = Thrust_Total(contact_counts);
+    num_particle_contacts = Thrust_Total(contact_counts);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChNarrowphase::ProcessRigidFluid() {
+void ChNarrowphase::ProcessRigidParticle() {
     // Readability replacements
     const real sphere_radius = cd_data->p_kernel_radius;
-    const int num_spheres = cd_data->state_data.num_fluid_bodies;
+    const int num_spheres = cd_data->state_data.num_particles;
     const std::vector<real3>& pos_spheres = *cd_data->state_data.sorted_pos_3dof;
     const short2& family = cd_data->p_collision_family;
     const real envelope = cd_data->collision_envelope;
 
-    std::vector<real3>& norm_rigid_sphere = cd_data->norm_rigid_fluid;
-    std::vector<real3>& cpta_rigid_sphere = cd_data->cpta_rigid_fluid;
-    std::vector<real>& dpth_rigid_sphere = cd_data->dpth_rigid_fluid;
-    std::vector<int>& neighbor_rigid_sphere = cd_data->neighbor_rigid_fluid;
-    std::vector<int>& contact_counts = cd_data->c_counts_rigid_fluid;
-    uint& num_contacts = cd_data->num_rigid_fluid_contacts;
+    std::vector<real3>& norm_rigid_sphere = cd_data->norm_rigid_particle;
+    std::vector<real3>& cpta_rigid_sphere = cd_data->cpta_rigid_particle;
+    std::vector<real>& dpth_rigid_sphere = cd_data->dpth_rigid_particle;
+    std::vector<int>& neighbor_rigid_sphere = cd_data->neighbor_rigid_particle;
+    std::vector<int>& contact_counts = cd_data->c_counts_rigid_particle;
+    uint& num_contacts = cd_data->num_rigid_particle_contacts;
 
     const vec3& bins_per_axis = cd_data->bins_per_axis;
     real3 global_origin = cd_data->global_origin;
@@ -557,8 +559,8 @@ void ChNarrowphase::ProcessRigidFluid() {
     uint f_number_of_bin_intersections = f_bin_intersections.back();
 
     f_bin_number.resize(f_number_of_bin_intersections);
-    f_bin_number_out.resize(f_number_of_bin_intersections);
-    f_bin_fluid_number.resize(f_number_of_bin_intersections);
+    f_bin_number_active.resize(f_number_of_bin_intersections);
+    f_bin_particle_number.resize(f_number_of_bin_intersections);
     f_bin_start_index.resize(f_number_of_bin_intersections);
 
 #pragma omp parallel for
@@ -572,15 +574,15 @@ void ChNarrowphase::ProcessRigidFluid() {
             for (j = (unsigned)gmin.y; j <= (unsigned)gmax.y; j++) {
                 for (k = (unsigned)gmin.z; k <= (unsigned)gmax.z; k++) {
                     f_bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
-                    f_bin_fluid_number[mInd + count] = p;
+                    f_bin_particle_number[mInd + count] = p;
                     count++;
                 }
             }
         }
     }
 
-    Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
-    auto f_number_of_bins_active = (uint)(Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index));
+    Thrust_Sort_By_Key(f_bin_number, f_bin_particle_number);
+    auto f_number_of_bins_active = (uint)(Run_Length_Encode(f_bin_number, f_bin_number_active, f_bin_start_index));
 
     f_bin_start_index.resize(f_number_of_bins_active + 1);
     f_bin_start_index[f_number_of_bins_active] = 0;
@@ -597,11 +599,11 @@ void ChNarrowphase::ProcessRigidFluid() {
     Thrust_Fill(contact_counts, 0);
     // For each rigid bin
     for (int index = 0; index < (signed)f_number_of_bins_active; index++) {
-        uint bin_number = f_bin_number_out[index];
+        uint bin_number = f_bin_number_active[index];
         uint rigid_index = is_rigid_bin_active[bin_number];
         // check if the bin is active
         if (rigid_index != 1000000000) {
-            // start and end of fluid in this bin
+            // start and end of particles in this bin
             uint start = f_bin_start_index[index];
             uint end = f_bin_start_index[index + 1];
             // start and end of rigid bodies in this bin
@@ -609,7 +611,7 @@ void ChNarrowphase::ProcessRigidFluid() {
             uint rigid_end = cd_data->bin_start_index[rigid_index + 1];
 #pragma omp parallel for
             for (int i = start; i < (signed)end; i++) {
-                uint p = f_bin_fluid_number[i];
+                uint p = f_bin_particle_number[i];
                 real3 pos_sphere = pos_spheres[p];
                 real3 Bmin = pos_sphere - real3(radius + envelope) - global_origin;
                 real3 Bmax = pos_sphere + real3(radius + envelope) - global_origin;

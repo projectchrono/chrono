@@ -46,14 +46,12 @@ ACV_ChassisFront::ACV_ChassisFront(const std::string& name, bool fixed) : ChRigi
     m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     // Visualization primitives
-    ChVehicleGeometry::BoxShape box(ChVector3d(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.5, 1.0, 0.2));
-    ChVehicleGeometry::CylinderShape cyl(ChVector3d(0.5, 0, 0), ChVector3d(0, 1, 0), 0.05, 2);
+    utils::ChBodyGeometry::BoxShape box(ChVector3d(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.5, 1.0, 0.2));
+    utils::ChBodyGeometry::CylinderShape cyl(ChVector3d(0.5, 0, 0), ChVector3d(0, 1, 0), 0.05, 2);
 
-    m_geometry.m_has_primitives = true;
-    m_geometry.m_vis_boxes.push_back(box);
-    m_geometry.m_vis_cylinders.push_back(cyl);
+    m_geometry.vis_boxes.push_back(box);
+    m_geometry.vis_cylinders.push_back(cyl);
 
-    m_geometry.m_has_colors = true;
-    m_geometry.m_color_boxes = ChColor(0.2f, 0.2f, 0.4f);
-    m_geometry.m_color_cylinders = ChColor(0.2f, 0.2f, 0.4f);
+    m_geometry.color_boxes = ChColor(0.2f, 0.2f, 0.4f);
+    m_geometry.color_cylinders = ChColor(0.2f, 0.2f, 0.4f);
 }

@@ -25,9 +25,11 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_vsg/ChVisualSystemVSG.h"
 
 using namespace chrono;
+using namespace chrono::vsg3d;
 
 // -----------------------------------------------------------------------------
 // Callback class for contact reporting
@@ -40,12 +42,13 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& cforce,
                                  const ChVector3d& ctorque,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int cnstr_offset) override {
         // Check if contact involves obj1
         if (modA == m_obj1.get()) {
             printf("  A contact on Obj 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
@@ -135,14 +138,19 @@ int main(int argc, char* argv[]) {
     sys.AddBody(obj2);
 
     // Create the visualization window
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(&sys);
-    vis.SetWindowTitle("SMC callbacks (Chrono::Multicore)");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(4, 4, -5), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Y);
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(&sys);
+    vis->SetWindowTitle("SMC callbacks (Chrono::Multicore)");
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->AddCamera(ChVector3d(4, 4, -5), ChVector3d(0, 0, 0));
+    vis->SetWindowSize(1280, 720);
+    vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->EnableSkyBox();
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 
     // Callback for contact reporting
     auto creporter = chrono_types::make_shared<ContactReporter>(obj1, obj2);
@@ -152,9 +160,9 @@ int main(int argc, char* argv[]) {
     sys.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
     // Simulate sys
-    while (vis.Run()) {
+    while (vis->Run()) {
         sys.DoStepDynamics(1e-3);
-        vis.Render();
+        vis->Render();
 
         // Process contacts
         std::cout << sys.GetChTime() << "  " << sys.GetNumContacts() << std::endl;

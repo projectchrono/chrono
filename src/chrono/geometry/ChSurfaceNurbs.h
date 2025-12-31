@@ -51,7 +51,7 @@ class ChApi ChSurfaceNurbs : public ChSurface {
             0,  ///< knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
         ChVectorDynamic<>* mknots_v =
             0,  ///< knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
-        ChMatrixDynamic<>* weights = 0  ///< weights, size nuxnv. If not provided, all weights as 1.
+        ChMatrixDynamic<>* new_weights = 0  ///< weights, size nuxnv. If not provided, all weights as 1.
     );
 
     ChSurfaceNurbs(const ChSurfaceNurbs& source);

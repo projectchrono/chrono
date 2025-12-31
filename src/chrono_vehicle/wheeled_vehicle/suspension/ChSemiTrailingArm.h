@@ -67,18 +67,18 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const final override { return true; }
 
-    /// Initialize this suspension subsystem.
+    /// Construct this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
     /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
     /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
     /// Since this suspension is non-steerable, the steering subsystem is always ignored.
-    virtual void Initialize(
+    virtual void Construct(
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
         const ChVector3d& location,                ///< [in] location relative to the chassis frame
-        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
-        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        double left_ang_vel,                       ///< [in] initial angular velocity of left wheel
+        double right_ang_vel                       ///< [in] initial angular velocity of right wheel
         ) override;
 
     /// Add visualization assets for the suspension subsystem.
@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     enum PointId {
         SPINDLE,   ///< spindle location (center of mass)
         TA_CM,     ///< trailing arm, center of mass
-        TA_O,      ///< trailing arm, chassis connection outter
+        TA_O,      ///< trailing arm, chassis connection outer
         TA_I,      ///< trailing arm, chassis connection inner
         TA_S,      ///< trailing arm, connection to spindle
         SHOCK_C,   ///< shock, chassis
@@ -187,11 +187,11 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
 
     /// Return stiffness and damping data for the arm bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const { return nullptr; }
+    virtual std::shared_ptr<ChJoint::BushingData> getCABushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_arm[2];  ///< trailing arm bodies (left/right)
 
-    std::shared_ptr<ChVehicleJoint> m_revoluteArm[2];  ///< chassis-arm revolute joints (left/right)
+    std::shared_ptr<ChJoint> m_revoluteArm[2];  ///< chassis-arm revolute joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (left/right)
@@ -213,9 +213,7 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
                                     const ChVector3d pt_S,
                                     double radius);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

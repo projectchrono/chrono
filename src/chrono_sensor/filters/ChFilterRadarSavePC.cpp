@@ -19,8 +19,9 @@
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 
+#include "chrono/input_output/ChWriterCSV.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include <vector>
 #include <sstream>
@@ -39,7 +40,7 @@ CH_SENSOR_API ChFilterRadarSavePC::~ChFilterRadarSavePC() {}
 CH_SENSOR_API void ChFilterRadarSavePC::Apply() {
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
     m_frame_number++;
-    utils::ChWriterCSV csv_writer(",");
+    ChWriterCSV csv_writer(",");
     for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
         csv_writer << m_buffer_in->Buffer[i].x << m_buffer_in->Buffer[i].y << m_buffer_in->Buffer[i].z
                    << m_buffer_in->Buffer[i].vel_x << m_buffer_in->Buffer[i].vel_y << m_buffer_in->Buffer[i].vel_z

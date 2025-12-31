@@ -257,7 +257,7 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
     prism_vert->Initialize(m_carrier, chassis, ChFrame<>(m_carrier->GetPos(), QUNIT));
     chassis->GetSystem()->AddLink(prism_vert);
 
-    // Connect carrier to ground with a horizonal prismatic joint
+    // Connect carrier to ground with a horizontal prismatic joint
     auto prism_horiz = chrono_types::make_shared<ChLinkLockPrismatic>();
     prism_horiz->Initialize(m_carrier, ground, ChFrame<>(m_carrier->GetPos(), QuatFromAngleY(CH_PI_2)));
     chassis->GetSystem()->AddLink(prism_horiz);

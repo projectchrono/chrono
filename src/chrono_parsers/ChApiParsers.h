@@ -29,7 +29,7 @@
 #endif
 
 /**
-    @defgroup parsers_module Parsers module
+    @defgroup parsers_module PARSERS module
     @brief Parsers for various input data formats
 
     For additional information, see:

@@ -46,7 +46,7 @@ ChTranslationalIdler::~ChTranslationalIdler() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
+void ChTranslationalIdler::Construct(std::shared_ptr<ChChassis> chassis,
                                       const ChVector3d& location,
                                       ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system.
@@ -64,6 +64,7 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the carrier body.
     m_carrier = chrono_types::make_shared<ChBody>();
     m_carrier->SetName(m_name + "_carrier");
+    m_carrier->SetTag(m_obj_tag);
     m_carrier->SetPos(points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetCarrierMass());
@@ -80,6 +81,7 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // of the idler reference frame.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetName(m_name + "_prismatic");
+    m_prismatic->SetTag(m_obj_tag);
     m_prismatic->Initialize(
         chassis->GetBody(), m_carrier,
         ChFrame<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleY(CH_PI_2 + GetPrismaticPitchAngle())));
@@ -88,14 +90,11 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the tensioner force element.
     m_tensioner = chrono_types::make_shared<ChLinkTSDA>();
     m_tensioner->SetName(m_name + "_tensioner");
+    m_tensioner->SetTag(m_obj_tag);
     m_tensioner->Initialize(chassis->GetBody(), m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
     m_tensioner->SetRestLength(GetTensionerFreeLength());
     chassis->GetSystem()->AddLink(m_tensioner);
-
-    // Invoke the base class implementation. This initializes the associated idler wheel.
-    // Note: we must call this here, after the m_carrier body is created.
-    ChIdler::Initialize(chassis, location, track);
 }
 
 void ChTranslationalIdler::InitializeInertiaProperties() {
@@ -106,7 +105,7 @@ void ChTranslationalIdler::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_carrier->GetFrameCOMToAbs(), m_carrier->GetMass(), m_carrier->GetInertia());
     composite.AddComponent(m_idler_wheel->GetBody()->GetFrameCOMToAbs(), m_idler_wheel->GetBody()->GetMass(),
                            m_idler_wheel->GetBody()->GetInertia());
@@ -127,11 +126,11 @@ void ChTranslationalIdler::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetCarrierVisRadius();
 
     if ((m_pW - m_pC).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_carrier, m_pW, m_pC, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier, m_pW, m_pC, radius);
     }
 
     if ((m_pC - m_pT).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_carrier, m_pC, m_pT, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier, m_pC, m_pT, radius);
     }
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(6 * radius, 2 * radius, 2 * radius);
@@ -160,37 +159,13 @@ void ChTranslationalIdler::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTranslationalIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    ExportBodyList(jsonDocument, bodies);
+void ChTranslationalIdler::PopulateComponentList() {
+    m_bodies.push_back(m_carrier);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_prismatic);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_tensioner);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChTranslationalIdler::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_carrier);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_tensioner);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_tensioner);
 }
 
 }  // end namespace vehicle

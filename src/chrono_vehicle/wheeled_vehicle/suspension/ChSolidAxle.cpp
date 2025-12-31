@@ -46,7 +46,7 @@ const std::string ChSolidAxle::m_pointNames[] = {
 ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {}
 
 ChSolidAxle::~ChSolidAxle() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_axleTube->GetSystem();
@@ -85,18 +85,12 @@ ChSolidAxle::~ChSolidAxle() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                             std::shared_ptr<ChSubchassis> subchassis,
-                             std::shared_ptr<ChSteering> steering,
-                             const ChVector3d& location,
-                             double left_ang_vel,
-                             double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChSolidAxle::Construct(std::shared_ptr<ChChassis> chassis,
+                            std::shared_ptr<ChSubchassis> subchassis,
+                            std::shared_ptr<ChSteering> steering,
+                            const ChVector3d& location,
+                            double left_ang_vel,
+                            double right_ang_vel) {
     // Unit vectors for orientation matrices.
     ChVector3d u;
     ChVector3d v;
@@ -122,6 +116,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the axle body.
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetName(m_name + "_axleTube");
+    m_axleTube->SetTag(m_obj_tag);
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
@@ -137,6 +132,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the trackbar body
     m_trackbarBody = chrono_types::make_shared<ChBody>();
     m_trackbarBody->SetName(m_name + "_trackBar");
+    m_trackbarBody->SetTag(m_obj_tag);
     m_trackbarBody->SetPos((m_trackbarAxle + m_trackbarChassis) / 2);
     m_trackbarBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_trackbarBody->SetMass(getTrackbarMass());
@@ -153,6 +149,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the tierod body.
     m_tierod = chrono_types::make_shared<ChBody>();
     m_tierod->SetName(m_name + "_tierodBody");
+    m_tierod->SetTag(m_obj_tag);
     m_tierod->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
     m_tierod->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_tierod->SetMass(getTierodMass());
@@ -172,12 +169,14 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Connect trackbarBody to axleBody (should be changed to universal)
     m_sphericalTrackbarAxleLink = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalTrackbarAxleLink->SetName(m_name + "_sphericalTrackbarAxle");
+    m_sphericalTrackbarAxleLink->SetTag(m_obj_tag);
     m_sphericalTrackbarAxleLink->Initialize(m_trackbarBody, m_axleTube, ChFrame<>(m_trackbarAxle, QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalTrackbarAxleLink);
 
     // Connect trackbarBody to chassisBody
     m_sphericalTrackbarChassisLink = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalTrackbarChassisLink->SetName(m_name + "_sphericalTrackbarChassis");
+    m_sphericalTrackbarChassisLink->SetTag(m_obj_tag);
     m_sphericalTrackbarChassisLink->Initialize(m_trackbarBody, chassis->GetBody(), ChFrame<>(m_trackbarChassis, QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalTrackbarChassisLink);
 
@@ -211,21 +210,19 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     // Create and initialize knuckle body (same orientation as the chassis)
     m_knuckle[side] = chrono_types::make_shared<ChBody>();
     m_knuckle[side]->SetName(m_name + "_knuckle" + suffix);
+    m_knuckle[side]->SetTag(m_obj_tag);
     m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
     m_knuckle[side]->SetRot(spindleRot);
     m_knuckle[side]->SetMass(getKnuckleMass());
     m_knuckle[side]->SetInertiaXX(getKnuckleInertia());
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
-    // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
+    // Initialize spindle body (same orientation as the chassis)
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upper link body.
     // Determine the rotation matrix of the upper link based on the plane of the hard points
@@ -239,6 +236,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
     m_upperLink[side] = chrono_types::make_shared<ChBody>();
     m_upperLink[side]->SetName(m_name + "_upperLink" + suffix);
+    m_upperLink[side]->SetTag(m_obj_tag);
     m_upperLink[side]->SetPos(points[UL_CM]);
     m_upperLink[side]->SetRot(rot);
     m_upperLink[side]->SetMass(getULMass());
@@ -248,6 +246,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     // Create and initialize the universal joint between chassis and upper link.
     m_universalUpperLink[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalUpperLink[side]->SetName(m_name + "_universalUpperLink" + suffix);
+    m_universalUpperLink[side]->SetTag(m_obj_tag);
     m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChFrame<>(points[UL_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_universalUpperLink[side]);
 
@@ -263,6 +262,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
     m_lowerLink[side] = chrono_types::make_shared<ChBody>();
     m_lowerLink[side]->SetName(m_name + "_lowerLink" + suffix);
+    m_lowerLink[side]->SetTag(m_obj_tag);
     m_lowerLink[side]->SetPos(points[LL_CM]);
     m_lowerLink[side]->SetRot(rot);
     m_lowerLink[side]->SetMass(getLLMass());
@@ -272,6 +272,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     // Create and initialize the universal joint between chassis and lower link.
     m_universalLowerLink[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalLowerLink[side]->SetName(m_name + "_universalLowerLink" + suffix);
+    m_universalLowerLink[side]->SetTag(m_obj_tag);
     m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChFrame<>(points[LL_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
 
@@ -279,11 +280,13 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     if (side == LEFT) {
         m_sphericalTierod = chrono_types::make_shared<ChLinkLockSpherical>();
         m_sphericalTierod->SetName(m_name + "_sphericalTierod" + suffix);
+        m_sphericalTierod->SetTag(m_obj_tag);
         m_sphericalTierod->Initialize(m_tierod, m_knuckle[side], ChFrame<>(points[TIEROD_K], QUNIT));
         chassis->GetSystem()->AddLink(m_sphericalTierod);
     } else {
         m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetName(m_name + "_universalTierod" + suffix);
+        m_universalTierod->SetTag(m_obj_tag);
         m_universalTierod->Initialize(m_tierod, m_knuckle[side],
                                       ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_universalTierod);
@@ -301,6 +304,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
     m_revoluteKingpin[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteKingpin[side]->SetName(m_name + "_revoluteKingpin" + suffix);
+    m_revoluteKingpin[side]->SetTag(m_obj_tag);
     m_revoluteKingpin[side]->Initialize(m_axleTube, m_knuckle[side],
                                         ChFrame<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteKingpin[side]);
@@ -308,18 +312,21 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     // Create and initialize the spherical joint between axle and upper link.
     m_sphericalUpperLink[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalUpperLink[side]->SetName(m_name + "_sphericalUpperLink" + suffix);
+    m_sphericalUpperLink[side]->SetTag(m_obj_tag);
     m_sphericalUpperLink[side]->Initialize(m_axleTube, m_upperLink[side], ChFrame<>(points[UL_A], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalUpperLink[side]);
 
     // Create and initialize the spherical joint between axle and lower link.
     m_sphericalLowerLink[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalLowerLink[side]->SetName(m_name + "_sphericalLowerLink" + suffix);
+    m_sphericalLowerLink[side]->SetTag(m_obj_tag);
     m_sphericalLowerLink[side]->Initialize(m_axleTube, m_lowerLink[side], ChFrame<>(points[LL_A], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalLowerLink[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side],
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -327,6 +334,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetName(m_name + "_shock" + suffix);
+    m_shock[side]->SetTag(m_obj_tag);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -334,6 +342,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetName(m_name + "_spring" + suffix);
+    m_spring[side]->SetTag(m_obj_tag);
     m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -353,6 +362,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
         m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetName(m_name + "_draglink");
+        m_draglink->SetTag(m_obj_tag);
         m_draglink->SetPos((points[DRAGLINK_C] + points[BELLCRANK_DRAGLINK]) / 2);
         m_draglink->SetRot(rot.GetQuaternion());
         m_draglink->SetMass(getDraglinkMass());
@@ -362,13 +372,15 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         // Create and initialize the spherical joint between steering mechanism and draglink.
         m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
         m_sphericalDraglink->SetName(m_name + "_sphericalDraglink" + suffix);
+        m_sphericalDraglink->SetTag(m_obj_tag);
         m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChFrame<>(points[DRAGLINK_C], QUNIT));
         chassis->GetSystem()->AddLink(m_sphericalDraglink);
 
         // Create and initialize bell crank body (one side only).
         m_bellCrank = chrono_types::make_shared<ChBody>();
         m_bellCrank->SetName(m_name + "_bellCrank");
-        m_bellCrank->SetPos((points[BELLCRANK_DRAGLINK] + points[BELLCRANK_AXLE] + points[BELLCRANK_TIEROD]) / 3);
+        m_bellCrank->SetTag(m_obj_tag);
+        m_bellCrank->SetPos((points[BELLCRANK_DRAGLINK] + points[BELLCRANK_AXLE] + points[BELLCRANK_TIEROD]) * CH_1_3);
         m_bellCrank->SetRot(rot.GetQuaternion());
         m_bellCrank->SetMass(getBellCrankMass());
         m_bellCrank->SetInertiaXX(getBellCrankInertia());
@@ -377,6 +389,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         // Create and initialize the universal joint between draglink and bell crank.
         m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
         m_universalDraglink->SetName(m_name + "_universalDraglink" + suffix);
+        m_universalDraglink->SetTag(m_obj_tag);
         m_universalDraglink->Initialize(m_draglink, m_bellCrank,
                                         ChFrame<>(points[BELLCRANK_DRAGLINK], rot.GetQuaternion()));
         chassis->GetSystem()->AddLink(m_universalDraglink);
@@ -394,12 +407,14 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
         m_revoluteBellCrank = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revoluteBellCrank->SetName(m_name + "_revoluteBellCrank" + suffix);
+        m_revoluteBellCrank->SetTag(m_obj_tag);
         m_revoluteBellCrank->Initialize(m_bellCrank, m_axleTube, ChFrame<>(points[BELLCRANK_AXLE], QUNIT));
         chassis->GetSystem()->AddLink(m_revoluteBellCrank);
 
         // Create and initialize the point-plane joint between bell crank and tierod.
         m_pointPlaneBellCrank = chrono_types::make_shared<ChLinkLockPointPlane>();
         m_pointPlaneBellCrank->SetName(m_name + "_pointPlaneBellCrank" + suffix);
+        m_pointPlaneBellCrank->SetTag(m_obj_tag);
         m_pointPlaneBellCrank->Initialize(m_bellCrank, m_tierod,
                                           ChFrame<>(points[BELLCRANK_TIEROD], chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_pointPlaneBellCrank);
@@ -409,6 +424,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
@@ -433,7 +449,7 @@ void ChSolidAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaUL(getULInertia());
     ChMatrix33<> inertiaLL(getLLInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
@@ -672,7 +688,7 @@ void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     auto ns = body->GetVisualModel()->GetNumShapes();
     for (unsigned int i = 0; i < ns; i++)
         body->GetVisualModel()->GetShape(i)->SetColor(color);
@@ -689,8 +705,8 @@ void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
     ChVector3d p_A = body->TransformPointParentToLocal(pt_A);
     ChVector3d p_T = body->TransformPointParentToLocal(pt_T);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_D, p_A, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_A, p_T, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_D, p_A, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_A, p_T, radius);
 
     auto ns = body->GetVisualModel()->GetNumShapes();
     for (unsigned int i = 0; i < ns; i++)
@@ -711,15 +727,15 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
     ChVector3d p_T = knuckle->TransformPointParentToLocal(pt_T);
 
     if (p_L.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
     }
 
     if (p_U.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
     }
 
     if (p_T.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
     }
 
     auto ns = knuckle->GetVisualModel()->GetNumShapes();
@@ -728,110 +744,47 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSolidAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    bodies.push_back(m_tierod);
-    bodies.push_back(m_bellCrank);
-    bodies.push_back(m_draglink);
-    bodies.push_back(m_knuckle[0]);
-    bodies.push_back(m_knuckle[1]);
-    bodies.push_back(m_upperLink[0]);
-    bodies.push_back(m_upperLink[1]);
-    bodies.push_back(m_lowerLink[0]);
-    bodies.push_back(m_lowerLink[1]);
-    ExportBodyList(jsonDocument, bodies);
+void ChSolidAxle::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    m_bodies.push_back(m_axleTube);
+    m_bodies.push_back(m_tierod);
+    m_bodies.push_back(m_bellCrank);
+    m_bodies.push_back(m_draglink);
+    m_bodies.push_back(m_knuckle[0]);
+    m_bodies.push_back(m_knuckle[1]);
+    m_bodies.push_back(m_upperLink[0]);
+    m_bodies.push_back(m_upperLink[1]);
+    m_bodies.push_back(m_lowerLink[0]);
+    m_bodies.push_back(m_lowerLink[1]);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteBellCrank);
-    joints.push_back(m_sphericalTierod);
-    joints.push_back(m_sphericalDraglink);
-    joints.push_back(m_universalDraglink);
-    joints.push_back(m_universalTierod);
-    joints.push_back(m_pointPlaneBellCrank);
-    joints.push_back(m_revoluteKingpin[0]);
-    joints.push_back(m_revoluteKingpin[1]);
-    joints.push_back(m_sphericalUpperLink[0]);
-    joints.push_back(m_sphericalUpperLink[1]);
-    joints.push_back(m_sphericalLowerLink[0]);
-    joints.push_back(m_sphericalLowerLink[1]);
-    joints.push_back(m_universalUpperLink[0]);
-    joints.push_back(m_universalUpperLink[1]);
-    joints.push_back(m_universalLowerLink[0]);
-    joints.push_back(m_universalLowerLink[1]);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
+    m_joints.push_back(m_revoluteBellCrank);
+    m_joints.push_back(m_sphericalTierod);
+    m_joints.push_back(m_sphericalDraglink);
+    m_joints.push_back(m_universalDraglink);
+    m_joints.push_back(m_universalTierod);
+    m_joints.push_back(m_pointPlaneBellCrank);
+    m_joints.push_back(m_revoluteKingpin[0]);
+    m_joints.push_back(m_revoluteKingpin[1]);
+    m_joints.push_back(m_sphericalUpperLink[0]);
+    m_joints.push_back(m_sphericalUpperLink[1]);
+    m_joints.push_back(m_sphericalLowerLink[0]);
+    m_joints.push_back(m_sphericalLowerLink[1]);
+    m_joints.push_back(m_universalUpperLink[0]);
+    m_joints.push_back(m_universalUpperLink[1]);
+    m_joints.push_back(m_universalLowerLink[0]);
+    m_joints.push_back(m_universalLowerLink[1]);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChSolidAxle::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    bodies.push_back(m_tierod);
-    bodies.push_back(m_bellCrank);
-    bodies.push_back(m_draglink);
-    bodies.push_back(m_knuckle[0]);
-    bodies.push_back(m_knuckle[1]);
-    bodies.push_back(m_upperLink[0]);
-    bodies.push_back(m_upperLink[1]);
-    bodies.push_back(m_lowerLink[0]);
-    bodies.push_back(m_lowerLink[1]);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteBellCrank);
-    joints.push_back(m_sphericalTierod);
-    joints.push_back(m_sphericalDraglink);
-    joints.push_back(m_universalDraglink);
-    joints.push_back(m_universalTierod);
-    joints.push_back(m_pointPlaneBellCrank);
-    joints.push_back(m_revoluteKingpin[0]);
-    joints.push_back(m_revoluteKingpin[1]);
-    joints.push_back(m_sphericalUpperLink[0]);
-    joints.push_back(m_sphericalUpperLink[1]);
-    joints.push_back(m_sphericalLowerLink[0]);
-    joints.push_back(m_sphericalLowerLink[1]);
-    joints.push_back(m_universalUpperLink[0]);
-    joints.push_back(m_universalUpperLink[1]);
-    joints.push_back(m_universalLowerLink[0]);
-    joints.push_back(m_universalLowerLink[1]);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_spring[0]);
+    m_tsdas.push_back(m_spring[1]);
+    m_tsdas.push_back(m_shock[0]);
+    m_tsdas.push_back(m_shock[1]);
 }
 
 }  // end namespace vehicle

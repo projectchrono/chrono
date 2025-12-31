@@ -3,10 +3,7 @@ Install the VSG module {#module_vsg_installation}
 
 [TOC]
 
-This is a run-time visualization system for interactive 3D viewing of Chrono simulations.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
-
+Chrono::VSG is a run-time visualization system for interactive 3D viewing of Chrono simulations.
 
 ## Features
 
@@ -20,12 +17,6 @@ Here are the main features:
 	- mouse wheel rotation for camera forward/backward
 	- press arrows to have x z camera motion, press page up & down for y vertical motion
 
-
-## Dependencies
-
-- This module you requires the Vulkan SDK and the VSG libraries.
-
-
 ## Building and installing prerequisistes
 
 There are two prerequisites for building the Chrono VSG module:
@@ -38,15 +29,16 @@ There are two prerequisites for building the Chrono VSG module:
 
   To address this issue, we provide a set of scripts (for both Windows and Linux) in the `contrib/build-scripts/vsg` directory of the Chrono source tree.  These scripts allow us to target specific releases of the VSG dependencies (i.e., tags in their respective GitHub repositories) and ensure compatibility with the current Chrono::VSG code.
 
-  The current Chrono::VSG module requires the following versions of the VSG libraries:
-  - vsg 1.1.0
-  - vsgXchange 1.1.0
-  - vsgExamples 1.1.0
-  - vsgImGui - latest
-  - assimp 5.3.1
+  The current Chrono::VSG module requires the following versions of the VSG and dependent libraries:
+  - [vsg](github.com/vsg-dev/VulkanSceneGraph.git) 1.1.11
+  - [vsgXchange](github.com/vsg-dev/vsgXchange.git) 1.1.7
+  - [vsgExamples](github.com/vsg-dev/vsgExamples.git) 1.1.9
+  - [vsgImGui](github.com/vsg-dev/vsgImGui.git) 0.7.0
+  - [assimp](github.com/assimp/assimp) 5.4.3
+  - [draco](github.com/google/draco) 1.5.7
 
 The two approaches for building and installing the VSG dependencies are described in the next two sections.
-For the reasons detailed above, We **strongly recommend** using the provided VSG [build scripts](#vsg_scripts).
+For the reasons detailed above, We **strongly recommend** using the provided VSG build scripts.
 
 ### 1. VSG Framework
 
@@ -56,7 +48,7 @@ The VSG libraries are themselves under active development, and so is vsgFramewor
 
   1. Clone the vsgFramework [GitHub repository](https://github.com/vsg-dev/vsgFramework).
      Assume the sources are in a local directory **[vsgFramework_source]**.
-  2. Create a **buid** directory and an **install** directory for vsgFramework. 
+  2. Create a **build** directory and an **install** directory for vsgFramework. 
      Assume these are **[vsgFramework_build]** and **[vsgFramework_install]**, respectively.
   3. Use CMake to configure vsgFramework.  Note that the only components that are necessary for Chrono::VSG are *assimp*, *vsgImGui*, and *vsgXchange*. Enable the corresponding `BUILD_***` CMake options and unselect all other.
   4. Set the installation directory (`CMAKE_INSTALL_PREFIX`) to be the **[vsgFramework_install]** directory created above.
@@ -73,7 +65,7 @@ The VSG libraries are themselves under active development, and so is vsgFramewor
   </div>
 
 
-### 2. VSG build scripts {#vsg_scripts}
+### 2. VSG build scripts
 
 With the VSG libraries themselves under active development, their latest versions may be incompatible with the current Chrono::VSG code. To ensure compatibility between the Chrono::VSG and its VSG dependencies, we provide (with the Chrono source code) a set of scripts which download specific code versions of the VSG dependencies, build all necessary libraries, and install them in a user-specified location.
 
@@ -94,7 +86,7 @@ Once the necessary dependencies are installed, perform the following steps to co
 
 1. Repeat the instructions for the [full Chrono installation](@ref tutorial_install_chrono)
    
-2. During CMake configuration, set `ENABLE_MODULE_VSG` to 'on', then press 'Configure'
+2. Set `CH_ENABLE_MODULE_VSG` to 'on'.
 
 3. When prompted, provide the paths to the various VSG project configuration scripts (`vsg_DIR`, `vsgImGui_DIR`, and `vsgXchange_DIR`). For example, assuming you used the provided [build scripts](#vsg_scripts), these should be `<VSG_INSTALL_DIR>/lib/cmake/vsg`, `<VSG_INSTALL_DIR>/lib/cmake/vsgImGui`, and `<VSG_INSTALL_DIR>/lib/cmake/vsgXchange`, respectively.
 

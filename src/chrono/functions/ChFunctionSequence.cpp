@@ -100,6 +100,8 @@ void ChFseqNode::ArchiveIn(ChArchiveIn& archive_in) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionSequence)
 
+ChFunctionSequence::ChFunctionSequence() : m_start(0), m_clamped(false) {}
+
 ChFunctionSequence::ChFunctionSequence(const ChFunctionSequence& other) {
     m_start = other.m_start;
     m_functions = other.m_functions;
@@ -251,14 +253,23 @@ void ChFunctionSequence::Setup() {
 
 double ChFunctionSequence::GetVal(double x) const {
     double res = 0;
-    double localtime;
-    for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
-        if ((x >= iter->t_start) && (x < iter->t_end)) {
-            localtime = x - iter->t_start;
-            res =
-                iter->fx->GetVal(localtime) + iter->Iy + iter->Iydt * localtime + iter->Iydtdt * localtime * localtime;
+    double localtime = 0;
+
+    if (m_clamped && x >= m_functions.back().t_end) {  // clamp to last node value after end
+        auto last_node = &m_functions.back();
+        localtime = m_functions.back().duration;
+        res = last_node->fx->GetVal(localtime) + last_node->Iy + last_node->Iydt * localtime +
+              last_node->Iydtdt * localtime * localtime;
+    } else {  // find current node value
+        for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
+            if ((x >= iter->t_start) && (x < iter->t_end)) {
+                localtime = x - iter->t_start;
+                res = iter->fx->GetVal(localtime) + iter->Iy + iter->Iydt * localtime +
+                      iter->Iydtdt * localtime * localtime;
+            }
         }
     }
+
     return res;
 }
 
@@ -304,6 +315,7 @@ void ChFunctionSequence::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(m_start);
     archive_out << CHNVP(m_functions);
+    archive_out << CHNVP(m_clamped);
 }
 
 void ChFunctionSequence::ArchiveIn(ChArchiveIn& archive_in) {
@@ -314,6 +326,7 @@ void ChFunctionSequence::ArchiveIn(ChArchiveIn& archive_in) {
     // stream in all member data:
     archive_in >> CHNVP(m_start);
     archive_in >> CHNVP(m_functions);
+    archive_in >> CHNVP(m_clamped);
 }
 
 }  // end namespace chrono

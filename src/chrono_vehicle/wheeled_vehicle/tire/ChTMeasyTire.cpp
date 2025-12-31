@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Template for the "Tire Model made Easy". Our implementation is a basic version
-// of the algorithms in http://www.tmeasy.de/, a comercial tire simulation code
+// of the algorithms in http://www.tmeasy.de/, a commercial tire simulation code
 // developed by Prof. Dr. Georg Rill.
 //
 //
@@ -24,7 +24,7 @@
 //      Georg Rill, "Simulation von Kraftfahrzeugen",
 //          https://www.researchgate.net/publication/317037037_Simulation_von_Kraftfahrzeugen
 //
-// Known differences to the comercial version:
+// Known differences to the commercial version:
 //  - No parking slip calculations
 //  - No dynamic parking torque
 //  - No dynamic tire inflation pressure
@@ -44,7 +44,7 @@
 #include <cmath>
 #include <iomanip>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
@@ -150,8 +150,8 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.q = ChClamp(Fn_mag, 0.0, m_par.pn_max) / m_par.pn;
         double r_stat = m_unloaded_radius - m_data.depth;
         m_states.omega = wheel_state.omega;
-        m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
-        m_states.P_len = 2.0 * sqrt(m_unloaded_radius * m_data.depth);
+        m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) * CH_1_3;
+        m_states.P_len = 2.0 * std::sqrt(m_unloaded_radius * m_data.depth);
         m_states.vta = m_states.R_eff * std::abs(m_states.omega) + m_vnum;
         m_states.vsx = m_data.vel.x() - m_states.omega * m_states.R_eff;
         m_states.vsy = m_data.vel.y();
@@ -224,8 +224,8 @@ void ChTMeasyTire::Advance(double step) {
         calpha = sx / sc;
         salpha = sy / sc;
     } else {
-        calpha = sqrt(2.0) / 2.0;
-        salpha = sqrt(2.0) / 2.0;
+        calpha = std::sqrt(2.0) / 2.0;
+        salpha = std::sqrt(2.0) / 2.0;
     }
 
     // Calculate resultant Curve Parameters
@@ -278,7 +278,7 @@ void ChTMeasyTire::Advance(double step) {
 void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
     ChVector2d F;
     /*
-     The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+     The Dahl Friction Model elastic tread blocks represented by a single bristle. At tire stand still it acts
      like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
      have been added to calm down the oscillations of the pure spring.
 
@@ -290,7 +290,7 @@ void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, doub
      differential equation:
          dz/dt = v - sigma0*z*abs(v)/fc
 
-     When z is known, the friction force F can be calulated to:
+     When z is known, the friction force F can be calculated to:
         F = sigma0 * z
 
      For practical use some damping is needed, that leads to:
@@ -307,9 +307,23 @@ void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, doub
     // Lateral Friction Force
     double bry_dot = m_states.vsy - m_par.sigma0 * m_states.bry * fabs(m_states.vsy) / fc;  // dz/dt
     F.y() = -(m_par.sigma0 * m_states.bry + m_par.sigma1 * bry_dot);
-    // Calculate the new ODE states (implicit Euler)
-    m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
-    m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    if (m_use_bdf1) {
+        // Calculate the new ODE states (Backward Euler / BDF1 / Gear1)
+        // implicit, A-stable
+        // Integration error ~ h
+        m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
+        m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    } else {
+        // Calculate the new ODE states (Trapezoidal Rule)
+        // implicit, A-stable
+        // Integration error ~ h^2
+        m_states.brx = (2.0 * m_states.brx * fc + 2.0 * fc * h * m_states.vsx -
+                        m_states.brx * h * m_par.sigma0 * std::abs(m_states.vsx)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsx));
+        m_states.bry = (2.0 * m_states.bry * fc + 2.0 * fc * h * m_states.vsy -
+                        m_states.bry * h * m_par.sigma0 * std::abs(m_states.vsy)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsy));
+    }
 
     // combine forces (friction circle)
     if (F.Length() > fz * muscale) {
@@ -387,11 +401,11 @@ double ChTMeasyTire::AlignmentTorque(double fy) {
         if (sy_a <= synto0) {
             sy_n = sy_a / synto0;
             double nto1 = nto0 * (1.0 - sy_n);
-            double nto2 = nto0 * (1.0 - (3.0 - 2.0 * sy_n) * pow(sy_n, 2));
+            double nto2 = nto0 * (1.0 - (3.0 - 2.0 * sy_n) * std::pow(sy_n, 2));
             nto = (1.0 - wf) * nto1 + wf * nto2;
         } else {
             sy_n = (syntoE_loc - sy_a) / (syntoE_loc - synto0);
-            nto = -nto0 * (1.0 - wf) * (sy_a - synto0) / synto0 * pow(sy_n, 2);
+            nto = -nto0 * (1.0 - wf) * (sy_a - synto0) / synto0 * std::pow(sy_n, 2);
         }
     }
     return -fy * m_states.P_len * nto;
@@ -495,11 +509,11 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
+    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -566,7 +580,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
     m_width = tireWidth;
@@ -574,7 +588,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_par.mu_0 = 0.8;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
+    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -613,7 +627,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_par.sqe_p2n = 1.0714;
 }
 
-// Do some rough constency checks
+// Do some rough consistency checks
 bool ChTMeasyTire::CheckParameters() {
     // Nominal Load set?
     if (m_par.pn < GetTireMaxLoad(0)) {

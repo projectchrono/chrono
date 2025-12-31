@@ -102,7 +102,7 @@ Consult the Eigen API for all matrix and vector [arithmetic operations](https://
 
 # Function objects  {#ChFunction_objects}
 
-These ChFunction objects are used in many places in Chrono::Engine, 
+These ChFunction objects are used in many places in Chrono, 
 and are used to represent y=f(x) functions, 
 for example when introducing prescribed displacements in a linear actuator.
 

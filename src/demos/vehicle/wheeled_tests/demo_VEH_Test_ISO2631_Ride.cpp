@@ -23,7 +23,7 @@
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -39,13 +39,11 @@
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -146,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle system
     ChContactMethod contact_method = ChContactMethod::SMC;
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);
+    WheeledVehicle vehicle(GetVehicleDataFile(vehicle_file), contact_method);
     vehicle.Initialize(ChCoordsys<>(initLoc, QUNIT));
     ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -200,8 +198,8 @@ int main(int argc, char* argv[]) {
     rmsVal = terrain.GetRMS() * 1000.0;  // unit [mm]
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_file));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_file));
+    auto engine = ReadEngineJSON(GetVehicleDataFile(engine_file));
+    auto transmission = ReadTransmissionJSON(GetVehicleDataFile(transmission_file));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
@@ -210,15 +208,15 @@ int main(int argc, char* argv[]) {
         switch (iTire) {
             default:
             case 1: {
-                auto tireL = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
-                auto tireR = chrono_types::make_shared<TMeasyTire>(vehicle::GetDataFile(tmeasy_tire_file));
+                auto tireL = chrono_types::make_shared<TMeasyTire>(GetVehicleDataFile(tmeasy_tire_file));
+                auto tireR = chrono_types::make_shared<TMeasyTire>(GetVehicleDataFile(tmeasy_tire_file));
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
             case 2: {
-                auto tireL = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
-                auto tireR = chrono_types::make_shared<FialaTire>(vehicle::GetDataFile(fiala_tire_file));
+                auto tireL = chrono_types::make_shared<FialaTire>(GetVehicleDataFile(fiala_tire_file));
+                auto tireR = chrono_types::make_shared<FialaTire>(GetVehicleDataFile(fiala_tire_file));
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
@@ -244,9 +242,9 @@ int main(int argc, char* argv[]) {
     ChISO2631_Vibration_SeatCushionLogger seat_logger(step_size);
 
     // Create the driver
-    auto path = ChBezierCurve::Read(vehicle::GetDataFile(path_file));
-    ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
-                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
+    auto path = ChBezierCurve::Read(GetVehicleDataFile(path_file));
+    ChPathFollowerDriver driver(vehicle, GetVehicleDataFile(steering_controller_file),
+                                GetVehicleDataFile(speed_controller_file), path, "my_path", target_speed);
     driver.Initialize();
 
     // Create the vehicle run-time visualization
@@ -305,13 +303,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle(title);
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -402,14 +400,14 @@ int main(int argc, char* argv[]) {
     std::cout << "  Crest Factor                 = " << cf << "\n";
     std::cout << "  VDV based Severity Criterion = " << svdv << "\n";
     if (svdv < 1.75) {
-        std::cout << "\nVDV Severitiy < 1.75: the Weighted Acceleration AWV ist the prefered result\n";
+        std::cout << "\nVDV Severitiy < 1.75: the Weighted Acceleration AWV ist the preferred result\n";
         if (awv <= ride_limit) {
             std::cout << "  AWV <= " << ride_limit << "m/s^2 (ok)\n";
         } else {
             std::cout << "  AWV > " << ride_limit << "m/s^2 (above limit)\n";
         }
     } else {
-        std::cout << "\nVDV Severitiy >= 1.75: the Vibration Dose Value VDV ist the prefered result\n";
+        std::cout << "\nVDV Severitiy >= 1.75: the Vibration Dose Value VDV ist the preferred result\n";
         if (vdv <= ride_limit) {
             std::cout << "  VDV <= " << ride_limit << "m/s^1.75 (ok)\n";
         } else {

@@ -24,18 +24,17 @@ namespace chrono {
 /// @{
 
 /// Sine function
-/// y = A*sin(2*PI*f + phase)`
+/// `y = A * sin(2*PI*f * x + phi) + B`
 class ChApi ChFunctionSine : public ChFunction {
-  private:
-    double m_ampl;
-    double m_phase;
-    double m_angular_rate;  ///< internal value, w=2*PI*freq
-
   public:
-    ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_angular_rate(0.0) {}
-    ChFunctionSine(double ampl, double freq, double phase = 0)
-        : m_ampl(ampl), m_phase(phase), m_angular_rate(2.0 * CH_PI * freq) {}
+    ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_shift(0.0), m_angular_rate(0.0) {}
+
+    /// Create sine function given amplitude, frequency [Hz] and phase.
+    ChFunctionSine(double ampl, double freq, double phase = 0, double shift = 0)
+        : m_ampl(ampl), m_phase(phase), m_shift(shift), m_angular_rate(CH_2PI * freq) {}
+
     ChFunctionSine(const ChFunctionSine& other);
+
     ~ChFunctionSine() {}
 
     /// "Virtual" copy constructor (covariant return type).
@@ -46,10 +45,11 @@ class ChApi ChFunctionSine : public ChFunction {
     virtual double GetVal(double x) const override;
     virtual double GetDer(double x) const override;
     virtual double GetDer2(double x) const override;
+    virtual double GetDer3(double x) const override;
 
     void SetPhase(double phase) { m_phase = phase; };
 
-    void SetFrequency(double freq) { m_angular_rate = 2.0 * CH_PI * freq; }
+    void SetFrequency(double freq) { m_angular_rate = CH_2PI * freq; }
 
     void SetAngularRate(double ang_rate) { m_angular_rate = ang_rate; }
 
@@ -57,7 +57,7 @@ class ChApi ChFunctionSine : public ChFunction {
 
     double GetPhase() const { return m_phase; }
 
-    double GetFrequency() const { return m_angular_rate / 2.0 / CH_PI; }
+    double GetFrequency() const { return m_angular_rate / CH_2PI; }
 
     double GetAngularRate() const { return m_angular_rate; }
 
@@ -68,6 +68,12 @@ class ChApi ChFunctionSine : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double m_ampl;
+    double m_phase;
+    double m_shift;
+    double m_angular_rate;  ///< internal value, w=2*PI*freq
 };
 
 /// @} chrono_functions

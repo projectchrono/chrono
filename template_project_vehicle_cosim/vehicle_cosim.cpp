@@ -24,14 +24,16 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimOtherNode.h"
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeBypass.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#endif
 
 using std::cout;
 using std::cin;
@@ -278,7 +280,6 @@ int main(int argc, char** argv) {
         auto mbs = new ChVehicleCosimRigNode();
         mbs->SetVerbose(verbose);
         mbs->SetStepSize(step_size);
-        mbs->SetNumThreads(1);
         mbs->SetTotalMass(100);
         mbs->SetOutDir(out_dir, suffix);
         mbs->AttachDrawbarPullRig(dbp_rig);
@@ -288,7 +289,6 @@ int main(int argc, char** argv) {
         auto tire = new ChVehicleCosimTireNodeBypass(0, 37.6, 0.47, 0.25);
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
-        tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
 
         node = tire;

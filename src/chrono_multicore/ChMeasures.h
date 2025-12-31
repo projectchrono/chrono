@@ -20,7 +20,8 @@
 
 #pragma once
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/multicore_math/types.h"
+
 #include "chrono_multicore/ChMulticoreDefines.h"
 
 namespace chrono {
@@ -44,9 +45,9 @@ class collision_measures {
         rigid_min_bounding_point = real3(0);
         rigid_max_bounding_point = real3(0);
 
-        ff_min_bounding_point = real3(0);
-        ff_max_bounding_point = real3(0);
-        ff_bins_per_axis = vec3(0);
+        part_min_bounding_point = real3(0);
+        part_max_bounding_point = real3(0);
+        part_bins_per_axis = vec3(0);
 
         tet_min_bounding_point = real3(0);
         tet_max_bounding_point = real3(0);
@@ -65,10 +66,10 @@ class collision_measures {
     real3 rigid_min_bounding_point;
     real3 rigid_max_bounding_point;
 
-    // Fluid Collision info
-    vec3 ff_bins_per_axis;
-    real3 ff_min_bounding_point;
-    real3 ff_max_bounding_point;
+    // Particle Collision info
+    vec3 part_bins_per_axis;
+    real3 part_min_bounding_point;
+    real3 part_max_bounding_point;
 
     // Tet Collision info
     vec3 tet_bins_per_axis;

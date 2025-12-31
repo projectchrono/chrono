@@ -34,7 +34,7 @@ namespace vehicle {
 ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {}
 
 ChAntirollBarRSD::~ChAntirollBarRSD() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_arm_left->GetSystem();
@@ -50,14 +50,9 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 }
 
 // -----------------------------------------------------------------------------
-void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
-                                  std::shared_ptr<ChSuspension> suspension,
-                                  const ChVector3d& location) {
-    ChAntirollBar::Initialize(chassis, suspension, location);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChAntirollBarRSD::Construct(std::shared_ptr<ChChassis> chassis,
+                                 std::shared_ptr<ChSuspension> suspension,
+                                 const ChVector3d& location) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -137,6 +132,8 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddLink(m_link_right);
 }
 
+
+
 void ChAntirollBarRSD::InitializeInertiaProperties() {
     m_mass = 2 * getArmMass();
 }
@@ -145,7 +142,7 @@ void ChAntirollBarRSD::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_arm_left->GetFrameCOMToAbs(), m_arm_left->GetMass(), m_arm_left->GetInertia());
     composite.AddComponent(m_arm_right->GetFrameCOMToAbs(), m_arm_right->GetMass(), m_arm_right->GetInertia());
 
@@ -194,48 +191,25 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
                                            const ChVector3d& pt_3,
                                            double radius,
                                            const ChColor& color) {
-    ChVehicleGeometry::AddVisualizationCylinder(arm, pt_1, pt_2, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, pt_1, pt_2, radius);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm, pt_2, pt_3, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, pt_2, pt_3, radius);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm,                                  //
-                                                pt_1 + ChVector3d(0, 0, 3 * radius),  //
-                                                pt_1 - ChVector3d(0, 0, 3 * radius),  //
-                                                radius / 2);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm,                                  //
+                                                    pt_1 + ChVector3d(0, 0, 3 * radius),  //
+                                                    pt_1 - ChVector3d(0, 0, 3 * radius),  //
+                                                    radius / 2);
 }
 
 // -----------------------------------------------------------------------------
-void ChAntirollBarRSD::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
+void ChAntirollBarRSD::PopulateComponentList() {
+    m_bodies.push_back(m_arm_left);
+    m_bodies.push_back(m_arm_right);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm_left);
-    bodies.push_back(m_arm_right);
-    ExportBodyList(jsonDocument, bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute_ch);
-    joints.push_back(m_revolute);
-    joints.push_back(m_link_left);
-    joints.push_back(m_link_right);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChAntirollBarRSD::Output(ChVehicleOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_arm_left);
-    bodies.push_back(m_arm_right);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute_ch);
-    joints.push_back(m_revolute);
-    joints.push_back(m_link_left);
-    joints.push_back(m_link_right);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute_ch);
+    m_joints.push_back(m_revolute);
+    m_joints.push_back(m_link_left);
+    m_joints.push_back(m_link_right);
 }
 
 }  // end namespace vehicle

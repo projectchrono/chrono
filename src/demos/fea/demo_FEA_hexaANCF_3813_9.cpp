@@ -37,16 +37,16 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 
-#include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "FEAvisualization.h"
+
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+// -----------------------------------------------------------------------------
 
 void AxialDynamics(const std::string& out_dir);
 void BendingQuasiStatic(const std::string& out_dir);
@@ -55,6 +55,10 @@ void SoilBin(const std::string& out_dir);
 void SimpleBoxContact(const std::string& out_dir);
 void ShellBrickContact(const std::string& out_dir);
 void DPCapPress(const std::string& out_dir);
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -182,8 +186,8 @@ void DPCapPress(const std::string& out_dir) {
     }
     // Modified hardening parameter to be consistent with ABAQUS !!!
     for (int i = 0; i < RowN; i++) {
-        m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / tan(51.7848 * 3.141592653589793 / 180.0)) /
-                         (0.5 * tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
+        m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / std::tan(51.7848 * 3.141592653589793 / 180.0)) /
+                         (0.5 * std::tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
     }
 
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
@@ -193,8 +197,8 @@ void DPCapPress(const std::string& out_dir) {
     my_surfacematerial->SetGt(32);    // (10e3);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
+    my_contactsurface->AddAllNodes(*my_mesh, 0.005);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddAllNodes(0.005);
 
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
@@ -267,7 +271,7 @@ void DPCapPress(const std::string& out_dir) {
                     element->SetDPVector1(m_DPVector1);
                     element->SetDPVector2(m_DPVector2);
                     element->SetDPVectorSize(RowN);
-                    element->SetDPCapBeta(0.5 * tan(51.7848 * 3.141592653589793 / 180.0));
+                    element->SetDPCapBeta(0.5 * std::tan(51.7848 * 3.141592653589793 / 180.0));
                 }
             }
         }
@@ -284,50 +288,43 @@ void DPCapPress(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -342,13 +339,12 @@ void DPCapPress(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/DPCapPress.txt";
     outputfile = fopen(filename.c_str(), "w");
 
     double start = std::clock();
-    int Iter = 0;
 
     double force = 0.0;
 
@@ -371,9 +367,8 @@ void DPCapPress(const std::string& out_dir) {
             }
         }
 
-        Iter += mystepper->GetNumIterations();
         std::cout << "t = " << sys.GetChTime() << std::endl;
-        std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
+        std::cout << "Last it: " << mystepper->GetNumStepIterations() << std::endl;
 
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         inc = inc / 2;
@@ -392,7 +387,7 @@ void DPCapPress(const std::string& out_dir) {
     std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
     std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
     std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
-    std::cout << Iter << std::endl;
+    std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
 // Test1 Case
@@ -593,8 +588,8 @@ void ShellBrickContact(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface->AddFacesFromBoundary(*my_mesh, 0.005);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddFacesFromBoundary(0.005);
 
     for (int ii = 0; ii < SnumDiv_x * SnumDiv_y; ii++) {
         int node0 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x;
@@ -618,8 +613,8 @@ void ShellBrickContact(const std::string& out_dir) {
     sys.Add(my_shell_mesh);
 
     auto my_contactsurface_shell = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface_shell->AddFacesFromBoundary(*my_shell_mesh, 0.005);
     my_shell_mesh->AddContactSurface(my_contactsurface_shell);
-    my_contactsurface_shell->AddFacesFromBoundary(0.005);
 
     sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
     // Turn off gravity for only the shell elements
@@ -629,35 +624,35 @@ void ShellBrickContact(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -665,50 +660,43 @@ void ShellBrickContact(const std::string& out_dir) {
 
     // Duplicate irrlicht settings for the shell mesh
 
-    auto mvisualizemesh_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemesh_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh_shell->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh_shell->SetColormapRange(0.0, 5.50);
     mvisualizemesh_shell->SetShrinkElements(true, 0.85);
     mvisualizemesh_shell->SetSmoothFaces(true);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemesh_shell);
 
-    auto mvisualizemeshref_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshref_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref_shell->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref_shell->SetWireframe(true);
     mvisualizemeshref_shell->SetDrawInUndeformedReference(true);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshref_shell);
 
-    auto mvisualizemeshC_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshC_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC_shell->SetSymbolsThickness(0.004);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshC_shell);
 
-    auto mvisualizemeshD_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshD_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD_shell->SetSymbolsScale(1);
-    mvisualizemeshD_shell->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD_shell->SetColormapRange(-0.5, 5);
     mvisualizemeshD_shell->SetZbufferHide(false);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshD_shell);
 
-    auto mvisualizemeshcoll_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshcoll_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll_shell->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll_shell->SetWireframe(true);
     mvisualizemeshcoll_shell->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshcoll_shell);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -723,7 +711,7 @@ void ShellBrickContact(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/ShellBrickContact.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -734,7 +722,6 @@ void ShellBrickContact(const std::string& out_dir) {
     fprintf(outputfile, "\n  ");
 
     double start = std::clock();
-    int Iter = 0;
     int timecount = 0;
     while (vis->Run() && (sys.GetChTime() <= 1.0)) {
         if (sys.GetChTime() < 0.5) {
@@ -754,9 +741,8 @@ void ShellBrickContact(const std::string& out_dir) {
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
-        Iter += mystepper->GetNumIterations();
         std::cout << "t = " << sys.GetChTime() << std::endl;
-        std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
+        std::cout << "Last it: " << mystepper->GetNumStepIterations() << std::endl;
         // std::cout << "Body Contact F: " << Plate->GetContactForce() << std::endl;
         std::cout << nodetip1->GetPos().x() << std::endl;
         std::cout << nodetip1->GetPos().y() << std::endl;
@@ -780,7 +766,7 @@ void ShellBrickContact(const std::string& out_dir) {
     std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
     std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
     std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
-    std::cout << Iter << std::endl;
+    std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
 // Test Case
@@ -945,8 +931,8 @@ void SimpleBoxContact(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface->AddFacesFromBoundary(*my_mesh, 0.0);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddFacesFromBoundary(0.0);
 
     double plate_w = 0.1;
     double plate_l = 0.1;
@@ -965,50 +951,43 @@ void SimpleBoxContact(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.99);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1023,7 +1002,7 @@ void SimpleBoxContact(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-3, 1e-2);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/SimpleBoxContact.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -1034,7 +1013,6 @@ void SimpleBoxContact(const std::string& out_dir) {
     fprintf(outputfile, "\n  ");
 
     double start = std::clock();
-    int Iter = 0;
     int timecount = 0;
     while (vis->Run() && (sys.GetChTime() <= 1.0)) {
         vis->BeginScene();
@@ -1042,9 +1020,8 @@ void SimpleBoxContact(const std::string& out_dir) {
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
-        Iter += mystepper->GetNumIterations();
         // std::cout << "t = " << sys.GetChTime() << std::endl;
-        // std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
+        // std::cout << "Last it: " << mystepper->GetNumStepIterations() << std::endl;
         // std::cout << "Plate Pos: " << Plate->GetPos();
         // std::cout << "Plate Vel: " << Plate->GetPosDt();
         // std::cout << "Body Contact F: " << Plate->GetContactForce() << std::endl;
@@ -1070,7 +1047,7 @@ void SimpleBoxContact(const std::string& out_dir) {
     std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
     std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
     std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
-    std::cout << Iter << std::endl;
+    std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
 // SoilBin Dynamic
@@ -1238,8 +1215,8 @@ void SoilBin(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
+    my_contactsurface->AddAllNodes(*my_mesh, 0.006);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddAllNodes(0.006);  // 0.001///node cloud
 
     // Creat punch
     double plate_w = 0.2;  // 0.15
@@ -1287,51 +1264,43 @@ void SoilBin(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.5, -0.5, 0.75), ChVector3d(0.5, 0.5, 0.5));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1346,7 +1315,7 @@ void SoilBin(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/SoilBin.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -1361,13 +1330,12 @@ void SoilBin(const std::string& out_dir) {
     fprintf(outputfile, "\n  ");
 
     double start = std::clock();
-    int Iter = 0;
 
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (time > 1)
             break;
-        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_PI)), false);
+        plate_load->SetForce(ChVector3d(0, 0, -1500 * std::sin(time * CH_PI)), false);
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();
@@ -1375,9 +1343,8 @@ void SoilBin(const std::string& out_dir) {
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
-        Iter += mystepper->GetNumIterations();
         std::cout << "t = " << time << std::endl;
-        std::cout << "   Last it: " << mystepper->GetNumIterations() << std::endl;
+        std::cout << "   Last it: " << mystepper->GetNumStepIterations() << std::endl;
         std::cout << "   Plate Pos: " << Plate->GetPos() << std::endl;
         std::cout << "   Plate Vel: " << Plate->GetPosDt() << std::endl;
         std::cout << "   Plate Rot: " << Plate->GetRot() << std::endl;
@@ -1405,7 +1372,7 @@ void SoilBin(const std::string& out_dir) {
     std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
     std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
     std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
-    std::cout << Iter << std::endl;
+    std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
 // Axial Dynamic
@@ -1570,31 +1537,31 @@ void AxialDynamics(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    // auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    // mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    // mvisualizemesh->SetColormapRange(0.0, 5.50);
     // mvisualizemesh->SetShrinkElements(true, 0.85);
     // mvisualizemesh->SetSmoothFaces(true);
     // my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    // auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     // mvisualizemeshref->SetWireframe(true);
     // mvisualizemeshref->SetDrawInUndeformedReference(true);
     // my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    // auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     // mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizemeshC->SetSymbolsThickness(0.004);
     // my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    // auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     //// mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     // mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizemeshD->SetSymbolsScale(1);
-    // mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    // mvisualizemeshD->SetColormapRange(-0.5, 5);
     // mvisualizemeshD->SetZbufferHide(false);
     // my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
@@ -1614,7 +1581,7 @@ void AxialDynamics(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/AxialDynamics.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -1625,7 +1592,6 @@ void AxialDynamics(const std::string& out_dir) {
     fprintf(outputfile, "\n  ");
 
     double start = std::clock();
-    int Iter = 0;
     while (/*vis->Run() && */ (sys.GetChTime() <= 1.0)) {
         // application.BeginScene();
         // application.Render();
@@ -1638,9 +1604,8 @@ void AxialDynamics(const std::string& out_dir) {
         nodetip4->SetForce(ChVector3d(force, 0.0, 0.0));
         sys.DoStepDynamics(timestep);
         // application.EndScene();
-        Iter += mystepper->GetNumIterations();
         // std::cout << "t = " << sys.GetChTime() << std::endl;
-        // std::cout << "Last it: " << mystepper->GetNumIterations() << "\n\n";
+        // std::cout << "Last it: " << mystepper->GetNumStepIterations() << "\n\n";
         // if (!application.GetPaused()) {
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
@@ -1654,7 +1619,7 @@ void AxialDynamics(const std::string& out_dir) {
     std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
     std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
     std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
-    std::cout << Iter << std::endl;
+    std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
 // QuasiStatic
@@ -1786,44 +1751,37 @@ void BendingQuasiStatic(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.8, -0.6, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -1842,7 +1800,7 @@ void BendingQuasiStatic(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/BendingQuasistatic.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -2013,44 +1971,37 @@ void SwingingShell(const std::string& out_dir) {
 
     sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_STRESS_VONMISES);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(2, 1, -1), ChVector3d(0, 0, 0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.8, -0.6, -1.0), ChVector3d(0.0, 0.5, -0.1));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -2069,7 +2020,7 @@ void SwingingShell(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "SwingingShell.txt";
     outputfile = fopen(filename.c_str(), "w");

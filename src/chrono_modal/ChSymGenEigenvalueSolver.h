@@ -30,6 +30,9 @@ class ChDirectSolverLS;
 
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Base interface class for iterative eigenvalue solvers for generalized problem with real symmetric matrices.
 /// The interfaces assumes shift-and-invert methods.
 class ChApiModal ChSymGenEigenvalueSolver : public ChGeneralizedEigenvalueSolver<double> {
@@ -53,7 +56,7 @@ class ChApiModal ChSymGenEigenvalueSolver : public ChGeneralizedEigenvalueSolver
     static void GetNaturalFrequencies(const ChVectorDynamic<ScalarType>& eigvals, ChVectorDynamic<double>& freq);
 
     /// Retrieve the natural frequencies from an eigenvalue.
-    static double GetNaturalFrequency(ScalarType eigval) { return sqrt(std::abs(eigval)) / CH_2PI; };
+    static double GetNaturalFrequency(ScalarType eigval) { return std::sqrt(std::abs(eigval)) / CH_2PI; };
 
     /// Get the optimal shift corresponding to a given frequency.
     static ScalarType GetOptimalShift(double freq) { return -std::pow(freq * CH_2PI, 2); }
@@ -105,8 +108,9 @@ class ChApiModal ChSymGenEigenvalueSolverLanczos : public ChSymGenEigenvalueSolv
                       ScalarType shift) const override;
 };
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

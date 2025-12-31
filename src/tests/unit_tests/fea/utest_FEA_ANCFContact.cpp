@@ -164,9 +164,9 @@ class MyContactContainer : public ChContactContainerSMC {
     MyContactContainer() {}
     // Traverse the list contactlist_6_6
     bool isThereContacts(std::shared_ptr<ChElementBase> myShellANCF, bool print) {
-        auto iter = contactlist_333_333.begin();
+        auto iter = contacts.begin();
         int num_contact = 0;
-        while (iter != contactlist_333_333.end()) {
+        while (iter != contacts.end()) {
             ChVector3d p1 = (*iter)->GetContactP1();
             ChVector3d p2 = (*iter)->GetContactP2();
             double CD = (*iter)->GetContactDistance();
@@ -259,12 +259,12 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(0))->SetFixed(true);
 
     auto mcontactsurf_1 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    mcontactsurf_1->AddFacesFromBoundary(*my_mesh_1, sphere_swept_thickness);
     my_mesh_1->AddContactSurface(mcontactsurf_1);
-    mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);
 
     auto mcontactsurf_2 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    mcontactsurf_2->AddFacesFromBoundary(*my_mesh_2, sphere_swept_thickness);
     my_mesh_2->AddContactSurface(mcontactsurf_2);
-    mcontactsurf_2->AddFacesFromBoundary(sphere_swept_thickness);
 
     // use the SMC penalty contacts
     my_mesh_1->SetAutomaticGravity(addGravity);
@@ -297,6 +297,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     mystepper->SetMaxIters(40);
     mystepper->SetAbsTolerances(1e-2, 1e-1);
     mystepper->SetVerbose(false);
+
     auto container = chrono_types::make_shared<MyContactContainer>();
     //    auto contacts = chrono_types::make_shared<MyContacts>();
 

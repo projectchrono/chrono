@@ -16,11 +16,11 @@
 // The uneven two-track surface is modeled by means of standard PSD spectra as
 // defined in the ISO 8608 standard. ISO 8608 defines 8 classes of uneven
 // roads all can be selected from preset configurations if the two tracks
-// shall be uncorrelated or independend. Tracks like this are used for
+// shall be uncorrelated or independent. Tracks like this are used for
 // intensive vehicle testing, because they apply a high load to the vehicle
 // structure.
 //
-// If normal road surface conditions are prefered, correlated tracks are the
+// If normal road surface conditions are preferred, correlated tracks are the
 // better choice. From test we know that the measured cohereny is a function of
 //  - vehicle track width
 //  - signal wavelength
@@ -36,7 +36,7 @@
 // where Phi_h0 is the unevenness and w is the waviness. ISO 8608 uses only w = 2.
 // omega is the spatial natural frequency. omega0 is defined to 1 rad/m.
 //
-// The transformation to spatial cordinates is done by inverse Fourier transform.
+// The transformation to spatial coordinates is done by inverse Fourier transform.
 // Care has been taken, that the signal does not repeat inside the demanded x
 // interval by selecting sufficient spectral coefficients.
 //
@@ -48,7 +48,7 @@
 // to generate a set of random phase angles in the range [0,2Pi] for every track.
 // We must use a uniform random number for this to avoid 'monster waves'.
 // Every track gets is own set of phase angles. If correlated signals are demanded
-// the phase angle sets left and right are blended whith the coherence function.
+// the phase angle sets left and right are blended with the coherence function.
 //
 // For practical work it is necessary to limit the used wavelengths. The minimal
 // useful wavelength is 0.3 m. This is roughly the contact patch length of the tire.
@@ -64,7 +64,7 @@
 // for vehicle ride quality (6 Watt method). WES proposed to use 60 ft high pass
 // filter before calculating the RMS.
 //
-// Three different initilizer methods can be used: a preset based one, an
+// Three different initializer methods can be used: a preset based one, an
 // unevenness/waviness based one, and an IRI based one. The second one allows the
 // usage of non-ISO wavinesses. IRI must be given in [mm/m] to generate useful
 // results.
@@ -236,7 +236,7 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
 
     int m_Nfft;                  ///< number of fft coefficients to avoid periodicity in x[xmin...xmax]
     std::vector<double> m_ck;    ///< Fourier coefficients
-    std::vector<double> m_wfft;  ///< natural freqencies for iFFT
+    std::vector<double> m_wfft;  ///< natural frequencies for iFFT
 
     ChVectorDynamic<> m_phase_left;
     ChVectorDynamic<> m_phase_right;

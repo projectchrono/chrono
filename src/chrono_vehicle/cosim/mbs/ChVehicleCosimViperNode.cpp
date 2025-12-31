@@ -24,11 +24,9 @@
 #include <set>
 #include <vector>
 
-#include "chrono/ChConfig.h"
-
 #include "chrono/physics/ChLoadContainer.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -234,15 +232,11 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
                << del << m_system->GetTimerUpdate() << del;
-        if (m_int_type == ChTimestepper::Type::HHT) {
-            m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
-                   << m_integrator->GetNumSolveCalls() << del;
-        }
         m_outf << endl;
     }
 
     // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
@@ -253,7 +247,7 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimViperNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimViperNode::WriteBodyInformation(ChWriterCSV& csv) {
     // Write number of bodies
     csv << 1 + 4 * 4 << endl;
 

@@ -16,24 +16,29 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
+
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
 #endif
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
+
 #ifdef CHRONO_VSG
+    #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -58,8 +63,8 @@ double mesh_resolution = 0.04;
 // Enable/disable bulldozing effects
 bool enable_bulldozing = true;
 
-// Enable/disable moving patch feature
-bool enable_moving_patch = true;
+// Enable/disable active domains feature
+bool enable_active_domains = true;
 
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
@@ -110,7 +115,7 @@ int main(int argc, char* argv[]) {
     double tire_rad = 0.8;
     ChVector3d tire_center(0, 0.02 + tire_rad, -1.5);
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     auto collsys_type = ChCollisionSystem::Type::BULLET;
     ChSystemSMC sys;
     sys.SetNumThreads(4, 8, 1);
@@ -142,7 +147,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     //
     // Create a rigid body with a mesh or a cylinder collision shape
@@ -191,40 +196,38 @@ int main(int argc, char* argv[]) {
     motor->Initialize(wheel, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_PI_2)));
     sys.Add(motor);
 
-    //
     // THE DEFORMABLE TERRAIN
-    //
 
     // Create the 'deformable terrain' object
-    vehicle::SCMTerrain mterrain(&sys);
+    vehicle::SCMTerrain terrain(&sys);
 
-    // Displace/rotate the terrain reference plane.
+    // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2)));
+    // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
+    terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Initialize the geometry of the soil
 
     // Use either a regular grid:
     double length = 6;
     double width = 2;
-    mterrain.Initialize(width, length, mesh_resolution);
+    terrain.Initialize(width, length, mesh_resolution);
 
     // Or use a height map:
-    ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
+    ////terrain.Initialize(GetVehicleDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
     ///mesh_resolution);
 
     // Or use a mesh:
-    ////mterrain.Initialize(vehicle::GetDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
+    ////terrain.Initialize(GetVehicleDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
 
     // Set the soil terramechanical parameters
     if (var_params) {
         // Location-dependent soil properties
         auto my_params = chrono_types::make_shared<MySoilParams>();
-        mterrain.RegisterSoilParametersCallback(my_params);
+        terrain.RegisterSoilParametersCallback(my_params);
     } else {
         // Constant soil properties
-        mterrain.SetSoilParameters(0.2e6,  // Bekker Kphi
+        terrain.SetSoilParameters(0.2e6,  // Bekker Kphi
                                    0,      // Bekker Kc
                                    1.1,    // Bekker n exponent
                                    0,      // Mohr cohesive limit (Pa)
@@ -235,7 +238,7 @@ int main(int argc, char* argv[]) {
         );
 
         // LETE sand parameters
-        ////mterrain.SetSoilParameters(5301e3,  // Bekker Kphi
+        ////terrain.SetSoilParameters(5301e3,  // Bekker Kphi
         ////                           102e3,   // Bekker Kc
         ////                           0.793,   // Bekker n exponent
         ////                           1.3e3,   // Mohr cohesive limit (Pa)
@@ -247,30 +250,33 @@ int main(int argc, char* argv[]) {
     }
 
     if (enable_bulldozing) {
-        mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-        mterrain.SetBulldozingParameters(
+        terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
+        terrain.SetBulldozingParameters(
             55,  // angle of friction for erosion of displaced material at the border of the rut
             1,   // displaced material vs downward pressed material.
             5,   // number of erosion refinements per timestep
             6);  // number of concentric vertex selections subject to erosion
     }
 
-    // Optionally, enable moving patch feature (reduces number of ray casts)
-    if (enable_moving_patch) {
-        mterrain.AddMovingPatch(wheel, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * tire_rad, 2 * tire_rad));
+    // Optionally, enable active domains feature (reduces number of ray casts)
+    if (enable_active_domains) {
+        terrain.AddActiveDomain(wheel, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * tire_rad, 2 * tire_rad));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    ////mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
-    mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
-    ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
-    ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
-    ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
-    ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
-    ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_ISLAND_ID, 0, 8);
-    ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_IS_TOUCHED, 0, 8);
-    mterrain.SetMeshWireframe(true);
+    
+    ////terrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_ISLAND_ID, 0, 8);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_IS_TOUCHED, 0, 8);
+    
+    terrain.SetColormap(ChColormap::Type::COPPER);
+    terrain.SetMeshWireframe(true);
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT
@@ -303,14 +309,18 @@ int main(int argc, char* argv[]) {
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
+            // SCM plugin
+            auto visSCM = chrono_types::make_shared<vehicle::ChScmVisualizationVSG>(&terrain);
+
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
+            vis_vsg->AttachPlugin(visSCM);
             vis_vsg->SetWindowTitle("SCM deformable terrain");
             vis_vsg->AddCamera(ChVector3d(3.0, 2.0, 0.0), ChVector3d(0, tire_rad, 0));
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
@@ -334,9 +344,8 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // SIMULATION LOOP
+
     /*
         // Change the timestepper to HHT:
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -344,7 +353,7 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxIters(8);
         integrator->SetAbsTolerances(1e-1, 10);
-        integrator->SetModifiedNewton(true);
+        integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
         integrator->SetVerbose(true);
     */
     /*
@@ -356,7 +365,7 @@ int main(int argc, char* argv[]) {
         if (output) {
             ChVector3d force;
             ChVector3d torque;
-            mterrain.GetContactForceBody(wheel, force, torque);
+            terrain.GetContactForceBody(wheel, force, torque);
             csv << time << force << torque << std::endl;
         }
 
@@ -373,11 +382,10 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->SetCameraTarget(wheel->GetPos());
         vis->Render();
-        ////tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
 
         sys.DoStepDynamics(0.002);
-        ////mterrain.PrintStepStatistics(std::cout);
+        ////terrain.PrintStepStatistics(std::cout);
     }
 
     if (output) {

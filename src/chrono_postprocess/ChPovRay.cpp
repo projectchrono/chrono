@@ -231,7 +231,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     std::ofstream ini_file(base_path + out_script_filename + ".ini");
 
     ini_file << "; Script for rendering an animation with POV-Ray. " << std::endl;
-    ini_file << "; Generated automatically by Chrono::Engine.\n" << std::endl;
+    ini_file << "; Generated automatically by Chrono.\n" << std::endl;
     ini_file << "Version=3.7" << std::endl;
     ini_file << "Antialias=" << (antialias ? "On" : "Off") << "" << std::endl;
     ini_file << "Antialias_Threshold=" << antialias_treshold << "" << std::endl;
@@ -416,14 +416,14 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
 
     // In a first pass, export materials from all visual shapes
     for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
         ExportMaterials(assets_file, shape->GetMaterials());
     }
 
     // In a second pass, export shape geometry
     for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
-        const auto& shape_frame = shape_instance.second;
+        const auto& shape = shape_instance.shape;
+        const auto& shape_frame = shape_instance.frame;
 
         // Do nothing if the shape was already processed (because it is shared)
         // Otherwise, add the shape to the cache list and process it
@@ -692,7 +692,7 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
 
     // Scan visual shapes in the visual model
     for (const auto& shape_instance : vis_model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
         if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape) ||
@@ -899,13 +899,14 @@ void ChPovRay::ExportData(const std::string& filename) {
                 virtual bool OnReportContact(
                     const ChVector3d& pA,             // contact pA
                     const ChVector3d& pB,             // contact pB
-                    const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
-                    const double& distance,           // contact distance
-                    const double& eff_radius,         // effective radius of curvature at contact
-                    const ChVector3d& react_forces,   // react.forces (in coordsystem 'plane_coord')
-                    const ChVector3d& react_torques,  // react.torques (if rolling friction)
-                    ChContactable* contactobjA,       // model A (note: could be nullptr)
-                    ChContactable* contactobjB        // model B (note: could be nullptr)
+                    const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+                    double distance,                  // contact distance
+                    double eff_radius,                // effective radius of curvature at contact
+                    const ChVector3d& react_forces,   // react. forces, expressed in 'plane_coord'
+                    const ChVector3d& react_torques,  // react. torques, if rolling friction
+                    ChContactable* contactobjA,       // first contactable object (may be nullptr)
+                    ChContactable* contactobjB,       // second contactable object (may be nullptr)
+                    int constraint_offset             // NSC only: ignored here
                     ) override {
                     if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
                         fabs(react_forces.z()) > 1e-8) {

@@ -29,9 +29,10 @@
 
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
-#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+#include "chrono/input_output/ChOutputASCII.h"
+#include "chrono/input_output/ChCheckpointASCII.h"
 #ifdef CHRONO_HAS_HDF5
-    #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+    #include "chrono/input_output/ChOutputHDF5.h"
 #endif
 
 namespace chrono {
@@ -44,9 +45,8 @@ namespace vehicle {
 ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
-      m_output(false),
-      m_output_step(0),
       m_output_db(nullptr),
+      m_output_step(0),
       m_next_output_time(0),
       m_output_frame(0),
       m_mass(0),
@@ -54,9 +54,13 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
       m_realtime_force(false),
       m_RTF(0),
       m_initialized(false) {
+    // Assign vehicle tag
+    SetVehicleTag();
+
+    // Create and set containing Chrono system
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
-
+    m_system->SetName(name + "_system");
     m_system->SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
 
     // Set default solver for vehicle simulations
@@ -69,16 +73,22 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
     : m_name(name),
       m_system(system),
       m_ownsSystem(false),
-      m_output(false),
-      m_output_step(0),
       m_output_db(nullptr),
+      m_output_step(0),
       m_next_output_time(0),
       m_output_frame(0),
       m_mass(0),
       m_inertia(0),
       m_realtime_force(false),
       m_RTF(0),
-      m_initialized(false) {}
+      m_initialized(false) {
+    // Set name of underlying system
+    if (system->GetName().empty())
+        system->SetName(name + "_system");
+
+    // Assign vehicle tag
+    SetVehicleTag();
+}
 
 ChVehicle::~ChVehicle() {
     delete m_output_db;
@@ -92,6 +102,12 @@ ChVehicle::~ChVehicle() {
         // Delete underlying Chrono system (this removes references to all contained physics items)
         delete m_system;
     }
+}
+
+void ChVehicle::SetVehicleTag() {
+    static int vehicle_count = 0;
+    m_tag = vehicle_count;
+    vehicle_count++;
 }
 
 // -----------------------------------------------------------------------------
@@ -115,45 +131,62 @@ void ChVehicle::EnableRealtime(bool val) {
 // Enable output for this vehicle system.
 // -----------------------------------------------------------------------------
 
-void ChVehicle::SetOutput(ChVehicleOutput::Type type,
+void ChVehicle::SetOutput(ChOutput::Type type,
+                          ChOutput::Mode mode,
                           const std::string& out_dir,
                           const std::string& out_name,
                           double output_step) {
-    m_output = true;
+    if (type == ChOutput::Type::NONE)
+        return;
+
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::ASCII:
-            m_output_db = new ChVehicleOutputASCII(out_dir + "/" + out_name + ".txt");
+        case ChOutput::Type::ASCII:
+            m_output_db = new ChOutputASCII(out_dir + "/" + out_name + ".txt");
             break;
-        case ChVehicleOutput::JSON:
-            //// TODO
-            break;
-        case ChVehicleOutput::HDF5:
+        case ChOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
-            m_output_db = new ChVehicleOutputHDF5(out_dir + "/" + out_name + ".h5");
+            m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5", mode);
 #endif
             break;
     }
 }
 
-void ChVehicle::SetOutput(ChVehicleOutput::Type type, std::ostream& out_stream, double output_step) {
-    m_output = true;
+void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, std::ostream& out_stream, double output_step) {
+    if (type == ChOutput::Type::NONE)
+        return;
+
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::ASCII:
-            m_output_db = new ChVehicleOutputASCII(out_stream);
+        case ChOutput::Type::ASCII:
+            m_output_db = new ChOutputASCII(out_stream);
             break;
-        case ChVehicleOutput::JSON:
-            //// TODO
-            break;
-        case ChVehicleOutput::HDF5:
+        case ChOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
             //// TODO
 #endif
             break;
     }
+}
+
+void ChVehicle::ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
+    ChCheckpointASCII checkpoint_db(ChCheckpoint::Type::COMPONENT);
+    checkpoint_db.WriteTime(m_system->GetChTime());
+    WriteCheckpoint(checkpoint_db);
+    checkpoint_db.WriteFile(filename);
+}
+
+void ChVehicle::ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
+    double time;
+
+    ChCheckpointASCII checkpoint_db(ChCheckpoint::Type::COMPONENT);
+    checkpoint_db.OpenFile(filename);
+    checkpoint_db.ReadTime(time);
+    ReadCheckpoint(checkpoint_db);
+
+    GetSystem()->SetChTime(time);
 }
 
 // -----------------------------------------------------------------------------
@@ -181,7 +214,8 @@ void ChVehicle::Advance(double step) {
         m_initialized = true;
     }
 
-    if (m_output && m_system->GetChTime() >= m_next_output_time) {
+    if (m_output_db && m_system->GetChTime() >= m_next_output_time) {
+        m_output_db->Initialize();
         Output(m_output_frame, *m_output_db);
         m_next_output_time += m_output_step;
         m_output_frame++;
@@ -239,7 +273,7 @@ void ChVehicle::SetChassisOutput(bool state) {
 // -----------------------------------------------------------------------------
 
 double ChVehicle::GetRoll() const {
-    auto angles = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetCardanAnglesZYX(); 
+    auto angles = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetCardanAnglesZYX();
     return angles[1];
 }
 
@@ -309,8 +343,6 @@ double ChVehicle::GetSlipAngle() const {
 
     return slip_angle;
 }
-
-
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -44,13 +44,13 @@ bool ChShaftsMotorPosition::Initialize(std::shared_ptr<ChShaft> shaft_1, std::sh
     return true;
 }
 
-void ChShaftsMotorPosition::Update(double mytime, bool update_assets) {
+void ChShaftsMotorPosition::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChShaftsMotor::Update(mytime, update_assets);
+    ChShaftsMotor::Update(time, update_assets);
 
     // Update class data
-    motor_function->Update(mytime);  // call callbacks if any
-    violation = GetMotorPos() - motor_function->GetVal(mytime) - rot_offset;
+    motor_function->Update(time);  // call callbacks if any
+    violation = GetMotorPos() - motor_function->GetVal(time) - rot_offset;
 }
 
 void ChShaftsMotorPosition::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {

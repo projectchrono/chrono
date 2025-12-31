@@ -7,9 +7,9 @@ The powertrain system is connected to the driver system (receiving throttle inpu
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/powertrain_data_flow.png" width="600" />
 
-Chrono::Vehicle is designed to permit linking to a third-party powertrain model. Interfacing to such an external powertrain model requires two thin interface classs, derived from [ChEngine](@ref chrono::vehicle::ChEngine) and [ChTransmission](@ref chrono::vehicle::ChTransmission).
+Chrono::Vehicle is designed to permit linking to a third-party powertrain model. Interfacing to such an external powertrain model requires two thin interface classes, derived from [ChEngine](@ref chrono::vehicle::ChEngine) and [ChTransmission](@ref chrono::vehicle::ChTransmission).
 
-Chrono::Vehicle provides several templates for the powertrain system, descibed below.
+Chrono::Vehicle provides several templates for the powertrain system, described below.
 
 
 ## Shafts-based powertrain model {#vehicle_powertrain_shafts}
@@ -28,8 +28,8 @@ The image below shows the shafts-based powertrain model connected to a shafts-ba
 <img src="http://www.projectchrono.org/assets/manual/vehicle/shafts_powertrain.png" width="800" />
 
 Sample JSON files with the specification of a shafts-based powertrain, illustrating the various template parameters, are provided below:
-\include "../../data/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.json"
-\include "../../data/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"
+\include "data/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.json"
+\include "data/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"
 
 
 The curves encoded in the above JSON file are shown below.
@@ -45,8 +45,8 @@ This template for a simple powertrain model is based on speed-torque engine maps
 See [ChEngineSimpleMap](@ref chrono::vehicle::ChEngineSimpleMap) and [ChAutomaticTransmissionSimpleMap](@ref chrono::vehicle::ChAutomaticTransmissionSimpleMap).
 
 Sample JSON files with the specification of a map powertrain, illustrating the various template parameters, are provided below.
-\include "../../data/vehicle/uaz/powertrain/UAZBUS_EngineSimpleMap.json"
-\include "../../data/vehicle/uaz/powertrain/UAZBUS_AutomaticTransmissionSimpleMap.json"
+\include "data/vehicle/uaz/powertrain/UAZBUS_EngineSimpleMap.json"
+\include "data/vehicle/uaz/powertrain/UAZBUS_AutomaticTransmissionSimpleMap.json"
 
 The curves encoded in the above JSON file are shown below.
 
@@ -61,4 +61,4 @@ This model uses a trivial speed-torque dependency, has no torque converter and n
 See [ChEngineSimple](@ref chrono::vehicle::ChEngineSimple) and [EngineSimple](@ref chrono::vehicle::EngineSimple).
 
 A sample JSON file with the specification of a CVT-like powertrain, illustrating the various template parameters, is provided below.
-\include "../../data/vehicle/hmmwv/powertrain/HMMWV_EngineSimple.json"
+\include "data/vehicle/hmmwv/powertrain/HMMWV_EngineSimple.json"

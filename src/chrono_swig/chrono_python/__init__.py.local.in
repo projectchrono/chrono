@@ -1,0 +1,87 @@
+# PyChrono local build.
+# The following imports add the binaries to the modules.
+# Because of the SWIG 4 import style (from . import _<modulename>), pyd/so files in the 
+# PYTHONPATH dir cannot be found and have to be added to the package.
+
+import os
+import sys
+import pathlib
+
+# Cache directory of this script.
+idir = pathlib.Path(__file__).parent.resolve()
+
+# Hack for Python > 3.8 on Windows
+if sys.platform == 'win32' and sys.version_info >= (3,8):
+    path_env = os.environ['PATH']
+    for item in path_env.split(os.pathsep):
+        item_posix = pathlib.PureWindowsPath(item).as_posix()
+        #print(item, '  --->  ', item_posix)
+        try:
+            os.add_dll_directory(item_posix)
+        except:
+            pass
+if sys.platform == 'win32':
+    # Resolve Chrono DLLs, like Chrono_core.dll
+    os.add_dll_directory(idir.parent)
+
+try:
+    from . import core
+    from . import fea
+    core.SetChronoDataPath('@PYC_DATA_PATH@')
+except:
+    pass
+try:
+    from . import vsg3d
+except:
+    pass
+try:
+    from . import fsi
+except:
+    pass
+try:
+    @ADD_OCC_DLL@
+    from . import cascade
+except:
+    pass
+try:
+    from . import irrlicht
+except:
+    pass
+try:
+    from . import vehicle
+    vehicle.SetVehicleDataPath('@PYC_DATA_PATH@' + 'vehicle/')
+except:
+    pass
+try:
+    from . import postprocess
+except:
+    pass
+try:
+    from . import pardisomkl
+except:
+    pass
+try:
+    @ADD_CUDA_DLL@
+    from . import sensor
+    sensor.SetSensorShaderDir('@PYC_SHADER_PATH@')
+except:
+    pass
+try:
+    from . import robot
+except:
+    pass
+try:
+    from . import parsers
+except:
+    pass
+try:
+    from . import ros
+except:
+    pass
+
+# The following allows the package "pychrono" to be directly
+# used as C++ namespace chrono:: ie. you just need to type
+#   import pychrono
+# instead of 
+#   import pychrono.core	
+from .core import *

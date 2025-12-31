@@ -151,10 +151,10 @@ LaneColor GetLaneColorFromMessage(std::shared_ptr<SynMessage> synmsg,
     return LaneColor::RED;
 }
 
-#ifdef SENSOR
-double GetProximityToPointCloud(std::shared_ptr<ChLidarSensor> lidar,
+#ifdef CHRONO_SENSOR
+double GetProximityToPointCloud(std::shared_ptr<sensor::ChLidarSensor> lidar,
                                 double min_range,
-                                &UserDIBUfferPtr recent_lidar_data) {
+                                sensor::UserDIBufferPtr& recent_lidar_data) {
     // If user gave us a bad sensor value, we don't update their previous minimum
     if (!lidar)
         return min_range;
@@ -163,15 +163,15 @@ double GetProximityToPointCloud(std::shared_ptr<ChLidarSensor> lidar,
     double lidar_intensity_epsilon = 10e-2;
 
     // This only returns non-null at the lidar frequency, so only overwrite if it was non-null
-    UserDIBufferPtr recent_lidar = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
+    sensor::UserDIBufferPtr recent_lidar = lidar->GetMostRecentBuffer<sensor::UserDIBufferPtr>();
 
     // Check and update their lidar data
     if (recent_lidar->Buffer)
         recent_lidar_data = recent_lidar;
 
     if (recent_lidar_data && recent_lidar_data->Buffer) {
-        for (int i = 0; i < recent_lidar_data->Height; i++) {
-            for (int j = 0; j < recent_lidar_data->Width; j++) {
+        for (unsigned int i = 0; i < recent_lidar_data->Height; i++) {
+            for (unsigned int j = 0; j < recent_lidar_data->Width; j++) {
                 double lidar_range = recent_lidar_data->Buffer[i * recent_lidar_data->Width + j].range;
                 double lidar_intensity = recent_lidar_data->Buffer[i * recent_lidar_data->Width + j].intensity;
 

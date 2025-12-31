@@ -5,7 +5,7 @@
 #include "chrono_synchrono/agent/SynAgentFactory.h"
 #include "chrono_synchrono/flatbuffer/message/SynSimulationMessage.h"
 
-#ifdef CHRONO_FASTDDS
+#ifdef CHRONO_SYNCHRONO_USE_FASTDDS
     #undef ALIVE
 
     #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
@@ -18,7 +18,7 @@
 namespace chrono {
 namespace synchrono {
 
-#ifdef CHRONO_FASTDDS
+#ifdef CHRONO_SYNCHRONO_USE_FASTDDS
 
 void ProcessMessage(std::shared_ptr<SynCommunicator> communicator, void* message) {
     communicator->ProcessBuffer(((SynDDSMessage*)message)->data());
@@ -82,7 +82,7 @@ bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
 
     agent->SetKey(agent_key);
 
-#ifdef CHRONO_FASTDDS
+#ifdef CHRONO_SYNCHRONO_USE_FASTDDS
     if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
         // Create the topic that state information will be passed on
         // and add the topic to the communicator
@@ -134,7 +134,7 @@ bool SynChronoManager::Initialize(ChSystem* system) {
     // Initialize the communicator
     m_communicator->Initialize();
 
-#ifdef CHRONO_FASTDDS
+#ifdef CHRONO_SYNCHRONO_USE_FASTDDS
     // If the communicator uses DDS, we want to create subscribers that will listen to state information
     // coming from the other nodes. This is done by setting the name of each governing participant to
     // common names to be parsed. RegisterParticipant will parse these names and create Subscribers

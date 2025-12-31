@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionSimpleMap : public ChAutomaticTransm
     virtual double GetOutputDriveshaftTorque() const override { return m_driveshaft_torque; }
 
     /// Return the transmission output speed of the motorshaft.
-    /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
+    /// This represents the output from the transmission subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const override { return m_motorshaft_speed; }
 
   protected:
@@ -94,6 +94,8 @@ class CH_VEHICLE_API ChAutomaticTransmissionSimpleMap : public ChAutomaticTransm
     /// Advance the state of this transmission system by the specified time step.
     /// This function does nothing for this simplified model.
     virtual void Advance(double step) override {}
+
+    virtual void PopulateComponentList() override;
 
     double m_motorshaft_speed;   ///< current motorshaft speed (transmission output)
     double m_driveshaft_torque;  ///< current driveshaft torque (transmission output)

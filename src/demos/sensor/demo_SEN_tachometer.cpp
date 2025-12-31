@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
                                                           cam_offset_pose,  // offset pose
                                                           400,              // image width
                                                           400,              // image height
-                                                          CH_PI / 3,        // camera's horizontal field of view
+                                                          CH_PI_3,        // camera's horizontal field of view
                                                           1,                // supersample factor for antialiasing
                                                           CameraLensModelType::PINHOLE,
                                                           false);  // FOV

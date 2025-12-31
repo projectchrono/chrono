@@ -23,7 +23,7 @@
 #include <iostream>
 #include <list>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/collision/ChCollisionSystem.h"
@@ -36,18 +36,22 @@
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperExplicit.h"
+#include "chrono/timestepper/ChTimestepperImplicit.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
+#include "chrono/input_output/ChOutput.h"
 
 namespace chrono {
 
 // Forward references
 class ChVisualSystem;
+
 namespace modal {
 class ChModalAssembly;
 }
 
-/// Chrono Simulation System.
+/// Chrono simulation system.
 ///
 /// This class is the main simulation object used to collect:
 /// - the simulation model itself, through the ChAssembly object;
@@ -57,14 +61,14 @@ class ChModalAssembly;
 /// - counters and timers;
 /// as well as other secondary features.
 ///
-/// This class is in charge of managing dynamic, kinematic and static simulations.
+/// This class is in charge of managing dynamic, kinematic, and static simulations.
 ///
 /// Consult the @ref simulation_system manual page for additional details.
 ///
 class ChApi ChSystem : public ChIntegrableIIorder {
   public:
     /// Create a physical system.
-    ChSystem();
+    ChSystem(const std::string& name = "");
 
     /// Copy constructor.
     ChSystem(const ChSystem& other);
@@ -75,6 +79,14 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// "Virtual" copy constructor.
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
+
+    static std::shared_ptr<ChSystem> Create(ChContactMethod contact_method);
+
+    /// Set the system name.
+    void SetName(const std::string& name) { m_name = name; }
+
+    /// Get the system name.
+    const std::string& GetName() const { return m_name; }
 
     /// Set the method for time integration (time stepper type).
     ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
@@ -431,10 +443,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
 
-    /// Perform the collision detection.
+    /// Perform the collision detection, returning the number of contacts.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.
-    double ComputeCollisions();
+    unsigned int ComputeCollisions();
 
     /// Class to be used as a callback interface for user defined actions performed
     /// at each collision detection step.  For example, additional contact points can
@@ -487,24 +499,32 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }
+
     /// Return the time (in seconds) for time integration, within the time step.
     virtual double GetTimerAdvance() const { return timer_advance(); }
+
     /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
     virtual double GetTimerLSsolve() const { return timer_ls_solve(); }
+
     /// Return the time (in seconds) for the solver Setup phase, within the time step.
     virtual double GetTimerLSsetup() const { return timer_ls_setup(); }
+
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const { return timer_jacobian(); }
+
     /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
+
     /// Return the time (in seconds) for system setup, within the time step.
     virtual double GetTimerSetup() const { return timer_setup(); }
+
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const { return timer_update(); }
 
     /// Return the time (in seconds) for broadphase collision detection, within the time step.
     double GetTimerCollisionBroad() const;
+
     /// Return the time (in seconds) for narrowphase collision detection, within the time step.
     double GetTimerCollisionNarrow() const;
 
@@ -534,7 +554,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// - v_pre: the velocity vector before the integration step
     /// - F_pre: unscaled loads before the integration step
     /// - Dv: the state variation
-    /// - Dl: the lagrangian multipliers variation
+    /// - Dl: the Lagrange multipliers variation
     /// if the solver is direct then also the following are output:
     /// - f, b: subparts of 'rhs'
     /// - H, Cq, E: the submatrices of Z
@@ -578,6 +598,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This is the Jacobian Cq=-dC/dq, where C are constraints (the lower left part of the KKT matrix).
     void GetConstraintJacobianMatrix(ChSparseMatrix& Cq);
 
+    // ---- OUTPUT
+
+    void Output(int frame, ChOutput& database) const;
+
     // ---- SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
@@ -592,12 +616,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// already set as starting point for offsetting all the contained sub objects.
     virtual void Setup();
 
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
-    void Update(double mytime, bool update_assets = true);
+    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
+    void Update(double time, bool update_assets);
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(bool update_assets = true);
+    void Update(bool update_assets);
 
     /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
     /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
@@ -636,8 +659,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void VariablesFbLoadForces(double factor = 1);
     void VariablesQbLoadSpeed();
     void VariablesFbIncrementMq();
-    void VariablesQbSetSpeed(double step = 0);
-    void VariablesQbIncrementPosition(double step);
+    void VariablesQbSetSpeed(double step_size = 0);
+    void VariablesQbIncrementPosition(double step_size);
     void ConstraintsBiReset();
     void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false);
     void ConstraintsBiLoad_Ct(double factor = 1);
@@ -691,6 +714,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                                  const ChStateDelta& Dx  ///< state increment Dx
                                  ) override;
 
+    /// Return true if the number of states or Jacobian structure has changed.
+    /// In such cases, an implicit integrator should force a Jacobian re-evaluation.
+    /// For a ChSystem, this happens when a physics item is added to or removed from the underlying assembly.
+    virtual bool StateModified() const override { return !is_updated; }
+
     /// Assuming a DAE of the form
     /// <pre>
     ///       M*a = F(x,v,t) + Cq'*L
@@ -706,18 +734,19 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(
         ChStateDelta& Dv,             ///< result: computed Dv
-        ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
+        ChVectorDynamic<>& DL,        ///< result: computed Lagrange multipliers
         const ChVectorDynamic<>& R,   ///< the R residual
-        const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
+        const ChVectorDynamic<>& Qc,  ///< the Qc residual
         const double c_a,             ///< the factor in c_a*M
         const double c_v,             ///< the factor in c_v*dF/dv
         const double c_x,             ///< the factor in c_x*dF/dv
         const ChState& x,             ///< current state, x part
         const ChStateDelta& v,        ///< current state, v part
         const double T,               ///< current time T
-        bool force_state_scatter,     ///< if false, x and v are not scattered to the system
+        bool force_state_scatter,     ///< if true, scatter x and v to the system
         bool full_update,             ///< if true, perform a full update during scatter
-        bool force_setup              ///< if true, call the solver's Setup() function
+        bool call_setup,              ///< if true, call the solver's Setup function
+        bool call_analyze             ///< if true, call the solver's Setup analyze phase
         ) override;
 
     /// Increment a vector R with the term c*F:
@@ -794,8 +823,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Performs a single dynamics simulation step, advancing the system state by the current step size.
     virtual bool AdvanceDynamics();
 
-    ChAssembly assembly;  ///< underlying mechanical assembly
-
+    std::string m_name;                                       ///< system name
+    ChAssembly assembly;                                    ///< underlying mechanical assembly
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector3d G_acc;  ///< gravitational acceleration

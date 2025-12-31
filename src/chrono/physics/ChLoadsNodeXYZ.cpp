@@ -50,8 +50,8 @@ void ChLoadNodeXYZForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     load_Q.segment(0, 3) = computed_abs_force.eigen();
 }
 
-void ChLoadNodeXYZForce::Update(double time) {
-    ChLoadCustom::Update(time);
+void ChLoadNodeXYZForce::Update(double time, bool update_assets) {
+    ChLoadCustom::Update(time, update_assets);
 }
 
 // -----------------------------------------------------------------------------
@@ -68,10 +68,10 @@ void ChLoadNodeXYZForceAbs::ComputeForce(const ChVector3d& abs_pos, const ChVect
     abs_force = GetForce();
 }
 
-void ChLoadNodeXYZForceAbs::Update(double time) {
+void ChLoadNodeXYZForceAbs::Update(double time, bool update_assets) {
     m_modulation->Update(time);
     m_scale = m_modulation->GetVal(time);
-    ChLoadNodeXYZForce::Update(time);
+    ChLoadNodeXYZForce::Update(time, update_assets);
 }
 
 void ChLoadNodeXYZForceAbs::SetForceBase(const ChVector3d& force) {
@@ -125,8 +125,8 @@ void ChLoadNodeXYZNodeXYZ::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     load_Q.segment(3, 3) = -computed_abs_force.eigen();
 }
 
-void ChLoadNodeXYZNodeXYZ::Update(double time) {
-    ChLoadCustomMultiple::Update(time);
+void ChLoadNodeXYZNodeXYZ::Update(double time, bool update_assets) {
+    ChLoadCustomMultiple::Update(time, update_assets);
 }
 
 // -----------------------------------------------------------------------------

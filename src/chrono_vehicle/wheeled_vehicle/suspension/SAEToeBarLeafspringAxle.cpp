@@ -225,24 +225,26 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     double KAvert = vertical_stiffness / (1.0 + stiffness_bias);
     double KBvert = stiffness_bias * KAvert;
 
-    double KrotLatA = KAlat * pow(ra.Length(), 2.0);
-    double KrotLatB = KBlat * pow(rb.Length(), 2.0);
+    double KrotLatA = KAlat * std::pow(ra.Length(), 2.0);
+    double KrotLatB = KBlat * std::pow(rb.Length(), 2.0);
 
-    double KrotVertA = KAvert * pow(ra.Length(), 2.0);
-    double KrotVertB = KBvert * pow(rb.Length(), 2.0);
+    double KrotVertA = KAvert * std::pow(ra.Length(), 2.0);
+    double KrotVertB = KBvert * std::pow(rb.Length(), 2.0);
 
     double rest_angle_A = Ma.y() / KrotVertA;
     double rest_angle_B = Mb.y() / KrotVertB;
 
     double damping_factor = 0.01;
 
-    m_latRotSpringCBA = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
-    m_latRotSpringCBB = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatB, KrotLatB * damping_factor, 0);
+    m_latRotSpringCBA =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBB =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatB, KrotLatB * damping_factor, 0);
 
     m_vertRotSpringCBA =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
     m_vertRotSpringCBB =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
 }
 
 }  // end namespace vehicle

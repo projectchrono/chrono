@@ -4,7 +4,7 @@ Chrono::SolidWorks&copy; tutorials {#tutorial_table_of_content_chrono_solidworks
 
 Tutorials for users that installed the [Chrono::Solidworks](@ref manual_chrono_solidworks) add-in for SolidWorks.
 
-Ohter examples can be found directly in the Chrono::SolidWorks repository under [examples](https://github.com/projectchrono/chrono-solidworks/tree/master/to_put_in_app_dir/examples).
+Other examples can be found directly in the Chrono::SolidWorks repository under [examples](https://github.com/projectchrono/chrono-solidworks/tree/master/to_put_in_app_dir/examples).
 
 <br>
 -   @subpage tutorial_chrono_solidworks_demo_engine
@@ -12,7 +12,7 @@ Ohter examples can be found directly in the Chrono::SolidWorks repository under 
     Learn the basics of Chrono::SolidWorks add-in for SolidWorks:
 
     - model a 3D assembly using SolidWorks,
-    - export it as a .py file containing the Chrono::Engine system description.
+    - export it as a .py file containing the Chrono system description.
     - run a Python simulation of the exported system
     - render the simulation using POVray 
 

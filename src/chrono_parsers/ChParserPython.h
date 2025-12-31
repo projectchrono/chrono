@@ -34,48 +34,64 @@ class ChApiParsers ChPythonEngine {
     ~ChPythonEngine();
 
     /// Execute a program.
-    /// If fails, it throws an exception, so it is wise to put it inside try..catch blocks.
-    void Run(const char* program);
-
-    /// Retrieve a value of an existing floating point variable.
-    /// Returns false if unsuccesfull.
-    bool GetFloat(const char* variable, double& return_val);
+    /// Throws an exception in case of failure, so it recommended to enclose this in a try..catch block.
+    void Run(const std::string& program);
 
     /// Set a value of a floating point variable. If a variable with the same
     /// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-    void SetFloat(const char* variable, const double val);
+    void SetFloat(const std::string& variable, const double val);
+
+    /// Retrieve a value of an existing floating point variable.
+    /// Returns false if unsuccessful.
+    bool GetFloat(const std::string& variable, double& return_val);
+
+    /// Set a value of a integer variable.
+    /// If a variable with the same name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
+    void SetInteger(const std::string& variable, const int val);
 
     /// Retrieve a value of an existing integer variable.
-    /// Returns false if unsuccesfull.
-    bool GetInteger(const char* variable, int& return_val);
+    /// Returns false if unsuccessful.
+    bool GetInteger(const std::string& variable, int& return_val);
 
-    /// Set a value of a integer variable. If a variable with the same
-    /// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-    void SetInteger(const char* variable, const int val);
+    /// Set a value of a bool variable.
+    /// If a variable with the same name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
+    void SetBool(const std::string& variable, const bool val);
 
     /// Retrieve a value of an existing bool variable.
-    /// Returns false if unsuccesfull.
-    bool GetBool(const char* variable, bool& return_val);
+    /// Returns false if unsuccessful.
+    bool GetBool(const std::string& variable, bool& return_val);
 
-    /// Set a value of a bool variable. If a variable with the same
-    /// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-    void SetBool(const char* variable, const bool val);
+    /// Set a value of a string variable.
+    /// If a variable with the same name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
+    void SetString(const std::string& variable, std::string& val);
 
     /// Retrieve a value of an existing string variable.
-    /// Returns false if unsuccesfull.
-    bool GetString(const char* variable, std::string& return_val);
+    /// Returns false if unsuccessful.
+    bool GetString(const std::string& variable, std::string& return_val);
 
-    /// Set a value of a string variable. If a variable with the same
-    /// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-    void SetString(const char* variable, std::string& val);
+    /// Set a numeric list variable from a given std::vector.
+    /// If a variable with the same name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
+    void SetList(const std::string& variable, const std::vector<double>& val);
 
-    /// Set a value of a numeric list variable. If a variable with the same
-    /// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-    void SetList(const char* variable, const std::vector<double>& val);
+    /// Retrieve an existing numeric list variable and store it in given std::vector.
+    /// Returns false if unsuccessful.
+    bool GetList(const std::string& variable, std::vector<double>& return_val);
 
-    /// Retrieve a value of an existing numeric list variable.
-    /// Returns false if unsuccesfull.
-    bool GetList(const char* variable, std::vector<double>& return_val);
+    /// Set a numeric list variable from a given ChVectorDynamic<>.
+    /// If a variable with the same name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
+    void SetList(const std::string& variable, const ChVectorDynamic<double>& val);
+
+    /// Retrieve an existing numeric list variable and store it in given ChVectorDynamic<>.
+    /// Returns false if unsuccessful.
+    bool GetList(const std::string& variable, ChVectorDynamic<double>& return_val);
+
+    /// Set a numeric list variable from a given ChMatrixDynamic<>.
+    /// If a variable with the same name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
+    void SetMatrix(const std::string& variable, const ChMatrixDynamic<double>& val);
+
+    /// Retrieve an existing numeric list variable and store it in given ChMatrixDynamic<>.
+    /// Returns false if unsuccessful.
+    bool GetMatrix(const std::string& variable, ChMatrixDynamic<double>& return_val);
 
     /// Load a .py file as it is saved by the SolidWorks add-in exporter.
     /// Such a .py file is a Python program that creates an equivalent mechanism in Chrono and contains a sequence of

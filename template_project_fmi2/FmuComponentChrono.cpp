@@ -23,7 +23,7 @@ using namespace chrono::fmi2;
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-fmu_tools::fmi2::FmuComponentBase* fmu_tools::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+fmu_forge::fmi2::FmuComponentBase* fmu_forge::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
                                                                         fmi2Type fmuType,
                                                                         fmi2String fmuGUID,
                                                                         fmi2String fmuResourceLocation,
@@ -173,6 +173,8 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
 
     // it is also possible to parse automatically an entire ChAssembly
     AddFmuVisualShapes(sys.GetAssembly());
+
+    return fmi2Status::fmi2OK;
 };
 
 fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,

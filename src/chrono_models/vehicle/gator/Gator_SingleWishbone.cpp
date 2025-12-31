@@ -60,7 +60,8 @@ const double Gator_SingleWishbone::m_shockRestLength = 0.3717;
 // Constructors
 // -----------------------------------------------------------------------------
 Gator_SingleWishbone::Gator_SingleWishbone(const std::string& name) : ChSingleWishbone(name) {
-    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
+    m_shockForceCB =
+        chrono_types::make_shared<utils::LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

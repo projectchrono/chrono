@@ -17,9 +17,9 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/artcar/ARTcar_Chassis.h"
 
@@ -51,7 +51,7 @@ ARTcar_Chassis::ARTcar_Chassis(const std::string& name, bool fixed, CollisionTyp
     minfo.mu = 1.0f;
     minfo.cr = 0.1f;
     minfo.Y = 5e5f;
-    m_geometry.m_materials.push_back(minfo);
+    m_geometry.materials.push_back(minfo);
 
     m_body_inertia(0, 0) = m_body_inertiaXX.x();
     m_body_inertia(1, 1) = m_body_inertiaXX.y();
@@ -66,29 +66,27 @@ ARTcar_Chassis::ARTcar_Chassis(const std::string& name, bool fixed, CollisionTyp
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector3d(-.13, 0, -.0368), ChQuaternion<>(1, 0, 0, 0),
-                                     ChVector3d(.38, .15, .01));
+    utils::ChBodyGeometry::BoxShape box1(ChVector3d(-.13, 0, -.0368), ChQuaternion<>(1, 0, 0, 0),
+                                         ChVector3d(.38, .15, .01));
 
-    m_geometry.m_has_primitives = true;
-    m_geometry.m_vis_boxes.push_back(box1);
+    m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.m_has_mesh = true;
-    m_geometry.m_vis_mesh_file = "artcar/chassis.obj";
+    m_geometry.vis_model_file = GetVehicleDataFile("artcar/chassis.obj");
 
-    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
-            box1.m_matID = 0;
-            m_geometry.m_coll_boxes.push_back(box1);
+            box1.matID = 0;
+            m_geometry.coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("artcar/chassis_col.obj", 0);
-            m_geometry.m_coll_hulls.push_back(hull);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("artcar/chassis_col.obj"), 0);
+            m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
-            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "artcar/chassis_col.obj", 0.005, 0);
-            m_geometry.m_coll_meshes.push_back(trimesh);
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, GetVehicleDataFile("artcar/chassis_col.obj"),
+                                                        1.0, 0.005, 0);
+            m_geometry.coll_meshes.push_back(trimesh);
             break;
         }
         default:

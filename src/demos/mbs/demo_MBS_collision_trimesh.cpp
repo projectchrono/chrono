@@ -12,57 +12,56 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// Demo code about collisions of triangle meshes
+// Demo code about collisions of triangle meshes (NSC)
 //
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/core/ChRandom.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Use the namespaces of Chrono
-using namespace chrono;
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
+ChContactMethod contact_method = ChContactMethod::NSC;
 ChCollisionSystem::Type coll_sys_type = ChCollisionSystem::Type::BULLET;
-bool draw_coll_shapes = false;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // -----------------------------------------------------------------------------
 
-// Drawer for collision shapes
-class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
-  public:
-    explicit DebugDrawer(ChVisualSystemIrrlicht* vis) : m_vis(vis) {}
-    ~DebugDrawer() {}
+std::shared_ptr<ChTriangleMeshConnected> CreateShoe() {
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
+                                                                 false, true);
+    mesh->Transform(VNULL, ChMatrix33<>(1.2));
+    mesh->RepairDuplicateVertexes(1e-9);
 
-    virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) override {
-        m_vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to),
-                                            irr::video::SColor(255, 55, 55, 255));
-    }
+    return mesh;
+}
 
-    virtual double GetNormalScale() const override { return 1.0; }
+std::shared_ptr<ChTriangleMeshConnected> CreateBox() {
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"),
+                                                                 false, true);
+    mesh->Transform(VNULL, ChMatrix33<>(ChVector3d(0.15, 0.05, 0.15)));
+    mesh->RepairDuplicateVertexes(1e-9);
 
-    void Draw(int flags, bool use_zbuffer = true) {
-        m_vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
-        irr::video::SMaterial mattransp;
-        mattransp.ZBuffer = use_zbuffer;
-        mattransp.Lighting = false;
-        m_vis->GetVideoDriver()->setMaterial(mattransp);
-
-        m_vis->GetSystem(0).GetCollisionSystem()->Visualize(flags);
-    }
-
-  private:
-    ChVisualSystemIrrlicht* m_vis;
-};
+    return mesh;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -71,56 +70,52 @@ int main(int argc, char* argv[]) {
 
     ChRandom::SetSeed(0);
 
-    // Create a Chrono physical system
-    ChSystemNSC sys;
+    // ----------------------
+    // Create a Chrono system
+    // ----------------------
 
-    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
-    sys.SetCollisionSystemType(coll_sys_type);
+    double step = 0;
+    std::shared_ptr<ChSystem> sys;
+    if (contact_method == ChContactMethod::NSC) {
+        ChCollisionModel::SetDefaultSuggestedEnvelope(0.025);
+        ChCollisionModel::SetDefaultSuggestedMargin(0.025);
+        sys = chrono_types::make_shared<ChSystemNSC>();
+        step = 5e-3;
+    } else {
+        // Note: collision envelope is set to 0 for SMC
+        ChCollisionModel::SetDefaultSuggestedMargin(0.025);
+        sys = chrono_types::make_shared<ChSystemSMC>();
+        step = 1e-4;
+    }
 
-    // - Create a floor
+    sys->SetCollisionSystemType(coll_sys_type);
 
-    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
-    auto floor = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true, floor_mat);
-    floor->SetPos(ChVector3d(0, -1, 0));
+    // -----------------
+    // Create floor body
+    // -----------------
+
+    ChContactMaterialData floor_mat_data;
+    auto floor_mat = floor_mat_data.CreateMaterial(contact_method);
+
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(5, 0.2, 5, 1000, true, true, floor_mat);
+    floor->SetPos(ChVector3d(0, -0.1, 0));
     floor->SetFixed(true);
     floor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 50, 50);
-    sys.Add(floor);
 
-    // - Create a falling item with triangle mesh shape
+    sys->Add(floor);
 
-    // Shared contact material for all meshes
-    auto mesh_mat = chrono_types::make_shared<ChContactMaterialNSC>();
+    // ------------------------------------------------------------------------
+    // Create a contact material, a visualization shape, and a collision shape,
+    // shared among all bodies
+    // ------------------------------------------------------------------------
 
-    // Note: one can create easily a colliding shape using the following
-    // piece of code:
-    //
-    // auto falling = chrono_types::make_shared<ChBodyEasyMesh>(
-    //	  GetChronoDataFile("models/bulldozer/shoe_view.obj"),  // file name for OBJ Wavefront mesh
-    //	  1000,                                                 // density of the body
-    //	  true,			                                        // automatic evaluation of mass, COG position, inertia
-    // tensor
-    //    true,                                                 // attach visualization asset
-    //	  true,			                                        // enable the collision detection
-    //    mat,                                                  // surface contact material
-    //	  0.005			                                        // radius of 'inflating' of mesh (for more robust
-    // collision detection)
-    //	  );
-    // falling->SetFrameRefToAbs(ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 +
-    // ChRandom::Get()
-    // * 1.4))); sys.Add(falling);
-    //
-    // but here we want to show a more low-level control of this process, for
-    // various reasons, for example: we want to share a single ChTriangleMeshConnected
-    // between 15 falling shapes; also we want to call RepairDuplicateVertexes() on the
-    // imported mesh; also we want to scale the imported mesh using Transform().
+    ChContactMaterialData body_mat_data;
+    auto body_mat = body_mat_data.CreateMaterial(contact_method);
 
-    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
-                                                                 false, true);
-    mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
-    mesh->RepairDuplicateVertexes(1e-9);                      // if meshes are not watertight
+    // read mesh from file, scale, and repair
+    auto mesh = CreateShoe();
 
-    // compute mass inertia from mesh
+    // compute mass properties from mesh
     double mass;
     ChVector3d cog;
     ChMatrix33<> inertia;
@@ -130,7 +125,7 @@ int main(int argc, char* argv[]) {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
 
-    // Create a shared visual model containing a visualizatoin mesh
+    // visualization shape
     auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vis_shape->SetMesh(mesh);
     vis_shape->SetMutable(false);
@@ -139,74 +134,111 @@ int main(int argc, char* argv[]) {
     auto vis_model = chrono_types::make_shared<ChVisualModel>();
     vis_model->AddShape(vis_shape);
 
-    auto coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mesh_mat, mesh, false, false, 0.005);
+    // collision shape
+    auto coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, mesh, false, false, 0.005);
 
-    for (int j = 0; j < 15; ++j) {
+    // ---------------------
+    // Create falling bodies
+    // ---------------------
+
+    int num_bodies = 15;
+    for (int j = 0; j < num_bodies; ++j) {
         auto falling = chrono_types::make_shared<ChBodyAuxRef>();
+        falling->SetFixed(false);
 
-        // Set the COG coordinates to barycenter, without displacing the REF reference.
-        // Make the COG frame a principal frame.
+        // set the COM coordinates to barycenter, without displacing the reference frame, and
+        // make the COM frame a principal frame
         falling->SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
 
-        // Set inertia
+        // set mass and inertia
         falling->SetMass(mass * density);
         falling->SetInertiaXX(density * principal_I);
 
-        // Set the absolute position of the body:
-        falling->SetFrameRefToAbs(
-            ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get() * 1.4)));
-        sys.Add(falling);
+        // set the absolute position of the body
+        int layer = j % 3;
+        int ix = (j / 3) % 3;
+        int iz = (j / 3) / 3;
+        double x = -0.5 + ix * 0.5 + layer * 0.1;
+        double z = -0.5 + iz * 0.5 + layer * 0.1;
+        double y = 0.25 + layer * 0.25;
 
+        auto rot = QuatFromAngleX(ChRandom::Get() * 0.3) *  //
+                   QuatFromAngleZ(ChRandom::Get() * 0.3) *  //
+                   QuatFromAngleZ(ChRandom::Get() * 0.3);
+
+        falling->SetFrameRefToAbs(ChFrame<>(ChVector3d(x, y, z), rot));
+
+        // attach visualization and collision shapes
         falling->AddVisualModel(vis_model);
         falling->AddCollisionShape(coll_shape);
         falling->EnableCollision(true);
+
+        sys->Add(falling);
     }
 
-    // Shared contact material for falling objects
-    auto obj_mat = chrono_types::make_shared<ChContactMaterialNSC>();
-    obj_mat->SetFriction(0.2f);
+    // -------------------------------
+    // Create the visualization window
+    // -------------------------------
 
-    // Create a falling rigid bodies
-    for (int bi = 0; bi < 20; bi++) {
-        auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(0.05,      // radius size
-                                                                      1000,      // density
-                                                                      true,      // visualization?
-                                                                      true,      // collision?
-                                                                      obj_mat);  // contact material
-        sphereBody->SetPos(ChVector3d(-0.5 + ChRandom::Get() * 1, 1.4, -0.5 + ChRandom::Get()));
-        sphereBody->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-        sys.Add(sphereBody);
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(sys.get());
+            vis_irr->SetWindowSize(1280, 800);
+            vis_irr->SetWindowTitle("Collisions between objects");
+            vis_irr->SetCameraVertical(CameraVerticalDir::Y);
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddCamera(ChVector3d(1, 0.5, -1));
+            vis_irr->AddTypicalLights();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(sys.get());
+            vis_vsg->SetWindowTitle("Collisions between objects");
+            vis_vsg->AddCamera(ChVector3d(-2.5, 1.0, 2.5));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->EnableShadows();
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
     }
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(1280, 720);
-    vis->SetWindowTitle("Collisions between objects");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector3d(0, 1, -1));
-    vis->AddLight(ChVector3d(30, 80, +30), 80, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector3d(30, 80, -30), 80, ChColor(0.7f, 0.7f, 0.7f));
-    vis->EnableShadows();
-
-    ////vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
-
-    // Set the debug drawer for collision visualization
-    auto drawer = chrono_types::make_shared<DebugDrawer>(vis.get());
-    sys.GetCollisionSystem()->RegisterVisualizationCallback(drawer);
-    int mode = ChCollisionSystem::VIS_Shapes;
-    bool use_zbuffer = true;
-
+    // ---------------
     // Simulation loop
+    // ---------------
+
     while (vis->Run()) {
-        vis->BeginScene(true, true, ChColor(0.55f, 0.63f, 0.75f));
+        vis->BeginScene();
         vis->Render();
-        if (draw_coll_shapes)
-            drawer->Draw(mode, use_zbuffer);
         vis->EndScene();
-        sys.DoStepDynamics(0.005);
+        sys->DoStepDynamics(step);
     }
 
     return 0;

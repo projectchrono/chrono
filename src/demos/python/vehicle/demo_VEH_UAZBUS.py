@@ -28,23 +28,22 @@ import os
 
 # =============================================================================
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 0.4)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
+# Run-time visualization type (VSG or Irrlicht)
+vis_type = chrono.ChVisualSystem.Type_VSG;
+
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_MESH
-suspension_vis_type = veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH
+chassis_vis_type = chrono.VisualizationType_MESH
+suspension_vis_type = chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_MESH
+tire_vis_type = chrono.VisualizationType_MESH
 
 # Type of tire model (RIGID, TMEASY, PAC02)
 tire_model = veh.TireModelType_PAC02
@@ -63,7 +62,7 @@ tend = 15
 render_step_size = 1.0 / 50  # FPS = 50
 
 # Output directories
-out_dir = "./UAZBUS"
+out_dir = chrono.GetChronoOutputPath() + "UAZBUS/"
 
 
 # =============================================================================
@@ -123,7 +122,7 @@ patch = terrain.AddPatch(patch_mat,
                          chrono.CSYSNORM, 
                          200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
 
 # -------------------------------------
@@ -131,28 +130,40 @@ terrain.Initialize()
 # Create the driver system
 # -------------------------------------
 
-vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-vis.SetWindowTitle('UAZ bus')
-vis.SetWindowSize(1280, 1024)
-vis.SetChaseCamera(trackPoint, 6.0, 0.5)
-vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-vis.AddLightDirectional()
-vis.AddSkyBox()
-vis.AttachVehicle(uaz.GetVehicle())
-
 # Create the interactive driver system
-driver = veh.ChInteractiveDriverIRR(vis)
-
-# Set the time response for steering and throttle keyboard inputs.
+driver = veh.ChInteractiveDriver(uaz.GetVehicle())
 steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
 throttle_time = 1.0  # time to go from 0 to +1
 braking_time = 0.3   # time to go from 0 to +1
 driver.SetSteeringDelta(render_step_size / steering_time)
 driver.SetThrottleDelta(render_step_size / throttle_time)
 driver.SetBrakingDelta(render_step_size / braking_time)
-
 driver.Initialize()
+
+# Create run-time visualization
+if vis_type == chrono.ChVisualSystem.Type_IRRLICHT:
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    vis.SetWindowTitle('UAZ bus')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
+    vis.AddLightDirectional()
+    vis.AddSkyBox()
+    vis.AttachVehicle(uaz.GetVehicle())
+    vis.AttachDriver(driver)
+elif vis_type == chrono.ChVisualSystem.Type_VSG:
+    vis = veh.ChWheeledVehicleVisualSystemVSG()
+    vis.SetWindowTitle('UAZ bus')
+    vis.SetWindowSize(1280, 1024)
+    vis.EnableSkyBox()
+    vis.SetLightIntensity(1.0)
+    vis.SetLightDirection(2.0, 0.75)
+    vis.EnableShadows()
+    vis.SetChaseCamera(trackPoint, 9.0, 0.5)
+    vis.AttachVehicle(uaz.GetVehicle())
+    vis.AttachDriver(driver)
+    vis.Initialize()
 
 # -----------------
 # Initialize output

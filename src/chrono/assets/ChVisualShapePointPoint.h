@@ -32,7 +32,7 @@ class ChApi ChVisualShapePointPoint : public ChVisualShapeLine {
     ChVisualShapePointPoint() = default;
 
     // Update the underlying line geometry and set current locations of the end points.
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& coords) override;
+    virtual void Update(ChObj* updater, const ChFrame<>& coords) override;
 
     const ChVector3d& GetPoint1Abs() const { return point1; }
     const ChVector3d& GetPoint2Abs() const { return point2; }
@@ -65,6 +65,9 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
     double GetRadius() { return radius; }
     size_t GetResolution() { return resolution; }
     double GetTurns() { return turns; }
+    
+    /// Disable CPU-side visual geometry updates (for visualisation systems that generate geometry on GPU)
+    void SetGeometryUpdatesDisabled(bool disable) { m_disable_geom_updates = disable; }
 
   private:
     /// Set line geometry as coil between two end points (assumed in local frame).
@@ -74,6 +77,7 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
     double radius;
     double turns;
     size_t resolution;
+    bool m_disable_geom_updates = false;  ///< Skip CPU geometry updates
 };
 
 /// Shape representing a rotational spring.
@@ -81,7 +85,7 @@ class ChApi ChVisualShapeRotSpring : public ChVisualShapeLine {
   public:
     ChVisualShapeRotSpring(double radius, int resolution = 65) : m_radius(radius), m_resolution(resolution) {}
 
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& coords) override;
+    virtual void Update(ChObj* updater, const ChFrame<>& coords) override;
 
   private:
     double m_radius;

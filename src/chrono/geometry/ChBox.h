@@ -72,16 +72,16 @@ class ChApi ChBox : public ChVolume {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Return the volume of this type of solid with given dimensions.
-    static double GetVolume(const ChVector3d& lengths);
+    static double CalcVolume(const ChVector3d& lengths);
 
     /// Return the gyration matrix of this type of solid with given dimensions.
-    static ChMatrix33<> GetGyration(const ChVector3d& lengths);
+    static ChMatrix33<> CalcGyration(const ChVector3d& lengths);
 
     /// Return the bounding box of this type of solid with given dimensions.
-    static ChAABB GetBoundingBox(const ChVector3d& lengths);
+    static ChAABB CalcBoundingBox(const ChVector3d& lengths);
 
     /// Return the radius of a bounding sphere.
-    static double GetBoundingSphereRadius(const ChVector3d& lengths);
+    static double CalcBoundingSphereRadius(const ChVector3d& lengths);
 
     ChVector3d hlen;  ///< box halflengths
 };

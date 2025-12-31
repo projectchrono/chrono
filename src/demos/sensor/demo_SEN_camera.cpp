@@ -65,7 +65,7 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = (float)CH_PI / 3.;
+float fov = (float)CH_PI_3;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = .05f;
@@ -92,6 +92,9 @@ bool save = false;
 
 // Render camera images
 bool vis = true;
+
+// Verbose terminal output
+bool verbose = false;
 
 // Output directory
 const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
@@ -135,7 +138,7 @@ int main(int argc, char* argv[]) {
     floor->SetFixed(true);
     sys.Add(floor);
     {
-        auto shape = floor->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = floor->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat3);
         } else {
@@ -157,7 +160,7 @@ int main(int argc, char* argv[]) {
     box_body->SetFixed(true);
     sys.Add(box_body);
     {
-        auto shape = box_body->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = box_body->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat);
         } else {
@@ -179,7 +182,7 @@ int main(int argc, char* argv[]) {
     sphere_body->SetFixed(true);
     sys.Add(sphere_body);
     {
-        auto shape = sphere_body->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = sphere_body->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat2);
         } else {
@@ -201,7 +204,7 @@ int main(int argc, char* argv[]) {
     cyl_body->SetFixed(true);
     sys.Add(cyl_body);
     {
-        auto shape = cyl_body->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = cyl_body->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat4);
         } else {
@@ -217,10 +220,13 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    float intensity = 1.0;
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    manager->SetVerbose(verbose);
+
+    float intensity = 1.0;
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
     manager->scene->SetAmbientLight({0.1f, 0.1f, 0.1f});
+
     Background b;
     b.mode = BackgroundMode::ENVIRONMENT_MAP;
     b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
@@ -331,6 +337,7 @@ int main(int argc, char* argv[]) {
                                                           image_width,   // image width
                                                           image_height,  // image height
                                                           fov,           // camera's horizontal field of view
+                                                          1000,          // maximum depth
                                                           lens_model);   // FOV
     depth->SetName("Depth Camera");
     depth->SetLag(lag);
@@ -419,18 +426,17 @@ int main(int argc, char* argv[]) {
 
         // Access the depth buffer from depth camera
         depth_ptr = depth->GetMostRecentBuffer<UserDepthBufferPtr>();
-        if (depth_ptr->Buffer) {
+        if (verbose && depth_ptr->Buffer) {
             // Print max depth values
             // float min_depth = depth_ptr->Buffer[0].depth;
             // float max_depth = depth_ptr->Buffer[0].depth;
             // for (int i = 0; i < depth_ptr->Height * depth_ptr->Width; i++) {
             //     max_depth = std::max(max_depth, depth_ptr->Buffer[i].depth);
             // }
-            float depth = depth_ptr->Buffer[depth_ptr->Height * depth_ptr->Width / 2].depth;
+            float d = depth_ptr->Buffer[depth_ptr->Height * depth_ptr->Width / 2].depth;
             std::cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
                       << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
-                      << ", depth ["<<depth_ptr->Height * depth_ptr->Width / 2 << "] ="<< depth << "m" << std::endl
-                      << std::endl;
+                      << ", depth [" << depth_ptr->Height * depth_ptr->Width / 2 << "] =" << d << "m" << std::endl;
         }
 
         // Access the RGBA8 buffer from the first camera

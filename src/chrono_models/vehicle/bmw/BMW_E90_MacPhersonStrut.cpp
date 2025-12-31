@@ -64,13 +64,13 @@ const double BMW_E90_MacPhersonStrut::m_springRestLength = 0.482914056;
 const double BMW_E90_MacPhersonStrut::m_springPreload = 5600;
 
 BMW_E90_MacPhersonStrut::BMW_E90_MacPhersonStrut(const std::string& name) : ChMacPhersonStrut(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient, m_springPreload);
-    auto ptr = std::static_pointer_cast<LinearSpringForce>(m_springForceCB);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient, m_springPreload);
+    auto ptr = std::static_pointer_cast<utils::LinearSpringForce>(m_springForceCB);
     ptr->enable_stops(m_springRestLength - 0.05, m_springRestLength + 0.05);
     ptr->set_stops(2.0 * m_springCoefficient, 2.0 * m_springCoefficient);
     // m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
     m_shockForceCB =
-        chrono_types::make_shared<DegressiveDamperForce>(m_dampingCoefficient, 1.3, m_dampingCoefficient, 1.3);
+        chrono_types::make_shared<utils::DegressiveDamperForce>(m_dampingCoefficient, 1.3, m_dampingCoefficient, 1.3);
 }
 
 BMW_E90_MacPhersonStrut::~BMW_E90_MacPhersonStrut() {}

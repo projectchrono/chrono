@@ -73,7 +73,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// for the inverse model
     LensParams GetLensParameters() const { return m_lens_parameters; }
 
-    /// @briefSets the parameters for a radial lens distortion model.
+    /// @brief Sets the parameters for a radial lens distortion model.
     /// Parameters should be given for the forward model.
     /// The backward distortion model will the used and calculated from the forward parameters given.
     /// @param params the set of 3 radial parameters (k1,k2,k3)

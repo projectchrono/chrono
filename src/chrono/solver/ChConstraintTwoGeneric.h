@@ -73,7 +73,7 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
     ///  - the Eq_a and Eq_b matrices
     ///  - the g_i product
     /// This is often called by solvers at the beginning of the solution process.
-    virtual void Update_auxiliary() override;
+    virtual void UpdateAuxiliary() override;
 
     /// Compute the product between the Jacobian of this constraint, [Cq_i], and the vector of variables.
     /// In other words, perform the operation:

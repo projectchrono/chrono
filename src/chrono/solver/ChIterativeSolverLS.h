@@ -68,13 +68,15 @@ class ChApi ChIterativeSolverLS : public ChIterativeSolver, public ChSolverLS {
   public:
     virtual ~ChIterativeSolverLS();
 
-    /// Perform the solver setup operations.\n
-    /// Here, sysd is the system description with constraints and variables.
-    /// Returns true if successful and false otherwise.
-    virtual bool Setup(ChSystemDescriptor& sysd) override;
+    /// Perform the solver setup operations.
+    /// The system descriptor contains the constraints and variables.
+    /// The argument `analyze` indicates if a full analysis of the system matrix is required. This is true when a
+    /// structural change in the system was detected (e.g., when a physical component was added to or removed from the
+    /// Chrono system).
+    virtual bool Setup(ChSystemDescriptor& sysd, bool analyze) override;
 
-    /// Performs the solution of the problem.\n
-    /// Return the maximum constraint violation after termination.
+    /// Perform the solution of the problem.
+    /// Returns the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd) override;
 
   protected:

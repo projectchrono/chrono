@@ -19,5 +19,9 @@
     "Driver Position": {
         "Location": [ 0, 0.5, 0 ],
         "Orientation": [ 1, 0, 0, 0 ]
+    },
+
+    "Visualization":  {
+      "Mesh":  "Marder/Hull.obj"
     }
 }

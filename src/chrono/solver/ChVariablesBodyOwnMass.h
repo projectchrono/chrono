@@ -19,9 +19,9 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 6-DOF 3D rigid body, with mass matrix and associated variables.
-/// Differently from the generic ChVariablesGeneric, here a full 6x6 mass matrix is not built; rather this object
-/// encapsulates a scalar mass and a 3x3 inertia matrix.
+/// Class for representing a 6-DOF 3D rigid body with mass matrix and associated variables.
+/// Unlike ChVariablesGeneric, this class does not construct a 6x6 generalized mass matrix, but rather uses the scalar
+/// mass and the 3x3 inertia matrix.
 class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
   public:
     ChVariablesBodyOwnMass();

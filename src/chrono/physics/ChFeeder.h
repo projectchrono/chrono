@@ -74,7 +74,7 @@ class ChApi ChFeeder : public ChPhysicsItem {
   private:
     std::shared_ptr<ChContactable> feeder;  ///< the feeder object, defining the surface of the vibrating feeder
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
 };
 

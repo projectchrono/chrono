@@ -79,27 +79,23 @@ bool LineLineIntersect(const ChVector3d& p1,
     return true;
 }
 
-// Calculate distance between a point p and a line identified
-// with segment dA,dB. Returns distance. Also, the mu value reference
-// tells if the nearest projection of point on line falls into segment (for mu 0...1)
-double PointLineDistance(const ChVector3d& p,
-                         const ChVector3d& dA,
-                         const ChVector3d& dB,
-                         double& mu,
-                         bool& is_insegment) {
-    mu = -1.0;
-    is_insegment = false;
+// Calculate distance between a point B and the segment (A1,A2).
+// Returns the distance from B to the line and sets the line parameter 'u' such that u=0 indicates that B projects into
+// A1 and u=1 indicates that B projects into A2.  If 0 <= u <= 1, in_segment is set to 'true'.
+double PointLineDistance(const ChVector3d& B, const ChVector3d& A1, const ChVector3d& A2, double& u, bool& in_segment) {
+    u = -1;
+    in_segment = false;
     double mdist = 10e34;
 
-    ChVector3d vseg = Vsub(dB, dA);
+    ChVector3d vseg = Vsub(A2, A1);
     ChVector3d vdir = Vnorm(vseg);
-    ChVector3d vray = Vsub(p, dA);
+    ChVector3d vray = Vsub(B, A1);
 
     mdist = Vlength(Vcross(vray, vdir));
-    mu = Vdot(vray, vdir) / Vlength(vseg);
+    u = Vdot(vray, vdir) / Vlength(vseg);
 
-    if ((mu >= 0) && (mu <= 1.0))
-        is_insegment = true;
+    if (u >= 0 && u <= 1)
+        in_segment = true;
 
     return mdist;
 }
@@ -110,13 +106,13 @@ double PointTriangleDistance(const ChVector3d& B,
                              const ChVector3d& A1,
                              const ChVector3d& A2,
                              const ChVector3d& A3,
-                             double& mu,
-                             double& mv,
-                             bool& is_into,
+                             double& u,
+                             double& v,
+                             bool& in_triangle,
                              ChVector3d& Bprojected) {
     // defaults
-    is_into = false;
-    mu = mv = -1;
+    in_triangle = false;
+    u = v = -1;
     double mdistance = 10e22;
 
     ChVector3d Dx, Dy, Dz, T1, T1p;
@@ -142,11 +138,11 @@ double PointTriangleDistance(const ChVector3d& B,
     T1 = mAi * (B - A1);
     T1p = T1;
     T1p.y() = 0;
-    mu = T1.x();
-    mv = T1.z();
+    u = T1.x();
+    v = T1.z();
     mdistance = -T1.y();
-    if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
-        is_into = true;
+    if (u >= 0 && v >= 0 && v <= 1 - u) {
+        in_triangle = true;
         Bprojected = A1 + mA * T1p;
     }
 

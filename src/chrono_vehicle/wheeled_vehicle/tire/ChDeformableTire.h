@@ -70,8 +70,8 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
-    /// Get a handle to the mesh visualization.
-    ChVisualShapeFEA* GetMeshVisualization() const { return m_visualization.get(); }
+    /// Attach an FEA visual shape for run-time visualization.
+    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shape);
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
@@ -152,8 +152,8 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool m_pressure_enabled;    ///< enable internal tire pressure
     bool m_contact_enabled;     ///< enable tire-terrain contact
 
-    std::shared_ptr<ChContactMaterialSMC> m_contact_mat;  ///< tire contact material
-    std::shared_ptr<ChVisualShapeFEA> m_visualization;    ///< tire mesh visualization
+    std::shared_ptr<ChContactMaterialSMC> m_contact_mat;      ///< tire contact material
+    std::vector<std::shared_ptr<ChVisualShapeFEA>> m_visFEA;  ///< tire mesh FEA visual shapes
 
     // The mass properties of a deformable tire are implicitly included through the FEA mesh.
     // No mass and inertia are added to the associated spindle body.
