@@ -13,7 +13,7 @@ set(DEMOS ${DEMOS}
   demo_ROBOT_Curiosity_SCM
 )
 
-if(CH_ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR AND CH_USE_SENSOR_OPTIX)
   set(DEMOS ${DEMOS}
       demo_ROBOT_Curiosity_SCM_Sensor
   )

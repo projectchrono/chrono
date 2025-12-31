@@ -18,6 +18,7 @@
 #define CHFILTEROPTIXRENDER_H
 
 #include <memory>
+
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"

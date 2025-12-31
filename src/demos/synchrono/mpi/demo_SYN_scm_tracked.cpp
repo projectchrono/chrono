@@ -46,11 +46,14 @@
 #endif
 
 #ifdef CHRONO_SENSOR
+    #include "chrono_sensor/ChConfigSensor.h"
     #include "chrono_sensor/ChSensorManager.h"
-    #include "chrono_sensor/sensors/ChCameraSensor.h"
     #include "chrono_sensor/filters/ChFilterAccess.h"
-    #include "chrono_sensor/filters/ChFilterSave.h"
-    #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #ifdef CHRONO_HAS_OPTIX
+        #include "chrono_sensor/sensors/ChCameraSensor.h"
+        #include "chrono_sensor/filters/ChFilterSave.h"
+        #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #endif
 using namespace chrono::sensor;
 #endif
 
@@ -243,7 +246,7 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
 #endif
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
     ChSensorManager sensor_manager(m113.GetSystem());
     if (cli.HasValueInVector<int>("sens", node_id)) {
         // Give the camera a fixed place to live
@@ -350,7 +353,7 @@ int main(int argc, char* argv[]) {
             app->Advance(step_size);
 #endif
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
         sensor_manager.Update();
 #endif
 

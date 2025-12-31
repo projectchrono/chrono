@@ -208,8 +208,10 @@ target_include_directories(Chrono_synchrono PUBLIC
 # Add dependencies
 if (CH_ENABLE_MODULE_SENSOR)
   target_link_libraries(Chrono_synchrono PUBLIC Chrono_sensor) # needs PUBLIC
-  find_package(OptiX REQUIRED)
-  target_link_libraries(Chrono_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
+  if(CH_USE_SENSOR_OPTIX)
+    find_package(OptiX REQUIRED)
+    target_link_libraries(Chrono_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
+  endif()
 endif()
   
 if (CH_ENABLE_MODULE_IRRLICHT)

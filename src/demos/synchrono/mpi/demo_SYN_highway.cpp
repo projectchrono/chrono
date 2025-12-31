@@ -36,11 +36,14 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_SENSOR
+    #include "chrono_sensor/ChConfigSensor.h"
     #include "chrono_sensor/ChSensorManager.h"
-    #include "chrono_sensor/sensors/ChCameraSensor.h"
     #include "chrono_sensor/filters/ChFilterAccess.h"
-    #include "chrono_sensor/filters/ChFilterSave.h"
-    #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #ifdef CHRONO_HAS_OPTIX
+        #include "chrono_sensor/sensors/ChCameraSensor.h"
+        #include "chrono_sensor/filters/ChFilterSave.h"
+        #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #endif
 using namespace chrono::sensor;
 #endif
 
@@ -242,7 +245,7 @@ int main(int argc, char* argv[]) {
         app->AttachVehicle(&vehicle);
     }
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
     const double cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
     const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
     const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
@@ -336,7 +339,7 @@ int main(int argc, char* argv[]) {
         if (app)
             app->Advance(step_size);
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
         sensor_manager.Update();
         if (use_sensor_vis) {
             // Move the camera parallel to the vehicle as it goes down the road

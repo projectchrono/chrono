@@ -19,15 +19,18 @@
 #ifndef CHSENSOR_H
 #define CHSENSOR_H
 
-#include "chrono_sensor/ChApiSensor.h"
-
 #include <list>
 #include <mutex>
 
-#include "chrono_sensor/sensors/ChSensorBuffer.h"
 #include "chrono/physics/ChBody.h"
+
+#include "chrono_sensor/ChApiSensor.h"
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/optix/ChOptixUtils.h"
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/optix/ChOptixUtils.h"
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -35,17 +38,19 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// global constanst for use in template parameters
-const char ChFilterR8AccessName[] = "ChFilterR8Access";          /// single channel 8 bit array
-const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";    /// 4 channel 8 bit array
-const char ChFilterDIAccessName[] = "ChFilterDIAccess";          /// 2 channel float array (Depth+Intenisty)
+/// global constants for use in template parameters
+#ifdef CHRONO_HAS_OPTIX
+const char ChFilterR8AccessName[] = "ChFilterR8Access";        /// single channel 8 bit array
+const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";  /// 4 channel 8 bit array
+const char ChFilterDIAccessName[] = "ChFilterDIAccess";        /// 2 channel float array (Depth+Intenisty)
+const char ChFilterRadarAccessName[] = "ChFilterRadarAccess";
+const char ChFilterRadarXYZAccessName[] = "ChFilterRadarXYZAccess";
+#endif
 const char ChFilterXYZIAccessName[] = "ChFilterXYZIAccess";      /// 4 channel float array (XYZ positions+Intensity)
 const char ChFilterAccelAccessName[] = "ChFilterAccelAccess";    /// Accelerometer data format (3 doubles total)
 const char ChFilterGyroAccessName[] = "ChFilterGyroAccess";      /// Gyroscope data format (3 doubles total)
 const char ChFilterMagnetAccessName[] = "ChFilterMagnetAccess";  /// Magnetometer data format (3 doubles total)
 const char ChFilterGPSAccessName[] = "ChFilterGPSAccess";        /// GPS data format (4 doubles total)
-const char ChFilterRadarAccessName[] = "ChFilterRadarAccess";
-const char ChFilterRadarXYZAccessName[] = "ChFilterRadarXYZAccess";
 const char ChFilterTachometerAccessName[] = "ChFilterTachometerAccess";
 const char ChFilterSemanticAccessName[] = "ChFilterSemanticAccess";
 const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";

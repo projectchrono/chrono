@@ -3,14 +3,20 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
 endif()
 
 set(DEMOS
-  demo_CS_SEN_camera
+    #
 )
 
-# Demos that combine sensor simulation with vehicle dynamics
-if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
-    set(DEMOS ${DEMOS}
-      #demo_SEN_Gator
-    )
+if(CH_USE_SENSOR_OPTIX)
+  set(DEMOS ${DEMOS}
+      demo_CS_SEN_camera
+  )
+
+  if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
+      set(DEMOS ${DEMOS}
+          #demo_SEN_Gator
+      )
+  endif()
+
 endif()
 
 # ----------------------------------------------------------------------

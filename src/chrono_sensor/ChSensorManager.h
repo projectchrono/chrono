@@ -19,15 +19,16 @@
 #ifndef CHSENSORMANAGER_H
 #define CHSENSORMANAGER_H
 
-// API include
-#include "chrono_sensor/ChApiSensor.h"
-
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_sensor/sensors/ChSensor.h"
-#include "chrono_sensor/optix/ChOptixEngine.h"
+#include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/ChDynamicsManager.h"
-#include "chrono_sensor/optix/scene/ChScene.h"
+#include "chrono_sensor/sensors/ChSensor.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/optix/ChOptixEngine.h"
+    #include "chrono_sensor/optix/scene/ChScene.h"
+#endif
 
 #include <fstream>
 #include <sstream>
@@ -70,6 +71,7 @@ class CH_SENSOR_API ChSensorManager {
     /// @return List of device IDs that the manager will try to use when rendering.
     std::vector<unsigned int> GetDeviceList();
 
+#ifdef CHRONO_HAS_OPTIX
     /// Get the number of engines the manager is currently using
     /// @return An integer number of OptiX engines
     int GetNumEngines() { return (int)m_engines.size(); }
@@ -78,6 +80,7 @@ class CH_SENSOR_API ChSensorManager {
     /// @param context_id The ID of the engine to be returned
     /// @return A shared pointer to an OptiX engine the manager is using
     std::shared_ptr<ChOptixEngine> GetEngine(int context_id);
+#endif
 
     /// Calls on the sensor manager to rebuild the scene, translating all objects from the Chrono system into their
     /// appropriate optix objects.
@@ -110,29 +113,30 @@ class CH_SENSOR_API ChSensorManager {
     /// @return The verbose setting
     bool GetVerbose() { return m_verbose; }
 
-    /// Public pointer to the scene. This is used to specify additional componenets include lights, background colors,
-    /// etc
+#ifdef CHRONO_HAS_OPTIX
+    /// Public pointer to the scene.
+    /// This is used to specify additional componenets include lights, background colors, etc.
     std::shared_ptr<ChScene> scene;
+#endif
 
   private:
-    bool m_verbose;           ///< Whether we should print messages and warnings
-    int m_optix_reflections;  ///< Maximum number of ray tracing recursions
+    bool m_verbose;           ///< enable printing of messages and warnings
+    int m_optix_reflections;  ///< maximum number of ray tracing recursions
     int m_num_keyframes;      ///< number of keyframes to use
 
     // class variables
     ChSystem* m_system;                                     ///< Chrono system the manager is attached to
+    std::shared_ptr<ChDynamicsManager> m_dynamics_manager;  ///< container for updating dynamic sensors
+#ifdef CHRONO_HAS_OPTIX
     std::vector<std::shared_ptr<ChOptixEngine>> m_engines;  ///< The optix engine(s) used for rendered sensors
-    std::shared_ptr<ChDynamicsManager> m_dynamics_manager;  ///< Container for updating dynamic sensors
+#endif
 
-    int m_allowable_groups = 1;  ///< Default maximum number of allowable engines
+    int m_allowable_groups = 1;  ///< default maximum number of allowable engines
 
-    std::vector<unsigned int> m_device_list;  ///< List of device IDs to use in rendering.
-
-    std::vector<std::shared_ptr<ChSensor>> m_sensor_list;  ///< List of all sensors for which the manager is responsible
-    std::vector<std::shared_ptr<ChSensor>>
-        m_dynamic_sensor;  ///< List of dynamic sensor for which the manager is responsible
-    std::vector<std::shared_ptr<ChSensor>>
-        m_render_sensor;  ///< List of optix based sensor for which the manager is responsible.
+    std::vector<unsigned int> m_device_list;                  ///< list of device IDs to use in rendering
+    std::vector<std::shared_ptr<ChSensor>> m_sensor_list;     ///< list of all sensors
+    std::vector<std::shared_ptr<ChSensor>> m_dynamic_sensor;  ///< list of dynamic sensors
+    std::vector<std::shared_ptr<ChSensor>> m_render_sensor;   ///< list of optix-based sensors
 };
 
 /// @} sensor

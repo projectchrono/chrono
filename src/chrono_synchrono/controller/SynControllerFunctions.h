@@ -28,7 +28,10 @@
 #include "chrono_synchrono/flatbuffer/message/SynApproachMessage.h"
 
 #ifdef CHRONO_SENSOR
-    #include "chrono_sensor/sensors/ChLidarSensor.h"
+    #include "chrono_sensor/ChConfigSensor.h"
+    #ifdef CHRONO_HAS_OPTIX
+        #include "chrono_sensor/sensors/ChLidarSensor.h"
+    #endif
 #endif
 
 namespace chrono {
@@ -93,7 +96,7 @@ SYN_API LaneColor GetLaneColorFromMessage(std::shared_ptr<SynMessage> synmsg,
                                           const int approach,
                                           const int lane);
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
 /// @brief Refresh passed lidar data, and search the resulting point cloud for points closer than min_val
 SYN_API double GetProximityToPointCloud(std::shared_ptr<sensor::ChLidarSensor> lidar,
                                         double min_val,

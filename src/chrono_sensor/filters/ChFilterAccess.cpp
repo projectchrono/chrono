@@ -16,12 +16,16 @@
 
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/sensors/ChSensor.h"
-#include "chrono_sensor/utils/CudaMallocHelper.h"
 
-#include <cuda.h>
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+    #include "chrono_sensor/utils/CudaMallocHelper.h"
+#endif
 
 namespace chrono {
 namespace sensor {
+
+#ifdef CHRONO_HAS_OPTIX
 
 template <>
 CH_SENSOR_API void ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>::Apply() {
@@ -330,6 +334,8 @@ CH_SENSOR_API void ChFilterAccess<SensorHostRadarXYZBuffer, UserRadarXYZBufferPt
         cudaStreamSynchronize(m_cuda_stream);
     }
 }
+
+#endif
 
 template <>
 CH_SENSOR_API void ChFilterAccess<SensorHostAccelBuffer, UserAccelBufferPtr>::Apply() {

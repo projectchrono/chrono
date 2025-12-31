@@ -1,7 +1,5 @@
 #=============================================================================
 # CMake configuration file for the Chrono Python module
-#
-# Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
 option(CH_ENABLE_MODULE_PYTHON "Enable the Chrono Python module" OFF)
@@ -31,7 +29,7 @@ if(DEFINED CH_CONDA_INSTALL)
     message(FATAL_ERROR "Relative path to Chrono data/ directory not specified. Set CH_PYCHRONO_DATA_PATH")
   endif()
 
-  if (CH_ENABLE_MODULE_SENSOR)
+  if (CH_ENABLE_MODULE_SENSOR AND CH_USE_SENSOR_OPTIX)
     if (NOT DEFINED CH_PYCHRONO_SHADER_PATH)
       message(FATAL_ERROR "Relative path to Chrono::Sensor shaders/ directory not specified. Set CH_PYCHRONO_SHADER_PATH")
     endif()
@@ -113,6 +111,9 @@ endif()
 
 if (CH_ENABLE_MODULE_SENSOR)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
+  if(CH_USE_SENSOR_OPTIX)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_OPTIX")
+  endif()
 endif()
 
 if (CH_ROS_HAS_INTERFACES)
@@ -126,7 +127,7 @@ endif()
 # Prepare replacement variables for init.py
 set(ADD_CUDA_DLL "")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  if(CH_ENABLE_MODULE_SENSOR)
+  if(CH_ENABLE_MODULE_SENSOR AND CH_USE_SENSOR_OPTIX)
     set(ADD_CUDA_DLL "os.add_dll_directory('${CUDA_BINARY_DIR}')")
   endif()
   if(CH_ENABLE_MODULE_CASCADE)
@@ -948,6 +949,10 @@ if(CH_ENABLE_MODULE_SENSOR)
       target_compile_options(sensor PRIVATE "/wd4706")  # assignment within conditional expression
     else()
       target_compile_options(sensor PRIVATE "-Wno-unused-variable")
+    endif()
+
+    if (CH_USE_SENSOR_OPTIX)
+      target_compile_definitions(sensor PRIVATE "CHRONO_OPTIX")
     endif()
 
     if(APPLE)
