@@ -73,7 +73,7 @@ void PublishCameraToROS(const uint8_t* data, size_t data_size, rclcpp::Node::Sha
     img_msg.header.frame_id = std::string(header.frame_id);
     img_msg.width = header.width;
     img_msg.height = header.height;
-    img_msg.encoding = "rgba8";
+    img_msg.encoding = std::string(header.encoding);
     img_msg.step = header.step;
     
     // Copy pixel data (from just after header)
