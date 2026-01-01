@@ -58,7 +58,7 @@ class InvertedPendulumController : public parsers::ChLoadController, public pars
     virtual double GetActuation() const override { return m_force.x(); }
 
     // Initialize the controller
-    virtual void Initialize(const parsers::ChParserMbsYAML& parser, int model_instance) {
+    virtual void Initialize(const parsers::ChParserMbsYAML& parser, int model_instance) override {
         m_cart = parser.FindBodyByName("cart", 0);
         m_pend = parser.FindBodyByName("pendulum", 0);
     }

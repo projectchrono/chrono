@@ -380,7 +380,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     }
 
     /// Set the internal dynamics ODE states (if any).
-    virtual void SetInternalStates(const ChVector2d& states) {
+    virtual void SetInternalStates(const ChVector2d& states) override {
         m_states.brx = states[0];
         m_states.bry = states[1];
     }

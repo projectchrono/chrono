@@ -455,13 +455,13 @@ int main(int argc, char* argv[]) {
     auto dir1 = out_dir + "/" + v1->ModelName();
     if (!filesystem::create_directory(filesystem::path(dir1))) {
         cout << "Error creating directory " << dir1 << endl;
-        return false;
+        return 1;
     }
 
     auto dir2 = out_dir + "/" + v2->ModelName();
     if (!filesystem::create_directory(filesystem::path(dir2))) {
         cout << "Error creating directory " << dir2 << endl;
-        return false;
+        return 1;
     }
 
     // Simulate first vehicle to its end pose and save final checkpoint
