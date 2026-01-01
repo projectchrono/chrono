@@ -22,8 +22,13 @@ endif()
 
 message(STATUS "\n==== Chrono Sensor module ====\n")
 
+mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
+mark_as_advanced(CLEAR GLEW_DIR)
+mark_as_advanced(CLEAR glfw3_DIR)
+
 #-----------------------------------------------------------------------------
 # Check CUDA and OptiX
+#-----------------------------------------------------------------------------
 
 set(CH_USE_SENSOR_OPTIX ON CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features")
 
@@ -33,18 +38,24 @@ if(CH_USE_SENSOR_OPTIX)
     message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
   
     message(STATUS "Looking for OptiX")
-    find_package(OptiX REQUIRED)
+    find_package(OptiX QUIET)
   
     if(OptiX_FOUND)
       message(STATUS "  OptiX include directory: ${OptiX_INCLUDE_DIR}")
     else()
-      message(WARNING "OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
+      message(STATUS "WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
       set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
     endif()
   else()
-    message(WARNING "CUDA was not found; disabling OptiX-dependent Chrono::Sensor features")
+    message(STATUS "WARNING: CUDA was not found; disabling OptiX-dependent Chrono::Sensor features")
     set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
   endif()
+
+endif()
+
+if(CH_USE_SENSOR_OPTIX)
+
+  message(STATUS "Building Chrono::Sensor with OptiX support")
 
   # Optional settings
   option(CH_USE_SENSOR_NVDB "Enable Chrono::FSI deformable terrain rendering in Chrono::Sensor" OFF)
@@ -60,6 +71,8 @@ if(CH_USE_SENSOR_OPTIX)
 
 else()
 
+  message(STATUS "Building Chrono::Sensor with NO OptiX support")
+
   mark_as_advanced(FORCE CH_USE_SENSOR_NVDB)
   mark_as_advanced(FORCE CH_USE_SENSOR_TENSORRT)
   mark_as_advanced(FORCE CH_USE_SENSOR_NVRTC)
@@ -67,14 +80,6 @@ else()
   set(CHRONO_HAS_OPTIX "#undef CHRONO_HAS_OPTIX")
 
 endif()
-
-if(NOT CH_USE_SENSOR_OPTIX)
-  message(STATUS "Building Chrono::Sensor with NO OptiX support")
-endif()
-
-mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
-mark_as_advanced(CLEAR GLEW_DIR)
-mark_as_advanced(CLEAR glfw3_DIR)
 
 #-----------------------------------------------------------------------------
 # LIST CUDA FILES USED FOR RT PROGRAMS - TO BE COMPILED TO PTX SHADERS
@@ -92,7 +97,7 @@ if(CH_USE_SENSOR_OPTIX)
       optix/shaders/material_shaders.cu
       optix/shaders/radar.cu
   )
-  
+
   if(CH_USE_SENSOR_NVDB)
     list(APPEND Chrono_sensor_RT_SOURCES
       optix/shaders/nvdb_vol_intersect.cu
@@ -119,7 +124,7 @@ endif()
 if(CH_USE_SENSOR_OPTIX)
 
   set(Chrono_sensor_CUDA_SOURCES
-  	cuda/grayscale.cu
+      cuda/grayscale.cu
       cuda/pointcloud.cu
       cuda/lidar_reduce.cu
       cuda/camera_noise.cu
@@ -133,7 +138,7 @@ if(CH_USE_SENSOR_OPTIX)
   )
 
   set(Chrono_sensor_CUDA_HEADERS
-  	cuda/grayscale.cuh
+      cuda/grayscale.cuh
       cuda/grayscale.cuh
       cuda/lidar_reduce.cuh
       cuda/camera_noise.cuh
@@ -514,16 +519,16 @@ if(CH_USE_SENSOR_OPTIX)
   if(CH_USE_SENSOR_NVRTC)
     message(STATUS "  CUDA::nvrtc found and enabled")
     message(STATUS "  Building Chrono::Sensor with NVRTC ON")
-  
+
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
     target_link_libraries(Chrono_sensor PRIVATE CUDA::nvrtc)
   
     # Flags used directly in the source code as defines
-  
+
     #set(CUDA_NVRTC_FLAGS -arch compute_30 -use_fast_math -lineinfo -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++11 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     mark_as_advanced(CUDA_NVRTC_FLAGS)
-  
+
     set(CUDA_NVRTC_FLAG_LIST)
     foreach(item ${CUDA_NVRTC_FLAGS}) #CUDA_NVRTC_FLAGS CUDA_NVCC_FLAGS
       set(CUDA_NVRTC_FLAG_LIST "${CUDA_NVRTC_FLAG_LIST} \\\n  \"${item}\",")
