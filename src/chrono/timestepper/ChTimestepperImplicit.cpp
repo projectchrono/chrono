@@ -690,7 +690,7 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
     // integrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old   assume L_old = 0
 
     unsigned int iteration;
-    for (iteration = 0; iteration < max_iters; iteration) {
+    for (iteration = 0; iteration < max_iters; iteration++) {
         integrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R = Rold;
         Qc.setZero();
