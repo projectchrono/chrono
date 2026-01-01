@@ -38,10 +38,10 @@ if(CH_USE_SENSOR_OPTIX)
     message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
   
     message(STATUS "Looking for OptiX")
-    find_package(OptiX QUIET)
+    find_package(OptiX)
   
-    if(OptiX_FOUND)
-      message(STATUS "  OptiX include directory: ${OptiX_INCLUDE_DIR}")
+    if(OptiX_INCLUDE)
+      message(STATUS "  OptiX include directory: ${OptiX_INCLUDE}")
     else()
       message(STATUS "WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
       set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
@@ -475,8 +475,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(CH_USE_SENSOR_OPTIX)
-  target_link_libraries(Chrono_sensor PUBLIC OptiX::OptiX) # needs to be exposed to consumers
-  target_link_libraries(Chrono_sensor PRIVATE CUDA::cudart_static)
+  target_include_directories(Chrono_sensor PUBLIC "${OptiX_INCLUDE}")
+
+  target_link_libraries(Chrono_sensor PUBLIC CUDA::cudart_static)
+
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppc)
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppig)
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppidei)
@@ -536,8 +538,7 @@ if(CH_USE_SENSOR_OPTIX)
     set(CUDA_NVRTC_FLAG_LIST "${CUDA_NVRTC_FLAG_LIST} \\\n  0,")
   
     set(CUDA_NVRTC_INCLUDE_DIRS
-        ${OptiX_INCLUDE_DIR}
-        ${OptiX_INCLUDE_DIR}/optixu
+        ${OptiX_INCLUDE}
         ${CUDAToolkit_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders
         ${CMAKE_INSTALL_PREFIX}/include
@@ -564,7 +565,7 @@ if(CH_USE_SENSOR_OPTIX)
     set_target_properties(Chrono_sensor_ptx PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
     target_include_directories(Chrono_sensor_ptx PRIVATE ${CMAKE_SOURCE_DIR}/src)
     set_property(TARGET Chrono_sensor_ptx PROPERTY CUDA_PTX_COMPILATION ON)
-    target_link_libraries(Chrono_sensor_ptx PRIVATE OptiX::OptiX)
+    target_include_directories(Chrono_sensor_ptx PRIVATE "${OptiX_INCLUDE}")
     target_link_libraries(Chrono_sensor_ptx PRIVATE CUDA::cudart_static)
     target_link_libraries(Chrono_sensor_ptx PRIVATE CUDA::nppc)
     target_link_libraries(Chrono_sensor_ptx PRIVATE CUDA::nppig)

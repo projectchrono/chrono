@@ -401,7 +401,7 @@ __host__ void cuda_camera_exposure_correct(unsigned char* bufPtr, size_t width, 
     const size_t channel_num = 3;
     
     size_t pixel_num = width * height;
-    const int blocks_per_grid = (pixel_num + threads_per_block - 1) / threads_per_block;
+    const int blocks_per_grid = ((int)pixel_num + threads_per_block - 1) / threads_per_block;
     // const int shared_memo_size = (3 * threads_per_block) * sizeof(float); // 3 * 512 * 4 = 6K [Bytes]
     
     float *dev_expsr_means;
