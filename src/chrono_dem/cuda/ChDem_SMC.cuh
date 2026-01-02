@@ -20,6 +20,16 @@
 
 #include <cuda.h>
 #include <cassert>
+
+// CUDA 13.0+ / CUB 2.x removed cub::Inequality, provide a compatible replacement
+namespace chrono_dem_compat {
+struct Inequality {
+    template <typename T>
+    __host__ __device__ __forceinline__ bool operator()(const T& a, const T& b) const {
+        return a != b;
+    }
+};
+}  // namespace chrono_dem_compat
 #include <cstdio>
 #include <fstream>
 #include <ios>
@@ -234,7 +244,7 @@ __global__ void getNumberOfSpheresTouchingEachSD(ChSystemDem_impl::GranSphereDat
 
     // Do a winningStreak search on whole block, might not have high utilization here
     bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
+    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, chrono_dem_compat::Inequality());
     __syncthreads();
 
     // Write back to shared memory; eight-way bank conflicts here - to revisit later
