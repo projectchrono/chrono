@@ -14,8 +14,8 @@
 //
 // =============================================================================
 
-#ifndef CHFILTERACCESS_H
-#define CHFILTERACCESS_H
+#ifndef CH_FILTER_ACCESS_H
+#define CH_FILTER_ACCESS_H
 
 #include <functional>
 #include <memory>
@@ -31,7 +31,7 @@
 #include "chrono_sensor/filters/ChFilter.h"
 
 #ifdef CHRONO_HAS_OPTIX
-#include "chrono_sensor/sensors/ChOptixSensor.h"
+    #include "chrono_sensor/sensors/ChOptixSensor.h"
 #endif
 
 namespace chrono {
@@ -49,7 +49,7 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
   public:
     /// Class constructor
     /// @param name String name of the filter. Defaults to empty.
-    ChFilterAccess(std::string name = {}) : ChFilter(name.length() > 0 ? name : "CopyToFilter"){};
+    ChFilterAccess(std::string name = {}) : ChFilter(name.length() > 0 ? name : "CopyToFilter") {}
 
     /// Virtual class destructor
     virtual ~ChFilterAccess() {}
@@ -84,7 +84,6 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
         m_max_lag_buffers = 1 + (unsigned int)std::ceil((pSensor->GetLag() + pSensor->GetCollectionWindow()) *
                                                         pSensor->GetUpdateRate());
         m_user_buffer = chrono_types::make_shared<BufferType>();
-
     }
 
     /// User calls this to get access and ownership of the buffer memory on the host.

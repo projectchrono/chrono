@@ -21,6 +21,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtils.h"
 
+// NOTE: order is important! ChSensor.h must be included *before* ChFilterAccess.h
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 

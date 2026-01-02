@@ -18,9 +18,8 @@
 
 #include <fstream>
 
+// NOTE: order is important! ChSensor.h must be included *before* ChFilterAccess.h
 #include "chrono_sensor/utils/ChUtilsJSON.h"
-
-#include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"

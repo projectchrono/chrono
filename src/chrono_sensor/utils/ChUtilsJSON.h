@@ -34,7 +34,6 @@
     #include "chrono_sensor/sensors/ChLidarSensor.h"
     #include "chrono_sensor/sensors/ChRadarSensor.h"
 #endif
-
 #include "chrono_sensor/filters/ChFilter.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
