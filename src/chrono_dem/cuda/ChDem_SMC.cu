@@ -26,11 +26,77 @@ __host__ float ChSystemDem_impl::computeArray3SquaredSum(std::vector<float, cuda
                                                          std::vector<float, cudallocator<float>>& arrY,
                                                          std::vector<float, cudallocator<float>>& arrZ,
                                                          unsigned int num_spheres) {
+    // CUDA 13.0+ managed-memory safety:
+    // Some environments (notably Windows/WSL2) report "limited unified memory support"
+    // (cudaDevAttrConcurrentManagedAccess == 0). In that mode, kernels may not safely
+    // dereference managed allocations, so we stage inputs into pure device memory.
+    // On full-UM systems (Linux + HMM/ATS), we keep the fast path and use managed
+    // pointers directly.
+    // References: IEEE 10.1109/TPDS.2024.3380865, IEEE 10.1109/TPDS.2021.3108764
+    int concurrent_managed_access = 0;
+    cudaError_t attr_err = cudaDeviceGetAttribute(&concurrent_managed_access, cudaDevAttrConcurrentManagedAccess, 0);
+    if (attr_err != cudaSuccess) {
+        concurrent_managed_access = 0;
+    }
+
+    const size_t arr_bytes = num_spheres * sizeof(float);
+    const float* inX = arrX.data();
+    const float* inY = arrY.data();
+    const float* inZ = arrZ.data();
+    float *d_arrX = nullptr, *d_arrY = nullptr, *d_arrZ = nullptr;
+
+    if (!concurrent_managed_access) {
+        // Conservative sync boundary before host touches managed vectors.
+        demErrchk(cudaDeviceSynchronize());
+
+        demErrchk(cudaMalloc(&d_arrX, arr_bytes));
+        demErrchk(cudaMalloc(&d_arrY, arr_bytes));
+        demErrchk(cudaMalloc(&d_arrZ, arr_bytes));
+
+        // Prefer a direct managed->device copy if the runtime supports it; otherwise
+        // fall back to pinned-host staging.
+        cudaError_t cpy_x = cudaMemcpy(d_arrX, arrX.data(), arr_bytes, cudaMemcpyDeviceToDevice);
+        if (cpy_x != cudaSuccess) {
+            float* h_temp = nullptr;
+            demErrchk(cudaMallocHost(&h_temp, arr_bytes));
+            std::memcpy(h_temp, arrX.data(), arr_bytes);
+            demErrchk(cudaMemcpy(d_arrX, h_temp, arr_bytes, cudaMemcpyHostToDevice));
+            demErrchk(cudaFreeHost(h_temp));
+        }
+
+        cudaError_t cpy_y = cudaMemcpy(d_arrY, arrY.data(), arr_bytes, cudaMemcpyDeviceToDevice);
+        if (cpy_y != cudaSuccess) {
+            float* h_temp = nullptr;
+            demErrchk(cudaMallocHost(&h_temp, arr_bytes));
+            std::memcpy(h_temp, arrY.data(), arr_bytes);
+            demErrchk(cudaMemcpy(d_arrY, h_temp, arr_bytes, cudaMemcpyHostToDevice));
+            demErrchk(cudaFreeHost(h_temp));
+        }
+
+        cudaError_t cpy_z = cudaMemcpy(d_arrZ, arrZ.data(), arr_bytes, cudaMemcpyDeviceToDevice);
+        if (cpy_z != cudaSuccess) {
+            float* h_temp = nullptr;
+            demErrchk(cudaMallocHost(&h_temp, arr_bytes));
+            std::memcpy(h_temp, arrZ.data(), arr_bytes);
+            demErrchk(cudaMemcpy(d_arrZ, h_temp, arr_bytes, cudaMemcpyHostToDevice));
+            demErrchk(cudaFreeHost(h_temp));
+        }
+
+        inX = d_arrX;
+        inY = d_arrY;
+        inZ = d_arrZ;
+    }
+
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalArray3Squared<float><<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, arrX.data(),
-                                                                arrY.data(), arrZ.data(), num_spheres);
+    elementalArray3Squared<float><<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, inX,
+                                                                inY, inZ, num_spheres);
     demErrchk(cudaDeviceSynchronize());
+    demErrchk(cudaPeekAtLastError());
+
+    if (d_arrX) demErrchk(cudaFree(d_arrX));
+    if (d_arrY) demErrchk(cudaFree(d_arrY));
+    if (d_arrZ) demErrchk(cudaFree(d_arrZ));
 
     // Use CUB to reduce. And put the reduced result at the last element of sphere_stats_buffer array.
     size_t temp_storage_bytes = 0;
@@ -41,7 +107,10 @@ __host__ float ChSystemDem_impl::computeArray3SquaredSum(std::vector<float, cuda
                            sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer + num_spheres);
+    // CUDA 13.0+: Copy result to host instead of direct managed memory access
+    float result;
+    demErrchk(cudaMemcpy(&result, sphere_data->sphere_stats_buffer + num_spheres, sizeof(float), cudaMemcpyDeviceToHost));
+    return result;
 }
 
 __host__ double ChSystemDem_impl::GetMaxParticleZ(bool getMax) {
@@ -72,7 +141,10 @@ __host__ double ChSystemDem_impl::GetMaxParticleZ(bool getMax) {
     }
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer + num_spheres);
+    // CUDA 13.0+: Copy result to host instead of direct managed memory access
+    float result;
+    demErrchk(cudaMemcpy(&result, sphere_data->sphere_stats_buffer + num_spheres, sizeof(float), cudaMemcpyDeviceToHost));
+    return result;
 }
 
 __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveZ(float ZValue) {
@@ -95,7 +167,10 @@ __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveZ(float ZValue) {
                            sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer_int + num_spheres);
+    // CUDA 13.0+: Copy result to host instead of direct managed memory access
+    unsigned int result;
+    demErrchk(cudaMemcpy(&result, sphere_data->sphere_stats_buffer_int + num_spheres, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    return result;
 }
 
 __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveX(float XValue) {
@@ -118,7 +193,10 @@ __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveX(float XValue) {
                            sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer_int + num_spheres);
+    // CUDA 13.0+: Copy result to host instead of direct managed memory access
+    unsigned int result;
+    demErrchk(cudaMemcpy(&result, sphere_data->sphere_stats_buffer_int + num_spheres, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    return result;
 }
 
 // Reset broadphase data structures
