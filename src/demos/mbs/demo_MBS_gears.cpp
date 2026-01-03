@@ -109,6 +109,7 @@ int main(int argc, char* argv[]) {
     link_gearAB->SetFrameShaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_PI_2)));
     link_gearAB->SetTransmissionRatio(radA / radB);
     link_gearAB->SetEnforcePhase(true);
+    link_gearAB->SetPressureAngle(20 * CH_DEG_TO_RAD);  // set pressure angle to 20 deg (default was 0)
     sys.AddLink(link_gearAB);
 
     // ...the gear constraint between the second wheel B and a large wheel C with inner teeth, that
@@ -120,6 +121,7 @@ int main(int argc, char* argv[]) {
     link_gearBC->SetFrameShaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_PI_2)));
     link_gearBC->SetFrameShaft2(ChFrame<>(ChVector3d(0, 0, -4), QUNIT));
     link_gearBC->SetTransmissionRatio(radB / radC);
+    link_gearBC->SetPressureAngle(20 * CH_DEG_TO_RAD);  // set pressure angle to 20 deg (default was 0)
     link_gearBC->SetEpicyclic(true);  // <-- this means: use a wheel with internal teeth!
     sys.AddLink(link_gearBC);
 
@@ -186,11 +188,11 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
+    //sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
     // Simulation loop
 
-    double timestep = 0.001;
+    double timestep = 0.002;
     ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();
