@@ -95,10 +95,6 @@ void ChLinkLockGear::UpdateTime(double time) {
 
     // Move markers 1 and 2 to align them as gear teeth
 
-    ChVector3d mx;
-    ChVector3d my;
-    ChVector3d mz;
-    ChVector3d mr;
     ChVector3d mmark1;
     ChVector3d mmark2;
     ChVector3d lastX;
@@ -141,18 +137,20 @@ void ChLinkLockGear::UpdateTime(double time) {
         a2 = a2L;
 
     // compute new markers coordsystem alignment
-    my = Vnorm(vbdist);
-    mz = GetDirShaft1();
-    mx = Vnorm(Vcross(my, mz));
-    mr = Vnorm(Vcross(mz, mx));
-    mz = Vnorm(Vcross(mx, my));
+    ChVector3d mz1, mx1, mr1, my1;
+    my1 = Vnorm(vbdist);
+    mz1 = GetDirShaft1();
+    mx1 = Vnorm(Vcross(my1, mz1));
+    mr1 = Vnorm(Vcross(mz1, mx1));
+    mz1 = Vnorm(Vcross(mx1, my1));
     ChVector3d mz2, mx2, mr2, my2;
-    my2 = my;
+    my2 = my1;
     mz2 = GetDirShaft2();
     mx2 = Vnorm(Vcross(my2, mz2));
     mr2 = Vnorm(Vcross(mz2, mx2));
+    mz2 = Vnorm(Vcross(mx2, my2));
 
-    ChMatrix33<> ma1(mx, my, mz);
+    ChMatrix33<> ma1(mx1, my1, mz1);
 
     // rotate csys because of beta
     vrota.x() = 0.0;
@@ -161,14 +159,17 @@ void ChLinkLockGear::UpdateTime(double time) {
     ChMatrix33<> mrotma;
     mrotma.SetFromCardanAnglesXYZ(vrota);
     ChMatrix33<> marot_beta = ma1 * mrotma;
+
     // rotate csys because of alpha
     vrota.x() = 0.0;
     vrota.y() = 0.0;
     vrota.z() = alpha;
-    if (react_force.x() < 0)
-        vrota.z() = alpha;
-    else
+    bool flip_alpha = ((react_force.x() < 0) && !this->epicyclic) || ((react_force.x() >= 0) && this->epicyclic);
+    if (flip_alpha) 
         vrota.z() = -alpha;
+    else
+        vrota.z() = alpha;
+
     mrotma.SetFromCardanAnglesXYZ(vrota);
     ma1 = marot_beta * mrotma;
 
@@ -183,7 +184,7 @@ void ChLinkLockGear::UpdateTime(double time) {
     // compute wheel radii so that:
     //            w2 = - tau * w1
     if (!is_bevel) {
-        double pardist = Vdot(mr, vbdist);
+        double pardist = Vdot(mr1, vbdist);
         double inv_tau = 1.0 / tau;
         if (!epicyclic) {
             r2 = pardist - pardist / (inv_tau + 1.0);
@@ -198,7 +199,7 @@ void ChLinkLockGear::UpdateTime(double time) {
         } else {
             gamma2 = be / (-tau + 1.0);
         }
-        double al = CH_PI - std::acos(Vdot(GetDirShaft2(), my));
+        double al = CH_PI - std::acos(Vdot(GetDirShaft2(), my1));
         double te = CH_PI - al - be;
         double fd = sin(te) * (bdist / sin(be));
         r2 = fd * tan(gamma2);
