@@ -65,7 +65,7 @@ public:
         
         // Cauchy σ = ζtr(d)I + 2μd
         ChMatrix33d sigma = this->volumetric_damping * d.trace() * Eigen::Matrix3d::Identity()  
-                            + 2.0 * d;
+                            + 2.0 * this->deviatoric_damping * d;
 
         // Cauchy σ -> PK2 stress S
         // S = J F⁻¹ (ζ tr(d) I + 2μ d) F⁻ᵀ
