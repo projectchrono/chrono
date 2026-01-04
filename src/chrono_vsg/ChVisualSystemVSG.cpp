@@ -652,7 +652,8 @@ class ChronoVertexIndexDraw : public vsg::Inherit<vsg::VertexIndexDraw, ChronoVe
             vsg::BufferInfoList combinedBufferInfos(arrays);
             combinedBufferInfos.push_back(indices);
 
-            VkBufferUsageFlags usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | m_extraUsage;
+            VkBufferUsageFlags usage =
+                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | m_extraUsage;
             createBufferAndTransferData(context, combinedBufferInfos, usage, VK_SHARING_MODE_EXCLUSIVE);
         }
 
@@ -1372,8 +1373,7 @@ void ChVisualSystemVSG::Initialize() {
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
     // switches off automatic directional light setting
 
-    m_renderGraph =
-        vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
+    m_renderGraph = vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     // extend for seperate render and compute graphs
     m_renderCommandGraph = vsg::CommandGraph::create(m_window, m_renderGraph);
     m_computeCommandGraph = vsg::CommandGraph::create(m_window);
@@ -1505,7 +1505,7 @@ void ChVisualSystemVSG::Render() {
         m_timer_render.stop();
         double elapsed = m_timer_render();
         double min_frame_time = 1.0 / m_target_render_fps;
-        
+
         if (elapsed < min_frame_time) {
             // Not enough wall-clock time passed - skip this frame entirely
             m_timer_render.start();
@@ -1514,14 +1514,14 @@ void ChVisualSystemVSG::Render() {
         }
         // Frame gate passed - timer already stopped, will be reset/started at bottom
     }
-    
+
     if (m_write_images && m_frame_number > 0) {
         // Zero-pad frame numbers in file names for postprocessing
         std::ostringstream filename;
         filename << m_image_dir << "/img_" << std::setw(5) << std::setfill('0') << m_frame_number << ".png";
         WriteImageToFile(filename.str());
-    }    
-    
+    }
+
     if (m_frame_number == 0)
         m_start_time = double(clock()) / double(CLOCKS_PER_SEC);
 
@@ -1576,9 +1576,10 @@ void ChVisualSystemVSG::Render() {
         }
     }
 
-    // Dynamic data transfer CPU->GPU for link labels  
-    // Only update if link labels are actually visible to avoid expensive CPU work - the !m_link_labels_empty test doesn't condition this
-    // code comprehensively. If the link labels are empty, the for ipos won't run, but the CollectLinkFramePositions will still be called needlessly.
+    // Dynamic data transfer CPU->GPU for link labels
+    // Only update if link labels are actually visible to avoid expensive CPU work - the !m_link_labels_empty test
+    // doesn't condition this code comprehensively. If the link labels are empty, the for ipos won't run, but the
+    // CollectLinkFramePositions will still be called needlessly.
     if (m_show_link_labels) {
         auto label_size = m_link_labels_scale * m_label_size;
 
@@ -1651,7 +1652,6 @@ void ChVisualSystemVSG::Render() {
         }
     }
 
-
     // Dynamic data transfer CPU->GPU for deformable meshes
     // To speed up cpu-gpu - treat ChVector3d arrays as contiguous arrays for bulk conversion over to gpu
     for (auto& def_mesh : m_def_meshes) {
@@ -1722,7 +1722,6 @@ void ChVisualSystemVSG::Render() {
         }
     }
 
-
     m_viewer->recordAndSubmit();
 
     if (m_capture_image) {
@@ -1746,7 +1745,6 @@ void ChVisualSystemVSG::Render() {
 
     m_timer_render.reset();
     m_timer_render.start();
-
 }
 
 void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
@@ -1856,7 +1854,7 @@ bool ChVisualSystemVSG::GetDesiredCloudVisibility(int tag) const {
 
 void ChVisualSystemVSG::SetCollisionVisibility(bool vis, int tag) {
     m_show_collision = vis;
-    
+
     if (!m_initialized)
         return;
 
@@ -2175,7 +2173,7 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     }
 
     if (item->GetVisualModel()) {
-        BindDeformableMesh(item, DeformableType::OTHER);
+        BindVisualShapesMutable(item, DeformableType::OTHER);
         BindPointPoint(item);
     }
 }
@@ -2230,19 +2228,20 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
         BindReferenceFrame(body);
         BindCOMFrame(body);
     }
-    BindObjectVisualModel(body, ObjectType::BODY);
-    BindObjectCollisionModel(body, body->GetTag());
+    BindVisualShapesMutable(body, DeformableType::OTHER);  // bind any mutable meshes associated with the body
+    BindVisualShapesFixed(body, ObjectType::BODY);         // bind all other shapes in the body visual model
+    BindCollisionShapesFixed(body, body->GetTag());        // bind body collision shapes
 }
 
 void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
     BindLinkFrame(link);
     BindPointPoint(link);
-    BindObjectVisualModel(link, ObjectType::LINK);
+    BindVisualShapesFixed(link, ObjectType::LINK);
 }
 
 void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
     mesh->UpdateVisualModel();
-    BindDeformableMesh(mesh, DeformableType::FEA);
+    BindVisualShapesMutable(mesh, DeformableType::FEA);
 }
 
 void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
@@ -2256,7 +2255,7 @@ void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
         BindMesh(mesh);
 
     for (const auto& item : assembly.GetOtherPhysicsItems()) {
-        BindDeformableMesh(item, DeformableType::OTHER);
+        BindVisualShapesMutable(item, DeformableType::OTHER);
         BindPointPoint(item);
         if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
             BindParticleCloud(pcloud);
@@ -2265,7 +2264,7 @@ void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
     }
 }
 
-void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj, ObjectType type) {
+void ChVisualSystemVSG::BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj, ObjectType type) {
     const auto& vis_model = obj->GetVisualModel();
     const auto& vis_frame = obj->GetVisualModelFrame();
 
@@ -2281,14 +2280,14 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateVisGroup(vis_shapes_group, vis_model);
+    PopulateVisualShapesFixed(vis_shapes_group, vis_model);
 
     // Create transform and initialize with current frame
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(vis_frame, 1.0);
-     // Enable frustum culling means we're not wasting rendering resources on things out of frame
-    vis_model_transform->subgraphRequiresLocalFrustum = true; 
-    
+    // Enable frustum culling means we're not wasting rendering resources on things out of frame
+    vis_model_transform->subgraphRequiresLocalFrustum = true;
+
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(vis_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -2317,7 +2316,7 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     m_objScene->addChild(mask, vis_model_group);
 }
 
-void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContactable>& obj, int tag) {
+void ChVisualSystemVSG::BindCollisionShapesFixed(const std::shared_ptr<ChContactable>& obj, int tag) {
     const auto& coll_model = obj->GetCollisionModel();
     const auto& coll_frame = obj->GetCollisionModelFrame();
 
@@ -2337,7 +2336,7 @@ void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContact
     auto coll_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateCollGroup(coll_shapes_group, coll_model);
+    PopulateCollisionShapeFixed(coll_shapes_group, coll_model);
 
     if (coll_shapes_group->children.size() == 0)
         return;
@@ -2345,7 +2344,8 @@ void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContact
     // Attach a transform to the group and initialize it with the body current position
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
+    vis_model_transform->subgraphRequiresLocalFrustum =
+        true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(coll_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -2368,14 +2368,21 @@ void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContact
     m_collisionScene->addChild(mask, coll_model_group);
 }
 
-void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item, DeformableType type) {
-    const auto& vis_model = item->GetVisualModel();
+void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj, DeformableType type) {
+    const auto& vis_model = obj->GetVisualModel();
+    const auto& vis_frame = obj->GetVisualModelFrame();
 
     if (!vis_model)
         return;
 
     for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.shape;
+
+        if (!shape->IsMutable())
+            continue;
+
+        const auto& X_SM = shape_instance.frame;
+        bool wireframe = shape_instance.wireframe;
 
         //// RADU TODO: process glyphs
         ////            for now, only treat the trimeshes in the visual model
@@ -2390,13 +2397,14 @@ void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>&
         def_mesh.trimesh = trimesh->GetMesh();
 
         auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
         auto child = (trimesh->GetNumMaterials() > 0)
                          ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
                                                                     trimesh->GetMaterials(), trimesh->IsWireframe())
                          : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
                                                                  trimesh->IsWireframe());
         child->setValue("Type", type);
-        child->setValue("Tag", item->GetTag());
+        child->setValue("Tag", obj->GetTag());
         vsg::Mask mask;
         switch (type) {
             case DeformableType::FEA:
@@ -2450,8 +2458,8 @@ ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& di
     return ChFrame<>(0.5 * (P2 + P1), R_CS);
 }
 
-void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item) {
-    const auto& vis_model = item->GetVisualModel();
+void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChObj>& obj) {
+    const auto& vis_model = obj->GetVisualModel();
 
     if (!vis_model)
         return;
@@ -2472,14 +2480,14 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
             transform->matrix = vsg::dmat4CH(X, ChVector3d(1, length, 1));
             auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 2.0f);
             group->setValue("Type", PointPointType::SEGMENT);
-            group->setValue("Tag", item->GetTag());
+            group->setValue("Tag", obj->GetTag());
             group->setValue("Shape", shape);
             group->setValue("Transform", transform);
             m_pointpointScene->addChild(mask_segments, group);
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
             // VSG generates spring coils procedurally on GPU, so disable expensive CPU geometry updates
             sprshape->SetGeometryUpdatesDisabled(true);
-            
+
             auto rad = sprshape->GetRadius();
             auto turns = sprshape->GetTurns();
             auto resolution = sprshape->GetResolution();
@@ -2492,7 +2500,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
             auto group = m_shapeBuilder->CreateSpringShape(material, transform, resolution, turns, 2.0f);
             group->setValue("Type", PointPointType::SPRING);
-            group->setValue("Tag", item->GetTag());
+            group->setValue("Tag", obj->GetTag());
             group->setValue("Shape", shape);
             group->setValue("Transform", transform);
             m_pointpointScene->addChild(mask_springs, group);
@@ -2612,8 +2620,8 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
             extraUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
         if (extraUsage != 0) {
-            // We need colour buffers that are both vertex inputs and storage buffers so the compute shader
-            // can overwrite particle colours; standard VSG nodes were only request vertex usage, so these get replaced here
+            // We need colour buffers that are both vertex inputs and storage buffers so the compute shader can
+            // overwrite particle colours; standard VSG nodes were only request vertex usage, so these get replaced here
             ReplaceVertexIndexDraw replacer(extraUsage);
             node->accept(replacer);
 
@@ -2693,8 +2701,8 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
 
 // -----------------------------------------------------------------------------
 
-// Utility function to populate a VSG group with visualization shapes (from the given visual model).
-void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model) {
+void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group,
+                                                  std::shared_ptr<ChVisualModel> model) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.shape;
         const auto& X_SM = shape_instance.frame;
@@ -2753,6 +2761,9 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, wireframe);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
+            if (trimesh->IsMutable())  // already treated as deformable meshes
+                continue;
+
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
             auto grp = trimesh->GetNumMaterials() > 0
@@ -2761,16 +2772,10 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
                            : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
                                                                    wireframe);
             group->addChild(grp);
-        } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(shape)) {
-            auto geometry = surface->GetSurfaceGeometry();
-            auto resolution_u = surface->GetResolutionU();
-            auto resolution_v = surface->GetResolutionV();
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(geometry, material, transform, resolution_u, resolution_v,
-                                                             wireframe);
-            group->addChild(grp);
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+            if (model_file->IsMutable())  // already treated as deformable meshes
+                continue;
+
             const auto& filename = model_file->GetFilename();
             const auto& scale = model_file->GetScale();
 
@@ -2811,13 +2816,22 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::sh
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
             group->addChild(m_shapeBuilder->CreatePathShape(geometry, material, transform, num_points));
+        } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(shape)) {
+            auto geometry = surface->GetSurfaceGeometry();
+            auto resolution_u = surface->GetResolutionU();
+            auto resolution_v = surface->GetResolutionV();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
+            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(geometry, material, transform, resolution_u, resolution_v,
+                                                             wireframe);
+            group->addChild(grp);
         }
 
     }  // end loop over visual shapes
 }
 
-// Utility function to populate a VSG group with collision shapes (from the given collision model).
-void ChVisualSystemVSG::PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model) {
+void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> group,
+                                                    std::shared_ptr<ChCollisionModel> model) {
     // Default visualization material for collision shapes
     auto material = chrono_types::make_shared<ChVisualMaterial>();
     material->SetDiffuseColor(m_collision_color);
@@ -3200,12 +3214,13 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
     auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateVisGroup(vis_shapes_group, model);
+    PopulateVisualShapesFixed(vis_shapes_group, model);
 
     // Attach a transform to the group and initialize it with the provided frame
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
+    vis_model_transform->subgraphRequiresLocalFrustum =
+        true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(vis_model_group);
         m_options->sharedObjects->share(vis_model_transform);

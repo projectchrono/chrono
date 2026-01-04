@@ -345,16 +345,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Data for particle clouds managed by the visual system (extended for
     // VSG and compute shader and moved to public for access by plugins)
     struct ParticleCloud {
-    std::shared_ptr<ChParticleCloud> pcloud;            ///< reference to the Chrono physics item
-    vsg::ref_ptr<vsg::vec3Array> positions;             ///< particle positions
-    vsg::ref_ptr<vsg::vec4Array> colors;                ///< particle colours
-    bool dynamic_positions;                             ///< particle positions change
-    bool dynamic_colors;                                ///< particle colours change
-    vsg::ref_ptr<vsg::Node> geometry_node;              ///< owning scene graph node
-    vsg::ref_ptr<vsg::BufferInfo> position_bufferInfo;  ///< instance positions buffer
-    vsg::ref_ptr<vsg::BufferInfo> color_bufferInfo;     ///< instance colours buffer
-    bool use_compute_colors = false;                    ///< GPU compute overrides CPU updates
-    vsg::ref_ptr<vsg::Commands> compute_commands;       ///< compute dispatch commands
+        std::shared_ptr<ChParticleCloud> pcloud;            ///< reference to the Chrono physics item
+        vsg::ref_ptr<vsg::vec3Array> positions;             ///< particle positions
+        vsg::ref_ptr<vsg::vec4Array> colors;                ///< particle colours
+        bool dynamic_positions;                             ///< particle positions change
+        bool dynamic_colors;                                ///< particle colours change
+        vsg::ref_ptr<vsg::Node> geometry_node;              ///< owning scene graph node
+        vsg::ref_ptr<vsg::BufferInfo> position_bufferInfo;  ///< instance positions buffer
+        vsg::ref_ptr<vsg::BufferInfo> color_bufferInfo;     ///< instance colours buffer
+        bool use_compute_colors = false;                    ///< GPU compute overrides CPU updates
+        vsg::ref_ptr<vsg::Commands> compute_commands;       ///< compute dispatch commands
     };
 
     /// Access particle cloud metadata
@@ -381,15 +381,17 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Update all VSG scenes with the current state of the associated Chrono systems.
     void Update();
 
+    bool GetDesiredCloudVisibility(int tag) const;
+
     int m_screen_num = -1;
     bool m_use_fullscreen;
     bool m_use_shadows;
 
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
-  vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
-  vsg::ref_ptr<vsg::CommandGraph> m_renderCommandGraph;   ///< graphics submit path
-  vsg::ref_ptr<vsg::CommandGraph> m_computeCommandGraph;  ///< compute submit path (particle colouring)
+    vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+    vsg::ref_ptr<vsg::CommandGraph> m_renderCommandGraph;   ///< graphics submit path
+    vsg::ref_ptr<vsg::CommandGraph> m_computeCommandGraph;  ///< compute submit path (particle colouring)
 
     bool m_show_logo;
     float m_logo_height;
@@ -446,10 +448,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
     std::vector<DeformableMesh> m_def_meshes;
 
-  std::vector<ParticleCloud> m_clouds;  ///< particle cloud metadata cached for VSG interop
-  bool GetDesiredCloudVisibility(int tag) const;
-  bool m_default_cloud_visibility = true;  ///< fallback visibility before a specific tag is toggled
-  std::unordered_map<int, bool> m_cloud_visibility_overrides;  ///< per-tag visibility overrides
+    std::vector<ParticleCloud> m_clouds;     ///< particle cloud metadata cached for VSG interop
+    bool m_default_cloud_visibility = true;  ///< fallback visibility before a specific tag is toggled
+    std::unordered_map<int, bool> m_cloud_visibility_overrides;  ///< per-tag visibility overrides
 
     bool m_show_visibility_controls;  ///< enable/disable global visibility controls
 
@@ -531,17 +532,17 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind all assets associated with the given ChAssembly.
     void BindAssembly(const ChAssembly& assembly);
 
-    /// Bind the visual model associated with a ChObj object (body, link, or other).
-    void BindObjectVisualModel(const std::shared_ptr<ChObj>& obj, ObjectType type);
+    /// Bind the non-mutable shapes in the visual model associated with the given Chrono object.
+    void BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj, ObjectType type);
 
-    /// Bind the collision model associated with a ChContactable object.
-    void BindObjectCollisionModel(const std::shared_ptr<ChContactable>& obj, int tag);
+    /// Bind mutable shapes (deformable meshes) in the visual model associated with the given Chrono object.
+    void BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj, DeformableType type);
 
-    /// Bind deformable meshes in the visual model associated with the given physics item.
-    void BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item, DeformableType type);
+    /// Bind the non-mutable shapes in the collision model associated with the given contactable.
+    void BindCollisionShapesFixed(const std::shared_ptr<ChContactable>& obj, int tag);
 
-    /// Bind point-point visual assets in the visual model associated with the given physics item.
-    void BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item);
+    /// Bind point-point visual assets in the visual model associated with the given Chrono object.
+    void BindPointPoint(const std::shared_ptr<ChObj>& item);
 
     /// Bind the visual model assoicated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
@@ -561,12 +562,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the body and link labels.
     void BindLabels();
 
-    /// Utility function to populate a VSG group with visualization shapes (from the given visual model).
-    void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
+    /// Populate a VSG group with non-mutable visualization shapes (from the given visual model).
+    void PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
 
-    /// Utility function to populate a VSG group with collision shapes (from the given collision model).
+    /// Populate a VSG group with non-mutable collision shapes (from the given collision model).
     /// The VSG shapes are always rendered wireframe.
-    void PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
+    void PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
 
     /// Utility function to collect active body positions from all assemblies in all systems.
     static void CollectActiveBodyCOMPositions(const ChAssembly& assembly, std::vector<ChVector3d>& positions);
@@ -675,9 +676,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChTimer m_timer_render;                           ///< timer for rendering speed
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
-    
-    double m_target_render_fps;                       ///< target rendering framerate (0 = unlimited)
-    double m_last_render_time;                        ///< simulation time of last render
+
+    double m_target_render_fps;  ///< target rendering framerate (0 = unlimited)
+    double m_last_render_time;   ///< simulation time of last render
 
     // ImGui textures
     vsg::ref_ptr<vsgImGui::Texture> m_logo_texture;
