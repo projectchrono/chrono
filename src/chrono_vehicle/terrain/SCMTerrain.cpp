@@ -391,6 +391,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     if (visualization_mesh) {
         // Create the visualization mesh and asset
         m_trimesh_shape = std::shared_ptr<ChVisualShapeTriangleMesh>(new ChVisualShapeTriangleMesh);
+        m_trimesh_shape->SetMutable(true);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
     }

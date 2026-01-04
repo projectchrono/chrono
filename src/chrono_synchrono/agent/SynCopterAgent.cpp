@@ -101,7 +101,6 @@ std::shared_ptr<ChVisualShapeTriangleMesh> SynCopterAgent::CreateMeshZombieCompo
     if (!filename.empty()) {
         auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);
         trimesh->SetMesh(mesh);
-        trimesh->SetMutable(false);
         trimesh->SetName(filesystem::path(filename).stem());
     }
     return trimesh;

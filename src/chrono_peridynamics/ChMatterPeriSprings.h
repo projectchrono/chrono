@@ -67,8 +67,8 @@ class ChApiPeridynamics ChMatterPeriSpringsBreakable
 class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakable : public ChGlyphs {
   public:
     ChVisualPeriSpringsBreakable(std::shared_ptr<ChMatterPeriSpringsBreakable> amatter) : mmatter(amatter) {
-        is_mutable = true;
-    };
+        SetMutable(true);
+    }
     virtual ~ChVisualPeriSpringsBreakable() {}
 
     // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
@@ -117,8 +117,8 @@ class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakable : public ChGlyphs {
 class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakableBonds : public ChGlyphs {
   public:
     ChVisualPeriSpringsBreakableBonds(std::shared_ptr<ChMatterPeriSpringsBreakable> amatter) : mmatter(amatter) {
-        is_mutable = true;
-    };
+        SetMutable(true);
+    }
     virtual ~ChVisualPeriSpringsBreakableBonds() {}
 
     bool draw_broken = true;

@@ -17,7 +17,7 @@
 
 namespace chrono {
 
-ChVisualShape::ChVisualShape() : visible(true), is_mutable(true) {}
+ChVisualShape::ChVisualShape() : is_visible(true), is_mutable(false) {}
 
 int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
@@ -98,7 +98,7 @@ void ChVisualShape::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVisualShape>();
     // serialize all member data:
-    archive_out << CHNVP(visible);
+    archive_out << CHNVP(is_visible);
     archive_out << CHNVP(is_mutable);
     archive_out << CHNVP(material_list);
 }
@@ -107,7 +107,7 @@ void ChVisualShape::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
     /*int version =*/archive_in.VersionRead<ChVisualShape>();
     // stream in all member data:
-    archive_in >> CHNVP(visible);
+    archive_in >> CHNVP(is_visible);
     archive_in >> CHNVP(is_mutable);
     archive_in >> CHNVP(material_list);
 }

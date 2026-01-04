@@ -86,11 +86,6 @@ int main(int argc, char* argv[]) {
 
     int curr_item_cnt = 0;
 
-    // ChBox box_asset = ChBox({0, 0, 0}, ChMatrix33<>(1), {1, 1, 1});
-    //
-    // auto box_shape = chrono_types::make_shared<ChBoxShape>(box_asset);
-    // box_shape->SetMutable(false);
-
     for (int q = start_exp; q <= stop_exp; q++) {
         int target_item_cnt = pow(2, q);
         std::cout << "Box Count: " << target_item_cnt << std::endl;

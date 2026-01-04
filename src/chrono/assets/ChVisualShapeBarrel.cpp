@@ -20,18 +20,14 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeBarrel)
 
-ChVisualShapeBarrel::ChVisualShapeBarrel() {
-    SetMutable(false);
-}
+ChVisualShapeBarrel::ChVisualShapeBarrel() {}
 
 ChVisualShapeBarrel::ChVisualShapeBarrel(double Y_low,
                                          double Y_high,
                                          double axis_vert,
                                          double axis_hor,
                                          double R_offset)
-    : Hlow(Y_low), Hsup(Y_high), Rvert(axis_vert / 2), Rhor(axis_hor / 2), Roffset(R_offset) {
-    SetMutable(false);
-}
+    : Hlow(Y_low), Hsup(Y_high), Rvert(axis_vert / 2), Rhor(axis_hor / 2), Roffset(R_offset) {}
 
 ChAABB ChVisualShapeBarrel::GetBoundingBox() const {
     double y_min = std::min(Hlow, -Rvert);

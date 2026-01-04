@@ -20,23 +20,17 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeBox)
 
-ChVisualShapeBox::ChVisualShapeBox() {
-    SetMutable(false);
-}
+ChVisualShapeBox::ChVisualShapeBox() {}
 
 ChVisualShapeBox::ChVisualShapeBox(double length_x, double length_y, double length_z) {
     gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
-    SetMutable(false);
 }
 
 ChVisualShapeBox::ChVisualShapeBox(const ChVector3d& lengths) {
     gbox.SetLengths(lengths);
-    SetMutable(false);
 }
 
-ChVisualShapeBox::ChVisualShapeBox(const ChBox& box) : gbox(box) {
-    SetMutable(false);
-}
+ChVisualShapeBox::ChVisualShapeBox(const ChBox& box) : gbox(box) {}
 
 void ChVisualShapeBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

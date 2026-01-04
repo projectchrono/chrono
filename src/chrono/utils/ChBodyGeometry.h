@@ -149,6 +149,7 @@ class ChApi ChBodyGeometry {
         double radius;                                     ///< radius of sweeping sphere
         int matID;                                         ///< index in contact material list
         ChColor color;                                     ///< visualization color
+        bool is_mutable;                                   ///< true if mesh is deformable
     };
 
     /// Line shape for visualization.

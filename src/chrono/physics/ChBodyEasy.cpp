@@ -308,7 +308,6 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector3d>& points,
                                      bool create_collision,
                                      std::shared_ptr<ChContactMaterial> material) {
     auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-    vshape->SetMutable(false);
     bt_utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (create_visualization) {
@@ -389,7 +388,6 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector3d>& points,
                                            bool create_collision,
                                            std::shared_ptr<ChContactMaterial> material) {
     auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-    vshape->SetMutable(false);
     bt_utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (create_visualization) {
@@ -509,7 +507,6 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
 
     if (create_visualization) {
         auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        vshape->SetMutable(false);
         vshape->SetMesh(trimesh);
         vshape->SetName(name);
         AddVisualShape(vshape);

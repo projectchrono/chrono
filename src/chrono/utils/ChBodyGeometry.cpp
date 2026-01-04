@@ -156,7 +156,12 @@ ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                            double scale,
                                            double radius,
                                            int matID)
-    : trimesh(trimesh), radius(radius), matID(matID), int_point(interior_point), color({-1, -1, -1}) {
+    : trimesh(trimesh),
+      radius(radius),
+      matID(matID),
+      int_point(interior_point),
+      color({-1, -1, -1}),
+      is_mutable(false) {
     ChMatrix33d R(rot);
 
     // Transform mesh vertices
@@ -247,7 +252,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         for (auto& mesh : coll_meshes) {
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(mesh.trimesh);
-            trimesh_shape->SetMutable(false);
+            trimesh_shape->SetMutable(mesh.is_mutable);
             if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
                 trimesh_shape->AddMaterial(mesh_mat);
             else
@@ -312,7 +317,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
     for (auto& mesh : vis_meshes) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(mesh.trimesh);
-        trimesh_shape->SetMutable(false);
+        trimesh_shape->SetMutable(mesh.is_mutable);
         if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
             trimesh_shape->AddMaterial(mesh_mat);
         else

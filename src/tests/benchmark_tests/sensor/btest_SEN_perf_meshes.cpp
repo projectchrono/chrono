@@ -81,7 +81,6 @@ int main(int argc, char* argv[]) {
                     auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
                     trimesh_shape->SetMesh(mmesh);
                     // trimesh_shape->SetName("HMMWV Chassis Mesh");
-                    trimesh_shape->SetMutable(false);
                     float scale = .5 * randf() + .1;
                     trimesh_shape->SetScale({scale, scale, scale});
                     // trimesh_shape->SetScale({.8, .8, .8});

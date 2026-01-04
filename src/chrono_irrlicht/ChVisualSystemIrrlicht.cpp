@@ -819,7 +819,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
             auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetMutable(false);
 
             // Create a number of Irrlicht mesh buffers equal to the number of materials.
             // If no materials defined, create a single mesh buffer.

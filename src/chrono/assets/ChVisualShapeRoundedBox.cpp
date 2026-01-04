@@ -19,25 +19,19 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeRoundedBox)
 
-ChVisualShapeRoundedBox::ChVisualShapeRoundedBox() {
-    SetMutable(false);
-}
+ChVisualShapeRoundedBox::ChVisualShapeRoundedBox() {}
 
 ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(double length_x, double length_y, double length_z, double radius) {
     gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
     gbox.SetSphereRadius(radius);
-    SetMutable(false);
 }
 
 ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChVector3d& lengths, double radius) {
     gbox.SetLengths(lengths);
     gbox.SetSphereRadius(radius);
-    SetMutable(false);
 }
 
-ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChRoundedBox& box) : gbox(box) {
-    SetMutable(false);
-}
+ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChRoundedBox& box) : gbox(box) {}
 
 void ChVisualShapeRoundedBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
