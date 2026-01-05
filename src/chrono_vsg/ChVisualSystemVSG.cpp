@@ -1759,6 +1759,15 @@ void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
         if (type == ObjectType::BODY && (c_tag == tag || tag == -1))
             child.mask = vis;
     }
+
+    for (auto& child : m_deformableScene->children) {
+        ObjectType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == ObjectType::BODY && (c_tag == tag || tag == -1))
+            child.mask = vis;
+    }
 }
 
 void ChVisualSystemVSG::SetLinkObjVisibility(bool vis, int tag) {
@@ -1780,11 +1789,11 @@ void ChVisualSystemVSG::SetFeaMeshVisibility(bool vis, int tag) {
         return;
 
     for (auto& child : m_deformableScene->children) {
-        DeformableType type;
+        ObjectType type;
         int c_tag;
         child.node->getValue("Type", type);
         child.node->getValue("Tag", c_tag);
-        if (type == DeformableType::FEA && (c_tag == tag || tag == -1))
+        if (type == ObjectType::FEA && (c_tag == tag || tag == -1))
             child.mask = vis;
     }
 }
@@ -2173,7 +2182,7 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     }
 
     if (item->GetVisualModel()) {
-        BindVisualShapesMutable(item, DeformableType::OTHER);
+        BindVisualShapesMutable(item, ObjectType::OTHER);
         BindPointPoint(item);
     }
 }
@@ -2228,9 +2237,9 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
         BindReferenceFrame(body);
         BindCOMFrame(body);
     }
-    BindVisualShapesMutable(body, DeformableType::OTHER);  // bind any mutable meshes associated with the body
-    BindVisualShapesFixed(body, ObjectType::BODY);         // bind all other shapes in the body visual model
-    BindCollisionShapesFixed(body, body->GetTag());        // bind body collision shapes
+    BindVisualShapesMutable(body, ObjectType::BODY);  // bind any mutable meshes associated with the body
+    BindVisualShapesFixed(body, ObjectType::BODY);    // bind all other shapes in the body visual model
+    BindCollisionShapesFixed(body, body->GetTag());   // bind body collision shapes
 }
 
 void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
@@ -2241,7 +2250,7 @@ void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
 
 void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
     mesh->UpdateVisualModel();
-    BindVisualShapesMutable(mesh, DeformableType::FEA);
+    BindVisualShapesMutable(mesh, ObjectType::FEA);
 }
 
 void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
@@ -2255,7 +2264,7 @@ void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
         BindMesh(mesh);
 
     for (const auto& item : assembly.GetOtherPhysicsItems()) {
-        BindVisualShapesMutable(item, DeformableType::OTHER);
+        BindVisualShapesMutable(item, ObjectType::OTHER);
         BindPointPoint(item);
         if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
             BindParticleCloud(pcloud);
@@ -2281,6 +2290,9 @@ void ChVisualSystemVSG::BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj,
 
     // Populate the group with shapes in the visual model
     PopulateVisualShapesFixed(vis_shapes_group, vis_model);
+
+    if (vis_shapes_group->children.empty())
+        return;
 
     // Create transform and initialize with current frame
     auto vis_model_transform = vsg::MatrixTransform::create();
@@ -2368,81 +2380,59 @@ void ChVisualSystemVSG::BindCollisionShapesFixed(const std::shared_ptr<ChContact
     m_collisionScene->addChild(mask, coll_model_group);
 }
 
-void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj, DeformableType type) {
+void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj,
+                                                ObjectType type) {
     const auto& vis_model = obj->GetVisualModel();
-    const auto& vis_frame = obj->GetVisualModelFrame();
 
     if (!vis_model)
         return;
 
-    for (auto& shape_instance : vis_model->GetShapeInstances()) {
-        auto& shape = shape_instance.shape;
+    auto vis_model_group = vsg::Group::create();
 
-        if (!shape->IsMutable())
-            continue;
+    // Create a group to hold the shapes with their subtransforms
+    auto vis_shapes_group = vsg::Group::create();
 
-        const auto& X_SM = shape_instance.frame;
-        bool wireframe = shape_instance.wireframe;
+    // Populate the group with shapes in the visual model
+    PopulateVisualShapesMutable(vis_shapes_group, vis_model);
 
-        //// RADU TODO: process glyphs
-        ////            for now, only treat the trimeshes in the visual model
-        auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
-        if (!trimesh)
-            continue;
+    if (vis_shapes_group->children.empty())
+        return;
 
-        if (trimesh->GetMesh()->GetNumVertices() == 0)
-            continue;
+    const auto& vis_frame = obj->GetVisualModelFrame();
 
-        DeformableMesh def_mesh;
-        def_mesh.trimesh = trimesh->GetMesh();
+    // Create transform and initialize with current frame
+    auto vis_model_transform = vsg::MatrixTransform::create();
+    vis_model_transform->matrix = vsg::dmat4CH(vis_frame, 1.0);
+    // Enable frustum culling means we're not wasting rendering resources on things out of frame
+    vis_model_transform->subgraphRequiresLocalFrustum = true;
 
-        auto transform = vsg::MatrixTransform::create();
-        transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
-        auto child = (trimesh->GetNumMaterials() > 0)
-                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
-                                                                    trimesh->GetMaterials(), trimesh->IsWireframe())
-                         : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
-                                                                 trimesh->IsWireframe());
-        child->setValue("Type", type);
-        child->setValue("Tag", obj->GetTag());
-        vsg::Mask mask;
-        switch (type) {
-            case DeformableType::FEA:
-                mask = m_show_fea_meshes;
-                break;
-            default:
-                mask = true;
-                break;
-        }
-        m_deformableScene->addChild(mask, child);
-
-        def_mesh.mesh_soup = true;
-
-        def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->GetNumTriangles());
-        def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
-        def_mesh.dynamic_vertices = true;
-
-        if (!trimesh->IsWireframe()) {
-            def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
-            assert(def_mesh.normals->size() == def_mesh.vertices->size());
-            def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
-            def_mesh.dynamic_normals = true;
-        } else {
-            def_mesh.dynamic_normals = false;
-        }
-
-        if (trimesh->GetNumMaterials() == 0) {
-            def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
-            assert(def_mesh.colors->size() == def_mesh.vertices->size());
-            def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
-            def_mesh.dynamic_colors = true;
-        } else {
-            def_mesh.dynamic_colors = false;
-        }
-
-        m_def_meshes.push_back(def_mesh);
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(vis_model_group);
+        m_options->sharedObjects->share(vis_model_transform);
     }
+    vis_model_transform->addChild(vis_shapes_group);
+    vis_model_group->addChild(vis_model_transform);
+
+    vis_model_group->setValue("Object", obj);
+    vis_model_group->setValue("Type", type);
+    vis_model_group->setValue("Tag", obj->GetTag());
+    vis_model_group->setValue("Transform", vis_model_transform);
+
+    // Add the group to the global holder
+    vsg::Mask mask;
+    switch (type) {
+        case ObjectType::BODY:
+            mask = m_show_body_objs;
+            break;
+        case ObjectType::FEA:
+            mask = m_show_fea_meshes;
+            break;
+        default:
+        case ObjectType::OTHER:
+            mask = true;
+            break;
+    }
+    m_deformableScene->addChild(mask, vis_model_group);
 }
 
 // Utility function for creating a frame with its X axis defined by 2 points.
@@ -2773,9 +2763,6 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
                                                                    wireframe);
             group->addChild(grp);
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-            if (model_file->IsMutable())  // already treated as deformable meshes
-                continue;
-
             const auto& filename = model_file->GetFilename();
             const auto& scale = model_file->GetScale();
 
@@ -2827,7 +2814,68 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             group->addChild(grp);
         }
 
-    }  // end loop over visual shapes
+    }
+}
+
+void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> group,
+                                                    std::shared_ptr<ChVisualModel> model) {
+    for (auto& shape_instance : model->GetShapeInstances()) {
+        auto& shape = shape_instance.shape;
+
+        if (!shape->IsMutable())
+            continue;
+
+        const auto& X_SM = shape_instance.frame;
+
+        //// RADU TODO: process glyphs
+        //// For now, only treat the trimeshes in the visual model
+
+        auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
+        if (!trimesh)
+            continue;
+
+        if (trimesh->GetMesh()->GetNumVertices() == 0)
+            continue;
+
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
+        auto child = trimesh->GetNumMaterials() > 0
+                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
+                                                                    trimesh->GetMaterials(), trimesh->IsWireframe())
+                         : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
+                                                                 trimesh->IsWireframe());
+
+        group->addChild(child);
+
+        DeformableMesh def_mesh;
+        def_mesh.trimesh = trimesh->GetMesh();
+        def_mesh.mesh_soup = true;
+
+        def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
+        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->GetNumTriangles());
+        def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+        def_mesh.dynamic_vertices = true;
+
+        if (!trimesh->IsWireframe()) {
+            def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
+            assert(def_mesh.normals->size() == def_mesh.vertices->size());
+            def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
+            def_mesh.dynamic_normals = true;
+        } else {
+            def_mesh.dynamic_normals = false;
+        }
+
+        if (trimesh->GetNumMaterials() == 0) {
+            def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
+            assert(def_mesh.colors->size() == def_mesh.vertices->size());
+            def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+            def_mesh.dynamic_colors = true;
+        } else {
+            def_mesh.dynamic_colors = false;
+        }
+
+        m_def_meshes.push_back(def_mesh);
+    }
 }
 
 void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> group,
@@ -2963,6 +3011,21 @@ void ChVisualSystemVSG::Update() {
     for (const auto& child : m_objScene->children) {
         std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child.node->getValue("Object", obj))
+            continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
+        transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), 1.0);
+    }
+
+    for (const auto& child : m_deformableScene->children) {
+        ObjectType type;
+        std::shared_ptr<ChObj> obj;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child.node->getValue("Type", type))
+            continue;
+        if (type != ObjectType::BODY && type != ObjectType::LINK)
+            continue;
         if (!child.node->getValue("Object", obj))
             continue;
         if (!child.node->getValue("Transform", transform))

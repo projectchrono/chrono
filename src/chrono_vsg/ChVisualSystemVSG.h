@@ -457,9 +457,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<std::shared_ptr<ChVisualSystemVSGPlugin>> m_plugins;
 
   private:
-    enum class ObjectType { BODY, LINK, OTHER };
+    enum class ObjectType { BODY, LINK, FEA, OTHER };
     enum class PointPointType { SPRING, SEGMENT };
-    enum class DeformableType { FEA, OTHER };
 
     /// Custom contact reporter to create contact normals and forces VSG nodes.
     class CreateContactsVSG : public ChContactContainer::ReportContactCallback {
@@ -536,7 +535,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj, ObjectType type);
 
     /// Bind mutable shapes (deformable meshes) in the visual model associated with the given Chrono object.
-    void BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj, DeformableType type);
+    void BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj, ObjectType type);
 
     /// Bind the non-mutable shapes in the collision model associated with the given contactable.
     void BindCollisionShapesFixed(const std::shared_ptr<ChContactable>& obj, int tag);
@@ -564,6 +563,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Populate a VSG group with non-mutable visualization shapes (from the given visual model).
     void PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
+
+    /// Populate a VSG group with mutable visualization shapes (from the given visual model).
+    void PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
 
     /// Populate a VSG group with non-mutable collision shapes (from the given collision model).
     /// The VSG shapes are always rendered wireframe.
