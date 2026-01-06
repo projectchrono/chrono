@@ -802,12 +802,18 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     : m_show_logo(true),
       m_logo_pos({10, 10}),
       m_logo_height(64),
+      m_logo_filename(GetChronoDataFile("logo_chrono_alpha.png")),
+      //
       m_yup(false),
-      m_use_skybox(false),
-      m_use_shadows(false),
-      m_use_fullscreen(false),
+      m_camera_up_vector(vsg::dvec3(0, 0, 1)),
       m_camera_trackball(true),
       m_capture_image(false),
+      //
+      m_use_skybox(false),
+      m_skybox_path("vsg/textures/vsg_skybox.ktx"),
+      //
+      m_use_shadows(false),
+      m_use_fullscreen(false),
       //
       m_show_gui(true),
       m_show_base_gui(true),
@@ -821,14 +827,11 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_collision(false),
       m_collision_color(ChColor(0.9f, 0.4f, 0.2f)),
       m_collision_color_changed(false),
-      //
       m_max_num_contacts(200),
-      //
       m_show_contact_normals(false),
       m_contact_normals_color(ChColor(0.16f, 0.96f, 0.23f)),
       m_contact_normals_color_changed(false),
       m_contact_normals_scale(1),
-      //
       m_show_contact_forces(false),
       m_contact_forces_color(ChColor(0.94f, 0.96f, 0.16f)),
       m_contact_forces_color_changed(false),
@@ -848,6 +851,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_com_symbols_empty(false),
       //
       m_label_size(0.2),
+      m_label_font_path("vsg/fonts/OpenSans-Bold.vsgb"),
       m_show_body_labels(false),
       m_show_link_labels(false),
       m_body_labels_color(ChColor(0.8f, 0.1f, 0.1f)),
@@ -863,14 +867,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_fps(0),
       m_target_render_fps(0),
       m_last_render_time(0) {
-    m_windowTitle = std::string("Window Title");
-    ////m_skyboxPath = std::string("vsg/textures/chrono_skybox.ktx2");
-    m_skyboxPath = std::string("vsg/textures/vsg_skybox.ktx");
-    m_labelFontPath = std::string("vsg/fonts/OpenSans-Bold.vsgb");
-    m_cameraUpVector = vsg::dvec3(0, 0, 1);
-
-    m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
-
     // creation here allows to set entries before initialize
     m_pointpointScene = vsg::Switch::create();
     m_particleScene = vsg::Switch::create();
@@ -1034,13 +1030,13 @@ void ChVisualSystemVSG::Quit() {
     m_viewer->close();
 }
 
-void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
+void ChVisualSystemVSG::SetGuiFontSize(float size) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
                   << std::endl;
         return;
     }
-    m_guiFontSize = theSize;
+    m_gui_font_size = size;
 }
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
@@ -1048,8 +1044,8 @@ void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
         std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << std::endl;
         return;
     }
-    m_windowWidth = size[0];
-    m_windowHeight = size[1];
+    m_windows_width = size[0];
+    m_windows_height = size[1];
 }
 
 void ChVisualSystemVSG::SetWindowSize(int width, int height) {
@@ -1057,8 +1053,8 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
         std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << std::endl;
         return;
     }
-    m_windowWidth = width;
-    m_windowHeight = height;
+    m_windows_width = width;
+    m_windows_height = height;
 }
 
 void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
@@ -1067,8 +1063,8 @@ void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
                   << std::endl;
         return;
     }
-    m_windowX = pos[0];
-    m_windowY = pos[1];
+    m_windows_x = pos[0];
+    m_windows_y = pos[1];
 }
 
 void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
@@ -1077,8 +1073,8 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
                   << std::endl;
         return;
     }
-    m_windowX = from_left;
-    m_windowY = from_top;
+    m_windows_x = from_left;
+    m_windows_y = from_top;
 }
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
@@ -1087,7 +1083,7 @@ void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
                   << std::endl;
         return;
     }
-    m_windowTitle = title;
+    m_windows_title = title;
 }
 
 void ChVisualSystemVSG::EnableSkyBox(bool val) {
@@ -1099,7 +1095,7 @@ void ChVisualSystemVSG::EnableSkyBox(bool val) {
 }
 
 void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename) {
-    m_skyboxPath = filename;
+    m_skybox_path = filename;
 }
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
@@ -1171,18 +1167,18 @@ void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
     }
     switch (upDir) {
         case CameraVerticalDir::Y:
-            m_cameraUpVector = vsg::dvec3(0, 1, 0);
+            m_camera_up_vector = vsg::dvec3(0, 1, 0);
             m_yup = true;
             break;
         case CameraVerticalDir::Z:
-            m_cameraUpVector = vsg::dvec3(0, 0, 1);
+            m_camera_up_vector = vsg::dvec3(0, 0, 1);
             m_yup = false;
             break;
     }
 }
 
 void ChVisualSystemVSG::SetLightIntensity(float intensity) {
-    m_lightIntensity = ChClamp(intensity, 0.0f, 1.0f);
+    m_light_intensity = ChClamp(intensity, 0.0f, 1.0f);
 }
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
@@ -1192,7 +1188,7 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
         return;
     }
     m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
-    m_elevation = ChClamp(elevation, 0.0, CH_PI_2);
+    m_elevation = ChClamp(elevation, -CH_PI_2, CH_PI_2);
 }
 
 void ChVisualSystemVSG::Initialize() {
@@ -1207,11 +1203,11 @@ void ChVisualSystemVSG::Initialize() {
     builder->options = m_options;
 
     auto windowTraits = vsg::WindowTraits::create();
-    windowTraits->windowTitle = m_windowTitle;
-    windowTraits->width = m_windowWidth;
-    windowTraits->height = m_windowHeight;
-    windowTraits->x = m_windowX;
-    windowTraits->y = m_windowY;
+    windowTraits->windowTitle = m_windows_title;
+    windowTraits->width = m_windows_width;
+    windowTraits->height = m_windows_height;
+    windowTraits->x = m_windows_x;
+    windowTraits->y = m_windows_y;
     windowTraits->debugLayer = false;
     windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME,
                                           VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
@@ -1223,9 +1219,9 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->fullscreen = m_use_fullscreen;
     windowTraits->screenNum = m_screen_num;
 
-    m_labelFont = vsg::read_cast<vsg::Font>(m_labelFontPath, m_options);
-    if (!m_labelFont) {
-        std::cout << "Failed to read font : " << m_labelFontPath << std::endl;
+    m_label_font = vsg::read_cast<vsg::Font>(m_label_font_path, m_options);
+    if (!m_label_font) {
+        std::cout << "Failed to read font : " << m_label_font_path << std::endl;
         return;
     }
 
@@ -1235,7 +1231,7 @@ void ChVisualSystemVSG::Initialize() {
     vsg::dbox bound;
 
     if (m_use_skybox) {
-        vsg::Path fileName(m_skyboxPath);
+        vsg::Path fileName(m_skybox_path);
         auto skyPtr = createSkybox(fileName, m_options, m_yup);
         if (skyPtr)
             m_scene->addChild(skyPtr);
@@ -1246,17 +1242,17 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0f, 1.0f, 1.0f);
-    ambientLight->intensity = 0.1f * m_lightIntensity;  // before sRGB
+    ambientLight->intensity = 0.1f * m_light_intensity;  // before sRGB
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
-    directionalLight->intensity = vsg::linear_to_sRGB(m_lightIntensity);
+    directionalLight->intensity = vsg::linear_to_sRGB(m_light_intensity);
     if (m_use_shadows) {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity = 0.8f * m_lightIntensity;  // try to avoid saturation due to additional lights
+        directionalLight->intensity = 0.8f * m_light_intensity;  // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -1282,7 +1278,7 @@ void ChVisualSystemVSG::Initialize() {
         auto overheadLight = vsg::DirectionalLight::create();
         overheadLight->name = "head light";
         overheadLight->color.set(1.0f, 1.0f, 1.0f);
-        overheadLight->intensity = 0.2f * m_lightIntensity;
+        overheadLight->intensity = 0.2f * m_light_intensity;
         if (m_yup)
             overheadLight->direction.set(-ce * ca, -se, -ce * sa);
         else
@@ -1361,11 +1357,11 @@ void ChVisualSystemVSG::Initialize() {
     m_viewer->addWindow(m_window);
 
     // set up the camera
-    m_lookAt = vsg::LookAt::create(m_vsg_cameraEye, m_vsg_cameraTarget, m_cameraUpVector);
+    m_lookAt = vsg::LookAt::create(m_vsg_cameraEye, m_vsg_cameraTarget, m_camera_up_vector);
 
     double nearFarRatio = 0.001;
     auto perspective = vsg::Perspective::create(
-        m_cameraAngleDeg,
+        m_camera_angle_deg,
         static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
         nearFarRatio * radius, radius * 10.0);
 
@@ -1400,7 +1396,7 @@ void ChVisualSystemVSG::Initialize() {
             // read the font via ImGui, which will then be current when vsgImGui::RenderImGui initializes the rest of
             // ImGui/Vulkan below
             ImGuiIO& io = ImGui::GetIO();
-            auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_guiFontSize);
+            auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_gui_font_size);
             if (!imguiFont) {
                 std::cout << "Failed to load font: " << c_fontFile << std::endl;
                 return;
@@ -2037,7 +2033,7 @@ void ChVisualSystemVSG::SetLinkLabelsScale(double length) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemVSG::WriteImageToFile(const std::string& filename) {
-    m_imageFilename = filename;
+    m_image_filename = filename;
     m_capture_image = true;
 }
 
@@ -2133,7 +2129,7 @@ void ChVisualSystemVSG::BindLabels() {
         layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
         layout->color = vsg::vec4CH(m_body_labels_color, 1.0f);
         dynamic_text->text = text;
-        dynamic_text->font = m_labelFont;
+        dynamic_text->font = m_label_font;
         dynamic_text->layout = layout;
         dynamic_text->setup(0, m_options);
 
@@ -2154,7 +2150,7 @@ void ChVisualSystemVSG::BindLabels() {
         layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
         layout->color = vsg::vec4CH(m_link_labels_color, 1.0f);
         dynamic_text->text = text;
-        dynamic_text->font = m_labelFont;
+        dynamic_text->font = m_label_font;
         dynamic_text->layout = layout;
         dynamic_text->setup(0, m_options);
 
@@ -2338,8 +2334,7 @@ void ChVisualSystemVSG::BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj,
     m_visFixedScene->addChild(mask, vis_model_group);
 }
 
-void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj,
-                                                ObjectType type) {
+void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj, ObjectType type) {
     const auto& vis_model = obj->GetVisualModel();
 
     if (!vis_model)
@@ -2874,7 +2869,6 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
                                                              wireframe);
             group->addChild(grp);
         }
-
     }
 }
 
@@ -3012,7 +3006,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
 }
 
 void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> group,
-                                                    std::shared_ptr<ChCollisionModel> model) {
+                                                      std::shared_ptr<ChCollisionModel> model) {
     // Default visualization material for collision shapes
     auto material = chrono_types::make_shared<ChVisualMaterial>();
     material->SetDiffuseColor(m_collision_color);
@@ -3055,7 +3049,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> g
         assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->GetNumTriangles());
         def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_vertices = true;
-        
+
         def_mesh.dynamic_normals = false;
         def_mesh.dynamic_colors = false;
 
@@ -3663,8 +3657,8 @@ void ChVisualSystemVSG::ExportScreenImage() {
         }
     }
 
-    if (!vsg::write(imageData, m_imageFilename, m_options)) {
-        std::cout << "Failed to write color buffer to " << m_imageFilename << std::endl;
+    if (!vsg::write(imageData, m_image_filename, m_options)) {
+        std::cout << "Failed to write color buffer to " << m_image_filename << std::endl;
     }
 }
 
