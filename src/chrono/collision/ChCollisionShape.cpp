@@ -44,7 +44,7 @@ class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
     CH_ENUM_MAPPER_END(Type);
 };
 
-ChCollisionShape::ChCollisionShape(Type type) : m_type(type), m_material(nullptr) {}
+ChCollisionShape::ChCollisionShape(Type type) : m_type(type), m_material(nullptr), is_mutable(false) {}
 
 ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChContactMaterial> material)
     : m_type(type), m_material(material) {}
@@ -54,6 +54,7 @@ void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out.VersionWrite<ChCollisionShape>();
     // serialize all member data:
     archive_out << CHNVP(m_material);
+    archive_out << CHNVP(is_mutable);
 
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
@@ -65,6 +66,7 @@ void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
     /*int version =*/archive_in.VersionRead<ChCollisionShape>();
     // stream in all member data:
     archive_in >> CHNVP(m_material);
+    archive_in >> CHNVP(is_mutable);
 
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();

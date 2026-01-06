@@ -107,7 +107,8 @@ ChBodyGeometry::ConeShape::ConeShape(const ChVector3d& pos, const ChQuaternion<>
 ChBodyGeometry::LineShape::LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line)
     : pos(pos), rot(rot), line(line) {}
 
-ChBodyGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, int matID) : matID(matID) {
+ChBodyGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, int matID)
+    : matID(matID), is_mutable(false) {
     ChTriangleMeshConnected mesh;
     utils::LoadConvexHulls(filename, mesh, hulls);
 }
@@ -363,6 +364,7 @@ void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
         assert(cmaterials[hulls_group.matID]);
         for (const auto& hull : hulls_group.hulls) {
             auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(cmaterials[hulls_group.matID], hull);
+            shape->SetMutable(hulls_group.is_mutable);
             body->AddCollisionShape(shape);
         }
     }
@@ -370,6 +372,7 @@ void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
         assert(cmaterials[mesh.matID]);
         auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterials[mesh.matID], mesh.trimesh,
                                                                              false, false, mesh.radius);
+        shape->SetMutable(mesh.is_mutable);
         body->AddCollisionShape(shape);
     }
 

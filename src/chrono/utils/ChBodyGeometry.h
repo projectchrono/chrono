@@ -167,6 +167,7 @@ class ChApi ChBodyGeometry {
         ConvexHullsShape(const std::string& filename, int matID = -1);
         std::vector<std::vector<ChVector3d>> hulls;  ///< convex hulls in group
         int matID;                                   ///< index in contact material list
+        bool is_mutable;                             ///< true if hull is deformable
     };
 
     /// Create visualization assets for the specified body.
