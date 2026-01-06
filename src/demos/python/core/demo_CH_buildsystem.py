@@ -19,6 +19,8 @@ import pychrono as chrono
 
 # Create a physical system,
 my_system = chrono.ChSystemNSC()
+my_system.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+
 
 # Create a contact material, shared by all collision shapes
 material = chrono.ChContactMaterialNSC()
