@@ -26,6 +26,7 @@
 
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChCone.h"
 #include "chrono/geometry/ChCylinder.h"
 #include "chrono/geometry/ChLine.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
