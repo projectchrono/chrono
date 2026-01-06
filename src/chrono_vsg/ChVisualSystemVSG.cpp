@@ -872,11 +872,12 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
 
     // creation here allows to set entries before initialize
-    m_objScene = vsg::Switch::create();
     m_pointpointScene = vsg::Switch::create();
-    m_deformableScene = vsg::Switch::create();
     m_particleScene = vsg::Switch::create();
-    m_collisionScene = vsg::Switch::create();
+    m_visFixedScene = vsg::Switch::create();
+    m_visMutableScene = vsg::Switch::create();
+    m_collFixedScene = vsg::Switch::create();
+    m_collMutableScene = vsg::Switch::create();
     m_contactNormalsScene = vsg::Switch::create();
     m_contactForcesScene = vsg::Switch::create();
     m_absFrameScene = vsg::Switch::create();
@@ -1290,11 +1291,12 @@ void ChVisualSystemVSG::Initialize() {
         absoluteTransform->addChild(overheadLight);
         m_scene->addChild(absoluteTransform);
     }
-    m_scene->addChild(m_objScene);
     m_scene->addChild(m_pointpointScene);
     m_scene->addChild(m_particleScene);
-    m_scene->addChild(m_deformableScene);
-    m_scene->addChild(m_collisionScene);
+    m_scene->addChild(m_visFixedScene);
+    m_scene->addChild(m_visMutableScene);
+    m_scene->addChild(m_collFixedScene);
+    m_scene->addChild(m_collMutableScene);
     m_scene->addChild(m_contactNormalsScene);
     m_scene->addChild(m_contactForcesScene);
     m_scene->addChild(m_absFrameScene);
@@ -1751,7 +1753,7 @@ void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
     if (!m_initialized)
         return;
 
-    for (auto& child : m_objScene->children) {
+    for (auto& child : m_visFixedScene->children) {
         ObjectType type;
         int c_tag;
         child.node->getValue("Type", type);
@@ -1760,7 +1762,7 @@ void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
             child.mask = vis;
     }
 
-    for (auto& child : m_deformableScene->children) {
+    for (auto& child : m_visMutableScene->children) {
         ObjectType type;
         int c_tag;
         child.node->getValue("Type", type);
@@ -1774,7 +1776,7 @@ void ChVisualSystemVSG::SetLinkObjVisibility(bool vis, int tag) {
     if (!m_initialized)
         return;
 
-    for (auto& child : m_objScene->children) {
+    for (auto& child : m_visFixedScene->children) {
         ObjectType type;
         int c_tag;
         child.node->getValue("Type", type);
@@ -1788,7 +1790,7 @@ void ChVisualSystemVSG::SetFeaMeshVisibility(bool vis, int tag) {
     if (!m_initialized)
         return;
 
-    for (auto& child : m_deformableScene->children) {
+    for (auto& child : m_visMutableScene->children) {
         ObjectType type;
         int c_tag;
         child.node->getValue("Type", type);
@@ -1867,7 +1869,14 @@ void ChVisualSystemVSG::SetCollisionVisibility(bool vis, int tag) {
     if (!m_initialized)
         return;
 
-    for (auto& child : m_collisionScene->children) {
+    for (auto& child : m_collFixedScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if (c_tag == tag || tag == -1)
+            child.mask = vis;
+    }
+
+    for (auto& child : m_collMutableScene->children) {
         int c_tag;
         child.node->getValue("Tag", c_tag);
         if (c_tag == tag || tag == -1)
@@ -2237,9 +2246,10 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
         BindReferenceFrame(body);
         BindCOMFrame(body);
     }
-    BindVisualShapesMutable(body, ObjectType::BODY);  // bind any mutable meshes associated with the body
-    BindVisualShapesFixed(body, ObjectType::BODY);    // bind all other shapes in the body visual model
-    BindCollisionShapesFixed(body, body->GetTag());   // bind body collision shapes
+    BindVisualShapesMutable(body, ObjectType::BODY);   // bind any mutable visual meshes in the body visual model
+    BindVisualShapesFixed(body, ObjectType::BODY);     // bind all other visual shapes in the body visual model
+    BindCollisionShapesMutable(body, body->GetTag());  // bind any mutable collision meshes in the body collision model
+    BindCollisionShapesFixed(body, body->GetTag());    // bind all other collision shapes in the body collision model
 }
 
 void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
@@ -2288,7 +2298,7 @@ void ChVisualSystemVSG::BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj,
     // Create a group to hold the shapes with their subtransforms
     auto vis_shapes_group = vsg::Group::create();
 
-    // Populate the group with shapes in the visual model
+    // Populate the group with fixed shapes in the visual model
     PopulateVisualShapesFixed(vis_shapes_group, vis_model);
 
     if (vis_shapes_group->children.empty())
@@ -2325,59 +2335,7 @@ void ChVisualSystemVSG::BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj,
             mask = true;
             break;
     }
-    m_objScene->addChild(mask, vis_model_group);
-}
-
-void ChVisualSystemVSG::BindCollisionShapesFixed(const std::shared_ptr<ChContactable>& obj, int tag) {
-    const auto& coll_model = obj->GetCollisionModel();
-    const auto& coll_frame = obj->GetCollisionModelFrame();
-
-    if (!coll_model)
-        return;
-
-    if (coll_model->GetShapeInstances().empty())
-        return;
-
-    // Important for update: keep the correct scenegraph hierarchy
-    //     modelGroup->model_transform->shapes_group
-
-    // Create a group to hold this visual model
-    auto coll_model_group = vsg::Group::create();
-
-    // Create a group to hold the shapes with their subtransforms
-    auto coll_shapes_group = vsg::Group::create();
-
-    // Populate the group with shapes in the visual model
-    PopulateCollisionShapeFixed(coll_shapes_group, coll_model);
-
-    if (coll_shapes_group->children.size() == 0)
-        return;
-
-    // Attach a transform to the group and initialize it with the body current position
-    auto vis_model_transform = vsg::MatrixTransform::create();
-    vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum =
-        true;  // Enable frustum culling to reduce recordAndSubmit overhead
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(coll_model_group);
-        m_options->sharedObjects->share(vis_model_transform);
-    }
-    vis_model_transform->addChild(coll_shapes_group);
-    coll_model_group->addChild(vis_model_transform);
-
-    // Set group properties
-    coll_model_group->setValue("Object", obj);
-    coll_model_group->setValue("Tag", tag);
-    coll_model_group->setValue("Transform", vis_model_transform);
-
-    // Find colors array in current collision model group and set them to dynamic.
-    auto colors = vsg::visit<FindVec4BufferData<3>>(coll_model_group).getBufferData();
-    colors->properties.dataVariance = vsg::DYNAMIC_DATA;
-    m_collision_colors.push_back(colors);
-
-    // Add the group to the global holder
-    vsg::Mask mask = m_show_collision;
-    m_collisionScene->addChild(mask, coll_model_group);
+    m_visFixedScene->addChild(mask, vis_model_group);
 }
 
 void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& obj,
@@ -2392,7 +2350,7 @@ void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& ob
     // Create a group to hold the shapes with their subtransforms
     auto vis_shapes_group = vsg::Group::create();
 
-    // Populate the group with shapes in the visual model
+    // Populate the group with mutable shapes in the visual model
     PopulateVisualShapesMutable(vis_shapes_group, vis_model);
 
     if (vis_shapes_group->children.empty())
@@ -2432,7 +2390,111 @@ void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& ob
             mask = true;
             break;
     }
-    m_deformableScene->addChild(mask, vis_model_group);
+    m_visMutableScene->addChild(mask, vis_model_group);
+}
+
+void ChVisualSystemVSG::BindCollisionShapesFixed(const std::shared_ptr<ChContactable>& obj, int tag) {
+    const auto& coll_model = obj->GetCollisionModel();
+    const auto& coll_frame = obj->GetCollisionModelFrame();
+
+    if (!coll_model)
+        return;
+
+    if (coll_model->GetShapeInstances().empty())
+        return;
+
+    // Important for update: keep the correct scenegraph hierarchy
+    //     modelGroup->model_transform->shapes_group
+
+    // Create a group to hold this collision model
+    auto coll_model_group = vsg::Group::create();
+
+    // Create a group to hold the shapes with their subtransforms
+    auto coll_shapes_group = vsg::Group::create();
+
+    // Populate the group with fixed shapes in the collision model
+    PopulateCollisionShapeFixed(coll_shapes_group, coll_model);
+
+    if (coll_shapes_group->children.size() == 0)
+        return;
+
+    // Attach a transform to the group and initialize it with the body current position
+    auto vis_model_transform = vsg::MatrixTransform::create();
+    vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
+    vis_model_transform->subgraphRequiresLocalFrustum =
+        true;  // Enable frustum culling to reduce recordAndSubmit overhead
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(coll_model_group);
+        m_options->sharedObjects->share(vis_model_transform);
+    }
+    vis_model_transform->addChild(coll_shapes_group);
+    coll_model_group->addChild(vis_model_transform);
+
+    // Set group properties
+    coll_model_group->setValue("Object", obj);
+    coll_model_group->setValue("Tag", tag);
+    coll_model_group->setValue("Transform", vis_model_transform);
+
+    // Find colors array in current collision model group and set them to dynamic.
+    auto colors = vsg::visit<FindVec4BufferData<3>>(coll_model_group).getBufferData();
+    colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+    m_collision_colors.push_back(colors);
+
+    // Add the group to the global holder
+    vsg::Mask mask = m_show_collision;
+    m_collFixedScene->addChild(mask, coll_model_group);
+}
+
+void ChVisualSystemVSG::BindCollisionShapesMutable(const std::shared_ptr<ChContactable>& obj, int tag) {
+    const auto& coll_model = obj->GetCollisionModel();
+    const auto& coll_frame = obj->GetCollisionModelFrame();
+
+    if (!coll_model)
+        return;
+
+    if (coll_model->GetShapeInstances().empty())
+        return;
+
+    // Important for update: keep the correct scenegraph hierarchy
+    //     modelGroup->model_transform->shapes_group
+
+    // Create a group to hold this colision model
+    auto coll_model_group = vsg::Group::create();
+
+    // Create a group to hold the shapes with their subtransforms
+    auto coll_shapes_group = vsg::Group::create();
+
+    // Populate the group with mutable shapes in the collision model
+    PopulateCollisionShapeMutable(coll_shapes_group, coll_model);
+
+    if (coll_shapes_group->children.size() == 0)
+        return;
+
+    // Attach a transform to the group and initialize it with the body current position
+    auto vis_model_transform = vsg::MatrixTransform::create();
+    vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
+    vis_model_transform->subgraphRequiresLocalFrustum =
+        true;  // Enable frustum culling to reduce recordAndSubmit overhead
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(coll_model_group);
+        m_options->sharedObjects->share(vis_model_transform);
+    }
+    vis_model_transform->addChild(coll_shapes_group);
+    coll_model_group->addChild(vis_model_transform);
+
+    // Set group properties
+    coll_model_group->setValue("Object", obj);
+    coll_model_group->setValue("Tag", tag);
+    coll_model_group->setValue("Transform", vis_model_transform);
+
+    // Find colors array in current collision model group and set them to dynamic.
+    auto colors = vsg::visit<FindVec4BufferData<3>>(coll_model_group).getBufferData();
+    colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+    m_collision_colors.push_back(colors);
+
+    // Add the group to the global holder
+    vsg::Mask mask = m_show_collision;
+    m_collMutableScene->addChild(mask, coll_model_group);
 }
 
 // Utility function for creating a frame with its X axis defined by 2 points.
@@ -2751,9 +2813,8 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, wireframe);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
-            if (trimesh->IsMutable())  // already treated as deformable meshes
+            if (trimesh->IsMutable())  // already treated as deformable mesh
                 continue;
-
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
             auto grp = trimesh->GetNumMaterials() > 0
@@ -2831,10 +2892,10 @@ void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> gro
         //// For now, only treat the trimeshes in the visual model
 
         auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
-        if (!trimesh)
+        if (!trimesh)  //// TODO: glyphs
             continue;
 
-        if (trimesh->GetMesh()->GetNumVertices() == 0)
+        if (trimesh->GetMesh()->GetNumTriangles() == 0)
             continue;
 
         auto transform = vsg::MatrixTransform::create();
@@ -2846,6 +2907,8 @@ void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> gro
                                                                  trimesh->IsWireframe());
 
         group->addChild(child);
+
+        // Load deformable mesh data (for CPU->GPU transfer)
 
         DeformableMesh def_mesh;
         def_mesh.trimesh = trimesh->GetMesh();
@@ -2925,6 +2988,8 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, true);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChCollisionShapeTriangleMesh>(shape)) {
+            if (trimesh->IsMutable())  // already treated as deformable mesh
+                continue;
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
             auto trimesh_connected = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh->GetMesh());
@@ -2933,6 +2998,8 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
             group->addChild(grp);
         } else if (auto hull = std::dynamic_pointer_cast<ChCollisionShapeConvexHull>(shape)) {
+            if (hull->IsMutable())  // already treated as deformable mesh
+                continue;
             auto trimesh_connected = chrono_types::make_shared<ChTriangleMeshConnected>();
             bt_utils::ChConvexHullLibraryWrapper lh;
             lh.ComputeHull(hull->GetPoints(), *trimesh_connected);
@@ -2941,6 +3008,58 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
             group->addChild(grp);
         }
+    }
+}
+
+void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> group,
+                                                    std::shared_ptr<ChCollisionModel> model) {
+    // Default visualization material for collision shapes
+    auto material = chrono_types::make_shared<ChVisualMaterial>();
+    material->SetDiffuseColor(m_collision_color);
+
+    for (const auto& shape_instance : model->GetShapeInstances()) {
+        const auto& shape = shape_instance.shape;
+
+        if (!shape->IsMutable())
+            continue;
+
+        const auto& X_SM = shape_instance.frame;
+
+        //// RADU TODO: process convex hulls and triangle mesh soup
+        //// For now, only treat the trimeshes in the collision model
+
+        auto trimesh = std::dynamic_pointer_cast<ChCollisionShapeTriangleMesh>(shape);
+        if (!trimesh)  //// TODO: ChCollisionShapeConvexHull
+            continue;
+
+        if (trimesh->GetMesh()->GetNumTriangles() == 0)
+            continue;
+
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
+        auto trimesh_connected = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh->GetMesh());
+        if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
+            continue;
+
+        auto child = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
+        group->addChild(child);
+
+        // Load deformable mesh data (for CPU->GPU transfer)
+        // No need to transfer normals (always wireframe) nor colors (no false-coloring)
+
+        DeformableMesh def_mesh;
+        def_mesh.trimesh = trimesh_connected;
+        def_mesh.mesh_soup = true;
+
+        def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
+        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->GetNumTriangles());
+        def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+        def_mesh.dynamic_vertices = true;
+        
+        def_mesh.dynamic_normals = false;
+        def_mesh.dynamic_colors = false;
+
+        m_def_meshes.push_back(def_mesh);
     }
 }
 
@@ -3008,7 +3127,7 @@ void ChVisualSystemVSG::Update() {
     }
 
     // Update all VSG nodes with object visualization assets
-    for (const auto& child : m_objScene->children) {
+    for (const auto& child : m_visFixedScene->children) {
         std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
         if (!child.node->getValue("Object", obj))
@@ -3018,7 +3137,7 @@ void ChVisualSystemVSG::Update() {
         transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), 1.0);
     }
 
-    for (const auto& child : m_deformableScene->children) {
+    for (const auto& child : m_visMutableScene->children) {
         ObjectType type;
         std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -3055,7 +3174,17 @@ void ChVisualSystemVSG::Update() {
     }
 
     // Update all VSG nodes with collision visualization
-    for (const auto& child : m_collisionScene->children) {
+    for (const auto& child : m_collFixedScene->children) {
+        std::shared_ptr<ChContactable> obj;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child.node->getValue("Object", obj))
+            continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
+        transform->matrix = vsg::dmat4CH(obj->GetCollisionModelFrame(), 1.0);
+    }
+
+    for (const auto& child : m_collMutableScene->children) {
         std::shared_ptr<ChContactable> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
         if (!child.node->getValue("Object", obj))
@@ -3066,7 +3195,6 @@ void ChVisualSystemVSG::Update() {
     }
 
     // Update all VSG nodes with contact visualization
-
     if (m_show_contact_normals || m_show_contact_forces) {
         // Reset contact drawer
         m_contact_creator->Reset();

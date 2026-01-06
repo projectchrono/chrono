@@ -412,11 +412,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_camera_trackball;  ///< create a camera trackball control?
 
     vsg::ref_ptr<vsg::Group> m_scene;
-    vsg::ref_ptr<vsg::Switch> m_objScene;
     vsg::ref_ptr<vsg::Switch> m_pointpointScene;
-    vsg::ref_ptr<vsg::Switch> m_deformableScene;
     vsg::ref_ptr<vsg::Switch> m_particleScene;
-    vsg::ref_ptr<vsg::Switch> m_collisionScene;
+    vsg::ref_ptr<vsg::Switch> m_visFixedScene;
+    vsg::ref_ptr<vsg::Switch> m_visMutableScene;
+    vsg::ref_ptr<vsg::Switch> m_collFixedScene;
+    vsg::ref_ptr<vsg::Switch> m_collMutableScene;
     vsg::ref_ptr<vsg::Switch> m_contactNormalsScene;
     vsg::ref_ptr<vsg::Switch> m_contactForcesScene;
     vsg::ref_ptr<vsg::Switch> m_absFrameScene;
@@ -540,6 +541,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the non-mutable shapes in the collision model associated with the given contactable.
     void BindCollisionShapesFixed(const std::shared_ptr<ChContactable>& obj, int tag);
 
+    /// Bind the mutable shapes in the collision model associated with the given contactable.
+    void BindCollisionShapesMutable(const std::shared_ptr<ChContactable>& obj, int tag);
+
     /// Bind point-point visual assets in the visual model associated with the given Chrono object.
     void BindPointPoint(const std::shared_ptr<ChObj>& item);
 
@@ -570,6 +574,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Populate a VSG group with non-mutable collision shapes (from the given collision model).
     /// The VSG shapes are always rendered wireframe.
     void PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
+
+    /// Populate a VSG group with mutable collision shapes (from the given collision model).
+    /// The VSG shapes are always rendered wireframe.
+    void PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
 
     /// Utility function to collect active body positions from all assemblies in all systems.
     static void CollectActiveBodyCOMPositions(const ChAssembly& assembly, std::vector<ChVector3d>& positions);
