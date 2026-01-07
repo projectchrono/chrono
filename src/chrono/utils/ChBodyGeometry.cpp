@@ -36,11 +36,11 @@ namespace chrono {
 namespace utils {
 
 ChBodyGeometry::ChBodyGeometry()
-    : color_boxes(ChColor(0.75f, 0.75f, 0.75f)),
-      color_spheres(ChColor(0.75f, 0.75f, 0.75f)),
-      color_cylinders(ChColor(0.75f, 0.75f, 0.75f)),
-      color_cones(ChColor(0.75f, 0.75f, 0.75f)),
-      color_meshes(ChColor(0.75f, 0.75f, 0.75f)) {}
+    : color_boxes(ChColor(0.75f, 0.5f, 0.5f)),
+      color_spheres(ChColor(0.5f, 0.75f, 0.5f)),
+      color_cylinders(ChColor(0.5f, 0.5f, 0.75f)),
+      color_cones(ChColor(0.75f, 0.75f, 0.5f)),
+      color_meshes(ChColor(0.5f, 0.75f, 0.75f)) {}
 
 ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& dims, int matID)
     : pos(pos), rot(rot), dims(dims), matID(matID), color({-1, -1, -1}) {}
@@ -189,7 +189,9 @@ std::shared_ptr<ChVisualShape> ChBodyGeometry::AddVisualizationCylinder(std::sha
     return cyl;
 }
 
-void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
+void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
+                                               VisualizationType vis,
+                                               bool create_materials) {
     if (vis == VisualizationType::NONE)
         return;
 
@@ -216,37 +218,45 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
     if (vis == VisualizationType::COLLISION) {
         for (auto& sphere : coll_spheres) {
             auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.radius);
-            if (sphere.color.R < 0 || sphere.color.G < 0 || sphere.color.B < 0)
-                sphere_shape->AddMaterial(sph_mat);
-            else
-                sphere_shape->SetColor(sphere.color);
+            if (create_materials) {
+                if (sphere.color.R < 0 || sphere.color.G < 0 || sphere.color.B < 0)
+                    sphere_shape->AddMaterial(sph_mat);
+                else
+                    sphere_shape->SetColor(sphere.color);
+            }
             body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
         }
 
         for (auto& box : coll_boxes) {
             auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.dims);
-            if (box.color.R < 0 || box.color.G < 0 || box.color.B < 0)
-                box_shape->AddMaterial(box_mat);
-            else
-                box_shape->SetColor(box.color);
+            if (create_materials) {
+                if (box.color.R < 0 || box.color.G < 0 || box.color.B < 0)
+                    box_shape->AddMaterial(box_mat);
+                else
+                    box_shape->SetColor(box.color);
+            }
             body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
         }
 
         for (auto& cyl : coll_cylinders) {
             auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.radius, cyl.length);
-            if (cyl.color.R < 0 || cyl.color.G < 0 || cyl.color.B < 0)
-                cyl_shape->AddMaterial(cyl_mat);
-            else
-                cyl_shape->SetColor(cyl.color);
+            if (create_materials) {
+                if (cyl.color.R < 0 || cyl.color.G < 0 || cyl.color.B < 0)
+                    cyl_shape->AddMaterial(cyl_mat);
+                else
+                    cyl_shape->SetColor(cyl.color);
+            }
             body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
         }
 
         for (auto& cone : coll_cones) {
             auto cone_shape = chrono_types::make_shared<ChVisualShapeCone>(cone.radius, cone.length);
-            if (cone.color.R < 0 || cone.color.G < 0 || cone.color.B < 0)
-                cone_shape->AddMaterial(cone_mat);
-            else
-                cone_shape->SetColor(cone.color);
+            if (create_materials) {
+                if (cone.color.R < 0 || cone.color.G < 0 || cone.color.B < 0)
+                    cone_shape->AddMaterial(cone_mat);
+                else
+                    cone_shape->SetColor(cone.color);
+            }
             body->AddVisualShape(cone_shape, ChFrame<>(cone.pos, cone.rot));
         }
 
@@ -254,10 +264,12 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(mesh.trimesh);
             trimesh_shape->SetMutable(mesh.is_mutable);
-            if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
-                trimesh_shape->AddMaterial(mesh_mat);
-            else
-                trimesh_shape->SetColor(mesh.color);
+            if (create_materials) {
+                if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
+                    trimesh_shape->AddMaterial(mesh_mat);
+                else
+                    trimesh_shape->SetColor(mesh.color);
+            }
             body->AddVisualShape(trimesh_shape, ChFrame<>());
         }
 
@@ -275,37 +287,45 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
     // If no model file specified, default to primitives
     for (auto& sphere : vis_spheres) {
         auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.radius);
-        if (sphere.color.R < 0 || sphere.color.G < 0 || sphere.color.B < 0)
-            sphere_shape->AddMaterial(sph_mat);
-        else
-            sphere_shape->SetColor(sphere.color);
+        if (create_materials) {
+            if (sphere.color.R < 0 || sphere.color.G < 0 || sphere.color.B < 0)
+                sphere_shape->AddMaterial(sph_mat);
+            else
+                sphere_shape->SetColor(sphere.color);
+        }
         body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
     }
 
     for (auto& box : vis_boxes) {
         auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.dims);
-        if (box.color.R < 0 || box.color.G < 0 || box.color.B < 0)
-            box_shape->AddMaterial(box_mat);
-        else
-            box_shape->SetColor(box.color);
+        if (create_materials) {
+            if (box.color.R < 0 || box.color.G < 0 || box.color.B < 0)
+                box_shape->AddMaterial(box_mat);
+            else
+                box_shape->SetColor(box.color);
+        }
         body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
     }
 
     for (auto& cyl : vis_cylinders) {
         auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.radius, cyl.length);
-        if (cyl.color.R < 0 || cyl.color.G < 0 || cyl.color.B < 0)
-            cyl_shape->AddMaterial(cyl_mat);
-        else
-            cyl_shape->SetColor(cyl.color);
+        if (create_materials) {
+            if (cyl.color.R < 0 || cyl.color.G < 0 || cyl.color.B < 0)
+                cyl_shape->AddMaterial(cyl_mat);
+            else
+                cyl_shape->SetColor(cyl.color);
+        }
         body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
     }
 
     for (auto& cone : vis_cones) {
         auto cone_shape = chrono_types::make_shared<ChVisualShapeCone>(cone.radius, cone.length);
-        if (cone.color.R < 0 || cone.color.G < 0 || cone.color.B < 0)
-            cone_shape->AddMaterial(cone_mat);
-        else
-            cone_shape->SetColor(cone.color);
+        if (create_materials) {
+            if (cone.color.R < 0 || cone.color.G < 0 || cone.color.B < 0)
+                cone_shape->AddMaterial(cone_mat);
+            else
+                cone_shape->SetColor(cone.color);
+        }
         body->AddVisualShape(cone_shape, ChFrame<>(cone.pos, cone.rot));
     }
 
@@ -319,10 +339,12 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(mesh.trimesh);
         trimesh_shape->SetMutable(mesh.is_mutable);
-        if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
-            trimesh_shape->AddMaterial(mesh_mat);
-        else
-            trimesh_shape->SetColor(mesh.color);
+        if (create_materials) {
+            if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
+                trimesh_shape->AddMaterial(mesh_mat);
+            else
+                trimesh_shape->SetColor(mesh.color);
+        }
         body->AddVisualShape(trimesh_shape, ChFrame<>());
     }
 
