@@ -98,6 +98,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // ---------------------------------------
     // add set of boxes to be visualized by camera

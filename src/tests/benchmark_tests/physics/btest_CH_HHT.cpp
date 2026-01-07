@@ -137,6 +137,7 @@ void SolveHHT(ChSolver::Type solver_type,
     cout << ChTimestepperImplicit::GetJacobianUpdateMethodAsString(jacobian_update) << endl;
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Set up solver
     switch (solver_type) {

@@ -427,6 +427,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Solver settings
 #ifndef CHRONO_PARDISO_MKL

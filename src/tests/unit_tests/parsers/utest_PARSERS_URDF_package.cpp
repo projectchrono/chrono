@@ -34,6 +34,7 @@ using namespace chrono::parsers;
 
 TEST(ChParserURDF, URDF_package) {
     ChSystemNSC system;
+    system.SetGravityY();
 
     // Create the URDF parser with a file that contains a filename with package://
     const std::string filename = "robot/r2d2/r2d2-package.urdf";
