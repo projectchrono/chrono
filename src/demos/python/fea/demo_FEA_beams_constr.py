@@ -44,6 +44,7 @@ print( "Copyright (c) 2017 projectchrono.org \n")
 
 # Create a Chrono physical system
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 
 L = 1
 H = 0.25

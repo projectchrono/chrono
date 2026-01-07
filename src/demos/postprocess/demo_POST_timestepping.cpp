@@ -758,6 +758,7 @@ void example5(const std::string& out_dir) {
     // that is using the ChBody, ChLinkLockRevolute and ChSystem classes:
 
     ChSystemNSC sys;
+    sys.SetGravityY();
     auto my_body_A = chrono_types::make_shared<ChBody>();
     auto my_body_B = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);

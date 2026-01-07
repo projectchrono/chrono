@@ -29,6 +29,7 @@ def main():
     # Create the system
     # -----------------
     mphysicalSystem = chrono.ChSystemNSC()
+    mphysicalSystem.SetGravityY()
 
     # -----------------------------------
     # add a mesh to be sensed by a camera

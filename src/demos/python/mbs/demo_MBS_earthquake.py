@@ -20,6 +20,7 @@ import pychrono.irrlicht as chronoirr
 #
 
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 

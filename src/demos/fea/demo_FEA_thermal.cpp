@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.

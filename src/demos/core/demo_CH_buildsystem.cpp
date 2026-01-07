@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
 
         // The physical system: it contains all physical objects.
         ChSystemNSC sys;
+        sys.SetGravityY();
 
         // Create a bunch of rigid bodies..
         // Note that we use shared pointers, so you don't

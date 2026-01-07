@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
 
     // Create the system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Add a mesh object to make the scene interesting
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/audi/audi_chassis.obj"),

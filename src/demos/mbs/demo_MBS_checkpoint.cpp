@@ -84,6 +84,8 @@ int main(int argc, char* argv[]) {
     // Construct systems
     ChSystemNSC sys1;
     ChSystemNSC sys2;
+    sys1.SetGravityY();
+    sys2.SetGravityY();
     ConstructModel(sys1, 1);
     ConstructModel(sys2, 2);
 

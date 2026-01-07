@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
+    sys.SetGravityY();
     ChCollisionModel::SetDefaultSuggestedEnvelope(1e-3);
     ChCollisionModel::SetDefaultSuggestedMargin(1e-3);
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);

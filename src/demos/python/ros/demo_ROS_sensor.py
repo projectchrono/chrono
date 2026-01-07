@@ -24,6 +24,7 @@ import pychrono.ros as chros
 def main():
     # Create the system
     sys = ch.ChSystemNSC()
+    sys.SetGravityY()
 
     # Add a mesh object to make the scene interesting
     mmesh = ch.ChTriangleMeshConnected()

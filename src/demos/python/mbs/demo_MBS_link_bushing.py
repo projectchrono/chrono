@@ -19,6 +19,7 @@ print("Example: Simulate a cylinder joined to a cube using a bushing joint and l
 
 # Create chrono system
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 
 # Create a fixed cube to act as the 'bushing' body
 cube = chrono.ChBodyEasyBox(0.5,0.5,0.5,100,True)

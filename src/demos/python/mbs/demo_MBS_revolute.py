@@ -21,10 +21,10 @@ print ("Example: create a sys and visualize it in realtime 3D");
 #  Create the simulation sys and add items
 #
 
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 
 # Create a fixed rigid body
-
 mbody1 = chrono.ChBody()
 mbody1.SetFixed(True)
 mbody1.SetPos( chrono.ChVector3d(0,0,-0.2))
@@ -33,10 +33,7 @@ sys.Add(mbody1)
 mboxasset = chrono.ChVisualShapeBox(0.4, 1.0, 0.2)
 mbody1.AddVisualShape(mboxasset)
 
-
-
 # Create a swinging rigid body
-
 mbody2 = chrono.ChBody()
 mbody2.SetFixed(False)
 sys.Add(mbody2)
@@ -45,9 +42,7 @@ mboxasset = chrono.ChVisualShapeBox(0.4, 1.0, 0.2)
 mboxasset.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 mbody2.AddVisualShape(mboxasset)
 
-
 # Create a revolute constraint
-
 mlink = chrono.ChLinkRevolute()
 
     # the coordinate sys of the constraint reference in abs. space:

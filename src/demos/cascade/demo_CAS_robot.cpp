@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
     // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create a surface material to be used for collisions, if any

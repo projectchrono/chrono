@@ -20,6 +20,7 @@ from OCC.Core import TopoDS
 
 # Create the simulation system and add items
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Load a STEP file, containing a mechanism. The demo STEP file has been

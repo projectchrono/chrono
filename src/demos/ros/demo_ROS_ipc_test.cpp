@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
 
     // Create a simple system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Create test ROS manager with IPC interface
     auto ros_manager = std::make_unique<TestROSManager>("test_ipc_node");

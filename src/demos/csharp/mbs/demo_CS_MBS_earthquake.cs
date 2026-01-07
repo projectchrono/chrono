@@ -122,6 +122,7 @@ namespace ChronoDemo
 
             // Create a Chrono physical system
             ChSystemNSC sys = new ChSystemNSC();
+            sys.SetGravityY();
             sys.SetCollisionSystemType(ChCollisionSystem.Type.BULLET);
 
             // Create a floor that is fixed (that is used also to represent the absolute reference)

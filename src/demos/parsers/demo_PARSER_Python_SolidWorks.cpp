@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Set the collision margins.
     // This is expecially important for very large or very small objects!

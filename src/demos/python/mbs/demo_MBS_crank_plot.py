@@ -23,7 +23,8 @@ print ("Example: create a slider crank and plot results");
 #  Create the simulation sys and add items
 #
 
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 
 # Some data shared in the following
 crank_center = chrono.ChVector3d(-1,0.5,0)

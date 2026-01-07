@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create two meshes
     auto my_mesh = chrono_types::make_shared<ChMesh>();

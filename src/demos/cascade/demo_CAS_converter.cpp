@@ -414,6 +414,7 @@ int main(int argc, char* argv[]) {
     // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // 4- Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

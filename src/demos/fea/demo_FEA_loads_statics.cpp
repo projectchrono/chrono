@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh:
     auto mesh = chrono_types::make_shared<ChMesh>();

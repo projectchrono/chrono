@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 

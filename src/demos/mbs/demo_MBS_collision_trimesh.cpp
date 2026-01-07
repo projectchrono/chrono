@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         sys = chrono_types::make_shared<ChSystemSMC>();
         step = 1e-4;
     }
-
+    sys->SetGravityY();
     sys->SetCollisionSystemType(coll_sys_type);
 
     // -----------------

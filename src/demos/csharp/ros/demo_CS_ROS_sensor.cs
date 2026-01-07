@@ -35,6 +35,7 @@ namespace ChronoDemo
 
             // Create the system
             ChSystemNSC sys = new ChSystemNSC();
+            sys.SetGravityY();
 
             // Add a mesh object to make the scene interesting
             var mmesh = ChTriangleMeshConnected.CreateFromWavefrontFile(

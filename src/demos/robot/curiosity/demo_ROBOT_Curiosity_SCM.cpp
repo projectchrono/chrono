@@ -93,6 +93,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Chrono system and the associated collision system
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the Curiosity rover
