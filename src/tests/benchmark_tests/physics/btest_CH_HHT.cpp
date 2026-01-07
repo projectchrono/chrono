@@ -48,8 +48,8 @@ using std::endl;
 //
 //  Use:
 //    g(u) = u^3
-//    c(t) =   1, if t < t_disc
-//           100, if t >= t_disc
+//    c(t) = c1, if t < t_disc
+//           c2, if t >= t_disc
 //    u0(x) = sin(pi * x)
 //    0 <= x <= 1
 //    t > 0
@@ -60,7 +60,7 @@ using std::endl;
 
 class WaveEquation : public ChExternalDynamicsODE {
   public:
-    WaveEquation(int n, double t_disc) : n(n), t_disc(t_disc), dx(1.0 / (n + 1)) {}
+    WaveEquation(int n, double t_disc) : n(n), t_disc(t_disc), dx(1.0 / (n - 1)), c1(1), c2(100) {}
 
     virtual WaveEquation* Clone() const override { return new WaveEquation(*this); }
 
@@ -81,7 +81,7 @@ class WaveEquation : public ChExternalDynamicsODE {
                               ChVectorDynamic<>& rhs       // output ODE right-hand side vector
                               ) override {
         double oodx2 = 1 / (dx * dx);
-        double c = (time < t_disc) ? 1.0 : 100.0;
+        double c = (time < t_disc) ? c1 : c2;
 
         for (size_t i = 0; i < n; i++) {
             double y2 = y(i) * y(i);
@@ -102,7 +102,7 @@ class WaveEquation : public ChExternalDynamicsODE {
             return false;
 
         double oodx2 = 1 / (dx * dx);
-        double c = (time < t_disc) ? 1.0 : 100.0;
+        double c = (time < t_disc) ? c1 : c2;
 
         // Generate analytical Jacobian
         J.setZero();
@@ -123,6 +123,8 @@ class WaveEquation : public ChExternalDynamicsODE {
     int n;
     double t_disc;
     double dx;
+    double c1;
+    double c2;
 };
 
 // -----------------------------------------------------------------------------
@@ -177,7 +179,7 @@ void SolveHHT(ChSolver::Type solver_type,
     double step = 1e-3;
     double out_fps = 1000;
 
-    int n = 100;
+    int n = 101;
     auto wave = chrono_types::make_shared<WaveEquation>(n, tend / 2);
     wave->Initialize();
     sys.Add(wave);
@@ -229,8 +231,8 @@ void SolveHHT(ChSolver::Type solver_type,
     cout << endl;
 
     std::string out_file =
-        out_dir + "/wave_" + ChTimestepperImplicit::GetJacobianUpdateMethodAsString(jacobian_update) + ".out";
-    csv.WriteToFile(out_file);
+        out_dir + "/wave_" + ChTimestepperImplicit::GetJacobianUpdateMethodAsString(jacobian_update);
+    csv.WriteToFile(out_file + ".out");
 
     return;
 }

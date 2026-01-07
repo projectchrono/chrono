@@ -29,7 +29,7 @@ set(DEMOS
   demo_MBS_custom_contact
 )
 
-# Demoe that require VSG
+# Demos that require VSG
 if(CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_MBS_checkpoint
