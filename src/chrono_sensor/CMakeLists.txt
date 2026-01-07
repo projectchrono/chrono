@@ -30,7 +30,7 @@ mark_as_advanced(CLEAR glfw3_DIR)
 # Check CUDA and OptiX
 #-----------------------------------------------------------------------------
 
-set(CH_USE_SENSOR_OPTIX ON CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features")
+set(CH_USE_SENSOR_OPTIX TRUE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features")
 
 if(CH_USE_SENSOR_OPTIX)
 
@@ -44,11 +44,11 @@ if(CH_USE_SENSOR_OPTIX)
       message(STATUS "  OptiX include directory: ${OptiX_INCLUDE}")
     else()
       message(STATUS "WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
-      set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
+      set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
     endif()
   else()
     message(STATUS "WARNING: CUDA was not found; disabling OptiX-dependent Chrono::Sensor features")
-    set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
+    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
   endif()
 
 endif()
