@@ -404,7 +404,7 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
                                       const unsigned int off_v,  // offset in v state vector
                                       const ChStateDelta& v,     // state vector, speed part
                                       const double T,            // time
-                                      bool full_update           // perform complete update
+                                      UpdateFlag update_flags    // perform complete update?
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetCoordsys(x.segment(off_x + 7 * j, 7));
@@ -412,7 +412,8 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
         particles[j]->SetAngVelLocal(v.segment(off_v + 6 * j + 3, 3));
     }
     SetChTime(T);
-    Update(T, full_update);
+
+    Update(T, update_flags);
 }
 
 void ChParticleCloud::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -688,8 +689,8 @@ ChVector3d ChParticleCloud::GetInertiaXY() const {
     return iner;
 }
 
-void ChParticleCloud::Update(double time, bool update_assets) {
-    ChPhysicsItem::Update(time, update_assets);
+void ChParticleCloud::Update(double time, UpdateFlag update_flags) {
+    ChPhysicsItem::Update(time, update_flags);
 
     // TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.

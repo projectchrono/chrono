@@ -46,9 +46,9 @@ ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed(const ChLinkMotorRotationSpee
 
 ChLinkMotorRotationSpeed::~ChLinkMotorRotationSpeed() {}
 
-void ChLinkMotorRotationSpeed::Update(double time, bool update_assets) {
+void ChLinkMotorRotationSpeed::Update(double time, UpdateFlag update_flags) {
     // Inherit parent class:
-    ChLinkMotorRotation::Update(time, update_assets);
+    ChLinkMotorRotation::Update(time, update_flags);
 
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:
@@ -228,12 +228,12 @@ void ChLinkMotorRotationSpeed::IntStateScatter(const unsigned int off_x,  // off
                                                const unsigned int off_v,  // offset in v state vector
                                                const ChStateDelta& v,     // state vector, speed part
                                                const double T,            // time
-                                               bool full_update           // perform complete update
+                                               UpdateFlag update_flags    // perform complete update?
 ) {
     // aux = x(off_x);
     aux_dt = v(off_v);
 
-    Update(T, full_update);
+    Update(T, update_flags);
 }
 
 void ChLinkMotorRotationSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

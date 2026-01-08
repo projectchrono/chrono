@@ -27,9 +27,9 @@ ChShaftsTorque::ChShaftsTorque(const ChShaftsTorque& other) : ChShaftsCouple(oth
     torque = other.torque;
 }
 
-void ChShaftsTorque::Update(double time, bool update_assets) {
+void ChShaftsTorque::Update(double time, UpdateFlag update_flags) {
     // Inherit time changes of parent class
-    ChShaftsCouple::Update(time, update_assets);
+    ChShaftsCouple::Update(time, update_flags);
 
     // update class data
     torque = ComputeTorque();

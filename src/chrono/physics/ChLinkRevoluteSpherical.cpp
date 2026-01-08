@@ -163,9 +163,9 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
+void ChLinkRevoluteSpherical::Update(double time, UpdateFlag update_flags) {
     // Inherit time changes of parent class (ChLink)
-    ChLink::Update(time, update_assets);
+    ChLink::Update(time, update_flags);
 
     // Express the body locations and direction in absolute frame
     ChVector3d pos1_abs = m_body1->TransformPointLocalToParent(m_pos1);

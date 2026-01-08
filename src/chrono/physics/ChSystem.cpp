@@ -713,12 +713,12 @@ void ChSystem::Setup() {
 // - updates all forces  (automatic, as children of bodies)
 // - updates all markers (automatic, as children of bodies).
 
-void ChSystem::Update(double time, bool update_assets) {
+void ChSystem::Update(double time, UpdateFlag update_flags) {
     ch_time = time;
-    Update(update_assets);
+    Update(update_flags);
 }
 
-void ChSystem::Update(bool update_assets) {
+void ChSystem::Update(UpdateFlag update_flags) {
     CH_PROFILE("Update");
 
     Initialize();
@@ -726,13 +726,13 @@ void ChSystem::Update(bool update_assets) {
     timer_update.start();  // Timer for profiling
 
     // Update underlying assembly (recursively update sub objects bodies, links, etc)
-    assembly.Update(ch_time, update_assets);
+    assembly.Update(ch_time, update_flags);
 
     // Update all contacts, if any
-    contact_container->Update(ch_time, update_assets);
+    contact_container->Update(ch_time, update_flags);
 
     // Update any attached visualization system only when also updating assets
-    if (visual_system && update_assets)
+    if (visual_system && has_flag(update_flags,UpdateFlag::VISUAL_ASSETS))
         visual_system->OnUpdate(this);
 
     timer_update.stop();
@@ -932,20 +932,20 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
 }
 
 // From state Y={x,v} to system.
-void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) {
+void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlag update_flags) {
     unsigned int off_x = 0;
     unsigned int off_v = 0;
 
     // Let each object (bodies, links, etc.) in the assembly extract its own states.
     // Note that each object also performs an update
-    assembly.IntStateScatter(off_x, x, off_v, v, T, full_update);
+    assembly.IntStateScatter(off_x, x, off_v, v, T, update_flags);
 
     // Use also on contact container:
     unsigned int displ_x = off_x - assembly.offset_x;
     unsigned int displ_v = off_v - assembly.offset_w;
     contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,  //
                                        displ_v + contact_container->GetOffset_w(), v,  //
-                                       T, full_update);
+                                       T, update_flags);
 
     ch_time = T;
 }
@@ -1037,14 +1037,14 @@ bool ChSystem::StateSolveCorrection(
     const ChStateDelta& v,        // current state, v part
     const double T,               // current time T
     bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-    bool full_update,             // if true, perform a full update during scatter
+    UpdateFlag update_flags,      // if true, perform a full update during scatter
     bool call_setup,              // if true, call the solver's Setup() function
     bool call_analyze             // if true, call the solver's Setup analyze phase
 ) {
     CH_PROFILE("StateSolveCorrection");
 
     if (force_state_scatter)
-        StateScatter(x, v, T, full_update);
+        StateScatter(x, v, T, update_flags);
 
     // R and Qc vectors  --> solver sparse solver structures  (also sets Dl and Dv to warmstart)
     IntToDescriptor(0, Dv, R, 0, Dl, Qc);
@@ -1432,7 +1432,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
 unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_tol, bool verbose) {
     // Setup system descriptor
     Setup();
-    Update(false);
+    Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
     DescriptorPrepareInject(*descriptor);
 
     ChSparseMatrix Cq;
@@ -1544,7 +1544,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
-    Update(false);
+    Update(UpdateFlag::UPDATE_ALL &~UpdateFlag::VISUAL_ASSETS);
     DescriptorPrepareInject(*descriptor);
 
     if (verbose) {
@@ -1601,7 +1601,7 @@ bool ChSystem::AdvanceDynamics() {
 
     // If needed, update everything. No need to update visualization assets here.
     if (!is_updated) {
-        Update(false);
+        Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
     }
 
     // Re-wake the bodies that cannot sleep because they are in contact with
@@ -1704,7 +1704,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlag::UPDATE_ALL);
 
     // Prepare lists of variables and constraints
     DescriptorPrepareInject(*descriptor);
@@ -1737,7 +1737,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoStepKinematics(double step_size) {
     step = step_size;
     ch_time += step_size;
 
-    Update(true);
+    Update(UpdateFlag::UPDATE_ALL);
     AssemblyAnalysis::ExitFlag exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
     return exit_flag;
@@ -1785,7 +1785,7 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlag::UPDATE_ALL);
 
     DescriptorPrepareInject(*descriptor);
     analysis.SetIntegrable(this);
@@ -1807,7 +1807,7 @@ bool ChSystem::DoStaticLinear() {
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlag::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1867,7 +1867,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlag::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1911,7 +1911,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlag::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;

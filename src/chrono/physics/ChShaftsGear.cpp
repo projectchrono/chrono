@@ -45,9 +45,9 @@ bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared_ptr<
     return true;
 }
 
-void ChShaftsGear::Update(double time, bool update_assets) {
+void ChShaftsGear::Update(double time, UpdateFlag update_flags) {
     // Inherit time changes of parent class
-    ChShaftsCouple::Update(time, update_assets);
+    ChShaftsCouple::Update(time, update_flags);
 
     // update class data
     violation = ratio * (shaft1->GetPos() - phase1) - 1.0 * (shaft2->GetPos() - phase2);

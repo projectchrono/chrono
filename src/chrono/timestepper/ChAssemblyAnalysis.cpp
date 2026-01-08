@@ -63,14 +63,14 @@ AssemblyAnalysis::ExitFlag ChAssemblyAnalysis::AssemblyAnalysis(int action, doub
                                              0,        // factor for dF/dx (the stiffness matrix)
                                              X, V, T,  // not needed
                                              false,    // do not scatter Xnew Vnew T+dt before computing correction
-                                             false,    // no need for full update, since no scatter
+                                             UpdateFlag::UPDATE_ALL_NO_VISUAL,    // no need for full update, since no scatter
                                              true,     // call the solver's Setup function
                                              true      // call the solver's Setup analyze phase
             );
 
             X += Dx;
 
-            integrable->StateScatter(X, V, T, true);  // state -> system
+            integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
             double last_update_norm = Dx.lpNorm<Eigen::Infinity>();
 
@@ -128,12 +128,12 @@ AssemblyAnalysis::ExitFlag ChAssemblyAnalysis::AssemblyAnalysis(int action, doub
                                          -dt * dt,      // factor for  dF/dx
                                          X, V, T + dt,  // not needed
                                          false,         // do not scatter Xnew Vnew T+dt before computing correction
-                                         false,         // no need for full update, since no scatter
+                                         UpdateFlag::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
                                          true,          // call the solver's Setup function
                                          true           // call the solver's Setup analyze phase
         );
 
-        integrable->StateScatter(X, V, T, true);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
         L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of L
 

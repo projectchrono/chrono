@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);
-    sys.Update(false);
+    sys.Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
 
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise

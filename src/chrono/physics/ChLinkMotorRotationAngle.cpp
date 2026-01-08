@@ -35,9 +35,9 @@ ChLinkMotorRotationAngle::ChLinkMotorRotationAngle(const ChLinkMotorRotationAngl
 
 ChLinkMotorRotationAngle::~ChLinkMotorRotationAngle() {}
 
-void ChLinkMotorRotationAngle::Update(double time, bool update_assets) {
+void ChLinkMotorRotationAngle::Update(double time, UpdateFlag update_flags) {
     // Inherit parent class:
-    ChLinkMotorRotation::Update(time, update_assets);
+    ChLinkMotorRotation::Update(time, update_flags);
 
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:

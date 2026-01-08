@@ -82,7 +82,7 @@ void ChTimestepperEulerExplicitIorder::Advance(double dt) {
 
     integrable->StateGather(Y, T);  // state <- system
 
-    integrable->StateSolve(dYdt, L, Y, T, dt, false, false, lumping_parameters);  // dY/dt = f(Y,T)
+    integrable->StateSolve(dYdt, L, Y, T, dt, false, UpdateFlag::UPDATE_ALL_NO_VISUAL, lumping_parameters);  // dY/dt = f(Y,T)
 
     // Euler formula
     //   y_new= y + dy/dt * dt
@@ -91,7 +91,7 @@ void ChTimestepperEulerExplicitIorder::Advance(double dt) {
 
     T += dt;
 
-    integrable->StateScatter(Y, T, true);      // state -> system
+    integrable->StateScatter(Y, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterDerivative(dYdt);  // -> system auxiliary data
     integrable->StateScatterReactions(L);      // -> system auxiliary data
 }
@@ -137,7 +137,7 @@ void ChTimestepperEulerExplicitIIorder::Advance(double dt) {
 
     integrable->StateGather(X, V, T);  // state <- system
 
-    integrable->StateSolveA(A, L, X, V, T, dt, false, false, lumping_parameters);  // Dv/dt = f(x,v,T)
+    integrable->StateSolveA(A, L, X, V, T, dt, false, UpdateFlag::UPDATE_ALL_NO_VISUAL, lumping_parameters);  // Dv/dt = f(x,v,T)
 
     // Euler formula!
 
@@ -147,7 +147,7 @@ void ChTimestepperEulerExplicitIIorder::Advance(double dt) {
 
     T += dt;
 
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(A);  // -> system auxiliary data
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }
@@ -189,7 +189,7 @@ void ChTimestepperEulerSemiImplicit::Advance(double dt) {
 
     integrable->StateGather(X, V, T);  // state <- system
 
-    integrable->StateSolveA(A, L, X, V, T, dt, false, false,
+    integrable->StateSolveA(A, L, X, V, T, dt, false, UpdateFlag::UPDATE_ALL_NO_VISUAL,
                             lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
@@ -200,7 +200,7 @@ void ChTimestepperEulerSemiImplicit::Advance(double dt) {
 
     T += dt;
 
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(A);  // -> system auxiliary data
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }
@@ -246,24 +246,24 @@ void ChTimestepperRungeKutta::Advance(double dt) {
 
     integrable->StateSolve(Dydt1, L, Y, T, dt,
                            false,              // no need to scatter state before computation
-                           false,              // full update? (not used since no scatter)
+                           UpdateFlag::UPDATE_ALL_NO_VISUAL,  // full update? (not used since no scatter)
                            lumping_parameters  // optional lumping?
     );
 
     y_new = Y + Dydt1 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
-    integrable->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, true, lumping_parameters);
+    integrable->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, UpdateFlag::UPDATE_ALL_NO_VISUAL, lumping_parameters);
 
     y_new = Y + Dydt2 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
-    integrable->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, true, lumping_parameters);
+    integrable->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, UpdateFlag::UPDATE_ALL_NO_VISUAL, lumping_parameters);
 
     y_new = Y + Dydt3 * dt;  // integrable.StateIncrement(y_new, Y, Dydt3*dt);
-    integrable->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true, lumping_parameters);
+    integrable->StateSolve(Dydt4, L, y_new, T + dt, dt, true, UpdateFlag::UPDATE_ALL_NO_VISUAL, lumping_parameters);
 
     Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * CH_1_6 * dt;  // integrable.StateIncrement(...);
     dYdt = Dydt4;                                                       // to check
     T += dt;
 
-    integrable->StateScatter(Y, T, true);      // state -> system
+    integrable->StateScatter(Y, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterDerivative(dYdt);  // -> system auxiliary data
     integrable->StateScatterReactions(L);      // -> system auxiliary data
 }
@@ -308,17 +308,17 @@ void ChTimestepperHeun::Advance(double dt) {
 
     integrable->StateSolve(Dydt1, L, Y, T, dt,
                            false,              // no need to scatter state before computation
-                           false,              // full update? ( not used, since no scatter)
+                           UpdateFlag::UPDATE_ALL_NO_VISUAL,  // full update? ( not used, since no scatter)
                            lumping_parameters  // optional lumping?
     );
     y_new = Y + Dydt1 * dt;
-    integrable->StateSolve(Dydt2, L, y_new, T + dt, dt, true, true, lumping_parameters);
+    integrable->StateSolve(Dydt2, L, y_new, T + dt, dt, true, UpdateFlag::UPDATE_ALL_NO_VISUAL, lumping_parameters);
 
     Y = Y + (Dydt1 + Dydt2) * (dt / 2.);
     dYdt = Dydt2;
     T += dt;
 
-    integrable->StateScatter(Y, T, true);      // state -> system
+    integrable->StateScatter(Y, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterDerivative(dYdt);  // -> system auxiliary data
     integrable->StateScatterReactions(L);      // -> system auxiliary data
 }
@@ -364,7 +364,7 @@ void ChTimestepperLeapfrog::Advance(double dt) {
     X = X + V * dt + Aold * (0.5 * dt * dt);
 
     // computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
-    integrable->StateSolveA(A, L, X, V, T, dt, true, true, lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+    integrable->StateSolveA(A, L, X, V, T, dt, true, UpdateFlag::UPDATE_ALL_NO_VISUAL, lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // advance V
 
@@ -372,7 +372,7 @@ void ChTimestepperLeapfrog::Advance(double dt) {
 
     T += dt;
 
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(A);  // -> system auxiliary data
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }

@@ -98,7 +98,7 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     bool StateWarningWrongImpellerDirection() { return state_warning_wrongimpellerdirection; }
 
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlag update_flags) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

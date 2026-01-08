@@ -29,9 +29,9 @@ ChContactContainerNSC::~ChContactContainerNSC() {
     RemoveAllContacts();
 }
 
-void ChContactContainerNSC::Update(double time, bool update_assets) {
+void ChContactContainerNSC::Update(double time, UpdateFlag update_flags) {
     // Inherit time changes of parent class, basically doing nothing :)
-    ChContactContainer::Update(time, update_assets);
+    ChContactContainer::Update(time, update_flags);
 }
 
 void ChContactContainerNSC::RemoveAllContacts() {

@@ -127,7 +127,7 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual void UpdateForces(double time);
 
     /// Complete link update, including UpdateRelMarkerCoords and UpdateForces.
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlag update_flags) override;
 
     /// Adds force to residual R, as R*= F*c
     /// NOTE: here the off offset in R is NOT used because add F at the TWO offsets of the two connected bodies,

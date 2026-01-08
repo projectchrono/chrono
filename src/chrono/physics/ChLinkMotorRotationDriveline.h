@@ -116,7 +116,7 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     std::shared_ptr<ChShaftBodyRotation> innerconstraint2;
 
     // Update this object. Also relinks the innerconstraints.
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlag update_flags) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override;
     virtual unsigned int GetNumConstraints() override;
@@ -132,7 +132,7 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlag update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,

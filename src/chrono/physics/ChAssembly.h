@@ -215,7 +215,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void Setup() override;
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlag update_flags) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void ForceToRest() override;
@@ -231,7 +231,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlag update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;

@@ -909,6 +909,7 @@ set(Chrono_timestepper_HEADERS
     timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
     timestepper/ChAssemblyAnalysis.h
+    timestepper/ChUpdateFlags.h
     )
 source_group(timestepper FILES ${Chrono_timestepper_SOURCES} ${Chrono_timestepper_HEADERS})
 

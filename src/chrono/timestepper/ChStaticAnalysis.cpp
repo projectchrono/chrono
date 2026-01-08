@@ -39,7 +39,7 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
 
     // Set V speed to zero
     V.setZero(integrable->GetNumCoordsVelLevel(), integrable);
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
     // Set up auxiliary vectors
     ChStateDelta Dx;
@@ -65,14 +65,14 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
         -1.0,                          // factor for  dF/dx (the stiffness matrix)
         X, V, T,                       // not needed here
         false,                         // do not scatter Xnew Vnew T+dt before computing correction
-        false,                         // no need for full update, since no scatter
+        UpdateFlag::UPDATE_ALL_NO_VISUAL, // no need for full update, since no scatter
         true,                          // call the solver's Setup function
         true                           // call the solver's Setup analyze phase
     );
 
     X += Dx;
 
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
@@ -114,7 +114,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
 
     // Set speed to zero
     V.setZero(integrable->GetNumCoordsVelLevel(), integrable);
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
     // Set up auxiliary vectors
     ChState Xnew;
@@ -134,7 +134,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
     //      [ Cq         0   ] [-Dl  ] = [-C ]
 
     for (int i = 0; i < m_maxiters; ++i) {
-        integrable->StateScatter(X, V, T, true);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
         R.setZero();
         Qc.setZero();
         integrable->LoadResidual_F(R, 1.0);
@@ -174,7 +174,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
             -1.0,                          // factor for  dF/dx (the stiffness matrix)
             X, V, T,                       // not needed here
             false,                         // do not scatter Xnew Vnew T+dt before computing correction
-            false,                         // no need for full update, since no scatter
+            UpdateFlag::UPDATE_ALL_NO_VISUAL, // no need for full update, since no scatter
             true,                          // call the solver's Setup function
             true                           // call the solver's Setup analyze phase
         );
@@ -209,11 +209,11 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
 
         X = Xnew;
 
-        integrable->StateScatter(X, V, T, true);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
         integrable->StateScatterReactions(L);     // -> system auxiliary data
     }
 
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
@@ -286,7 +286,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
 
     // Set speed to zero
     V.setZero(integrable->GetNumCoordsVelLevel(), integrable);
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
     // Set up auxiliary vectors
     ChState Xnew;
@@ -307,7 +307,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
     // Use Newton Raphson iteration
 
     for (int i = 0; i < m_maxiters; ++i) {
-        integrable->StateScatter(X, V, T, true);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
         // total load scaling factor
         double cfactor = std::min(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
@@ -341,7 +341,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // no need for full update, since no scatter
+                UpdateFlag::UPDATE_ALL_NO_VISUAL, // no need for full update, since no scatter
                 true,                          // call the solver's Setup function
                 true                           // call the solver's Setup analyze phase
             );
@@ -354,7 +354,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 (V *
                  dt_perturbation);  // small increment in position to recompute V and get acceleration by backward diff.
 
-            integrable->StateScatter(Xnew, V, T, true);  // state -> system
+            integrable->StateScatter(Xnew, V, T, UpdateFlag::UPDATE_ALL_NO_VISUAL);  // state -> system
 
             // Solve linear system for correction
             integrable->StateSolveCorrection(  //
@@ -365,7 +365,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // no need for full update, since no scatter
+                UpdateFlag::UPDATE_ALL_NO_VISUAL, // no need for full update, since no scatter
                 true,                          // call the solver's Setup function
                 true                           // call the solver's Setup analyze phase
             );
@@ -375,7 +375,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 (V *
                  dt_perturbation);  // small increment in position to recompute V and get acceleration by backward diff.
 
-            integrable->StateScatter(Xnew, V, T, true);  // state -> system
+            integrable->StateScatter(Xnew, V, T, UpdateFlag::UPDATE_ALL_NO_VISUAL);  // state -> system
 
             // Solve linear system for correction
             integrable->StateSolveCorrection(  //
@@ -386,14 +386,14 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // no need for full update, since no scatter
+                UpdateFlag::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
                 true,                          // call the solver's Setup function
                 true                           // call the solver's Setup analyze phase
             );
 
             A = (Vp - Vm) / (2 * dt_perturbation);
 
-            integrable->StateScatter(X, V, T, true);  // state -> system
+            integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
             integrable->StateScatterAcceleration(A);
         }
 
@@ -441,7 +441,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             -1.0,                          // factor for  dF/dx (the stiffness matrix)
             X, V, T,                       // not needed here
             false,                         // do not scatter Xnew Vnew T+dt before computing correction
-            false,                         // no need for full update, since no scatter
+            UpdateFlag::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
             true,                          // call the solver's Setup function
             true                           // call the solver's Setup analyze phase
         );
@@ -488,7 +488,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
 
     if (m_automatic_deriv_computation) {
         for (int i = 0; i < m_maxiters; ++i) {
-            integrable->StateScatter(X, V, T, true);  // state -> system
+            integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
             // B) solve for position increments, where in RHS includes all inertial forces:
             //    f automatically includes -centrifugal/gyroscopic terms at given acceleration/speed, and -M*a is added
@@ -517,7 +517,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // no need for full update, since no scatter
+                UpdateFlag::UPDATE_ALL_NO_VISUAL, // no need for full update, since no scatter
                 true,                          // call the solver's Setup function
                 true                           // call the solver's Setup analyze phase
             );
@@ -543,7 +543,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             -1.0,                          // factor for  dF/dx (the stiffness matrix)
             X, V, T,                       // not needed here
             false,                         // do not scatter Xnew Vnew T+dt before computing correction
-            false,                         // no need for full update, since no scatter
+            UpdateFlag::UPDATE_ALL_NO_VISUAL,// no need for full update, since no scatter
             true,                          // call the solver's Setup function
             true                           // call the solver's Setup analyze phase
         );
@@ -555,11 +555,11 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         std::cout << "V_last=\n"<< V << std::endl;
         */
 
-        integrable->StateScatter(X, V, T, true);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
         integrable->StateScatterAcceleration(A);
     }
 
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
@@ -633,7 +633,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
 
     // Set speed to zero
     V.setZero(integrable->GetNumCoordsVelLevel(), integrable);
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
 
     // Set up auxiliary vectors
     ChState Xnew;
@@ -681,7 +681,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
         double R_norm_old = 0;
 
         for (int i = 0; i < max_newton_iters; ++i) {
-            integrable->StateScatter(X, V, T, true);  // state -> system
+            integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
             R.setZero();
             Qc.setZero();
             integrable->LoadResidual_F(R, 1.0);       // put the F term in RHS  (where F = F_in + scaled_F_ext )
@@ -744,7 +744,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
                 X, V, T,                       // not needed here
                 false,                         // do not scatter Xnew Vnew T+dt before computing correction
-                false,                         // no need for full update, since no scatter
+                UpdateFlag::UPDATE_ALL_NO_VISUAL, // no need for full update, since no scatter
                 true,                          // call the solver's Setup function
                 true                           // call the solver's Setup analyze phase
             );
@@ -784,7 +784,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
 
     }  // end outer loop incrementing external loads
 
-    integrable->StateScatter(X, V, T, true);  // state -> system
+    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 

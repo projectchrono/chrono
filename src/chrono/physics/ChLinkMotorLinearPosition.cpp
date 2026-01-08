@@ -36,9 +36,9 @@ ChLinkMotorLinearPosition::ChLinkMotorLinearPosition(const ChLinkMotorLinearPosi
 
 ChLinkMotorLinearPosition::~ChLinkMotorLinearPosition() {}
 
-void ChLinkMotorLinearPosition::Update(double time, bool update_assets) {
+void ChLinkMotorLinearPosition::Update(double time, UpdateFlag update_flags) {
     // Inherit parent class:
-    ChLinkMotorLinear::Update(time, update_assets);
+    ChLinkMotorLinear::Update(time, update_flags);
 
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset

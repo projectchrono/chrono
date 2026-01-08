@@ -103,9 +103,9 @@ double ChHydraulicActuatorBase::GetInput(double t) const {
     return ChClamp(ref_fun->GetVal(t), -1.0, +1.0);
 }
 
-void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
+void ChHydraulicActuatorBase::Update(double time, UpdateFlag update_flags) {
     // Update the external dynamics
-    ChExternalDynamicsODE::Update(time, update_assets);
+    ChExternalDynamicsODE::Update(time, update_flags);
 
     // If the actuator is attached to bodies, update its length and rate from the body states
     // and calculate the generated force to the two bodies.

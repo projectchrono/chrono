@@ -111,9 +111,9 @@ void ChLinkDistance::SetMode(Mode new_mode) {
     Cx.SetMode(mode == Mode::BILATERAL ? ChConstraint::Mode::LOCK : ChConstraint::Mode::UNILATERAL);
 }
 
-void ChLinkDistance::Update(double time, bool update_assets) {
+void ChLinkDistance::Update(double time, UpdateFlag update_flags) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::Update(time, update_assets);
+    ChLink::Update(time, update_flags);
 
     // compute jacobians
     ChVector3d delta_pos = m_body1->TransformPointLocalToParent(m_pos1) - m_body2->TransformPointLocalToParent(m_pos2);

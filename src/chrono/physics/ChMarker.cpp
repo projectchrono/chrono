@@ -206,8 +206,8 @@ void ChMarker::UpdateState() {
     m_abs_frame = GetBody()->TransformLocalToParent(*this);
 }
 
-void ChMarker::Update(double time, bool update_assets) {
-    ChObj::Update(time, update_assets);
+void ChMarker::Update(double time, UpdateFlag update_flags) {
+    ChObj::Update(time, update_flags);
 
     UpdateTime(time);
     UpdateState();

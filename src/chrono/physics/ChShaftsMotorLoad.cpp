@@ -27,9 +27,9 @@ ChShaftsMotorLoad::ChShaftsMotorLoad(const ChShaftsMotorLoad& other) : ChShaftsM
     motor_function = other.motor_function;
 }
 
-void ChShaftsMotorLoad::Update(double time, bool update_assets) {
+void ChShaftsMotorLoad::Update(double time, UpdateFlag update_flags) {
     // Inherit time changes of parent class
-    ChShaftsMotor::Update(time, update_assets);
+    ChShaftsMotor::Update(time, update_flags);
 
     // update class data
 

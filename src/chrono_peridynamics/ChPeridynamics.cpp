@@ -118,7 +118,7 @@ void ChPeridynamics::SetupInitial() {
 
 void ChPeridynamics::SetupInitialBonds(ChSystem* sys, std::shared_ptr<ChPeridynamics> peri) {
     sys->Setup();
-    sys->Update(true);
+    sys->Update(UpdateFlag::UPDATE_ALL);
     sys->ComputeCollisions();
     for (auto& node : peri->GetNodes())
         node->is_requiring_bonds = false;
@@ -144,9 +144,9 @@ void ChPeridynamics::Setup() {
     }
 }
 
-void ChPeridynamics::Update(double mytime, bool update_assets) {
+void ChPeridynamics::Update(double mytime, UpdateFlag update_flags) {
     // Inherit time changes of parent class
-    ChProximityContainer::Update(mytime, update_assets);
+    ChProximityContainer::Update(mytime, update_flags);
 
     if (!is_updated)  // avoids overhead of Update()
     {
@@ -448,7 +448,7 @@ void ChPeridynamics::IntStateScatter(const unsigned int off_x,
                                      const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const double T,
-                                     bool full_update) {
+                                     UpdateFlag update_flags) {
     unsigned int local_off = 0;
     for (auto& node : vnodes) {
         if (!node->IsFixed()) {
@@ -456,7 +456,8 @@ void ChPeridynamics::IntStateScatter(const unsigned int off_x,
             local_off += 3;
         }
     }
-    Update(T, full_update);
+
+    Update(T, update_flags);
 }
 
 void ChPeridynamics::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

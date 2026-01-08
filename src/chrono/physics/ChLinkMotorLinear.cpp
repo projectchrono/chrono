@@ -78,9 +78,9 @@ void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
     m_actuated_idx = (int)c_x + (int)c_y;
 }
 
-void ChLinkMotorLinear::Update(double time, bool update_assets) {
+void ChLinkMotorLinear::Update(double time, UpdateFlag update_flags) {
     // Inherit parent class:
-    ChLinkMotor::Update(time, update_assets);
+    ChLinkMotor::Update(time, update_flags);
 
     // compute aux data for future reference (istantaneous pos speed accel)
     ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*this->m_body1);

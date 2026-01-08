@@ -100,7 +100,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     // Solver and integrator interface functions
 
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlag update_flags) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -112,7 +112,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlag update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;

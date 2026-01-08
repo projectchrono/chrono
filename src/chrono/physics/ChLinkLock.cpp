@@ -368,7 +368,7 @@ void ChLinkLock::UpdateTime(double time) {
 }
 
 // Complete update.
-void ChLinkLock::Update(double time, bool update_assets) {
+void ChLinkLock::Update(double time, UpdateFlag update_flags) {
     UpdateTime(time);
     UpdateRelMarkerCoords();
     UpdateState();
@@ -376,7 +376,7 @@ void ChLinkLock::Update(double time, bool update_assets) {
     UpdateForces(time);
 
     // Update assets
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 }
 
 // Updates Cq1_temp, Cq2_temp, Q_c_temp, etc., i.e. all LOCK-FORMULATION temp.matrices

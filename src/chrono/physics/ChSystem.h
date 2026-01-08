@@ -626,10 +626,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void Setup();
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(double time, bool update_assets);
+    void Update(double time, UpdateFlag update_flags);
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(bool update_assets);
+    void Update(UpdateFlag update_flags);
 
     /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
     /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
@@ -700,7 +700,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
 
     /// From state Y={x,v} to system. This also triggers an update operation.
-    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override;
+    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlag update_flags) override;
 
     /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
     virtual void StateGatherAcceleration(ChStateDelta& a) override;
@@ -743,7 +743,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(
         ChStateDelta& Dv,             ///< result: computed Dv
-        ChVectorDynamic<>& DL,        ///< result: computed Lagrange multipliers
+        ChVectorDynamic<>& L,         ///< result: computed Lagrange multipliers
         const ChVectorDynamic<>& R,   ///< the R residual
         const ChVectorDynamic<>& Qc,  ///< the Qc residual
         const double c_a,             ///< the factor in c_a*M
@@ -753,9 +753,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
         const ChStateDelta& v,        ///< current state, v part
         const double T,               ///< current time T
         bool force_state_scatter,     ///< if true, scatter x and v to the system
-        bool full_update,             ///< if true, perform a full update during scatter
-        bool call_setup,              ///< if true, call the solver's Setup function
-        bool call_analyze             ///< if true, call the solver's Setup analyze phase
+        UpdateFlag update_flags,  ///< if UpdateFlag::UPDATE_ALL, do a full update during scatter, otherwise switch off
+                                  ///< visual asset update, etc.
+        bool call_setup,          ///< if true, call the solver's Setup function
+        bool call_analyze         ///< if true, call the solver's Setup analyze phase
         ) override;
 
     /// Increment a vector R with the term c*F:

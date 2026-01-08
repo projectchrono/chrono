@@ -320,7 +320,7 @@ void ChIrrGUI::SetSymbolScale(double val) {
 void ChIrrGUI::WriteSystemMatrices() {
     // For safety
     m_system->Setup();
-    m_system->Update(m_system->GetChTime(), false);
+    m_system->Update(m_system->GetChTime(), UpdateFlag::UPDATE_ALL);
 
     try {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:

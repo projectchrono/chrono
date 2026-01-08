@@ -261,8 +261,8 @@ void ChForce::UpdateState() {
     }
 }
 
-void ChForce::Update(double time, bool update_assets) {
-    ChObj::Update(time, update_assets);
+void ChForce::Update(double time, UpdateFlag update_flags) {
+    ChObj::Update(time, update_flags);
     UpdateState();
 }
 

@@ -159,9 +159,9 @@ void ChMesh::Setup() {
 
 // Updates all time-dependant variables, if any...
 // Ex: maybe the elasticity can increase in time, etc.
-void ChMesh::Update(double m_time, bool update_assets) {
+void ChMesh::Update(double m_time, UpdateFlag update_flags) {
     // Parent class update
-    ChIndexedNodes::Update(m_time, update_assets);
+    ChIndexedNodes::Update(m_time, update_flags);
 
     for (unsigned int i = 0; i < velements.size(); i++) {
         //    - update auxiliary stuff, ex. update element's rotation matrices if corotational..
@@ -209,7 +209,7 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
                              const unsigned int off_v,
                              const ChStateDelta& v,
                              const double T,
-                             bool full_update) {
+                             UpdateFlag update_flags) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -220,7 +220,7 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
         }
     }
 
-    Update(T, full_update);
+    Update(T, update_flags);
 }
 
 void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

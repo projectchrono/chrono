@@ -69,7 +69,7 @@ class ChApi ChLink : public ChLinkBase {
     /// This function, called by the owner ChSystem at least once per integration step,
     /// updates any auxiliary data of the link (e.g. internal states, forces, Jacobian matrices).
     /// This base version, by default, simply updates the time.
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlag update_flags) override;
 
     /// Called from a external package (i.e. a plugin, a CAD app.) to report that time has changed.
     virtual void UpdatedExternalTime(double prevtime, double time) {}
