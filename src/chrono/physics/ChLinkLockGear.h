@@ -44,7 +44,7 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     ChFrame<double> local_shaft2;  ///< shaft2 pos & dir (as Z axis), relative to body2
 
     bool is_compliant;
-    double teeth_stiffness; 
+    double teeth_stiffness;
     double teeth_damping;
 
   public:
@@ -153,8 +153,7 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     /// Get shaft position, for 2nd gear, in absolute reference
     ChVector3d GetPosShaft2() const;
 
-
-    /// Switch to compliant gear teeth contact model. 
+    /// Switch to compliant gear teeth contact model.
     /// Automatically calls SetEnforcePhase(true), needed for compliant teeth.
     void SetTeethCompliant(bool mset, double mstiffness = 1e4, double mdamping = 1.0);
 
@@ -163,11 +162,11 @@ class ChApi ChLinkLockGear : public ChLinkLock {
 
     /// Is the compliant gear teeth contact model used?
     bool IsTeethCompliant() const { return is_compliant; }
-    
+
     /// Set the teeth stiffness [N/m] for compliant gear teeth contact model.
     /// Automatically calls SetTeethCompliant and SetEnforcePhase(true), needed for compliant teeth.
     /// Stiffenss assumed in the normal direction of contact (hence inclined by alpha, beta angles),
-    /// and NOT in the tangential direction. If you need to set teeth stiffness purely in 
+    /// and NOT in the tangential direction. If you need to set teeth stiffness purely in
     /// tangent direction, use SetTeethStiffnessTangential()
     void SetTeethStiffness(double mstiffness);
 
@@ -190,7 +189,6 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     /// Assumed in the normal direction of contact (hence inclined by alpha, beta angles)
     double GetTeethDamping() const { return teeth_damping; }
 
-
     // INTERFACE ChPhysicsItem
 
     /// Takes the F force term, scale and adds to R at given offset:
@@ -198,7 +196,7 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
-    );
+                                   ) override;
 
     /// Takes the term C, scale and adds to Qc at given offset:
     ///    Qc += c*C
@@ -207,10 +205,10 @@ class ChApi ChLinkLockGear : public ChLinkLock {
                                      const double c,          ///< a scaling factor
                                      bool do_clamp,           ///< apply clamping to c*C?
                                      double recovery_clamp    ///< value for min/max clamping of c*C
-    );
+                                     ) override;
 
     /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
-    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // SERIALIZATION
 
