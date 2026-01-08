@@ -52,7 +52,7 @@
 #include "chrono_vsg/ChApiVSG.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vsg/ChEventHandlerVSG.h"
-#include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 
 namespace chrono {

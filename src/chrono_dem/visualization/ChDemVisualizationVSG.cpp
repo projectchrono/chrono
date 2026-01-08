@@ -20,7 +20,7 @@
 #include "chrono_dem/visualization/ChDemVisualizationVSG.h"
 
 #include "chrono_vsg/utils/ChConversionsVSG.h"
-#include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 
 namespace chrono {
 namespace dem {

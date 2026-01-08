@@ -21,12 +21,11 @@
 #include <iomanip>
 
 #include "chrono/utils/ChUtils.h"
-
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/utils/ChConversionsVSG.h"
-#include "chrono_vsg/utils/ChUtilsVSG.h"
+#include "chrono_vsg/impl/VSGnodes.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 

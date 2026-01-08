@@ -14,10 +14,9 @@
 
 #include <cmath>
 
-#include "chrono_vsg/shapes/ShapeBuilder.h"
-#include "chrono_vsg/shapes/ShaderUtils.h"
-
 #include "chrono_vsg/utils/ChConversionsVSG.h"
+#include "chrono_vsg/utils/ChShapeBuilderVSG.h"
+#include "chrono_vsg/utils/ChShaderUtilsVSG.h"
 
 #include "chrono_thirdparty/stb/stb_image.h"
 

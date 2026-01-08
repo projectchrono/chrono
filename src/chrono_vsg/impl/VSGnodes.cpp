@@ -16,11 +16,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "chrono_vsg/utils/ChUtilsVSG.h"
+#include "chrono_vsg/impl/VSGnodes.h"
 
-#include "chrono_vsg/resources/cubemapShaders.h"
-#include "chrono_vsg/resources/pcShader_vert.h"
-#include "chrono_vsg/resources/pcShader_frag.h"
+#include "chrono_vsg/impl/cubemapShaders.h"
+#include "chrono_vsg/impl/pcShader_vert.h"
+#include "chrono_vsg/impl/pcShader_frag.h"
 
 #include "chrono_thirdparty/stb/stb_image_write.h"
 
