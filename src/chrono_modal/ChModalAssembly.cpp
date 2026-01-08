@@ -1237,7 +1237,7 @@ void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
     }
 }
 
-void ChModalAssembly::UpdateInternalState(bool update_assets) {
+void ChModalAssembly::UpdateInternalState(UpdateFlag update_flags) {
     if (!m_is_model_reduced)
         return;
 
@@ -1338,25 +1338,25 @@ void ChModalAssembly::UpdateInternalState(bool update_assets) {
     for (auto& body : internal_bodylist) {
         if (body->IsActive())
             body->IntStateScatter(body->GetOffset_x() - this->offset_x, assembly_x_new,
-                                  body->GetOffset_w() - this->offset_w, assembly_v_new, T, update_assets);
+                                  body->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
         else
-            body->Update(T, update_assets);
+            body->Update(T, update_flags);
     }
     for (auto& mesh : internal_meshlist) {
         mesh->IntStateScatter(mesh->GetOffset_x() - this->offset_x, assembly_x_new,
-                              mesh->GetOffset_w() - this->offset_w, assembly_v_new, T, update_assets);
+                              mesh->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
     }
     for (auto& link : internal_linklist) {
         if (link->IsActive())
             link->IntStateScatter(link->GetOffset_x() - this->offset_x, assembly_x_new,
-                                  link->GetOffset_w() - this->offset_w, assembly_v_new, T, update_assets);
+                                  link->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
         else
-            link->Update(T, update_assets);
+            link->Update(T, update_flags);
     }
     for (auto& item : internal_otherphysicslist) {
         if (item->IsActive())
             item->IntStateScatter(item->GetOffset_x() - this->offset_x, assembly_x_new,
-                                  item->GetOffset_w() - this->offset_w, assembly_v_new, T, update_assets);
+                                  item->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
     }
 
     if (needs_temporary_bou_int)
@@ -1375,9 +1375,9 @@ void ChModalAssembly::SetFullStateReset() {
 
     assembly_v.setZero(m_num_coords_vel, nullptr);
 
-    this->IntStateScatter(0, m_full_state_x0, 0, assembly_v, fooT, true);
+    this->IntStateScatter(0, m_full_state_x0, 0, assembly_v, fooT, UpdateFlag::UPDATE_ALL);
 
-    this->Update(ChTime, false);
+    this->Update(ChTime, UpdateFlag::UPDATE_ALL_NO_VISUAL);
 }
 
 //---------------------------------------------------------------------------------------
@@ -1611,7 +1611,7 @@ void ChModalAssembly::GetSubassemblyMatrices(ChSparseMatrix* K,
                                              ChSparseMatrix* Cq) {
     this->SetupInitial();
     this->Setup();
-    this->Update(ChTime, false);
+    this->Update(ChTime, UpdateFlag::UPDATE_ALL_NO_VISUAL);
 
     ChSystemDescriptor temp_descriptor;
 
@@ -1928,14 +1928,14 @@ void ChModalAssembly::Initialize() {
 // Update all physical items (bodies, links, meshes, etc), including their auxiliary variables.
 // Updates all forces (automatic, as children of bodies)
 // Updates all markers (automatic, as children of bodies).
-void ChModalAssembly::Update(double time, bool update_assets) {
-    ChAssembly::Update(time, update_assets);
+void ChModalAssembly::Update(double time, UpdateFlag update_flags) {
+    ChAssembly::Update(time, update_flags);
 
     if (m_is_model_reduced) {
         // If in modal reduced state, the internal parts would not be updated (actually, these could even be
         // removed) However one still might want to see the internal nodes "moving" during animations.
         if (m_internal_nodes_update)
-            this->UpdateInternalState(update_assets);
+            this->UpdateInternalState(update_flags);
 
         // always update the floating frame F if possible, to improve the numerical accuracy and stability
         this->UpdateFloatingFrameOfReference();
@@ -1943,16 +1943,16 @@ void ChModalAssembly::Update(double time, bool update_assets) {
 
     } else {
         for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-            internal_bodylist[ip]->Update(time, update_assets);
+            internal_bodylist[ip]->Update(time, update_flags);
         }
         for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
-            internal_meshlist[ip]->Update(time, update_assets);
+            internal_meshlist[ip]->Update(time, update_flags);
         }
         for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
-            internal_otherphysicslist[ip]->Update(time, update_assets);
+            internal_otherphysicslist[ip]->Update(time, update_flags);
         }
         for (unsigned int ip = 0; ip < internal_linklist.size(); ++ip) {
-            internal_linklist[ip]->Update(time, update_assets);
+            internal_linklist[ip]->Update(time, update_flags);
         }
     }
 }
@@ -2106,8 +2106,8 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
                                       const unsigned int off_v,
                                       const ChStateDelta& v,
                                       const double T,
-                                      bool update_assets) {
-    ChAssembly::IntStateScatter(off_x, x, off_v, v, T, update_assets);  // parent
+                                      UpdateFlag update_flags) {
+    ChAssembly::IntStateScatter(off_x, x, off_v, v, T, update_flags);  // parent
 
     unsigned int displ_x = off_x - this->offset_x;
     unsigned int displ_v = off_v - this->offset_w;
@@ -2116,33 +2116,33 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T,
-                                      update_assets);
+                                      update_flags);
             else
-                body->Update(T, update_assets);
+                body->Update(T, update_flags);
         }
         for (auto& mesh : internal_meshlist) {
-            mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, update_assets);
+            mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, update_flags);
         }
         for (auto& item : internal_otherphysicslist) {
             if (item->IsActive())
                 item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T,
-                                      update_assets);
+                                      update_flags);
             else
-                item->Update(T, update_assets);
+                item->Update(T, update_flags);
         }
         for (auto& link : internal_linklist) {
             if (link->IsActive())
                 link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T,
-                                      update_assets);
+                                      update_flags);
             else
-                link->Update(T, update_assets);
+                link->Update(T, update_flags);
         }
     } else {
         this->modal_q = x.segment(off_x + m_num_coords_pos_boundary, m_num_coords_modal);
         this->modal_q_dt = v.segment(off_v + m_num_coords_vel_boundary, m_num_coords_modal);
 
         // Update:
-        this->Update(T, update_assets);
+        this->Update(T, update_flags);
     }
 
     SetChTime(T);
