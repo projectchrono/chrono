@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh, a container for groups of elements and their referenced nodes
     auto mesh = chrono_types::make_shared<ChMesh>();

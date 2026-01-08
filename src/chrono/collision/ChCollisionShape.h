@@ -65,6 +65,15 @@ class ChApi ChCollisionShape {
     /// The default implementation returns an inverted AABB.
     virtual ChAABB GetBoundingBox() const { return ChAABB(); }
 
+    /// Set this visualization shape as modifiable (default: false).
+    /// Set to true to indicate that the asset may change and therefore requires updates (e.g. for a deformable
+    /// triangular mesh). Note that this also includes changes in materials.
+    /// A visualization system may take advantage of this setting to accelerate rendering.
+    void SetMutable(bool val) { is_mutable = val; }
+
+    /// Return true if the visualization shape is marked as modifiable.
+    bool IsMutable() const { return is_mutable; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
@@ -74,6 +83,7 @@ class ChApi ChCollisionShape {
   protected:
     Type m_type;                                    ///< type of collision shape
     std::shared_ptr<ChContactMaterial> m_material;  ///< surface contact material
+    bool is_mutable;                                ///< flag indicating whether the shape is rigid or deformable
 
     friend class ChCollisionModel;
 };

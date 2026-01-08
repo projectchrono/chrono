@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     auto reflective_color = std::make_shared<ChVisualMaterial>();
     reflective_color->SetDiffuseColor({.5f, .5f, .5f});

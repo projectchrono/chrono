@@ -885,7 +885,6 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_mesh_name);
         ////trimesh_shape->Pos = m_offset;
-        trimesh_shape->SetMutable(false);
         trimesh_shape->SetColor(m_color);
         m_body->AddVisualShape(trimesh_shape, ChFrame<>(m_offset, QUNIT));
         return;
@@ -916,7 +915,6 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(mesh.m_name);
         ////trimesh_shape->Pos = m_offset;
-        trimesh_shape->SetMutable(false);
         trimesh_shape->SetColor(m_color);
         m_body->AddVisualShape(trimesh_shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
     }

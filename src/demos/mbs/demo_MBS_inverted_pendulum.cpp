@@ -204,6 +204,7 @@ int main(int argc, char* argv[]) {
     // Create the Chrono physical sys
     // ---------------------------------
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create the ground body
     // ----------------------

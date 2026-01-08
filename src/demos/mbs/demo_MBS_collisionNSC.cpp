@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(collision_type);
 
     // Settings specific to Chrono multicore collision system

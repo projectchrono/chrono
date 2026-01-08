@@ -20,6 +20,7 @@ print( "TEST: tetrahedron FEM dynamics, implicit integration")
 print( "-----------------------------------------------------------")
 
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 
 # FEA mesh
 mesh = fea.ChMesh()

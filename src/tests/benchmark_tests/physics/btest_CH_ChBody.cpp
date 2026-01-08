@@ -26,6 +26,7 @@ class SystemFixture : public ::benchmark::Fixture {
         current_time = 1;
         time_step = 0.1;
         sys = new ChSystemNSC();
+        sys->SetGravityY();
         for (int i = 0; i < num_bodies; i++) {
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector3d(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));

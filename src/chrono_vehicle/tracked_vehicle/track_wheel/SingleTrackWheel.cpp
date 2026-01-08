@@ -80,7 +80,6 @@ void SingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
-        trimesh_shape->SetMutable(false);
         m_wheel->AddVisualShape(trimesh_shape);
     } else {
         ChSingleTrackWheel::AddVisualizationAssets(vis);

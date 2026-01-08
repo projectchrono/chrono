@@ -26,6 +26,7 @@ print ("Example: PyChrono using  beam finite elements");
 
 # Create a Chrono physical system
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 
 ## Create a mesh, that is a container for groups
 ## of elements and their referenced nodes.

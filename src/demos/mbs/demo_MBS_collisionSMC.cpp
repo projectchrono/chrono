@@ -165,6 +165,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(collision_type);
 
     // Add fixed and moving bodies

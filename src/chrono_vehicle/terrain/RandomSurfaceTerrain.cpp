@@ -514,7 +514,6 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
 
             auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             vmesh->SetMesh(m_mesh);
-            vmesh->SetMutable(false);
             vmesh->SetName("ISO_track");
             m_ground->AddVisualShape(vmesh);
 

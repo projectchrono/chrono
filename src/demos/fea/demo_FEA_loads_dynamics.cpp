@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------------
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh
     auto mesh = chrono_types::make_shared<ChMesh>();

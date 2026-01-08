@@ -22,13 +22,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeModelFile)
 
-ChVisualShapeModelFile::ChVisualShapeModelFile() : filename(""), scale(1) {
-    SetMutable(false);
-}
+ChVisualShapeModelFile::ChVisualShapeModelFile() : filename(""), scale(1) {}
 
-ChVisualShapeModelFile::ChVisualShapeModelFile(const std::string& fname) : filename(fname), scale(1) {
-    SetMutable(false);
-}
+ChVisualShapeModelFile::ChVisualShapeModelFile(const std::string& fname) : filename(fname), scale(1) {}
 
 ChAABB ChVisualShapeModelFile::GetBoundingBox() const {
     auto ext = filesystem::path(filename).extension();

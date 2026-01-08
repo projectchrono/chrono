@@ -70,8 +70,9 @@ ChVisualShapeFEA::ChVisualShapeFEA() : obj(nullptr), m_colormap_type(ChColormap:
 
     undeformed_reference = false;
 
-    m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     m_glyphs_shape = chrono_types::make_shared<ChGlyphs>();
+    m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+    m_trimesh_shape->SetMutable(true);
 
     m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
 }

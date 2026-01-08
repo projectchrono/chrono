@@ -116,6 +116,7 @@ int main(int argc, char* argv[]) {
             sys = new ChSystemNSC;
             break;
     }
+    sys->SetGravityY();
     sys->SetCollisionSystemType(collision_type);
 
     // Contact material shared among all objects

@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Contact material shared among all bodies
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();

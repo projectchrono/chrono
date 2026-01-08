@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     int x_dim = 11;
     int y_dim = 7;

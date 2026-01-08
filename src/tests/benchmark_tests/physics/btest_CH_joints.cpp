@@ -32,6 +32,7 @@ class LinkLockBM : public ::benchmark::Fixture {
         time_step = 0.1;
 
         sys = new ChSystemNSC();
+        sys->SetGravityX();
         for (int i = 0; i < N + 1; i++) {
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector3d(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));

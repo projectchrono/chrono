@@ -76,7 +76,7 @@ class ChApiPeridynamics ChMatterPeriBB : public ChMatterPeri<ChMatterDataPerNode
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 class /*ChApiPeridynamics*/ ChVisualPeriBB : public ChGlyphs {
   public:
-    ChVisualPeriBB(std::shared_ptr<ChMatterPeriBB> amatter) : mmatter(amatter) { is_mutable = true; };
+    ChVisualPeriBB(std::shared_ptr<ChMatterPeriBB> amatter) : mmatter(amatter) { SetMutable(true); }
     virtual ~ChVisualPeriBB() {}
 
     // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
@@ -126,7 +126,7 @@ class /*ChApiPeridynamics*/ ChVisualPeriBB : public ChGlyphs {
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 class /*ChApiPeridynamics*/ ChVisualPeriBBBonds : public ChGlyphs {
   public:
-    ChVisualPeriBBBonds(std::shared_ptr<ChMatterPeriBB> amatter) : mmatter(amatter) { is_mutable = true; };
+    ChVisualPeriBBBonds(std::shared_ptr<ChMatterPeriBB> amatter) : mmatter(amatter) { SetMutable(true); }
     virtual ~ChVisualPeriBBBonds() {}
 
     bool draw_broken = true;

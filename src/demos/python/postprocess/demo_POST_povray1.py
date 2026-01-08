@@ -23,6 +23,7 @@ import os
 
 # Create a physical system,
 my_system = chrono.ChSystemNSC()
+my_system.SetGravityY()
 my_systemB = my_system
 
 # Create a body

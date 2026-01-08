@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
 
     // Make a system and associated collision detection system
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create parser instance and set options.

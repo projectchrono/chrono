@@ -84,6 +84,7 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // ----------------
     // Specify the mesh

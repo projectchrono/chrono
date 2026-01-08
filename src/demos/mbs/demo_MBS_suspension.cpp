@@ -594,6 +594,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the rigid bodies of the simpified car suspension mechanical system maybe setting position/mass/inertias of

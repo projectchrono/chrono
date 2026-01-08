@@ -149,7 +149,6 @@ int main(int argc, char* argv[]) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
-        trimesh_shape->SetMutable(false);
         patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, QuatFromAngleZ(CH_PI_2)));
     }
 

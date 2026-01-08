@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create all the rigid bodies.

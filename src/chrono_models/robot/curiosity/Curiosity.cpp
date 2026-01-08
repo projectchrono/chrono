@@ -210,7 +210,6 @@ void CuriosityPart::Construct(ChSystem* system) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetMutable(false);
 
         m_body->AddVisualShape(trimesh_shape);
     }

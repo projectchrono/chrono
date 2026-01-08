@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
     //    will be handled by this ChSystemNSC object.
 
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // 2- Create the rigid bodies of the slider-crank mechanical system
     //   (a crank, a rod, a truss), maybe setting position/mass/inertias of

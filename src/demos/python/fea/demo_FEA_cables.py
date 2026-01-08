@@ -24,6 +24,7 @@ print("Copyright (c) 2017 projectchrono.org\nChrono version: ")
 
 # Create a Chrono physical system
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 
 
 # Create a mesh, that is a container for groups of elements and

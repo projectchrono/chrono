@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Create a floor. This is an absolute fixed reference that we will use as
     // a reference for imposing position and rotations of moved bodies.

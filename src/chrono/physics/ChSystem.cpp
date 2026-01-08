@@ -46,7 +46,7 @@ namespace chrono {
 
 ChSystem::ChSystem(const std::string& name)
     : m_name(name),
-      G_acc(ChVector3d(0, -9.8, 0)),
+      G_acc(ChVector3d(0, 0, 0)),
       is_initialized(false),
       is_updated(false),
       m_num_coords_pos(0),

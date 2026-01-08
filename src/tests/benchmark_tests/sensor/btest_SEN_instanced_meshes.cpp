@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
         // Create the system
         // -----------------
         ChSystemNSC sys;
+        sys.SetGravityY();
 
         // ---------------------------------------
         // add a mesh to be visualized by a camera
@@ -76,7 +77,6 @@ int main(int argc, char* argv[]) {
                     auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
                     trimesh_shape->SetMesh(mmesh);
                     trimesh_shape->SetName("HMMWV Chassis Mesh");
-                    trimesh_shape->SetMutable(false);
                     float scale = 1 * (float)rand() / (float)RAND_MAX + .01f;
                     trimesh_shape->SetScale({scale, scale, scale});
 

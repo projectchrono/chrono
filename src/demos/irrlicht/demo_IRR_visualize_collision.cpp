@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Chrono system, bodies, and collision shapes
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(csys_type);
 
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
