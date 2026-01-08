@@ -139,8 +139,8 @@ class ChExternalActuatorFmu : public ChExternalFmu {
 
     virtual bool IsStiff() const override { return true; }
 
-    virtual void Update(double time, bool update_assets) override {
-        ChExternalFmu::Update(time, update_assets);
+    virtual void Update(double time, UpdateFlag update_flags) override {
+        ChExternalFmu::Update(time, update_flags);
 
         if (is_attached) {
             // Calculate length and length rate from attached bodies
