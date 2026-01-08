@@ -32,7 +32,10 @@ ChLinkLockGear::ChLinkLockGear()
       a2(0),
       r1(0),
       r2(0),
-      contact_pt(VNULL) {
+      contact_pt(VNULL),
+      is_compliant(false),
+      teeth_stiffness(1e4),
+      teeth_damping(1.0)  {
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 
@@ -55,6 +58,9 @@ ChLinkLockGear::ChLinkLockGear(const ChLinkLockGear& other) : ChLinkLock(other) 
     contact_pt = other.contact_pt;
     local_shaft1 = other.local_shaft1;
     local_shaft2 = other.local_shaft2;
+    is_compliant = other.is_compliant;
+    teeth_stiffness = other.teeth_stiffness;
+    teeth_damping = other.teeth_damping;
 }
 
 ChVector3d ChLinkLockGear::GetDirShaft1() const {
@@ -88,6 +94,71 @@ ChVector3d ChLinkLockGear::GetPosShaft2() const {
     } else
         return VNULL;
 }
+
+/// Switch to compliant gear teeth contact model
+void ChLinkLockGear::SetTeethCompliant(bool mset, double mstiffness, double mdamping) {
+    is_compliant = mset;
+    teeth_stiffness = mstiffness;
+    teeth_damping = mdamping;
+    this->SetEnforcePhase(true);
+}
+
+void ChLinkLockGear::SetTeethStiffness(double mstiffness) {
+    is_compliant = true;
+    teeth_stiffness = mstiffness;
+    this->SetEnforcePhase(true);
+}
+
+void ChLinkLockGear::SetTeethStiffnessTangential(double mstiffness_tangential) {
+    is_compliant = true;
+    teeth_stiffness =  mstiffness_tangential / ((cos(this->alpha) * cos(this->alpha)) * cos(this->beta) * cos(this->beta));
+    this->SetEnforcePhase(true);
+}
+
+inline void ChLinkLockGear::SetTeethDamping(double mdamping) {
+    is_compliant = true;
+    teeth_damping = mdamping;
+    this->SetEnforcePhase(true);
+}
+
+void ChLinkLockGear::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // Inherit parent class
+    ChLinkLock::IntLoadResidual_F(off, R, c);
+
+    if (this->is_compliant) {
+        ChVectorDynamic<> tempL(1);
+        // compute complinat force between elastic teeth:
+        tempL(0) = - (this->C(0) * this->teeth_stiffness + this->C_dt(0) * this->teeth_damping);
+        // map to R in system level coords, leveraging the already working IntLoadResidual_CqL;
+        this->IntLoadResidual_CqL(0, R, tempL, c);
+    }
+}
+
+void ChLinkLockGear::IntLoadConstraint_C(const unsigned int off,
+                                         ChVectorDynamic<>& Qc,
+                                         const double c,
+                                         bool do_clamp,
+                                         double recovery_clamp) {
+    if (this->is_compliant) {
+        // nothing to do - Qc as zero in case of compliant gear teeth
+    } 
+    else {
+        // Inherit parent class
+        ChLinkLock::IntLoadConstraint_C(off, Qc, c, do_clamp, recovery_clamp);
+    }
+}
+
+void ChLinkLockGear::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
+    // Inherit parent class 
+    ChLinkLock::LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
+
+    // intercept the Kfactor and Rfactor
+    
+    if (this->is_compliant) {
+        this->GetMask().GetConstraint(0).SetComplianceTerm(1.0 / (teeth_stiffness * Kfactor + teeth_damping * Rfactor));
+    }
+}
+
 
 void ChLinkLockGear::UpdateTime(double time) {
     // First, inherit to parent class

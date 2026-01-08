@@ -43,6 +43,10 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     ChFrame<double> local_shaft1;  ///< shaft1 pos & dir (as Z axis), relative to body1
     ChFrame<double> local_shaft2;  ///< shaft2 pos & dir (as Z axis), relative to body2
 
+    bool is_compliant;
+    double teeth_stiffness; 
+    double teeth_damping;
+
   public:
     ChLinkLockGear();
     ChLinkLockGear(const ChLinkLockGear& other);
@@ -148,6 +152,67 @@ class ChApi ChLinkLockGear : public ChLinkLock {
 
     /// Get shaft position, for 2nd gear, in absolute reference
     ChVector3d GetPosShaft2() const;
+
+
+    /// Switch to compliant gear teeth contact model. 
+    /// Automatically calls SetEnforcePhase(true), needed for compliant teeth.
+    void SetTeethCompliant(bool mset, double mstiffness = 1e4, double mdamping = 1.0);
+
+    /// Switch off compliant gear teeth contact model
+    void SetTeethRigid() { is_compliant = false; }
+
+    /// Is the compliant gear teeth contact model used?
+    bool IsTeethCompliant() const { return is_compliant; }
+    
+    /// Set the teeth stiffness [N/m] for compliant gear teeth contact model.
+    /// Automatically calls SetTeethCompliant and SetEnforcePhase(true), needed for compliant teeth.
+    /// Stiffenss assumed in the normal direction of contact (hence inclined by alpha, beta angles),
+    /// and NOT in the tangential direction. If you need to set teeth stiffness purely in 
+    /// tangent direction, use SetTeethStiffnessTangential()
+    void SetTeethStiffness(double mstiffness);
+
+    /// Set the teeth stiffness [N/m] for compliant gear teeth contact model.
+    /// Automatically calls SetTeethCompliant and SetEnforcePhase(true), needed for compliant teeth.
+    /// Stiffenss assumed in the tangential direction of contact. The teeth "equivalent normal stiffness"
+    /// will be automatically computed as a consequence of current alpha, beta angles.
+    void SetTeethStiffnessTangential(double mstiffness_tang);
+
+    /// Get the teeth stiffness [N/m] for compliant gear teeth contact model.
+    /// Assumed in the normal direction of contact (hence inclined by alpha, beta angles)
+    double GetTeethStiffness() const { return teeth_stiffness; }
+
+    /// Set the teeth damping [N/(m/s)] for compliant gear teeth contact model.
+    /// Automatically calls SetTeethCompliant and SetEnforcePhase(true), needed for compliant teeth.
+    /// Damping assumed in the normal direction of contact (hence inclined by alpha, beta angles)
+    void SetTeethDamping(double damping);
+
+    /// Get the teeth damping [N/(m/s)] for compliant gear teeth contact model.
+    /// Assumed in the normal direction of contact (hence inclined by alpha, beta angles)
+    double GetTeethDamping() const { return teeth_damping; }
+
+
+    // INTERFACE ChPhysicsItem
+
+    /// Takes the F force term, scale and adds to R at given offset:
+    ///    R += c*F
+    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+                                   ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+                                   const double c           ///< a scaling factor
+    );
+
+    /// Takes the term C, scale and adds to Qc at given offset:
+    ///    Qc += c*C
+    virtual void IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
+                                     ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
+                                     const double c,          ///< a scaling factor
+                                     bool do_clamp,           ///< apply clamping to c*C?
+                                     double recovery_clamp    ///< value for min/max clamping of c*C
+    );
+
+    /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);
+
+    // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
