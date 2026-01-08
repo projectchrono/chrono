@@ -12,29 +12,22 @@
 // Rainer Gericke
 // =============================================================================
 
-#ifndef CH_UTILS_VSG_H
-#define CH_UTILS_VSG_H
+#pragma once
 
 #include <string>
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
 
-#include "chrono_vsg/ChApiVSG.h"
-
 namespace chrono {
 namespace vsg3d {
 
-CH_VSG_API vsg::ref_ptr<vsg::Node> createQuad(const vsg::vec3& origin,
-                                              const vsg::vec3& horizontal,
-                                              const vsg::vec3& vertical,
-                                              vsg::ref_ptr<vsg::Data> sourceData = {});
+vsg::ref_ptr<vsg::Node> createQuad(const vsg::vec3& origin,
+                                   const vsg::vec3& horizontal,
+                                   const vsg::vec3& vertical,
+                                   vsg::ref_ptr<vsg::Data> sourceData = {});
 
-CH_VSG_API vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename,
-                                                vsg::ref_ptr<vsg::Options> options,
-                                                bool yup);
+vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup);
 
 }  // namespace vsg3d
 }  // namespace chrono
-
-#endif

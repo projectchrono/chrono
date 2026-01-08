@@ -12,7 +12,7 @@
 // Rainer Gericke
 // =============================================================================
 
-#include "chrono_vsg/shapes/ShaderUtils.h"
+#include "chrono_vsg/utils/ChShaderUtilsVSG.h"
 
 namespace chrono {
 namespace vsg3d {
