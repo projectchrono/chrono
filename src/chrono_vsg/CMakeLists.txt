@@ -70,8 +70,8 @@ set(CE_VSG_BASE_FILES
 source_group("" FILES ${CE_VSG_BASE_FILES})
 
 set(CE_VSG_UTILS_FILES
-    utils/ChConversionsVSG.cpp
-    utils/ChConversionsVSG.h
+    utils/ChDataUtilsVSG.cpp
+    utils/ChDataUtilsVSG.h
     utils/ChShaderUtilsVSG.cpp
     utils/ChShaderUtilsVSG.h
     utils/ChShapeBuilderVSG.cpp
@@ -80,6 +80,10 @@ set(CE_VSG_UTILS_FILES
 source_group("utils" FILES ${CE_VSG_UTILS_FILES})
 
 set(CE_VSG_IMPL_FILES
+    impl/BaseGuiComponents.cpp
+    impl/BaseGuiComponents.h
+    impl/BaseEventHandlers.cpp
+    impl/BaseEventHandlers.h
     impl/VSGnodes.cpp
     impl/VSGnodes.h
     impl/pcShader_frag.h

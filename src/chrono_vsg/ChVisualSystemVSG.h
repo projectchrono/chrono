@@ -53,7 +53,7 @@
 #include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vsg/ChEventHandlerVSG.h"
 #include "chrono_vsg/utils/ChShapeBuilderVSG.h"
-#include "chrono_vsg/utils/ChConversionsVSG.h"
+#include "chrono_vsg/utils/ChDataUtilsVSG.h"
 
 namespace chrono {
 namespace vsg3d {

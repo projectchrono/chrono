@@ -12,7 +12,7 @@
 // Radu Serban
 // =============================================================================
 
-#include "chrono_vsg/utils/ChConversionsVSG.h"
+#include "chrono_vsg/utils/ChDataUtilsVSG.h"
 
 namespace vsg {
 

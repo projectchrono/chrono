@@ -21,7 +21,7 @@
 
 #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
 
-#include "chrono_vsg/utils/ChConversionsVSG.h"
+#include "chrono_vsg/utils/ChDataUtilsVSG.h"
 #include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 
 namespace chrono {

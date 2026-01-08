@@ -14,7 +14,7 @@
 
 #include <cmath>
 
-#include "chrono_vsg/utils/ChConversionsVSG.h"
+#include "chrono_vsg/utils/ChDataUtilsVSG.h"
 #include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 #include "chrono_vsg/utils/ChShaderUtilsVSG.h"
 

@@ -12,8 +12,8 @@
 // Radu Serban
 // =============================================================================
 
-#ifndef CH_CONVERSIONS_VSG_H
-#define CH_CONVERSIONS_VSG_H
+#ifndef CH_DATA_UTILS_VSG_H
+#define CH_DATA_UTILS_VSG_H
 
 #include <vsg/maths/mat4.h>
 #include <vsg/maths/vec3.h>
