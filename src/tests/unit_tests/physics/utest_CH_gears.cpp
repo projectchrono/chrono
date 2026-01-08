@@ -240,7 +240,7 @@ TEST(ChLinkLockGear, cylindrical) {
         // Advance simulation by one step
         sys.DoStepDynamics(timestep);
 
-        std::cout << "test1 time: " << sys.GetChTime() << "  angle=" << mbody_gearB->GetRotAngle() * CH_RAD_TO_DEG << "\n";
+        //std::cout << "test1 time: " << sys.GetChTime() << "  angle=" << mbody_gearB->GetRotAngle() * CH_RAD_TO_DEG << "\n";
     }
     
 
@@ -308,8 +308,8 @@ TEST(ChLinkLockGear, cylindrical) {
         // Advance simulation by one step
         sys.DoStepDynamics(timestep);
 
-        std::cout << "test 2 time: " << sys.GetChTime() << "  angle_B=" << mbody_gearB->GetRotAngle() * CH_RAD_TO_DEG
-                  << "\n";
+        //std::cout << "test 2 time: " << sys.GetChTime() << "  angle_B=" << 
+        // mbody_gearB->GetRotAngle() * CH_RAD_TO_DEG  << "\n";
     }
 
     //double alpha_tangent = atan(tan(alpha) / cos(beta));  // effective pressure angle in tangent plane
