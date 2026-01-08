@@ -110,8 +110,8 @@ void ChTimestepperHHT::PrepareStep() {
 //
 // This is one Newton iteration to solve for a_new
 //
-// [ M - h*gamma*dF/dv - h^2*beta*dF/dx    Cq' ] [ Ds ] =
-// [ Cq                                    0   ] [-Dl ]
+// [ 1/(1+alpha)M  -h*gamma*dF/dv  -h^2*beta*dF/dx   Cq' ] [ Ds ] =
+// [ Cq                                              0   ] [-Dl ]
 //                [ -1/(1+alpha)*M*(a_new) + (f_new + Cq'*l_new) - (alpha/(1+alpha))(f_old + Cq'*l_old)]
 //                [  1/(beta*h^2)*C                                                                    ]
 //
