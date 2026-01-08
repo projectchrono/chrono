@@ -366,6 +366,7 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/assets/ChGlyphs.h"
 
 // physics/  classes
+%include "../../../chrono/timestepper/ChUpdateFlags.h"
 %include "ChControllers.i"
 %include "ChLoadable.i"
 %include "ChObject.i"
