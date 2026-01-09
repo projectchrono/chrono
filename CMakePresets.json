@@ -114,7 +114,7 @@
 				"genericci-base"
 			],
 			"cacheVariables": {
-				"BUILD_BENCHMARKING": "OFF",
+				"BUILD_BENCHMARKING": "ON",
 				"BUILD_TESTING": "ON",
 				"CH_ENABLE_MODULE_PARSERS": "ON",	
 				"CH_ENABLE_MODULE_PERIDYNAMICS": "ON",
