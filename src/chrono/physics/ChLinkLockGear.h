@@ -56,7 +56,7 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     virtual ChLinkLockGear* Clone() const override { return new ChLinkLockGear(*this); }
 
     // Updates motion laws, marker positions, etc.
-    virtual void UpdateTime(double time) override;
+    virtual void Update(double time, UpdateFlag update_flags) override;
 
     /// Get the transmission ratio. Its value is assumed always positive,
     /// both for inner and outer gears (so use GetEpicyclic() to distinguish)
@@ -188,6 +188,9 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     /// Get the teeth damping [N/(m/s)] for compliant gear teeth contact model.
     /// Assumed in the normal direction of contact (hence inclined by alpha, beta angles)
     double GetTeethDamping() const { return teeth_damping; }
+
+    /// equivalent contact force, about average normal to teeth
+    double GetContactForce();
 
     // INTERFACE ChPhysicsItem
 

@@ -27,7 +27,7 @@ class ChTimestepperHHTvelocity : public ChTimestepperIIorder, public ChTimestepp
         SetAlpha(-0.2);
     }
 
-    //virtual Type GetType() const override { return Type::EULER_IMPLICIT_LINEARIZED; }
+    virtual Type GetType() const override { return Type::CUSTOM; }
 
     /// Return the associated integrable object.
     virtual ChIntegrable* GetIntegrable() const override { return integrable; }
@@ -130,9 +130,7 @@ class ChTimestepperHHTvelocity : public ChTimestepperIIorder, public ChTimestepp
             Xnew = X + V * h + A * (h * h * (0.5 - beta)) + Anew * (h * h * beta);
         }
 
-        integrable->StateScatterAcceleration(
-            (Vnew - V) * (1 / dt));  // -> system acceleration 
-
+        integrable->StateScatterAcceleration(Anew);
         X = Xnew;
         V = Vnew;
         L = Lnew;
@@ -242,7 +240,7 @@ TEST(ChLinkLockGear, cylindrical) {
 
         //std::cout << "test1 time: " << sys.GetChTime() << "  angle=" << mbody_gearB->GetRotAngle() * CH_RAD_TO_DEG << "\n";
     }
-    
+    std::cout << "computed contact force (rigid case): " << link_gearAB->GetContactForce() << std::endl;
 
     // check if corresponds to P contact force, from analytical solutions for helical gears 
     double P_t = torque / radB;  // tangent component 
@@ -295,11 +293,19 @@ TEST(ChLinkLockGear, cylindrical) {
     auto mystepper = chrono_types::make_shared<ChTimestepperHHT>(&sys);
     mystepper->SetStepControl(false);
     mystepper->SetJacobianUpdateMethod(ChTimestepperHHT::JacobianUpdate::EVERY_ITERATION);
-    mystepper->SetMaxIters(1);
+    mystepper->SetMaxIters(4);
+    sys.SetTimestepper(mystepper);
+    */
+    /*
+    // TEST HHT velocity-based 
+    auto mystepper = chrono_types::make_shared<ChTimestepperHHTvelocity>(&sys);
+    mystepper->SetStepControl(false);
+    mystepper->SetJacobianUpdateMethod(ChTimestepperHHT::JacobianUpdate::EVERY_ITERATION);
+    mystepper->SetMaxIters(4);
     sys.SetTimestepper(mystepper);
     */
 
-    sys.SetSolverType(ChSolver::Type::MINRES);
+    sys.SetSolverType(ChSolver::Type::GMRES);
     sys.GetSolver()->AsIterative()->SetMaxIterations(250);
 
 
@@ -311,6 +317,7 @@ TEST(ChLinkLockGear, cylindrical) {
         //std::cout << "test 2 time: " << sys.GetChTime() << "  angle_B=" << 
         // mbody_gearB->GetRotAngle() * CH_RAD_TO_DEG  << "\n";
     }
+    std::cout << "computed contact force (compliant case): " << link_gearAB->GetContactForce() << std::endl;
 
     //double alpha_tangent = atan(tan(alpha) / cos(beta));  // effective pressure angle in tangent plane
     double teeth_K_tangent = teeth_K * (cos(alpha) * cos(alpha)) * cos(beta)*cos(beta);
