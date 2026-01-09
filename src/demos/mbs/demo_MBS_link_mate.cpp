@@ -244,7 +244,6 @@ void test_pendulum() {
     // The pendulum has one rigid-motion degree of freedom. We need to use the
     // static solver: ChStaticNonLinearAnalysis().
     ChStaticNonLinearAnalysis rigid_static_analysis;
-    rigid_static_analysis.SetIncrementalSteps(10);
     rigid_static_analysis.SetMaxIterations(100);
     rigid_static_analysis.SetResidualTolerance(1e-16);
     rigid_static_analysis.SetVerbose(false);
@@ -461,7 +460,6 @@ void test_anchorchain() {
         // Set solver for static analysis
         ChStaticNonLinearAnalysis rigid_static_analysis;
         rigid_static_analysis.SetCorrectionTolerance(1e-16, 1e-16);
-        rigid_static_analysis.SetIncrementalSteps(10);
         rigid_static_analysis.SetMaxIterations(100);
         rigid_static_analysis.SetVerbose(false);
 

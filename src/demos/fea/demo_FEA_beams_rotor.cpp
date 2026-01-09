@@ -314,9 +314,7 @@ int main(int argc, char* argv[]) {
         StaticsIterationCallback(const std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes, double blade_rad)
             : nodes(nodes), radius(blade_rad) {}
 
-        void OnIterationBegin(const double load_scaling,
-                              const int iteration_n,
-                              ChStaticNonLinearRheonomicAnalysis* static_analysis) override {
+        void OnIterationBegin(const int iteration_n, ChStaticNonLinearRheonomicAnalysis* static_analysis) override {
             for (auto in : nodes) {
                 // Set node speed and angular velocity, as moved by hub motor
                 in->SetPosDt(ChVector3d(-in->GetPos().y() * radius, 0, 0));

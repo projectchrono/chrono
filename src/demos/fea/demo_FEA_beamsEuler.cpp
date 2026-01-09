@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     // msection->SetShearCenter(0,0.1);
     // msection->SetSectionRotation(45*CH_RAD_TO_DEG);
 
-    // These are for the external loads (define here to help using ChStaticNonLinearIncremental later)
+    // These are for the external loads (define here to help using ChStaticNonLinearAnalysisIncremental later)
     ChVector3d F_node_1(9, 2, 0);
     ChVector3d F_node_2(0, -2, 0);
     std::shared_ptr<ChNodeFEAxyzrot> loaded_node_1;
@@ -219,16 +219,16 @@ int main(int argc, char* argv[]) {
     if (true) {
         std::cout << "BEAM RESULTS (NON-LINEAR STATIC INCREMENTAL ANALYSIS)\n" << std::endl;
 
-        // Instead of using sys.DoStaticNonLinear(), which is quite basic, we will use ChStaticNonLinearIncremental.
+        // Instead of using sys.DoStaticNonLinear(), which is quite basic, we will use ChStaticNonLinearAnalysisIncremental.
         // This requires a custom callback for incrementing the external loads:
 
-        class MyCallback : public ChStaticNonLinearIncremental::LoadIncrementCallback {
+        class MyCallback : public ChStaticNonLinearAnalysisIncremental::LoadIncrementCallback {
           public:
             // Perform updates on the model. This is called before each load scaling.
             // Here we will update all "external" relevan loads.
             virtual void OnLoadScaling(const double load_scaling,              // ranging from 0 to 1
                                        const int iteration_n,                  // actual number of load step
-                                       ChStaticNonLinearIncremental* analysis  // back-pointer to this analysis
+                                       ChStaticNonLinearAnalysisIncremental* analysis  // back-pointer to this analysis
             ) {
                 // Scale the external loads. In our example, just two forces.
                 // Note: if gravity is used, consider scaling also gravity effect, e.g:
@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
         my_load_callback->cb_F_node_2 = F_node_2;
 
         // Create the nonlinear static analysis for incremental external loads.
-        ChStaticNonLinearIncremental static_analysis;
+        ChStaticNonLinearAnalysisIncremental static_analysis;
         static_analysis.SetLoadIncrementCallback(my_load_callback);
         static_analysis.SetVerbose(true);
         // outer loop. More steps helps the inner Newton loop that will need less iterations, but maybe slower.
