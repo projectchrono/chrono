@@ -44,7 +44,7 @@ bool ChShaftsMotorPosition::Initialize(std::shared_ptr<ChShaft> shaft_1, std::sh
     return true;
 }
 
-void ChShaftsMotorPosition::Update(double time, UpdateFlag update_flags) {
+void ChShaftsMotorPosition::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChShaftsMotor::Update(time, update_flags);
 

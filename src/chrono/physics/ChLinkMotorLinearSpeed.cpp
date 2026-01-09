@@ -46,7 +46,7 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed(const ChLinkMotorLinearSpeed& oth
 
 ChLinkMotorLinearSpeed::~ChLinkMotorLinearSpeed() {}
 
-void ChLinkMotorLinearSpeed::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorLinearSpeed::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotorLinear::Update(time, update_flags);
 
@@ -94,7 +94,7 @@ void ChLinkMotorLinearSpeed::IntStateScatter(const unsigned int off_x,  // offse
                                              const unsigned int off_v,  // offset in v state vector
                                              const ChStateDelta& v,     // state vector, speed part
                                              const double T,            // time
-                                             UpdateFlag update_flags    // perform complete update?
+                                             UpdateFlags update_flags    // perform complete update?
 ) {
     // aux = x(off_x);
     aux_dt = v(off_v);

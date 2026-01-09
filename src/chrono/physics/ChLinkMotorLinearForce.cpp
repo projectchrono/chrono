@@ -29,7 +29,7 @@ ChLinkMotorLinearForce::ChLinkMotorLinearForce(const ChLinkMotorLinearForce& oth
 
 ChLinkMotorLinearForce::~ChLinkMotorLinearForce() {}
 
-void ChLinkMotorLinearForce::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorLinearForce::Update(double time, UpdateFlags update_flags) {
     ChLinkMotorLinear::Update(time, update_flags);
 }
 

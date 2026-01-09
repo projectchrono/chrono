@@ -44,7 +44,7 @@ ChVector3d ChPhysicsItem::GetCenter() const {
     return (bbox.min + bbox.max) * 0.5;
 }
 
-void ChPhysicsItem::Update(double time, UpdateFlag update_flags) {
+void ChPhysicsItem::Update(double time, UpdateFlags update_flags) {
     ChObj::Update(time, update_flags);
 }
 

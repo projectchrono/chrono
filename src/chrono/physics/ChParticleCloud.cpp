@@ -404,7 +404,7 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
                                       const unsigned int off_v,  // offset in v state vector
                                       const ChStateDelta& v,     // state vector, speed part
                                       const double T,            // time
-                                      UpdateFlag update_flags    // perform complete update?
+                                      UpdateFlags update_flags    // perform complete update?
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetCoordsys(x.segment(off_x + 7 * j, 7));
@@ -689,7 +689,7 @@ ChVector3d ChParticleCloud::GetInertiaXY() const {
     return iner;
 }
 
-void ChParticleCloud::Update(double time, UpdateFlag update_flags) {
+void ChParticleCloud::Update(double time, UpdateFlags update_flags) {
     ChPhysicsItem::Update(time, update_flags);
 
     // TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping

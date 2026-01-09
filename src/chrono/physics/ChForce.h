@@ -140,7 +140,7 @@ class ChApi ChForce : public ChObj {
     // UPDATING
 
     void UpdateState();
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     // SERIALIZATION
 

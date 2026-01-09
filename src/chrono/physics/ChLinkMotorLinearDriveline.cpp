@@ -95,7 +95,7 @@ void ChLinkMotorLinearDriveline::Setup() {
     innerconstraint2rot->SetOffset_L(this->offset_L + nc + 2);
 }
 
-void ChLinkMotorLinearDriveline::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorLinearDriveline::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotorLinear::Update(time, update_flags);
 
@@ -148,7 +148,7 @@ void ChLinkMotorLinearDriveline::IntStateScatter(const unsigned int off_x,
                                                  const unsigned int off_v,
                                                  const ChStateDelta& v,
                                                  const double T,
-                                                 UpdateFlag update_flags) {
+                                                 UpdateFlags update_flags) {
     // First, inherit to parent class
     ChLinkMotorLinear::IntStateScatter(off_x, x, off_v, v, T, update_flags);
 

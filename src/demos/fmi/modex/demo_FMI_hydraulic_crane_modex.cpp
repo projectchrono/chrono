@@ -139,7 +139,7 @@ class ChExternalActuatorFmu : public ChExternalFmu {
 
     virtual bool IsStiff() const override { return true; }
 
-    virtual void Update(double time, UpdateFlag update_flags) override {
+    virtual void Update(double time, UpdateFlags update_flags) override {
         ChExternalFmu::Update(time, update_flags);
 
         if (is_attached) {

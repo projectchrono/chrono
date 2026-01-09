@@ -154,7 +154,7 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
     }
 }
 
-void ChFeeder::Update(double time, UpdateFlag update_flags) {
+void ChFeeder::Update(double time, UpdateFlags update_flags) {
     // inherit parent class function
     ChPhysicsItem::Update(time, update_flags);
 }

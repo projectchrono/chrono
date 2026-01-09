@@ -133,7 +133,7 @@ std::shared_ptr<ChAssembly> BuildBeamFixBody(ChSystem& sys) {
     assembly->Add(link_beamend_body);
 
     sys.Setup();
-    sys.Update(UpdateFlag::UPDATE_ALL);
+    sys.Update(UpdateFlags::UPDATE_ALL);
 
     return assembly;
 }
@@ -147,7 +147,7 @@ void generateKRMCqFromAssembly(std::shared_ptr<ChAssembly> assembly,
     sys.SetGravityY();
 
     assembly->Setup();
-    assembly->Update(0.0, UpdateFlag::UPDATE_ALL_NO_VISUAL);
+    assembly->Update(0.0, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 
     ChSystemDescriptor temp_descriptor;
 

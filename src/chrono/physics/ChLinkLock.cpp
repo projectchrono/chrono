@@ -368,7 +368,7 @@ void ChLinkLock::UpdateTime(double time) {
 }
 
 // Complete update.
-void ChLinkLock::Update(double time, UpdateFlag update_flags) {
+void ChLinkLock::Update(double time, UpdateFlags update_flags) {
     UpdateTime(time);
     UpdateRelMarkerCoords();
     UpdateState();

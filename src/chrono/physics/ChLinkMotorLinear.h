@@ -73,7 +73,7 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
 
     int m_actuated_idx;  ///< row index of the actuated constraint (Z axis)
 
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinear, 0)

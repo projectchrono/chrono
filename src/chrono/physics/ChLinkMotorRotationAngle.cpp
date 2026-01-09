@@ -35,7 +35,7 @@ ChLinkMotorRotationAngle::ChLinkMotorRotationAngle(const ChLinkMotorRotationAngl
 
 ChLinkMotorRotationAngle::~ChLinkMotorRotationAngle() {}
 
-void ChLinkMotorRotationAngle::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorRotationAngle::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotorRotation::Update(time, update_flags);
 

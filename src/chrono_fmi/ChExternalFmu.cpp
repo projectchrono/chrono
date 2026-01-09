@@ -385,7 +385,7 @@ void ChExternalFmu::CalculateRHS(double time, const ChVectorDynamic<>& y, ChVect
         rhs(i) = derivs[i];
 }
 
-void ChExternalFmu::Update(double time, UpdateFlag update_flags) {
+void ChExternalFmu::Update(double time, UpdateFlags update_flags) {
     m_wrapper->SetTime(time);
 
     // Collect input values at current time

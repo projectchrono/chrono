@@ -151,7 +151,7 @@ void ChCheckpointASCII::ReadState(ChSystem* sys) {
         iss >> v[i];
     }
 
-    sys->StateScatter(x, v, time, UpdateFlag::UPDATE_ALL);
+    sys->StateScatter(x, v, time, UpdateFlags::UPDATE_ALL);
 }
 
 // -----------------------------------------------------------------------------

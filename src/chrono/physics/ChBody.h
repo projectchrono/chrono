@@ -347,13 +347,13 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // UPDATE FUNCTIONS
 
     /// Update all children markers of the rigid body, at current body state
-    void UpdateMarkers(double time, UpdateFlag update_flags);
+    void UpdateMarkers(double time, UpdateFlags update_flags);
 
     /// Update all children forces of the rigid body, at current body state.
-    void UpdateForces(double time, UpdateFlag update_flags);
+    void UpdateForces(double time, UpdateFlags update_flags);
 
     /// Update all auxiliary data of the rigid body and of its children (markers, forces..), at given time
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Return the resultant applied force on the body.
     /// This resultant force includes all external applied loads acting on this body (from gravity, loads, springs,
@@ -460,7 +460,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 UpdateFlag update_flags) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,

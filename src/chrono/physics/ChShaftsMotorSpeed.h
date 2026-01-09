@@ -92,7 +92,7 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
     virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -104,7 +104,7 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 UpdateFlag update_flags) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;

@@ -128,7 +128,7 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
     /// default true: shaft 1 free to rotate forward respect to shaft 2. False: 1 free backward respect to 2
     bool free_forward;
 
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;

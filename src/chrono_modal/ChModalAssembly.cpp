@@ -1237,7 +1237,7 @@ void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
     }
 }
 
-void ChModalAssembly::UpdateInternalState(UpdateFlag update_flags) {
+void ChModalAssembly::UpdateInternalState(UpdateFlags update_flags) {
     if (!m_is_model_reduced)
         return;
 
@@ -1375,9 +1375,9 @@ void ChModalAssembly::SetFullStateReset() {
 
     assembly_v.setZero(m_num_coords_vel, nullptr);
 
-    this->IntStateScatter(0, m_full_state_x0, 0, assembly_v, fooT, UpdateFlag::UPDATE_ALL);
+    this->IntStateScatter(0, m_full_state_x0, 0, assembly_v, fooT, UpdateFlags::UPDATE_ALL);
 
-    this->Update(ChTime, UpdateFlag::UPDATE_ALL_NO_VISUAL);
+    this->Update(ChTime, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 }
 
 //---------------------------------------------------------------------------------------
@@ -1611,7 +1611,7 @@ void ChModalAssembly::GetSubassemblyMatrices(ChSparseMatrix* K,
                                              ChSparseMatrix* Cq) {
     this->SetupInitial();
     this->Setup();
-    this->Update(ChTime, UpdateFlag::UPDATE_ALL_NO_VISUAL);
+    this->Update(ChTime, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 
     ChSystemDescriptor temp_descriptor;
 
@@ -1928,7 +1928,7 @@ void ChModalAssembly::Initialize() {
 // Update all physical items (bodies, links, meshes, etc), including their auxiliary variables.
 // Updates all forces (automatic, as children of bodies)
 // Updates all markers (automatic, as children of bodies).
-void ChModalAssembly::Update(double time, UpdateFlag update_flags) {
+void ChModalAssembly::Update(double time, UpdateFlags update_flags) {
     ChAssembly::Update(time, update_flags);
 
     if (m_is_model_reduced) {
@@ -2106,7 +2106,7 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
                                       const unsigned int off_v,
                                       const ChStateDelta& v,
                                       const double T,
-                                      UpdateFlag update_flags) {
+                                      UpdateFlags update_flags) {
     ChAssembly::IntStateScatter(off_x, x, off_v, v, T, update_flags);  // parent
 
     unsigned int displ_x = off_x - this->offset_x;

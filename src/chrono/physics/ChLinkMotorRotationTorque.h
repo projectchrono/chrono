@@ -53,7 +53,7 @@ class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 };

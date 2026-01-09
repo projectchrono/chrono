@@ -261,7 +261,7 @@ void ChForce::UpdateState() {
     }
 }
 
-void ChForce::Update(double time, UpdateFlag update_flags) {
+void ChForce::Update(double time, UpdateFlags update_flags) {
     ChObj::Update(time, update_flags);
     UpdateState();
 }

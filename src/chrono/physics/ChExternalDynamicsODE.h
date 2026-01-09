@@ -83,7 +83,7 @@ class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
     }
 
   protected:
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
 
@@ -103,7 +103,7 @@ class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 UpdateFlag update_flags) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;

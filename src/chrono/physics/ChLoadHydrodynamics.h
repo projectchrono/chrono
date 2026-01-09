@@ -58,7 +58,7 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     /// Perform any updates necessary at the current phase during the solution process.
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
     /// If a problem size is detected, resize the underlying KRM block.
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Increment the given residual vector R with the term c * M * w (for the entire system).
     virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual

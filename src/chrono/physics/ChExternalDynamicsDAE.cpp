@@ -86,7 +86,7 @@ ChVectorDynamic<> ChExternalDynamicsDAE::GetInitialStateDerivatives() {
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamicsDAE::Update(double time, UpdateFlag update_flags) {
+void ChExternalDynamicsDAE::Update(double time, UpdateFlags update_flags) {
     // Update time and assets
     ChPhysicsItem::Update(time, update_flags);
 
@@ -144,7 +144,7 @@ void ChExternalDynamicsDAE::IntStateScatter(const unsigned int off_x,  // offset
                                             const unsigned int off_v,  // offset in v state vector
                                             const ChStateDelta& v,     // state vector, speed part
                                             const double T,            // time
-                                            UpdateFlag update_flags    // perform complete update?
+                                            UpdateFlags update_flags    // perform complete update?
 ) {
     if (!IsActive())
         return;

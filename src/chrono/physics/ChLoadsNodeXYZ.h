@@ -104,7 +104,7 @@ class ChApi ChLoadNodeXYZForce : public ChLoadCustom {
     // Declare this load as non-stiff.
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     ChVector3d computed_abs_force;
 };
@@ -144,7 +144,7 @@ class ChApi ChLoadNodeXYZForceAbs : public ChLoadNodeXYZForce {
     // Declare this load as non-stiff.
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 };
 
 // -----------------------------------------------------------------------------
@@ -181,7 +181,7 @@ class ChApi ChLoadNodeXYZNodeXYZ : public ChLoadCustomMultiple {
     // Declare this load as non-stiff.
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     ChVector3d computed_abs_force;
 };

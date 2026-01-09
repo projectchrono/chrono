@@ -190,7 +190,7 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::Update(double time, UpdateFlag update_flags) {
+void ChLinkRevoluteTranslational::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChLink::Update(time, update_flags);
 

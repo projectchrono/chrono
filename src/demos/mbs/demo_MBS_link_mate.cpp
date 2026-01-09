@@ -710,7 +710,7 @@ void test_anchorchain() {
         DoDynamicsUnderImpulse(vec_fx, "vibration_x");
 
         // recover the system to the exactly same equilibrium status
-        sys.StateScatter(X0, V0, T0, UpdateFlag::UPDATE_ALL);
+        sys.StateScatter(X0, V0, T0, UpdateFlags::UPDATE_ALL);
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Y direction (Out-of-plane motion is expected)
@@ -719,7 +719,7 @@ void test_anchorchain() {
         DoDynamicsUnderImpulse(vec_fy, "vibration_y");
 
         // recover the system to the exactly same equilibrium status
-        sys.StateScatter(X0, V0, T0, UpdateFlag::UPDATE_ALL);
+        sys.StateScatter(X0, V0, T0, UpdateFlags::UPDATE_ALL);
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Z direction (In-plane vertical motion is expected)

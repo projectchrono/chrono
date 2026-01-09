@@ -62,7 +62,7 @@ void ChTimestepperHHT::InitializeStep() {
 
 void ChTimestepperHHT::ResetStep() {
     // Scatter state and reset auxiliary vectors
-    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL_NO_VISUAL);
+    integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL_NO_VISUAL);
     Rold.setZero();
     Anew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
 }
@@ -76,7 +76,7 @@ void ChTimestepperHHT::AcceptStep() {
 
 void ChTimestepperHHT::FinalizeStep() {
     // Scatter state -> system doing a full update
-    integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);
+    integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);
 
     // Scatter auxiliary data (A and L) -> system
     integrable->StateScatterAcceleration(A);
@@ -117,7 +117,7 @@ void ChTimestepperHHT::PrepareStep() {
 //
 void ChTimestepperHHT::Increment() {
     // Scatter the current estimate of state at time T+h
-    integrable->StateScatter(Xnew, Vnew, T + h, UpdateFlag::UPDATE_ALL_NO_VISUAL);
+    integrable->StateScatter(Xnew, Vnew, T + h, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 
     // Initialize the two segments of the RHS
     R = Rold;      // terms related to state at time T
@@ -138,7 +138,7 @@ void ChTimestepperHHT::Increment() {
                                      -h * h * beta,      // factor for  dF/dx
                                      Xnew, Vnew, T + h,  // not used here (force_scatter = false)
                                      false,              // do not scatter states
-                                     UpdateFlag::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
+                                     UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
                                      call_setup,         // if true, call the solver's Setup function
                                      call_analyze        // if true, call the solver's Setup analyze phase
     );

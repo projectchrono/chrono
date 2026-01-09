@@ -159,7 +159,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// - UpdateState;
     /// - UpdateCqw
     /// - UpdateForces;
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

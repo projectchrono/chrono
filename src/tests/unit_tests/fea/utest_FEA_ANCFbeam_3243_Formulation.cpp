@@ -193,7 +193,7 @@ ANCFBeamTest::ANCFBeamTest(bool useContInt) {
     //  Update the system so that all of the required pre-computation steps are called for the element.
     // =============================================================================
 
-    m_system->Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+    m_system->Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 }
 
 bool ANCFBeamTest::RunElementChecks(int msglvl) {

@@ -642,7 +642,7 @@ void ChAssembly::Setup() {
 // - Update all physical items (bodies, links, meshes, etc), including their auxiliary variables
 // - Update all forces (automatic, as children of bodies)
 // - Update all markers (automatic, as children of bodies)
-void ChAssembly::Update(double time, UpdateFlag update_flags) {
+void ChAssembly::Update(double time, UpdateFlags update_flags) {
     ChPhysicsItem::Update(time, update_flags);
 
     //// NOTE: do not switch these to range for loops (may want to use OMP for)
@@ -718,7 +718,7 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 UpdateFlag update_flags) {
+                                 UpdateFlags update_flags) {
     // Notes:
     // 1. All IntStateScatter() calls below will automatically call Update() for each object, therefore:
     //    - do not call Update() on this (assembly).

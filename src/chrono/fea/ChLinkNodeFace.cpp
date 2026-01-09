@@ -196,7 +196,7 @@ void ChLinkNodeFace::CompleteInitialization() {
 }
 
 
-void ChLinkNodeFace::Update(double time, UpdateFlag update_flags) {
+void ChLinkNodeFace::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(time, update_flags);
 }

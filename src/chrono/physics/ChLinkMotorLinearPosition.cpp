@@ -36,7 +36,7 @@ ChLinkMotorLinearPosition::ChLinkMotorLinearPosition(const ChLinkMotorLinearPosi
 
 ChLinkMotorLinearPosition::~ChLinkMotorLinearPosition() {}
 
-void ChLinkMotorLinearPosition::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorLinearPosition::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotorLinear::Update(time, update_flags);
 

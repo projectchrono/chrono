@@ -32,7 +32,7 @@ ChLoadBase::~ChLoadBase() {
     delete m_jacobians;
 }
 
-void ChLoadBase::Update(double time, UpdateFlag update_flags) {
+void ChLoadBase::Update(double time, UpdateFlags update_flags) {
     ChObj::Update(time, update_flags);
 
     // current state speed & position

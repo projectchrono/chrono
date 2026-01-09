@@ -294,7 +294,7 @@ void ChLinkMarkers::UpdateForces(double time) {
     C_torque = VNULL;
 }
 
-void ChLinkMarkers::Update(double time, UpdateFlag update_flags) {
+void ChLinkMarkers::Update(double time, UpdateFlags update_flags) {
     // Update time and assets
     ChPhysicsItem::Update(time, update_flags);
 

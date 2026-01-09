@@ -159,7 +159,7 @@ void ChMesh::Setup() {
 
 // Updates all time-dependant variables, if any...
 // Ex: maybe the elasticity can increase in time, etc.
-void ChMesh::Update(double m_time, UpdateFlag update_flags) {
+void ChMesh::Update(double m_time, UpdateFlags update_flags) {
     // Parent class update
     ChIndexedNodes::Update(m_time, update_flags);
 
@@ -209,7 +209,7 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
                              const unsigned int off_v,
                              const ChStateDelta& v,
                              const double T,
-                             UpdateFlag update_flags) {
+                             UpdateFlags update_flags) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {

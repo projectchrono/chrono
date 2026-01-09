@@ -78,7 +78,7 @@ void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
     m_actuated_idx = (int)c_x + (int)c_y;
 }
 
-void ChLinkMotorLinear::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorLinear::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotor::Update(time, update_flags);
 

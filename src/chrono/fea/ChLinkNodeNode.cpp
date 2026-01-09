@@ -43,7 +43,7 @@ int ChLinkNodeNode::Initialize(std::shared_ptr<ChNodeFEAxyz> node1, std::shared_
     return true;
 }
 
-void ChLinkNodeNode::Update(double time, UpdateFlag update_flags) {
+void ChLinkNodeNode::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(time, update_flags);
 

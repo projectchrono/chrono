@@ -91,7 +91,7 @@ class ChTimestepperHHTvelocity : public ChTimestepperIIorder, public ChTimestepp
         //
         unsigned int iteration;
         for (iteration = 0; iteration < max_iters; iteration++) {
-            integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlag::UPDATE_ALL_NO_VISUAL);  // state -> system
+            integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
             //R.setZero();
             Qc.setZero();
             Rnew = R;                                                         // Rnew  = - (alpha/(1+alpha))(f_old + Cq'*l_old)
@@ -115,7 +115,7 @@ class ChTimestepperHHTvelocity : public ChTimestepperIIorder, public ChTimestepp
                 -(beta * dt)/gamma,            // factor for dF/dx
                 Xnew, Vnew, T + dt,            // not used here (scatter = false)
                 false,                         // do not scatter update to Xnew Vnew T+dt before computing correction
-                UpdateFlag::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
+                UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
                 true,                          // always call the solver's Setup
                 true                           // always call the solver's Setup analyze phase
             );
@@ -137,7 +137,7 @@ class ChTimestepperHHTvelocity : public ChTimestepperIIorder, public ChTimestepp
         //R = Rnew; 
         T += dt;
 
-        integrable->StateScatter(X, V, T, UpdateFlag::UPDATE_ALL);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
         integrable->StateScatterReactions(L);     // react -> system  
     
     }

@@ -506,10 +506,10 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Update the forces and the geometry, at the beginning of each timestep.
     virtual void Setup() override {
         ComputeInternalForces();
-        ChLoadContainer::Update(ChTime, UpdateFlag::UPDATE_ALL);
+        ChLoadContainer::Update(ChTime, UpdateFlags::UPDATE_ALL);
     }
 
-    virtual void Update(double time, UpdateFlag update_flags) override {
+    virtual void Update(double time, UpdateFlags update_flags) override {
         // Note!!! we cannot call ComputeInternalForces here, because Update() could
         // be called multiple times per timestep and not necessarily in time-increasing order;
         // this is a problem because in this force model the force is dissipative and keeps a 'history'.

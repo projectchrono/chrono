@@ -80,7 +80,7 @@ void ChConveyor::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& v,     // state vector, speed part
                                  const double T,            // time
-                                 UpdateFlag update_flags    // perform complete update?
+                                 UpdateFlags update_flags    // perform complete update?
 ) {
     conveyor_truss->IntStateScatter(off_x, x, off_v, v, T, update_flags);
     conveyor_plate->IntStateScatter(off_x + 7, x, off_v + 6, v, T, update_flags);
@@ -259,7 +259,7 @@ void ChConveyor::SetSystem(ChSystem* m_system) {
     internal_link->SetSystem(m_system);
 }
 
-void ChConveyor::Update(double time, UpdateFlag update_flags) {
+void ChConveyor::Update(double time, UpdateFlags update_flags) {
     // inherit parent class function
     ChPhysicsItem::Update(time, update_flags);
 

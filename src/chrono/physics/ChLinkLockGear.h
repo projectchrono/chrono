@@ -56,7 +56,7 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     virtual ChLinkLockGear* Clone() const override { return new ChLinkLockGear(*this); }
 
     // Updates motion laws, marker positions, etc.
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Get the transmission ratio. Its value is assumed always positive,
     /// both for inner and outer gears (so use GetEpicyclic() to distinguish)

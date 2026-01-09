@@ -88,7 +88,7 @@ void ChShaft::IntStateScatter(const unsigned int off_x,  // offset in x state ve
                               const unsigned int off_v,  // offset in v state vector
                               const ChStateDelta& v,     // state vector, speed part
                               const double T,            // time
-                              UpdateFlag update_flags    // perform complete update?
+                              UpdateFlags update_flags    // perform complete update?
 ) {
     SetPos(x(off_x));
     SetPosDt(v(off_v));
@@ -224,7 +224,7 @@ bool ChShaft::TrySleeping() {
     return false;
 }
 
-void ChShaft::Update(double time, UpdateFlag update_flags) {
+void ChShaft::Update(double time, UpdateFlags update_flags) {
     // Update parent class too
     ChPhysicsItem::Update(time, update_flags);
 

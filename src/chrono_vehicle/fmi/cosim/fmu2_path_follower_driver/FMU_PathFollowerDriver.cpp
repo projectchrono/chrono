@@ -302,7 +302,7 @@ fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
 #ifdef CHRONO_IRRLICHT
         if (vis_sys) {
             // Update system and all visual assets
-            sys.Update(UpdateFlag::UPDATE_ALL);
+            sys.Update(UpdateFlags::UPDATE_ALL);
             sys.SetChTime(m_time);
 
             // Update camera position

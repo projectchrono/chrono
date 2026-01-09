@@ -713,12 +713,12 @@ void ChSystem::Setup() {
 // - updates all forces  (automatic, as children of bodies)
 // - updates all markers (automatic, as children of bodies).
 
-void ChSystem::Update(double time, UpdateFlag update_flags) {
+void ChSystem::Update(double time, UpdateFlags update_flags) {
     ch_time = time;
     Update(update_flags);
 }
 
-void ChSystem::Update(UpdateFlag update_flags) {
+void ChSystem::Update(UpdateFlags update_flags) {
     CH_PROFILE("Update");
 
     Initialize();
@@ -732,7 +732,7 @@ void ChSystem::Update(UpdateFlag update_flags) {
     contact_container->Update(ch_time, update_flags);
 
     // Update any attached visualization system only when also updating assets
-    if (visual_system && has_flag(update_flags,UpdateFlag::VISUAL_ASSETS))
+    if (visual_system && has_flag(update_flags,UpdateFlags::VISUAL_ASSETS))
         visual_system->OnUpdate(this);
 
     timer_update.stop();
@@ -932,7 +932,7 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
 }
 
 // From state Y={x,v} to system.
-void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlag update_flags) {
+void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) {
     unsigned int off_x = 0;
     unsigned int off_v = 0;
 
@@ -1037,7 +1037,7 @@ bool ChSystem::StateSolveCorrection(
     const ChStateDelta& v,        // current state, v part
     const double T,               // current time T
     bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-    UpdateFlag update_flags,      // if true, perform a full update during scatter
+    UpdateFlags update_flags,      // if true, perform a full update during scatter
     bool call_setup,              // if true, call the solver's Setup() function
     bool call_analyze             // if true, call the solver's Setup analyze phase
 ) {
@@ -1432,7 +1432,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
 unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_tol, bool verbose) {
     // Setup system descriptor
     Setup();
-    Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+    Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
     DescriptorPrepareInject(*descriptor);
 
     ChSparseMatrix Cq;
@@ -1544,7 +1544,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
-    Update(UpdateFlag::UPDATE_ALL &~UpdateFlag::VISUAL_ASSETS);
+    Update(UpdateFlags::UPDATE_ALL &~UpdateFlags::VISUAL_ASSETS);
     DescriptorPrepareInject(*descriptor);
 
     if (verbose) {
@@ -1601,7 +1601,7 @@ bool ChSystem::AdvanceDynamics() {
 
     // If needed, update everything. No need to update visualization assets here.
     if (!is_updated) {
-        Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+        Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
     }
 
     // Re-wake the bodies that cannot sleep because they are in contact with
@@ -1704,7 +1704,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
     setupcount = 0;
 
     Setup();
-    Update(UpdateFlag::UPDATE_ALL);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Prepare lists of variables and constraints
     DescriptorPrepareInject(*descriptor);
@@ -1737,7 +1737,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoStepKinematics(double step_size) {
     step = step_size;
     ch_time += step_size;
 
-    Update(UpdateFlag::UPDATE_ALL);
+    Update(UpdateFlags::UPDATE_ALL);
     AssemblyAnalysis::ExitFlag exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
     return exit_flag;
@@ -1785,7 +1785,7 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     setupcount = 0;
 
     Setup();
-    Update(UpdateFlag::UPDATE_ALL);
+    Update(UpdateFlags::UPDATE_ALL);
 
     DescriptorPrepareInject(*descriptor);
     analysis.SetIntegrable(this);
@@ -1807,7 +1807,7 @@ bool ChSystem::DoStaticLinear() {
     setupcount = 0;
 
     Setup();
-    Update(UpdateFlag::UPDATE_ALL);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1867,7 +1867,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     setupcount = 0;
 
     Setup();
-    Update(UpdateFlag::UPDATE_ALL);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1911,7 +1911,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     setupcount = 0;
 
     Setup();
-    Update(UpdateFlag::UPDATE_ALL);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;

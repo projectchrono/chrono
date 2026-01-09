@@ -31,7 +31,7 @@ ChContactContainerSMC::~ChContactContainerSMC() {
     RemoveAllContacts();
 }
 
-void ChContactContainerSMC::Update(double time, UpdateFlag update_flags) {
+void ChContactContainerSMC::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class, basically doing nothing :)
     ChContactContainer::Update(time, update_flags);
 }

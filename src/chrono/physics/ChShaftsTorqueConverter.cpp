@@ -77,7 +77,7 @@ double ChShaftsTorqueConverter::GetSpeedRatio() const {
     return wrel2 / wrel1;
 }
 
-void ChShaftsTorqueConverter::Update(double time, UpdateFlag update_flags) {
+void ChShaftsTorqueConverter::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(time, update_flags);
 

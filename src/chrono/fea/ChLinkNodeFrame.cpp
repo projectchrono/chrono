@@ -71,7 +71,7 @@ void ChLinkNodeFrameGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_
     c_z = mc_z;
 }
 
-void ChLinkNodeFrameGeneric::Update(double time, UpdateFlag update_flags) {
+void ChLinkNodeFrameGeneric::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(time, update_flags);
 
@@ -361,7 +361,7 @@ int ChLinkNodeFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
     return true;
 }
 
-void ChLinkNodeFrame::Update(double time, UpdateFlag update_flags) {
+void ChLinkNodeFrame::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(time, update_flags);
 

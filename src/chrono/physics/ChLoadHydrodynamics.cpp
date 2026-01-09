@@ -44,7 +44,7 @@ ChLoadHydrodynamics::ChLoadHydrodynamics(const ChLoadHydrodynamics& other) {
 
 ChLoadHydrodynamics::~ChLoadHydrodynamics() {}
 
-void ChLoadHydrodynamics::Update(double time, UpdateFlag update_flags) {
+void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
     // If the system problem size has changed, recompute the system-wide added mass matrix
     auto size = GetSystem()->GetNumCoordsVelLevel();
     if (m_added_mass.rows() != size) {

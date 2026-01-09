@@ -111,7 +111,7 @@ void ChLinkDistance::SetMode(Mode new_mode) {
     Cx.SetMode(mode == Mode::BILATERAL ? ChConstraint::Mode::LOCK : ChConstraint::Mode::UNILATERAL);
 }
 
-void ChLinkDistance::Update(double time, UpdateFlag update_flags) {
+void ChLinkDistance::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
     ChLink::Update(time, update_flags);
 

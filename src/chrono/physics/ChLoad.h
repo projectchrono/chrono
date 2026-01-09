@@ -99,7 +99,7 @@ class ChApi ChLoadBase : public ChObj {
     /// - It recomputes the generalized load Q vector(s)
     /// - It recomputes the Jacobian matrices K,R,M in case of stiff load
     /// Q and Jacobians assumed evaluated at the current state. Jacobians are automatically allocated if needed.
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Report if this is load is stiff.
     /// If so, InjectKRMMatrices will provide the Jacobians of the load.

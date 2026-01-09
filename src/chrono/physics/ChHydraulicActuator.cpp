@@ -103,7 +103,7 @@ double ChHydraulicActuatorBase::GetInput(double t) const {
     return ChClamp(ref_fun->GetVal(t), -1.0, +1.0);
 }
 
-void ChHydraulicActuatorBase::Update(double time, UpdateFlag update_flags) {
+void ChHydraulicActuatorBase::Update(double time, UpdateFlags update_flags) {
     // Update the external dynamics
     ChExternalDynamicsODE::Update(time, update_flags);
 

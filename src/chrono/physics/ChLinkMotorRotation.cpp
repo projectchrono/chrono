@@ -79,7 +79,7 @@ void ChLinkMotorRotation::SetSpindleConstraint(const SpindleConstraint mconstrai
     }
 }
 
-void ChLinkMotorRotation::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorRotation::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotor::Update(time, update_flags);
 

@@ -466,7 +466,7 @@ int main(int argc, char* argv[]) {
 
     double timestep = 0.1;
     sys.Setup();
-    sys.Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+    sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 
     ChFunctionInterp rec_X;
     ChFunctionInterp rec_Y;

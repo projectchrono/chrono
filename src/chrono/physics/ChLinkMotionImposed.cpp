@@ -34,7 +34,7 @@ ChLinkMotionImposed::ChLinkMotionImposed(const ChLinkMotionImposed& other) : ChL
 
 ChLinkMotionImposed::~ChLinkMotionImposed() {}
 
-void ChLinkMotionImposed::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotionImposed::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMateGeneric::Update(time, update_flags);
 

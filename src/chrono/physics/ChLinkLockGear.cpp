@@ -168,9 +168,9 @@ void ChLinkLockGear::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfac
 }
 
 
-void ChLinkLockGear::Update(double time, UpdateFlag update_flags) {
+void ChLinkLockGear::Update(double time, UpdateFlags update_flags) {
     
-    if (has_flag(update_flags, UpdateFlag::VISUAL_ASSETS)) {
+    if (has_flag(update_flags, UpdateFlags::VISUAL_ASSETS)) {
 
         // Move markers 1 and 2 to align them as gear teeth
         ChVector3d mmark1;

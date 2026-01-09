@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
         // TEST
         sys.Setup();
-        sys.Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+        sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
         std::cout << "BST initial: \n"
                   << "Area: " << element->area << "\n"
                   << "l0: " << element->l0 << "\n"
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         node1->SetPos(node1->GetPos() + ChVector3d(0.1, 0, 0));
         node1->SetFixed(true);
 
-        sys.Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+        sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
         ChVectorDynamic<double> Fi(element->GetNumCoordsPosLevel());
         element->ComputeInternalForces(Fi);
         std::cout << "BST updated: \n"
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double timestep = 0.005;
     sys.Setup();
-    sys.Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+    sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 
     ChFunctionInterp rec_X;
     ChFunctionInterp rec_Y;

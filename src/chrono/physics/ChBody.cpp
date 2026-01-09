@@ -118,7 +118,7 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const unsigned int off_v,  // offset in v state vector
                              const ChStateDelta& v,     // state vector, speed part
                              const double T,            // time
-                             UpdateFlag update_flags    // perform complete update?
+                             UpdateFlags update_flags    // perform complete update?
 ) {
     SetCoordsys(x.segment(off_x, 7));
     SetPosDt(v.segment(off_v + 0, 3));
@@ -543,13 +543,13 @@ std::shared_ptr<ChForce> ChBody::SearchForce(const std::string& name) const {
 
 // -----------------------------------------------------------------------------
 
-void ChBody::UpdateMarkers(double time, UpdateFlag update_flags) {
+void ChBody::UpdateMarkers(double time, UpdateFlags update_flags) {
     for (auto& marker : marklist) {
         marker->Update(time, update_flags);
     }
 }
 
-void ChBody::UpdateForces(double time, UpdateFlag update_flags) {
+void ChBody::UpdateForces(double time, UpdateFlags update_flags) {
     // Initialize body forces with gravitational forces (if included in a system)
     Xforce = system ? system->GetGravitationalAcceleration() * GetMass() : VNULL;
     Xtorque = VNULL;
@@ -573,7 +573,7 @@ void ChBody::UpdateForces(double time, UpdateFlag update_flags) {
     }
 }
 
-void ChBody::Update(double time, UpdateFlag update_flags) {
+void ChBody::Update(double time, UpdateFlags update_flags) {
     // Update time and assets
     ChObj::Update(time, update_flags);
 

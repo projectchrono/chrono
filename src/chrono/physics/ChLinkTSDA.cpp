@@ -264,7 +264,7 @@ void ChLinkTSDA::ComputeJacobians(double time,                 // current time
 
 // -----------------------------------------------------------------------------
 
-void ChLinkTSDA::Update(double time, UpdateFlag update_flags) {
+void ChLinkTSDA::Update(double time, UpdateFlags update_flags) {
     ChLink::Update(time, update_flags);
 
     // Pack states and state derivatives for the two connected bodies and ODE states (if present)
@@ -342,7 +342,7 @@ void ChLinkTSDA::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& v,     // state vector, speed part
                                  const double T,            // time
-                                 UpdateFlag update_flags    // perform complete update?
+                                 UpdateFlags update_flags    // perform complete update?
 ) {
     if (!IsActive())
         return;

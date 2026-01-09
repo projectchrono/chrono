@@ -31,7 +31,7 @@ ChLinkMotorRotationTorque::ChLinkMotorRotationTorque(const ChLinkMotorRotationTo
 
 ChLinkMotorRotationTorque::~ChLinkMotorRotationTorque() {}
 
-void ChLinkMotorRotationTorque::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotorRotationTorque::Update(double time, UpdateFlags update_flags) {
     ChLinkMotorRotation::Update(time, update_flags);
 }
 

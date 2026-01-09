@@ -181,7 +181,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     virtual void Setup() override;
 
     /// This will call   ComputeForcesReset(), ComputeForces(), ComputeStates()  for each material
-    virtual void Update(double mytime, UpdateFlag update_flags) override;
+    virtual void Update(double mytime, UpdateFlags update_flags) override;
 
     // STATE
 
@@ -202,7 +202,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 UpdateFlag update_flags) override;
+                                 UpdateFlags update_flags) override;
 
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
 

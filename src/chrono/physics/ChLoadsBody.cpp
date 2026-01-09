@@ -67,7 +67,7 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mbody->ComputeNF(abs_point.x(), abs_point.y(), abs_point.z(), load_Q, detJ, mF, state_x, state_w);
 }
 
-void ChLoadBodyForce::Update(double time, UpdateFlag update_flags) {
+void ChLoadBodyForce::Update(double time, UpdateFlags update_flags) {
     if (!std::dynamic_pointer_cast<ChBody>(this->loadable)->Variables().IsActive())
         return;
 
@@ -126,7 +126,7 @@ void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mbody->ComputeNF(0, 0, 0, load_Q, detJ, mF, state_x, state_w);
 }
 
-void ChLoadBodyTorque::Update(double time, UpdateFlag update_flags) {
+void ChLoadBodyTorque::Update(double time, UpdateFlags update_flags) {
     if (!std::dynamic_pointer_cast<ChBody>(this->loadable)->Variables().IsActive())
         return;
 
@@ -388,7 +388,7 @@ void ChLoadBodyBodyTorque::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel
     loc_torque *= m_scale;
 }
 
-void ChLoadBodyBodyTorque::Update(double time, UpdateFlag update_flags) {
+void ChLoadBodyBodyTorque::Update(double time, UpdateFlags update_flags) {
     m_modulation->Update(time);
     m_scale = m_modulation->GetVal(time);
     ChLoadCustomMultiple::Update(time, update_flags);

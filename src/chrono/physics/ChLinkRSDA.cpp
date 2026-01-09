@@ -182,7 +182,7 @@ void ChLinkRSDA::AdjustAngle() {
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkRSDA::Update(double time, UpdateFlag update_flags) {
+void ChLinkRSDA::Update(double time, UpdateFlags update_flags) {
     ChLink::Update(time, update_flags);
 
     // Calculate current angle and angle rate

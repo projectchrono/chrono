@@ -29,7 +29,7 @@ ChLinkMotor::ChLinkMotor(const ChLinkMotor& other) : ChLinkMateGeneric(other) {
 
 ChLinkMotor::~ChLinkMotor() {}
 
-void ChLinkMotor::Update(double time, UpdateFlag update_flags) {
+void ChLinkMotor::Update(double time, UpdateFlags update_flags) {
     ChLinkMateGeneric::Update(time, update_flags);
     m_func->Update(time);
 }

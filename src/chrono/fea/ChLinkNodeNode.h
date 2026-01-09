@@ -75,7 +75,7 @@ class ChApi ChLinkNodeNode : public ChLinkBase {
     ChVector3d GetReactionOnNode2() const { return -react; }
 
     /// Update all auxiliary data of the gear transmission at given time.
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

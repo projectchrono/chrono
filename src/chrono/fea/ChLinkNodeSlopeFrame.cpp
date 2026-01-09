@@ -64,7 +64,7 @@ int ChLinkNodeSlopeFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
     return true;
 }
 
-void ChLinkNodeSlopeFrame::Update(double time, UpdateFlag update_flags) {
+void ChLinkNodeSlopeFrame::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(time, update_flags);
 

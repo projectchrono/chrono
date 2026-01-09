@@ -46,7 +46,7 @@ class SystemFixture : public ::benchmark::Fixture {
     BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {        \
         for (auto _ : st) {                                               \
             for (auto body : sys->GetBodies()) {                          \
-                body->OP(current_time, UpdateFlag::UPDATE_ALL_NO_VISUAL); \
+                body->OP(current_time, UpdateFlags::UPDATE_ALL_NO_VISUAL); \
             }                                                             \
         }                                                                 \
         st.SetItemsProcessed(st.iterations() * sys->GetBodies().size());  \
@@ -86,9 +86,9 @@ BM_BODY_OP_VOID(ComputeGyro)
 BENCHMARK_DEFINE_F(SystemFixture, SingleLoop)(benchmark::State& st) {
     for (auto _ : st) {
         for (auto body : sys->GetBodies()) {
-            body->Update(current_time, UpdateFlag::UPDATE_ALL_NO_VISUAL);
-            body->UpdateForces(current_time, UpdateFlag::UPDATE_ALL_NO_VISUAL);
-            body->UpdateMarkers(current_time, UpdateFlag::UPDATE_ALL_NO_VISUAL);
+            body->Update(current_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
+            body->UpdateForces(current_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
+            body->UpdateMarkers(current_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
             body->ClampSpeed();
             body->ComputeGyro();
         }

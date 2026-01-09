@@ -163,7 +163,7 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Update(double time, UpdateFlag update_flags) {
+void ChLinkRevoluteSpherical::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class (ChLink)
     ChLink::Update(time, update_flags);
 

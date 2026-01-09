@@ -82,10 +82,10 @@ void ChObj::AddCamera(std::shared_ptr<ChCamera> camera) {
 
 // -----------------------------------------------------------------------------
 
-void ChObj::Update(double time, UpdateFlag update_flags) {
+void ChObj::Update(double time, UpdateFlags update_flags) {
     ChTime = time;
 
-    if (has_flag(update_flags, UpdateFlag::VISUAL_ASSETS)) {
+    if (has_flag(update_flags, UpdateFlags::VISUAL_ASSETS)) {
         UpdateVisualModel();
         for (auto& camera : cameras)
             camera->Update();

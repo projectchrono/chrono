@@ -57,7 +57,7 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
                                       const double T,            // current time T
                                       const double dt,           // timestep (if needed)
                                       bool force_state_scatter,  // if true, scatter x and v to the system
-                                      UpdateFlag update_flags,  ///< if UpdateFlag::UPDATE_ALL, do a full update during scatter, otherwise switch off visual asset update, etc.
+                                      UpdateFlags update_flags,  ///< if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise switch off visual asset update, etc.
                                       ChLumpingParms* lumping    // use lumped masses to avoid inverting a mass matrix
 ) {
     if (force_state_scatter)
@@ -90,7 +90,7 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
 
         StateScatter(x, v, T, update_flags);  // back to original state
 
-        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, UpdateFlag::UPDATE_ALL_NO_VISUAL, true, true);
+        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, true, true);
 
         return success;
     } else {
@@ -141,7 +141,7 @@ void ChIntegrableIIorder::StateGather(ChState& y, double& T) {
     y.segment(GetNumCoordsPosLevel(), mv.size()) = mv;
 }
 
-void ChIntegrableIIorder::StateScatter(const ChState& y, const double T, UpdateFlag update_flags) {
+void ChIntegrableIIorder::StateScatter(const ChState& y, const double T, UpdateFlags update_flags) {
     ChState mx(GetNumCoordsPosLevel(), y.GetIntegrable());
     ChStateDelta mv(GetNumCoordsVelLevel(), y.GetIntegrable());
     mx = y.segment(0, GetNumCoordsPosLevel());
@@ -208,7 +208,7 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: compu
                                      const double T,            // current time T
                                      const double dt,           // timestep (if needed, e.g. in NSC)
                                      bool force_state_scatter,  // if false, y and T are not scattered to the system
-                                     UpdateFlag update_flags,   // if UpdateFlag::UPDATE_ALL, do a full update during scatter, otherwise switch off visual asset update, etc.
+                                     UpdateFlags update_flags,   // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise switch off visual asset update, etc.
                                      ChLumpingParms* lumping    // if not null, uses lumped masses to avoid inverting a
                                                                 // mass matrix, and uses penalty for constraints.
 ) {

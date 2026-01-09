@@ -104,7 +104,7 @@ int ChLinkBeamIGAFrame::Initialize(std::vector<std::shared_ptr<fea::ChElementBea
     return true;
 }
 
-void ChLinkBeamIGAFrame::Update(double time, UpdateFlag update_flags) {
+void ChLinkBeamIGAFrame::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(time, update_flags);
 

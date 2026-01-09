@@ -161,7 +161,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Update the time-dependent variables (e.g., function objects to impose the body-relative motion) and then update
     /// the marker state.
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Update time from external signal.
     void UpdatedExternalTime(double prevtime, double mtime);

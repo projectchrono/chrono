@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     mkl_solver->SetVerbose(false);
     sys.SetSolver(mkl_solver);
 
-    sys.Update(UpdateFlag::UPDATE_ALL & ~UpdateFlag::VISUAL_ASSETS);
+    sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

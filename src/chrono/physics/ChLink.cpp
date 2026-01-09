@@ -56,7 +56,7 @@ ChWrenchd ChLink::GetReaction2() const {
 
 // -----------------------------------------------------------------------------
 
-void ChLink::Update(double time, UpdateFlag update_flags) {
+void ChLink::Update(double time, UpdateFlags update_flags) {
     ChPhysicsItem::Update(time, update_flags);
 }
 

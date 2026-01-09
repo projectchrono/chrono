@@ -119,7 +119,7 @@ void ChLinkMateGeneric::SetBroken(bool mbro) {
         ChangedLinkMask();
 }
 
-void ChLinkMateGeneric::Update(double time, UpdateFlag update_flags) {
+void ChLinkMateGeneric::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
     ChLink::Update(time, update_flags);
 
@@ -722,7 +722,7 @@ void ChLinkMatePlanar::Initialize(std::shared_ptr<ChBodyFrame> body1,
     ChLinkMateGeneric::Initialize(body1, body2, pos_are_relative, point1, point2, m_flipped ? -norm1 : norm1, norm2);
 }
 
-void ChLinkMatePlanar::Update(double time, UpdateFlag update_flags) {
+void ChLinkMatePlanar::Update(double time, UpdateFlags update_flags) {
     // Parent class inherit
     ChLinkMateGeneric::Update(time, update_flags);
 
@@ -989,7 +989,7 @@ void ChLinkMateDistanceZ::Initialize(std::shared_ptr<ChBodyFrame> body1,
     ChLinkMateGeneric::Initialize(body1, body2, pos_are_relative, point1, point2, mdir2, mdir2);
 }
 
-void ChLinkMateDistanceZ::Update(double time, UpdateFlag update_flags) {
+void ChLinkMateDistanceZ::Update(double time, UpdateFlags update_flags) {
     // Parent class inherit
     ChLinkMateGeneric::Update(time, update_flags);
 
@@ -1105,7 +1105,7 @@ void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> body1,
 
     // Force the alignment of frames so that the Z axis is cross product of two dirs, etc.
     // by calling the custom update function of ChLinkMateOrthogonal.
-    Update(ChTime, UpdateFlag::UPDATE_ALL);
+    Update(ChTime, UpdateFlags::UPDATE_ALL);
 
     // Perform initialization (set pointers to variables, etc.)
     ChLinkMateGeneric::Initialize(body1, body2,
@@ -1114,7 +1114,7 @@ void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> body1,
 }
 
 /// Override _all_ time, jacobian etc. updating.
-void ChLinkMateOrthogonal::Update(double time, UpdateFlag update_flags) {
+void ChLinkMateOrthogonal::Update(double time, UpdateFlags update_flags) {
     // Prepare the alignment of the two frames so that the Z axis is orthogonal
     // to the two directions
 
@@ -1274,7 +1274,7 @@ ChVector3d ChLinkMateRackPinion::GetAbsRackPos() {
         return VNULL;
 }
 
-void ChLinkMateRackPinion::Update(double time, UpdateFlag update_flags) {
+void ChLinkMateRackPinion::Update(double time, UpdateFlags update_flags) {
     // First, inherit to parent class
     ChLinkMateGeneric::Update(time, update_flags);
 

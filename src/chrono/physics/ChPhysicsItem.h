@@ -95,7 +95,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
     /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
     /// only if requested).
-    virtual void Update(double time, UpdateFlag update_flags) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
@@ -150,7 +150,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
                                  const double T,            ///< time
-                                 UpdateFlag update_flags    ///< perform complete update, or exclude visual assets, etc.
+                                 UpdateFlags update_flags    ///< perform complete update, or exclude visual assets, etc.
     ) {
         // Default behavior: even if no state is used, at least call Update()
         Update(T, update_flags);

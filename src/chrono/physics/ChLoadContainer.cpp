@@ -33,7 +33,7 @@ void ChLoadContainer::Add(std::shared_ptr<ChLoadBase> newload) {
     loadlist.push_back(newload);
 }
 
-void ChLoadContainer::Update(double time, UpdateFlag update_flags) {
+void ChLoadContainer::Update(double time, UpdateFlags update_flags) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
         loadlist[i]->Update(time, update_flags);
     }

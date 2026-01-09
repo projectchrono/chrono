@@ -118,7 +118,7 @@ void ChPeridynamics::SetupInitial() {
 
 void ChPeridynamics::SetupInitialBonds(ChSystem* sys, std::shared_ptr<ChPeridynamics> peri) {
     sys->Setup();
-    sys->Update(UpdateFlag::UPDATE_ALL);
+    sys->Update(UpdateFlags::UPDATE_ALL);
     sys->ComputeCollisions();
     for (auto& node : peri->GetNodes())
         node->is_requiring_bonds = false;
@@ -144,7 +144,7 @@ void ChPeridynamics::Setup() {
     }
 }
 
-void ChPeridynamics::Update(double mytime, UpdateFlag update_flags) {
+void ChPeridynamics::Update(double mytime, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChProximityContainer::Update(mytime, update_flags);
 
@@ -448,7 +448,7 @@ void ChPeridynamics::IntStateScatter(const unsigned int off_x,
                                      const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const double T,
-                                     UpdateFlag update_flags) {
+                                     UpdateFlags update_flags) {
     unsigned int local_off = 0;
     for (auto& node : vnodes) {
         if (!node->IsFixed()) {

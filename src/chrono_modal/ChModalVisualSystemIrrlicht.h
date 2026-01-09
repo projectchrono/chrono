@@ -277,9 +277,9 @@ inline void ChModalVisualSystemIrrlicht<ScalarType>::BeginScene(bool backBuffer,
     assembly_state_delta = m_amplitude * GetModeShape<>(m_eigvects->col(m_selected_mode), angle);
 
     m_assembly->IntStateIncrement(0, assembly_state_new, m_assembly_initial_state, 0, assembly_state_delta);
-    m_assembly->IntStateScatter(0, assembly_state_new, 0, assembly_v_dummy, time_dummy, UpdateFlag::UPDATE_ALL);
+    m_assembly->IntStateScatter(0, assembly_state_new, 0, assembly_v_dummy, time_dummy, UpdateFlags::UPDATE_ALL);
 
-    m_assembly->Update(time_dummy, UpdateFlag::UPDATE_ALL);
+    m_assembly->Update(time_dummy, UpdateFlags::UPDATE_ALL);
 
     OnUpdate(m_systems[0]);
 }
