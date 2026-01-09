@@ -1851,9 +1851,9 @@ void MBTireModel::Setup() {
     //// TODO: update vertex normals and colors
 }
 
-void MBTireModel::Update(double t, bool update_assets) {
+void MBTireModel::Update(double t, UpdateFlags update_flags) {
     // Parent class update
-    ChPhysicsItem::Update(t, update_assets);
+    ChPhysicsItem::Update(t, update_flags);
 }
 
 // -----------------------------------------------------------------------------
@@ -1935,7 +1935,7 @@ void MBTireModel::IntStateScatter(const unsigned int off_x,
                                   const unsigned int off_v,
                                   const ChStateDelta& v,
                                   const double T,
-                                  bool full_update) {
+                                  UpdateFlags update_flags) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -1944,7 +1944,7 @@ void MBTireModel::IntStateScatter(const unsigned int off_x,
         local_off_v += node->GetNumCoordsVelLevelActive();
     }
 
-    Update(T, full_update);
+    Update(T, update_flags);
 }
 
 void MBTireModel::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

@@ -167,7 +167,7 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
     virtual unsigned int GetNumCoordsVelLevel() override { return m_dofs_w; }
     virtual void SetupInitial() override;
     virtual void Setup() override;
-    virtual void Update(double t, bool update_assets = true) override;
+    virtual void Update(double t, UpdateFlags update_flags) override;
 
     // Add visualization assets for the tire subsystem.
     void AddVisualizationAssets(VisualizationType vis);
@@ -186,7 +186,7 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
