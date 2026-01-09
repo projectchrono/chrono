@@ -350,7 +350,7 @@ TEST(WholeBodyWdFilter, SawtoothBurstRMS) {
 }
 
 TEST(ShockWxyFilter, StandardSignal) {
-    std::string out_dir = "TESTS_RESULTS";
+    std::string out_dir = "TEST_RESULTS";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         FAIL();

@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
     double tol_cnstr = 1e-6;
 
     // Create output directory (if it does not already exist)
-    std::string out_dir = "TESTS_RESULTS";
+    std::string out_dir = "TEST_RESULTS";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
