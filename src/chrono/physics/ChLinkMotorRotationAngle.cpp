@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorRotationAngle)
 
 ChLinkMotorRotationAngle::ChLinkMotorRotationAngle() {
-    this->c_rz = true;
+    c_rz = true;
     SetupLinkMask();
 
     // default motion function
@@ -42,9 +42,9 @@ void ChLinkMotorRotationAngle::Update(double time, UpdateFlags update_flags) {
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:
 
-    if (this->m_body1 && this->m_body2) {
-        ChFrame<> aframe1 = m_frame1 >> (*this->m_body1);
-        ChFrame<> aframe2 = m_frame2 >> (*this->m_body2);
+    if (m_body1 && m_body2) {
+        ChFrame<> aframe1 = m_frame1 >> (*m_body1);
+        ChFrame<> aframe2 = m_frame2 >> (*m_body2);
 
         // ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
@@ -58,15 +58,15 @@ void ChLinkMotorRotationAngle::Update(double time, UpdateFlags update_flags) {
         ChFrame<> aframe1rotating2 = aframe2.TransformParentToLocal(aframe1rotating);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +
-                         ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
+        P = 0.5 *
+            (ChMatrix33<>(aframe1rotating2.GetRot().e0()) + ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetRotMat().transpose() * m_body1->GetRotMat();
-        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetRotMat().transpose() * m_body2->GetRotMat();
+        ChMatrix33<> Jw1 = P.transpose() * aframe2.GetRotMat().transpose() * m_body1->GetRotMat();
+        ChMatrix33<> Jw2 = -P.transpose() * aframe2.GetRotMat().transpose() * m_body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetRotMat().transpose() * m_body1->GetRotMat();
-        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetRotMat().transpose() * m_body2->GetRotMat();
+        // ChMatrix33<> Jw1 = P * aframe1rotating.GetRotMat().transpose() * m_body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -P * aframe1rotating.GetRotMat().transpose() * m_body2->GetRotMat();
 
         int nc = 0;
 
@@ -107,16 +107,16 @@ void ChLinkMotorRotationAngle::Update(double time, UpdateFlags update_flags) {
 }
 
 void ChLinkMotorRotationAngle::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
-    if (this->Kmatr) {
+    if (Kmatr) {
         ChMatrix33<> R_B1_W = m_body1->GetRotMat();
         ChMatrix33<> R_B2_W = m_body2->GetRotMat();
         // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
         // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
-        ChFrame<> F1_W = m_frame1 >> (*this->m_body1);
-        ChFrame<> F2_W = m_frame2 >> (*this->m_body2);
+        ChFrame<> F1_W = m_frame1 >> (*m_body1);
+        ChFrame<> F2_W = m_frame2 >> (*m_body2);
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
@@ -134,10 +134,10 @@ void ChLinkMotorRotationAngle::LoadKRMMatrices(double Kfactor, double Rfactor, d
         Km.block<3, 3>(0, 9) = -R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
         Km.block<3, 3>(3, 3) =
             rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W +
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B1_W;
+            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(P * gamma_m) * R_F2_W.transpose() * R_B1_W;
         Km.block<3, 3>(3, 9) =
             -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W -
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B2_W;
+            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(P * gamma_m) * R_F2_W.transpose() * R_B2_W;
         Km.block<3, 3>(6, 9) = R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
 
         Km.block<3, 3>(9, 0) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
@@ -147,12 +147,12 @@ void ChLinkMotorRotationAngle::LoadKRMMatrices(double Kfactor, double Rfactor, d
         Km.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W *
                                ChStarMatrix33<>(P12_B2 + r_F2_B2);
 
-        // Recover the quaternion of the shadow frame 'aframe1rotating2' from the projection matrix this->P
+        // Recover the quaternion of the shadow frame 'aframe1rotating2' from the projection matrix P
         ChQuaternion<> q_F1M_F2;
-        q_F1M_F2.e0() = 2.0 * this->P(0, 0);
-        q_F1M_F2.e1() = -2.0 * this->P(1, 2);
-        q_F1M_F2.e2() = 2.0 * this->P(0, 2);
-        q_F1M_F2.e3() = -2.0 * this->P(0, 1);
+        q_F1M_F2.e0() = 2.0 * P(0, 0);
+        q_F1M_F2.e1() = -2.0 * P(1, 2);
+        q_F1M_F2.e2() = 2.0 * P(0, 2);
+        q_F1M_F2.e3() = -2.0 * P(0, 1);
         double s_F1M_F2 = q_F1M_F2.e0();
         ChVector3d v_F1M_F2 = q_F1M_F2.GetVector();
         ChMatrix33<> I33;
@@ -170,12 +170,12 @@ void ChLinkMotorRotationAngle::LoadKRMMatrices(double Kfactor, double Rfactor, d
         Ks.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1M_W.transpose() * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->GetMatrix() = (Km + Ks) * Kfactor;
+        Kmatr->GetMatrix() = (Km + Ks) * Kfactor;
     }
 }
 
 void ChLinkMotorRotationAngle::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -0.5 * m_func->GetDer(this->GetChTime());
+    double mCt = -0.5 * m_func->GetDer(GetChTime());
     unsigned int ncrz = mask.GetNumConstraints() - 1;
     if (mask.GetConstraint(ncrz).IsActive()) {
         Qc(off_L + ncrz) += c * mCt;
@@ -183,10 +183,10 @@ void ChLinkMotorRotationAngle::IntLoadConstraint_Ct(const unsigned int off_L, Ch
 }
 
 void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
-    double mCt = -0.5 * m_func->GetDer(this->GetChTime());
+    double mCt = -0.5 * m_func->GetDer(GetChTime());
     unsigned int ncrz = mask.GetNumConstraints() - 1;
     if (mask.GetConstraint(ncrz).IsActive()) {
         mask.GetConstraint(ncrz).SetRightHandSide(mask.GetConstraint(ncrz).GetRightHandSide() + factor * mCt);

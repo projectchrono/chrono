@@ -20,14 +20,9 @@
 
 namespace chrono {
 
-/// A motor that enforces the angular speed w(t) between two frames on two bodies, using a rheonomic constraint.
-/// Note: no compliance is allowed, so if the actuator hits an undeformable obstacle it hits a pathological
-/// situation and the solver result can be unstable/unpredictable.
-/// Think at it as a servo drive with "infinitely stiff" control.
-/// This type of motor is very easy to use, stable and efficient, and should be used if the 'infinitely stiff'
-/// control assumption is a good approximation of what you simulate (e.g., very good and reactive controllers).
-/// By default it is initialized with constant angular speed: df/dt = 1.
-/// Use SetSpeedFunction() to change to other speed functions.
+/// A motor that enforces the angular speed between two frames on two bodies, using a rheonomic constraint.
+/// Note: no compliance is allowed, so if the actuator hits a fixed, rigid obstacle it reaches a pathological
+/// situation were solver results are incorrect. As such, this models a servo drive with "infinitely stiff" control.
 class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
   public:
     ChLinkMotorRotationSpeed();
@@ -37,25 +32,24 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotorRotationSpeed* Clone() const override { return new ChLinkMotorRotationSpeed(*this); }
 
-    /// Set the angular speed function of time w(t).
+    /// Set the angular speed function of time (default: zero constant function).
     /// To prevent acceleration pikes, this function should be C0 continuous.
     void SetSpeedFunction(const std::shared_ptr<ChFunction> function) { SetMotorFunction(function); }
 
-    /// Get the angular speed function w(t).
+    /// Get the angular speed function.
     std::shared_ptr<ChFunction> GetSpeedFunction() const { return GetMotorFunction(); }
 
-    /// Get initial offset, in [rad]. By default = 0.
+    /// Get initial offset, in [rad] (default: 0).
     void SetAngleOffset(double mo) { rot_offset = mo; }
 
     /// Get initial offset, in [rad].
     double GetAngleOffset() const { return rot_offset; }
 
     /// Enable angular drift avoidance (default: true).
-    /// If true, it means that the constraint is satisfied also at the rotation level, by integrating the velocity in a
-    /// separate auxiliary state.
+    /// If true, the constraint is satisfied also at the rotation level, by integrating the velocity.
     void AvoidAngleDrift(bool avoid) { this->avoid_angle_drift = avoid; }
 
-    /// Get the current actuator reaction torque [Nm]
+    /// Get the current actuator reaction torque.
     virtual double GetMotorTorque() const override { return -this->react_torque.z(); }
 
     ChVariablesGeneric& Variables() { return variable; }
