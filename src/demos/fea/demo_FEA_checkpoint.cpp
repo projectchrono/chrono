@@ -131,7 +131,7 @@ void ConstructModel(ChSystem& sys, int id) {
     mesh->AddVisualShapeFEA(vis_surf);
 
     sys.Setup();
-    sys.Update(true);
+    sys.Update(UpdateFlags::UPDATE_ALL);
 }
 
 // -----------------------------------------------------------------------------
