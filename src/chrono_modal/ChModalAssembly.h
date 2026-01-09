@@ -143,7 +143,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// state snapshot x0 stored last time one called a modal reduction. This is not necessary, but useful during
     /// animations, in fact the internal nodes would be completely neglected if m_internal_nodes_update == false; but
     /// calling this function one can update their changing positions for visualization, stress recovery, etc.
-    void UpdateInternalState(bool full_update);
+    void UpdateInternalState(UpdateFlags update_flags);
 
     /// Resets the state of this modal assembly (both boundary and internal items) to the state snapshot in the initial
     /// configuration.
@@ -393,7 +393,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Updates all the auxiliary data and children of
     /// bodies, forces, links, given their current state.
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void ForceToRest() override;
@@ -420,7 +420,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -804,7 +804,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
 
     SetupInitial();
     Setup();
-    Update(ChTime, true);
+    Update(ChTime, UpdateFlags::UPDATE_ALL);
 
     Initialize();
 

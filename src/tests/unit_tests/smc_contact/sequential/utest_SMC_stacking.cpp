@@ -54,6 +54,7 @@ class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemSMC();
+
         time_step = 3.0E-5;
         SetSimParameters(sys, ChVector3d(0, -9.81, 0), fmodel);
 

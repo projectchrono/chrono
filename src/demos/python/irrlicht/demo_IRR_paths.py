@@ -21,7 +21,8 @@ print ("Example: create a sys and visualize it in realtime 3D");
 #  Create the simulation sys and add items
 #
 
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000)
 mfloor.SetFixed(True)

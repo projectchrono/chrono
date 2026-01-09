@@ -26,6 +26,7 @@
 
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChCone.h"
 #include "chrono/geometry/ChCylinder.h"
 #include "chrono/geometry/ChLine.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -117,13 +118,13 @@ class ChApi ChBodyGeometry {
     struct ChApi TrimeshShape {
         TrimeshShape() = default;
         TrimeshShape(const ChVector3d& pos,
-                     const ChQuaternion<>& rot, 
+                     const ChQuaternion<>& rot,
                      const std::string& filename,
                      double scale = 1,
                      double radius = 0,
                      int matID = -1);
         TrimeshShape(const ChVector3d& pos,
-                     const ChQuaternion<>& rot, 
+                     const ChQuaternion<>& rot,
                      std::shared_ptr<ChTriangleMeshConnected> trimesh,
                      double scale = 1,
                      double radius = 0,
@@ -149,11 +150,12 @@ class ChApi ChBodyGeometry {
         double radius;                                     ///< radius of sweeping sphere
         int matID;                                         ///< index in contact material list
         ChColor color;                                     ///< visualization color
+        bool is_mutable;                                   ///< true if mesh is deformable
     };
 
     /// Line shape for visualization.
     struct ChApi LineShape {
-        LineShape() = default; 
+        LineShape() = default;
         LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line);
         ChVector3d pos;                ///< position relative to body
         ChQuaternion<> rot;            ///< orientation relative to body
@@ -166,10 +168,20 @@ class ChApi ChBodyGeometry {
         ConvexHullsShape(const std::string& filename, int matID = -1);
         std::vector<std::vector<ChVector3d>> hulls;  ///< convex hulls in group
         int matID;                                   ///< index in contact material list
+        bool is_mutable;                             ///< true if hull is deformable
     };
 
     /// Create visualization assets for the specified body.
-    void CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis = VisualizationType::PRIMITIVES);
+    /// Depending on the visualization type, the following shapes are used:
+    /// - NONE:       no visualization, otherwise
+    /// - COLLISION:  render collision shapes (if any), otherwise
+    /// - MESH:       render an associated model file (if any), otherwise
+    /// - PRIMITIVES: render primitive shapes (boxes, spheres, meshes, etc)
+    /// If `create_material==false`, no visualization material is used for any shape (to allow optional use of dyynamic
+    /// colors); this is not applicable for VisualizatinoType::MESH.
+    void CreateVisualizationAssets(std::shared_ptr<ChBody> body,
+                                   VisualizationType vis = VisualizationType::PRIMITIVES,
+                                   bool create_materials = true);
 
     /// Create collision shapes for the specified body.
     void CreateCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method);
@@ -194,7 +206,7 @@ class ChApi ChBodyGeometry {
     /// Indicate whether or not a visualization mesh is defined.
     bool HasVisualizationMesh() const;
 
-    static std::string GetVisualizationTypeAsString(VisualizationType type); 
+    static std::string GetVisualizationTypeAsString(VisualizationType type);
 
   public:
     std::vector<ChContactMaterialData> materials;  ///< list of contact materials

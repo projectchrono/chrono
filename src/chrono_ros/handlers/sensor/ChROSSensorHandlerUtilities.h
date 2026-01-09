@@ -50,9 +50,8 @@ class CH_ROS_API ChROSSensorHandlerUtilities {
         return true;
     }
 
-    /// Calculates the covariance of the sensor data
-    /// @param data the sensor data
-    /// @return the covariance of the sensor data
+    /// Calculates the covariance of the sensor data.
+    /// Returns the covariance of the sensor data
     template <typename T = double, unsigned long N = 3>
     static std::array<T, N * N> CalculateCovariance(const std::array<T, N>& data,
                                                     const std::array<T, N>& mean,

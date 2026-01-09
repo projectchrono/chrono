@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
+    mphysicalSystem.SetGravityY();
 
     mphysicalSystem.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 

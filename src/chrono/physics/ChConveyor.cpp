@@ -80,11 +80,12 @@ void ChConveyor::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& v,     // state vector, speed part
                                  const double T,            // time
-                                 bool full_update           // perform complete update
+                                 UpdateFlags update_flags    // perform complete update?
 ) {
-    conveyor_truss->IntStateScatter(off_x, x, off_v, v, T, full_update);
-    conveyor_plate->IntStateScatter(off_x + 7, x, off_v + 6, v, T, full_update);
-    this->Update(T, full_update);
+    conveyor_truss->IntStateScatter(off_x, x, off_v, v, T, update_flags);
+    conveyor_plate->IntStateScatter(off_x + 7, x, off_v + 6, v, T, update_flags);
+
+    this->Update(T, update_flags);
 }
 
 void ChConveyor::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -258,11 +259,11 @@ void ChConveyor::SetSystem(ChSystem* m_system) {
     internal_link->SetSystem(m_system);
 }
 
-void ChConveyor::Update(double time, bool update_assets) {
+void ChConveyor::Update(double time, UpdateFlags update_flags) {
     // inherit parent class function
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 
-    conveyor_truss->Update(time, update_assets);
+    conveyor_truss->Update(time, update_flags);
 
     if (conveyor_truss->IsFixed()) {
         double largemass = 100000;
@@ -281,13 +282,13 @@ void ChConveyor::Update(double time, bool update_assets) {
     // keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
     conveyor_plate->SetPosDt(conveyor_truss->GetPosDt() + (ChVector3d(conveyor_speed, 0, 0) >> (*conveyor_truss)));
 
-    conveyor_plate->Update(time, update_assets);
+    conveyor_plate->Update(time, update_flags);
 
     std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetAngularCoeff(-conveyor_speed);
     // always zero pos. offset (trick):
     std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetStartVal(+conveyor_speed * GetChTime());
 
-    internal_link->Update(time, update_assets);
+    internal_link->Update(time, update_flags);
 }
 
 void ChConveyor::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {

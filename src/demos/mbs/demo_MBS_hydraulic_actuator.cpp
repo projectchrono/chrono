@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto actuator = chrono_types::make_shared<ChHydraulicActuator3>();
     actuator->SetInputFunction(chrono_types::make_shared<ChFunctionSine>(1.0, 5.0));

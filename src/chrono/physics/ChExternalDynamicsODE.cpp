@@ -71,9 +71,9 @@ void ChExternalDynamicsODE::ComputeJac(double time) {
     }
 }
 
-void ChExternalDynamicsODE::Update(double time, bool update_assets) {
+void ChExternalDynamicsODE::Update(double time, UpdateFlags update_flags) {
     // Update time and assets
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 
     // Compute forcing terms at current states
     CalculateRHS(time, m_states, m_rhs);
@@ -116,7 +116,7 @@ void ChExternalDynamicsODE::IntStateScatter(const unsigned int off_x,  // offset
                                          const unsigned int off_v,  // offset in v state vector
                                          const ChStateDelta& v,     // state vector, speed part
                                          const double T,            // time
-                                         bool full_update           // perform complete update
+                                         UpdateFlags update_flags    // perform complete update?
 ) {
     if (!IsActive())
         return;
@@ -124,7 +124,7 @@ void ChExternalDynamicsODE::IntStateScatter(const unsigned int off_x,  // offset
     // Important: set the internal states first, as they will be used in Update.
     m_states = v.segment(off_v, m_nstates);
 
-    Update(T, full_update);
+    Update(T, update_flags);
 }
 
 void ChExternalDynamicsODE::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

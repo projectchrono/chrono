@@ -128,6 +128,7 @@ def AddContainer(sys):
 #
 
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Simulation and rendering time-step

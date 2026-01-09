@@ -123,6 +123,7 @@ set(Chrono_physics_HEADERS
     physics/ChMarker.h
     physics/ChNodeBase.h
     physics/ChNodeXYZ.h
+    physics/ChUpdateFlags.h
     physics/ChObject.h
     physics/ChParticleCloud.h
     physics/ChPhysicsItem.h

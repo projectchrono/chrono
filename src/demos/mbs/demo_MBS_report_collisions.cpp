@@ -84,6 +84,7 @@ int main(int argc, char* argv[]) {
 
     // Create the sys.
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.SetSolverType(ChSolver::Type::PSOR);
     sys.GetSolver()->AsIterative()->SetMaxIterations(20);

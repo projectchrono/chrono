@@ -62,7 +62,7 @@ void ChTimestepperHHT::InitializeStep() {
 
 void ChTimestepperHHT::ResetStep() {
     // Scatter state and reset auxiliary vectors
-    integrable->StateScatter(X, V, T, false);
+    integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL_NO_VISUAL);
     Rold.setZero();
     Anew.setZero(integrable->GetNumCoordsVelLevel(), integrable);
 }
@@ -76,7 +76,7 @@ void ChTimestepperHHT::AcceptStep() {
 
 void ChTimestepperHHT::FinalizeStep() {
     // Scatter state -> system doing a full update
-    integrable->StateScatter(X, V, T, true);
+    integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);
 
     // Scatter auxiliary data (A and L) -> system
     integrable->StateScatterAcceleration(A);
@@ -112,14 +112,14 @@ void ChTimestepperHHT::PrepareStep() {
 //
 // This is one Newton iteration to solve for a_new
 //
-// [ M - h*gamma*dF/dv - h^2*beta*dF/dx    Cq' ] [ Ds ] =
-// [ Cq                                    0   ] [-Dl ]
+// [ 1/(1+alpha)M  -h*gamma*dF/dv  -h^2*beta*dF/dx   Cq' ] [ Ds ] =
+// [ Cq                                              0   ] [-Dl ]
 //                [ -1/(1+alpha)*M*(a_new) + (f_new + Cq'*l_new) - (alpha/(1+alpha))(f_old + Cq'*l_old)]
 //                [  1/(beta*h^2)*C                                                                    ]
 //
 void ChTimestepperHHT::Increment() {
     // Scatter the current estimate of state at time T+h
-    integrable->StateScatter(Xnew, Vnew, T + h, false);
+    integrable->StateScatter(Xnew, Vnew, T + h, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 
     // Initialize the two segments of the RHS
     R = Rold;      // terms related to state at time T
@@ -140,7 +140,7 @@ void ChTimestepperHHT::Increment() {
                                      -h * h * beta,      // factor for  dF/dx
                                      Xnew, Vnew, T + h,  // not used here (force_scatter = false)
                                      false,              // do not scatter states
-                                     false,              // no need for full update, since no scatter
+                                     UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
                                      call_setup,         // if true, call the solver's Setup function
                                      call_analyze        // if true, call the solver's Setup analyze phase
     );

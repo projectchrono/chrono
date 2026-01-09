@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         sys = chrono_types::make_shared<ChSystemSMC>();
         step = 1e-4;
     }
-
+    sys->SetGravityY();
     sys->SetCollisionSystemType(coll_sys_type);
 
     // -----------------
@@ -128,7 +128,6 @@ int main(int argc, char* argv[]) {
     // visualization shape
     auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vis_shape->SetMesh(mesh);
-    vis_shape->SetMutable(false);
     vis_shape->SetColor(ChColor(0.25f, 0.5f, 0.25f));
     vis_shape->SetBackfaceCull(true);
     auto vis_model = chrono_types::make_shared<ChVisualModel>();

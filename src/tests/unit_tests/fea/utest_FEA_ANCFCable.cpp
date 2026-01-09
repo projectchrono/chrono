@@ -24,6 +24,7 @@
 // Special attention must be paid to the number of Gauss points for gravity. For
 // successful verification, this number must be 2.
 // =============================================================================
+
 #include <cstdio>
 #include <cmath>
 
@@ -66,6 +67,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
     unsigned int num_steps = 200;
 
     // Create a mesh, that is a container for groups of elements and

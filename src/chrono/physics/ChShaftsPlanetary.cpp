@@ -76,9 +76,9 @@ bool ChShaftsPlanetary::Initialize(std::shared_ptr<ChShaft> shaft_1,  // first s
     return true;
 }
 
-void ChShaftsPlanetary::Update(double time, bool update_assets) {
+void ChShaftsPlanetary::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 
     // update class data
     // ...

@@ -21,6 +21,7 @@ print("Copyright (c) 2017 projectchrono.org")
 
 # Create a Chrono physical system
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 #

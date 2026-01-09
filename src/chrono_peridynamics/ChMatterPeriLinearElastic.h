@@ -89,7 +89,7 @@ class ChApiPeridynamics ChMatterPeriLinearElastic
 class /*ChApiPeridynamics*/ ChVisualPeriLinearElastic : public ChGlyphs {
   public:
     ChVisualPeriLinearElastic(std::shared_ptr<ChMatterPeriLinearElastic> amatter) : mmatter(amatter) {
-        is_mutable = true;
+        SetMutable(true);
     }
 
     virtual ~ChVisualPeriLinearElastic() {}
@@ -153,8 +153,8 @@ class /*ChApiPeridynamics*/ ChVisualPeriLinearElastic : public ChGlyphs {
 class /*ChApiPeridynamics*/ ChVisualPeriLinearElasticBonds : public ChGlyphs {
   public:
     ChVisualPeriLinearElasticBonds(std::shared_ptr<ChMatterPeriLinearElastic> amatter) : mmatter(amatter) {
-        is_mutable = true;
-    };
+        SetMutable(true);
+    }
     virtual ~ChVisualPeriLinearElasticBonds() {}
 
     bool draw_broken = true;

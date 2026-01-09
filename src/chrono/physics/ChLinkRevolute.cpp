@@ -115,9 +115,9 @@ void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1,
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::Update(double time, bool update_assets) {
+void ChLinkRevolute::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
-    ChLink::Update(time, update_assets);
+    ChLink::Update(time, update_flags);
 
     // Express the joint frames in absolute frame
     ChFrame<> frame1_abs = m_frame1 >> *m_body1;

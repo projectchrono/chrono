@@ -23,7 +23,7 @@ print ("Example: create a rigid body based on a .obj mesh file");
 #
 
 sys = chrono.ChSystemNSC()
-
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Set the global collision margins. This is especially important for very large or

@@ -13,7 +13,7 @@ The rigid tires are the simplest of the three tire classes offered.  The assumpt
 See [ChRigidTire](@ref chrono::vehicle::ChRigidTire) and [RigidTire](@ref chrono::vehicle::RigidTire).
 
 The following is an example of a rigid tire with mesh geometry provided through a Wavefront OBJ file: 
-\include "../../data/vehicle/hmmwv/tire/HMMWV_RigidMeshTire.json"
+\include "data/vehicle/hmmwv/tire/HMMWV_RigidMeshTire.json"
 
 ## Handling (semi-empirical) tire models {#vehicle_tire_empirical}
 
@@ -40,7 +40,7 @@ TMeasy (Tire Model Made Easy) has been developed by Prof. Dr. Georg Rill and is 
 See [ChTMeasyTire](@ref chrono::vehicle::ChTMeasyTire) and [TMeasyTire](@ref chrono::vehicle::TMeasyTire).
 
 A sample JSON file with a TMeasy tire specification is provided below:
-\include "../../data/vehicle/hmmwv/tire/HMMWV_TMeasyTire.json"
+\include "data/vehicle/hmmwv/tire/HMMWV_TMeasyTire.json"
 
 
 ### Fiala tire model  {#wheeled_tire_fiala}
@@ -50,7 +50,7 @@ The Fiala tire model implemented in Chrono::Vehicle is largely based on the tran
 See [ChFialaTire](@ref chrono::vehicle::ChFialaTire) and [FialaTire](@ref chrono::vehicle::FialaTire).
 
 A sample JSON file with a TMeasy tire specification is provided below:
-\include "../../data/vehicle/hmmwv/tire/HMMWV_FialaTire.json"
+\include "data/vehicle/hmmwv/tire/HMMWV_FialaTire.json"
 
 The vertical load curve embedded in the above JSON file is show below:
 
@@ -84,7 +84,7 @@ Finally, the third class of tire models offered are full finite element represen
 See [ChANCFTire](@ref chrono::vehicle::ChANCFTire) and [ANCFTire](@ref chrono::vehicle::ANCFTire).
 
 The following JSON file contains the specification of an ANCFTire:
-\include "../../data/vehicle/hmmwv/tire/HMMWV_ANCF4Tire.json"
+\include "data/vehicle/hmmwv/tire/HMMWV_ANCF4Tire.json"
 
 ### Reissner shell deformable tire {#vehicle_tire_reissner}
 

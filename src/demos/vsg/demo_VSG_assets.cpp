@@ -46,6 +46,7 @@ using namespace chrono::vsg3d;
 int main(int argc, char* argv[]) {
     // Create a Chrono system
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // EXAMPLE 1:

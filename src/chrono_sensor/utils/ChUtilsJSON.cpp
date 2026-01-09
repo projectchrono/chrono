@@ -18,25 +18,26 @@
 
 #include <fstream>
 
+// NOTE: order is important! ChSensor.h must be included *before* ChFilterAccess.h
 #include "chrono_sensor/utils/ChUtilsJSON.h"
-//
-#include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/optix/ChFilterOptixRender.h"
+#include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
-#include "chrono_sensor/filters/ChFilterCameraNoise.h"
-#include "chrono_sensor/filters/ChFilterLidarNoise.h"
-#include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/filters/ChFilterSave.h"
-#include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/filters/ChFilterGrayscale.h"
-#include "chrono_sensor/filters/ChFilterLidarReduce.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterPCfromDepth.h"
-#include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/filters/ChFilterImageOps.h"
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/filters/ChFilterCameraNoise.h"
+    #include "chrono_sensor/filters/ChFilterLidarNoise.h"
+    #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #include "chrono_sensor/filters/ChFilterSave.h"
+    #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
+    #include "chrono_sensor/filters/ChFilterGrayscale.h"
+    #include "chrono_sensor/filters/ChFilterLidarReduce.h"
+    #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
+    #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+    #include "chrono_sensor/filters/ChFilterImageOps.h"
+    #include "chrono_sensor/optix/ChFilterOptixRender.h"
+#endif
 #include "chrono_sensor/sensors/ChNoiseModel.h"
-//
+
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"
 
@@ -102,9 +103,7 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
     std::string sensor_type = d["Template"].GetString();
 
     // Create the sensor using the appropriate template.
-    if (sensor_type.compare("Camera") == 0) {
-        sensor = ReadCameraSensorJSON(filename, parent, offsetPose);
-    } else if (sensor_type.compare("GPS") == 0) {
+    if (sensor_type.compare("GPS") == 0) {
         sensor = ReadGPSSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("Accelerometer") == 0) {
         sensor = ReadAccelerometerSensorJSON(filename, parent, offsetPose);
@@ -112,14 +111,24 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
         sensor = ReadGyroscopeSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("Magnetometer") == 0) {
         sensor = ReadMagnetometerSensorJSON(filename, parent, offsetPose);
+    }
+#ifdef CHRONO_HAS_OPTIX
+    else if (sensor_type.compare("Camera") == 0) {
+        sensor = ReadCameraSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("Lidar") == 0) {
         sensor = ReadLidarSensorJSON(filename, parent, offsetPose);
-    } else {
+    } else if (sensor_type.compare("Radar") == 0) {
+        sensor = ReadRadarSensorJSON(filename, parent, offsetPose);
+    }
+#endif
+    else {
         throw std::invalid_argument("Sensor type of " + sensor_type + " not supported in ReadSensorJSON.");
     }
 
     return sensor;
 }
+
+#ifdef CHRONO_HAS_OPTIX
 
 std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename,
                                                      std::shared_ptr<chrono::ChBody> parent,
@@ -177,6 +186,139 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
     }
     return camera;
 }
+
+std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
+                                                   std::shared_ptr<chrono::ChBody> parent,
+                                                   chrono::ChFrame<double> offsetPose) {
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a sensor specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Sensor") == 0);
+
+    // Extract the sensor type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+    if (subtype.compare("Lidar") != 0) {
+        throw std::invalid_argument("ChUtilsJSON::ReadLidarSensorJSON: Sensor type of " + subtype + " must be Lidar.");
+    }
+
+    // Read sensor properties
+    assert(d.HasMember("Properties"));
+    const Value& properties = d["Properties"];
+
+    // Create the gps sensor.
+    float updateRate = properties["Update Rate"].GetFloat();
+    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
+    unsigned int w = properties["Width"].GetUint();
+    unsigned int h = properties["Height"].GetUint();
+    float hfov = properties["Horizontal Field of View"].GetFloat();
+    float max_v_angle = properties["Max Vertical Angle"].GetFloat();
+    float min_v_angle = properties["Min Vertical Angle"].GetFloat();
+    float max_distance = properties["Max Distance"].GetFloat();
+    // float lag = properties["Lag"].GetFloat();
+    // float exposure_time = properties["Collection Window"].GetFloat();
+
+    unsigned int sample_radius = 1;
+    LidarBeamShape beam_shape = LidarBeamShape::RECTANGULAR;
+    float vert_divergence_angle = .003f;
+    float hori_divergence_angle = .003f;
+    LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
+    float near_clip = 0.f;
+
+    if (properties.HasMember("Sample Radius")) {
+        sample_radius = properties["Sample Radius"].GetInt();
+    }
+    if (properties.HasMember("Vertical Divergence Angle")) {
+        vert_divergence_angle = properties["Vertical Divergence Angle"].GetFloat();
+    }
+    if (properties.HasMember("Horizontal Divergence Angle")) {
+        hori_divergence_angle = properties["Horizontal Divergence Angle"].GetFloat();
+    }
+    if (properties.HasMember("Return Mode")) {
+        std::string s = properties["Return Mode"].GetString();
+        if (s == "MEAN_RETURN") {
+            return_mode = LidarReturnMode::MEAN_RETURN;
+        } else if (s == "FIRST_RETURN") {
+            return_mode = LidarReturnMode::FIRST_RETURN;
+        } else if (s == "LAST_RETURN") {
+            return_mode = LidarReturnMode::LAST_RETURN;
+        }
+    }
+    if (properties.HasMember("Near Clip")) {
+        near_clip = properties["Near Clip"].GetFloat();
+    }
+
+    auto lidar = chrono_types::make_shared<ChLidarSensor>(
+        parent, updateRate, offsetPose, w, h, hfov, max_v_angle, min_v_angle, max_distance, beam_shape, sample_radius,
+        vert_divergence_angle, hori_divergence_angle, return_mode, near_clip);
+
+    if (properties.HasMember("Lag")) {
+        float lag = properties["Lag"].GetFloat();
+        lidar->SetLag(lag);
+    }
+    if (properties.HasMember("Collection Window")) {
+        float exposure_time = properties["Collection Window"].GetFloat();
+        lidar->SetCollectionWindow(exposure_time);
+    }
+
+    return lidar;
+}
+
+std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
+                                                   std::shared_ptr<chrono::ChBody> parent,
+                                                   chrono::ChFrame<double> offsetPose) {
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a sensor specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Sensor") == 0);
+
+    // Extract the sensor type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+    if (subtype.compare("Radar") != 0) {
+        throw std::invalid_argument("ChUtilsJSON::ReadRdarSensorJSON: Sensor type of " + subtype + " must be Radar");
+    }
+
+    // Read sensor properties
+    assert(d.HasMember("Properties"));
+    const Value& properties = d["Properties"];
+
+    // Create the radar sensor.
+    float updateRate = properties["Update Rate"].GetFloat();
+    unsigned int w = properties["Width"].GetUint();
+    unsigned int h = properties["Height"].GetUint();
+    float hfov = properties["Horizontal Field of View"].GetFloat();
+    float vfov = properties["Vertical Field of View"].GetFloat();
+    float max_distance = properties["Max Distance"].GetFloat();
+
+    float near_clip = 0.f;
+
+    if (properties.HasMember("Near Clip")) {
+        near_clip = properties["Near Clip"].GetFloat();
+    }
+
+    auto radar = chrono_types::make_shared<ChRadarSensor>(parent, updateRate, offsetPose, w, h, hfov, vfov,
+                                                          max_distance, near_clip);
+
+    if (properties.HasMember("Collection Window")) {
+        float exposure_time = properties["Collection Window"].GetFloat();
+        radar->SetCollectionWindow(exposure_time);
+    }
+
+    return radar;
+}
+
+#endif
 
 std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
                                                std::shared_ptr<chrono::ChBody> parent,
@@ -349,137 +491,6 @@ std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::stri
     return mag;
 }
 
-std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
-                                                   std::shared_ptr<chrono::ChBody> parent,
-                                                   chrono::ChFrame<double> offsetPose) {
-    Document d;
-    ReadFileJSON(filename, d);
-    if (d.IsNull())
-        return nullptr;
-
-    // Check that the given file is a sensor specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Sensor") == 0);
-
-    // Extract the sensor type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-    if (subtype.compare("Lidar") != 0) {
-        throw std::invalid_argument("ChUtilsJSON::ReadLidarSensorJSON: Sensor type of " + subtype + " must be Lidar.");
-    }
-
-    // Read sensor properties
-    assert(d.HasMember("Properties"));
-    const Value& properties = d["Properties"];
-
-    // Create the gps sensor.
-    float updateRate = properties["Update Rate"].GetFloat();
-    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
-    unsigned int w = properties["Width"].GetUint();
-    unsigned int h = properties["Height"].GetUint();
-    float hfov = properties["Horizontal Field of View"].GetFloat();
-    float max_v_angle = properties["Max Vertical Angle"].GetFloat();
-    float min_v_angle = properties["Min Vertical Angle"].GetFloat();
-    float max_distance = properties["Max Distance"].GetFloat();
-    // float lag = properties["Lag"].GetFloat();
-    // float exposure_time = properties["Collection Window"].GetFloat();
-
-    unsigned int sample_radius = 1;
-    LidarBeamShape beam_shape = LidarBeamShape::RECTANGULAR;
-    float vert_divergence_angle = .003f;
-    float hori_divergence_angle = .003f;
-    LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
-    float near_clip = 0.f;
-
-    if (properties.HasMember("Sample Radius")) {
-        sample_radius = properties["Sample Radius"].GetInt();
-    }
-    if (properties.HasMember("Vertical Divergence Angle")) {
-        vert_divergence_angle = properties["Vertical Divergence Angle"].GetFloat();
-    }
-    if (properties.HasMember("Horizontal Divergence Angle")) {
-        hori_divergence_angle = properties["Horizontal Divergence Angle"].GetFloat();
-    }
-    if (properties.HasMember("Return Mode")) {
-        std::string s = properties["Return Mode"].GetString();
-        if (s == "MEAN_RETURN") {
-            return_mode = LidarReturnMode::MEAN_RETURN;
-        } else if (s == "FIRST_RETURN") {
-            return_mode = LidarReturnMode::FIRST_RETURN;
-        } else if (s == "LAST_RETURN") {
-            return_mode = LidarReturnMode::LAST_RETURN;
-        }
-    }
-    if (properties.HasMember("Near Clip")) {
-        near_clip = properties["Near Clip"].GetFloat();
-    }
-
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(
-        parent, updateRate, offsetPose, w, h, hfov, max_v_angle, min_v_angle, max_distance, beam_shape, sample_radius,
-        vert_divergence_angle, hori_divergence_angle, return_mode, near_clip);
-
-    if (properties.HasMember("Lag")) {
-        float lag = properties["Lag"].GetFloat();
-        lidar->SetLag(lag);
-    }
-    if (properties.HasMember("Collection Window")) {
-        float exposure_time = properties["Collection Window"].GetFloat();
-        lidar->SetCollectionWindow(exposure_time);
-    }
-
-    return lidar;
-}
-
-std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
-                                                   std::shared_ptr<chrono::ChBody> parent,
-                                                   chrono::ChFrame<double> offsetPose) {
-    Document d;
-    ReadFileJSON(filename, d);
-    if (d.IsNull())
-        return nullptr;
-
-    // Check that the given file is a sensor specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Sensor") == 0);
-
-    // Extract the sensor type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-    if (subtype.compare("Radar") != 0) {
-        throw std::invalid_argument("ChUtilsJSON::ReadRdarSensorJSON: Sensor type of " + subtype + " must be Radar");
-    }
-
-    // Read sensor properties
-    assert(d.HasMember("Properties"));
-    const Value& properties = d["Properties"];
-
-    // Create the radar sensor.
-    float updateRate = properties["Update Rate"].GetFloat();
-    unsigned int w = properties["Width"].GetUint();
-    unsigned int h = properties["Height"].GetUint();
-    float hfov = properties["Horizontal Field of View"].GetFloat();
-    float vfov = properties["Vertical Field of View"].GetFloat();
-    float max_distance = properties["Max Distance"].GetFloat();
-
-    float near_clip = 0.f;
-
-    if (properties.HasMember("Near Clip")) {
-        near_clip = properties["Near Clip"].GetFloat();
-    }
-
-    auto radar = chrono_types::make_shared<ChRadarSensor>(parent, updateRate, offsetPose, w, h, hfov, vfov,
-                                                          max_distance, near_clip);
-
-    if (properties.HasMember("Collection Window")) {
-        float exposure_time = properties["Collection Window"].GetFloat();
-        radar->SetCollectionWindow(exposure_time);
-    }
-
-    return radar;
-}
-
 void ReadFilterListJSON(const std::string& filename, std::shared_ptr<ChSensor> sensor) {
     Document d;
     ReadFileJSON(filename, d);
@@ -509,7 +520,12 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
 
     // Create the filter
     std::shared_ptr<ChFilter> filter;
-    if (type.compare("ChFilterCameraNoiseConstNormal") == 0) {
+
+    if (type.compare("ChFilterAccelerometerUpdate") == 0) {
+        //// TODO
+    }
+#ifdef CHRONO_HAS_OPTIX
+    else if (type.compare("ChFilterCameraNoiseConstNormal") == 0) {
         float mean = value["Mean"].GetFloat();
         float stdev = value["Standard Deviation"].GetFloat();
         std::string name = GetStringMemberWithDefault(value, "Name");
@@ -579,7 +595,9 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         int h = value["Height"].GetInt();
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterImageResize>(w, h, name);
-    } else {
+    }
+#endif
+    else {
         throw std::invalid_argument("Filter type of \"" + type + "\" not supported in ReadFilterJSON.");
     }
 

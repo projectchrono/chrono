@@ -149,7 +149,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
             body->VariablesQbIncrementPosition(this->GetStep());
             body->VariablesQbSetSpeed(this->GetStep());
 
-            body->Update(ch_time, true);
+            body->Update(ch_time, UpdateFlags::UPDATE_ALL);
 
             // update the position and rotation vectors
             pos_pointer[i] = (real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z()));
@@ -166,7 +166,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
             shaft->Variables().State()(0) = velocities[offset + i];
             shaft->VariablesQbIncrementPosition(GetStep());
             shaft->VariablesQbSetSpeed(GetStep());
-            shaft->Update(ch_time, true);
+            shaft->Update(ch_time, UpdateFlags::UPDATE_ALL);
         }
     }
 
@@ -175,7 +175,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
         linmotorlist[i]->Variables().State()(0) = velocities[offset + i];
         linmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         linmotorlist[i]->VariablesQbSetSpeed(GetStep());
-        linmotorlist[i]->Update(ch_time, true);
+        linmotorlist[i]->Update(ch_time, UpdateFlags::UPDATE_ALL);
     }
 
     offset += data_manager->num_linmotors;
@@ -183,11 +183,11 @@ bool ChSystemMulticore::AdvanceDynamics() {
         rotmotorlist[i]->Variables().State()(0) = velocities[offset + i];
         rotmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         rotmotorlist[i]->VariablesQbSetSpeed(GetStep());
-        rotmotorlist[i]->Update(ch_time, true);
+        rotmotorlist[i]->Update(ch_time, UpdateFlags::UPDATE_ALL);
     }
 
     for (int i = 0; i < assembly.otherphysicslist.size(); i++) {
-        assembly.otherphysicslist[i]->Update(ch_time, true);
+        assembly.otherphysicslist[i]->Update(ch_time, UpdateFlags::UPDATE_ALL);
     }
 
     data_manager->node_container->UpdatePosition(ch_time);
@@ -342,7 +342,7 @@ void ChSystemMulticore::UpdateRigidBodies() {
     for (int i = 0; i < assembly.bodylist.size(); i++) {
         auto& body = assembly.bodylist[i];
 
-        body->Update(ch_time, false);
+        body->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
         body->VariablesFbLoadForces(GetStep());
         body->VariablesQbLoadSpeed();
 
@@ -392,7 +392,7 @@ void ChSystemMulticore::UpdateShafts() {
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         auto& shaft = assembly.shaftlist[i];
 
-        shaft->Update(ch_time, false);
+        shaft->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
         shaft->VariablesFbLoadForces(GetStep());
         shaft->VariablesQbLoadSpeed();
 
@@ -410,7 +410,7 @@ void ChSystemMulticore::UpdateShafts() {
 void ChSystemMulticore::UpdateMotorLinks() {
     uint offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
     for (uint i = 0; i < data_manager->num_linmotors; i++) {
-        linmotorlist[i]->Update(ch_time, false);
+        linmotorlist[i]->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
         linmotorlist[i]->VariablesFbLoadForces(GetStep());
         linmotorlist[i]->VariablesQbLoadSpeed();
         data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().State()(0);
@@ -418,7 +418,7 @@ void ChSystemMulticore::UpdateMotorLinks() {
     }
     offset += data_manager->num_linmotors;
     for (uint i = 0; i < data_manager->num_rotmotors; i++) {
-        rotmotorlist[i]->Update(ch_time, false);
+        rotmotorlist[i]->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
         rotmotorlist[i]->VariablesFbLoadForces(GetStep());
         rotmotorlist[i]->VariablesQbLoadSpeed();
         data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().State()(0);
@@ -441,7 +441,7 @@ void ChSystemMulticore::UpdateLinks() {
     for (auto i = 0; i < assembly.linklist.size(); i++) {
         auto& link = assembly.linklist[i];
 
-        link->Update(ch_time, false);
+        link->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
         link->ConstraintsBiReset();
         link->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
         link->ConstraintsBiLoad_Ct(1);
@@ -495,7 +495,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
     for (int i = 0; i < assembly.otherphysicslist.size(); i++) {
         auto& item = assembly.otherphysicslist[i];
 
-        item->Update(ch_time, false);
+        item->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
         item->ConstraintsBiReset();
         item->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
         item->ConstraintsBiLoad_Ct(1);

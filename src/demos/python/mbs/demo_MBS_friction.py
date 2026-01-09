@@ -22,6 +22,7 @@ print ("Example: demonstration of using friction models")
 #
 
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create all the rigid bodies.

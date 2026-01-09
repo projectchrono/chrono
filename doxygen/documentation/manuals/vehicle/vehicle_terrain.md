@@ -48,7 +48,7 @@ A height-map patch is specified through a gray-scale BMP image (like the one sho
 **Location-dependent coefficient of friction**. The rigid terrain model supports the definition of a `FrictionFunctor` object. If no such functor is provided, [RigidTerrain::GetCoefficientFriction](@ref chrono::vehicle::RigidTerrain::GetCoefficientFriction) uses the ray-casting approach to identify the correct patch and the (constant) coefficient of friction for that patch is returned. If a functor is provided, RigidTerrain::GetCoefficientFriction simply returns its value.  However, processing of contacts with the terrain (e.g., when using rigid tires or a tracked vehicle) is relatively expensive: at each invocation of the collision detection algorithm (i.e., once per simulation step) the list of all contacts in the Chrono system is traversed to intercept all contacts that involve a rigid terrain patch collision model; for these contacts, the composite material properties are modified to account for the terrain coefficient of friction at the point of contact.
 
 A rigid terrain can be constructed programmatically, defining one patch at a time, or else specified in a JSON file like the following one:
-\include "../../data/vehicle/terrain/RigidPatches.json"
+\include "data/vehicle/terrain/RigidPatches.json"
 
 
 ## CRG terrain {#vehicle_terrain_crg}
@@ -56,7 +56,7 @@ A rigid terrain can be constructed programmatically, defining one patch at a tim
 [CRGTerrain](@ref chrono::vehicle::CRGTerrain) is a procedural terrain model constructed from an [OpenCRG](http://opencrg.org) road specification.  To use this terrain model, the user must install the OpenCRG SDK and enable its use during CMake configuration (see the Chrono::Vehicle [installation instruction](@ref module_vehicle_installation)).
 
 The CRG terrain creates a road profile (a 3D path with an associated width) from a specification file such as the one listed below and implements the functions [CRGTerrain::GetHeight](@ref chrono::vehicle::CRGTerrain::GetHeight) and [CRGTerrain::GetNormal](@ref chrono::vehicle::CRGTerrain::GetNormal) to use this specification.  Note that a `crg` specification file can be either ASCII or binary.
-\include "../../data/vehicle/terrain/crg_roads/handmade_curved_minimalist.crg"
+\include "data/vehicle/terrain/crg_roads/handmade_curved_minimalist.crg"
 
 The CRG terrain can be visualized as a triangular mesh (representing the road "ribbon") or else as a set of 3D Bezier curves (representing the center line and the road sides).  Other features of CRGTerrain include:
 - ability to export the road mesh (as a triangle mesh)

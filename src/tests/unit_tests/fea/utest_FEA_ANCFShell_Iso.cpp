@@ -77,6 +77,7 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Geometry of the plate
     double plate_lenght_x = 1;

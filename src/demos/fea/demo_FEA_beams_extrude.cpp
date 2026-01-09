@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create and set the collision system
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);

@@ -18,6 +18,7 @@ print("Copyright (c) 2017 projectchrono.org ")
 
 # Create the physical system
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 
 # Create a mesh:
 mesh = fea.ChMesh()

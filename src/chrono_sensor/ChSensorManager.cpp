@@ -16,11 +16,13 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/ChSensorManager.h"
-
-#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include <iomanip>
 #include <iostream>
+
+#include "chrono_sensor/ChSensorManager.h"
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/sensors/ChOptixSensor.h"
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -28,28 +30,33 @@ namespace sensor {
 CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verbose(false), m_optix_reflections(9) {
     // save the chrono system handle
     m_system = chrono_system;
-    scene = chrono_types::make_shared<ChScene>();
     m_device_list = {0};
+#ifdef CHRONO_HAS_OPTIX
+    scene = chrono_types::make_shared<ChScene>();
+#endif
 }
 
 CH_SENSOR_API ChSensorManager::~ChSensorManager() {}
 
+#ifdef CHRONO_HAS_OPTIX
 CH_SENSOR_API std::shared_ptr<ChOptixEngine> ChSensorManager::GetEngine(int context_id) {
     if (context_id < m_engines.size())
         return m_engines[context_id];
     std::cerr << "ERROR: index out of render group vector bounds\n";
     return NULL;
 }
+#endif
 
 CH_SENSOR_API void ChSensorManager::Update() {
     // update the scene
     // scene->PackFrame(m_system);
     //
     // have all the optix engines update their sensor
+#ifdef CHRONO_HAS_OPTIX
     for (auto pEngine : m_engines) {
         pEngine->UpdateSensors(scene);
     }
-
+#endif
     // have the sensormanager update all of the non-optix sensor (IMU and GPS).
     // TODO: perhaps create a thread that takes care of this? Tradeoff since IMU should require some data from EVERY
     // step
@@ -67,9 +74,11 @@ CH_SENSOR_API std::vector<unsigned int> ChSensorManager::GetDeviceList() {
 }
 
 CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
+#ifdef CHRONO_HAS_OPTIX
     for (auto eng : m_engines) {
         eng->ConstructScene();
     }
+#endif
 }
 
 CH_SENSOR_API void ChSensorManager::SetMaxEngines(int num_groups) {
@@ -91,6 +100,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
     }
     m_sensor_list.push_back(sensor);
 
+#ifdef CHRONO_HAS_OPTIX
     if (auto pOptixSensor = std::dynamic_pointer_cast<ChOptixSensor>(sensor)) {
         m_render_sensor.push_back(sensor);
         /******** give each render group all sensor with same update rate *************/
@@ -101,7 +111,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             if (!found_group && engine->GetSensor().size() > 0 &&
                 abs(engine->GetSensor()[0]->GetUpdateRate() - sensor->GetUpdateRate()) < 0.001) {
                 found_group = true;
-                
+
                 engine->AssignSensor(pOptixSensor);
                 if (m_verbose)
                     std::cout << "Sensor added to existing engine\n";
@@ -114,7 +124,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                 if (m_engines.size() < m_allowable_groups) {
                     auto engine = chrono_types::make_shared<ChOptixEngine>(
                         m_system, m_device_list[(int)m_engines.size()], m_optix_reflections,
-                        m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
+                        m_verbose);  // limits to 2 gpus, TODO: check if device supports CUDA
 
                     // engine->ConstructScene();
 
@@ -135,14 +145,17 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             std::cerr << "Failed to create a ChOptixEngine, with error:\n" << e.what() << "\n";
             exit(1);
         }
-    } else {
-        if (!m_dynamics_manager) {
-            m_dynamics_manager = chrono_types::make_shared<ChDynamicsManager>(m_system);
-        }
 
-        // add pure dynamic sensor to dynamic manager
-        m_dynamics_manager->AssignSensor(sensor);
+        return;
     }
+#endif
+
+    if (!m_dynamics_manager) {
+        m_dynamics_manager = chrono_types::make_shared<ChDynamicsManager>(m_system);
+    }
+
+    // add pure dynamic sensor to dynamic manager
+    m_dynamics_manager->AssignSensor(sensor);
 }
 
 }  // namespace sensor

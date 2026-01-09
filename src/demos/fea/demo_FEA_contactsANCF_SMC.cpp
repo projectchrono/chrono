@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     // Create run-time visualization system
     // ------------------------------------
 
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Contact", ChVector3d(0.4, 0.4, 0.4),
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Contact", ChVector3d(0.8, 0.8, 0.8),
                                          ChVector3d(-0.25, -0.25, 0.0));
 
     // -------------------------

@@ -36,6 +36,7 @@
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
@@ -129,6 +130,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system and associated collision system
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Initialize output

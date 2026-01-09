@@ -30,6 +30,8 @@
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChValidation.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
 using namespace chrono::utils;
 
@@ -375,11 +377,18 @@ int main(int argc, char* argv[]) {
     double tol_state = 1e-3;
     double tol_cnstr = 1e-6;
 
+    // Create output directory (if it does not already exist)
+    std::string out_dir = "TEST_RESULTS";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // Create and simulate the ODE model.
     ODEModel ode_model;
     ode_model.Simulate(step, num_steps);
     const ChValidation::Data& ref_data = ode_model.GetData();
-    ode_model.WriteData(step, "ode_dpend.txt");
+    ode_model.WriteData(step, out_dir + "/ode_dpend.txt");
 
     // Perform the timestepper tests.
     bool passed = true;

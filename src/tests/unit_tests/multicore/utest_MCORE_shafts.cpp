@@ -51,6 +51,7 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
                 system = new ChSystemMulticoreNSC();
                 break;
         }
+        system->SetGravityY();
 
         // Set number of threads
         system->SetNumThreads(1);

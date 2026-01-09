@@ -118,6 +118,7 @@ set(CHRONO_OPENMP_CXX_AVAILABLE @OpenMP_CXX_FOUND@)
 set(CHRONO_THRUST_AVAILABLE @Thrust_FOUND@)
 set(CHRONO_MPI_CXX_AVAILABLE @MPI_CXX_FOUND@)
 set(CHRONO_HDF5_AVAILABLE @HDF5_FOUND@)
+set(CHRONO_OPTIX_AVAILABLE @CH_USE_SENSOR_OPTIX@)
 
 set(CHRONO_CUDA_ARCHITECTURES "@CHRONO_CUDA_ARCHITECTURES@")
 
@@ -724,15 +725,18 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "SENSOR")
 
-    set(OptiX_INSTALL_DIR "@OptiX_ROOT_DIR@" CACHE PATH "Path to the installed location of the OptiX SDK.")
-    find_package(OptiX QUIET)
-
-    if(NOT OptiX_FOUND)
-      message("WARNING: Chrono::Sensor requires OptiX, but Optix was not found")
-      set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR OptiX_INSTALL_DIR)
-    else()
-      mark_as_advanced(FORCE OptiX_INSTALL_DIR)
+    if(CHRONO_OPTIX_AVAILABLE)
+        set(OptiX_INSTALL_DIR "@OptiX_INSTALL_DIR@" CACHE PATH "Path to the installed location of the OptiX SDK.")
+        find_package(OptiX QUIET)
+        
+        if(NOT OptiX_INCLUDE)
+          message("WARNING: Chrono::Sensor requires OptiX, but Optix was not found")
+          set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+          mark_as_advanced(CLEAR OptiX_INSTALL_DIR)
+        else()
+          message(STATUS "OptiX found")
+          mark_as_advanced(FORCE OptiX_INSTALL_DIR)
+        endif()
     endif()
 
     set(OpenGL_DIR "@OpenGL_DIR@" CACHE PATH "Path to the OpenGL installation.")

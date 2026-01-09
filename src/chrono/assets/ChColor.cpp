@@ -17,6 +17,7 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChClassFactory.h"
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 
@@ -105,6 +106,16 @@ ChColor ChColor::HSV2RGB(const ChVector3f& hsv) {
     c.G += M;
     c.B += M;
 
+    return c;
+}
+
+ChColor ChColor::Interp(const ChColor& c1, const ChColor& c2, double f) {
+    ChClamp(f, 0.0, 1.0);
+
+    ChColor c;
+    c.R = (1 - f) * c1.R + f * c2.R;
+    c.G = (1 - f) * c1.G + f * c2.G;
+    c.B = (1 - f) * c1.B + f * c2.B;
     return c;
 }
 

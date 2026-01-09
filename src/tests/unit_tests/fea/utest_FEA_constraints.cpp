@@ -47,6 +47,7 @@ class Model {
 
 Model::Model() {
     m_system = chrono_types::make_shared<ChSystemNSC>();
+    m_system->SetGravityY();
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.

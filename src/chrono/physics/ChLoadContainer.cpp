@@ -33,12 +33,12 @@ void ChLoadContainer::Add(std::shared_ptr<ChLoadBase> newload) {
     loadlist.push_back(newload);
 }
 
-void ChLoadContainer::Update(double time, bool update_assets) {
+void ChLoadContainer::Update(double time, UpdateFlags update_flags) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
-        loadlist[i]->Update(time, update_assets);
+        loadlist[i]->Update(time, update_flags);
     }
     // Overloading of base class:
-    ChObj::Update(time, update_assets);
+    ChObj::Update(time, update_flags);
 }
 
 void ChLoadContainer::IntLoadResidual_F(const unsigned int off,  // offset in R residual

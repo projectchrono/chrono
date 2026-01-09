@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -136,7 +137,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA thermal", ChVector3d(0, 0.7, -1),
-                                         ChVector3d(0, 0.4, 0));
+                                         ChVector3d(0, 0.8, 0));
 
     // SIMULATION LOOP
 

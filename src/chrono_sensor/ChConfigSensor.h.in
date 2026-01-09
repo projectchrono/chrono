@@ -21,14 +21,23 @@
 #ifndef CH_CONFIG_SENSOR_H
 #define CH_CONFIG_SENSOR_H
 
-// Include main Chrono configuration  header
+// Include main Chrono configuration header
 #include "chrono/ChConfig.h"
 
-/// Location of shaders
-#define CHRONO_SENSOR_SHADER_DIR "@SHADER_DIR@"
+/// If OptiX-dependent Chrono::Sensor features are available and enabled, define CHRONO_HAS_OPTIX.
+@CHRONO_HAS_OPTIX@
 
-/// passing lists from cmake to c++ when using NVRTC for runtime compilation of RT Programs
-#define CUDA_NVRTC_INCLUDE_LIST @CUDA_NVRTC_INCLUDE_LIST@
-#define CUDA_NVRTC_FLAG_LIST @CUDA_NVRTC_FLAG_LIST@
+// -----------------------------------------------------------------------------
+
+#ifdef CHRONO_HAS_OPTIX
+
+  /// Location of shaders.
+  #define CHRONO_SENSOR_SHADER_DIR "@SHADER_DIR@"
+
+  /// Passing lists from cmake to c++ when using NVRTC for runtime compilation of RT programs.
+  #define CUDA_NVRTC_INCLUDE_LIST @CUDA_NVRTC_INCLUDE_LIST@
+  #define CUDA_NVRTC_FLAG_LIST @CUDA_NVRTC_FLAG_LIST@
+
+#endif
 
 #endif

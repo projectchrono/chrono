@@ -350,6 +350,7 @@ void Test_pendulum2D_ODE(double L, double m, double t_end, double t_step, const 
     cout << "2D pendulum modeled as an ODE with 1 state and 0 constraints." << endl;
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto pendulum = chrono_types::make_shared<Pendulum2D_ODE>(L, m);
     pendulum->Initialize();
@@ -393,6 +394,7 @@ void Test_pendulum2D_DAE(double L, double m, double t_end, double t_step, const 
     cout << "2D pendulum modeled as a DAE with 3 states and 2 constraints." << endl;
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto pendulum = chrono_types::make_shared<Pendulum2D_DAE>(L, m);
     pendulum->Initialize();
@@ -437,6 +439,7 @@ void Test_pendulum3D_DAE(double L, double m, double t_end, double t_step, const 
     cout << "3D pendulum modeled as a DAE with 7/6 states and 5 constraints." << endl;
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto pendulum = chrono_types::make_shared<Pendulum3D_DAE>(L, m);
     pendulum->Initialize();

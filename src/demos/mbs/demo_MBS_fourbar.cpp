@@ -92,6 +92,7 @@ int main(int argc, char* argv[]) {
 
     // 1- Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // 2- Create the rigid bodies of the four-bar mechanical system
     //   (a flywheel, a rod, a rocker, a truss), maybe setting

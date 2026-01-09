@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -128,7 +129,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis =
-        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEM electrostatics", ChVector3d(0, 0.2, -0.3));
+        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEM electrostatics", ChVector3d(0, 0.4, -0.6));
 
     // SIMULATION LOOP
 

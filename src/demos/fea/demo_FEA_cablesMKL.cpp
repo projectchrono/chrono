@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
@@ -70,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (MKL)",
-                                         ChVector3d(-0.4, -0.15, -0.9), ChVector3d(0, -0.4, -0.3));
+                                         ChVector3d(-0.8, -0.3, -1.8), ChVector3d(0, -0.4, -0.3));
 
     // Configure PardisoMKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
     mkl_solver->SetVerbose(false);
     sys.SetSolver(mkl_solver);
 
-    sys.Update(false);
+    sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

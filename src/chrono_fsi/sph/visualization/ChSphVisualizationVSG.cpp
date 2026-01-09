@@ -23,8 +23,8 @@
 #include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
 
-#include "chrono_vsg/utils/ChConversionsVSG.h"
-#include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/utils/ChDataUtilsVSG.h"
+#include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 
 namespace chrono {
 namespace fsi {

@@ -130,6 +130,7 @@ void Example2(const std::string& out_dir, ChSolver::Type solver_type, ChTimestep
 
     // The physical system: it contains all physical objects.
     ChSystemNSC sys;
+    sys.SetGravityY();
     SetChronoSolver(sys, solver_type, integrator_type);
 
     // Create a ChShaft that starts with nonzero angular velocity

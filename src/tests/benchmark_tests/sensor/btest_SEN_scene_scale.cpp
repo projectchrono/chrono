@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     auto manager = std::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
@@ -85,11 +86,6 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(cam);
 
     int curr_item_cnt = 0;
-
-    // ChBox box_asset = ChBox({0, 0, 0}, ChMatrix33<>(1), {1, 1, 1});
-    //
-    // auto box_shape = chrono_types::make_shared<ChBoxShape>(box_asset);
-    // box_shape->SetMutable(false);
 
     for (int q = start_exp; q <= stop_exp; q++) {
         int target_item_cnt = pow(2, q);

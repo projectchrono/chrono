@@ -20,6 +20,7 @@ print (" Demo of using the assets sys to create shapes for Irrlicht visualizatio
 
 # Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Example 1:

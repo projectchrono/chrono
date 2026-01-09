@@ -20,7 +20,7 @@ The image below shows the 4WD shafts-based driveline connected to a shafts-based
 <img src="http://www.projectchrono.org/assets/manual/vehicle/shafts_powertrain.png" width="800" />
 
 The various template parameters available for a 4WD shafts-based driveline are illustrated in the following sample JSON specification file:
-\include "../../data/vehicle/hmmwv/driveline/HMMWV_Driveline4WD.json"
+\include "data/vehicle/hmmwv/driveline/HMMWV_Driveline4WD.json"
 
 
 ## Two-wheel shafts-based drivetrain {#wheeled_driveline_2WD_shafts}
@@ -30,7 +30,7 @@ This drivetrain template is similar to the 4WD shafts-based drivetrain model, bu
 See [ChShaftsDriveline2WD](@ref chrono::vehicle::ChShaftsDriveline2WD) and [ShaftsDriveline2WD](@ref chrono::vehicle::ShaftsDriveline2WD).
 
 A sample JSON file with the specification of a 2WD shafts-based driveline is:
-\include "../../data/vehicle/hmmwv/driveline/HMMWV_Driveline2WD.json"
+\include "data/vehicle/hmmwv/driveline/HMMWV_Driveline2WD.json"
 
 
 ## Four-wheel kinematic drivetrain {#wheeled_driveline_4WD_simple}
@@ -40,7 +40,7 @@ This template can be used to model a 4WD driveline. It uses a constant front/rea
 See [ChSimpleDriveline](@ref chrono::vehicle::ChSimpleDriveline) and [SimpleDriveline](@ref chrono::vehicle::SimpleDriveline).
 
 A sample JSON file with the specification of a 2WD shafts-based driveline is:
-\include "../../data/vehicle/hmmwv/driveline/HMMWV_DrivelineSimple.json"
+\include "data/vehicle/hmmwv/driveline/HMMWV_DrivelineSimple.json"
 
 
 ## X-wheel kinematic drivetrain {#wheeled_driveline_XWD_simple}
@@ -50,4 +50,4 @@ This simple driveline template can be used to model a XWD driveline, capable of 
 See [ChSimpleDrivelineXWD](@ref chrono::vehicle::ChSimpleDrivelineXWD) and [SimpleDrivelineXWD](@ref chrono::vehicle::SimpleDrivelineXWD).
 
 A sample JSON file with the specification of a 2WD shafts-based driveline is:
-\include "../../data/vehicle/MAN_Kat1/driveline/MAN_5t_DrivelineSimpleXWD.json"
+\include "data/vehicle/MAN_Kat1/driveline/MAN_5t_DrivelineSimpleXWD.json"

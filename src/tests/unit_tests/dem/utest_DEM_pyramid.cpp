@@ -16,6 +16,7 @@
 // stack can support the top particle, otherwise the top particle drops
 // This test is to verify the rolling friction of the chrono::dem
 // =============================================================================
+
 #include "gtest/gtest.h"
 #include <cmath>
 #include <iostream>

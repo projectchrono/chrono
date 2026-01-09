@@ -58,9 +58,9 @@ bool ChShaftsMotorSpeed::Initialize(std::shared_ptr<ChShaft> shaft_1, std::share
     return true;
 }
 
-void ChShaftsMotorSpeed::Update(double time, bool update_assets) {
+void ChShaftsMotorSpeed::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
-    ChShaftsMotor::Update(time, update_assets);
+    ChShaftsMotor::Update(time, update_flags);
 
     // update class data
 
@@ -83,12 +83,12 @@ void ChShaftsMotorSpeed::IntStateScatter(const unsigned int off_x,  // offset in
                                          const unsigned int off_v,  // offset in v state vector
                                          const ChStateDelta& v,     // state vector, speed part
                                          const double T,            // time
-                                         bool full_update           // perform complete update
+                                         UpdateFlags update_flags    // perform complete update?
 ) {
     // aux = x(off_x);
     aux_dt = v(off_v);
 
-    Update(T, full_update);
+    Update(T, update_flags);
 }
 
 void ChShaftsMotorSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

@@ -114,7 +114,6 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const st
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-    trimesh_shape->SetMutable(false);
     m_wheel->GetSpindle()->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, GetOffset(), 0), ChMatrix33<>(rot)));
 
     return trimesh_shape;

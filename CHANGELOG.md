@@ -17,6 +17,7 @@ Change Log
   - [\[Changed\] Refactoring of Chrono CMake build system](#changed-refactoring-of-chrono-cmake-build-system) 
   - [\[Added\] Support for modeling components with internal dynamics (DAE)](#added-support-for-modeling-components-with-internal-dynamics-dae)
   - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
+  - [\[Fixed\] Miscellaneous fixes](#fixed-miscellaneous-fixes)
 - [Release 9.0.1 (2024-07-03)](#release-901-2024-07-03)
   - [\[Fixed\] Bug fixes in FSI solver](#fixed-bug-fixes-in-fsi-solver)
   - [\[Fixed\] Miscellaneous bug fixes](#fixed-miscellaneous-bug-fixes)
@@ -370,6 +371,12 @@ These eigenvalue solvers are meant to deal directly with *matrices*, not with Ch
 The modal solvers are split into undamped and damped versions but, while the undamped case can generate either symmetric or unsymmetric problems, the damped case matrices are always unsymmetric. Because of this, different modal solvers may be equipped with different eigensolvers.
 
 Further details are explained in the documentation.
+
+## [Fixed] Miscellaneous fixes 
+
+- The pressure angle "alpha" in ChLinkLockGear was tilted in the opposite direction for external gears, but it was correct in the case of internal gears. Now it is correct for both cases. Also a unit test has been added.
+
+
 
 # Release 9.0.1 (2024-07-03)
 

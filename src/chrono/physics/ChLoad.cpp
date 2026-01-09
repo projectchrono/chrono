@@ -32,8 +32,8 @@ ChLoadBase::~ChLoadBase() {
     delete m_jacobians;
 }
 
-void ChLoadBase::Update(double time, bool update_assets) {
-    ChObj::Update(time, update_assets);
+void ChLoadBase::Update(double time, UpdateFlags update_flags) {
+    ChObj::Update(time, update_flags);
 
     // current state speed & position
     ChState mstate_x(LoadGetNumCoordsPosLevel(), 0);

@@ -92,7 +92,7 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     /// @brief Add a transform to be published. This version of the AddTransform function will publish a static
     /// transform between the parent and child frame. This is useful for two bodies that are connected by a link.
     /// @param parent The parent body
-    /// @param parent_frame The parent frame id.
+    /// @param parent_frame_id The parent frame id
     /// @param child_frame The child frame
     /// @param child_frame_id The child frame id
     void AddTransform(std::shared_ptr<chrono::ChBody> parent,

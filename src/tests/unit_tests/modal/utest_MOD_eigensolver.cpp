@@ -133,7 +133,7 @@ std::shared_ptr<ChAssembly> BuildBeamFixBody(ChSystem& sys) {
     assembly->Add(link_beamend_body);
 
     sys.Setup();
-    sys.Update(false);
+    sys.Update(UpdateFlags::UPDATE_ALL);
 
     return assembly;
 }
@@ -144,10 +144,10 @@ void generateKRMCqFromAssembly(std::shared_ptr<ChAssembly> assembly,
                                ChSparseMatrix& M,
                                ChSparseMatrix& Cq) {
     ChSystemNSC sys;
-    // auto assembly = BuildBeamFixBody(sys);
+    sys.SetGravityY();
 
     assembly->Setup();
-    assembly->Update(0.0, false);
+    assembly->Update(0.0, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 
     ChSystemDescriptor temp_descriptor;
 
@@ -205,17 +205,6 @@ void dumpKRMMatricesFromAssembly(std::shared_ptr<ChAssembly> assembly, std::stri
     fast_matrix_market::write_matrix_market_eigen(stream_R, R);
     fast_matrix_market::write_matrix_market_eigen(stream_Cq, Cq);
 }
-
-// int main() {
-//     std::string testname = "SymKMCqChrono";
-//
-//     // Create a system
-//     ChSystemNSC sys;
-//     auto assembly = BuildBeamFixBody(sys);
-//     generateKRMCqFromAssembly(assembly, testname);
-//
-//     return 0;
-// }
 
 template <typename EigenSolverType, typename ScalarType>
 void ExecuteEigenSolverCallAB(EigenSolverType eigen_solver, std::string refname) {
@@ -644,6 +633,8 @@ TEST(ChUnsymGenEigenvalueSolverKrylovSchur, UnsymKRMCq) {
 template <typename EigsolverType>
 void ExecuteModalSolverUndamped() {
     ChSystemNSC sys;
+    sys.SetGravityY();
+
     auto assembly = BuildBeamFixBody(sys);
 
     ChSparseMatrix K, R, M, Cq;
@@ -695,6 +686,8 @@ TEST(ChModalSolverUndamped, ChSymGenEigenvalueSolverLanczos) {
 
 TEST(ChModalSolverDamped, ChUnsymGenEigenvalueSolverKrylovSchur) {
     ChSystemNSC sys;
+    sys.SetGravityY();
+
     auto assembly = BuildBeamFixBody(sys);
 
     ChSparseMatrix K, R, M, Cq;

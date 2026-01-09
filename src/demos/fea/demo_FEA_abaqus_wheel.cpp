@@ -52,6 +52,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system and set the associated collision system
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
@@ -236,7 +237,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Abaqus wheel",     //
-                                         ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0),  //
+                                         ChVector3d(2.0, 2.8, -2.4), ChVector3d(0, tire_rad, 0),  //
                                          true, "Node speed", colormap_range, colormap_type);
 
     // SIMULATION LOOP
@@ -245,7 +246,7 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);
-    sys.Update(false);
+    sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise

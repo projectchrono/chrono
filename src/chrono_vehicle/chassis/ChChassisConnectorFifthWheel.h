@@ -41,9 +41,9 @@ class CH_VEHICLE_API ChChassisConnectorFifthWheel : public ChChassisConnector {
     /// Initialize this chassis connector subsystem.
     /// The subsystem is initialized by attaching it to the specified front and rear chassis bodies at their connection
     /// points.
-    void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
-                    std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
-    );
+    virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
+                            std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
+                            ) override;
 
   protected:
     virtual void PopulateComponentList() override;

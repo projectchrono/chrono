@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
         // TEST
         sys.Setup();
-        sys.Update(false);
+        sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
         std::cout << "BST initial: \n"
                   << "Area: " << element->area << "\n"
                   << "l0: " << element->l0 << "\n"
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         node1->SetPos(node1->GetPos() + ChVector3d(0.1, 0, 0));
         node1->SetFixed(true);
 
-        sys.Update(false);
+        sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
         ChVectorDynamic<double> Fi(element->GetNumCoordsPosLevel());
         element->ComputeInternalForces(Fi);
         std::cout << "BST updated: \n"
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "BST triangle shell",
-                                         ChVector3d(1, 0.3, 1.3), ChVector3d(0.5, -0.3, 0.5));
+                                         ChVector3d(2.0, 0.6, 2.6), ChVector3d(0.5, -0.3, 0.5));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double timestep = 0.005;
     sys.Setup();
-    sys.Update(false);
+    sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 
     ChFunctionInterp rec_X;
     ChFunctionInterp rec_Y;

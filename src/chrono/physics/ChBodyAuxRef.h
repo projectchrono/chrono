@@ -65,7 +65,7 @@ class ChApi ChBodyAuxRef : public ChBody {
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     // SERIALIZATION
 

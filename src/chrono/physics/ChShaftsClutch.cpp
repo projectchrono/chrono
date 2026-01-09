@@ -42,9 +42,9 @@ bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared_pt
     return true;
 }
 
-void ChShaftsClutch::Update(double time, bool update_assets) {
+void ChShaftsClutch::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
-    ChShaftsCouple::Update(time, update_assets);
+    ChShaftsCouple::Update(time, update_flags);
 
     // update class data
     // ...

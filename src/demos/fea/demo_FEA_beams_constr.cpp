@@ -72,6 +72,7 @@ int main(int argc, char* argv[]) {
      */
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
@@ -255,7 +256,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Beams and constraints",
-                                         ChVector3d(0, 0.6, -1.0));
+                                         ChVector3d(0, 1.2, -2.0));
 
     // SIMULATION LOOP
 

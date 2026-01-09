@@ -119,9 +119,9 @@ void ChLinkMateGeneric::SetBroken(bool mbro) {
         ChangedLinkMask();
 }
 
-void ChLinkMateGeneric::Update(double time, bool update_assets) {
+void ChLinkMateGeneric::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::Update(time, update_assets);
+    ChLink::Update(time, update_flags);
 
     if (this->m_body1 && this->m_body2) {
         this->mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
@@ -722,9 +722,9 @@ void ChLinkMatePlanar::Initialize(std::shared_ptr<ChBodyFrame> body1,
     ChLinkMateGeneric::Initialize(body1, body2, pos_are_relative, point1, point2, m_flipped ? -norm1 : norm1, norm2);
 }
 
-void ChLinkMatePlanar::Update(double time, bool update_assets) {
+void ChLinkMatePlanar::Update(double time, UpdateFlags update_flags) {
     // Parent class inherit
-    ChLinkMateGeneric::Update(time, update_assets);
+    ChLinkMateGeneric::Update(time, update_flags);
 
     // Compensate for the imposed offset between the two planes
     C(0) -= m_distance;
@@ -989,9 +989,9 @@ void ChLinkMateDistanceZ::Initialize(std::shared_ptr<ChBodyFrame> body1,
     ChLinkMateGeneric::Initialize(body1, body2, pos_are_relative, point1, point2, mdir2, mdir2);
 }
 
-void ChLinkMateDistanceZ::Update(double mtime, bool update_assets) {
+void ChLinkMateDistanceZ::Update(double time, UpdateFlags update_flags) {
     // Parent class inherit
-    ChLinkMateGeneric::Update(mtime, update_assets);
+    ChLinkMateGeneric::Update(time, update_flags);
 
     // .. then add the effect of imposed distance on C residual vector
     C(0) -= m_distance;  // for this mate, C = {Cz}
@@ -1105,7 +1105,7 @@ void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> body1,
 
     // Force the alignment of frames so that the Z axis is cross product of two dirs, etc.
     // by calling the custom update function of ChLinkMateOrthogonal.
-    Update(ChTime, true);
+    Update(ChTime, UpdateFlags::UPDATE_ALL);
 
     // Perform initialization (set pointers to variables, etc.)
     ChLinkMateGeneric::Initialize(body1, body2,
@@ -1114,7 +1114,7 @@ void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> body1,
 }
 
 /// Override _all_ time, jacobian etc. updating.
-void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
+void ChLinkMateOrthogonal::Update(double time, UpdateFlags update_flags) {
     // Prepare the alignment of the two frames so that the Z axis is orthogonal
     // to the two directions
 
@@ -1167,7 +1167,7 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
     }
 
     // Parent class inherit
-    ChLinkMateGeneric::Update(mtime, update_assets);
+    ChLinkMateGeneric::Update(time, update_flags);
 }
 
 void ChLinkMateOrthogonal::ArchiveOut(ChArchiveOut& archive_out) {
@@ -1274,9 +1274,9 @@ ChVector3d ChLinkMateRackPinion::GetAbsRackPos() {
         return VNULL;
 }
 
-void ChLinkMateRackPinion::Update(double time, bool update_assets) {
+void ChLinkMateRackPinion::Update(double time, UpdateFlags update_flags) {
     // First, inherit to parent class
-    ChLinkMateGeneric::Update(time, update_assets);
+    ChLinkMateGeneric::Update(time, update_flags);
 
     ChFrame<double> abs_pinion = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_pinion);
     ChFrame<double> abs_rack = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_rack);

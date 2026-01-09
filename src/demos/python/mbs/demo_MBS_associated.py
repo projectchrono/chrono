@@ -23,6 +23,7 @@ print ("Example: study the associative effect of friction.");
 #
 
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Global collision tolerances

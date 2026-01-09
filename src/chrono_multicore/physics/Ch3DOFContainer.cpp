@@ -48,7 +48,7 @@ class ChMulticoreVisualizationCloud : public ChParticleCloud {
         tmp = ChVector3d(v.x, v.y, v.z);
         return tmp;
     }
-    virtual void Update(double time, bool update_assets) override {}
+    virtual void Update(double time, UpdateFlags update_flags) override {}
 
     ChMulticoreDataManager* dm;
     mutable ChVector3d tmp;

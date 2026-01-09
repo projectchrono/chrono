@@ -33,6 +33,7 @@ except OSError as exc:
 
 # Create the physical system
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 
 # Create a mesh
 mesh = fea.ChMesh()

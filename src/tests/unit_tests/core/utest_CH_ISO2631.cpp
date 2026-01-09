@@ -14,7 +14,11 @@
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChConstants.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
+
+// -----------------------------------------------------------------------------
 
 // Test classes for shock signal weighting filters ISO 2631-5, error limits from ISO 8041
 
@@ -90,33 +94,29 @@ double ShockTestbed::Test3() {
 
 class ShockTestWxy : public ShockTestbed {
   public:
-    ShockTestWxy();
+    ShockTestWxy(const std::string& out_dir) {
+        std::ofstream shock(out_dir + "/shock.txt");
+        for (size_t i = 0; i < input_signal.size(); i++) {
+            double t = double(i) / m_fSample;
+            output_signal[i] = filter.Filter(input_signal[i]);
+            shock << t << "\t" << input_signal[i] << "\t" << output_signal[i] << std::endl;
+        }
+        shock.close();
+    }
 
   private:
     chrono::utils::ChISO2631_5_Wxy filter;
 };
 
-ShockTestWxy::ShockTestWxy() {
-    std::ofstream shock("shock.txt");
-    for (size_t i = 0; i < input_signal.size(); i++) {
-        double t = double(i) / m_fSample;
-        output_signal[i] = filter.Filter(input_signal[i]);
-        shock << t << "\t" << input_signal[i] << "\t" << output_signal[i] << std::endl;
-    }
-    shock.close();
-}
-
 class ShockTestWz : public ShockTestbed {
   public:
-    ShockTestWz();
+    ShockTestWz() { filter.Filter(input_signal, output_signal); }
 
   private:
     chrono::utils::ChISO2631_5_Wz filter;
 };
 
-ShockTestWz::ShockTestWz() {
-    filter.Filter(input_signal, output_signal);
-}
+// -----------------------------------------------------------------------------
 
 // Test classes for vibration weighting filters ISO 2631-1
 // Actually considered: Whole Body Vibration (Bandfilter 0.4 ... 100 Hz, Wk, Wd)
@@ -128,6 +128,8 @@ class SawtoothTestbed {
     virtual double Test() { return 0; };
 
   protected:
+    double rms();
+
     unsigned int m_Nsaw;  // # of periods of sawtooth
     double m_wSaw;        // angular frequency of the sawtooth
     double m_aSaw;        // period length of sawtooth
@@ -135,7 +137,6 @@ class SawtoothTestbed {
     double m_fSample;     // sample rate of input
     std::vector<double> input_signal;
     std::vector<double> output_signal;
-    double rms();
 
   private:
     double sawtooth(double t_ofs, double t);
@@ -202,67 +203,55 @@ double SawtoothTestbed::sawtooth(double t_ofs, double t) {
 
 class SawtoothTestBandfilter : public SawtoothTestbed {
   public:
-    SawtoothTestBandfilter(size_t nSawTeeth);
-    double Test();
+    SawtoothTestBandfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) {
+        hp.Config(2, 1.0 / m_fSample, 0.4);
+        lp.Config(2, 1.0 / m_fSample, 100.0);
+    }
+
+    double Test() {
+        for (size_t i = 0; i < input_signal.size(); i++) {
+            double y = hp.Filter(input_signal[i]);
+            output_signal[i] = lp.Filter(y);
+        }
+        return rms();
+    }
 
   private:
     chrono::utils::ChButterworthHighpass hp;
     chrono::utils::ChButterworthLowpass lp;
 };
 
-SawtoothTestBandfilter::SawtoothTestBandfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) {
-    hp.Config(2, 1.0 / m_fSample, 0.4);
-    lp.Config(2, 1.0 / m_fSample, 100.0);
-}
-
-double SawtoothTestBandfilter::Test() {
-    for (size_t i = 0; i < input_signal.size(); i++) {
-        double y = hp.Filter(input_signal[i]);
-        output_signal[i] = lp.Filter(y);
-    }
-    return rms();
-}
-
 class SawtoothTestWkfilter : public SawtoothTestbed {
   public:
-    SawtoothTestWkfilter(size_t nSawTeeth);
-    void GenerateOutput();
-    double Test();
+    SawtoothTestWkfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) { wk.Config(1.0 / m_fSample); }
+
+    double Test() {
+        for (size_t i = 0; i < input_signal.size(); i++) {
+            output_signal[i] = wk.Filter(input_signal[i]);
+        }
+        return rms();
+    }
 
   private:
     chrono::utils::ChISO2631_1_Wk wk;
 };
 
-SawtoothTestWkfilter::SawtoothTestWkfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) {
-    wk.Config(1.0 / m_fSample);
-}
-
-double SawtoothTestWkfilter::Test() {
-    for (size_t i = 0; i < input_signal.size(); i++) {
-        output_signal[i] = wk.Filter(input_signal[i]);
-    }
-    return rms();
-}
-
 class SawtoothTestWdfilter : public SawtoothTestbed {
   public:
-    SawtoothTestWdfilter(size_t nSawTeeth);
-    double Test();
+    SawtoothTestWdfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) { wd.Config(1.0 / m_fSample); }
+
+    double Test() {
+        for (size_t i = 0; i < input_signal.size(); i++) {
+            output_signal[i] = wd.Filter(input_signal[i]);
+        }
+        return rms();
+    }
 
   private:
     chrono::utils::ChISO2631_1_Wd wd;
 };
 
-SawtoothTestWdfilter::SawtoothTestWdfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) {
-    wd.Config(1.0 / m_fSample);
-}
-
-double SawtoothTestWdfilter::Test() {
-    for (size_t i = 0; i < input_signal.size(); i++) {
-        output_signal[i] = wd.Filter(input_signal[i]);
-    }
-    return rms();
-}
+// -----------------------------------------------------------------------------
 
 TEST(WholeBodyBandfilter, SawtoothBurstRMS) {
     const double band_res_1 = 0.0433;
@@ -361,7 +350,13 @@ TEST(WholeBodyWdFilter, SawtoothBurstRMS) {
 }
 
 TEST(ShockWxyFilter, StandardSignal) {
-    ShockTestWxy wxy;
+    std::string out_dir = "TEST_RESULTS";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        FAIL();
+    }
+
+    ShockTestWxy wxy(out_dir);
 
     const double wxy_res_1 = 3.025;
     const double wxy_res_1_err = 0.1 * wxy_res_1;

@@ -207,21 +207,23 @@ target_include_directories(Chrono_synchrono PUBLIC
 
 # Add dependencies
 if (CH_ENABLE_MODULE_SENSOR)
-  target_link_libraries(Chrono_synchrono PUBLIC Chrono_sensor) # needs PUBLIC
-  find_package(OptiX REQUIRED)
-  target_link_libraries(Chrono_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
+  target_link_libraries(Chrono_synchrono PUBLIC Chrono_sensor)
+  if(CH_USE_SENSOR_OPTIX)
+    find_package(OptiX REQUIRED)
+    target_include_directories(Chrono_synchrono PUBLIC "${OptiX_INCLUDE}")
+  endif()
 endif()
   
 if (CH_ENABLE_MODULE_IRRLICHT)
   target_link_libraries(Chrono_synchrono PRIVATE Chrono_irrlicht)
-  target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle_irrlicht) # needs PUBLIC because of IrrKlang
+  target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle_irrlicht)
 endif()
 
 target_link_libraries(Chrono_synchrono PRIVATE Chrono_core)
-target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle) # needs PUBLIC
+target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle)
 target_link_libraries(Chrono_synchrono PRIVATE ChronoModels_vehicle)
 target_link_libraries(Chrono_synchrono PRIVATE ChronoModels_robot)
-target_link_libraries(Chrono_synchrono PUBLIC MPI::MPI_CXX) # needs PUBLIC
+target_link_libraries(Chrono_synchrono PUBLIC MPI::MPI_CXX)
 
 #-----------------------------------------------------------------------------
 # Find DDS (Optional)

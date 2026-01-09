@@ -19,6 +19,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChUpdateFlags.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
@@ -28,7 +29,7 @@ namespace chrono {
 /// Helper class for lumping parameters
 class ChLumpingParms {
   public:
-    ChLumpingParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0){};
+    ChLumpingParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0) {};
     double Ck_penalty;  // stiffness penalty for constraints if any
     double Cr_penalty;  // damping penalty for constraints if any
     double error;       // store here the error done when trying lumping masses
@@ -82,7 +83,7 @@ class ChApi ChIntegrable {
     /// This function is called by time integrators every time they modify the Y state.
     /// In some cases, the ChIntegrable object might contain dependent data structures
     /// that might need an update at each change of Y. If so, this function must be overridden.
-    virtual void StateScatter(const ChState& y, const double T, bool full_update) {}
+    virtual void StateScatter(const ChState& y, const double T, UpdateFlags update_flags) {}
 
     /// Gather from the system the state derivatives in specified array.
     /// Optional: the integrable object might contain last computed state derivative, some integrators might reuse it.
@@ -120,7 +121,7 @@ class ChApi ChIntegrable {
                             const double T,                    ///< current time T
                             const double dt,                   ///< timestep (if needed, e.g. in NSC)
                             bool force_state_scatter,          ///< if false, y and T are not scattered to the system
-                            bool full_update,                  ///< if true, perform a full update during scatter
+                            UpdateFlags update_flags,           ///< flags used in case of an update
                             ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
                             ) = 0;
 
@@ -165,7 +166,7 @@ class ChApi ChIntegrable {
     ///  |-DL|   [ Cq  0   ]      |-Qc|
     /// </pre>
     /// where R and Qc are given residuals, and dF/dy is the Jacobian of F.
-    /// Note the sign of DL (the method returns DL, not -DL) and the sign of Qc  (the method expects Qc, not -Qc), 
+    /// Note the sign of DL (the method returns DL, not -DL) and the sign of Qc  (the method expects Qc, not -Qc),
     /// because the linear system uses them with flipped signs.
     ///
     /// This function must return true if successful and false otherwise.
@@ -179,7 +180,7 @@ class ChApi ChIntegrable {
                                       const double T,               ///< current time T
                                       const double dt,              ///< time step (if needed)
                                       bool force_state_scatter,     ///< if true, scatter x and v to the system
-                                      bool full_update,             ///< if true, perform a full update during scatter
+                                      UpdateFlags update_flags,      ///< flags used in case of an update
                                       bool call_setup,              ///< if true, call the solver's Setup function
                                       bool call_analyze             ///< if true, call the solver's Setup analyze phase
     ) {
@@ -257,7 +258,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// This function is called by time integrators all times they modify the Y state.
     /// In some cases, the ChIntegrable object might contain dependent data structures
     /// that might need an update at each change of Y. If so, this function must be overridden.
-    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) {}
+    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) {}
 
     /// Gather from the system the acceleration in specified array.
     /// Optional: the integrable object might contain last computed state derivative, some integrators might use it.
@@ -286,14 +287,14 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// This default implementation uses the same functions already used for implicit integration.
     /// WARNING: this implementation avoids the computation of the analytical expression for Qc, but
     /// at the cost of three StateScatter updates (always complete updates).
-    virtual bool StateSolveA(ChStateDelta& Dvdt,                ///< result: computed a for a=dv/dt
-                             ChVectorDynamic<>& L,              ///< result: computed Lagrange multipliers
-                             const ChState& x,                  ///< current state, x
-                             const ChStateDelta& v,             ///< current state, v
-                             const double T,                    ///< current time T
-                             const double dt,                   ///< time step (if needed)
-                             bool force_state_scatter,          ///< if true, scatter x and v to the system
-                             bool full_update,                  ///< if true, perform a full update during scatter
+    virtual bool StateSolveA(ChStateDelta& Dvdt,        ///< result: computed a for a=dv/dt
+                             ChVectorDynamic<>& L,      ///< result: computed Lagrange multipliers
+                             const ChState& x,          ///< current state, x
+                             const ChStateDelta& v,     ///< current state, v
+                             const double T,            ///< current time T
+                             const double dt,           ///< time step (if needed)
+                             bool force_state_scatter,  ///< if true, scatter x and v to the system
+                             UpdateFlags update_flags,   ///< flags used in case of an update
                              ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
     );
 
@@ -349,7 +350,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                       const ChStateDelta& v,        ///< current state, v part
                                       const double T,               ///< current time T
                                       bool force_state_scatter,     ///< if true, scatter x and v to the system
-                                      bool full_update,             ///< if true, perform a full update during scatter
+                                      UpdateFlags update_flags,      ///< flags used in case of an update
                                       bool call_setup,              ///< if true, call the solver's Setup function
                                       bool call_analyze             ///< if true, call the solver's Setup analyze phase
     ) {
@@ -451,7 +452,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     /// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
     /// compatibility with 1st order integrators.
-    virtual void StateScatter(const ChState& y, const double T, bool full_update) override;
+    virtual void StateScatter(const ChState& y, const double T, UpdateFlags update_flags) override;
 
     /// Gather from the system the state derivatives in specified array.
     /// The integrable object might contain last computed state derivative, some integrators might reuse it.
@@ -487,7 +488,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                             const double T,                    ///< current time T
                             const double dt,                   ///< time step (if needed, e.g. in NSC)
                             bool force_state_scatter,          ///< if true, scatter x and v to the system
-                            bool full_update,                  ///< if true, perform a full update during scatter
+                            UpdateFlags update_flags,           ///< flags used in case of an update
                             ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
                             ) override;
 
@@ -503,7 +504,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                       const double T,
                                       const double dt,
                                       bool force_state_scatter,
-                                      bool full_update,
+                                      UpdateFlags update_flags,
                                       bool call_setup,
                                       bool call_analyze) override final {
         throw std::runtime_error(

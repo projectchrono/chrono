@@ -151,7 +151,6 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-        m_trimesh_shape->SetMutable(false);
         m_spindle->AddVisualShape(m_trimesh_shape, ChFrame<>(ChVector3d(0, m_offset, 0), ChMatrix33<>(rot)));
         return;
     }

@@ -209,7 +209,7 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
 
   private:
     virtual void Setup() override;
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
     void ApplyForces();
 
     ChTrackCollisionManager* m_collision_manager;

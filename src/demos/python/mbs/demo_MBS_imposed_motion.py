@@ -27,6 +27,7 @@ import math as m
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000, False, False)

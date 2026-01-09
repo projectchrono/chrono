@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (MUMPS)", ChVector3d(0, 0.6, -1.0));
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (MUMPS)", ChVector3d(0, 1.2, -2.0));
 
     // Simulation loop
     while (vis->Run()) {

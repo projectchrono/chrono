@@ -44,7 +44,7 @@ ChLoadHydrodynamics::ChLoadHydrodynamics(const ChLoadHydrodynamics& other) {
 
 ChLoadHydrodynamics::~ChLoadHydrodynamics() {}
 
-void ChLoadHydrodynamics::Update(double time, bool update_assets) {
+void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
     // If the system problem size has changed, recompute the system-wide added mass matrix
     auto size = GetSystem()->GetNumCoordsVelLevel();
     if (m_added_mass.rows() != size) {
@@ -70,7 +70,7 @@ void ChLoadHydrodynamics::Update(double time, bool update_assets) {
     }
 
     // Overloading of base class:
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 }
 
 void ChLoadHydrodynamics::IntLoadResidual_Mv(const unsigned int off,

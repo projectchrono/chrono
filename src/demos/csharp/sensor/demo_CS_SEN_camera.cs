@@ -85,6 +85,7 @@ namespace ChronoDemo
             // ------------------------------------------------------------------------------
 
             ChSystemNSC sys = new ChSystemNSC();
+            sys.SetGravityY();
 
             // add a mesh to be visualized by a camera
             ChTriangleMeshConnected mmesh = ChTriangleMeshConnected.CreateFromWavefrontFile(chrono.GetChronoDataFile("vehicle/audi/audi_chassis.obj"),

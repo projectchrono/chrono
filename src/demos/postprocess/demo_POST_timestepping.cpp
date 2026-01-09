@@ -52,12 +52,12 @@ void example1(const std::string& out_dir) {
                                 const double T,                    // current time T
                                 const double dt,                   // timestep (if needed)
                                 bool force_state_scatter,          // if false, y and T are not scattered to the system
-                                bool full_update,                  // if true, perform a full update during scatter
+                                UpdateFlags update_flags,           // if true, perform a full update during scatter
                                 ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
                                                                    // inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
-                StateScatter(y, T, full_update);  // state -> system   (not needed here, btw.)
+                StateScatter(y, T, update_flags);  // state -> system   (not needed here, btw.)
 
             dydt(0) = std::exp(T);  // dx/dt=e^t
 
@@ -138,7 +138,7 @@ void example2(const std::string& out_dir) {
         }
 
         // state -> system
-        virtual void StateScatter(const ChState& y, const double T, bool full_update) override {
+        virtual void StateScatter(const ChState& y, const double T, UpdateFlags update_flags) override {
             m_x = y(0);
             m_v = y(1);
             m_T = T;
@@ -151,12 +151,12 @@ void example2(const std::string& out_dir) {
                                 const double t,                    // current time T
                                 const double dt,                   // timestep (if needed)
                                 bool force_state_scatter,          // if false, y and T are not scattered to the system
-                                bool full_update,                  // if true, perform a full update during scatter
+                                UpdateFlags update_flags,           // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
                                 ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
                                                                    // inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
-                StateScatter(y, t, full_update);
+                StateScatter(y, t, update_flags);
 
             double F = std::cos(t * 20) * 2;
 
@@ -255,7 +255,7 @@ void example3(const std::string& out_dir) {
         };
 
         // state -> system
-        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
+        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) override {
             m_x = x(0);
             m_v = v(0);
             m_T = T;
@@ -269,12 +269,12 @@ void example3(const std::string& out_dir) {
                                  const double T,                    // current time T
                                  const double dt,                   // timestep (if needed)
                                  bool force_state_scatter,          // if false, y and T are not scattered to the system
-                                 bool full_update,                  // if true, perform a full update during scatter
+                                 UpdateFlags update_flags,           // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
                                  ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
                                                                     // inverting a mass matrix. Not significant here.
                                  ) override {
             if (force_state_scatter)
-                StateScatter(x, v, T, full_update);
+                StateScatter(x, v, T, update_flags);
 
             double F = std::cos(T * 5) * 2;
             dvdt(0) = (1. / m_M) * (F - m_K * m_x - m_R * m_v);
@@ -369,7 +369,7 @@ void example4(const std::string& out_dir) {
         };
 
         // state -> system
-        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
+        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) override {
             m_x = x(0);
             m_v = v(0);
             m_T = T;
@@ -391,12 +391,12 @@ void example4(const std::string& out_dir) {
             const double T,                    // current time T
             const double dt,                   // timestep (if needed)
             bool force_state_scatter,          // if false, y and T are not scattered to the system
-            bool full_update,                  // if true, perform a full update during scatter
+            UpdateFlags update_flags,           // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
             ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid inverting a mass matrix,
                                                // and uses penalty for constraints. Not significant here.
             ) override {
             if (force_state_scatter)
-                StateScatter(x, v, T, full_update);
+                StateScatter(x, v, T, update_flags);
             double F = std::sin(m_T * 20) * 0.02;
             dvdt(0) = (1. / m_M) * (F - m_K * m_x - m_R * m_v);
 
@@ -416,12 +416,12 @@ void example4(const std::string& out_dir) {
                                           const ChStateDelta& v,        // current state, v part
                                           const double T,               // current time T
                                           bool force_state_scatter,     // if true, scatter x and v to the system
-                                          bool full_update,             // if true, perform a full update during scatter
+                                          UpdateFlags update_flags,      // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
                                           bool call_setup,              // if true, call the solver's Setup function
                                           bool call_analyze  // if true, call the solver's Setup analyze phase
                                           ) override {
             if (force_state_scatter)
-                this->StateScatter(x, v, T, full_update);
+                this->StateScatter(x, v, T, update_flags);
 
             Dv(0) = R(0) * 1.0 / (c_a * m_M + c_v * (-m_R) + c_x * (-m_K));
 
@@ -594,7 +594,7 @@ void example5(const std::string& out_dir) {
         };
 
         // state -> system
-        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
+        virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) override {
             m_px = x(0);
             m_py = x(1);
             m_vx = v(0);
@@ -629,12 +629,12 @@ void example5(const std::string& out_dir) {
                                           const ChStateDelta& v,        // current state, v part
                                           const double T,               // current time T
                                           bool force_state_scatter,     // if true, scatter x and v to the system
-                                          bool full_update,             // if true, perform a full update during scatter
+                                          UpdateFlags update_flags,      // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
                                           bool call_setup,              // if true, call the solver's Setup function
                                           bool call_analyze  // if true, call the solver's Setup analyze phase
                                           ) override {
             if (force_state_scatter)
-                this->StateScatter(x, v, T, full_update);
+                this->StateScatter(x, v, T, update_flags);
 
             ChVector3d dirpend(-m_px, -m_py, 0);
             dirpend.Normalize();
@@ -758,6 +758,7 @@ void example5(const std::string& out_dir) {
     // that is using the ChBody, ChLinkLockRevolute and ChSystem classes:
 
     ChSystemNSC sys;
+    sys.SetGravityY();
     auto my_body_A = chrono_types::make_shared<ChBody>();
     auto my_body_B = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);

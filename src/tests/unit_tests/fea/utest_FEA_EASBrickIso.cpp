@@ -75,6 +75,7 @@ int main(int argc, char* argv[]) {
     // Create the physical system
     // --------------------------
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     std::cout << "-----------------------------------------------------------\n";
     std::cout << "     Brick Element Unit Test \n";

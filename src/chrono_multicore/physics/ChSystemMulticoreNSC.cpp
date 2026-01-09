@@ -158,7 +158,7 @@ void ChSystemMulticoreNSC::AssembleSystem() {
 
     collision_system->Run();
     collision_system->ReportContacts(contact_container.get());
-    ChSystem::Update(false);
+    ChSystem::Update(UpdateFlags::UPDATE_ALL_NO_VISUAL);
     contact_container->BeginAddContact();
     chrono::ChCollisionInfo icontact;
     for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_contacts; i++) {

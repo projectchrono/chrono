@@ -582,7 +582,6 @@ void ChOptixEngine::ConstructScene() {
                     auto obj_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
                     auto obj_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
                     obj_trimesh_shape->SetMesh(obj_trimesh);
-                    obj_trimesh_shape->SetMutable(false);
                     rigidMeshVisualization(body, obj_trimesh_shape, shape_frame);
                 } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
                 } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {

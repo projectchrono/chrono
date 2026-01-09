@@ -57,11 +57,11 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
                                       const double T,            // current time T
                                       const double dt,           // timestep (if needed)
                                       bool force_state_scatter,  // if true, scatter x and v to the system
-                                      bool full_update,          // if true, perform a full update during scatter
+                                      UpdateFlags update_flags,  ///< if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise switch off visual asset update, etc.
                                       ChLumpingParms* lumping    // use lumped masses to avoid inverting a mass matrix
 ) {
     if (force_state_scatter)
-        StateScatter(x, v, T, full_update);
+        StateScatter(x, v, T, update_flags);
 
     ChVectorDynamic<> R(GetNumCoordsVelLevel());
 
@@ -81,16 +81,16 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
         ChState xdx(x.size(), this);
 
         StateIncrement(xdx, x, dx);
-        StateScatter(xdx, v, T + Delta, full_update);
+        StateScatter(xdx, v, T + Delta, update_flags);
         LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
 
         StateIncrement(xdx, x, -dx);
-        StateScatter(xdx, v, T - Delta, full_update);
+        StateScatter(xdx, v, T - Delta, update_flags);
         LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
 
-        StateScatter(x, v, T, full_update);  // back to original state
+        StateScatter(x, v, T, update_flags);  // back to original state
 
-        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, false, true, true);
+        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, true, true);
 
         return success;
     } else {
@@ -141,12 +141,12 @@ void ChIntegrableIIorder::StateGather(ChState& y, double& T) {
     y.segment(GetNumCoordsPosLevel(), mv.size()) = mv;
 }
 
-void ChIntegrableIIorder::StateScatter(const ChState& y, const double T, bool full_update) {
+void ChIntegrableIIorder::StateScatter(const ChState& y, const double T, UpdateFlags update_flags) {
     ChState mx(GetNumCoordsPosLevel(), y.GetIntegrable());
     ChStateDelta mv(GetNumCoordsVelLevel(), y.GetIntegrable());
     mx = y.segment(0, GetNumCoordsPosLevel());
     mv = y.segment(GetNumCoordsPosLevel(), GetNumCoordsVelLevel());
-    StateScatter(mx, mv, T, full_update);
+    StateScatter(mx, mv, T, update_flags);
 }
 
 void ChIntegrableIIorder::StateGatherDerivative(ChStateDelta& Dydt) {
@@ -208,7 +208,7 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: compu
                                      const double T,            // current time T
                                      const double dt,           // timestep (if needed, e.g. in NSC)
                                      bool force_state_scatter,  // if false, y and T are not scattered to the system
-                                     bool full_update,          // if true, perform a full update during scatter
+                                     UpdateFlags update_flags,   // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise switch off visual asset update, etc.
                                      ChLumpingParms* lumping    // if not null, uses lumped masses to avoid inverting a
                                                                 // mass matrix, and uses penalty for constraints.
 ) {
@@ -219,7 +219,7 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: compu
 
     // Solve with custom II order solver
     ChStateDelta ma(GetNumCoordsVelLevel(), y.GetIntegrable());
-    if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter, full_update, lumping)) {
+    if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter, update_flags, lumping)) {
         return false;
     }
 

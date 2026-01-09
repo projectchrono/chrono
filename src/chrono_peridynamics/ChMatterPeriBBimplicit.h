@@ -130,7 +130,7 @@ class ChApiPeridynamics ChMatterPeriBBimplicit
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 class /*ChApiPeridynamics*/ ChVisualPeriBBimplicit : public ChGlyphs {
   public:
-    ChVisualPeriBBimplicit(std::shared_ptr<ChMatterPeriBBimplicit> amatter) : mmatter(amatter) { is_mutable = true; };
+    ChVisualPeriBBimplicit(std::shared_ptr<ChMatterPeriBBimplicit> amatter) : mmatter(amatter) { SetMutable(true); }
     virtual ~ChVisualPeriBBimplicit() {}
 
     // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
@@ -194,8 +194,8 @@ class /*ChApiPeridynamics*/ ChVisualPeriBBimplicit : public ChGlyphs {
 class /*ChApiPeridynamics*/ ChVisualPeriBBimplicitBonds : public ChGlyphs {
   public:
     ChVisualPeriBBimplicitBonds(std::shared_ptr<ChMatterPeriBBimplicit> amatter) : mmatter(amatter) {
-        is_mutable = true;
-    };
+        SetMutable(true);
+    }
     virtual ~ChVisualPeriBBimplicitBonds() {}
 
     bool draw_broken = true;

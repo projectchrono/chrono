@@ -963,7 +963,6 @@ void RigidTerrain::MeshPatch::Initialize() {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->AddMaterial(m_vis_mat);
         trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetMutable(false);
         trimesh_shape->SetMesh(m_trimesh, true);
         m_body->AddVisualShape(trimesh_shape);
     }

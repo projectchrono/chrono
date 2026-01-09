@@ -107,6 +107,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system and the associated collision system
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);

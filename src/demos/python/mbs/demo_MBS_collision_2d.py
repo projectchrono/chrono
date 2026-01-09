@@ -29,6 +29,7 @@ chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # Create system
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create a (shared) contact contact_material

@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
 
     // Make a system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create parser instance and set options.
     // Use LOADED to read the ADAMS primitives

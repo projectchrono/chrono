@@ -32,12 +32,13 @@ linux:doxygen:deploy:
   tags:
   - linux
   image:
+    # We should use an old version of doxygen since syntax changes are required in the latest
     name: ubuntu:focal
   stage: deploy
   before_script:
     - TZ=America/Chicago
     - ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone  
-    - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget doxygen
+    - apt-get update; apt-get install -y git python3-pip graphviz rsync wget doxygen openssh-client
     #- pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
     # - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
     # - tar -xf doxygen-1.8.16.linux.bin.tar.gz
@@ -59,11 +60,6 @@ linux:doxygen:deploy:
     - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
-  needs:
-    - job: macos-apple:sonoma:test
-      artifacts: false
-    - job: windows:vs2022:test
-      artifacts: false
   environment:
     name: doxygen
     url: http://api.projectchrono.org/

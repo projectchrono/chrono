@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "ANCF beam " + element_name,
-                                         ChVector3d(-0.4, 0.4, 0.4));
+                                         ChVector3d(-0.8, 0.8, 0.8));
 
     // Simulation loop
     while (vis->Run()) {

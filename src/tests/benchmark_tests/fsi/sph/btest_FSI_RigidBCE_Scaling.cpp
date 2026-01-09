@@ -84,7 +84,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     m_sysMBS->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_sysFSI->SetVerbose(false);
 
-    int box_multiplier = 1.2;
+    double box_multiplier = 1.2;
 
     ChFsiFluidSystemSPH::ElasticMaterialProperties material;
     material.density = 1760;       // kg / m^3

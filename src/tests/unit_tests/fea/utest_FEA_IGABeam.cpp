@@ -52,6 +52,7 @@ class Model {
 
 Model::Model(int sec, int ord) {
     m_system = chrono_types::make_shared<ChSystemNSC>();
+    m_system->SetGravityY();
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     m_system->SetSolver(solver);

@@ -29,7 +29,7 @@
 
 /**
     @defgroup chrono_fmi FMI module
-    @brief FMU export and import functionality
+    @brief Chrono FMU export and import functionality
 
     This module provides Chrono support for the Functional Mock-Up Interface (FMI) standard.
     It includes utilities for generating (exporting) Chrono co-simulation Functional Mock-up Units (FMU) and
@@ -44,7 +44,7 @@
       @defgroup chrono_fmi2 FMI 2.0 support
       @defgroup chrono_fmi3 FMI 3.0 support
 
-      @defgroup fmuForge
+      @defgroup fmu_forge Generic FMU import/export
       @brief Generic utility library for FMU export and import
       
       For additional information see the fmu-forge [repository](https://github.com/projectchrono/fmu-forge/blob/main/README.md)

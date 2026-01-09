@@ -81,9 +81,9 @@ void ChLinkMotorRotationDriveline::Setup() {
     innerconstraint2->SetOffset_L(this->offset_L + nc + 1);
 }
 
-void ChLinkMotorRotationDriveline::Update(double time, bool update_assets) {
+void ChLinkMotorRotationDriveline::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
-    ChLinkMotorRotation::Update(time, update_assets);
+    ChLinkMotorRotation::Update(time, update_flags);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
     ChVector3d abs_shaftdir = this->GetFrame2Abs().TransformDirectionLocalToParent(VECT_Z);
@@ -123,14 +123,14 @@ void ChLinkMotorRotationDriveline::IntStateScatter(const unsigned int off_x,
                                                    const unsigned int off_v,
                                                    const ChStateDelta& v,
                                                    const double T,
-                                                   bool full_update) {
+                                                   UpdateFlags update_flags) {
     // First, inherit to parent class
-    ChLinkMotorRotation::IntStateScatter(off_x, x, off_v, v, T, full_update);
+    ChLinkMotorRotation::IntStateScatter(off_x, x, off_v, v, T, update_flags);
 
-    innershaft1->IntStateScatter(off_x + 0, x, off_v + 0, v, T, full_update);
-    innershaft2->IntStateScatter(off_x + 1, x, off_v + 1, v, T, full_update);
+    innershaft1->IntStateScatter(off_x + 0, x, off_v + 0, v, T, update_flags);
+    innershaft2->IntStateScatter(off_x + 1, x, off_v + 1, v, T, update_flags);
 
-    Update(T, full_update);
+    Update(T, update_flags);
 }
 
 void ChLinkMotorRotationDriveline::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

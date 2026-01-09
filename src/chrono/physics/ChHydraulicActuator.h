@@ -129,7 +129,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     virtual bool IsStiff() const override { return true; }
 
     /// Update the physics item at current state.
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Load generalized forces.
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;

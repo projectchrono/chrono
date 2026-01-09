@@ -151,7 +151,7 @@ LaneColor GetLaneColorFromMessage(std::shared_ptr<SynMessage> synmsg,
     return LaneColor::RED;
 }
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
 double GetProximityToPointCloud(std::shared_ptr<sensor::ChLidarSensor> lidar,
                                 double min_range,
                                 sensor::UserDIBufferPtr& recent_lidar_data) {

@@ -18,10 +18,12 @@
 
 #include <iostream>
 
-#include "chrono_sensor/sensors/ChSensor.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtils.h"
+
+// NOTE: order is important! ChSensor.h must be included *before* ChFilterAccess.h
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/filters/ChFilterAccess.h"
 
 namespace chrono {
 namespace sensor {
@@ -72,6 +74,8 @@ CH_SENSOR_API void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
                      "sensor before sensor is added to ChSensorManager\n";
     }
 }
+
+#ifdef CHRONO_HAS_OPTIX
 
 // -----------------------------------------------------------------------------
 // retriever function for image data in greyscale 8-bit format
@@ -141,6 +145,8 @@ CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
     return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess, ChFilterRadarXYZAccessName>();
 }
+
+#endif
 
 template <>
 CH_SENSOR_API UserAccelBufferPtr ChSensor::GetMostRecentBuffer() {

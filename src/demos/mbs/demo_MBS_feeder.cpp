@@ -94,6 +94,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Set small collision envelopes for objects that will be created from now on..
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
