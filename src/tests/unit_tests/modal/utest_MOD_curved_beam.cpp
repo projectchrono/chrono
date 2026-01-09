@@ -46,7 +46,25 @@ using namespace chrono;
 using namespace chrono::modal;
 using namespace chrono::fea;
 
-void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
+class LoadScaling : public ChStaticNonLinearAnalysisIncremental::LoadIncrementCallback {
+  public:
+    LoadScaling(std::shared_ptr<ChNodeFEAxyzrot> node, double nominal_load)
+        : m_node(node), m_nominal_load(nominal_load) {}
+
+    virtual void OnLoadScaling(const double load_scaling,
+                               const int iteration_n,
+                               ChStaticNonLinearAnalysisIncremental* analysis) override {
+        m_node->SetForce(ChVector3d(0, 0, load_scaling * m_nominal_load));
+    }
+
+  private:
+    std::shared_ptr<ChNodeFEAxyzrot> m_node;
+    double m_nominal_load;
+};
+
+// -----------------------------------------------------------------------------
+
+ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose) {
     // Create a Chrono physical system
     ChSystemNSC sys;
 
@@ -237,40 +255,47 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
         }
     }
 
-    // Apply the external load
+    // Create a load scaling callback object
     double Pz = 600;
-    tip_node->SetForce(ChVector3d(0, 0, Pz));
+    auto load_scaling = chrono_types::make_shared<LoadScaling>(tip_node, Pz);
 
-    // Static analysis
-    sys.DoStaticNonlinear(100);
+    // Static analysis (incremental)
+    std::cout << "Perform static analysis" << std::endl;
+    ChStaticNonLinearAnalysisIncremental static_analysis;
+    static_analysis.SetLoadIncrementCallback(load_scaling);
+    static_analysis.SetMaxIterationsNewton(100);
+    static_analysis.SetCorrectionTolerance(1e-4, 1e-8);
+    static_analysis.SetVerbose(verbose);
+
+    sys.DoStaticAnalysis(static_analysis);
 
     // Print the tip displacement
-    res = tip_node->GetPos() - tip_pos_x0;
+    auto res = tip_node->GetPos() - tip_pos_x0;
     std::cout << "Tip displacement is:\t" << res.x() << "\t" << res.y() << "\t" << res.z() << "\n";
+
+    return res;
 }
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    bool verbose = false;
     double tol = 1.0;
 
-    std::cout << "1. Run corotational beam model not reduced:\n";
     // ChModalAssembly should be able to run successfully in the full state
-    ChVector3d res_corot;
-    RunCurvedBeam(false, false, res_corot);
+    std::cout << "1. Run corotational beam model not reduced:\n";
+    ChVector3d res_corot = RunCurvedBeam(false, false, verbose);
 
     std::cout << "\n\n2. Run modal reduction model with Craig Bampton method:\n";
-    ChVector3d res_modal_CraigBampton;
-    RunCurvedBeam(true, false, res_modal_CraigBampton);
+    ChVector3d res_modal_CraigBampton = RunCurvedBeam(true, false, verbose);
     bool check_CraigBampton = (res_modal_CraigBampton - res_corot).eigen().norm() < tol;
 
     std::cout << "\n\n3. Run modal reduction model with Herting method:\n";
-    ChVector3d res_modal_Herting;
-    RunCurvedBeam(true, true, res_modal_Herting);
+    ChVector3d res_modal_Herting = RunCurvedBeam(true, true, verbose);
     bool check_Herting = (res_modal_Herting - res_corot).eigen().norm() < tol;
 
-    bool is_passed = check_CraigBampton && check_Herting;
-    std::cout << "\nUNIT TEST of modal assembly with curved beam: " << (is_passed ? "PASSED" : "FAILED") << std::endl;
+    bool passed = check_CraigBampton && check_Herting;
+    std::cout << "\nUNIT TEST of modal assembly with curved beam: " << (passed ? "PASSED" : "FAILED") << std::endl;
 
-    return !is_passed;
+    return !passed;
 }
