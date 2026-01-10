@@ -15,7 +15,14 @@ message(STATUS "TDPF-based Chrono::FSI submodule")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
-    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
+    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI-TDPF")
+    set(CH_ENABLE_MODULE_FSI_TDPF OFF CACHE BOOL "Enable the Chrono::TDPF FSI module" FORCE)
+    return()
+endif()
+
+# Return now if no HDF5 support
+if(NOT HDF5_FOUND)
+   message(WARNING "Required HDF5 support not available; disabling Chrono::FSI-TDPF")
     set(CH_ENABLE_MODULE_FSI_TDPF OFF CACHE BOOL "Enable the Chrono::TDPF FSI module" FORCE)
     return()
 endif()
@@ -27,8 +34,6 @@ endif()
 
 set(CH_HYDROCHRONO_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HydroChrono" CACHE PATH "Path to top-level HydroChrono directory")
 
-include_directories(${CH_HYDROCHRONO_DIR}/include)
-
 #-----------------------------------------------------------------------------
 # List all files for the TDPF-based Chrono::FSI library
 #-----------------------------------------------------------------------------
@@ -36,6 +41,10 @@ include_directories(${CH_HYDROCHRONO_DIR}/include)
 # --------------- TDPF FSI FILES
 
 set(FSITDPF_BASE_FILES
+    ChFsiSystemTDPF.h
+    ChFsiSystemTDPF.cpp
+    ChFsiInterfaceTDPF.h
+    ChFsiInterfaceTDPF.cpp
     ChFsiFluidSystemTDPF.h
     ChFsiFluidSystemTDPF.cpp
 )
@@ -44,6 +53,25 @@ source_group("" FILES ${FSITDPF_BASE_FILES})
 # --------------- HydroChrono FILES
 
 set(FSITDPF_HC_FILES
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/hydro_types.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/system_state.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/hydro_forces.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/force_component.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/io/h5_reader.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/logging.h
+    #
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/radiation_component.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/excitation_component.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/hydrostatics_component.h
+    #
+    ${CH_HYDROCHRONO_DIR}/src/hydro/core/hydro_forces.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/io/h5_reader.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/logging/logging.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/logging/logger_backend.cpp
+    #
+    #${CH_HYDROCHRONO_DIR}/src/hydro/force_components/radiation_component.cpp
+    #${CH_HYDROCHRONO_DIR}/src/hydro/force_components/excitation_component.cpp
+    #${CH_HYDROCHRONO_DIR}/src/hydro/force_components/hydrostatics_component.cpp
 )
 source_group("tdpf" FILES ${FSITDPF_HC_FILES})
 
@@ -96,6 +124,9 @@ set_target_properties(Chrono_fsitdpf PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX
 if (CH_STATIC)
   set_target_properties(Chrono_fsitdpf PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
+
+target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/include")
+target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/src")
 
 if(MSVC)
   target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)              # missing DLL interface

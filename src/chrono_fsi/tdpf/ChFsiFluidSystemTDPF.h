@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -20,6 +20,15 @@
 #define CH_FLUID_SYSTEM_TDPF_H
 
 #include "chrono_fsi/ChFsiFluidSystem.h"
+
+// HydroChrono
+#include "hydroc/core/hydro_types.h"
+#include "hydroc/core/system_state.h"
+#include "hydroc/core/hydro_forces.h"
+
+#include "hydro/force_components/excitation_component.h"
+#include "hydro/force_components/hydrostatics_component.h"
+#include "hydro/force_components/radiation_component.h"
 
 namespace chrono {
 namespace fsi {
@@ -96,6 +105,18 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+
+    hydrochrono::hydro::SystemState m_hc_state;
+    hydrochrono::hydro::BodyForces m_hc_forces;
+    std::unique_ptr<hydrochrono::hydro::HydroForces> m_hc_force_system;
+
+    // -----------
+
+    std::unique_ptr<hydrochrono::hydro::ExcitationComponent> CreateExcitationComponent() const;
+    std::unique_ptr<hydrochrono::hydro::HydrostaticsComponent> CreateHydrostaticsComponent() const;
+    std::unique_ptr<hydrochrono::hydro::RadiationComponent> CreateRadiationComponent() const;
+
+    friend class ChFsiInterfaceTDPF;
 };
 
 /// @} fsitdpf
