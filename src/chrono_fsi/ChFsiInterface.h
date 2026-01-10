@@ -92,8 +92,11 @@ class CH_FSI_API ChFsiInterface {
 
     // ------------
 
-    /// Get the set of bodies added to the FSI interface.
+    /// Get read-only access to the set of bodies added to the FSI interface.
     const std::vector<std::shared_ptr<FsiBody>>& GetBodies() const { return m_fsi_bodies; }
+
+    /// Get writable access to the set of bodies added to the FSI interface.
+    std::vector<std::shared_ptr<FsiBody>>& GetBodies() { return m_fsi_bodies; }
     
     /// Get the set of 1D meshes added to the FSI interface.
     const std::vector<std::shared_ptr<FsiMesh1D>>& GetMeshes1D() const { return m_fsi_meshes1D; }
