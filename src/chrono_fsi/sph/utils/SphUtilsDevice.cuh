@@ -158,6 +158,8 @@ void computeGridSize(uint n,           ///< total number of elements
                      uint& numThreads  ///< number of threads [output]
 );
 
+void synchronizeDevice();
+
 // ----------------------------------------------------------------------------
 
 /// Time recorder for cuda events.

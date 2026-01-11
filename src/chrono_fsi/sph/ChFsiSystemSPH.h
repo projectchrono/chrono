@@ -58,6 +58,9 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// BCE marker points are assumed to bve specified in the given frame (itself relative to the global frame).
     void AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame);
 
+    /// Utility function to synchronize device.
+    void SynchronizeDevice();
+
   private:
     ChFsiFluidSystemSPH* m_sysSPH;  ///< cached SPH fluid solver
     bool m_generic_fsi_interface;

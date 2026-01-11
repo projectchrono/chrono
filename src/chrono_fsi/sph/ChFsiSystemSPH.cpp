@@ -26,6 +26,8 @@
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 
+#include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"
+
 namespace chrono {
 namespace fsi {
 namespace sph {
@@ -33,10 +35,10 @@ namespace sph {
 ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS, ChFsiFluidSystemSPH* sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH), m_generic_fsi_interface(use_generic_interface) {
     if (use_generic_interface) {
-        std::cout << "Create an FSI system using a generic FSI interface" << std::endl;
+        ////std::cout << "Create an FSI system using a generic FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysSPH);
     } else {
-        std::cout << "Create an FSI system using a custom SPH FSI interface" << std::endl;
+        ////std::cout << "Create an FSI system using a custom SPH FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
     }
 }
@@ -74,6 +76,10 @@ std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body
 void ChFsiSystemSPH::AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& frame) {
     ChAssertAlways(m_sysSPH);
     m_sysSPH->AddBCEBoundary(bce, frame);
+}
+
+void ChFsiSystemSPH::SynchronizeDevice() {
+    synchronizeDevice();
 }
 
 }  // end namespace sph

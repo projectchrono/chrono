@@ -6,6 +6,7 @@ endif()
 
 set(TESTS
     btest_FSI_RigidBCE_Scaling
+    btest_FSI_Initialization
     )
 
 # ------------------------------------------------------------------------------
