@@ -1190,6 +1190,10 @@ if(CH_ENABLE_MODULE_ROS)
     target_compile_options(ros PRIVATE "-Wno-unused-variable")
   endif()
 
+  if (CH_USE_SENSOR_OPTIX)
+    target_compile_definitions(ros PRIVATE "CHRONO_OPTIX")
+  endif()
+
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
     target_link_options(ros PRIVATE -flat_namespace -undefined suppress)

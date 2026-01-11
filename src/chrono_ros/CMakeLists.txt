@@ -151,10 +151,6 @@ source_group("vehicle_handler" FILES ${CH_ROS_VEHICLE_HANDLER_FILES})
 set(CH_ROS_SENSOR_HANDLER_FILES "")
 if (CH_ENABLE_MODULE_SENSOR)
   set(CH_ROS_SENSOR_HANDLER_FILES
-    handlers/sensor/ChROSCameraHandler.h
-    handlers/sensor/ChROSCameraHandler.cpp
-    handlers/sensor/ChROSLidarHandler.h
-    handlers/sensor/ChROSLidarHandler.cpp
     handlers/sensor/ChROSAccelerometerHandler.h
     handlers/sensor/ChROSAccelerometerHandler.cpp
     handlers/sensor/ChROSGyroscopeHandler.h
@@ -169,6 +165,14 @@ if (CH_ENABLE_MODULE_SENSOR)
     handlers/sensor/ChROSSensorHandlerUtilities.h
     handlers/sensor/ChROSSensorHandlerUtilities.cpp
   )
+  if(CH_USE_SENSOR_OPTIX)
+    set(CH_ROS_SENSOR_HANDLER_FILES ${CH_ROS_SENSOR_HANDLER_FILES}
+      handlers/sensor/ChROSCameraHandler.h
+      handlers/sensor/ChROSCameraHandler.cpp
+      handlers/sensor/ChROSLidarHandler.h
+      handlers/sensor/ChROSLidarHandler.cpp
+    )
+  endif()
 endif()
 source_group("sensor_handler" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 
