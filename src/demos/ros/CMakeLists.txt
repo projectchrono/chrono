@@ -19,7 +19,9 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 endif()
 
 if(CH_ENABLE_MODULE_SENSOR)
-  list(APPEND DEMOS demo_ROS_sensor)
+  if(CH_USE_SENSOR_OPTIX)
+    list(APPEND DEMOS demo_ROS_sensor)
+  endif()
 endif()
 
 # ------------------------------------------------------------------------------

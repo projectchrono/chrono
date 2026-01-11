@@ -624,6 +624,10 @@ if(CH_ENABLE_MODULE_ROS)
   target_compile_definitions(Chrono_csharp_ros PRIVATE "CH_IGNORE_DEPRECATED")
   target_compile_definitions(Chrono_csharp_ros PRIVATE "IGNORE_DEPRECATED_WARNING")
 
+  if (CH_USE_SENSOR_OPTIX)
+    target_compile_definitions(Chrono_csharp_ros PRIVATE "CHRONO_OPTIX")
+  endif()
+
   add_dependencies(Chrono_csharp_ros Chrono_core)
   add_dependencies(Chrono_csharp_ros Chrono_ros)
   add_dependencies(Chrono_csharp_ros Chrono_csharp_core)
