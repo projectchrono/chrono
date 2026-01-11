@@ -37,7 +37,7 @@ using std::endl;
 // -----------------------------------------------------------------------------
 
 // Dimensions of fluid domain
-ChVector3d fsize(2, 2, 2);
+ChVector3d fsize(1, 1, 1);
 
 // Initial particle spacing
 double initial_spacing = 0.005;
