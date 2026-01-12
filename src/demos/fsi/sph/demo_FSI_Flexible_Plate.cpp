@@ -25,6 +25,8 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChElementShellANCF_3443.h"
+#include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -58,7 +60,7 @@ using std::endl;
 // -----------------------------------------------------------------------------
 
 // Physics problem type
-PhysicsProblem problem_type = PhysicsProblem::CFD;
+PhysicsProblem problem_type = PhysicsProblem::CRM;
 
 // Dimensions of the boundary and fluid domains
 double cxDim = 3;
@@ -69,10 +71,15 @@ double czDim = 1.0;
 bool create_flex_plate2 = false;
 bool create_cylinder_post = false;
 
+// FEA shell element type
+enum class ANCFShellElementType { ANCF_3423, ANCF_3443, ANCF_3833 };
+ANCFShellElementType shell_type = ANCFShellElementType::ANCF_3833;
+
+// Use nodal directions
+NodeDirectionsMode FEA_node_directions_mode = NodeDirectionsMode::NONE;
+
 // Visibility flags
-bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_mesh = true;
 bool show_mesh_bce = false;
 bool show_boundary_bce = false;
 bool show_particles_sph = true;
@@ -163,6 +170,9 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
+
+    // Enable/disable use of node directions for FSI flexible meshes
+    fsi.UseNodeDirections(FEA_node_directions_mode);
 
     switch (problem_type) {
         case PhysicsProblem::CFD:
@@ -285,6 +295,19 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_VSG
     if (render) {
+        std::string title = "Flexible Plate ";
+        switch (shell_type) {
+            case ANCFShellElementType::ANCF_3423:
+                title += "ANCF-3423";
+                break;
+            case ANCFShellElementType::ANCF_3443:
+                title += "ANCF-3443";
+                break;
+            case ANCFShellElementType::ANCF_3833:
+                title += "ANCF-3833";
+                break;
+        }
+
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
 
@@ -292,13 +315,14 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
+        visFSI->EnableFlexBodyMarkers(show_mesh_bce);
         visFSI->SetSPHColorCallback(col_callback);
 
         // VSG visual system (attach visFSI as plugin)
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
-        visVSG->SetWindowTitle("Flexible Plate");
+        visVSG->SetWindowTitle(title);
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
@@ -402,12 +426,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-std::shared_ptr<fea::ChMesh> CreateFlexiblePlate(ChSystem& sysMBS,
-                                                 double loc_x,
-                                                 double E,
-                                                 std::shared_ptr<ChBody> ground,
-                                                 bool verbose) {
-    // Create an FEA mesh representing a cantilever plate modeled with ANCF shell elements
+std::shared_ptr<fea::ChMesh> CreatePlate_3423(ChSystem& sysMBS, double loc, double E) {
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
     // Geometry of the plate
@@ -415,11 +434,11 @@ std::shared_ptr<fea::ChMesh> CreateFlexiblePlate(ChSystem& sysMBS,
     double width = 0.2;
     double height = 0.75;
 
-    ChVector3d center_plate(loc_x, 0.0, height / 2);
+    ChVector3d center(loc, 0.0, height / 2);
 
     // Specification of the mesh
     int numDiv_y = 4;
-    int numDiv_z = 15;
+    int numDiv_z = 5;
     int N_y = numDiv_y + 1;
     int N_z = numDiv_z + 1;
 
@@ -427,37 +446,31 @@ std::shared_ptr<fea::ChMesh> CreateFlexiblePlate(ChSystem& sysMBS,
     double dy = width / numDiv_y;
     double dz = height / numDiv_z;
 
+    // Create an isotropic material
+    double rho = 8000;
+    double nu = 0.3;
+    auto shell_material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
+
     std::vector<std::shared_ptr<ChNodeFEAbase>> collision_nodes;
 
     // Create and add the nodes
-    ChVector3d loc;
-    ChVector3d dir(1, 0, 0);
+    ChVector3d n_dirZ(1, 0, 0);
     for (int k = 0; k < N_z; k++) {
         for (int j = 0; j < N_y; j++) {
-            loc.x() = center_plate.x();
-            loc.y() = j * dy - width / 2 + center_plate.y();
-            loc.z() = k * dz - height / 2 + center_plate.z();
-
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto n_loc = center + ChVector3d(0, j * dy - width / 2, k * dz - height / 2);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(n_loc, n_dirZ);
             node->SetMass(0);
-
             // Set fixed nodes (no collision) and collect nodes with collision
-            if (k == 0)
-                node->SetFixed(true);
-            else
-                collision_nodes.push_back(node);
+            if (k == 0)                           //
+                node->SetFixed(true);             // set fixed nodes at bottom
+            else                                  //
+                collision_nodes.push_back(node);  // collect nodes with collision
 
             mesh->AddNode(node);
         }
     }
 
-    // Create an isotropic material; all layers for all elements share the same material
-    double rho = 8000;
-    double nu = 0.3;
-    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
-
-    // Create the elements
-    int num_elem = 0;
+    // Create and add the elements
     for (int k = 0; k < numDiv_z; k++) {
         for (int j = 0; j < numDiv_y; j++) {
             int node0 = (j + 0) + N_y * (k + 0);
@@ -465,30 +478,16 @@ std::shared_ptr<fea::ChMesh> CreateFlexiblePlate(ChSystem& sysMBS,
             int node2 = (j + 1) + N_y * (k + 1);
             int node3 = (j + 0) + N_y * (k + 1);
 
-            // Create the element and set its nodes.
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
-
-            // Set element dimensions
             element->SetDimensions(dy, dz);
+            element->AddLayer(thickness, 0, shell_material);
+            element->SetAlphaDamp(0.0);
 
-            // Add a single layers with a fiber angle of 0 degrees
-            element->AddLayer(thickness, 0, mat);
-
-            // Set structural damping for this element
-            element->SetAlphaDamp(0.05);
-
-            // Add element to mesh
             mesh->AddElement(element);
-            ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
-                                        element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-            if (verbose)
-                cout << "Adding element " << num_elem << " with center:  " << center.x() << " " << center.y() << " "
-                     << center.z() << endl;
-            num_elem++;
         }
     }
 
@@ -504,14 +503,215 @@ std::shared_ptr<fea::ChMesh> CreateFlexiblePlate(ChSystem& sysMBS,
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
-    if (show_mesh) {
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
-        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-        vis_mesh->SetColormapRange(0.0, 3.0);
-        vis_mesh->SetShrinkElements(true, 0.85);
-        vis_mesh->SetSmoothFaces(true);
-        mesh->AddVisualShapeFEA(vis_mesh);
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_mesh->SetColormapRange(0.0, 3.0);
+    vis_mesh->SetShrinkElements(true, 0.85);
+    ////vis_mesh->SetShellResolution(4);
+    vis_mesh->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(vis_mesh);
+
+    return mesh;
+}
+
+std::shared_ptr<fea::ChMesh> CreatePlate_3443(ChSystem& sysMBS, double loc, double E) {
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
+
+    // Geometry of the plate
+    double thickness = 0.02;
+    double width = 0.2;
+    double height = 0.75;
+
+    ChVector3d center(loc, 0.0, height / 2);
+
+    // Specification of the mesh
+    int numDiv_y = 4;
+    int numDiv_z = 5;
+    int N_y = numDiv_y + 1;
+    int N_z = numDiv_z + 1;
+
+    // For uniform mesh
+    double dy = width / numDiv_y;
+    double dz = height / numDiv_z;
+
+    // Create an isotropic material
+    double rho = 8000;
+    double nu = 0.3;
+    auto shell_material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
+
+    std::vector<std::shared_ptr<ChNodeFEAbase>> collision_nodes;
+
+    // Create and add the nodes
+    ChVector3d n_dirX(0, 0, -1);
+    ChVector3d n_dirY(0, 1, 0);
+    ChVector3d n_dirZ(1, 0, 0);
+    for (int k = 0; k < N_z; k++) {
+        for (int j = 0; j < N_y; j++) {
+            auto n_loc = center + ChVector3d(0, j * dy - width / 2, k * dz - height / 2);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzDDD>(n_loc, n_dirX, n_dirY, n_dirZ);
+            node->SetMass(0);
+            if (k == 0)                           //
+                node->SetFixed(true);             // set fixed nodes at bottom
+            else                                  //
+                collision_nodes.push_back(node);  // collect nodes with collision
+
+            mesh->AddNode(node);
+        }
     }
+
+    // Create and add the elements
+    for (int k = 0; k < numDiv_z; k++) {
+        for (int j = 0; j < numDiv_y; j++) {
+            int node0 = (j + 0) + N_y * (k + 0);
+            int node1 = (j + 1) + N_y * (k + 0);
+            int node2 = (j + 1) + N_y * (k + 1);
+            int node3 = (j + 0) + N_y * (k + 1);
+
+            auto element = chrono_types::make_shared<ChElementShellANCF_3443>();
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node0)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node1)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node2)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node3)));
+            element->SetDimensions(dy, dz);
+            element->AddLayer(thickness, 0, shell_material);
+            element->SetAlphaDamp(0.0);
+
+            mesh->AddElement(element);
+        }
+    }
+
+    // Create the FEA contact surface
+    auto contact_material_info = ChContactMaterialData();
+    contact_material_info.mu = 0.1f;
+    auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
+
+    auto contact_surface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
+    contact_surface->AddNodesFromNodeSet(collision_nodes, 0.01);
+    mesh->AddContactSurface(contact_surface);
+
+    sysMBS.Add(mesh);
+
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_mesh->SetColormapRange(0.0, 3.0);
+    vis_mesh->SetShrinkElements(true, 0.85);
+    ////vis_mesh->SetShellResolution(4);
+    vis_mesh->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(vis_mesh);
+
+    return mesh;
+}
+
+std::shared_ptr<fea::ChMesh> CreatePlate_3833(ChSystem& sysMBS, double loc, double E) {
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
+
+    // Geometry of the plate
+    double Lx = 0.02;  // thickness
+    double Ly = 0.2;   // width
+    double Lz = 0.75;  // height
+
+    double hLy = Ly / 2;
+
+    // Specification of the mesh
+    int num_elements = 5;
+    double dz = Lz / num_elements;
+
+    // Create an isotropic material
+    double rho = 8000;
+    double nu = 0.3;
+    auto shell_material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
+
+    std::vector<std::shared_ptr<ChNodeFEAbase>> collision_nodes;
+
+    //       z
+    //       ^
+    //       |
+    //   B---F---C
+    //   |   |   |
+    //   E---+---G
+    //   |   |   |
+    //   A---H---D----> y
+
+    // Setup shell normals to initially align with the global x direction with no curvature
+    // Attention to the sign of the normal (A, B, C, D nodes muct be in counter-clockwise order)
+    ChVector3d n_normal(-1, 0, 0);    // node normal direction
+    ChVector3d n_curvature(0, 0, 0);  // no curvature
+
+    std::shared_ptr<ChNodeFEAxyzDD> nodeA;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeB;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeC;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeD;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeE;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeF;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeG;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeH;
+
+    // Create the first nodes and fix them completely to ground (Cantilever constraint)
+    nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, -hLy, 0.0), n_normal, n_curvature);
+    nodeA->SetFixed(true);
+    mesh->AddNode(nodeA);
+
+    nodeH = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, 0, 0), n_normal, n_curvature);
+    nodeH->SetFixed(true);
+    mesh->AddNode(nodeH);
+
+    nodeD = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, hLy, 0), n_normal, n_curvature);
+    nodeD->SetFixed(true);
+    mesh->AddNode(nodeD);
+
+    // Generate the rest of the nodes as well as all of the elements
+    for (int i = 1; i <= num_elements; i++) {
+        nodeE = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, -hLy, (i - 0.5) * dz), n_normal, n_curvature);
+        mesh->AddNode(nodeE);
+        nodeG = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, +hLy, (i - 0.5) * dz), n_normal, n_curvature);
+        mesh->AddNode(nodeG);
+        nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, -hLy, i * dz), n_normal, n_curvature);
+        mesh->AddNode(nodeB);
+        nodeF = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, 0, i * dz), n_normal, n_curvature);
+        mesh->AddNode(nodeF);
+        nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(loc, +hLy, i * dz), n_normal, n_curvature);
+        mesh->AddNode(nodeC);
+
+        auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
+        element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
+        element->SetDimensions(Ly, dz);
+        element->SetAlphaDamp(0.001);
+
+        // Add a single layers with a fiber angle of 0 degrees.
+        element->AddLayer(Lx, 0, shell_material);
+
+        // Collect collision nodes
+        collision_nodes.push_back(nodeB);
+        collision_nodes.push_back(nodeC);
+        collision_nodes.push_back(nodeE);
+        collision_nodes.push_back(nodeF);
+        collision_nodes.push_back(nodeG);
+
+        mesh->AddElement(element);
+
+        nodeA = nodeB;
+        nodeH = nodeF;
+        nodeD = nodeC;
+    }
+
+    // Create the FEA contact surface
+    auto contact_material_info = ChContactMaterialData();
+    contact_material_info.mu = 0.1f;
+    auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
+
+    auto contact_surface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
+    contact_surface->AddNodesFromNodeSet(collision_nodes, 0.01);
+    mesh->AddContactSurface(contact_surface);
+
+    sysMBS.Add(mesh);
+
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_mesh->SetColormapRange(0.0, 3.0);
+    vis_mesh->SetShrinkElements(true, 0.85);
+    vis_mesh->SetShellResolution(4);
+    vis_mesh->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(vis_mesh);
 
     return mesh;
 }
@@ -557,21 +757,42 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose
         cylinder->EnableCollision(false);
         sysMBS.AddBody(cylinder);
 
-        if (show_rigid)
-            geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
 
     fsi.SetBcePattern2D(BcePatternMesh2D::INWARD);
 
-    // Create the first flexible plate and add to FSI system
-    auto mesh1 = CreateFlexiblePlate(sysMBS, plate1_x, 5e6, ground, verbose);
+    // Create the first flexible plate
+    std::shared_ptr<ChMesh> mesh1;
+    switch (shell_type) {
+        case ANCFShellElementType::ANCF_3423:
+            mesh1 = CreatePlate_3423(sysMBS, plate1_x, 2e7);
+            break;
+        case ANCFShellElementType::ANCF_3443:
+            mesh1 = CreatePlate_3443(sysMBS, plate1_x, 2e7);
+            break;
+        case ANCFShellElementType::ANCF_3833:
+            mesh1 = CreatePlate_3833(sysMBS, plate1_x, 2e7);
+            break;
+    }
     fsi.AddFeaMesh(mesh1, false);
 
     // Create second flexible plate
     if (create_flex_plate2) {
-        auto mesh2 = CreateFlexiblePlate(sysMBS, plate2_x, 2e7, ground, verbose);
+        std::shared_ptr<ChMesh> mesh2;
+        switch (shell_type) {
+            case ANCFShellElementType::ANCF_3423:
+                mesh2 = CreatePlate_3423(sysMBS, plate2_x, 5e7);
+                break;
+            case ANCFShellElementType::ANCF_3443:
+                mesh2 = CreatePlate_3443(sysMBS, plate2_x, 5e7);
+                break;
+            case ANCFShellElementType::ANCF_3833:
+                mesh2 = CreatePlate_3833(sysMBS, plate2_x, 5e7);
+                break;
+        }
         fsi.AddFeaMesh(mesh2, false);
     }
 
