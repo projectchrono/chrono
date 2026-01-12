@@ -22,7 +22,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid�flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid-flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations

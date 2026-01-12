@@ -13,7 +13,7 @@
 // =============================================================================
 // Fully Parameterized ANCF shell element with 4 nodes (48DOF). A Description of this element can be found in: Aki M
 // Mikkola and Ahmed A Shabana. A non-incremental finite element procedure for the analysis of large deformation of
-// plates and shells in mechanical system applications. Multibody System Dynamics, 9(3) : 283�309, 2003.
+// plates and shells in mechanical system applications. Multibody System Dynamics, 9(3) : 283-309, 2003.
 // =============================================================================
 // The "Continuous Integration" style calculation for the generalized internal force is based on modifications to
 // (including a new analytical Jacobian):  Gerstmayr, J., Shabana, A.A.: Efficient integration of the elastic forces and
@@ -21,7 +21,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid�flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid-flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations
