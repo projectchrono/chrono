@@ -62,7 +62,7 @@
 #include "chrono_sensor/sensors/Sensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
@@ -71,7 +71,7 @@
 #include "chrono_sensor/sensors/ChRadarSensor.h"
 #endif
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #endif
@@ -147,7 +147,7 @@ using namespace chrono::ros;
 
 #ifdef CHRONO_SENSOR
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 %shared_ptr(chrono::ros::ChROSCameraHandler)
 %shared_ptr(chrono::ros::ChROSLidarHandler)
 #endif
@@ -194,7 +194,7 @@ using namespace chrono::ros;
 %import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChIMUSensor.i"
 %import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChGPSSensor.i"
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 %import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChOptixSensor.i"
 #endif
 
@@ -212,7 +212,7 @@ using namespace chrono::ros;
 
 #ifdef CHRONO_SENSOR
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 %include "../../../chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #endif

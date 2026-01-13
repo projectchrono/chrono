@@ -112,7 +112,7 @@ endif()
 if (CH_ENABLE_MODULE_SENSOR)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
   if(CH_USE_SENSOR_OPTIX)
-    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_OPTIX")
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_HAS_OPTIX")
   endif()
 endif()
 
@@ -952,7 +952,7 @@ if(CH_ENABLE_MODULE_SENSOR)
     endif()
 
     if (CH_USE_SENSOR_OPTIX)
-      target_compile_definitions(sensor PRIVATE "CHRONO_OPTIX")
+      target_compile_definitions(sensor PRIVATE "CHRONO_HAS_OPTIX")
     endif()
 
     if(APPLE)
@@ -1191,7 +1191,7 @@ if(CH_ENABLE_MODULE_ROS)
   endif()
 
   if (CH_USE_SENSOR_OPTIX)
-    target_compile_definitions(ros PRIVATE "CHRONO_OPTIX")
+    target_compile_definitions(ros PRIVATE "CHRONO_HAS_OPTIX")
   endif()
 
   if(APPLE)
