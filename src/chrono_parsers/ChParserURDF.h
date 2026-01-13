@@ -20,6 +20,7 @@
 #define CH_PARSER_URDF_H
 
 #include "chrono_parsers/ChApiParsers.h"
+#include "chrono_parsers/ChConfigParsers.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"

@@ -199,7 +199,7 @@ endif()
 if(CH_ENABLE_MODULE_SENSOR)
   list (APPEND DEPENDENCIES_ROS "SENSOR")
 endif()
-if(CH_ENABLE_MODULE_PARSERS  AND HAVE_URDF)
+if(CH_ENABLE_MODULE_PARSERS  AND CH_USE_URDF)
   list (APPEND DEPENDENCIES_ROS "PARSERS")
 endif()
 
@@ -264,8 +264,7 @@ if (CH_ENABLE_MODULE_SENSOR)
   target_link_libraries(Chrono_ros PUBLIC Chrono_sensor)
 endif()
 
-if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
-  target_compile_definitions(Chrono_ros PUBLIC CHRONO_PARSERS_URDF)
+if (CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
   target_link_libraries(Chrono_ros PUBLIC Chrono_parsers)
 endif()
 

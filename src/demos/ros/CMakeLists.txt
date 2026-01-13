@@ -7,7 +7,7 @@ if (CH_ROS_HAS_INTERFACES)
   list(APPEND DEMOS demo_ROS_viper)
 endif()
 
-if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
+if (CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
   list(APPEND DEMOS demo_ROS_urdf)
 endif()
 
