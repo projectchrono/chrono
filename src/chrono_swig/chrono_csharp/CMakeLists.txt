@@ -86,8 +86,8 @@ if(CH_ENABLE_MODULE_SENSOR)
   endif()
 endif()
 
-if(CH_ENABLE_MODULE_VEHICLE AND HAVE_OPENCRG)
-  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DHAVE_OPENCRG")
+if(CH_ENABLE_MODULE_VEHICLE AND CH_USE_OPENCRG)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_HAS_OPENCRG")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -433,8 +433,8 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
                         )
   
   target_compile_definitions(Chrono_csharp_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
-  if (HAVE_OPENCRG)
-    target_compile_definitions(Chrono_csharp_vehicle PRIVATE "HAVE_OPENCRG")
+  if (CH_USE_OPENCRG)
+    target_compile_definitions(Chrono_csharp_vehicle PRIVATE "CHRONO_HAS_OPENCRG")
   endif()
   
   add_dependencies(Chrono_csharp_vehicle Chrono_core Chrono_vehicle ChronoModels_vehicle)

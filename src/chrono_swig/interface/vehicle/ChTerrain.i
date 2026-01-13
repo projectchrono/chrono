@@ -46,7 +46,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
+#if defined(SWIGCSHARP) && defined(CHRONO_HAS_OPENCRG)
     #include "chrono_vehicle/terrain/CRGTerrain.h"
 #endif
 
@@ -101,7 +101,7 @@
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
 
-#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
+#if defined(SWIGCSHARP) && defined(CHRONO_HAS_OPENCRG)
 %shared_ptr(chrono::vehicle::CRGTerrain)
 #endif
 
@@ -127,6 +127,6 @@
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
 
-#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
+#if defined(SWIGCSHARP) && defined(CHRONO_HAS_OPENCRG)
 %include "../../../chrono_vehicle/terrain/CRGTerrain.h"
 #endif

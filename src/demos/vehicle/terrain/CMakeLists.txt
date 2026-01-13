@@ -24,7 +24,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     )
 endif()
 
-if(HAVE_OPENCRG) 
+if(CH_USE_OPENCRG) 
    if (CH_ENABLE_MODULE_IRRLICHT)
       set(DEMOS ${DEMOS}
           demo_VEH_CRGTerrain_IRR
