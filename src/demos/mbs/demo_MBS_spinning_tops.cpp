@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
                                                           true, true, contact_mat, mesh_thickness);  //
     ChFramed X_G1 = ChFramed(ChVector3d(3, 0, 0), QuatFromAngleX(CH_PI_2));
     top1->SetFrameRefToAbs(X_G1);
-    top1->SetAngVelParent(X_G1 * ChVector3d(0, omega1, 0));
+    top1->SetAngVelParent(X_G1.GetRotMat() * ChVector3d(0, omega1, 0));
     top1->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/metal.jpg"));
     sys.Add(top1);
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                                                           true, true, contact_mat, mesh_thickness);  //
     ChFramed X_G2 = ChFramed(ChVector3d(-3, 0, 0), QuatFromAngleX(CH_PI_2));
     top2->SetFrameRefToAbs(X_G2);
-    top2->SetAngVelParent(X_G2 * ChVector3d(0, omega2, 0));
+    top2->SetAngVelParent(X_G2.GetRotMat() * ChVector3d(0, omega2, 0));
     top2->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bronze.png"));
     sys.Add(top2);
 
