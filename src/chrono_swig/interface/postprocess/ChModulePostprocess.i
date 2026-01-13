@@ -134,6 +134,8 @@ using namespace chrono::postprocess;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColormap.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 #endif             // --------------------------------------------------------------------- PYTHON
 
@@ -143,6 +145,8 @@ using namespace chrono::postprocess;
 %import  "chrono_swig/interface/core/ChColor.i"
 %import  "chrono_swig/interface/core/ChColormap.i"
 %import  "chrono_swig/interface/core/ChSystem.i"
+%import  "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import  "chrono_swig/interface/core/ChPhysicsItem.i"
 %import  "chrono_swig/interface/core/ChVisualShape.i"
 %import  "chrono_swig/interface/core/ChFunction.i"
 #endif             // --------------------------------------------------------------------- CSHARP
