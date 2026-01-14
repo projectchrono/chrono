@@ -718,7 +718,7 @@ def make_chrono_object_clones(mname,mpos,mrot,
                                 masset_list, 
                                 list_clones_posrot):
     
-    chobject = bpy.data.objects.new(mname, empty_mesh)  
+    chobject = bpy.data.objects.new(mname, bpy.data.meshes.new('mesh_position_clones'))
     chobject.rotation_mode = 'QUATERNION'
     chobject.rotation_quaternion = mrot
     chobject.location = mpos
@@ -772,10 +772,9 @@ def make_chrono_object_clones(mname,mpos,mrot,
         verts[4*ic+2] = (mpos + mrot @ mathutils.Vector(( 0.1, 0.1,0)))[:]
         verts[4*ic+3] = (mpos + mrot @ mathutils.Vector((-0.1, 0.1,0)))[:]
         faces[ic] = (4*ic, 4*ic+1, 4*ic+2, 4*ic+3)    
-    new_mesh = bpy.data.meshes.new('mesh_position_clones')
-    new_mesh.from_pydata(verts, edges, faces)
-    new_mesh.update()
-    chobject.data = new_mesh
+
+    chobject.data.from_pydata(verts, edges, faces)
+    chobject.data.update()
     chobject.instance_type = 'FACES'
     chobject.show_instancer_for_render = False
     chobject.show_instancer_for_viewport = False
