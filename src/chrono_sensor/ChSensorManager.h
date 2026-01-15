@@ -105,13 +105,14 @@ class CH_SENSOR_API ChSensorManager {
     /// @return The max number of recursions used in ray tracing
     int GetRayRecursions() { return m_optix_reflections; }
 
-    /// Set if the sensor framework should print all info
-    /// @param verbose Whether the framework should print info
+    /// Enable/disable verbose output mode (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
-    /// Get the verbose setting
-    /// @return The verbose setting
+    /// Get the verbose setting.
     bool GetVerbose() { return m_verbose; }
+
+    /// Enable/disable sensor debug mode (default: false).
+    void SetDebug(bool debug) { m_debug = debug; }
 
 #ifdef CHRONO_HAS_OPTIX
     /// Public pointer to the scene.
@@ -121,6 +122,7 @@ class CH_SENSOR_API ChSensorManager {
 
   private:
     bool m_verbose;           ///< enable printing of messages and warnings
+    bool m_debug;             ///< enable debug options in sensors (if supported)
     int m_optix_reflections;  ///< maximum number of ray tracing recursions
     int m_num_keyframes;      ///< number of keyframes to use
 

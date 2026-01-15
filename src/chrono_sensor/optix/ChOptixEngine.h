@@ -72,7 +72,7 @@ class CH_SENSOR_API ChOptixEngine {
     /// @param device_id The id of the GPU which this engine is running on
     /// @param max_scene_reflections The maximum number of ray recursions that should be allowed by this engine
     /// @param verbose Sets verbose level for the engine
-    ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections = 9, bool verbose = false);
+    ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections = 9, bool verbose = false, bool debug = false);
 
     /// Class destructor
     ~ChOptixEngine();
@@ -112,46 +112,52 @@ class CH_SENSOR_API ChOptixEngine {
     void StopAllThreads();  ///< stop the scene and render threads, remove all asigned sensors
 
     bool m_verbose;     ///< whether the context should print errors and warnings
+    bool m_debug;       ///< enable OpyiX debug and validation options
     void Initialize();  ///< intialize function for the optix engine. This is what gets everything up and running
-    // void Process();     ///< function that processes sensor added to its queue
-    // void Process2();
-    void RenderProcess(
-        RenderThread& tself,
-        std::shared_ptr<ChOptixSensor> sensor);  ///< render processing function for rendering in separate threads
-    void SceneProcess(RenderThread& tself);  ///< scene processing function for building the scene in separate thread
 
-    void UpdateCameraTransforms(
-        std::vector<int>& to_be_updated,
-        std::shared_ptr<ChScene> scene);  ///< updates all of the camera position and orientations
-    void UpdateDeformableMeshes();        ///< updates the dynamic meshes in the scene
-    void UpdateSceneDescription(
-        std::shared_ptr<ChScene> scene);  ///< updates the scene characteristics such as lights, background, etc
+    /// Render processing function for rendering in separate threads.
+    void RenderProcess(RenderThread& tself, std::shared_ptr<ChOptixSensor> sensor);
 
-    /// Creates an optix box visualization object from a Chrono box shape
+    /// Scene processing function for building the scene in separate thread.
+    void SceneProcess(RenderThread& tself);
+
+    /// Update all camera position and orientations.
+    void UpdateCameraTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);
+
+    /// Update the dynamic meshes in the scene.
+    void UpdateDeformableMeshes();
+
+    /// Update the scene characteristics such as lights, background, etc.
+    void UpdateSceneDescription(std::shared_ptr<ChScene> scene);
+
+    /// Creates an optix box visualization object from a Chrono box shape.
     void boxVisualization(std::shared_ptr<ChBody> body,
                           std::shared_ptr<ChVisualShapeBox> box_shape,
                           ChFrame<> asset_frame);
-    /// Creates an optix sphere visualization object from a Chrono sphere shape
+
+    /// Creates an optix sphere visualization object from a Chrono sphere shape.
     void sphereVisualization(std::shared_ptr<ChBody> body,
                              std::shared_ptr<ChVisualShapeSphere> sphere_shape,
                              ChFrame<> asset_frame);
-    /// Creates an optix cylinder visualization object from a Chrono cylinder shape
+
+    /// Creates an optix cylinder visualization object from a Chrono cylinder shape.
     void cylinderVisualization(std::shared_ptr<ChBody> body,
                                std::shared_ptr<ChVisualShapeCylinder> sphere_shape,
                                ChFrame<> asset_frame);
+
     /// Creates an optix rigid mesh visualization object from a Chrono mesh shape
     void rigidMeshVisualization(std::shared_ptr<ChBody> body,
                                 std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                 ChFrame<> asset_frame);
 
-    /// Creates an optix deformable mesh visualization object from a Chrono mesh shape
+    /// Creates an optix deformable mesh visualization object from a Chrono mesh shape.
     void deformableMeshVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                      ChFrame<> asset_frame);
 
-    #ifdef USE_SENSOR_NVDB
+#ifdef USE_SENSOR_NVDB
     void nvdbVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChNVDBShape> box_shape, ChFrame<> asset_frame);
-    #endif
+#endif
 
     std::vector<unsigned int> m_renderQueue;  ///< list of sensor indices that need to be updated
 

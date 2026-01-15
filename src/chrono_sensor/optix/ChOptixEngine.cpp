@@ -52,16 +52,15 @@
 namespace chrono {
 namespace sensor {
 
-
-// using namespace optix;
-ChOptixEngine::ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections, bool verbose)
-    : m_verbose(verbose), m_deviceId(device_id), m_recursions(max_scene_reflections), m_sceneThread() {
+ChOptixEngine::ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections, bool verbose, bool debug)
+    : m_verbose(verbose), m_debug(debug), m_deviceId(device_id), m_recursions(max_scene_reflections), m_sceneThread() {
     m_sceneThread.start = false;
     m_sceneThread.terminate = false;
     m_sceneThread.done = true;  // thread is done to begin with (no work to complete)
     m_system = sys;
     Initialize();
 }
+
 ChOptixEngine::~ChOptixEngine() {
     StopAllThreads();  // if it hasn't been stopped yet, stop it ourselves
     // cleanup ChOptixGeometry and ChOptixPipeline before destroying the context
@@ -83,7 +82,7 @@ void ChOptixEngine::Initialize() {
     OptixDeviceContextOptions options = {};
     options.logCallbackFunction = &optix_log_callback;
 
-    if (m_verbose) {
+    if (m_debug) {
         options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
         options.logCallbackLevel = 4;
     } else {
@@ -114,7 +113,7 @@ void ChOptixEngine::Initialize() {
     m_params.root = {};
 
     m_geometry = chrono_types::make_shared<ChOptixGeometry>(m_context);
-    m_pipeline = chrono_types::make_shared<ChOptixPipeline>(m_context, m_recursions, m_verbose);
+    m_pipeline = chrono_types::make_shared<ChOptixPipeline>(m_context, m_recursions, m_debug);
 
     // TODO: enable multigpu
 }
