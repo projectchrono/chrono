@@ -58,7 +58,8 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_terrain_offset(0),
       m_terrain_height(0),
       m_tire_step(1e-3),
-      m_tire_vis(VisualizationType::PRIMITIVES) {
+      m_tire_vis(VisualizationType::PRIMITIVES),
+      m_default_AABB(true) {
     // Default motion function for slip angle control
     m_sa_fun = chrono_types::make_shared<ChFunctionConst>(0);
     // Default tire-terrain collision method
@@ -217,6 +218,11 @@ void ChTireTestRig::SetTerrainCRM(const TerrainPatchSize& size, const TerrainPar
     std::cerr << "ERROR: CRM terrain requires the Chrono::FSI module." << std::endl;
     throw std::runtime_error("ERROR: CRM terrain requires the Chrono::FSI module.");
 #endif
+}
+
+void ChTireTestRig::SetWheelActiveBox(const ChVector3d& size) {
+    m_default_AABB = false;
+    m_AABB_size = size;
 }
 
 // -----------------------------------------------------------------------------
@@ -618,8 +624,11 @@ void ChTireTestRig::CreateTerrainCRM() {
     terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location,
                        BoxSide::ALL & ~BoxSide::Z_POS);
 
-    // Estimate a reasonable active domain size
-    terrain->SetActiveDomain(ChVector3d(4 * m_tire->GetRadius(), 4 * m_tire->GetWidth(), 4 * m_tire->GetRadius()));
+    if (m_default_AABB) {
+        // Estimate a reasonable active domain size
+        m_AABB_size = ChVector3d(2.5 * m_tire->GetRadius(), 1.25 * m_tire->GetWidth(), 2.5 * m_tire->GetRadius());
+    }
+    terrain->SetActiveDomain(m_AABB_size);
 
     // Create tire BCE markers
     if (m_bce_callback) {
