@@ -5,8 +5,8 @@ endif()
 # ------------------------------------------------------------------------------
 
 set(TESTS
-    btest_FSI_RigidBCE_Scaling
-    btest_FSI_Initialization
+    btest_FSI-SPH_RigidBCE_Scaling
+    btest_FSI-SPH_Initialization
     )
 
 # ------------------------------------------------------------------------------

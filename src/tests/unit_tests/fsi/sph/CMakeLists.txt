@@ -1,5 +1,5 @@
 set(TESTS
-    utest_FSI_Poiseuille_flow
+    utest_FSI-SPH_Poiseuille_flow
 )
 
 list(APPEND LIBS Chrono_core)

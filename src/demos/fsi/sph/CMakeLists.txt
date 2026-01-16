@@ -3,38 +3,38 @@
 # ------------------------------------------------------------------------------
 
 set(DEMOS ${DEMOS}
-   demo_FSI_DamBreak
-   demo_FSI_Compressibility
-   demo_FSI_Poiseuille_flow
-   demo_FSI_Kernels
-   demo_FSI_ObjectDrop
-   demo_FSI_CylindricalTank
-   demo_FSI_WaveTank
-   demo_FSI_EmbeddedObject
-   demo_FSI_BaffleFlow
-   demo_FSI_CouetteFlow
-   demo_FSI_Flap
-   demo_FSI_AngleRepose
-   demo_FSI_Cratering
-   demo_FSI_RassorDrum
-   demo_FSI_NormalBevameter
-   demo_FSI_ConePenetrometer
-   demo_FSI_Hydrostatic
-   demo_FSI_Cone_Drop
+   demo_FSI-SPH_DamBreak
+   demo_FSI-SPH_Compressibility
+   demo_FSI-SPH_Poiseuille_flow
+   demo_FSI-SPH_Kernels
+   demo_FSI-SPH_ObjectDrop
+   demo_FSI-SPH_CylindricalTank
+   demo_FSI-SPH_WaveTank
+   demo_FSI-SPH_EmbeddedObject
+   demo_FSI-SPH_BaffleFlow
+   demo_FSI-SPH_CouetteFlow
+   demo_FSI-SPH_Flap
+   demo_FSI-SPH_AngleRepose
+   demo_FSI-SPH_Cratering
+   demo_FSI-SPH_RassorDrum
+   demo_FSI-SPH_NormalBevameter
+   demo_FSI-SPH_ConePenetrometer
+   demo_FSI-SPH_Hydrostatic
+   demo_FSI-SPH_Cone_Drop
 )
 
 if(CH_ENABLE_MODULE_VSG)
   set(DEMOS ${DEMOS}
-      demo_FSI_BCE
+      demo_FSI-SPH_BCE
   )      
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
-      demo_FSI_FEAdirections
-      demo_FSI_Flexible_Plate
-      demo_FSI_Flexible_Cable
-      demo_FSI_Flexible_Toroidal_Tire
+      demo_FSI-SPH_FEAdirections
+      demo_FSI-SPH_Flexible_Plate
+      demo_FSI-SPH_Flexible_Cable
+      demo_FSI-SPH_Flexible_Toroidal_Tire
    )
 endif()
 
