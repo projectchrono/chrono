@@ -762,7 +762,7 @@ class ChVisualSystemVSGPlugin {
     ChVisualSystemVSG& GetVisualSystemVSG() const { return *m_vsys; }
 
   protected:
-    ChVisualSystemVSGPlugin() {}
+    ChVisualSystemVSGPlugin() : m_vsys(nullptr) {}
 
     /// Allow this plugin to perform any operations when it is attached to a VSG visual system.
     /// The pointer `m_vsys` to the associated VSG visual system is set before calling OnAttach.
