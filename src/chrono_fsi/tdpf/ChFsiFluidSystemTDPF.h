@@ -55,7 +55,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
 
     /// Return gravitational acceleration.
     ChVector3d GetGravitationalAcceleration() const;
-    
+
     void SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode);
     void SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts);
 
@@ -70,6 +70,12 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
 
     /// Get current wave elevation at specified position (in X-Y plane).
     double GetWaveElevation(const ChVector3d& pos);
+
+    /// Get current wave velocity at specified position (in X-Y plane).
+    ChVector3d GetWaveVelocity(const ChVector3d& pos);
+
+    /// Get current wave velocity at specified position (in X-Y plane).
+    ChVector3d GetWaveVelocity(const ChVector3d& pos, double elevation);
 
   private:
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
@@ -139,7 +145,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     Eigen::VectorXd m_rirf_time_vector;
     Eigen::VectorXd m_rirf_width_vector;
 
-    hydrochrono::hydro::RadiationConvolutionMode m_convolution_mode; ///< default: baseline
+    hydrochrono::hydro::RadiationConvolutionMode m_convolution_mode;  ///< default: baseline
     hydrochrono::hydro::TaperedDirectOptions m_tapered_opts;
     std::string m_diagnostics_output_dir;
 
@@ -160,7 +166,6 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     friend class ChFsiSystemTDPF;
     friend class ChFsiInterfaceTDPF;
     friend class FSITDPFStatsVSG;
-    friend class ChTdpfVisualizationVSG;
 };
 
 /// @} fsitdpf

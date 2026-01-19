@@ -110,10 +110,15 @@ void ChFsiFluidSystemTDPF::AddWaves(const IrregularWaveParams& params) {
 }
 
 double ChFsiFluidSystemTDPF::GetWaveElevation(const ChVector3d& pos) {
-    if (!m_waves)
-        return 0;
-
     return m_waves->GetElevation(pos.eigen(), m_time);
+}
+
+ChVector3d ChFsiFluidSystemTDPF::GetWaveVelocity(const ChVector3d& pos) {
+    return m_waves->GetVelocity(pos.eigen(), m_time);
+}
+
+ChVector3d ChFsiFluidSystemTDPF::GetWaveVelocity(const ChVector3d& pos, double elevation) {
+    return m_waves->GetVelocity(pos.eigen(), m_time, elevation);
 }
 
 void ChFsiFluidSystemTDPF::SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode) {
@@ -180,7 +185,8 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
     }
 
     // Initialize waves (NoWave, RegularWave, or IrregularWaves)
-    switch (m_waves->GetWaveMode()) { case WaveMode::regular:
+    switch (m_waves->GetWaveMode()) {
+        case WaveMode::regular:
             std::static_pointer_cast<RegularWave>(m_waves)->AddH5Data(m_hydro_data.GetRegularWaveInfos(),
                                                                       m_hydro_data.GetSimulationInfo());
             break;

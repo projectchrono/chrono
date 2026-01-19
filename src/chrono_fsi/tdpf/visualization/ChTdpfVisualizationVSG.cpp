@@ -303,12 +303,12 @@ void ChTdpfVisualizationVSG::SetWaveMeshVisibility(bool val) {
 }
 
 void ChTdpfVisualizationVSG::OnRender() {
-    if (m_sysTDPF->m_waves && m_waves_visible) {
+    if (m_waves_visible) {
         // Update trimesh vertex heights and colors based on wave elevation
         for (size_t iv = 0; iv < m_wave_mesh.trimesh->GetNumVertices(); iv++) {
             auto& v = m_wave_mesh.trimesh->GetCoordsVertices()[iv];
-            auto height = m_sysTDPF->m_waves->GetElevation(v.eigen(), m_sysTDPF->m_time);
-            auto vel = ChVector3d(m_sysTDPF->m_waves->GetVelocity(v.eigen(), m_sysTDPF->m_time));
+            auto height = m_sysTDPF->GetWaveElevation(v.eigen());
+            auto vel = ChVector3d(m_sysTDPF->GetWaveVelocity(v.eigen(), height));
             v.z() = height;
             if (m_wave_mesh.colormode != ColorMode::NONE) {
                 ChColor color;
