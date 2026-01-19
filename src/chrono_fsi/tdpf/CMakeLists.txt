@@ -34,6 +34,8 @@ endif()
 
 set(CH_HYDROCHRONO_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HydroChrono" CACHE PATH "Path to top-level HydroChrono directory")
 
+message(STATUS "  HydroChrono directory: ${CH_HYDROCHRONO_DIR}")
+
 #-----------------------------------------------------------------------------
 # List all files for the TDPF-based Chrono::FSI library
 #-----------------------------------------------------------------------------
@@ -49,6 +51,12 @@ set(FSITDPF_BASE_FILES
     ChFsiFluidSystemTDPF.cpp
 )
 source_group("" FILES ${FSITDPF_BASE_FILES})
+
+set(FSITDPF_IMPL_FILES
+    impl/ChFsiFluidSystemTDPF_impl.h
+    impl/ChFsiFluidSystemTDPF_impl.cpp
+)
+source_group("impl" FILES ${FSITDPF_IMPL_FILES})
 
 # --------------- HydroChrono FILES
 
@@ -145,6 +153,7 @@ message(STATUS "  Add Chrono_fsitdpf library")
 add_library(Chrono_fsitdpf
     ${FSITDPF_CONFIG_FILE}
     ${FSITDPF_BASE_FILES}
+    ${FSITDPF_IMPL_FILES}
     ${FSITDPF_HC_HEADERS}
     ${FSITDPF_HC_SOURCES}
 )
@@ -156,8 +165,8 @@ if (CH_STATIC)
   set_target_properties(Chrono_fsitdpf PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
-target_include_directories(Chrono_fsitdpf PUBLIC "${CH_HYDROCHRONO_DIR}/include")
-target_include_directories(Chrono_fsitdpf PUBLIC "${CH_HYDROCHRONO_DIR}/src")
+target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/include")
+target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/src")
 
 if(MSVC)
   target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>) # missing DLL interface
@@ -196,9 +205,11 @@ if(CH_ENABLE_MODULE_VSG)
       set_target_properties(Chrono_fsitdpf_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
  
+    target_include_directories(Chrono_fsitdpf_vsg PRIVATE "${CH_HYDROCHRONO_DIR}/include")
+    target_include_directories(Chrono_fsitdpf_vsg PRIVATE "${CH_HYDROCHRONO_DIR}/src")
+
     if(MSVC)
-      # disable warnings related to missing DLL interface
-      target_compile_options(Chrono_fsitdpf_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      target_compile_options(Chrono_fsitdpf_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)  # missing DLL interface
       set_target_properties(Chrono_fsitdpf_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 

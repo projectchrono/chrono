@@ -33,7 +33,9 @@ foreach(PROGRAM ${DEMOS})
     if(MSVC)
       set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
-    
+
+    target_include_directories(${PROGRAM} PRIVATE "${CH_HYDROCHRONO_DIR}/include")
+
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
 
