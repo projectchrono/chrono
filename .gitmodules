@@ -13,3 +13,4 @@
 [submodule "src/chrono_thirdparty/HydroChrono"]
 	path = src/chrono_thirdparty/HydroChrono
 	url = https://github.com/Project-SEA-Stack/HydroChrono.git
+	branch = feature/chrono-fsi-interface
