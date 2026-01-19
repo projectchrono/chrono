@@ -2298,7 +2298,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
                            ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
                                                                       trimesh->GetMaterials(), wireframe)
                            : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
-                                                                   wireframe);
+                                                                   trimesh->GetOpacity(), wireframe);
             group->addChild(grp);
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             const auto& filename = model_file->GetFilename();
@@ -2380,7 +2380,7 @@ void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> gro
                          ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
                                                                     trimesh->GetMaterials(), trimesh->IsWireframe())
                          : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
-                                                                 trimesh->IsWireframe());
+                                                                 trimesh->GetOpacity(), trimesh->IsWireframe());
 
         group->addChild(child);
 
@@ -2471,7 +2471,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto trimesh_connected = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh->GetMesh());
             if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
                 continue;
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
+            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
             group->addChild(grp);
         } else if (auto hull = std::dynamic_pointer_cast<ChCollisionShapeConvexHull>(shape)) {
             if (hull->IsMutable())  // already treated as deformable mesh
@@ -2481,7 +2481,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             lh.ComputeHull(hull->GetPoints(), *trimesh_connected);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
+            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
             group->addChild(grp);
         }
     }
@@ -2517,7 +2517,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> g
         if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
             continue;
 
-        auto child = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
+        auto child = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
         group->addChild(child);
 
         // Load deformable mesh data (for CPU->GPU transfer)
