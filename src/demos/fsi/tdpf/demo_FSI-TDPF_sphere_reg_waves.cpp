@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     auto visFSI = chrono_types::make_shared<ChTdpfVisualizationVSG>(&sysFSI);
     visFSI->SetWaveMeshVisibility(true);
-    visFSI->SetWavesColormap(ChColormap::Type::BLUE, 0.95f);
-    visFSI->SetWavesColorMode(ChTdpfVisualizationVSG::ColorMode::HEIGHT, {-wave_amplitude, +wave_amplitude});
+    visFSI->SetWaveMeshColormap(ChColormap::Type::BLUE, 0.95f);
+    visFSI->SetWaveMeshColorMode(ChTdpfVisualizationVSG::ColorMode::HEIGHT, {-wave_amplitude, +wave_amplitude});
 
     auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
     visVSG->AttachPlugin(visFSI);

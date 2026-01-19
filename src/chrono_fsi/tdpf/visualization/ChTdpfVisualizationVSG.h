@@ -63,10 +63,14 @@ class CH_FSI_API ChTdpfVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin 
 
     /// Enable/disable rendering of waves (default: true).
     void SetWaveMeshVisibility(bool val);
-    void SetWaveMesh(const ChVector2d& center, const ChVector2d& size, double resolution = 100);
+    
+    void SetWaveMeshParams(const ChVector2d& center, const ChVector2d& size, double resolution = 100);
     void SetWaveMeshWireframe(bool wireframe);
-    void SetWavesColorMode(ColorMode mode, const ChVector2d& range);
-    void SetWavesColormap(ChColormap::Type type, float opacity = 1);
+    void SetWaveMeshColorMode(ColorMode mode, const ChVector2d& range);
+    void SetWaveMeshColormap(ChColormap::Type type, float opacity = 1);
+
+    /// Set wave mesh update frequency (default: 30 FPS).
+    void SetWaveMeshUpdateFrequency(double freq);
 
     /// Add additional proxy body to supplemental system.
     /// Must be called before Initialize().
@@ -119,6 +123,9 @@ class CH_FSI_API ChTdpfVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin 
     ChFsiSystemTDPF* m_sysFSI;        ///< associated FSI system
     ChFsiFluidSystemTDPF* m_sysTDPF;  ///< associated TDPF system
     ChSystem* m_sysMBS;               ///< internal Chrono system (holds proxies)
+
+    double m_update_freq;  ///< rendering update rate
+    double m_last_update;  ///< time of last update
 
     vsg::ref_ptr<vsg::Switch> m_wave_scene;  ///< VSG scene containing wave mesh
     WaveMesh m_wave_mesh;                    ///< wave trimesh

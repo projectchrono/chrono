@@ -130,7 +130,13 @@ ChTdpfVisualizationVSG::ChTdpfVisualizationVSG(ChFsiSystemTDPF* sysFSI)
 }
 
 ChTdpfVisualizationVSG::ChTdpfVisualizationVSG(ChFsiFluidSystemTDPF* sysTDPF)
-    : m_sysFSI(nullptr), m_sysTDPF(sysTDPF), m_waves_visible(false), m_write_images(false), m_image_dir(".") {
+    : m_sysFSI(nullptr),
+      m_sysTDPF(sysTDPF),
+      m_waves_visible(false),
+      m_update_freq(20),
+      m_last_update(0),
+      m_write_images(false),
+      m_image_dir(".") {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
     m_wave_scene = vsg::Switch::create();
 }
@@ -144,7 +150,7 @@ ChTdpfVisualizationVSG::~ChTdpfVisualizationVSG() {
     delete m_sysMBS;
 }
 
-void ChTdpfVisualizationVSG::SetWaveMesh(const ChVector2d& center, const ChVector2d& size, double resolution) {
+void ChTdpfVisualizationVSG::SetWaveMeshParams(const ChVector2d& center, const ChVector2d& size, double resolution) {
     m_wave_mesh.center = center;
     m_wave_mesh.size = size;
     m_wave_mesh.resolution = resolution;
@@ -154,17 +160,21 @@ void ChTdpfVisualizationVSG::SetWaveMeshWireframe(bool wireframe) {
     m_wave_mesh.wireframe = wireframe;
 }
 
-void ChTdpfVisualizationVSG::SetWavesColorMode(ColorMode mode, const ChVector2d& range) {
+void ChTdpfVisualizationVSG::SetWaveMeshColorMode(ColorMode mode, const ChVector2d& range) {
     m_wave_mesh.colormode = mode;
     m_wave_mesh.range = range;
 }
 
-void ChTdpfVisualizationVSG::SetWavesColormap(ChColormap::Type type, float opacity) {
+void ChTdpfVisualizationVSG::SetWaveMeshColormap(ChColormap::Type type, float opacity) {
     m_wave_mesh.colormap_type = type;
     m_wave_mesh.opacity = opacity;
     if (m_wave_mesh.colormap) {
         m_wave_mesh.colormap->Load(type);
     }
+}
+
+void ChTdpfVisualizationVSG::SetWaveMeshUpdateFrequency(double freq) {
+    m_update_freq = freq;
 }
 
 ChColormap::Type ChTdpfVisualizationVSG::GetColormapType() const {
@@ -292,7 +302,7 @@ void ChTdpfVisualizationVSG::OnBindAssets() {
 void ChTdpfVisualizationVSG::SetWaveMeshVisibility(bool val) {
     m_waves_visible = val;
 
-    if(!m_vsys || !m_vsys->IsInitialized())
+    if (!m_vsys || !m_vsys->IsInitialized())
         return;
 
     m_vsys->GetGuiComponent(m_wave_colorbar_id)->SetVisibility(val);
@@ -303,102 +313,6 @@ void ChTdpfVisualizationVSG::SetWaveMeshVisibility(bool val) {
 }
 
 void ChTdpfVisualizationVSG::OnRender() {
-    if (m_waves_visible) {
-        // Update trimesh vertex heights and colors based on wave elevation
-        for (size_t iv = 0; iv < m_wave_mesh.trimesh->GetNumVertices(); iv++) {
-            auto& v = m_wave_mesh.trimesh->GetCoordsVertices()[iv];
-            auto height = m_sysTDPF->GetWaveElevation(v.eigen());
-            auto vel = ChVector3d(m_sysTDPF->GetWaveVelocity(v.eigen(), height));
-            v.z() = height;
-            if (m_wave_mesh.colormode != ColorMode::NONE) {
-                ChColor color;
-                switch (m_wave_mesh.colormode) {
-                    case ColorMode::HEIGHT:
-                        color = m_wave_mesh.colormap->Get(height, m_wave_mesh.range[0], m_wave_mesh.range[1]);
-                        break;
-                    case ColorMode::VELOCITY_MAG:
-                        color = m_wave_mesh.colormap->Get(vel.Length(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
-                        break;
-                    case ColorMode::VELOCITY_X:
-                        color = m_wave_mesh.colormap->Get(vel.x(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
-                        break;
-                    case ColorMode::VELOCITY_Y:
-                        color = m_wave_mesh.colormap->Get(vel.y(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
-                        break;
-                    case ColorMode::VELOCITY_Z:
-                        color = m_wave_mesh.colormap->Get(vel.z(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
-                        break;
-                }
-                m_wave_mesh.trimesh->GetCoordsColors()[iv] = color;
-            }
-        }
-
-        // Dynamic data transfer CPU->GPU for wave mesh
-        if (m_wave_mesh.dynamic_vertices) {
-            const auto& new_vertices = m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceVertices()
-                                                             : m_wave_mesh.trimesh->GetCoordsVertices();
-            assert(m_wave_mesh.vertices->size() == new_vertices.size());
-
-            const size_t count = new_vertices.size();
-            if (count > 0) {
-                // ChVector3d stores 3 doubles contiguously, cast to raw double* and float* with less overhead
-                const double* src_ptr = new_vertices[0].data();
-                float* dst_ptr = reinterpret_cast<float*>(m_wave_mesh.vertices->data());
-
-                // convert 3*count doubles to floats with tight loop
-                const size_t total_components = count * 3;
-                for (size_t i = 0; i < total_components; ++i) {
-                    dst_ptr[i] = static_cast<float>(src_ptr[i]);
-                }
-
-                m_wave_mesh.vertices->dirty();
-            }
-        }
-
-        if (m_wave_mesh.dynamic_normals) {
-            const auto& new_normals = m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceNormals()
-                                                            : m_wave_mesh.trimesh->getAverageNormals();
-            assert(m_wave_mesh.normals->size() == new_normals.size());
-
-            const size_t count = new_normals.size();
-            if (count > 0) {
-                const double* src_ptr = new_normals[0].data();
-                float* dst_ptr = reinterpret_cast<float*>(m_wave_mesh.normals->data());
-
-                const size_t total_components = count * 3;
-                for (size_t i = 0; i < total_components; ++i) {
-                    dst_ptr[i] = static_cast<float>(src_ptr[i]);
-                }
-
-                m_wave_mesh.normals->dirty();
-            }
-        }
-
-        if (m_wave_mesh.dynamic_colors) {
-            const auto& new_colors =
-                m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
-            assert(m_wave_mesh.colors->size() == new_colors.size());
-
-            const size_t count = new_colors.size();
-            if (count > 0) {
-                // ChColor is 12 bytes (3 floats), but need to give to the gpu with vec4 (16 bytes) for alignment
-                // copy element-wise with manual unroll
-                const ChColor* src_ptr = new_colors.data();
-                float* dst_ptr = reinterpret_cast<float*>(m_wave_mesh.colors->data());
-
-                // Manual unroll (RGBA = 4 components)
-                for (size_t k = 0; k < count; ++k) {
-                    const size_t idx = k * 4;
-                    dst_ptr[idx + 0] = src_ptr[k].R;
-                    dst_ptr[idx + 1] = src_ptr[k].G;
-                    dst_ptr[idx + 2] = src_ptr[k].B;
-                    dst_ptr[idx + 3] = 0.4f;  // Alpha channel (ChColor has no transparency)
-                }
-                m_wave_mesh.colors->dirty();
-            }
-        }
-    }
-
     // For display in VSG GUI
     if (m_sysFSI) {
         m_sysMBS->SetChTime(m_sysFSI->GetSimTime());
@@ -406,6 +320,114 @@ void ChTdpfVisualizationVSG::OnRender() {
     } else {
         m_sysMBS->SetChTime(m_sysTDPF->GetSimTime());
         m_sysMBS->SetRTF(m_sysTDPF->GetRtf());
+    }
+
+    if (!m_waves_visible)
+        return;
+
+    double time = m_sysTDPF->GetSimTime();
+    if ((time - m_last_update) < 1 / m_update_freq)
+        return;
+
+    m_last_update = time;
+
+    // Update trimesh vertex heights and colors based on wave elevation
+    for (size_t iv = 0; iv < m_wave_mesh.trimesh->GetNumVertices(); iv++) {
+        auto& v = m_wave_mesh.trimesh->GetCoordsVertices()[iv];
+        
+        auto height = m_sysTDPF->GetWaveElevation(v.eigen());
+        v.z() = height;
+
+        if (m_wave_mesh.colormode != ColorMode::NONE) {
+            ChVector3d vel = VNULL;
+            if (m_wave_mesh.colormode != ColorMode::HEIGHT)
+                auto vel = ChVector3d(m_sysTDPF->GetWaveVelocity(v.eigen(), height));
+            
+            ChColor color;
+            switch (m_wave_mesh.colormode) {
+                case ColorMode::HEIGHT:
+                    color = m_wave_mesh.colormap->Get(height, m_wave_mesh.range[0], m_wave_mesh.range[1]);
+                    break;
+                case ColorMode::VELOCITY_MAG:
+                    color = m_wave_mesh.colormap->Get(vel.Length(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
+                    break;
+                case ColorMode::VELOCITY_X:
+                    color = m_wave_mesh.colormap->Get(vel.x(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
+                    break;
+                case ColorMode::VELOCITY_Y:
+                    color = m_wave_mesh.colormap->Get(vel.y(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
+                    break;
+                case ColorMode::VELOCITY_Z:
+                    color = m_wave_mesh.colormap->Get(vel.z(), m_wave_mesh.range[0], m_wave_mesh.range[1]);
+                    break;
+            }
+            m_wave_mesh.trimesh->GetCoordsColors()[iv] = color;
+        }
+    }
+
+    // Dynamic data transfer CPU->GPU for wave mesh
+    if (m_wave_mesh.dynamic_vertices) {
+        const auto& new_vertices =
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceVertices() : m_wave_mesh.trimesh->GetCoordsVertices();
+        assert(m_wave_mesh.vertices->size() == new_vertices.size());
+
+        const size_t count = new_vertices.size();
+        if (count > 0) {
+            // ChVector3d stores 3 doubles contiguously, cast to raw double* and float* with less overhead
+            const double* src_ptr = new_vertices[0].data();
+            float* dst_ptr = reinterpret_cast<float*>(m_wave_mesh.vertices->data());
+
+            // convert 3*count doubles to floats with tight loop
+            const size_t total_components = count * 3;
+            for (size_t i = 0; i < total_components; ++i) {
+                dst_ptr[i] = static_cast<float>(src_ptr[i]);
+            }
+
+            m_wave_mesh.vertices->dirty();
+        }
+    }
+
+    if (m_wave_mesh.dynamic_normals) {
+        const auto& new_normals =
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceNormals() : m_wave_mesh.trimesh->getAverageNormals();
+        assert(m_wave_mesh.normals->size() == new_normals.size());
+
+        const size_t count = new_normals.size();
+        if (count > 0) {
+            const double* src_ptr = new_normals[0].data();
+            float* dst_ptr = reinterpret_cast<float*>(m_wave_mesh.normals->data());
+
+            const size_t total_components = count * 3;
+            for (size_t i = 0; i < total_components; ++i) {
+                dst_ptr[i] = static_cast<float>(src_ptr[i]);
+            }
+
+            m_wave_mesh.normals->dirty();
+        }
+    }
+
+    if (m_wave_mesh.dynamic_colors) {
+        const auto& new_colors =
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
+        assert(m_wave_mesh.colors->size() == new_colors.size());
+
+        const size_t count = new_colors.size();
+        if (count > 0) {
+            // ChColor is 12 bytes (3 floats), but need to give to the gpu with vec4 (16 bytes) for alignment
+            // copy element-wise with manual unroll
+            const ChColor* src_ptr = new_colors.data();
+            float* dst_ptr = reinterpret_cast<float*>(m_wave_mesh.colors->data());
+
+            // Manual unroll (RGBA = 4 components)
+            for (size_t k = 0; k < count; ++k) {
+                const size_t idx = k * 4;
+                dst_ptr[idx + 0] = src_ptr[k].R;
+                dst_ptr[idx + 1] = src_ptr[k].G;
+                dst_ptr[idx + 2] = src_ptr[k].B;
+                dst_ptr[idx + 3] = 0.4f;  // Alpha channel (ChColor has no transparency)
+            }
+            m_wave_mesh.colors->dirty();
+        }
     }
 }
 
