@@ -1149,6 +1149,8 @@ ChColormap::Type ChParserSphYAML::ReadColorMapType(const YAML::Node& a) {
     auto val = ToUpper(a.as<std::string>());
     if (val == "BLACK_BODY")
         return ChColormap::Type::BLACK_BODY;
+    if (val == "BLUE")
+        return ChColormap::Type::BLUE;
     if (val == "BROWN")
         return ChColormap::Type::BROWN;
     if (val == "COPPER")

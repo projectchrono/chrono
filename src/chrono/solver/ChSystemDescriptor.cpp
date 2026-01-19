@@ -377,7 +377,7 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
                                                 const ChVectorDynamic<>& lvector,
                                                 std::vector<bool>* enabled) {
     // currently, the case with ChKRMBlock items is not supported (only diagonal M is supported, no K)
-    assert(m_KRMblocks.size() == 0);
+    assert(!HasKRBlocks());
     assert(lvector.size() == CountActiveConstraints());
 
     result.setZero(n_c);
