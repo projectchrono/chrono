@@ -101,11 +101,26 @@ set(FSITDPF_STB_FILES
 )
 source_group("stb" FILES ${FSITDPF_STB_FILES})
 
+# --------------- TDPF FSI VSG INTERFACE
+
+if(CH_ENABLE_MODULE_VSG)
+    set(FSITDPF_VSG_FILES
+        visualization/ChTdpfVisualizationVSG.h
+        visualization/ChTdpfVisualizationVSG.cpp
+    )
+else()
+    set(FSITDPF_VSG_FILES "")
+endif()
+source_group("" FILES ${FSITDPF_VSG_FILES})
+
 # ------------------------------------------------------------------------------
 # Set dependencies on other Chrono modules
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_FSI_TDPF "FSI")
+if(CH_ENABLE_MODULE_VSG)
+  list (APPEND DEPENDENCIES_FSI_TDPF "VSG")
+endif()
 
 set(DEPENDENCIES_FSI_TDPF ${DEPENDENCIES_FSI_TDPF} PARENT_SCOPE)
 
@@ -162,4 +177,41 @@ install(TARGETS Chrono_fsitdpf
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
+        
+#-------------------------------------------------------------------------------
+# Add the Chrono_fsitdpf_vsg library
+#-------------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_VSG)
+    message(STATUS "  Add Chrono_fsitdpf_vsg library")
+
+    add_library(Chrono_fsitdpf_vsg
+        ${FSITDPF_VSG_FILES}
+    )
+    add_library(Chrono::fsitdpf_vsg ALIAS Chrono_fsitdpf_vsg)
+
+    set_target_properties(Chrono_fsitdpf_vsg PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
+    if (CH_STATIC)
+      set_target_properties(Chrono_fsitdpf_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+ 
+    if(MSVC)
+      # disable warnings related to missing DLL interface
+      target_compile_options(Chrono_fsitdpf_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      set_target_properties(Chrono_fsitdpf_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
+    target_compile_definitions(Chrono_fsitdpf_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+    
+    target_link_libraries(Chrono_fsitdpf_vsg PRIVATE Chrono_core Chrono_fsitdpf)
+    target_link_libraries(Chrono_fsitdpf_vsg PUBLIC Chrono_vsg)
+
+    install(TARGETS Chrono_fsitdpf_vsg
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            INCLUDES DESTINATION include/chrono_fsi)
+
 endif()
