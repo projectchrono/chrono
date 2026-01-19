@@ -123,13 +123,13 @@ class CH_FSI_API ChFsiFluidSystem {
     NodeDirectionsMode m_node_directions_mode;  ///< mode used for FEA node directions
     bool m_is_initialized;                      ///< set to true once the Initialize function is called
 
+    double m_time;         ///< current simulation time
     double m_step;         ///< time step for fluid dynamics
     unsigned int m_frame;  ///< current simulation frame
 
   private:
     ChTimer m_timer_step;  ///< timer for integration step
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
-    double m_time;         ///< current simulation time
 
     friend class ChFsiSystem;
     friend class ChFsiInterface;
