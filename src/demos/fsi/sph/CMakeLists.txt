@@ -1,6 +1,4 @@
-# ------------------------------------------------------------------------------
-# List of demos
-# ------------------------------------------------------------------------------
+message(STATUS "Add demo programs for FSI-SPH module")
 
 set(DEMOS ${DEMOS}
    demo_FSI-SPH_DamBreak
@@ -41,19 +39,17 @@ endif()
 #--------------------------------------------------------------
 
 list(APPEND LIBS Chrono_core)
-list(APPEND LIBS "Chrono_fsisph")
+list(APPEND LIBS Chrono_fsisph)
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_fsisph_vsg")
+    list(APPEND LIBS Chrono_fsisph_vsg)
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-    list(APPEND LIBS "Chrono_pardisomkl")
+    list(APPEND LIBS Chrono_pardisomkl)
 endif()
 
 #--------------------------------------------------------------
-
-message(STATUS "Add demo programs for FSI module")
 	
 foreach(PROGRAM ${DEMOS})
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
