@@ -30,7 +30,7 @@ class ChApi ChColormap {
   public:
     /// Colormap type.
     /// Data obtained from https://www.kennethmoreland.com/color-advice/
-    enum class Type { BLACK_BODY, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE, VIRIDIS };
+    enum class Type { BLACK_BODY, BLUE, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE, VIRIDIS };
 
     /// Names of colormap definition files.
     struct Files {
@@ -39,7 +39,7 @@ class ChApi ChColormap {
     };
 
     /// Construct a colormap of specified type.
-    ChColormap(Type type = Type::JET);
+    ChColormap(Type type);
 
     /// Load data for the specified colormap, replacing current data.
     void Load(Type type);

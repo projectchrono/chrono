@@ -31,6 +31,8 @@ CH_FACTORY_REGISTER(ChColormap)
 std::unordered_map<ChColormap::Type, ChColormap::Files> ChColormap::m_colormap_files{
     {ChColormap::Type::BLACK_BODY,                                                                   //
      {GetChronoDataFile("colormaps/black-body-table-float-0512.csv"), "colormaps/black-body.png"}},  //
+    {ChColormap::Type::BLUE,                                                                         //
+     {GetChronoDataFile("colormaps/blue-table-float-0512.csv"), "colormaps/blue.png"}},              //
     {ChColormap::Type::BROWN,                                                                        //
      {GetChronoDataFile("colormaps/brown-table-float-0512.csv"), "colormaps/brown.png"}},            //
     {ChColormap::Type::COPPER,                                                                       //
