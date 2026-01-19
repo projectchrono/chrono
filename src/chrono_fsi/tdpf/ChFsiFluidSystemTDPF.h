@@ -30,6 +30,10 @@
 #include "hydro/force_components/hydrostatics_component.h"
 #include "hydro/force_components/radiation_component.h"
 
+#include "hydroc/io/h5_reader.h"
+#include "hydroc/waves/regular_wave.h"
+#include "hydroc/waves/irregular_wave.h"
+
 namespace chrono {
 namespace fsi {
 namespace tdpf {
@@ -43,11 +47,29 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     ChFsiFluidSystemTDPF();
     ~ChFsiFluidSystemTDPF();
 
+    /// Set input file name with hydro data (HDF5 format).
+    void SetHydroFilename(const std::string& filename);
+
     /// Set gravity for the FSI syatem.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Return gravitational acceleration.
     ChVector3d GetGravitationalAcceleration() const;
+    
+    void SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode);
+    void SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts);
+
+    /// Add no wave conditions.
+    void AddWaves(const NoWaveParams& params);
+
+    /// Add regular wave conditions.
+    void AddWaves(const RegularWaveParams& params);
+
+    /// Add irregular wave conditions.
+    void AddWaves(const IrregularWaveParams& params);
+
+    /// Get current wave elevation at specified position (in X-Y plane).
+    double GetWaveElevation(const ChVector3d& pos);
 
   private:
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
@@ -101,22 +123,44 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     ChVector3d m_g;
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
+    unsigned int m_num_1D_meshes;        ///< number of 1-D meshes
     unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)
-    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
+    unsigned int m_num_2D_meshes;        ///< number of 2-D meshes
+    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+
+    std::string m_hydro_filename;  ///< input hydro file name (HDF5 format)
+    HydroData m_hydro_data;        ///< data read from HDF5 file
+
+    // Additional properties related to equilibrium and hydrodynamics
+    std::vector<double> m_equilibrium;
+    std::vector<double> m_cb_minus_cg;
+    Eigen::VectorXd m_rirf_time_vector;
+    Eigen::VectorXd m_rirf_width_vector;
+
+    hydrochrono::hydro::RadiationConvolutionMode m_convolution_mode; ///< default: baseline
+    hydrochrono::hydro::TaperedDirectOptions m_tapered_opts;
+    std::string m_diagnostics_output_dir;
+
+    std::shared_ptr<WaveBase> m_waves;  ///< default: no wave
+
+    // -----------
 
     hydrochrono::hydro::SystemState m_hc_state;
     hydrochrono::hydro::BodyForces m_hc_forces;
     std::unique_ptr<hydrochrono::hydro::HydroForces> m_hc_force_system;
 
-    // -----------
+    // ------------
 
     std::unique_ptr<hydrochrono::hydro::ExcitationComponent> CreateExcitationComponent() const;
     std::unique_ptr<hydrochrono::hydro::HydrostaticsComponent> CreateHydrostaticsComponent() const;
     std::unique_ptr<hydrochrono::hydro::RadiationComponent> CreateRadiationComponent() const;
 
+    friend class ChFsiSystemTDPF;
     friend class ChFsiInterfaceTDPF;
+    friend class FSITDPFStatsVSG;
+    friend class ChTdpfVisualizationVSG;
 };
 
 /// @} fsitdpf

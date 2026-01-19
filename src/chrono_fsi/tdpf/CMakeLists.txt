@@ -52,28 +52,43 @@ source_group("" FILES ${FSITDPF_BASE_FILES})
 
 # --------------- HydroChrono FILES
 
-set(FSITDPF_HC_FILES
+set(FSITDPF_HC_HEADERS
     ${CH_HYDROCHRONO_DIR}/include/hydroc/core/hydro_types.h
     ${CH_HYDROCHRONO_DIR}/include/hydroc/core/system_state.h
     ${CH_HYDROCHRONO_DIR}/include/hydroc/core/hydro_forces.h
     ${CH_HYDROCHRONO_DIR}/include/hydroc/core/force_component.h
     ${CH_HYDROCHRONO_DIR}/include/hydroc/io/h5_reader.h
     ${CH_HYDROCHRONO_DIR}/include/hydroc/logging.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/waves/wave_base.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/waves/regular_wave.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/waves/irregular_wave.h    
     #
     ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/radiation_component.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_convolution.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_processing.h
     ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/excitation_component.h
     ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/hydrostatics_component.h
-    #
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/wave_utilities.h
+)
+
+set(FSITDPF_HC_SOURCES
     ${CH_HYDROCHRONO_DIR}/src/hydro/core/hydro_forces.cpp
     ${CH_HYDROCHRONO_DIR}/src/hydro/io/h5_reader.cpp
     ${CH_HYDROCHRONO_DIR}/src/hydro/logging/logging.cpp
     ${CH_HYDROCHRONO_DIR}/src/hydro/logging/logger_backend.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/wave_base.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/regular_wave.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/irregular_wave.cpp
     #
-    #${CH_HYDROCHRONO_DIR}/src/hydro/force_components/radiation_component.cpp
-    #${CH_HYDROCHRONO_DIR}/src/hydro/force_components/excitation_component.cpp
-    #${CH_HYDROCHRONO_DIR}/src/hydro/force_components/hydrostatics_component.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/radiation_component.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_convolution.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_processing.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/excitation_component.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/hydrostatics_component.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/wave_utilities.cpp
 )
-source_group("tdpf" FILES ${FSITDPF_HC_FILES})
+
+source_group("tdpf" FILES ${FSITDPF_HC_HEADERS} ${FSITDPF_HC_SOURCES})
 
 # --------------- 3rd party STB FILES
 
@@ -115,7 +130,8 @@ message(STATUS "  Add Chrono_fsitdpf library")
 add_library(Chrono_fsitdpf
     ${FSITDPF_CONFIG_FILE}
     ${FSITDPF_BASE_FILES}
-    ${FSITDPF_HC_FILES}
+    ${FSITDPF_HC_HEADERS}
+    ${FSITDPF_HC_SOURCES}
 )
 add_library(Chrono::fsitdpf ALIAS Chrono_fsitdpf)
 
@@ -125,12 +141,13 @@ if (CH_STATIC)
   set_target_properties(Chrono_fsitdpf PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
-target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/include")
-target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/src")
+target_include_directories(Chrono_fsitdpf PUBLIC "${CH_HYDROCHRONO_DIR}/include")
+target_include_directories(Chrono_fsitdpf PUBLIC "${CH_HYDROCHRONO_DIR}/src")
 
 if(MSVC)
-  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)              # missing DLL interface
-  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)              # unreferenced formal parameter
+  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>) # missing DLL interface
+  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>) # unreferenced formal parameter
+
   set_target_properties(Chrono_fsitdpf PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
@@ -145,3 +162,4 @@ install(TARGETS Chrono_fsitdpf
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
+endif()

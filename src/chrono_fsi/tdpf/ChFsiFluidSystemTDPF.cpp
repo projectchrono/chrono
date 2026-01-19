@@ -19,6 +19,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include <H5Cpp.h>
+
 #include "chrono/core/ChTypes.h"
 
 #include "chrono/utils/ChUtils.h"
@@ -28,6 +30,9 @@
 
 #include "chrono_fsi/tdpf/ChFsiFluidSystemTDPF.h"
 
+#include "hydroc/waves/regular_wave.h"
+#include "hydroc/waves/irregular_wave.h"
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -36,17 +41,32 @@ namespace chrono {
 namespace fsi {
 namespace tdpf {
 
+//------------------------------------------------------------------------------
+
+constexpr int dof_per_body = 6;
+constexpr int lin_dof_per_body = 3;
+
+//------------------------------------------------------------------------------
+
 ChFsiFluidSystemTDPF::ChFsiFluidSystemTDPF()
     : ChFsiFluidSystem(),
       m_num_rigid_bodies(0),
+      m_num_1D_meshes(0),
+      m_num_2D_meshes(0),
       m_num_flex1D_nodes(0),
       m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
-      m_num_flex2D_elements(0) {}
+      m_num_flex2D_elements(0),
+      m_convolution_mode(hydrochrono::hydro::RadiationConvolutionMode::Baseline),
+      m_waves(std::make_shared<NoWave>()) {}
 
 ChFsiFluidSystemTDPF::~ChFsiFluidSystemTDPF() {}
 
 //------------------------------------------------------------------------------
+
+void ChFsiFluidSystemTDPF::SetHydroFilename(const std::string& filename) {
+    m_hydro_filename = filename;
+}
 
 void ChFsiFluidSystemTDPF::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_g = gravity;
@@ -65,11 +85,48 @@ void ChFsiFluidSystemTDPF::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool 
 void ChFsiFluidSystemTDPF::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
     m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex1D_elements += fsi_mesh->GetNumElements();
+    m_num_1D_meshes++;
 }
 
 void ChFsiFluidSystemTDPF::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
     m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
+    m_num_2D_meshes++;
+}
+
+//------------------------------------------------------------------------------
+
+void ChFsiFluidSystemTDPF::AddWaves(const NoWaveParams& params) {
+    auto waves = chrono_types::make_shared<NoWave>(params);
+    m_waves = waves;
+}
+
+void ChFsiFluidSystemTDPF::AddWaves(const RegularWaveParams& params) {
+    m_waves = chrono_types::make_shared<RegularWave>(params);
+}
+
+void ChFsiFluidSystemTDPF::AddWaves(const IrregularWaveParams& params) {
+    m_waves = chrono_types::make_shared<IrregularWaves>(params);
+}
+
+double ChFsiFluidSystemTDPF::GetWaveElevation(const ChVector3d& pos) {
+    if (!m_waves)
+        return 0;
+
+    return m_waves->GetElevation(pos.eigen(), m_time);
+}
+
+void ChFsiFluidSystemTDPF::SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode) {
+    m_convolution_mode = mode;
+
+    //// RADU - when is it OK to call this so that InvalidateRadiationComponent can be called?
+    ////InvalidateRadiationComponent();  // Invalidate component to recreate with new settings
+}
+
+void ChFsiFluidSystemTDPF::SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts) {
+    m_tapered_opts = opts;
+    //// RADU - when is it OK to call this so that InvalidateRadiationComponent can be called?
+    ////InvalidateRadiationComponent();  // Invalidate component to recreate with new settings
 }
 
 //------------------------------------------------------------------------------
@@ -77,14 +134,66 @@ void ChFsiFluidSystemTDPF::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, b
 void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_states,
                                       const std::vector<FsiMeshState>& mesh1D_states,
                                       const std::vector<FsiMeshState>& mesh2D_states) {
-    //// RADU - the definitions of various components below are private in HydroChrono.
+    ChAssertAlways(!m_hydro_filename.empty());
+
+    // Read hydro data from input file
+    auto h5_file_info = H5FileInfo(m_hydro_filename, m_num_rigid_bodies);
+    try {
+        m_hydro_data = H5FileInfo(m_hydro_filename, m_num_rigid_bodies).ReadH5Data();
+    } catch (const H5::Exception& e) {
+        std::ostringstream oss;
+        oss << "Unable to open/read HDF5 hydro data file: " << m_hydro_filename << "\n";
+        oss << "HDF5 error: " << e.getDetailMsg() << "\n";
+        throw std::runtime_error(oss.str());
+    }
+
+    //// RADU - the definitions of various quantities below are private in HydroChrono.
     //// - we include private HydroChrono headers and duplicate some code, or
     //// - we provide an abstraction of a TDPF solver in HydroChrono (separated from HydroSystem)
+
+    // Set up time vector
+    m_rirf_time_vector = m_hydro_data.GetRIRFTimeVector();
+    // width array
+    m_rirf_width_vector.resize(m_rirf_time_vector.size());
+    for (Eigen::Index ii = 0; ii < m_rirf_width_vector.size(); ii++) {
+        m_rirf_width_vector[ii] = 0.0;
+        if (ii < m_rirf_time_vector.size() - 1) {
+            m_rirf_width_vector[ii] += 0.5 * abs(m_rirf_time_vector[ii + 1] - m_rirf_time_vector[ii]);
+        }
+        if (ii > 0) {
+            m_rirf_width_vector[ii] += 0.5 * abs(m_rirf_time_vector[ii] - m_rirf_time_vector[ii - 1]);
+        }
+    }
+
+    // Initialize force vectors
+    m_equilibrium.assign(m_num_rigid_bodies * dof_per_body, 0.0);
+    m_cb_minus_cg.assign(m_num_rigid_bodies * lin_dof_per_body, 0.0);
+
+    // Compute equilibrium and cb_minus_cg_ (multibody loop)
+    for (unsigned int b = 0; b < m_num_rigid_bodies; b++) {
+        for (int i = 0; i < lin_dof_per_body; i++) {
+            unsigned int eq_idx = i + dof_per_body * b;
+            unsigned int c_idx = i + lin_dof_per_body * b;
+            m_equilibrium[eq_idx] = m_hydro_data.GetCGVector(b)[i];
+            m_cb_minus_cg[c_idx] = m_hydro_data.GetCBVector(b)[i] - m_hydro_data.GetCGVector(b)[i];
+        }
+    }
+
+    // Initialize waves (NoWave, RegularWave, or IrregularWaves)
+    switch (m_waves->GetWaveMode()) { case WaveMode::regular:
+            std::static_pointer_cast<RegularWave>(m_waves)->AddH5Data(m_hydro_data.GetRegularWaveInfos(),
+                                                                      m_hydro_data.GetSimulationInfo());
+            break;
+        case WaveMode::irregular:
+            std::static_pointer_cast<IrregularWaves>(m_waves)->AddH5Data(m_hydro_data.GetIrregularWaveInfos(),
+                                                                         m_hydro_data.GetSimulationInfo());
+            break;
+    }
+    m_waves->Initialize();
 
     // Build force components for HydroForces
     std::vector<std::unique_ptr<hydrochrono::hydro::IHydroForceComponent>> components;
 
-    /*
     // Hydrostatics component (uses shared factory for consistent construction)
     components.push_back(CreateHydrostaticsComponent());
 
@@ -93,7 +202,6 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
 
     // Excitation component (uses shared factory for consistent construction)
     components.push_back(CreateExcitationComponent());
-    */
 
     // Construct HydroForces (takes ownership of components)
     m_hc_force_system = std::make_unique<hydrochrono::hydro::HydroForces>(m_num_rigid_bodies, std::move(components));
@@ -104,50 +212,19 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
 }
 
 std::unique_ptr<hydrochrono::hydro::ExcitationComponent> ChFsiFluidSystemTDPF::CreateExcitationComponent() const {
-    /*
-    // Single source of truth for ExcitationComponent construction.
-    // Both EnsureExcitationComponent() and EnsureHydroForcesAndCoupler() use this.
-    return std::make_unique<hydrochrono::hydro::ExcitationComponent>(user_waves_, num_bodies_);
-    */
-    return nullptr;
+    return std::make_unique<hydrochrono::hydro::ExcitationComponent>(m_waves, m_num_rigid_bodies);
 }
 
 std::unique_ptr<hydrochrono::hydro::HydrostaticsComponent> ChFsiFluidSystemTDPF::CreateHydrostaticsComponent() const {
-    /*
-    // Single source of truth for HydrostaticsComponent construction.
-    // Used by HydroSystem constructor and EnsureHydroForcesAndCoupler().
-    const auto gravitational_acceleration_ch = bodies_[0]->GetSystem()->GetGravitationalAcceleration();
-    const Eigen::Vector3d gravitational_acceleration(
-        gravitational_acceleration_ch.x(), gravitational_acceleration_ch.y(), gravitational_acceleration_ch.z());
-    return std::make_unique<hydrochrono::hydro::HydrostaticsComponent>(file_info_, num_bodies_, equilibrium_,
-                                                                       cb_minus_cg_, gravitational_acceleration);
-    */
-    return nullptr;
+    return std::make_unique<hydrochrono::hydro::HydrostaticsComponent>(m_hydro_data, m_num_rigid_bodies, m_equilibrium,
+                                                                       m_cb_minus_cg, m_g.eigen());
 }
 
 std::unique_ptr<hydrochrono::hydro::RadiationComponent> ChFsiFluidSystemTDPF::CreateRadiationComponent() const {
-    /*
-    // Single source of truth for RadiationComponent construction.
-    // Used by EnsureRadiationComponent() and EnsureHydroForcesAndCoupler().
-    // Each RadiationComponent instance owns its own velocity history.
-    //
-    // Configuration inputs:
-    //   - file_info_: BEM data including RIRF kernels
-    //   - num_bodies_: number of bodies in system
-    //   - rirf_time_vector, rirf_width_vector: time discretization for RIRF
-    //   - convolution_mode_: Baseline or TaperedDirect
-    //   - tapered_opts_: preprocessing options for TaperedDirect mode
-    //   - diagnostics_output_dir_: where to write debug CSVs
-
-    const int rirf_steps = file_info_.GetRIRFDims(2);
-
-    // convolution_mode_ and tapered_opts_ are now the canonical types from
-    // hydrochrono::hydro namespace - no conversion needed (single source of truth)
+    const int rirf_steps = m_hydro_data.GetRIRFDims(2);
     return std::make_unique<hydrochrono::hydro::RadiationComponent>(
-        file_info_, num_bodies_, rirf_steps, rirf_time_vector, rirf_width_vector, convolution_mode_, tapered_opts_,
-        diagnostics_output_dir_);
-    */
-    return nullptr;
+        m_hydro_data, m_num_rigid_bodies, rirf_steps, m_rirf_time_vector, m_rirf_width_vector, m_convolution_mode,
+        m_tapered_opts, m_diagnostics_output_dir);
 }
 
 //------------------------------------------------------------------------------

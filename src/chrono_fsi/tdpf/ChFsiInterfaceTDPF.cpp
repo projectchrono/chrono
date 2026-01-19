@@ -20,6 +20,10 @@
 
 #include "chrono_fsi/tdpf/ChFsiInterfaceTDPF.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 namespace chrono {
 namespace fsi {
 namespace tdpf {
@@ -30,25 +34,42 @@ ChFsiInterfaceTDPF::ChFsiInterfaceTDPF(ChSystem* sysMBS, ChFsiFluidSystemTDPF* s
 ChFsiInterfaceTDPF::~ChFsiInterfaceTDPF() {}
 
 void ChFsiInterfaceTDPF::ExchangeSolidStates() {
+    if (m_verbose)
+        cout << "ChFsiInterfaceTDPF::ExchangeSolidStates" << endl;
+
     size_t num_bodies = m_fsi_bodies.size();
     for (size_t i = 0; i < num_bodies; i++) {
-        const auto& body = *m_fsi_bodies[i]->body.get();
-        m_sysTDPF->m_hc_state.bodies[i].position = body.GetPos().eigen();
-        m_sysTDPF->m_hc_state.bodies[i].orientation_rpy = body.GetRot().GetCardanAnglesXYZ().eigen();
-        m_sysTDPF->m_hc_state.bodies[i].linear_velocity = body.GetPosDt().eigen();
-        m_sysTDPF->m_hc_state.bodies[i].angular_velocity = body.GetAngVelParent().eigen();
+        const auto& body = *m_fsi_bodies[i]->body;
+        const auto& p = body.GetPos();
+        const auto& r = body.GetRot().GetCardanAnglesXYZ();
+        const auto& pd = body.GetPosDt();
+        const auto& rd = body.GetAngVelParent();
+        m_sysTDPF->m_hc_state.bodies[i].position = p.eigen();
+        m_sysTDPF->m_hc_state.bodies[i].orientation_rpy = r.eigen();
+        m_sysTDPF->m_hc_state.bodies[i].linear_velocity = pd.eigen();
+        m_sysTDPF->m_hc_state.bodies[i].angular_velocity = rd.eigen();
+        if (m_verbose) {
+            cout << i << " " << body.GetName() << endl;
+            cout << "  pos:   " << p << endl;
+            cout << "  rot:   " << r << endl;
+            cout << "  l_vel: " << pd << endl;
+            cout << "  a_vel: " << rd << endl;
+        }
     }
 }
 
 void ChFsiInterfaceTDPF::ExchangeSolidForces() {
+    if (m_verbose)
+        cout << "ChFsiInterfaceTDPF::ExchangeSolidForces" << endl;
+
     size_t num_bodies = m_fsi_bodies.size();
     for (size_t i = 0; i < num_bodies; i++) {
         // Get body wrench from TDPF system
-        auto force = m_sysTDPF->m_hc_forces[i].segment(0, 3);
-        auto torque = m_sysTDPF->m_hc_forces[i].segment(3, 3);
+        auto force = ChVector3d(m_sysTDPF->m_hc_forces[i].segment(0, 3));
+        auto torque = ChVector3d(m_sysTDPF->m_hc_forces[i].segment(3, 3));
 
         // Apply to Chrono body
-        auto& body = *m_fsi_bodies[i]->body.get();
+        auto& body = *m_fsi_bodies[i]->body;
         body.EmptyAccumulator(m_fsi_bodies[i]->fsi_accumulator);
         body.AccumulateForce(m_fsi_bodies[i]->fsi_accumulator, force, body.GetPos(), false);
         body.AccumulateTorque(m_fsi_bodies[i]->fsi_accumulator, torque, false);
@@ -56,6 +77,12 @@ void ChFsiInterfaceTDPF::ExchangeSolidForces() {
         // Cache forces on FSI bodies
         m_fsi_bodies[i]->fsi_force = force;
         m_fsi_bodies[i]->fsi_torque = torque;
+
+        if (m_verbose) {
+            cout << i << " " << body.GetName() << endl;
+            cout << "  F: " << force << endl;
+            cout << "  T: " << torque << endl;
+        }
     }
 }
 

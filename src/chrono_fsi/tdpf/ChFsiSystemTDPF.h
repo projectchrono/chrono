@@ -46,7 +46,7 @@ class CH_FSI_API ChFsiSystemTDPF : public ChFsiSystem {
     */
 
     /// Set input file name with hydro data (HDF5 format).
-    void SetHydroFilename(const std::string& filename) { m_hydro_filename = filename; }
+    void SetHydroFilename(const std::string& filename);
 
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.
@@ -54,8 +54,7 @@ class CH_FSI_API ChFsiSystemTDPF : public ChFsiSystem {
 
   private:
     ChFsiFluidSystemTDPF* m_sysTDPF;  ///< cached TDPF fluid solver
-    std::string m_hydro_filename;     ///< input hydro file name (HDF5 format)
-    bool m_generic_fsi_interface;
+    bool m_generic_fsi_interface;     ///< use default FSI interface?
 };
 
 /// @} fsitdpf

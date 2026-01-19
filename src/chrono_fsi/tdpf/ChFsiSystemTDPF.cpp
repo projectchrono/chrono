@@ -19,16 +19,12 @@
 #include <iostream>
 #include <algorithm>
 
-#include <H5Cpp.h>
-
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono/physics/ChLoadHydrodynamics.h"
 
 #include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
 #include "chrono_fsi/tdpf/ChFsiInterfaceTDPF.h"
-
-#include "hydroc/io/h5_reader.h"
 
 namespace chrono {
 namespace fsi {
@@ -52,39 +48,29 @@ ChFsiFluidSystemTDPF& ChFsiSystemTDPF::GetFluidSystemTDPF() const {
     return *m_sysTDPF;
 }
 
+void ChFsiSystemTDPF::SetHydroFilename(const std::string& filename) {
+    m_sysTDPF->SetHydroFilename(filename);
+}
+
 void ChFsiSystemTDPF::Initialize() {
+    // Initialize the TDPF solver and the FSI interface
     ChFsiSystem::Initialize();
 
-    auto num_bodies = m_fsi_interface->GetNumBodies();
-    auto& fsi_bodies = m_fsi_interface->GetBodies();
-
     // Handle added mass info (applied via a Chrono ChLoadHydrodynamics)
-    ChBodyAddedMassBlocks body_blocks;
+    auto num_bodies = m_fsi_interface->GetNumBodies();
+    if (num_bodies > 0) {
+        auto& fsi_bodies = m_fsi_interface->GetBodies();
+        const auto& body_info = m_sysTDPF->m_hydro_data.GetBodyInfos();
 
-    // Read hydro data from input file
-    if (!m_hydro_filename.empty()) {
-        auto h5_file_info = H5FileInfo(m_hydro_filename, num_bodies);
-        try {
-            auto hydro_data = H5FileInfo(m_hydro_filename, num_bodies).ReadH5Data();
-            const auto& body_info = hydro_data.GetBodyInfos();
-            for (size_t i = 0; i < num_bodies; i++) {
-                body_blocks.insert(std::pair(fsi_bodies[i]->body, body_info[i].inf_added_mass));
-            }
-        } catch (const H5::Exception& e) {
-            std::ostringstream oss;
-            oss << "Unable to open/read HDF5 hydro data file: " << m_hydro_filename << "\n";
-            oss << "HDF5 error: " << e.getDetailMsg() << "\n";
-            throw std::runtime_error(oss.str());
+        ChBodyAddedMassBlocks body_blocks;
+        for (size_t i = 0; i < num_bodies; i++) {
+            body_blocks.insert(std::pair(fsi_bodies[i]->body, body_info[i].inf_added_mass));
         }
-    } else {
-        throw std::runtime_error("No HD5 file provided");
-    }
 
-    // Create hydrodynamics load for added mass
-    ChAssertAlways(!body_blocks.empty());
-    auto hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
-    hydro_load->SetVerbose(false);
-    fsi_bodies[0]->body->GetSystem()->Add(hydro_load);
+        auto hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
+        hydro_load->SetVerbose(false);
+        fsi_bodies[0]->body->GetSystem()->Add(hydro_load);
+    }
 }
 
 }  // end namespace tdpf
