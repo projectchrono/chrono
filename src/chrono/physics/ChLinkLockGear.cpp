@@ -135,10 +135,10 @@ void ChLinkLockGear::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>
 
     if (this->is_compliant) {
         ChVectorDynamic<> tempL(1);
-        // compute complinat force between elastic teeth:
+        // compute compliant force between elastic teeth:
         tempL(0) = - (this->C(0) * this->teeth_stiffness + this->C_dt(0) * this->teeth_damping);
-        // map to R in system level coords, leveraging the already working IntLoadResidual_CqL;
-        this->IntLoadResidual_CqL(0, R, tempL, c);
+        // map to R in system level coords
+        this->GetMask().GetConstraint(0).AddJacobianTransposedTimesScalarInto(R, tempL(0) * c);
     }
 }
 
@@ -153,6 +153,17 @@ void ChLinkLockGear::IntLoadConstraint_C(const unsigned int off,
     else {
         // Inherit parent class
         ChLinkLock::IntLoadConstraint_C(off, Qc, c, do_clamp, recovery_clamp);
+    }
+}
+
+void ChLinkLockGear::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                     ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                     const ChVectorDynamic<>& L,  // the L vector
+                                     const double c)              // a scaling factor
+{
+    if (!this->is_compliant) {
+        //mask.GetConstraint(0).AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
+        ChLinkLock::IntLoadResidual_CqL(off_L, R, L, c);
     }
 }
 
