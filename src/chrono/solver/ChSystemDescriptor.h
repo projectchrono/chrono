@@ -326,7 +326,7 @@ class ChApi ChSystemDescriptor {
                                                               unsigned int start_col = 0,
                                                               bool only_bilateral = false) const;
 
-    /// Paste the compliance matrix of the system into a sparse matrix at a given position.
+    /// Paste E, the negative compliance matrix of the system into a sparse matrix at a given position.
     /// Before calling this function the user needs to:
     /// - resize Z (and potentially call SetZeroValues if the case)
     /// - call LoadKRMMatrices with the desired factors
@@ -346,7 +346,7 @@ class ChApi ChSystemDescriptor {
     /// The following files are written in the directory specified by [path]:
     /// - [prefix]_H.dat   masses and/or stiffness (Matlab sparse format)
     /// - [prefix]_Cq.dat  Jacobians (Matlab sparse format)
-    /// - [prefix]_E.dat   constraint compliance (Matlab sparse format)
+    /// - [prefix]_E.dat   constraint negative compliance (Matlab sparse format)
     /// - [prefix]_f.dat   applied loads
     /// - [prefix]_b.dat   constraint rhs
     /// By default, uses 1-based indices (as in Matlab).

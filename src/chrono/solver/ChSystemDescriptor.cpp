@@ -153,7 +153,7 @@ void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
     int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
-            Z.SetElement(start_row + s_c, start_col + s_c, constr->GetComplianceTerm());
+            Z.SetElement(start_row + s_c, start_col + s_c, - constr->GetComplianceTerm());
             s_c++;
         }
     }
@@ -252,10 +252,10 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& Diagonal
         }
     }
 
-    // Get the 'E' diagonal terms (E_i = cfm_i )
+    // Get the 'E' diagonal terms (E_i = - cfm_i )
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Diagonal_vect(constr->GetOffset() + n_q) = constr->GetComplianceTerm();
+            Diagonal_vect(constr->GetOffset() + n_q) = - constr->GetComplianceTerm();
         }
     }
 
@@ -395,7 +395,7 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
     // 2 - performs    qb=[M^(-1)][Cq']*l  by
     //     iterating over all constraints (when implemented in parallel this
     //     could be non-trivial because race conditions might occur -> reduction buffer etc.)
-    //     Also, begin to add the cfm term ( -[E]*l ) to the result.
+    //     Also, begin to add the compliance term ( -[E]*l ) to the result.
 
     // ATTENTION:  this loop cannot be parallelized! Concurrent write to some q may happen
     for (const auto& constr : m_constraints) {
@@ -411,7 +411,7 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
                 //  NOTE! concurrent update to same q data, risk of collision if parallel.
                 constr->IncrementState(li);  // computationally intensive
 
-                // Add constraint force mixing term  result = cfm * l_i = [E]*l_i
+                // Add -[E] * l_i. Note compliance term  cfm = -E, so   -[E] * l_i = cfm * l_i
                 result(s_c) = constr->GetComplianceTerm() * li;
             }
         }
@@ -464,7 +464,7 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
         if (constr->IsActive()) {
             int s_c = constr->GetOffset() + n_q;
             constr->AddJacobianTimesVectorInto(result(s_c), x);   // result.l_i += [C_q_i]*x.q
-            result(s_c) += constr->GetComplianceTerm() * x(s_c);  // result.l_i += [E]*x.l_i
+            result(s_c) += -constr->GetComplianceTerm() * x(s_c);  // result.l_i += [E]*x.l_i = -cfm * x.l_i
         }
     }
 }
@@ -514,7 +514,7 @@ void ChSystemDescriptor::SystemProductLower(ChVectorDynamic<>& result,
         if (constr->IsActive()) {
             int s_c = constr->GetOffset();
             constr->AddJacobianTimesVectorInto(result(s_c), v);   // result.l_i += [C_q_i]*x.q
-            result(s_c) += constr->GetComplianceTerm() * lambda_sign * l(s_c);  // result.l_i += [E]*x.l_i
+            result(s_c) += -constr->GetComplianceTerm() * lambda_sign * l(s_c);  // result.l_i += [E]*x.l_i = -cfm * x.l_i
         }
     }
 }
