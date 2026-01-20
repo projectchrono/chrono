@@ -52,15 +52,20 @@ int main(int argc, char* argv[]) {
 
     double t_end = 100;
     double time_step = 1.5e-2;
+    bool enforce_realtime = true;
 
-    double spring_coefficient = 0;
-    double damping_coefficient = 0;
+    bool lock = false;
+    bool verbose = false;
+
+    bool render_waves = true;
+    double render_fps = 30;
+    bool snapshots = false;
 
     double wave_height = 4;
     double wave_period = 8;
 
-    bool lock = false;
-    bool verbose = false;
+    double spring_coefficient = 0;
+    double damping_coefficient = 0;
 
     // ----- Multibody system
     ChSystemNSC sysMBS;
@@ -142,10 +147,11 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChVisualSystem> vis;
 #ifdef CHRONO_VSG
     auto visFSI = chrono_types::make_shared<ChTdpfVisualizationVSG>(&sysFSI);
-    visFSI->SetWaveMeshVisibility(true);
+    visFSI->SetWaveMeshVisibility(render_waves);
     visFSI->SetWaveMeshParams({0, 0}, {100, 100}, 64);
     visFSI->SetWaveMeshColormap(ChColormap::Type::BLUE, 0.95f);
     visFSI->SetWaveMeshColorMode(ChTdpfVisualizationVSG::ColorMode::HEIGHT, {-wave_height, +wave_height});
+    visFSI->SetWaveMeshUpdateFrequency(render_fps);
 
     auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
     visVSG->AttachPlugin(visFSI);
@@ -163,9 +169,16 @@ int main(int argc, char* argv[]) {
 
     // ----- Create output directory
     std::string out_dir = GetChronoOutputPath() + "FSI-TDPF_sphere";
+    std::string img_dir = out_dir + "/irreg_waves_img";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
+    }
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+            std::cerr << "Error creating directory " << img_dir << std::endl;
+            return 1;
+        }
     }
     std::string out_file = out_dir + "/irreg_waves.txt";
     ChWriterCSV csv(" ");
@@ -173,17 +186,30 @@ int main(int argc, char* argv[]) {
     // ----- Simulation loop
     ChRealtimeStepTimer realtime_timer;
     double time = 0;
+    int render_frame = 0;
+
     while (time <= t_end) {
-        if (!vis->Run())
-            break;
-        vis->Render();
+#ifdef CHRONO_VSG
+        if (time >= render_frame / render_fps) {
+            if (!vis->Run())
+                break;
+            vis->Render();
+            if (snapshots) {
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(5) << std::setfill('0') << render_frame << ".png";
+                vis->WriteImageToFile(filename.str());
+            }
+            render_frame++;
+        }
+#endif
 
         csv << time << sphere->GetPos().z() << endl;
 
         sysFSI.DoStepDynamics(time_step);
 
         time += time_step;
-        realtime_timer.Spin(time_step);
+        if (enforce_realtime)
+            realtime_timer.Spin(time_step);
     }
 
     csv.WriteToFile(out_file, "time(s)   heave(m)");
