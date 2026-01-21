@@ -35,4 +35,9 @@
 // Include main Chrono configuration header
 #include "chrono/ChConfig.h"
 
+// Include Chrono::Parsers configuration header
+#ifdef CHRONO_PARSERS
+    #include "chrono_parsers/ChConfigParsers.h"
+#endif
+
 #endif

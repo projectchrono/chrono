@@ -32,7 +32,7 @@ namespace ros {
 ChROSRobotModelHandler::ChROSRobotModelHandler(const std::string& robot_model, const std::string& topic_name)
     : ChROSHandler(std::numeric_limits<double>::max()), m_robot_model(robot_model), m_topic_name(topic_name) {}
 
-#ifdef CHRONO_PARSERS_URDF
+#ifdef CHRONO_HAS_URDF
 class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::CustomProcessor {
   public:
     CustomProcessorFilenameResolver(const std::string& filename)

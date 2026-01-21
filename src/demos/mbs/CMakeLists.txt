@@ -27,6 +27,7 @@ set(DEMOS
   demo_MBS_hydraulic_crane
   demo_MBS_hydraulic_crane_cosim
   demo_MBS_custom_contact
+  demo_MBS_spinning_tops
 )
 
 # Demos that require VSG

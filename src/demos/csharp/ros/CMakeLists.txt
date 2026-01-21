@@ -49,7 +49,7 @@ foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
 
   # Applying specific reference dependencies for CRGTerrain demos (uses dynamic objects)
-  if(HAVE_OPENCRG)
+  if(CH_USE_OPENCRG)
     if(WIN32)
       # Add reference to Microsoft.CSharp
       get_property(_existing_refs TARGET ${PROGRAM} PROPERTY VS_DOTNET_REFERENCES)

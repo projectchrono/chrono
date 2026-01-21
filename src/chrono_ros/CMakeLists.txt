@@ -151,10 +151,6 @@ source_group("vehicle_handler" FILES ${CH_ROS_VEHICLE_HANDLER_FILES})
 set(CH_ROS_SENSOR_HANDLER_FILES "")
 if (CH_ENABLE_MODULE_SENSOR)
   set(CH_ROS_SENSOR_HANDLER_FILES
-    handlers/sensor/ChROSCameraHandler.h
-    handlers/sensor/ChROSCameraHandler.cpp
-    handlers/sensor/ChROSLidarHandler.h
-    handlers/sensor/ChROSLidarHandler.cpp
     handlers/sensor/ChROSAccelerometerHandler.h
     handlers/sensor/ChROSAccelerometerHandler.cpp
     handlers/sensor/ChROSGyroscopeHandler.h
@@ -169,6 +165,14 @@ if (CH_ENABLE_MODULE_SENSOR)
     handlers/sensor/ChROSSensorHandlerUtilities.h
     handlers/sensor/ChROSSensorHandlerUtilities.cpp
   )
+  if(CH_USE_SENSOR_OPTIX)
+    set(CH_ROS_SENSOR_HANDLER_FILES ${CH_ROS_SENSOR_HANDLER_FILES}
+      handlers/sensor/ChROSCameraHandler.h
+      handlers/sensor/ChROSCameraHandler.cpp
+      handlers/sensor/ChROSLidarHandler.h
+      handlers/sensor/ChROSLidarHandler.cpp
+    )
+  endif()
 endif()
 source_group("sensor_handler" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 
@@ -195,7 +199,7 @@ endif()
 if(CH_ENABLE_MODULE_SENSOR)
   list (APPEND DEPENDENCIES_ROS "SENSOR")
 endif()
-if(CH_ENABLE_MODULE_PARSERS  AND HAVE_URDF)
+if(CH_ENABLE_MODULE_PARSERS  AND CH_USE_URDF)
   list (APPEND DEPENDENCIES_ROS "PARSERS")
 endif()
 
@@ -260,8 +264,7 @@ if (CH_ENABLE_MODULE_SENSOR)
   target_link_libraries(Chrono_ros PUBLIC Chrono_sensor)
 endif()
 
-if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
-  target_compile_definitions(Chrono_ros PUBLIC CHRONO_PARSERS_URDF)
+if (CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
   target_link_libraries(Chrono_ros PUBLIC Chrono_parsers)
 endif()
 

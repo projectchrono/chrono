@@ -45,6 +45,8 @@
 
 #include <memory>
 
+#include "chrono_sensor/ChConfigSensor.h"
+
 #include "chrono/solver/ChSolver.h"
 #include "chrono/physics/ChContactMaterial.h"
 #include "chrono/solver/ChSolver.h"
@@ -66,7 +68,7 @@
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono_sensor/filters/ChFilterTachometerUpdate.h"
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 
   #include "chrono_sensor/sensors/ChOptixSensor.h"
   #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -201,7 +203,7 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::MagnetData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::MagnetData [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > > > > )
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 
   %shared_ptr(chrono::sensor::ChScene)
   %shared_ptr(chrono::sensor::PixelDI)
@@ -292,7 +294,7 @@ using namespace chrono::sensor;
 
 // BufferT Templates
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 
   //camera
   %template(UserR8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>;
@@ -330,7 +332,7 @@ using namespace chrono::sensor;
 
 %include "chrono_sensor/utils/ChGPSUtils.h"
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 
   %include "chrono_sensor/filters/ChFilterGrayscale.h"
   %include "chrono_sensor/optix/ChFilterOptixRender.h"
@@ -357,7 +359,7 @@ using namespace chrono::sensor;
 %include "ChSensor.i"
 %include "ChGPSSensor.i"
 %include "ChIMUSensor.i"
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
   %include "ChOptixSensor.i"
 #endif
 %include "chrono_sensor/ChSensorManager.h"
@@ -368,7 +370,7 @@ using namespace chrono::sensor;
 %DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChGyroscopeSensor)
 %DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChMagnetometerSensor)
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
   %DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChCameraSensor)
   %DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChLidarSensor)
   %DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChRadarSensor)
@@ -376,7 +378,7 @@ using namespace chrono::sensor;
 
 // Filter acces templates instances
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 
   // camera
   %template(ChFilterRGBA8Access)      chrono::sensor::ChFilterAccess<  chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>,    std::shared_ptr< chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>    >  >;
@@ -419,7 +421,7 @@ using namespace chrono::sensor;
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
 //
 
-#ifdef CHRONO_OPTIX
+#ifdef CHRONO_HAS_OPTIX
 
   %extend chrono::sensor::SensorConfig<std::shared_ptr<chrono::sensor::PixelDI[]>> {
           public:

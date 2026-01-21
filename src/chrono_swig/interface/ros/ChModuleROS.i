@@ -60,21 +60,25 @@
 #ifdef CHRONO_SENSOR
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/sensors/Sensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
 
+#ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/sensors/ChDepthCamera.h"
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/sensors/ChRadarSensor.h"
+#endif
 
-#include "chrono_sensor/sensors/ChIMUSensor.h"
+#ifdef CHRONO_HAS_OPTIX
+#include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
+#endif
 
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
@@ -142,11 +146,15 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSRobotModelHandler)
 
 #ifdef CHRONO_SENSOR
-%shared_ptr(chrono::ros::ChROSAccelerometerHandler)
+
+#ifdef CHRONO_HAS_OPTIX
 %shared_ptr(chrono::ros::ChROSCameraHandler)
+%shared_ptr(chrono::ros::ChROSLidarHandler)
+#endif
+
+%shared_ptr(chrono::ros::ChROSAccelerometerHandler)
 %shared_ptr(chrono::ros::ChROSGPSHandler)
 %shared_ptr(chrono::ros::ChROSGyroscopeHandler)
-%shared_ptr(chrono::ros::ChROSLidarHandler)
 %shared_ptr(chrono::ros::ChROSMagnetometerHandler)
 %shared_ptr(chrono::ros::ChROSIMUHandler)
 #endif
@@ -183,9 +191,13 @@ using namespace chrono::ros;
 
 #ifdef CHRONO_SENSOR
 %import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChSensor.i"
-%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChOptixSensor.i"
 %import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChIMUSensor.i"
 %import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChGPSSensor.i"
+
+#ifdef CHRONO_HAS_OPTIX
+%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChOptixSensor.i"
+#endif
+
 #endif
 
 %include "../../../chrono_ros/ChROSManager.h"
@@ -199,11 +211,15 @@ using namespace chrono::ros;
 %include "../../../chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
 #ifdef CHRONO_SENSOR
-%include "../../../chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
+
+#ifdef CHRONO_HAS_OPTIX
 %include "../../../chrono_ros/handlers/sensor/ChROSCameraHandler.h"
+%include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
+#endif
+
+%include "../../../chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
-%include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"

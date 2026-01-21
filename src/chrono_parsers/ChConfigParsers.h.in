@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,25 +12,27 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono-Vehicle configuration header file
+// Chrono::Parsers configuration header file
 //
 // Automatically created during CMake configuration.
 //
 // =============================================================================
 
-#ifndef CH_CONFIG_VEHICLE_H
-#define CH_CONFIG_VEHICLE_H
+#ifndef CH_CONFIG_PARSERS_H
+#define CH_CONFIG_PARSERS_H
 
 // Include main Chrono configuration header
 #include "chrono/ChConfig.h"
 
 // -----------------------------------------------------------------------------
 
-// If OpenCRG support was enabled, define CHRONO_HAS_OPENCRG
-@CHRONO_OPENCRG@
+// If URDF support was enabled, define CHRONO_HAS_URDF
+@CHRONO_URDF@
 
-// If Irrklang support was enabled, define CHRONO_HAS_IRRKLANG
-@CHRONO_IRRKLANG@
+// If Python support was enabled, define CHRONO_HAS_PYTHON
+@CHRONO_PYTHON@
 
+// If ROS support was enabled, define CHRONO_HAS_ROS
+@CHRONO_ROS@
 
 #endif

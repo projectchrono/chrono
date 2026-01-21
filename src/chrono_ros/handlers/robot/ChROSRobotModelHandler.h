@@ -19,9 +19,11 @@
 #ifndef CH_ROS_ROBOT_MODEL_HANDLER_H
 #define CH_ROS_ROBOT_MODEL_HANDLER_H
 
+#include "chrono_ros/ChConfigROS.h"
+
 #include "chrono_ros/ChROSHandler.h"
 
-#ifdef CHRONO_PARSERS_URDF
+#ifdef CHRONO_HAS_URDF
     #include "chrono_parsers/ChParserURDF.h"
 #endif
 
@@ -42,7 +44,7 @@ class CH_ROS_API ChROSRobotModelHandler : public ChROSHandler {
     /// The topic name defaults to "/robot_description".
     ChROSRobotModelHandler(const std::string& robot_model, const std::string& topic_name = "/robot_description");
 
-#ifdef CHRONO_PARSERS_URDF
+#ifdef CHRONO_HAS_URDF
     /// Constructor.
     /// This constructor takes a ChParserURDF object. A ChParserURDF::CustomProcessor will be created to parse the file
     /// to resolve relative filenames to be a URI.

@@ -210,6 +210,11 @@ class ChApi ChLinkLockGear : public ChLinkLock {
                                      double recovery_clamp    ///< value for min/max clamping of c*C
                                      ) override;
 
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+
     /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 

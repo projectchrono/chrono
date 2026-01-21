@@ -320,9 +320,9 @@ int main(int argc, char* argv[]) {
         terrain.ExportMeshPovray(out_dir);
     }
 
-
-
     auto manager = chrono_types::make_shared<ChSensorManager>(gator.GetSystem());
+    manager->SetVerbose(true);
+    ////manager->SetDebug(true);
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
     Background b;
     b.mode = BackgroundMode::ENVIRONMENT_MAP;
@@ -493,9 +493,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // output vehicle mass
-    std::cout << "VEHICLE MASS: " << gator.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

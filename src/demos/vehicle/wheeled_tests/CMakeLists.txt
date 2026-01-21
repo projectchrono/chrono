@@ -14,7 +14,7 @@ set(DEMOS
     demo_VEH_Test_TireFEA
 )
 
-if(HAVE_OPENCRG)
+if(CH_USE_OPENCRG)
    if(CH_ENABLE_MODULE_VSG)
       set(DEMOS ${DEMOS}
           demo_VEH_Test_FEDA_Ride
