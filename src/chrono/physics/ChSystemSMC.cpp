@@ -38,9 +38,6 @@ ChSystemSMC::ChSystemSMC(const std::string& name)
       m_tdispl_model(OneStep),
       m_stiff_contact(false),
       m_force_algo(new ChDefaultContactForceTorqueSMC) {
-    // Set the system descriptor
-    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-
     // Set default solver
     SetSolverType(ChSolver::Type::PSOR);
 

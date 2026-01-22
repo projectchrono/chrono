@@ -18,6 +18,8 @@
 //
 // =============================================================================
 
+#include <numeric>
+
 #include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChShaftsGearbox.h"
@@ -29,17 +31,11 @@
 #include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
-#include "chrono_multicore/solver/ChSolverMulticore.h"
-#include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
-
-#include <numeric>
 
 namespace chrono {
 
 ChSystemMulticore::ChSystemMulticore(const std::string& name) : ChSystem(name) {
     data_manager = new ChMulticoreDataManager();
-
-    descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
 
     counter = 0;
     timer_accumulator.resize(10, 0);
@@ -79,7 +75,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
     timer_step.start();  // time elapsed for step (for RTF calculation)
 
     // Store system data in the data manager
-    data_manager->system_descriptor = this->descriptor;
+    data_manager->system_descriptor = descriptor;
     data_manager->body_list = &assembly.bodylist;
     data_manager->link_list = &assembly.linklist;
     data_manager->other_physics_list = &assembly.otherphysicslist;
@@ -98,7 +94,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
         collision_system->PreProcess();
         collision_system->Run();
         collision_system->PostProcess();
-        collision_system->ReportContacts(this->contact_container.get());
+        collision_system->ReportContacts(contact_container.get());
         for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
             collision_callbacks[ic]->OnCustomCollision(this);
         }
@@ -120,7 +116,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
     }
 
     // Update the constraint reactions.
-    double factor = 1 / this->GetStep();
+    double factor = 1 / GetStep();
     for (auto& link : assembly.linklist) {
         link->ConstraintsFetch_react(factor);
     }
@@ -146,8 +142,8 @@ bool ChSystemMulticore::AdvanceDynamics() {
             body->Variables().State()(4) = velocities[i * 6 + 4];
             body->Variables().State()(5) = velocities[i * 6 + 5];
 
-            body->VariablesQbIncrementPosition(this->GetStep());
-            body->VariablesQbSetSpeed(this->GetStep());
+            body->VariablesQbIncrementPosition(GetStep());
+            body->VariablesQbSetSpeed(GetStep());
 
             body->Update(ch_time, UpdateFlags::UPDATE_ALL);
 
@@ -318,7 +314,7 @@ void ChSystemMulticore::Update() {
     data_manager->host_data.bilateral_mapping.clear();
     data_manager->host_data.bilateral_type.clear();
 
-    this->descriptor->BeginInsertion();
+    descriptor->BeginInsertion();
     UpdateLinks();
     UpdateOtherPhysics();
     UpdateRigidBodies();

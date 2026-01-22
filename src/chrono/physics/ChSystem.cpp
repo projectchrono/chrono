@@ -74,6 +74,9 @@ ChSystem::ChSystem(const std::string& name)
       applied_forces_current(false) {
     assembly.system = this;
 
+    // Set the system descriptor
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
+
     // Set default collision envelope and margin
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     ChCollisionModel::SetDefaultSuggestedMargin(0.01);
@@ -268,8 +271,6 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     // Do nothing if changing to a CUSTOM solver.
     if (type == ChSolver::Type::CUSTOM)
         return;
-
-    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
     switch (type) {
         case ChSolver::Type::PSOR:
