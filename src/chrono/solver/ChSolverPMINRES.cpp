@@ -29,9 +29,6 @@ ChSolverPMINRES::ChSolverPMINRES()
       r_proj_resid(1e30) {}
 
 double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariables();
-
     // If the system descriptor does not support Schur complement-based solvers,
     // fall back to the Solve_SupportingStiffness method which operates on KKT.
     if (!sysd.SupportsSchurComplement())
@@ -58,24 +55,27 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
     m_iterations = 0;
 
+    const std::vector<ChVariables*>& variables = sysd.GetVariables();
+    const std::vector<ChConstraint*>& constraints = sysd.GetConstraints();
+
     // Update auxiliary data in all constraints before starting,
     // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        mconstraints[ic]->UpdateAuxiliary();
+    for (auto& constraint : constraints)
+        constraint->UpdateAuxiliary();
 
     // Average all g_i for the triplet of contact constraints n,u,v.
     //  Can be used as diagonal preconditioner.
     int j_friction_comp = 0;
     double gi_values[3];
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
-            gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
+    for (unsigned int ic = 0; ic < constraints.size(); ic++) {
+        if (constraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
+            gi_values[j_friction_comp] = constraints[ic]->GetSchurComplement();
             j_friction_comp++;
             if (j_friction_comp == 3) {
                 double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-                mconstraints[ic - 2]->SetSchurComplement(average_g_i);
-                mconstraints[ic - 1]->SetSchurComplement(average_g_i);
-                mconstraints[ic - 0]->SetSchurComplement(average_g_i);
+                constraints[ic - 2]->SetSchurComplement(average_g_i);
+                constraints[ic - 1]->SetSchurComplement(average_g_i);
+                constraints[ic - 0]->SetSchurComplement(average_g_i);
                 j_friction_comp = 0;
             }
         }
@@ -84,11 +84,12 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // The vector with the inverse of diagonal of the N matrix
     mDi.setZero();
     int d_i = 0;
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        if (mconstraints[ic]->IsActive()) {
-            mDi(d_i, 0) = 1.0 / mconstraints[ic]->GetSchurComplement();
+    for (const auto& constraint : constraints) {
+        if (constraint->IsActive()) {
+            mDi(d_i, 0) = 1.0 / constraint->GetSchurComplement();
             ++d_i;
         }
+    }
 
     // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::SchurBvectorCompute() ?
 
@@ -100,19 +101,20 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // Do this in three steps:
 
     // Put (M^-1)*k    in  q  sparse vector of each variable..
-    for (unsigned int iv = 0; iv < mvariables.size(); iv++)
-        if (mvariables[iv]->IsActive())
-            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(),
-                                                          mvariables[iv]->Force());  // q = [M]'*fb
+    for (const auto& variable : variables) {
+        if (variable->IsActive())
+            variable->ComputeMassInverseTimesVector(variable->State(), variable->Force());
+    }
 
     // ...and now do  b_schur = - D' * q  ..
     mb.setZero();
     int s_i = 0;
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        if (mconstraints[ic]->IsActive()) {
-            mb(s_i, 0) = -mconstraints[ic]->ComputeJacobianTimesState();
+    for (auto& constraint : constraints) {
+        if (constraint->IsActive()) {
+            mb(s_i, 0) = -constraint->ComputeJacobianTimesState();
             ++s_i;
         }
+    }
 
     // ..and finally do   b_schur = b_schur - c
     sysd.BuildBiVector(mtmp);  // b_i   =   -c   = phi/h
@@ -163,16 +165,14 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     //// RADU
     //// Is the above correct?  We always have z=p and therefore NMr = Np...
 
-    //
-    // THE LOOP
-    //
+    // Iterations
 
     std::vector<double> f_hist;
     std::fill(violation_history.begin(), violation_history.end(), 0.0);
     std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
-        // MNp = Mi*Np; % = Mi*N*p                  %% -- Precond
+        // MNp = Mi*Np; % = Mi*N*p   (Precond)
         if (m_use_precond)
             mMNp = mNp.array() * mDi.array();
         else
@@ -184,8 +184,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
         if (fabs(MNpNp) < 10e-30) {
             if (verbose)
-                cout << "Iter=" << iter << " Rayleigh quotient alpha breakdown: " << zNMr << " / " << MNpNp
-                          << endl;
+                cout << "Iter=" << iter << " Rayleigh quotient alpha breakdown: " << zNMr << " / " << MNpNp << endl;
             MNpNp = 10e-12;
         }
 
@@ -219,10 +218,10 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
             break;
         }
 
-        // z_old = z;
+        // z_old = z
         mz_old = mz;
 
-        // z = Mi*r;                                 %% -- Precond
+        // z = Mi*r   (Precond)
         if (m_use_precond)
             mz = mr.array() * mDi.array();
         else
@@ -244,7 +243,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
             if (verbose)
                 cout << "Iter=" << iter << " Ribiere quotient beta restart: " << numerator << " / " << denominator
-                          << endl;
+                     << endl;
             beta = 0;
         }
 
@@ -275,9 +274,9 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVectorToVariables(mq);
 
     // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive())
-            mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
+    for (auto& constraint : constraints) {
+        if (constraint->IsActive())
+            constraint->IncrementState(constraint->GetLagrangeMultiplier());
     }
 
     if (verbose)
@@ -286,22 +285,20 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     return r_proj_resid;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     m_iterations = 0;
 
-    // Allocate auxiliary vectors;
-
+    // Allocate auxiliary vectors
     int nv = sysd.CountActiveVariables();
     int nc = sysd.CountActiveConstraints();
     int nx = nv + nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
     if (verbose)
         cout << endl
-                  << "-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx
-                  << "  max.iters=" << m_max_iterations << endl;
+             << "-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << m_max_iterations
+             << endl;
 
     ChVectorDynamic<> mx(nx);
     ChVectorDynamic<> md(nx);
@@ -316,9 +313,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> mtmp(nx);
     ChVectorDynamic<> mDi(nx);
 
-    //
-    // --- Compute a diagonal (scaling) preconditioner for the KKT system:
-    //
+    // --- Compute a diagonal (scaling) preconditioner for the KKT system
 
     // Initialize the mDi vector with the diagonal of the Z matrix
     sysd.BuildDiagonalVector(mDi);
@@ -334,12 +329,8 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
             mDi(nel) = 1.0;
     }
 
-    //
-    // --- Vector initialization and book-keeping
-    //
-
-    // Initialize the x vector of unknowns x ={q; -l} (if warm starting needed, initialize
-    // x with current values of q and l in variables and constraints)
+    // Initialize the x vector of unknowns x ={q; -l}
+    // If warm starting needed, initialize x with current values of q and l in variables and constraints
     if (m_warm_start)
         sysd.FromUnknownsToVector(mx);
     else
@@ -347,10 +338,6 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
 
     // Initialize the d vector filling it with {f, -b}
     sysd.BuildDiVector(md);
-
-    //
-    // --- THE P-MINRES ALGORITHM
-    //
 
     double rel_tol = this->rel_tolerance;
     double abs_tol = m_tolerance;
@@ -377,40 +364,38 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     // Zp = Z*p
     sysd.SystemProduct(mZp, mp);  // Zp = Z*p
 
-    //
-    // THE LOOP
-    //
+    // Iterations
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
-        // MZp = Mi*Zp; % = Mi*Z*p                  %% -- Precond
+        // MZp = Mi*Zp; % = Mi*Z*p   (Precond)
         if (m_use_precond)
             mMZp = mZp.array() * mDi.array();
         else
             mMZp = mZp;
 
-        // alpha = (z'*(ZMr))/((MZp)'*(Zp));
+        // alpha = (z'*ZMr)/(MZp'*Zp)
         double zZMr = mz.dot(mZMr);    // zZMr = z'* ZMr
-        double MZpZp = mMZp.dot(mZp);  // MZpZp = ((MZp)'*(Zp))
+        double MZpZp = mMZp.dot(mZp);  // MZpZp = MZp'*Zp
 
-        // Robustness improver: case of division by zero
+        // Robustness improvement for the case of division by zero
         if (fabs(MZpZp) < 10e-30) {
             if (verbose)
                 cout << "Rayleigh alpha denominator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
-                          << "  iter=" << iter << endl;
+                     << "  iter=" << iter << endl;
             MZpZp = 10e-30;
         }
 
-        // Robustness improver: case when r is orthogonal to Z*r (e.g. at first iteration, if f=0, x=0, with
-        // constraints)
+        // Robustness improvement for the case where r is orthogonal to Z*r
+        // (e.g. at first iteration, if f=0, x=0, with constraints)
         if (fabs(zZMr) < 10e-30) {
             if (verbose)
                 cout << "Rayleigh alpha numerator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
-                          << "  iter=" << iter << endl;
+                     << "  iter=" << iter << endl;
             zZMr = 1;
             MZpZp = 1;
         }
 
-        double alpha = zZMr / MZpZp;  // 3)  alpha = (z'*(ZMr))/((MZp)'*(Zp));
+        double alpha = zZMr / MZpZp;  // 3)  alpha = (z'*ZMr)/(MZp'*Zp)
 
         if (alpha < 0)
             if (verbose)
@@ -442,7 +427,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         // z_old = z;
         mz_old = mz;
 
-        // z = Mi*r;                                 %% -- Precond
+        // z = Mi*r;  (Precond)
         if (m_use_precond)
             mz = mr.array() * mDi.array();
         else
@@ -464,11 +449,11 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         /// double denominator = mr.MatrDot(mz_old,mZMr_old);	// 2)  r_old'* Z *r_old
         double beta = numerator / denominator;
 
-        // Robustness improver: restart if beta=0 or too large
+        // Robustness improvement: restart if beta=0 or too large
         if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
             if (verbose)
                 cout << "Ribiere quotient beta restart: " << numerator << " / " << denominator << "  iter=" << iter
-                          << endl;
+                     << endl;
             beta = 0;
         }
 
@@ -478,7 +463,6 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         // Zp = ZMr + beta*Zp;   // Optimization!! avoid matr x vect!!! (if no 'p' projection has been done)
         mZp = mZMr + beta * mZp;
 
-        // ---------------------------------------------
         // METRICS - convergence, plots, etc
 
         // For recording into correction/residuals/violation history, if debugging
@@ -486,8 +470,8 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
             AtIterationEnd(r_proj_resid, maxdeltaunknowns, iter);
     }
 
-    // After having solved for unknowns x={q;-l}, now copy those values from x vector to
-    // the q values in ChVariable items and to l values in ChConstraint items
+    // After having solved for unknowns x={q;-l}, copy those values from x vector to the q values in ChVariable items
+    // and to l values in ChConstraint items
     sysd.FromVectorToUnknowns(mx);
 
     if (verbose)

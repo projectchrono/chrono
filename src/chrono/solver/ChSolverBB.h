@@ -27,9 +27,8 @@ namespace chrono {
 /// Notes:
 /// - can not solve problems including stiffness or damping blocks in system descriptor (e.g. coming from FEA)
 /// - diagonal preconditioning is available (enabled by default)
-/// 
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
-/// solver.
+///
+/// See ChSystemDescriptor for more information about the problem formulation and solver data structures.
 class ChApi ChSolverBB : public ChIterativeSolverVI {
   public:
     ChSolverBB();
@@ -38,13 +37,13 @@ class ChApi ChSolverBB : public ChIterativeSolverVI {
 
     virtual Type GetType() const override { return Type::BARZILAIBORWEIN; }
 
-    /// Performs the solution of the problem.
+    /// Perform the solution of the problem.
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) override;
 
-    /// Number of max tolerated steps in non-monotone Armijo
-    /// line search; usually good values are in 1..10 range.
+    /// Set maximum number of steps in non-monotone Armijo line search.
+    /// Usually good values are in the 1..10 range.
     void SetMaxStepsArmijoLineSearch(int mf) { n_armijo = mf; }
     double GetMaxStepsArmijoLineSearch() { return n_armijo; }
 

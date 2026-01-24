@@ -480,7 +480,7 @@ void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorD
             var->ComputeMassInverseTimesVector(var->State(), var->Force());
     }
 
-    // Calculate b_schur = - D'*q = - D'*(M^-1)*k
+    // Calculate b_schur = - Cq'*q = - Cq'*(M^-1)*k
     result.setZero();
     int s_i = 0;
     for (const auto& constr : m_constraints) {
