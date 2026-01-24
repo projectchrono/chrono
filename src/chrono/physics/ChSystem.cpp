@@ -619,6 +619,10 @@ bool ChSystem::ManageSleepingBodies() {
 //  DESCRIPTOR BOOKKEEPING
 // -----------------------------------------------------------------------------
 
+void ChSystem::DescriptorPrepareInject() {
+    DescriptorPrepareInject(*descriptor);
+}
+
 void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
     sys_descriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
 
@@ -1397,7 +1401,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
                                    const std::string& path,
                                    bool one_indexed) {
     // Prepare lists of variables and constraints, if not already prepared.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     if (save_M) {
         ChSparseMatrix mM;
@@ -1434,7 +1438,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // Setup system descriptor
     Setup();
     Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     ChSparseMatrix Cq;
     Cq.resize(descriptor->CountActiveConstraints(), descriptor->CountActiveVariables());
@@ -1546,7 +1550,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
     Update(UpdateFlags::UPDATE_ALL &~UpdateFlags::VISUAL_ASSETS);
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     if (verbose) {
         std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
@@ -1610,7 +1614,7 @@ bool ChSystem::AdvanceDynamics() {
     ManageSleepingBodies();
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
     ////descriptor->UpdateCountsAndOffsets();
@@ -1708,7 +1712,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
     Update(UpdateFlags::UPDATE_ALL);
 
     // Prepare lists of variables and constraints
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     ChAssemblyAnalysis assembling(*this);
     assembling.SetMaxAssemblyIters(max_num_iterationsNR);
@@ -1788,7 +1792,7 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     Setup();
     Update(UpdateFlags::UPDATE_ALL);
 
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
     analysis.SetIntegrable(this);
     analysis.StaticAnalysis();
 
@@ -1819,7 +1823,7 @@ bool ChSystem::DoStaticLinear() {
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticLinearAnalysis analysis;
@@ -1879,7 +1883,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticNonLinearAnalysis analysis;
@@ -1923,7 +1927,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticNonLinearRheonomicAnalysis analysis;

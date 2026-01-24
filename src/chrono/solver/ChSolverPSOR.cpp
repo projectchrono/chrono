@@ -27,9 +27,20 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
-    if (sysd.HasKRBlocks()) {
-        std::cerr << "\n\nChSolverPSOR: Can NOT use PSOR solver if there are stiffness or damping matrices." << std::endl;
-        throw std::runtime_error("ChSolverPSOR: Can NOT use PSOR solver if there are stiffness or damping matrices.");
+    //// TODO
+    //// Switch to using Schur complement functions (SchurComplementProduct and SchurComplementRHS) from
+    //// ChSystemDescriptor) to accept problems with non-block diagonal mass matrix
+    if (sysd.HasKRMBlocks()) {
+        std::cerr << "\n\nChSolverPSOR: Can NOT use PSOR solver if the system includes stiffness or damping matrices"
+                  << std::endl;
+        throw std::runtime_error("ChSolverPSOR: System descriptor includes stiffness or damping matrices.");
+    }
+
+    if (!sysd.SupportsSchurComplement()) {
+        std::cerr << "\n\nChSolverPSOR: Can NOT use PSOR solver if\n"
+                  << " - there are stiffness or damping matrices, or\n "
+                  << " - no inverse mass matrix was provided" << std::endl;
+        throw std::runtime_error("ChSolverPSOR: System descriptor does not support Schur complement-based solvers.");
     }
 
     m_iterations = 0;

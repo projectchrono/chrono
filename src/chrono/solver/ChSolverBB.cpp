@@ -23,13 +23,14 @@ CH_FACTORY_REGISTER(ChSolverBB)
 ChSolverBB::ChSolverBB() : n_armijo(10), max_armijo_backtrace(3), lastgoodres(1e30) {}
 
 double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariables();
-
-    if (sysd.HasKRBlocks()) {
-        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness or damping matrices." << std::endl;
-        throw std::runtime_error("ChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness or damping matrices.");
+    if (!sysd.SupportsSchurComplement()) {
+        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if\n"
+                  << " - there are stiffness or damping matrices, or\n "
+                  << " - no inverse mass matrix was provided" << std::endl;
+        throw std::runtime_error("ChSolverBB: System descriptor does not support Schur complement-based solvers.");
     }
+
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
 
     // Tuning of the spectral gradient search
     double a_min = 1e-13;

@@ -32,9 +32,9 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
-    // If stiffness blocks are used, the Schur complement cannot be esily
-    // used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
-    if (sysd.HasKRBlocks())
+    // If the system descriptor does not support Schur complement-based solvers,
+    // fall back to the Solve_SupportingStiffness method which operates on KKT.
+    if (!sysd.SupportsSchurComplement())
         return this->Solve_SupportingStiffness(sysd);
 
     // Allocate auxiliary vectors;

@@ -70,11 +70,14 @@ double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
 }
 
 double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
+    if (!sysd.SupportsSchurComplement()) {
+        std::cerr << "\n\nChSolverAPGD: Can NOT use APGD solver if\n"
+                  << " - there are stiffness or damping matrices, or\n "
+                  << " - no inverse mass matrix was provided" << std::endl;
+        throw std::runtime_error("ChSolverAPGD: System descriptor does not support Schur complement-based solvers.");
+    }
+
     const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
-    const std::vector<ChVariables*>& mvariables = sysd.GetVariables();
-    if (verbose)
-        std::cout << "Number of constraints: " << mconstraints.size()
-                  << "\nNumber of variables  : " << mvariables.size() << std::endl;
 
     // Update auxiliary data in all constraints before starting,
     // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
@@ -140,7 +143,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
     tmp = gamma - gamma_hat;
     L = tmp.norm();
-    sysd.SchurComplementProduct(yNew, tmp, nullptr);  // yNew = N * tmp = N * (gamma - gamma_hat)
+    sysd.SchurComplementProduct(yNew, tmp);  // yNew = N * tmp = N * (gamma - gamma_hat)
     L = yNew.norm() / L;
     yNew.setZero();  //// RADU  is this really necessary here?
 

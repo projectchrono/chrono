@@ -24,7 +24,7 @@ CH_FACTORY_REGISTER(ChSystemDescriptor)
 
 #define CH_SPINLOCK_HASHSIZE 203
 
-ChSystemDescriptor::ChSystemDescriptor() : n_q(0), n_c(0), c_a(1.0), freeze_count(false) {
+ChSystemDescriptor::ChSystemDescriptor() : n_q(0), n_c(0), c_a(1.0), freeze_count(false), m_use_Minv(false) {
     m_constraints.clear();
     m_variables.clear();
     m_KRMblocks.clear();
@@ -36,12 +36,23 @@ ChSystemDescriptor::~ChSystemDescriptor() {
     m_KRMblocks.clear();
 }
 
-bool ChSystemDescriptor::HasKRBlocks() {
+bool ChSystemDescriptor::HasKRMBlocks() {
+    return m_KRMblocks.size() > 0;
+}
+
+bool ChSystemDescriptor::SupportsSchurComplement() {
+    // if no KRM blocks, return true
+    if (m_KRMblocks.size() == 0)
+        return true;
+
+    // if any KRM block has KR components, return false
     for (const auto& KRMBlock : m_KRMblocks) {
         if (KRMBlock->HasKRComponents())
-            return true;
+            return false;
     }
-    return false;
+
+    // return true only if an inverse mass matrix was provided
+    return m_use_Minv;
 }
 
 void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolation, double& resulting_feasability) {
@@ -153,7 +164,7 @@ void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
     int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
-            Z.SetElement(start_row + s_c, start_col + s_c, - constr->GetComplianceTerm());
+            Z.SetElement(start_row + s_c, start_col + s_c, -constr->GetComplianceTerm());
             s_c++;
         }
     }
@@ -185,251 +196,308 @@ void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>*
     }
 }
 
-unsigned int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector, unsigned int start_row) const {
+unsigned int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& f, unsigned int start_row) const {
     n_q = CountActiveVariables();
-    Fvector.setZero(n_q);
+    f.setZero(n_q);
 
     // Fills the 'f' vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            Fvector.segment(start_row + var->GetOffset(), var->GetDOF()) = var->Force();
+            f.segment(start_row + var->GetOffset(), var->GetDOF()) = var->Force();
         }
     }
     return n_q;
 }
 
-unsigned int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector, unsigned int start_row) const {
+unsigned int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& b, unsigned int start_row) const {
     n_c = CountActiveConstraints();
-    Bvector.setZero(n_c);
+    b.setZero(n_c);
 
     // Fill the 'b' vector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Bvector(start_row + constr->GetOffset()) = constr->GetRightHandSide();
+            b(start_row + constr->GetOffset()) = constr->GetRightHandSide();
         }
     }
 
     return n_c;
 }
 
-unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& Dvector) const {
+unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& d) const {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
-    Dvector.setZero(n_q + n_c);
+    d.setZero(n_q + n_c);
 
     // Fills the 'f' vector part
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            Dvector.segment(var->GetOffset(), var->GetDOF()) = var->Force();
+            d.segment(var->GetOffset(), var->GetDOF()) = var->Force();
         }
     }
 
     // Fill the '-b' vector (with flipped sign!)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Dvector(constr->GetOffset() + n_q) = -constr->GetRightHandSide();
+            d(constr->GetOffset() + n_q) = -constr->GetRightHandSide();
         }
     }
 
     return n_q + n_c;
 }
 
-unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& Diagonal_vect) const {
+unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& diagonal_vect) const {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
-    Diagonal_vect.setZero(n_q + n_c);
+    diagonal_vect.setZero(n_q + n_c);
 
     // Fill the diagonal values given by ChKRMBlock objects , if any
     // (This cannot be easily parallelized because of possible write concurrency).
     for (const auto& krm_block : m_KRMblocks) {
-        krm_block->DiagonalAdd(Diagonal_vect);
+        krm_block->DiagonalAdd(diagonal_vect);
     }
 
     // Get the 'M' diagonal terms given by ChVariables objects
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->AddMassDiagonalInto(Diagonal_vect, c_a);
+            var->AddMassDiagonalInto(diagonal_vect, c_a);
         }
     }
 
     // Get the 'E' diagonal terms (E_i = - cfm_i )
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Diagonal_vect(constr->GetOffset() + n_q) = - constr->GetComplianceTerm();
+            diagonal_vect(constr->GetOffset() + n_q) = -constr->GetComplianceTerm();
         }
     }
 
     return n_q + n_c;
 }
 
-unsigned int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& mvector, bool resize_vector) const {
+unsigned int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& vector, bool resize_vector) const {
     // Count active variables and resize vector if necessary
     if (resize_vector) {
         n_q = CountActiveVariables();
-        mvector.setZero(n_q);
+        vector.setZero(n_q);
     }
 
     // Fill the vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            mvector.segment(var->GetOffset(), var->GetDOF()) = var->State();
+            vector.segment(var->GetOffset(), var->GetDOF()) = var->State();
         }
     }
 
     return n_q;
 }
 
-unsigned int ChSystemDescriptor::FromVectorToVariables(const ChVectorDynamic<>& mvector) {
-    assert(CountActiveVariables() == mvector.rows());
+unsigned int ChSystemDescriptor::FromVectorToVariables(const ChVectorDynamic<>& vector) {
+    assert(CountActiveVariables() == vector.rows());
 
     // fetch from the vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->State() = mvector.segment(var->GetOffset(), var->GetDOF());
+            var->State() = vector.segment(var->GetOffset(), var->GetDOF());
         }
     }
 
     return n_q;
 }
 
-unsigned int ChSystemDescriptor::FromConstraintsToVector(ChVectorDynamic<>& mvector, bool resize_vector) const {
+unsigned int ChSystemDescriptor::FromConstraintsToVector(ChVectorDynamic<>& vector, bool resize_vector) const {
     // Count active constraints and resize vector if necessary
     if (resize_vector) {
         n_c = CountActiveConstraints();
-        mvector.setZero(n_c);
+        vector.setZero(n_c);
     }
 
     // Fill the vector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            mvector(constr->GetOffset()) = constr->GetLagrangeMultiplier();
+            vector(constr->GetOffset()) = constr->GetLagrangeMultiplier();
         }
     }
 
     return n_c;
 }
 
-unsigned int ChSystemDescriptor::FromVectorToConstraints(const ChVectorDynamic<>& mvector) {
+unsigned int ChSystemDescriptor::FromVectorToConstraints(const ChVectorDynamic<>& vector) {
     n_c = CountActiveConstraints();
 
-    assert(n_c == mvector.size());
+    assert(n_c == vector.size());
 
     // Fill the vector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->SetLagrangeMultiplier(mvector(constr->GetOffset()));
+            constr->SetLagrangeMultiplier(vector(constr->GetOffset()));
         }
     }
 
     return n_c;
 }
 
-unsigned int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& mvector, bool resize_vector) const {
+unsigned int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& vector, bool resize_vector) const {
     // Count active variables & constraints and resize vector if necessary
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
-    if (resize_vector) {
-        mvector.setZero(n_q + n_c);
-    }
+    if (resize_vector)
+        vector.setZero(n_q + n_c);
 
     // Fill the first part of vector, x.q ,with variables q
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            mvector.segment(var->GetOffset(), var->GetDOF()) = var->State();
+            vector.segment(var->GetOffset(), var->GetDOF()) = var->State();
         }
     }
 
     // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            mvector(constr->GetOffset() + n_q) = -constr->GetLagrangeMultiplier();
+            vector(constr->GetOffset() + n_q) = -constr->GetLagrangeMultiplier();
         }
     }
 
     return n_q + n_c;
 }
 
-unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& mvector) {
+unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& vector) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
-    assert((n_q + n_c) == mvector.size());
+    assert((n_q + n_c) == vector.size());
 
     // Fetch from the first part of vector (x.q = q)
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->State() = mvector.segment(var->GetOffset(), var->GetDOF());
+            var->State() = vector.segment(var->GetOffset(), var->GetDOF());
         }
     }
 
     // Fetch from the second part of vector (x.l = -l), with flipped sign!
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->SetLagrangeMultiplier(-mvector(constr->GetOffset() + n_q));
+            constr->SetLagrangeMultiplier(-vector(constr->GetOffset() + n_q));
         }
     }
 
     return n_q + n_c;
 }
 
-void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
-                                                const ChVectorDynamic<>& lvector,
-                                                std::vector<bool>* enabled) {
-    // currently, the case with ChKRMBlock items is not supported (only diagonal M is supported, no K)
-    assert(!HasKRBlocks());
+void ChSystemDescriptor::SetMassInverse(ChMatrixConstRef M_inverse) {
+    m_use_Minv = true;
+    m_Minv = M_inverse;
+}
+
+void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result, const ChVectorDynamic<>& lvector) {
+    // nothing to do if no constraints
+    if (n_c == 0)
+        return;
+
+    assert(SupportsSchurComplement());
     assert(lvector.size() == CountActiveConstraints());
 
     result.setZero(n_c);
 
-    // Performs the sparse product    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] *l
-    // in different phases:
+    // Use the inverse mass matrix if provided
+    //// TODO: take into account only active constraints
+    if (m_use_Minv) {
+        ChSparseMatrix Cq(n_c, n_q);
+        ChSparseMatrix E(n_c, n_c);
+        Cq.setZero();
+        E.setZero();
+        PasteConstraintsJacobianMatrixInto(Cq);
+        PasteComplianceMatrixInto(E);
+        result = (Cq * m_Minv * Cq.transpose() - E) * lvector;
+        return;
+    }
 
-    // 1 - set the qb vector (aka speeds, in each ChVariable sparse data) as zero
-
+    // 1 - set the qb vector (aka speeds) to zero, for each ChVariable
     for (const auto& var : m_variables) {
         if (var->IsActive())
             var->State().setZero();
     }
 
-    // 2 - performs    qb=[M^(-1)][Cq']*l  by
-    //     iterating over all constraints (when implemented in parallel this
-    //     could be non-trivial because race conditions might occur -> reduction buffer etc.)
+    // 2 - calculate qb = [M^(-1)][Cq']*l
     //     Also, begin to add the compliance term ( -[E]*l ) to the result.
-
-    // ATTENTION:  this loop cannot be parallelized! Concurrent write to some q may happen
+    //     ATTENTION:  this loop cannot be parallelized, as concurrent writes to some q may happen.
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             int s_c = constr->GetOffset();
 
-            bool process = (!enabled) || (*enabled)[s_c];
+            double li = lvector(s_c);
 
-            if (process) {
-                double li = lvector(s_c);
+            // Compute qb += [M^(-1)][Cq']*l_i
+            // NOTE: concurrent update to same q data, risk of collision if parallel
+            constr->IncrementState(li);
 
-                // Compute qb += [M^(-1)][Cq']*l_i
-                //  NOTE! concurrent update to same q data, risk of collision if parallel.
-                constr->IncrementState(li);  // computationally intensive
-
-                // Add -[E] * l_i. Note compliance term  cfm = -E, so   -[E] * l_i = cfm * l_i
-                result(s_c) = constr->GetComplianceTerm() * li;
-            }
+            // Add -[E] * l_i
+            // NOTE: compliance term  cfm = -E, so   -[E] * l_i = cfm * l_i
+            result(s_c) = constr->GetComplianceTerm() * li;
         }
     }
 
-    // 3 - performs    result=[Cq']*qb    by
-    //     iterating over all constraints
-
+    // 3 - calculate result = [Cq']*qb
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            bool process = (!enabled) || (*enabled)[constr->GetOffset()];
-
-            if (process)
-                result(constr->GetOffset()) += constr->ComputeJacobianTimesState();  // computationally intensive
-            else
-                result(constr->GetOffset()) = 0;  // not enabled constraints, just set to 0 result
+            result(constr->GetOffset()) += constr->ComputeJacobianTimesState();
         }
     }
+}
+
+void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorDynamic<>* Mik) {
+    assert(SupportsSchurComplement());
+
+    // Use the inverse mass matrix if provided
+    //// TODO: take into account only active constraints
+    if (m_use_Minv) {
+        ChVectorDynamic<double> f(n_q);
+        ChVectorDynamic<double> b(n_c);
+        f.setZero();
+        b.setZero();
+        BuildFbVector(f);
+        BuildBiVector(b);
+        if (n_c == 0) {
+            if (Mik)
+                *Mik = m_Minv * f;
+            result = b;
+            return;
+        }
+        ChSparseMatrix Cq(n_c, n_q);
+        Cq.setZero();
+        PasteConstraintsJacobianMatrixInto(Cq);
+        if (Mik) {
+            *Mik = m_Minv * f;
+            result = Cq.transpose() * (*Mik) + b;
+        } else {
+            result = Cq.transpose() * m_Minv * f + b;
+        }
+        return;
+    }
+
+    // Load (M^-1)*k in q sparse vector of each variable
+    for (const auto& var : m_variables) {
+        if (var->IsActive())
+            var->ComputeMassInverseTimesVector(var->State(), var->Force());
+    }
+
+    // Calculate b_schur = - D'*q = - D'*(M^-1)*k
+    result.setZero();
+    int s_i = 0;
+    for (const auto& constr : m_constraints) {
+        if (constr->IsActive()) {
+            result(s_i, 0) = -constr->ComputeJacobianTimesState();
+            ++s_i;
+        }
+    }
+
+    // Calculate b_schur = b_schur - c
+    ChVectorDynamic<> c(n_c);
+    BuildBiVector(c);  // b_i = -c = phi/h
+    result -= c;
+
+    // Optionally cache q = (M^-1)*k calculated above
+    if (Mik)
+        FromVariablesToVector(*Mik, true);
 }
 
 void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVectorDynamic<>& x) {
@@ -463,7 +531,7 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             int s_c = constr->GetOffset() + n_q;
-            constr->AddJacobianTimesVectorInto(result(s_c), x);   // result.l_i += [C_q_i]*x.q
+            constr->AddJacobianTimesVectorInto(result(s_c), x);    // result.l_i += [C_q_i]*x.q
             result(s_c) += -constr->GetComplianceTerm() * x(s_c);  // result.l_i += [E]*x.l_i = -cfm * x.l_i
         }
     }
@@ -479,21 +547,21 @@ void ChSystemDescriptor::SystemProductUpper(ChVectorDynamic<>& result,
 
     result.setZero(n_q);
 
-    // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
+    // First row: result.q part =  [M + K]*x.q + [Cq']*x.l
 
-    // 1.1)  do  M*x.q
+    // 1. do  M*x.q
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
             var->AddMassTimesVectorInto(result, v, c_a);
         }
     }
 
-    // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
+    // 2. add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
     for (const auto& krm_block : m_KRMblocks) {
         krm_block->AddMatrixTimesVectorInto(result, v);
     }
 
-    // 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
+    // 3. add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             constr->AddJacobianTransposedTimesScalarInto(result, lambda_sign * l(constr->GetOffset()));
@@ -502,19 +570,20 @@ void ChSystemDescriptor::SystemProductUpper(ChVectorDynamic<>& result,
 }
 
 void ChSystemDescriptor::SystemProductLower(ChVectorDynamic<>& result,
-                        const ChVectorDynamic<>& v,
-                        const ChVectorDynamic<>& l,
-                        bool negate_lambda) {
+                                            const ChVectorDynamic<>& v,
+                                            const ChVectorDynamic<>& l,
+                                            bool negate_lambda) {
     double lambda_sign = negate_lambda ? -1 : +1;
     n_c = CountActiveConstraints();
     result.setZero(n_c);
 
-    // 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
+    // Second row: result.l part =  [C_q]*x.q + [E]*x.l
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             int s_c = constr->GetOffset();
-            constr->AddJacobianTimesVectorInto(result(s_c), v);   // result.l_i += [C_q_i]*x.q
-            result(s_c) += -constr->GetComplianceTerm() * lambda_sign * l(s_c);  // result.l_i += [E]*x.l_i = -cfm * x.l_i
+            constr->AddJacobianTimesVectorInto(result(s_c), v);  // result.l_i += [C_q_i]*x.q
+            result(s_c) +=
+                -constr->GetComplianceTerm() * lambda_sign * l(s_c);  // result.l_i += [E]*x.l_i = -cfm * x.l_i
         }
     }
 }
