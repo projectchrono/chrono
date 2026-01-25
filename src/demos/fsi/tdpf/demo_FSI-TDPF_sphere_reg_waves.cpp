@@ -44,22 +44,30 @@ using namespace chrono::fsi::tdpf;
 
 // -----------------------------------------------------------------------------
 
+double t_end = 100;
+double time_step = 1.5e-2;
+bool enforce_realtime = true;
+
+bool lock = false;
+bool verbose = false;
+
+bool render_waves = true;
+double render_fps = 30;
+bool snapshots = false;
+
+bool debug_sys = false;
+
+////ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
+////ChSolver::Type solver_type = ChSolver::Type::APGD;
+ChSolver::Type solver_type = ChSolver::Type::GMRES;
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     auto sphere_meshfile = GetChronoDataFile("fsi-tdpf/sphere/sphere.obj");
     auto sphere_hydrofile = GetChronoDataFile("fsi-tdpf/sphere/sphere.h5");
 
     ChVector3d g_acc(0.0, 0.0, -9.81);
-
-    double t_end = 100;
-    double time_step = 1.5e-2;
-    bool enforce_realtime = true;
-
-    bool lock = false;
-    bool verbose = false;
-
-    bool render_waves = true;
-    double render_fps = 30;
-    bool snapshots = false;
 
     double wave_amplitude = 2.5;
     double wave_period = 5;
@@ -74,9 +82,7 @@ int main(int argc, char* argv[]) {
 
     // ----- Multibody system
     ChSystemNSC sysMBS;
-    sysMBS.SetGravitationalAcceleration(g_acc);
-
-    sysMBS.SetSolverType(ChSolver::Type::GMRES);
+    sysMBS.SetSolverType(solver_type);
     sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
 
     auto ground = chrono_types::make_shared<ChBody>();
@@ -119,9 +125,6 @@ int main(int argc, char* argv[]) {
 
     // ----- TDPF fluid system
     ChFsiFluidSystemTDPF sysTDPF;
-    sysTDPF.SetGravitationalAcceleration(g_acc);
-
-    // Set hydro input file
     sysTDPF.SetHydroFilename(sphere_hydrofile);
 
     // Add regular wave
@@ -133,6 +136,7 @@ int main(int argc, char* argv[]) {
 
     // ----- FSI system
     ChFsiSystemTDPF sysFSI(&sysMBS, &sysTDPF);
+    sysFSI.SetGravitationalAcceleration(g_acc);
     sysFSI.SetVerbose(verbose);
     sysFSI.SetStepSizeCFD(time_step);
     sysFSI.SetStepsizeMBD(time_step);
@@ -168,6 +172,7 @@ int main(int argc, char* argv[]) {
     // ----- Create output directory
     std::string out_dir = GetChronoOutputPath() + "FSI-TDPF_sphere";
     std::string img_dir = out_dir + "/reg_waves_img";
+    std::string dbg_dir = out_dir + "/reg_waves_dbg_" + sysMBS.GetSolver()->GetTypeAsString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -178,10 +183,21 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
+    if (debug_sys) {
+        if (!filesystem::create_directory(filesystem::path(dbg_dir))) {
+            std::cerr << "Error creating directory " << dbg_dir << std::endl;
+            return 1;
+        }
+    }
     std::string out_file = out_dir + "/reg_waves.txt";
     ChWriterCSV csv(" ");
 
+    // ----- ChSystem debug log
+    sysMBS.EnableSolverMatrixWrite(debug_sys, dbg_dir);
+
     // ----- Simulation loop
+    cout << "Using solver: " << sysMBS.GetSolver()->GetTypeAsString() << endl;
+
     ChRealtimeStepTimer realtime_timer;
     double time = 0;
     int render_frame = 0;
