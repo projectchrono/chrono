@@ -341,7 +341,7 @@ void ChTdpfVisualizationVSG::OnRender() {
         if (m_wave_mesh.colormode != ColorMode::NONE) {
             ChVector3d vel = VNULL;
             if (m_wave_mesh.colormode != ColorMode::HEIGHT)
-                auto vel = ChVector3d(m_sysTDPF->GetWaveVelocity(v.eigen(), height));
+                vel = ChVector3d(m_sysTDPF->GetWaveVelocity(v.eigen(), height));
             
             ChColor color;
             switch (m_wave_mesh.colormode) {

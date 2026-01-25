@@ -70,7 +70,7 @@ void ChFsiSystemTDPF::Initialize() {
         }
 
         auto hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
-        hydro_load->SetVerbose(false);
+        hydro_load->SetVerbose(m_verbose);
         fsi_bodies[0]->body->GetSystem()->Add(hydro_load);
     }
 }

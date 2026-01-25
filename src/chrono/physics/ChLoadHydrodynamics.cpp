@@ -15,6 +15,8 @@
 #include "chrono/physics/ChLoadHydrodynamics.h"
 #include "chrono/physics/ChSystem.h"
 
+////#define DEBUG_PRINT
+
 namespace chrono {
 
 ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_blocks)
@@ -53,19 +55,71 @@ void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
 
         m_KRM.GetMatrix().resize(size, size);
         m_added_mass.resize(size, size);
+        m_added_mass.setZero();
+
+        // Check if inverse of mass matrix is required (when a Schur complement-based solver is used)
+        auto solver_type = system->GetSolverType();
+        bool calc_M_inv = (solver_type == ChSolver::Type::APGD ||             //
+                           solver_type == ChSolver::Type::BARZILAIBORWEIN ||  //
+                           solver_type == ChSolver::Type::PSOR);              //
+           
+        // Load mass matrix with body inertia (sparse, block-diagonal)
+        ChSparseMatrix M_sparse;
+        if (calc_M_inv) {
+            system->DescriptorPrepareInject();
+            system->GetMassMatrix(M_sparse);
+#ifdef DEBUG_PRINT
+            std::cout << "Mass matrix" << std::endl;
+            std::cout << total_mass << std::endl;
+#endif
+        }
 
         m_added_mass.setZero();
         for (const auto& b1 : m_body_blocks) {
             const auto& row_block = b1.second;  // 6 x (6*n)
             auto row = b1.first->GetOffset_w();
+
             int i = 0;
             for (const auto& b2 : m_body_blocks) {
                 auto col = b2.first->GetOffset_w();
+
                 if (m_verbose)
                     std::cout << "  add 6x6 block starting at (" << row << "," << col << ")" << std::endl;
-                m_added_mass.block(row, col, 6, 6) = row_block(Eigen::seq(0, 5), Eigen::seq(i, i + 5));
+
+                // Current block (at row x col)
+                auto block = row_block(Eigen::seq(0, 5), Eigen::seq(i, i + 5));
+
+                // Set block in added mass matrix
+                m_added_mass.block(row, col, 6, 6) = block;
+
+                if (calc_M_inv) {
+                    // Add block to sparse total mass matrix
+                    PasteMatrix(M_sparse, block, row, col, false);
+                }
                 i += 6;
             }
+        }
+
+        // Calculate inverse of total mass
+        if (calc_M_inv) {
+            if (m_verbose)
+                std::cout << "  compute inverse of total mass matrix" << std::endl;
+
+            auto M = M_sparse.toDense();
+#ifdef DEBUG_PRINT
+            std::cout << "Mass matrix + Added mass" << std::endl;
+            std::cout << M << std::endl;
+#endif
+
+            auto Minv = M.inverse();
+#ifdef DEBUG_PRINT
+            std::cout << "Inverse" << std::endl;
+            std::cout << Minv << std::endl;
+            std::cout << "Check" << std::endl;
+            std::cout << M * Minv << std::endl;
+#endif
+
+            system->GetSystemDescriptor()->SetMassInverse(Minv);
         }
     }
 
