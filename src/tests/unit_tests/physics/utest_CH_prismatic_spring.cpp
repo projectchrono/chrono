@@ -73,7 +73,7 @@ std::shared_ptr<ChBody> CreateModel(ChSystem& sys) {
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    std::string out_dir = GetChronoOutputPath() + "PRISMATIC_SPRING";
+    std::string out_dir = GetChronoTestOutputPath() + "/prismatic_spring";
     std::string dirS = out_dir + "/sparse";
     std::string dirD = out_dir + "/dense";
     filesystem::create_directory(filesystem::path(out_dir));

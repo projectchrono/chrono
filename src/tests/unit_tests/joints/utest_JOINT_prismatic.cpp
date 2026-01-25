@@ -34,14 +34,11 @@ enum class eChLinkFormulation { Lock, Mate };
 
 // =============================================================================
 // Local variables
-//
-static const std::string val_dir = "TEST_RESULTS/";
-static const std::string out_dir = val_dir + "prismatic_joint/";
+static const std::string out_dir = GetChronoTestOutputPath() + "/prismatic_joint/";
 static const std::string ref_dir = "testing/joints/prismatic_joint/";
 
 // =============================================================================
 // Prototypes of local functions
-//
 bool TestPrismatic(const ChVector3d& jointLoc,
                    const ChQuaternion<>& jointRot,
                    eChLinkFormulation formulation,
@@ -57,15 +54,9 @@ bool ValidateEnergy(const std::string& testName, double tolerance);
 ChWriterCSV OutStream();
 
 // =============================================================================
-//
 // Main driver function for running the simulation and validating the results.
-//
 int main(int argc, char* argv[]) {
     // Create output directory (if it does not already exist)
-    if (!filesystem::create_directory(filesystem::path(val_dir))) {
-        std::cout << "Error creating directory " << val_dir << std::endl;
-        return 1;
-    }
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -421,10 +412,8 @@ bool TestPrismatic(const ChVector3d& jointLoc,      // absolute location of join
 }
 
 // =============================================================================
-//
 // Wrapper function for comparing the specified simulation quantities against a
 // reference file.
-//
 bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono test
                        const std::string& refTestName,     // name the reference test
                        const std::string& what,            // identifier for test quantity
@@ -444,7 +433,6 @@ bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono
 }
 
 // Wrapper function for checking constraint violations.
-//
 bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chrono test
                          double tolerance)                   // validation tolerance
 {
@@ -461,7 +449,6 @@ bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chro
 }
 
 // wrapper function for checking energy conservation.
-//
 bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono test
                     double tolerance)                   // validation tolerance
 {
@@ -478,9 +465,7 @@ bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono te
 }
 
 // =============================================================================
-//
 // Utility function to create a CSV output stream and set output format options.
-//
 ChWriterCSV OutStream() {
     ChWriterCSV out("\t");
 

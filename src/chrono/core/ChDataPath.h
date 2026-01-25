@@ -33,6 +33,14 @@ ChApi void SetChronoOutputPath(const std::string& path);
 /// Obtain the path to the output directory for Chrono demos.
 ChApi const std::string& GetChronoOutputPath();
 
+/// Set the path to the Chrono test output directory (ATTENTION: not thread safe).
+/// This directory is for internal use with the Chrono unit and benchmark tests.
+ChApi void SetChronoTestOutputPath(const std::string& path);
+
+/// Obtain the path to the output directory for Chrono tests.
+/// This directory is for internal use with the Chrono unit and benchmark tests.
+ChApi const std::string& GetChronoTestOutputPath();
+
 }  // end namespace chrono
 
 #endif

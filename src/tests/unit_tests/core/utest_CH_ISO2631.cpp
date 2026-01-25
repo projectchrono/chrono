@@ -11,6 +11,8 @@
 // =============================================================================
 
 #include "gtest/gtest.h"
+
+#include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChConstants.h"
 
@@ -350,7 +352,7 @@ TEST(WholeBodyWdFilter, SawtoothBurstRMS) {
 }
 
 TEST(ShockWxyFilter, StandardSignal) {
-    std::string out_dir = "TEST_RESULTS";
+    std::string out_dir = GetChronoTestOutputPath() + "/ISO2631";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         FAIL();

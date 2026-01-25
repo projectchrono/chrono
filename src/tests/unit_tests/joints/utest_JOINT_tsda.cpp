@@ -32,13 +32,10 @@ using namespace chrono::utils;
 
 // =============================================================================
 // Local variables
-//
-static const std::string val_dir = "TEST_RESULTS/";
-static const std::string out_dir = val_dir + "transpringcb_force/";
+static const std::string out_dir = GetChronoTestOutputPath() + "/transpringcb_force/";
 static const std::string ref_dir = "testing/joints/transpringcb_force/";
 
 // =============================================================================
-
 // Functor classes implementing the force for a ChLinkTSDA link.
 class MySpringForceCase01 : public ChLinkTSDA::ForceFunctor {
     virtual double evaluate(double time,            // current time
@@ -89,7 +86,6 @@ class MySpringForceCase03 : public ChLinkTSDA::ForceFunctor {
 
 // =============================================================================
 // Prototypes of local functions
-//
 bool TestTranSpringCB(const ChVector3d& jointLocGnd,
                       const ChVector3d& jointLocPend,
                       const ChCoordsys<>& PendCSYS,
@@ -103,15 +99,9 @@ bool ValidateEnergy(const std::string& testName, double tolerance);
 ChWriterCSV OutStream();
 
 // =============================================================================
-//
 // Main driver function for running the simulation and validating the results.
-//
 int main(int argc, char* argv[]) {
     // Create output directory (if it does not already exist)
-    if (!filesystem::create_directory(filesystem::path(val_dir))) {
-        std::cout << "Error creating directory " << val_dir << std::endl;
-        return 1;
-    }
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -186,9 +176,7 @@ int main(int argc, char* argv[]) {
 }
 
 // =============================================================================
-//
 // Worker function for performing the simulation with specified parameters.
-//
 bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of the distance
                                                        // constrain ground attachment point
                       const ChVector3d& jointLocPend,  // absolute location of the distance
@@ -410,10 +398,8 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
 }
 
 // =============================================================================
-//
 // Wrapper function for comparing the specified simulation quantities against a
 // reference file.
-//
 bool ValidateReference(const std::string& testName,  // name of this test
                        const std::string& what,      // identifier for test quantity
                        double tolerance)             // validation tolerance
@@ -432,9 +418,7 @@ bool ValidateReference(const std::string& testName,  // name of this test
 }
 
 // =============================================================================
-//
 // Utility function to create a CSV output stream and set output format options.
-//
 ChWriterCSV OutStream() {
     ChWriterCSV out("\t");
 

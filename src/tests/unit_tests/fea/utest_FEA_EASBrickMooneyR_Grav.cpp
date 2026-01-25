@@ -49,12 +49,14 @@ double sim_time = 2;            // Simulation time for generation of reference f
 double precision = 3e-6;        // Precision value used to assess results
 double sim_time_UT = 0.015;     // Simulation time for unit test 0.015
 
+std::string out_dir = GetChronoTestOutputPath() + "/fea_EAS_brick_MR";
+
 int main(int argc, char* argv[]) {
-    bool output = 0;  // Determines whether it tests (0) or generates golden file (1)
+    bool generate_output = false;  // Determines whether it tests (false) or generates golden file (true)
 
     ChMatrixDynamic<> FileInputMat(2000, 2);
-    if (output) {
-        std::cout << "Output file: ../TEST_Brick/UT_EASBrickMR_Grav.txt\n";
+    if (generate_output) {
+        std::cout << "Output file: " << out_dir + "/UT_EASBrickMR_Grav.txt\n";
     } else {
         // Utils to open/read files: Load reference solution ("golden") file
         std::string EASBrick_val_file = GetChronoDataPath() + "testing/fea/UT_EASBrickMR_Grav.txt";
@@ -237,16 +239,18 @@ int main(int argc, char* argv[]) {
     mystepper->SetAbsTolerances(1e-4);
 
     // Simulation loop
-    if (output) {
+    if (generate_output) {
         // Create output directory (if it does not already exist).
-        if (!filesystem::create_directory(filesystem::path("../TEST_Brick"))) {
-            std::cout << "Error creating directory ../TEST_Brick\n";
+        if (!filesystem::create_directory(out_dir)) {
+            std::cout << "Error creating directory " << out_dir << "\n";
             return 1;
         }
+
         // Initialize the output stream and set precision.
         ChWriterCSV out("\t");
         out.Stream().setf(std::ios::scientific | std::ios::showpos);
         out.Stream().precision(7);
+
         // Simulate to final time, while saving position of tip node.
         while (sys.GetChTime() < sim_time) {
             sys.DoStepDynamics(step_size);
@@ -255,7 +259,7 @@ int main(int argc, char* argv[]) {
                       << nodetip->GetForce().z() << "\t" << mystepper->GetNumStepIterations() << "\n";
         }
         // Write results to output file.
-        out.WriteToFile("../TEST_Brick/UT_EASBrickMR_Grav.txt");
+        out.WriteToFile(out_dir + "/UT_EASBrickMR_Grav.txt");
     } else {
         // Initialize total number of iterations and timer.
         double start = std::clock();
