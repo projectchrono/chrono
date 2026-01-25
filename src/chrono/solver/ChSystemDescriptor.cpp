@@ -467,9 +467,9 @@ void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorD
         PasteConstraintsJacobianMatrixInto(Cq);
         if (Mik) {
             *Mik = m_Minv * f;
-            result = Cq.transpose() * (*Mik) + b;
+            result = -Cq * (*Mik) - b;
         } else {
-            result = Cq.transpose() * m_Minv * f + b;
+            result = -Cq * m_Minv * f - b;
         }
         return;
     }
@@ -480,7 +480,7 @@ void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorD
             var->ComputeMassInverseTimesVector(var->State(), var->Force());
     }
 
-    // Calculate b_schur = - Cq'*q = - Cq'*(M^-1)*k
+    // Calculate b_schur = - Cq*q = - Cq*(M^-1)*k
     result.setZero();
     int s_i = 0;
     for (const auto& constr : m_constraints) {
