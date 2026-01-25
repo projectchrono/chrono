@@ -5,6 +5,7 @@ SET(TESTS
     utest_CH_compute_contact
     utest_CH_assembly
     utest_CH_composite_inertia
+    utest_CH_prismatic_spring
 )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
