@@ -57,9 +57,11 @@ bool snapshots = false;
 
 bool debug_sys = false;
 
-////ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
+ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
 ////ChSolver::Type solver_type = ChSolver::Type::APGD;
-ChSolver::Type solver_type = ChSolver::Type::GMRES;
+////ChSolver::Type solver_type = ChSolver::Type::GMRES;
+
+bool use_diag_precond = true;
 
 // -----------------------------------------------------------------------------
 
@@ -84,6 +86,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sysMBS;
     sysMBS.SetSolverType(solver_type);
     sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
+    sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
