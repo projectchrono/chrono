@@ -997,8 +997,6 @@ set(Chrono_solver_SOURCES
     solver/ChIterativeSolverVI.cpp
     solver/ChSolverPSOR.cpp
     solver/ChSolverPJacobi.cpp
-    solver/ChSolverPSSOR.cpp
-    solver/ChSolverPMINRES.cpp
     solver/ChSolverBB.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverADMM.cpp
@@ -1016,12 +1014,10 @@ set(Chrono_solver_HEADERS
     solver/ChIterativeSolverLS.h
     solver/ChIterativeSolverVI.h
     solver/ChSolverPJacobi.h
-    solver/ChSolverPMINRES.h
     solver/ChSolverBB.h
     solver/ChSolverAPGD.h
     solver/ChSolverADMM.h
     solver/ChSolverPSOR.h
-    solver/ChSolverPSSOR.h
     solver/ChKRMBlock.h
     solver/ChNlsolver.h
     )

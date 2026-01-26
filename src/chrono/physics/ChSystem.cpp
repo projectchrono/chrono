@@ -31,9 +31,7 @@
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverPJacobi.h"
-#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverPSOR.h"
-#include "chrono/solver/ChSolverPSSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/utils/ChProfiler.h"
@@ -276,14 +274,8 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
         case ChSolver::Type::PSOR:
             solver = chrono_types::make_shared<ChSolverPSOR>();
             break;
-        case ChSolver::Type::PSSOR:
-            solver = chrono_types::make_shared<ChSolverPSSOR>();
-            break;
         case ChSolver::Type::PJACOBI:
             solver = chrono_types::make_shared<ChSolverPJacobi>();
-            break;
-        case ChSolver::Type::PMINRES:
-            solver = chrono_types::make_shared<ChSolverPMINRES>();
             break;
         case ChSolver::Type::BARZILAIBORWEIN:
             solver = chrono_types::make_shared<ChSolverBB>();
@@ -302,6 +294,14 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             break;
         case ChSolver::Type::SPARSE_QR:
             solver = chrono_types::make_shared<ChSolverSparseQR>();
+            break;
+        case ChSolver::Type::PSSOR:
+            std::cerr << "\n\nWARNING: The PSSOR solver was removed. Falling back to PSOR\n\n" << std::endl;
+            solver = chrono_types::make_shared<ChSolverPSOR>();
+            break;
+        case ChSolver::Type::PMINRES:
+            std::cerr << "\n\nWARNING: The PMINRES solver was removed. Falling back to MINRES\n\n" << std::endl;
+            solver = chrono_types::make_shared<ChSolverMINRES>();
             break;
         default:
             std::cout << "Unknown solver type. No solver was set." << std::endl;
