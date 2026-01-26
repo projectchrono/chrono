@@ -54,8 +54,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
 
             if (slvr_type != chrono::ChSolver::Type::BARZILAIBORWEIN &&  //
                 slvr_type != chrono::ChSolver::Type::APGD &&             //
-                slvr_type != chrono::ChSolver::Type::PSOR &&             //
-                slvr_type != chrono::ChSolver::Type::PSSOR)
+                slvr_type != chrono::ChSolver::Type::PSOR)
                 cout << prefix << "NSC system - recommended solver: BARZILAIBORWEIN" << endl;
         }
     }

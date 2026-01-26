@@ -62,47 +62,16 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> mb_tmp(nc);
     ChVectorDynamic<> ms(nc);
     ChVectorDynamic<> my(nc);
-    ChVectorDynamic<> mD(nc);
     ChVectorDynamic<> mDg(nc);
 
-    const std::vector<ChConstraint*>& constraints = sysd.GetConstraints();
-
-    // Update auxiliary data in all constraints before starting,
-    // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-    for (auto& constraint : constraints)
-        constraint->UpdateAuxiliary();
-
-    // Average all g_i for the triplet of contact constraints n,u,v.
-    // Can be used for the fixed point phase and/or by preconditioner.
-    int j_friction_comp = 0;
-    double gi_values[3];
-    for (unsigned int ic = 0; ic < constraints.size(); ic++) {
-        if (constraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
-            gi_values[j_friction_comp] = constraints[ic]->GetSchurComplement();
-            j_friction_comp++;
-            if (j_friction_comp == 3) {
-                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
-                constraints[ic - 2]->SetSchurComplement(average_g_i);
-                constraints[ic - 1]->SetSchurComplement(average_g_i);
-                constraints[ic - 0]->SetSchurComplement(average_g_i);
-                j_friction_comp = 0;
-            }
-        }
-    }
-
-    // The vector with the diagonal of the N matrix
-    mD.setZero();
-    int d_i = 0;
-    for (const auto& constraint : constraints)
-        if (constraint->IsActive()) {
-            mD(d_i, 0) = constraint->GetSchurComplement();
-            ++d_i;
-        }
+    // Update auxiliary data in constraints
+    // Average entries for friction constraints
+    sysd.SchurComplementUpdateConstraints(true);
 
     // Calculate the Schur complement transformed RHS
-    // Cache M^-1 * k in 'mq'
-    ChVectorDynamic<> mq;
-    sysd.SchurComplementRHS(mb, &mq);
+    // Cache M^-1 * f in 'Mif'
+    ChVectorDynamic<> Mif;
+    sysd.SchurComplementRHS(mb, &Mif);
 
     // Initialize lambdas
     if (m_warm_start)
@@ -117,10 +86,18 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     lastgoodres = 1e30;
     ml_candidate = ml;
 
-    // g = gradient of 0.5*l'*N*l-l'*b
-    // g = N*l-b
-    sysd.SchurComplementProduct(mg, ml);  // 1)  g = N * l
-    mg -= mb;                             // 2)  g = N * l - b_schur
+    // Calculate g = grad(0.5*l'*N*l-l'*b) = N*l-b
+    // If using a diagonal preconditioner, cache the inverse diagonal of N
+    ChVectorDynamic<> iD(nc);
+
+    // 1) g = N*l 
+    if (m_use_precond)
+        sysd.SchurComplementProduct(mg, ml, &iD);
+    else
+        sysd.SchurComplementProduct(mg, ml);
+
+    // 2) g = N*l -b
+    mg -= mb;
 
     mg_p = mg;
 
@@ -140,7 +117,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         // Dg = Di*g;
         mDg = mg;
         if (m_use_precond)
-            mDg = mDg.array() / mD.array();
+            mDg = mDg.array() * iD.array();
 
         // dir  = [P(l - alpha*Dg) - l]
         mdir = ml - alpha * mDg;        // dir = l - alpha*Dg
@@ -211,7 +188,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
         if (((do_BB1e2) && (iter % 2 == 0)) || do_BB1) {
             if (m_use_precond)
-                mb_tmp = ms.array() * mD.array();
+                mb_tmp = ms.array() / iD.array();
             else
                 mb_tmp = ms;
             double sDs = ms.dot(mb_tmp);
@@ -248,7 +225,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         if (((do_BB1e2) && (iter % 2 != 0)) || do_BB2) {
             double sy = ms.dot(my);
             if (m_use_precond)
-                mb_tmp = my.array() / mD.array();
+                mb_tmp = my.array() * iD.array();
             else
                 mb_tmp = my;
             double yDy = my.dot(mb_tmp);
@@ -305,16 +282,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVectorToConstraints(ml);
 
     // Resulting PRIMAL variables:
-    // compute the primal variables as   v = (M^-1)(k + D*l)
-
-    // v = (M^-1)*k  ...    (by rewinding to the backup vector computed at the beginning)
-    sysd.FromVectorToVariables(mq);
-
-    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
-    for (auto& constraint : constraints) {
-        if (constraint->IsActive())
-            constraint->IncrementState(constraint->GetLagrangeMultiplier());
-    }
+    // compute the primal variables as   v = (M^-1)(f + Cq'*l)
+    sysd.SchurComplementIncrementVariables(&Mif);
 
     if (verbose)
         std::cout << "-----" << std::endl;

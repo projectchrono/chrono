@@ -123,16 +123,14 @@ class ChApi ChSystemDescriptor {
     /// Get the c_a coefficient (default=1) used for scaling the M masses of the m_variables.
     virtual double GetMassFactor() { return c_a; }
 
-    /// Get a vector with all the 'fb' known terms associated to all variables, ordered into a column vector.
-    /// The column vector must be passed as a ChMatrix<> object, which will be automatically reset and resized to the
-    /// proper length if necessary.
+    /// Gather all 'fb' known terms from all variables into a column vector.
+    /// The column vector will be automatically reset and resized to the proper length if necessary.
     virtual unsigned int BuildFbVector(ChVectorDynamic<>& f,       ///< system-level vector 'f'
                                        unsigned int start_row = 0  ///< offset in global 'f' vector
     ) const;
 
-    /// Get a vector with all the 'bi' known terms ('constraint residuals') associated to all constraints,
-    /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
-    /// object, which will be automatically reset and resized to the proper length if necessary.
+    /// Gather the constraint residuals 'bi' into a coluimn vector.
+    /// The column vector will be automatically reset and resized to the proper length if necessary.
     virtual unsigned int BuildBiVector(ChVectorDynamic<>& b,       ///< system-level vector 'b'
                                        unsigned int start_row = 0  ///< offset in global 'b' vector
     ) const;
@@ -144,74 +142,49 @@ class ChApi ChSystemDescriptor {
 
     /// Get the D diagonal of the Z system matrix, as a single column vector.
     /// This includes all the diagonal masses of M, and all the diagonal E (-cfm) terms.
-    /// The diagonal_vect must already have the size of n. of unknowns, otherwise it will be resized if necessary.
+    /// The diagonal_vect must already have size equal to the number of unknowns, otherwise it will be resized as
+    /// necessary.
     virtual unsigned int BuildDiagonalVector(ChVectorDynamic<>& diagonal_vect) const;
 
-    /// Using this function, one may get a vector with all the variables 'q'
-    /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
-    /// object, which will be automatically reset and resized to the proper length if necessary
-    /// (but if you are sure that the vector has already the proper size, you can optimize
-    /// the performance a bit by setting resize_vector as false).
+    /// Gather the 'q' tertms from all variables into a column vector.
+    /// The column vector will be automatically reset and resized to the proper length if requested.
     /// \return  the number of scalar variables (i.e. the rows of the column vector).
     virtual unsigned int FromVariablesToVector(ChVectorDynamic<>& vector,  ///< system-level vector 'q'
                                                bool resize_vector = true   ///< if true, resize vector as necessary
     ) const;
 
-    /// Using this function, one may go in the opposite direction of the FromVariablesToVector()
-    /// function, i.e. one gives a vector with all the variables 'q' ordered into a column vector, and
-    /// the variables objects are updated according to these values.
-    /// NOTE!!! differently from  FromVariablesToVector(), which always works, this
-    /// function will fail if mvector does not match the amount and ordering of
-    /// the variable objects!!! (it is up to the user to check this!) btw: most often,
-    /// this is called after FromVariablesToVector() to do a kind of 'undo', for example.
+    /// Scatter the given vector to the 'q' terms for all variables.
+    /// Note that *no* check on the size and ordering of the provided vector is performed.
     /// \return  the number of scalar variables (i.e. the rows of the column vector).
     virtual unsigned int FromVectorToVariables(const ChVectorDynamic<>& vector);
 
-    /// Using this function, one may get a vector with all the constraint reactions 'l_i'
-    /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
-    /// object, which will be automatically reset and resized to the proper length if necessary
-    /// (but uf you are sure that the vector has already the proper size, you can optimize
-    /// the performance a bit by setting resize_vector as false).
-    /// Optionally, you can pass an 'enabled' vector of bools, that must have the same
-    /// length of the l_i reactions vector; constraints with enabled=false are not handled.
+    /// Gather all constraint reactions 'l' into a column vector.
+    /// The column vectorwill be automatically reset and resized to the proper length if requested.
     /// \return  the number of scalar constr.multipliers (i.e. the rows of the column vector).
     virtual unsigned int FromConstraintsToVector(ChVectorDynamic<>& vector,  ///< system-level vector 'l_i'
                                                  bool resize_vector = true   ///< if true, resize vector as necessary
     ) const;
 
-    /// Using this function, one may go in the opposite direction of the FromConstraintsToVector()
-    /// function, i.e. one gives a vector with all the constr.reactions 'l_i' ordered into a column vector, and
-    /// the constraint objects are updated according to these values.
-    /// Optionally, you can pass an 'enabled' vector of bools, that must have the same
-    /// length of the l_i reactions vector; constraints with enabled=false are not handled.
-    /// NOTE!!! differently from  FromConstraintsToVector(), which always works, this
-    /// function will fail if mvector does not match the amount and ordering of
-    /// the variable objects!!! (it is up to the user to check this!) btw: most often,
-    /// this is called after FromConstraintsToVector() to do a kind of 'undo', for example.
+    /// Scatter the given vector to the constraint reaction terms 'l' for all constraints.
+    /// Note that *no* check on the size and ordering of the provided vector is performed.
     /// \return  the number of scalar constraint multipliers (i.e. the rows of the column vector).
     virtual unsigned int FromVectorToConstraints(const ChVectorDynamic<>& vector);
 
-    /// Using this function, one may get a vector with all the unknowns x={q,l} i.e. q variables & l_i constr.
-    /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
-    /// object, which will be automatically reset and resized to the proper length if necessary
-    /// (but if you are sure that the vector has already the proper size, you can optimize
-    /// the performance a bit by setting resize_vector as false).
+    /// Gather all unknows x = {q,l} into a column vector.
+    /// The column vector will be automatically reset and resized to the proper length if requested.
     /// \return  the number of scalar unknowns
     virtual unsigned int FromUnknownsToVector(ChVectorDynamic<>& vector,  ///< system-level vector x={q,l}
                                               bool resize_vector = true   ///< if true, resize vector as necessary
     ) const;
 
-    /// Using this function, one may go in the opposite direction of the FromUnknownsToVector()
-    /// function, i.e. one gives a vector with all the unknowns x={q,l} ordered into a column vector, and
-    /// the variables q and constr.multipliers l objects are updated according to these values.
-    /// NOTE!!! differently from  FromUnknownsToVector(), which always works, this
-    /// function will fail if mvector does not match the amount and ordering of
-    /// the variable and constraint objects!!! (it is up to the user to check this!)
+    /// Scatter the given vector to the variables 'q' and constraint multipliers 'l'.
+    /// Note that *no* check on the size and ordering of the provided vector is performed.
+    /// \return  the number of scalar unknowns
     virtual unsigned int FromVectorToUnknowns(const ChVectorDynamic<>& vector);
 
     // ------------------------------------------
 
-    /// Return treu if the system descriptor contains KRM blocks.
+    /// Return true if the system descriptor contains KRM blocks.
     bool HasKRMBlocks();
 
     /// Return true if the system descriptor supports Schur complement-based solvers.
@@ -229,31 +202,53 @@ class ChApi ChSystemDescriptor {
     /// expensive (e.g., for a constant mass matrix for which the inverse van be pre-computed).
     void SetMassInverse(ChMatrixConstRef M_inverse);
 
+    /// Return true if an inverse mass matrix was provided.
+    bool HasMassInverse() const { return m_use_Minv; }
+
+    /// Update constraints in the system.
+    /// This function calls ChConstraint::UpdateAuxiliary to calculate entries in the Schur complement matrix
+    /// corresponding to each constraint and, optionally, averages these entries for friction constraints (NSC).
+    void SchurComplementUpdateConstraints(bool average);
+
+    /// Update all variables in the system.
+    /// The 'q' data for the system ChVariables will be
+    /// <pre>
+    ///   incremented by: M^(-1) * Cq' * l,         if 'Mif' is NULL, or
+    ///   set to:         Mif + M^(-1) * Cq' * l,   if 'Mif' is non-NULL,
+    /// </pre>
+    /// where [l] is the vector of Lagrange multipliers.
+    void SchurComplementIncrementVariables(const ChVectorDynamic<>* Mif = nullptr);
+
+    /// Update all variables in the system by M^(-1) * Cq' * lvector.
+    void SchurComplementIncrementVariables(const ChVectorDynamic<>& lvector);
+
     /// Performs the product of N, the Schur complement of the KKT matrix, by an 'l' vector.
     /// <pre>
     ///    result = N * l = [ CqM^(-1)Cq' - E ] * l
     /// </pre>
     /// where [Cq] is the constraint Jacobian, [M] is the mass matrix, [E] is the matrix of the optional 'constraint
-    /// force mixing' terms for compliant constraints.
-    /// The N matrix is not built explicitly, to exploit sparsity, it is described by the inserted constraints and
-    /// inserted variables.
+    /// force mixing' terms for compliant constraints. If an inverse mass matrix is not provided (default), the N matrix
+    /// is never built explicitly; instead, it is described by the inserted constraints and inserted variables.
+    /// If non-NULL, the vector idiag will contain the inverse diagonal of the Schur complement matrix N (automatically
+    /// resized).
     /// NOTES:
     /// - the 'q' data in the ChVariables of the system descriptor is changed by this operation, so it may need to be
     ///   cached them via FromVariablesToVector().
-    /// - unless the inverse of the matrix (M+K) is provided, this function does NOT support systems that define
+    /// - unless the inverse of the matrix (M+K) is provided, this function does NOT support systems that include
     ///   ChKRMBlock objects.
-    virtual void SchurComplementProduct(ChVectorDynamic<>& result,        ///< result of  N * l_i
-                                        const ChVectorDynamic<>& lvector  ///< vector to be multiplied
+    virtual void SchurComplementProduct(ChVectorDynamic<>& result,          ///< result of  N * l_i
+                                        const ChVectorDynamic<>& lvector,   ///< vector to be multiplied
+                                        ChVectorDynamic<>* idiag = nullptr  ///< (optional) inverse diagonal
     );
 
     /// Calculate the RHS of the Schur complement equation.
     /// <pre>
-    ///    result = Cq'*(M^-1) * k + b
+    ///    result = Cq'*(M^-1) * f + b
     /// </pre>
     /// where [Cq] is the constraint Jacobian, [M] is the mass matrix, and [b] is the RHS of the KKT equation.
-    /// If non-NULL, the vector Mik will contain the intermediate values (M^-1) * k.
+    /// If non-NULL, the vector Mif will contain the intermediate values (M^-1)*f (automatically resized).
     void SchurComplementRHS(ChVectorDynamic<>& b_Schur,       ///< transformed RHS
-                            ChVectorDynamic<>* Mik = nullptr  ///< (optional) intermediate quantity Minv*k
+                            ChVectorDynamic<>* Mif = nullptr  ///< (optional) intermediate quantity Minv*f
     );
 
     // ------------------------------------------

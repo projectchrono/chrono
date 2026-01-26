@@ -53,7 +53,6 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
 
-//#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverPSOR.h"

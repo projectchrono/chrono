@@ -14,6 +14,7 @@
 
 #include <iomanip>
 
+#include "chrono/utils/ChConstants.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
@@ -388,7 +389,90 @@ void ChSystemDescriptor::SetMassInverse(ChMatrixConstRef M_inverse) {
     m_Minv = M_inverse;
 }
 
-void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result, const ChVectorDynamic<>& lvector) {
+void ChSystemDescriptor::SchurComplementUpdateConstraints(bool average) {
+    if (m_use_Minv) {
+        // No need to call ChConstraint::UpdateAuxiliary as the Schur complement is treated at system-level
+
+        if (average) {
+            //// TODO - average Schur complement entries for friction constraints
+        }
+
+        return;
+    }
+
+    // Update auxiliary data in all constrainte
+    // 1) calculate g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
+    // 2) if requested, overwrite g_i with the average for friction constraints
+    //    NOTE: this assumes that friction constraints come in contiguouis groups of 3.
+    double g_friction[3];
+    unsigned int ic_friction = 0;
+
+    for (unsigned int ic = 0; ic < n_c; ic++) {
+        auto constr = m_constraints[ic];
+        constr->UpdateAuxiliary();
+
+        if (average && constr->GetMode() == ChConstraint::Mode::FRICTION) {
+            g_friction[ic_friction] = constr->GetSchurComplement();
+            ic_friction++;
+            if (ic_friction == 3) {
+                double g_average = (g_friction[0] + g_friction[1] + g_friction[2]) * CH_1_3;
+                m_constraints[ic - 2]->SetSchurComplement(g_average);
+                m_constraints[ic - 1]->SetSchurComplement(g_average);
+                m_constraints[ic - 0]->SetSchurComplement(g_average);
+                ic_friction = 0;
+            }
+        }
+    }
+}
+
+void ChSystemDescriptor::SchurComplementIncrementVariables(const ChVectorDynamic<>* Mif) {
+    if (m_use_Minv) {
+        ChSparseMatrix Cq(n_c, n_q);
+        ChVectorDynamic<> l;
+        Cq.setZero();
+        PasteConstraintsJacobianMatrixInto(Cq);
+        FromConstraintsToVector(l, true);
+
+        if (Mif)
+            FromVectorToVariables(*Mif + m_Minv * Cq.transpose() * l);
+        else
+            FromVectorToVariables(m_Minv * Cq.transpose() * l);
+
+        return;
+    }
+
+    // set variables to M^(-1) * f
+    if (Mif)
+        FromVectorToVariables(*Mif);
+
+    // increment variables with M^(-1) * Cq' * l
+    for (auto& constr : m_constraints) {
+        if (constr->IsActive())
+            constr->IncrementState(constr->GetLagrangeMultiplier());
+    }
+}
+
+void ChSystemDescriptor::SchurComplementIncrementVariables(const ChVectorDynamic<>& lvector) {
+    if (m_use_Minv) {
+        ChSparseMatrix Cq(n_c, n_q);
+        ChVectorDynamic<> q;
+        Cq.setZero();
+        PasteConstraintsJacobianMatrixInto(Cq);
+        FromVariablesToVector(q, true);
+        q += m_Minv * Cq.transpose() * lvector;
+        FromVectorToVariables(q);
+        return;
+    }
+
+    for (unsigned int ic = 0; ic < m_constraints.size(); ic++) {
+        if (m_constraints[ic]->IsActive())
+            m_constraints[ic]->IncrementState(lvector[ic]);
+    }
+}
+
+void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
+                                                const ChVectorDynamic<>& lvector,
+                                                ChVectorDynamic<>* idiag) {
     // nothing to do if no constraints
     if (n_c == 0)
         return;
@@ -407,7 +491,13 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result, const
         E.setZero();
         PasteConstraintsJacobianMatrixInto(Cq);
         PasteComplianceMatrixInto(E);
-        result = (Cq * m_Minv * Cq.transpose() - E) * lvector;
+        if (idiag) {
+            ChMatrixDynamic<> N = Cq * m_Minv * Cq.transpose() - E;
+            *idiag = N.diagonal().cwiseInverse();
+            result = N * lvector;
+        } else {
+            result = (Cq * m_Minv * Cq.transpose() - E) * lvector;
+        }
         return;
     }
 
@@ -417,26 +507,35 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result, const
             var->State().setZero();
     }
 
-    // 2 - calculate qb = [M^(-1)][Cq']*l
-    //     Also, begin to add the compliance term ( -[E]*l ) to the result.
+    // 2 - calculate qb = M^(-1) * Cq' * l
+    //     Set result = -E*l.
     //     ATTENTION:  this loop cannot be parallelized, as concurrent writes to some q may happen.
+    if (idiag)
+        idiag->resize(n_c);
+    int i = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             int s_c = constr->GetOffset();
 
             double li = lvector(s_c);
 
-            // Compute qb += [M^(-1)][Cq']*l_i
+            // Compute qb += M^(-1) * Cq' * l_i
             // NOTE: concurrent update to same q data, risk of collision if parallel
             constr->IncrementState(li);
 
-            // Add -[E] * l_i
-            // NOTE: compliance term  cfm = -E, so   -[E] * l_i = cfm * l_i
+            // Add -E*l_i in result vector
+            // NOTE: compliance term  cfm = -E, so   -E * l_i = cfm * l_i
             result(s_c) = constr->GetComplianceTerm() * li;
+
+            // Cache diagonal of Schur complement, if requested
+            if (idiag) {
+                (*idiag)(i, 0) = 1 / constr->GetSchurComplement();
+                i++;
+            }
         }
     }
 
-    // 3 - calculate result = [Cq']*qb
+    // 3 - Update result vector with Cq*qb = Cq * M^-1 * Cq' *l
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             result(constr->GetOffset()) += constr->ComputeJacobianTimesState();
@@ -444,7 +543,7 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result, const
     }
 }
 
-void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorDynamic<>* Mik) {
+void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorDynamic<>* Mif) {
     assert(SupportsSchurComplement());
 
     // Use the inverse mass matrix if provided
@@ -457,30 +556,34 @@ void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorD
         BuildFbVector(f);
         BuildBiVector(b);
         if (n_c == 0) {
-            if (Mik)
-                *Mik = m_Minv * f;
+            if (Mif)
+                *Mif = m_Minv * f;
             result = b;
             return;
         }
         ChSparseMatrix Cq(n_c, n_q);
         Cq.setZero();
         PasteConstraintsJacobianMatrixInto(Cq);
-        if (Mik) {
-            *Mik = m_Minv * f;
-            result = -Cq * (*Mik) - b;
+        if (Mif) {
+            *Mif = m_Minv * f;
+            result = -Cq * (*Mif) - b;
         } else {
             result = -Cq * m_Minv * f - b;
         }
         return;
     }
 
-    // Load (M^-1)*k in q sparse vector of each variable
+    // Load q = M^(-1) * f for each variable
     for (const auto& var : m_variables) {
         if (var->IsActive())
             var->ComputeMassInverseTimesVector(var->State(), var->Force());
     }
 
-    // Calculate b_schur = - Cq*q = - Cq*(M^-1)*k
+    // Cache q = M^(-1)*f calculated above, if requested (resize as needed)
+    if (Mif)
+        FromVariablesToVector(*Mif, true);
+
+    // Calculate b_schur = -Cq*q = -Cq * M^(-1) * f
     result.setZero();
     int s_i = 0;
     for (const auto& constr : m_constraints) {
@@ -490,14 +593,10 @@ void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorD
         }
     }
 
-    // Calculate b_schur = b_schur - c
-    ChVectorDynamic<> c(n_c);
-    BuildBiVector(c);  // b_i = -c = phi/h
-    result -= c;
-
-    // Optionally cache q = (M^-1)*k calculated above
-    if (Mik)
-        FromVariablesToVector(*Mik, true);
+    // Calculate b_schur = b_schur - b
+    ChVectorDynamic<> b(n_c);
+    BuildBiVector(b);  // b_i = -c = phi/h
+    result -= b;
 }
 
 void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVectorDynamic<>& x) {
@@ -683,8 +782,8 @@ void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string&
 void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::string& prefix, bool one_indexed) {
     // Count constraints.
     int mn_c = 0;
-    for (auto& cnstr : m_constraints) {
-        if (cnstr->IsActive())
+    for (auto& constr : m_constraints) {
+        if (constr->IsActive())
             mn_c++;
     }
 

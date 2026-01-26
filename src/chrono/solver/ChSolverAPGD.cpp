@@ -35,12 +35,8 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         throw std::runtime_error("ChSolverAPGD: System descriptor does not support Schur complement-based solvers.");
     }
 
-    const std::vector<ChConstraint*>& constraints = sysd.GetConstraints();
-
-    // Update auxiliary data in all constraints before starting,
-    // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-    for (auto& constraint : constraints)
-        constraint->UpdateAuxiliary();
+    // Update auxiliary data in all constrants
+    sysd.SchurComplementUpdateConstraints(false);
 
     double L, t;
     double theta;
@@ -65,7 +61,9 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     obj2 = 0.0;
 
     // Compute the RHS vector in the Schur complement equation N*l = b_schur
-    sysd.SchurComplementRHS(r);
+    // Cache M^-1 * f in 'Mif'
+    ChVectorDynamic<> Mif;
+    sysd.SchurComplementRHS(r, &Mif);
 
     // If no constraints, return now. Variables contain M^-1 * f after call to SchurComplementRHS.
     // This early exit is needed, else we get division by zero and a potential infinite loop.
@@ -73,19 +71,12 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         return 0;
     }
 
-    // Optimization: backup the  q  sparse data computed above,
-    // because   (M^-1)*k   will be needed at the end when computing primals.
-    ChVectorDynamic<> Minvk;
-    sysd.FromVariablesToVector(Minvk, true);
-
     // (1) gamma_0 = zeros(nc,1)
     if (m_warm_start) {
-        for (auto& constraint : constraints)
-            if (constraint->IsActive())
-                constraint->IncrementState(constraint->GetLagrangeMultiplier());
+        sysd.SchurComplementIncrementVariables();
     } else {
-        for (auto& constraint : constraints)
-            constraint->SetLagrangeMultiplier(0.);
+        for (auto& constraint : sysd.GetConstraints())
+            constraint->SetLagrangeMultiplier(0);
     }
     sysd.FromConstraintsToVector(gamma);
 
@@ -206,15 +197,8 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVectorToConstraints(gamma_hat);
 
     // Resulting PRIMAL variables:
-    // compute the primal variables as   v = (M^-1)(k + D*l)
-    // v = (M^-1)*k  ...    (by rewinding to the backup vector computed at the beginning)
-    sysd.FromVectorToVariables(Minvk);
-
-    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
-    for (auto& constraint : constraints) {
-        if (constraint->IsActive())
-            constraint->IncrementState(constraint->GetLagrangeMultiplier());
-    }
+    // compute the primal variables as   v = (M^-1)(f + Cq'*l)
+    sysd.SchurComplementIncrementVariables(&Mif);
 
     return residual;
 }
