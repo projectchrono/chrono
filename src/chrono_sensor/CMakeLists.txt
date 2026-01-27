@@ -17,6 +17,10 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
   mark_as_advanced(FORCE GLEW_DIR)
   mark_as_advanced(FORCE glfw3_DIR)
 
+  set(CH_USE_SENSOR_OPTIX FALSE)
+  set(CH_USE_SENSOR_OPTIX ${CH_USE_SENSOR_OPTIX} PARENT_SCOPE)
+  mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
+
   return()
 endif()
 
