@@ -66,7 +66,7 @@ void ChFsiSystemTDPF::Initialize() {
 
         ChBodyAddedMassBlocks body_blocks;
         for (size_t i = 0; i < num_bodies; i++) {
-            body_blocks.insert(std::pair(fsi_bodies[i]->body, body_info[i].inf_added_mass));
+            body_blocks.push_back({fsi_bodies[i]->body, body_info[i].inf_added_mass});
         }
 
         auto hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);

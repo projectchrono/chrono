@@ -25,11 +25,11 @@ ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_block
     std::vector<ChVariables*> variables;
     auto num_bodies = (int)body_blocks.size();
     for (const auto& b : body_blocks) {
-        if (b.second.rows() != 6 || b.second.cols() != 6 * num_bodies) {
-            std::cerr << "Incorrect added mass block size for body " << b.first->GetName() << std::endl;
+        if (b.block.rows() != 6 || b.block.cols() != 6 * num_bodies) {
+            std::cerr << "Incorrect added mass block size for body " << b.body->GetName() << std::endl;
             throw std::runtime_error("Incorrect added mass block size");
         }
-        variables.push_back(&b.first->Variables());
+        variables.push_back(&b.body->Variables());
     }
 
     // Set variables for KRM block
@@ -76,18 +76,18 @@ void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
 
         m_added_mass.setZero();
         for (const auto& b1 : m_body_blocks) {
-            const auto& row_block = b1.second;  // 6 x (6*n)
-            auto row = b1.first->GetOffset_w();
+            auto row = b1.body->GetOffset_w();
+            if (m_verbose)
+                std::cout << "- process blocks for body '" << b1.body->GetName() << "'" << std::endl;
 
             int i = 0;
             for (const auto& b2 : m_body_blocks) {
-                auto col = b2.first->GetOffset_w();
-
+                auto col = b2.body->GetOffset_w();
                 if (m_verbose)
                     std::cout << "  add 6x6 block starting at (" << row << "," << col << ")" << std::endl;
 
                 // Current block (at row x col)
-                auto block = row_block(Eigen::seq(0, 5), Eigen::seq(i, i + 5));
+                auto block = b1.block(Eigen::seq(0, 5), Eigen::seq(i, i + 5));
 
                 // Set block in added mass matrix
                 m_added_mass.block(row, col, 6, 6) = block;
@@ -137,7 +137,7 @@ void ChLoadHydrodynamics::IntLoadResidual_Mv(const unsigned int off,
     ChVectorDynamic<> w1(6 * num_bodies);
     int i = 0;
     for (const auto& b : m_body_blocks) {
-        auto offset = b.first->GetOffset_w();
+        auto offset = b.body->GetOffset_w();
         w1(Eigen::seq(i, i + 5)) = w(Eigen::seq(offset, offset + 5));
         i += 6;
     }
@@ -146,7 +146,7 @@ void ChLoadHydrodynamics::IntLoadResidual_Mv(const unsigned int off,
     ChVectorDynamic<> cMw1 = c * m_added_mass * w1;
     i = 0;
     for (const auto& b : m_body_blocks) {
-        auto offset = b.first->GetOffset_w();
+        auto offset = b.body->GetOffset_w();
         R(Eigen::seq(offset, offset + 5)) += cMw1(Eigen::seq(i, i + 5));
         i += 6;
     }
