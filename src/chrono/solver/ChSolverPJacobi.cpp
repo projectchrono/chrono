@@ -32,8 +32,8 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
     //// Switch to using Schur complement functions (SchurComplementProduct and SchurComplementRHS) from
     //// ChSystemDescriptor) to accept problems with non-block diagonal mass matrix
     if (sysd.HasMassInverse()) {
-        std::cerr << "\n\ChSolverPJacobi: Can NOT use PJacobi solver if the system has a non-block diagonal mass matrix"
-                  << std::endl;
+        std::cerr
+            << "\n\nChSolverPJacobi: Can NOT use PJacobi solver if the system has a non-block diagonal mass matrix\n";
         throw std::runtime_error("ChSolverPJacobi: System descriptor has non-block diagonal mass matrix.");
     }
 
