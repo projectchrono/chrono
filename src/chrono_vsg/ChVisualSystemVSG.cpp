@@ -324,11 +324,13 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_com_frames(false),
       m_show_com_symbols(false),
       m_show_link_frames(false),
+      //
+      m_scale_multiplier(1),
       m_abs_frame_scale(1),
       m_ref_frame_scale(1),
       m_com_frame_scale(1),
-      m_com_symbol_ratio(0.15),
       m_link_frame_scale(1),
+      m_com_symbol_ratio(0.15),
       m_com_size_changed(false),
       m_com_symbols_empty(false),
       //
@@ -1024,7 +1026,7 @@ void ChVisualSystemVSG::Render() {
     // Only update if COM symbols are actually visible to avoid unecessary cpu to gpu data transfers
     // otherwise this is effectively marking dirty even if the symbols are hidden! (extra work)
     if (m_show_com_symbols && !m_com_symbols_empty) {
-        auto symbol_size = m_com_frame_scale * m_com_symbol_ratio;
+        auto symbol_size = m_scale_multiplier * m_com_frame_scale * m_com_symbol_ratio;
 
         std::vector<ChVector3d> c_pos;
         for (auto sys : m_systems)
@@ -1432,16 +1434,6 @@ void ChVisualSystemVSG::ToggleAbsFrameVisibility() {
     }
 }
 
-void ChVisualSystemVSG::RenderRefFrames(double axis_length) {
-    m_ref_frame_scale = axis_length;
-    m_show_ref_frames = true;
-
-    if (m_initialized) {
-        for (auto& child : m_refFrameScene->children)
-            child.mask = m_show_ref_frames;
-    }
-}
-
 void ChVisualSystemVSG::SetRefFrameScale(double axis_length) {
     m_ref_frame_scale = axis_length;
 }
@@ -1558,7 +1550,7 @@ void ChVisualSystemVSG::ConvertPositions(const std::vector<ChVector3d>& c, vsg::
 
 void ChVisualSystemVSG::BindCOMSymbols() {
     auto symbol_texture_filename = GetChronoDataFile("vsg/textures/COM_symbol.png");
-    auto symbol_size = m_com_frame_scale * m_com_symbol_ratio;
+    auto symbol_size = m_scale_multiplier * m_com_frame_scale * m_com_symbol_ratio;
 
     vsg::GeometryInfo geomInfo;
     geomInfo.dx.set(symbol_size, 0.0f, 0.0f);
@@ -1677,7 +1669,7 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 void ChVisualSystemVSG::BindAll() {
     {
         auto transform = vsg::MatrixTransform::create();
-        transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
+        transform->matrix = vsg::dmat4CH(ChFramed(), m_scale_multiplier * m_abs_frame_scale);
         vsg::Mask mask = m_show_abs_frame;
         auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
         node->setValue("Transform", transform);
@@ -2187,7 +2179,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
 
 void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
     auto transform = vsg::MatrixTransform::create();
-    transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_ref_frame_scale);
+    transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
     vsg::Mask mask = m_show_ref_frames;
     auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
     node->setValue("Object", obj);
@@ -2197,7 +2189,7 @@ void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
 
 void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto com_transform = vsg::MatrixTransform::create();
-    com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_com_frame_scale);
+    com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
     auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 1.0f, 2.0f, true);
     com_node->setValue("Body", body);
@@ -2210,7 +2202,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     vsg::Mask mask = m_show_link_frames;
     {
         auto link_transform = vsg::MatrixTransform::create();
-        link_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_link_frame_scale);
+        link_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
         auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.75f, 1.0f, true);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 1);
@@ -2219,7 +2211,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     }
     {
         auto link_transform = vsg::MatrixTransform::create();
-        link_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_link_frame_scale);
+        link_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
         auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.5f, 1.0f, true);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 2);
@@ -2548,7 +2540,7 @@ void ChVisualSystemVSG::Update() {
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
+            transform->matrix = vsg::dmat4CH(ChFramed(), m_scale_multiplier * m_abs_frame_scale);
         }
     }
 
@@ -2562,7 +2554,7 @@ void ChVisualSystemVSG::Update() {
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_ref_frame_scale);
+            transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
         }
     }
 
@@ -2576,7 +2568,7 @@ void ChVisualSystemVSG::Update() {
                 continue;
 
             if (child.node->getValue("Body", body))
-                transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_com_frame_scale);
+                transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
             else
                 continue;
         }
@@ -2596,9 +2588,9 @@ void ChVisualSystemVSG::Update() {
                 continue;
 
             if (body == 1)
-                transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_link_frame_scale);
+                transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
             else
-                transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_link_frame_scale);
+                transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
         }
     }
 
