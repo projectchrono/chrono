@@ -509,8 +509,7 @@ add_subdirectory(chrono_models)
 add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
 add_subdirectory(chrono_ros)
-add_subdirectory(chrono_swig/chrono_python)
-add_subdirectory(chrono_swig/chrono_csharp)
+add_subdirectory(chrono_swig)
 
 # Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)
@@ -757,6 +756,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
 # Create Chrono project configuration script in install and build trees
 set(CH_INSTALL_TREE TRUE)
 set(CH_BUILD_TREE_DIR "")
+set(CHRONO_SWIG_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_swig")
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
@@ -765,6 +765,7 @@ configure_package_config_file(
 
 set(CH_INSTALL_TREE FALSE)
 set(CH_BUILD_TREE_DIR "${PROJECT_BINARY_DIR}")
+set(CHRONO_SWIG_DIR "${CMAKE_BINARY_DIR}/chrono_swig")
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"

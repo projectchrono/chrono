@@ -30,6 +30,8 @@
 # CHRONO_CSHARP_SOURCES
 #       list of all SWIG-generated C# scripts corresponding to the requested components
 #       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono are wrapped)
+# CHRONO_SWIG_DIR
+#       path to the Chrono SWIG interface files
 # CHRONO_DATA_DIR
 #       path to the Chrono data directory
 # CHRONO_VEHICLE_DATA_DIR
@@ -151,6 +153,10 @@ if(CHRONO_MPI_CXX_AVAILABLE)
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
 else()
    set(Chrono_VEHICLECOSIM_AVAILABLE FALSE)
+endif()
+
+if(@CH_INSTALL_SWIG_INTERFACE@)
+   set(CHRONO_SWIG_DIR "@CHRONO_SWIG_DIR@")
 endif()
 
 #-------------------------------------------------------------------------------
