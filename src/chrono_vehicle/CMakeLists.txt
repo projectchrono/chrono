@@ -95,15 +95,15 @@ if(CH_ENABLE_IRRKLANG)
   message(STATUS "IrrKlang include dir: ${IRRKLANG_INCLUDE_DIR}")
   message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
 
-  set(HAVE_IRRKLANG ${IRRKLANG_FOUND})
+  set(CH_USE_IRRKLANG ${IRRKLANG_FOUND})
 
 else()
 
-  set(HAVE_IRRKLANG FALSE)
+  set(CH_USE_IRRKLANG FALSE)
 
 endif()
 
-SET(HAVE_IRRKLANG "${HAVE_IRRKLANG}" PARENT_SCOPE)
+set(CH_USE_IRRKLANG "${CH_USE_IRRKLANG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
