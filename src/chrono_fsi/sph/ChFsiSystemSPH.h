@@ -61,6 +61,10 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Utility function to synchronize device.
     void SynchronizeDevice();
 
+    /// Initialize the FSI system.
+    /// A call to this function marks the completion of system construction.
+    virtual void Initialize() override;
+
   private:
     ChFsiFluidSystemSPH* m_sysSPH;  ///< cached SPH fluid solver
     bool m_generic_fsi_interface;

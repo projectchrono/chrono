@@ -35,10 +35,8 @@ namespace sph {
 ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS, ChFsiFluidSystemSPH* sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH), m_generic_fsi_interface(use_generic_interface) {
     if (use_generic_interface) {
-        ////std::cout << "Create an FSI system using a generic FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysSPH);
     } else {
-        ////std::cout << "Create an FSI system using a custom SPH FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
     }
 }
@@ -80,6 +78,14 @@ void ChFsiSystemSPH::AddFsiBoundary(const std::vector<ChVector3d>& bce, const Ch
 
 void ChFsiSystemSPH::SynchronizeDevice() {
     synchronizeDevice();
+}
+
+void ChFsiSystemSPH::Initialize() {
+    if (m_verbose)
+        std::cout << "FSI system has " << (m_generic_fsi_interface ? "generic" : "custom") << " interface" << std::endl;
+
+    // Initialize the SPH solver and the FSI interface
+    ChFsiSystem::Initialize();
 }
 
 }  // end namespace sph

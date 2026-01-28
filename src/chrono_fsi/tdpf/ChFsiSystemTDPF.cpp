@@ -34,13 +34,10 @@ namespace tdpf {
 
 ChFsiSystemTDPF::ChFsiSystemTDPF(ChSystem* sysMBS, ChFsiFluidSystemTDPF* sysTDPF, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysTDPF), m_sysTDPF(sysTDPF), m_generic_fsi_interface(use_generic_interface) {
-    if (use_generic_interface) {
-        std::cout << "Create an FSI system using a generic FSI interface" << std::endl;
+    if (use_generic_interface)
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysTDPF);
-    } else {
-        std::cout << "Create an FSI system using a custom TDPF FSI interface" << std::endl;
+    else
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceTDPF>(sysMBS, sysTDPF);
-    }
 }
 
 ChFsiSystemTDPF::~ChFsiSystemTDPF() {}
@@ -55,6 +52,9 @@ void ChFsiSystemTDPF::SetHydroFilename(const std::string& filename) {
 }
 
 void ChFsiSystemTDPF::Initialize() {
+    if (m_verbose)
+        std::cout << "FSI system has " << (m_generic_fsi_interface ? "generic" : "custom") << " interface" << std::endl;
+
     // Initialize the TDPF solver and the FSI interface
     ChFsiSystem::Initialize();
 

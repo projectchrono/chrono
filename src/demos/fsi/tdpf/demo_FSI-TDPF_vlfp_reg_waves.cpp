@@ -17,12 +17,8 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/input_output/ChWriterCSV.h"
-
-#include "chrono_postprocess/ChGnuPlot.h"
 
 #include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
-#include "chrono_fsi/tdpf/ChFsiFluidSystemTDPF.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_fsi/tdpf/visualization/ChTdpfVisualizationVSG.h"
@@ -243,7 +239,7 @@ int main(int argc, char* argv[]) {
         sysMBS.AddBody(ground);
 
     // Create pontoon bodies
-    std::cout << "Creating " << NUM_BODIES << " pontoon bodies...\n";
+    cout << "Creating " << NUM_BODIES << " pontoon bodies...\n";
     std::array<std::shared_ptr<ChBody>, NUM_BODIES> bodies;
 
     ChColormap cmap(ChColormap::Type::KINDLMANN);
@@ -269,7 +265,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create joints (revolute or fixed based on configuration)
-    std::cout << "Creating " << (NUM_BODIES - 1) << " joints...\n";
+    cout << "Creating " << (NUM_BODIES - 1) << " joints...\n";
     std::array<std::shared_ptr<ChLink>, NUM_BODIES - 1> joints;
 
     for (int i = 0; i < NUM_BODIES - 1; ++i) {
@@ -279,7 +275,7 @@ int main(int argc, char* argv[]) {
                          (joint_mode == JointMode::HINGED_3 && i % 2 == 0);  //
 
         if (verbose)
-            std::cout << "  joint #" << i << " locked? " << (is_locked ? "true" : "false") << std::endl;
+            cout << "  joint #" << i << " locked? " << (is_locked ? "true" : "false") << endl;
 
         auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
         joint->SetName(cfg.name);
@@ -291,7 +287,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create RSDAs
-    std::cout << "Creating " << (NUM_BODIES - 1) << " RSDA dampers...\n";
+    cout << "Creating " << (NUM_BODIES - 1) << " RSDA dampers...\n";
     std::array<std::shared_ptr<ChLinkRSDA>, NUM_BODIES - 1> rsdas;
 
     for (int i = 0; i < NUM_BODIES - 1; ++i) {
@@ -326,11 +322,11 @@ int main(int argc, char* argv[]) {
     sysTDPF.AddWaves(reg_wave_params);
 
     if (verbose) {
-        std::cout << "\nWave parameters\n";
-        std::cout << "  Wave height:    " << wave_height << " m\n";
-        std::cout << "  Wave period:    " << wave_period << " s\n";
-        std::cout << "  Wave amplitude: " << wave_amplitude << " m\n";
-        std::cout << "  Wave omega:     " << CH_2PI / wave_period << " rad/s\n";
+        cout << "\nWave parameters\n";
+        cout << "  Wave height:    " << wave_height << " m\n";
+        cout << "  Wave period:    " << wave_period << " s\n";
+        cout << "  Wave amplitude: " << wave_amplitude << " m\n";
+        cout << "  Wave omega:     " << CH_2PI / wave_period << " rad/s\n";
     }
 
     // ----- FSI system
@@ -383,13 +379,13 @@ int main(int argc, char* argv[]) {
     }
     if (snapshots) {
         if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            std::cerr << "Error creating directory " << img_dir << std::endl;
+            cerr << "Error creating directory " << img_dir << endl;
             return 1;
         }
     }
     if (debug_sys) {
         if (!filesystem::create_directory(filesystem::path(dbg_dir))) {
-            std::cerr << "Error creating directory " << dbg_dir << std::endl;
+            cerr << "Error creating directory " << dbg_dir << endl;
             return 1;
         }
     }
@@ -405,12 +401,12 @@ int main(int argc, char* argv[]) {
         measurement_points.push_back(CreateMeasurementPoint(x_L, mp_config, joint_mode));
     }
 
-    std::cout << "\nMeasurement points configured:\n";
-    std::cout << "  Total length: " << mp_config.total_length << " m\n";
-    std::cout << "  Number of points: " << measurement_points.size() << "\n";
+    cout << "\nMeasurement points configured:\n";
+    cout << "  Total length: " << mp_config.total_length << " m\n";
+    cout << "  Number of points: " << measurement_points.size() << "\n";
     for (size_t i = 0; i < measurement_points.size(); ++i) {
         const auto& mp = measurement_points[i];
-        std::cout << "  x/L=" << std::fixed << std::setprecision(2) << mp.x_over_L << " -> x=" << std::setprecision(1)
+        cout << "  x/L=" << std::fixed << std::setprecision(2) << mp.x_over_L << " -> x=" << std::setprecision(1)
                   << mp.global_x << "m"
                   << " (body " << (mp.body_idx + 1) << ", offset=" << std::setprecision(2) << mp.local_offset.x()
                   << "m)\n";
@@ -477,7 +473,7 @@ int main(int argc, char* argv[]) {
 
     // Save output data
     if (save_output) {
-        std::cout << "\nSaving output data...\n";
+        cout << "\nSaving output data...\n";
         SaveOutput(out_dir, output, measurement_points);
     }
 
@@ -599,7 +595,7 @@ void SaveOutput(const std::string& out_dir,
     }
 
     file.close();
-    std::cout << "  Output saved to: " << out_file << "\n";
+    cout << "  Output saved to: " << out_file << "\n";
 
     // Save measurement points data to separate file
     if (!measurement_points.empty()) {
@@ -647,6 +643,6 @@ void SaveOutput(const std::string& out_dir,
         }
 
         mp_file.close();
-        std::cout << "  Measurement points saved to: " << mp_out_file << "\n";
+        cout << "  Measurement points saved to: " << mp_out_file << "\n";
     }
 }
