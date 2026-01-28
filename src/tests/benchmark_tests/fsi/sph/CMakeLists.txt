@@ -20,5 +20,5 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-message(STATUS "Add benchmark test programs for FSI module")
+message(STATUS "Add benchmark test programs for FSI-SPH module")
 build_btests("${TESTS}" "${LIBS}")
