@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Huzaifa Unjhawala
+// Authors: Huzaifa Unjhawala, Radu Serban
 // =============================================================================
 //
 // Benchmark test for understanding the scaling of computational cost with
@@ -41,13 +41,14 @@ using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
 
 // =============================================================================
+
 template <unsigned int num_boxes>
-class FsiRigidBceScalingTest : public chrono::fsi::ChBenchmarkTest {
+class FsiRigidBceScalingTest : public chrono::fsi::ChFsiBenchmarkTest {
   public:
     FsiRigidBceScalingTest();
     ~FsiRigidBceScalingTest() = default;
 
-    ChFsiSystem* GetSystem() override { return m_sysFSI.get(); }
+    ChFsiSystem* GetFsiSystem() override { return m_sysFSI.get(); }
     void ExecuteStep() override;
 
     void SimulateVis();
@@ -70,7 +71,25 @@ std::vector<ChVector3d> GenerateBoxPositions(const unsigned int num_boxes,
                                              const unsigned int boxes_per_layer,
                                              const ChVector3d& box_size,
                                              const ChVector3d& granular_bin_size,
-                                             double initial_spacing);
+                                             double initial_spacing) {
+    std::vector<ChVector3d> positions;
+    double box_spacing = box_size.x() + initial_spacing;
+
+    unsigned int num_layers = (num_boxes + boxes_per_layer - 1) / boxes_per_layer;  // Calculate number of layers needed
+
+    for (unsigned int layer = 0; layer < num_layers; ++layer) {
+        for (unsigned int i = 0; i < boxes_per_layer && positions.size() < num_boxes; ++i) {
+            int x_index = i % 10;
+            int y_index = i / 10;
+            double x_pos = (x_index - 4.5) * box_spacing;  // Center the grid around x = 0
+            double y_pos = (y_index - 4.5) * box_spacing;  // Center the grid around y = 0
+            double z_pos = layer * (box_size.z() + initial_spacing) + granular_bin_size.z() / 2 + initial_spacing;
+            positions.emplace_back(x_pos, y_pos, z_pos);
+        }
+    }
+
+    return positions;
+}
 
 template <unsigned int num_boxes>
 FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
@@ -157,8 +176,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         );
     }
 
-    // Create Granular Box
-    // Common contact material
+    // Create container
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e9);
     cmaterial->SetFriction(1.f);
@@ -185,9 +203,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         ChVector3d(box_multiplier * m_box_size.x(), box_multiplier * m_box_size.y(), m_box_size.z()), {0, 0, -1});
     m_sysFSI->AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0., 0., 0.), QUNIT), false);
 
-    // =========================================================================
     // Create rigid bodies
-    // =========================================================================
     ChVector3d box_size(0.1, 0.1, 0.06);
     std::vector<ChVector3d> box_positions =
         GenerateBoxPositions(m_num_boxes, m_boxes_per_layer, box_size, m_box_size, sph_params.initial_spacing);
@@ -205,30 +221,6 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     }
 
     m_sysFSI->Initialize();
-}
-
-std::vector<ChVector3d> GenerateBoxPositions(const unsigned int num_boxes,
-                                             const unsigned int boxes_per_layer,
-                                             const ChVector3d& box_size,
-                                             const ChVector3d& granular_bin_size,
-                                             double initial_spacing) {
-    std::vector<ChVector3d> positions;
-    double box_spacing = box_size.x() + initial_spacing;
-
-    unsigned int num_layers = (num_boxes + boxes_per_layer - 1) / boxes_per_layer;  // Calculate number of layers needed
-
-    for (unsigned int layer = 0; layer < num_layers; ++layer) {
-        for (unsigned int i = 0; i < boxes_per_layer && positions.size() < num_boxes; ++i) {
-            int x_index = i % 10;
-            int y_index = i / 10;
-            double x_pos = (x_index - 4.5) * box_spacing;  // Center the grid around x = 0
-            double y_pos = (y_index - 4.5) * box_spacing;  // Center the grid around y = 0
-            double z_pos = layer * (box_size.z() + initial_spacing) + granular_bin_size.z() / 2 + initial_spacing;
-            positions.emplace_back(x_pos, y_pos, z_pos);
-        }
-    }
-
-    return positions;
 }
 
 template <unsigned int num_boxes>
@@ -266,19 +258,20 @@ void FsiRigidBceScalingTest<num_boxes>::SimulateVis() {
 }
 
 // =============================================================================
+
 #define NUM_SKIP_STEPS 2500  // number of steps for hot start (1e-4 * 2500 = 0.25s)
 #define NUM_SIM_STEPS 10000  // number of simulation steps for each benchmark (1e-4 * 10000 = 1s)
 #define REPEATS 5
 
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_1, FsiRigidBceScalingTest<1>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_10, FsiRigidBceScalingTest<10>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_100, FsiRigidBceScalingTest<100>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_500, FsiRigidBceScalingTest<500>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_1000, FsiRigidBceScalingTest<1000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_2000, FsiRigidBceScalingTest<2000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_3000, FsiRigidBceScalingTest<3000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_4000, FsiRigidBceScalingTest<4000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_5000, FsiRigidBceScalingTest<5000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_1, FsiRigidBceScalingTest<1>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_10, FsiRigidBceScalingTest<10>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_100, FsiRigidBceScalingTest<100>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_500, FsiRigidBceScalingTest<500>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_1000, FsiRigidBceScalingTest<1000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_2000, FsiRigidBceScalingTest<2000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_3000, FsiRigidBceScalingTest<3000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_4000, FsiRigidBceScalingTest<4000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_FSI_BM_SIMULATION_ONCE(FSI_RigidBceScaling_5000, FsiRigidBceScalingTest<5000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
 
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
