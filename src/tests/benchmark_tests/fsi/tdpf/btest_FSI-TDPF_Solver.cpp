@@ -404,10 +404,11 @@ CH_FSI_BM_SIMULATION_ONCE(MUMPS, FsiTdpfSolverTest<ChSolver::Type::MUMPS>, NUM_S
 
 int main(int argc, char* argv[]) {
     // Force tabular output for user counters
+    std::string extra_arg = "--benchmark_counters_tabular=true";
+
     std::vector<char*> new_argv(argv, argv + argc);
-    int new_argc = argc;
-    new_argv.push_back("--benchmark_counters_tabular=true");
-    new_argc += 1;
+    new_argv.push_back(extra_arg.data());
+    int new_argc = argc + 1;
 
     // Initialize benchmark framework
     ::benchmark::Initialize(&new_argc, new_argv.data());

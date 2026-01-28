@@ -119,8 +119,8 @@ class ChFsiBenchmarkFixture : public utils::ChBenchmarkFixture<TEST, SKIP> {
 
     virtual void Report(benchmark::State& st) override {
         utils::ChBenchmarkFixture<TEST, SKIP>::Report(st);
-        st.counters["CFD_Total"] = m_test->m_timer_CFD * 1e3;
-        st.counters["MBS_Total"] = m_test->m_timer_MBS * 1e3;
+        st.counters["CFD_Total"] = this->m_test->m_timer_CFD * 1e3;
+        st.counters["MBS_Total"] = this->m_test->m_timer_MBS * 1e3;
     }
 };
 
