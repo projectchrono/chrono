@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     visVSG->AttachPlugin(visFSI);
     visVSG->AttachSystem(&sysMBS);
     visVSG->SetWindowTitle("FSI-TDPF sphere decay");
-    visVSG->SetWindowSize(1280, 720);
+    visVSG->SetWindowSize(1280, 800);
     visVSG->SetBackgroundColor(ChColor(0.04f, 0.11f, 0.18f));
     visVSG->AddCamera(ChVector3d(10, -50, 10), ChVector3d(0, 0, 0));
     visVSG->SetLightIntensity(0.9f);
