@@ -931,7 +931,6 @@ ChParserSphYAML::SimParams::SimParams() : gravity({0, 0, -9.8}), time_step(1e-4)
 void ChParserSphYAML::SimParams::PrintInfo() {
     cout << "simulation end time:        " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
     cout << "integration time step:      " << time_step << endl;
-    cout << "gravitational acceleration: " << gravity << endl;
     cout << endl;
 
     cout << "SPH settings" << endl;

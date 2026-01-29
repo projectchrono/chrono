@@ -131,6 +131,11 @@ simulation:
       description: Simulation duration.
       type: number
       minimum: 0
+    gravity:
+      type: array
+      <<: *VECTOR3D
+      description: Gravitational acceleration vector [x, y, z].
+      default: [0, 0, -9.8]
 
 visualization:
   description: Visualization settings.

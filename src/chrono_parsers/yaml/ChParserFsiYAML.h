@@ -105,6 +105,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
 
     double m_step;
     double m_end_time;
+    ChVector3d m_gravity;
 
     bool m_render;
     double m_render_fps;

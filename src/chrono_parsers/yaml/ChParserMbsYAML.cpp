@@ -803,8 +803,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     sys.Add(load_container);
 
     // Create bodies
-    if (m_verbose && !m_body_params.empty())
-        cout << "Create bodies" << endl;
+    if (m_verbose)
+        cout << "create bodies...                         " << m_body_params.size() << endl;
     for (auto& item : m_body_params) {
         auto body = chrono_types::make_shared<ChBodyAuxRef>();
         body->SetName(model_prefix + item.first);
@@ -822,8 +822,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create joints (kinematic or bushings)
-    if (m_verbose && !m_joint_params.empty())
-        cout << "Create joints" << endl;
+    if (m_verbose)
+        cout << "create joints...                         " << m_joint_params.size() << endl;
     for (auto& item : m_joint_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
@@ -844,8 +844,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create distance constraints
-    if (m_verbose && !m_distcnstr_params.empty())
-        cout << "Create distance constraints" << endl;
+    if (m_verbose)
+        cout << "create distance constraints...           " << m_distcnstr_params.size() << endl;
     for (auto& item : m_distcnstr_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
@@ -859,8 +859,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create TSDAs
-    if (m_verbose && !m_tsda_params.empty())
-        cout << "Create TSDAs" << endl;
+    if (m_verbose)
+        cout << "create TSDAs...                          " << m_tsda_params.size() << endl;
     for (auto& item : m_tsda_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
@@ -875,8 +875,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create RSDAs
-    if (m_verbose && !m_rsda_params.empty())
-        cout << "Create RSDAs" << endl;
+    if (m_verbose)
+        cout << "create RSDAs...                          " << m_rsda_params.size() << endl;
     for (auto& item : m_rsda_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
@@ -896,8 +896,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create body loads
-    if (m_verbose && !m_bodyload_params.empty())
-        cout << "Create body loads" << endl;
+    if (m_verbose)
+        cout << "create body loads...                     " << m_bodyload_params .size() << endl;
     for (auto& item : m_bodyload_params) {
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
@@ -926,8 +926,8 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
     }
 
     // Create external body load controllers
-    if (m_verbose && !m_load_controller_params.empty())
-        cout << "Create external body load controllers" << endl;
+    if (m_verbose)
+        cout << "create external body load controllers... " << m_load_controller_params.size() << endl;
     for (auto& item : m_load_controller_params) {
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
@@ -948,7 +948,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
 
     // Create motors
     if (m_verbose && !m_motor_params.empty())
-        cout << "Create motors" << endl;
+        cout << "create motors" << endl;
     for (auto& item : m_motor_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);

@@ -39,6 +39,7 @@ model:
 simulation:
   time_step: 1e-4
   end_time: -1
+  gravity: [0, 0, -9.8]
 
 visualization:
   render_fps: 100

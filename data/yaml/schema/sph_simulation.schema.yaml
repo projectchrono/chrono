@@ -42,7 +42,6 @@ simulation:
   required: [time_step]
 
   properties:
-  
     time_step:
       type: number
       description: Time step size in seconds.
@@ -55,7 +54,13 @@ simulation:
         The simulation will run from t=0 to t=end_time. A negative value indicates na infinite end time.
       minimum: 0
       default: -1
-    
+        
+    gravity:
+      type: array
+      <<: *VECTOR3D
+      description: Gravitational acceleration vector [x, y, z].
+      default: [0, 0, -9.8]
+
     # TODO
 
     sph:
