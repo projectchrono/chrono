@@ -78,7 +78,6 @@ std::string ChParserYAML::GetDatafilePath(const std::string& filename) {
             break;
     }
 
-    cout << "File: " << full_filename << endl;
     auto filepath = filesystem::path(full_filename);
 
     ChAssertAlways(filepath.exists());

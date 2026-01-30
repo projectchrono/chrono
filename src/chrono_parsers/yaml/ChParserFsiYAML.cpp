@@ -16,6 +16,7 @@
 
 #include "chrono_parsers/yaml/ChParserFsiYAML.h"
 #include "chrono_parsers/yaml/ChParserSphYAML.h"
+#include "chrono_parsers/yaml/ChParserTdpfYAML.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -216,24 +217,24 @@ void ChParserFsiYAML::CreateFsiSystem() {
     switch (m_sysCFD_type) {
         case ChParserCfdYAML::FluidSystemType::SPH: {
 #ifdef CHRONO_FSI_SPH
-            // Create an SPH YAML parser
+            // Create an SPH YAML parser and the underlying FSI problem, but do not initialize the FSI problem
             auto parserSPH = chrono_types::make_shared<ChParserSphYAML>(m_file_modelCFD, m_file_simCFD, m_verbose);
-
-            // Access the underlying FSI problem and attach the MBS system
             auto problemSPH = parserSPH->CreateFsiProblemSPH(false);
-            problemSPH->AttachMultibodySystem(m_sysMBS.get());
 
             // Cache the underlying FSI and CFD systems
-            m_sysFSI = problemSPH->GetFsiSystemSPH();
-            m_sysCFD = problemSPH->GetFluidSystemSPH();
+            m_sysFSI = parserSPH->GetFsiSystem();
+            m_sysCFD = parserSPH->GetFluidSystem();
             m_sysCFD->SetGravitationalAcceleration(m_gravity);
+
+            // Create the FSI problem and attach the MBS system
+            problemSPH->AttachMultibodySystem(m_sysMBS.get());
 
             // Create FSI solids
             for (const auto& fsi_body : m_fsi_bodies) {
                 auto bodies = m_parserMBS->FindBodiesByName(fsi_body.name);
                 if (bodies.empty())
                     cerr << "  Warning: No body with name '" << fsi_body.name << "' was found. Ignoring." << endl;
-                for (auto body : bodies)
+                for (const auto& body : bodies)
                     problemSPH->AddRigidBody(body, fsi_body.geometry, true);
             }
 
@@ -255,11 +256,34 @@ void ChParserFsiYAML::CreateFsiSystem() {
 #endif
             break;
         }
-        case ChParserCfdYAML::FluidSystemType::BEM: {
+        case ChParserCfdYAML::FluidSystemType::TDPF: {
 #ifdef CHRONO_FSI_TDPF
-            throw std::runtime_error("TDPF fluid system not yet supported");
-            ////auto parserTDPF = chrono_types::make_shared<ChParserTdpfYAML>(m_file_modelCFD, m_file_simCFD,
-            ///m_verbose); /m_parserCFD = parserTDPF;
+            // Create  a TDPF YAML parser and the underlying FSI problem, but do not initialize the FSI problem
+            auto parserTDPF = chrono_types::make_shared<ChParserTdpfYAML>(m_file_modelCFD, m_file_simCFD, m_verbose);
+            auto problemTDPF = parserTDPF->CreateFsiSystemTDPF(false);
+
+            // Cache the underlying FSI and CFD systems
+            m_sysFSI = parserTDPF->GetFsiSystem();
+            m_sysCFD = parserTDPF->GetFluidSystem();
+            m_sysCFD->SetGravitationalAcceleration(m_gravity);
+            m_sysCFD->SetStepSize(m_step);  // not used by TDPF, but must be set
+
+            // Create the FSI problem and attach the MBS system
+            problemTDPF->AttachMultibodySystem(m_sysMBS.get());
+
+            // Specify FSI bodies
+            for (const auto& fsi_body : m_fsi_bodies) {
+                auto bodies = m_parserMBS->FindBodiesByName(fsi_body.name);
+                if (bodies.empty())
+                    cerr << "  Warning: No body with name '" << fsi_body.name << "' was found. Ignoring." << endl;
+                for (const auto& body : bodies)
+                    problemTDPF->AddFsiBody(body, fsi_body.geometry, true);
+            }
+
+            // Initialize the FSI problem (now that an MBS system and FSI solids are specified)
+            problemTDPF->Initialize();
+
+            m_parserCFD = parserTDPF;
 
             if (m_verbose) {
                 cout << "\n-------------------------------------------------" << endl;

@@ -41,8 +41,8 @@ ChParserCfdYAML::FluidSystemType ChParserCfdYAML::ReadFluidSystemType(const std:
 
         if (sysCFD_type == "SPH")
             return FluidSystemType::SPH;
-        if (sysCFD_type == "BEM")
-            return FluidSystemType::BEM;
+        if (sysCFD_type == "TDPF")
+            return FluidSystemType::TDPF;
 
         cerr << "Error: unknown fluid system type '" << sysCFD_type << "'." << endl;
         throw std::runtime_error("Unknown fluid system type");

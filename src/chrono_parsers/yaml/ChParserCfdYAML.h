@@ -18,6 +18,8 @@
 #include <string>
 
 #include "chrono_parsers/yaml/ChParserYAML.h"
+#include "chrono_fsi/ChFsiFluidSystem.h"
+#include "chrono_fsi/ChFsiSystem.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -34,13 +36,19 @@ namespace parsers {
 /// Base class for YAML parsers for fluid systems.
 class ChApiParsers ChParserCfdYAML : public ChParserYAML {
   public:
-    enum class FluidSystemType { SPH, BEM };
+    enum class FluidSystemType { SPH, TDPF };
 
     ChParserCfdYAML(bool verbose = false);
     virtual ~ChParserCfdYAML() {}
 
     /// Return the fluid system type.
     FluidSystemType GetType() const { return m_type; }
+
+    /// Access the underlying FSI system.
+    virtual std::shared_ptr<fsi::ChFsiSystem> GetFsiSystem() = 0;
+
+    /// Access the underlying fluid system.
+    virtual std::shared_ptr<fsi::ChFsiFluidSystem> GetFluidSystem() = 0;
 
 #ifdef CHRONO_VSG
     /// Return a VSG run-visualization plugin.

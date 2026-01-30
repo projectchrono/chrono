@@ -65,6 +65,14 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// ChFsiProblemSPH::AttachMultibodySystem, and then explictly invoke ChFsiProblemSPH::Initialize().
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> CreateFsiProblemSPH(bool initialize = true);
 
+    /// Access the underlying FSI system.
+    virtual std::shared_ptr<fsi::ChFsiSystem> GetFsiSystem() override { return m_fsi_problem->GetFsiSystemSPH(); }
+
+    /// Access the underlying fluid system.
+    virtual std::shared_ptr<fsi::ChFsiFluidSystem> GetFluidSystem() override {
+        return m_fsi_problem->GetFluidSystemSPH();
+    }
+
     // --------------
 
     bool Render() const { return m_sim.visualization.render; }
