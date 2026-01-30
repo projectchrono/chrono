@@ -90,7 +90,7 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
         throw std::runtime_error("File not found");
     }
 
-    std::string script_dir = path.parent_path().str();
+    m_script_directory = path.parent_path().str();
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
@@ -122,21 +122,21 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
     auto engine_json = model["engine_json"].as<std::string>();
     auto transmission_json = model["transmission_json"].as<std::string>();
 
-    m_vehicle_json = script_dir + "/" + vehicle_json;
-    m_engine_json = script_dir + "/" + engine_json;
-    m_transmission_json = script_dir + "/" + transmission_json;
+    m_vehicle_json = GetDatafilePath(vehicle_json);
+    m_engine_json = GetDatafilePath(engine_json);
+    m_transmission_json = GetDatafilePath(transmission_json);
 
     m_vehicle_type = ReadVehicleType(GetChronoDataFile(m_vehicle_json));
 
     if (m_vehicle_type == VehicleType::WHEELED) {
         ChAssertAlways(model["tire_json"]);
         auto tire_json = model["tire_json"].as<std::string>();
-        m_tire_json = script_dir + "/" + tire_json;
+        m_tire_json = GetDatafilePath(tire_json);
     }
 
     if (yaml["terrain_json"]) {
         auto terrain_json = yaml["terrain_json"].as<std::string>();
-        m_terrain_json = script_dir + "/" + terrain_json;
+        m_terrain_json = GetDatafilePath(terrain_json);
     }
 
     if (yaml["initial_position"])
