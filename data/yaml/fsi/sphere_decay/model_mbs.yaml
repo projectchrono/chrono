@@ -1,0 +1,64 @@
+chrono-version: 9.0
+
+model:
+  name: iea_sphere_model
+  angle_degrees: false
+  
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  bodies:
+    - name: body1
+      location: [0, 0, -1.0]
+      mass: 261800
+      fixed: false
+      inertia:
+        moments: [999, 999, 999]
+        products: [0, 0, 0]
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      contact:
+        materials:
+          - name: contact_material
+            coefficient_of_friction: 0.4
+        shapes:
+          - type: SPHERE
+            material: contact_material
+            location: [0, 0, 0]
+            radius: 5.0
+      visualization:
+        shapes:
+          - type: SPHERE
+            location: [0, 0, 0]
+            radius: 5.0
+            color: [0.3, 0.1, 0.1]
+            
+    - name: ground
+      location: [0, 0, 0]
+      fixed: true
+
+  joints:
+    - name: motion_constraint_heave
+      type: PRISMATIC
+      body1: ground
+      body2: body1
+      location: [0, 0, 0]
+      axis: [0, 0, 1]
+
+  tsdas:
+    - name: heave_spring_damper
+      type: TSDA
+      body1: ground
+      body2: body1
+      point1: [0, 0, 0]
+      point2: [0, 0, 0]
+      spring_coefficient: 0.0
+      damping_coefficient: 0.0
+      free_length: 0.0
+      visualization:
+        type: SPRING
+        radius: 0.05
+        resolution: 80
+        turns: 15

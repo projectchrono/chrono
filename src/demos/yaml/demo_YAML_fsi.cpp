@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/objectdrop.yaml");
     ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/baffleflow.yaml");
     ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/wavetank.yaml");
+    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/sphere_decay.yaml");
 
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", fsi_yaml_filename);
@@ -96,6 +97,7 @@ int main(int argc, char* argv[]) {
         visVSG->AddCamera(camera_location, camera_target);
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
+        visVSG->SetBackgroundColor(ChColor(0.04f, 0.11f, 0.18f));
         visVSG->SetCameraVertical(camera_vertical);
         visVSG->SetCameraAngleDeg(40.0);
         visVSG->SetLightIntensity(1.0f);
