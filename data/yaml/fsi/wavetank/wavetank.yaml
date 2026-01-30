@@ -6,7 +6,7 @@ model:
   
   data_path:
     type: RELATIVE
-    root: "../.."
+    root: "../../.."
 
   multibody_model:      "model_mbs.yaml"
   multibody_simulation: "simulation_mbs.yaml"

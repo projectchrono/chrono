@@ -6,15 +6,13 @@ model:
   
   data_path:
     type: RELATIVE
-    root: "../.."
+    root: "../../.."
 
   multibody_model:      "model_mbs.yaml"
   multibody_simulation: "simulation_mbs.yaml"
-  #multibody_simulation: "../../simulations/basic_mbs.yaml"
 
   fluid_model:          "model_sph.yaml"
   fluid_simulation:     "simulation_sph.yaml"
-  #fluid_simulation:     "../../simulations/basic_sph.yaml"
 
   fsi_bodies: 
     - name: object

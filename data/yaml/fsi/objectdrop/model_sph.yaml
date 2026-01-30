@@ -10,7 +10,7 @@ model:
  
   data_path:
     type: RELATIVE
-    root: "../.."
+    root: "../../.."
   
   fluid_properties:
     density: 1000.0
