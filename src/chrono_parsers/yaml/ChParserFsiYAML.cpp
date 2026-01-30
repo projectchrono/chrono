@@ -15,8 +15,12 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_parsers/yaml/ChParserFsiYAML.h"
-#include "chrono_parsers/yaml/ChParserSphYAML.h"
-#include "chrono_parsers/yaml/ChParserTdpfYAML.h"
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_parsers/yaml/ChParserSphYAML.h"
+#endif
+#ifdef CHRONO_FSI_TDPF
+    #include "chrono_parsers/yaml/ChParserTdpfYAML.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
