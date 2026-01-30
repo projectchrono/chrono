@@ -63,6 +63,9 @@ class ChApi ChColormap {
     /// Return the list of specification files for all available colormaps.
     static const std::unordered_map<Type, Files>& GetFilenames() { return m_colormap_files; }
 
+    /// Get colormap type as string.
+    static std::string GetTypeAsString(Type type);
+
     /// Method to allow serialization of transient data to archives.
     void ArchiveOut(ChArchiveOut& archive_out);
 

@@ -84,6 +84,9 @@ class CH_FSI_API ChTdpfVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin 
     /// Return the internal Chrono system that holds visualization shapes.
     ChSystem* GetSystem() const { return m_sysMBS; }
 
+    /// Return color mode as a string.
+    static std::string GetWaveMeshColorModeAsString(ColorMode mode);
+
   private:
     /// Deformable mesh for wave visualizaiton.
     struct WaveMesh {

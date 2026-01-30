@@ -165,6 +165,22 @@ void ChTdpfVisualizationVSG::SetWaveMeshColorMode(ColorMode mode, const ChVector
     m_wave_mesh.range = range;
 }
 
+std::string ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(ColorMode mode) {
+    switch (mode) {
+        case ColorMode::HEIGHT:
+            return "Height";
+        case ColorMode::VELOCITY_MAG:
+            return "Velocity magnitude";
+        case ColorMode::VELOCITY_X:
+            return "Velocityy component X";
+        case ColorMode::VELOCITY_Y:
+            return "Velocityy component Y";
+        case ColorMode::VELOCITY_Z:
+            return "Velocityy component Z";
+    }
+    return "None";
+}
+
 void ChTdpfVisualizationVSG::SetWaveMeshColormap(ChColormap::Type type, float opacity) {
     m_wave_mesh.colormap_type = type;
     m_wave_mesh.opacity = opacity;

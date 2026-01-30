@@ -108,6 +108,34 @@ ChColor ChColormap::Get(double value, double vmin, double vmax) const {
     return Get((value - vmin) / (vmax - vmin));
 }
 
+std::string ChColormap::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::BLACK_BODY:
+            return "BLACK_BODY";
+        case Type::BLUE:
+            return "BLUE";
+        case Type::BROWN:
+            return "BROWN";
+        case Type::COPPER:
+            return "COPPER";
+        case Type::FAST:
+            return "FAST";
+        case Type::INFERNO:
+            return "INFERNO";
+        case Type::JET:
+            return "JET";
+        case Type::KINDLMANN:
+            return "KINDLMANN";
+        case Type::PLASMA:
+            return "PLASMA";
+        case Type::RED_BLUE:
+            return "RED_BLUE";
+        case Type::VIRIDIS:
+            return "VIRIDIS";
+    }
+    return "Unknown";
+}
+
 void ChColormap::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out.VersionWrite<ChColormap>();
 }
