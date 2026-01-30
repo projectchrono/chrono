@@ -49,6 +49,7 @@ ChFsiFluidSystemTDPF::ChFsiFluidSystemTDPF()
       m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
+      m_wave_type(WaveType::NONE),
       m_impl(chrono_types::make_unique<ChFsiFluidSystemTDPF_impl>()) {}
 
 ChFsiFluidSystemTDPF::~ChFsiFluidSystemTDPF() {}
@@ -88,16 +89,18 @@ void ChFsiFluidSystemTDPF::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, b
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemTDPF::AddWaves(const NoWaveParams& params) {
-    auto waves = chrono_types::make_shared<NoWave>(params);
-    m_impl->m_waves = waves;
+    m_no_wave_params = params;
+    m_wave_type = WaveType::NONE;
 }
 
 void ChFsiFluidSystemTDPF::AddWaves(const RegularWaveParams& params) {
-    m_impl->m_waves = chrono_types::make_shared<RegularWave>(params);
+    m_reg_wave_params = params;
+    m_wave_type = WaveType::REGULAR;
 }
 
 void ChFsiFluidSystemTDPF::AddWaves(const IrregularWaveParams& params) {
-    m_impl->m_waves = chrono_types::make_shared<IrregularWaves>(params);
+    m_irreg_wave_params = params;
+    m_wave_type = WaveType::IRREGULAR;
 }
 
 double ChFsiFluidSystemTDPF::GetWaveElevation(const ChVector3d& pos) {
@@ -131,6 +134,22 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
                                       const std::vector<FsiMeshState>& mesh1D_states,
                                       const std::vector<FsiMeshState>& mesh2D_states) {
     ChAssertAlways(!m_hydro_filename.empty());
+
+    // Initialize and add waves
+    switch (m_wave_type) {
+        case WaveType::NONE:
+            m_no_wave_params.num_bodies_ = m_num_rigid_bodies;
+            m_impl->m_waves = chrono_types::make_shared<NoWave>(m_no_wave_params);
+            break;
+        case WaveType::REGULAR:
+            m_reg_wave_params.num_bodies_ = m_num_rigid_bodies;
+            m_impl->m_waves = chrono_types::make_shared<RegularWave>(m_reg_wave_params);
+            break;
+        case WaveType::IRREGULAR:
+            m_irreg_wave_params.num_bodies_ = m_num_rigid_bodies;
+            m_impl->m_waves = chrono_types::make_shared<IrregularWaves>(m_irreg_wave_params);
+            break;
+    }
 
     // Initialize low-level implementation object
     m_impl->Initialize(m_hydro_filename, m_num_rigid_bodies);

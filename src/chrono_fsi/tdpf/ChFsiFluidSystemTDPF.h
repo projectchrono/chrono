@@ -55,12 +55,15 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     void SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts);
 
     /// Add no wave conditions.
+    /// Note that the number of bodies is overwritten during initialization.
     void AddWaves(const NoWaveParams& params);
 
     /// Add regular wave conditions.
+    /// Note that the number of bodies is overwritten during initialization.
     void AddWaves(const RegularWaveParams& params);
 
     /// Add irregular wave conditions.
+    /// Note that the number of bodies is overwritten during initialization.
     void AddWaves(const IrregularWaveParams& params);
 
     /// Get current wave elevation at specified position (in X-Y plane).
@@ -73,6 +76,8 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     ChVector3d GetWaveVelocity(const ChVector3d& pos, double elevation);
 
   private:
+    enum class WaveType { NONE, REGULAR, IRREGULAR };
+
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
@@ -131,6 +136,11 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
 
     std::string m_hydro_filename;                       ///< input hydro file name (HDF5 format)
     std::unique_ptr<ChFsiFluidSystemTDPF_impl> m_impl;  ///< private implementation
+
+    WaveType m_wave_type;
+    NoWaveParams m_no_wave_params;            ///< no wave parameters (optional)
+    RegularWaveParams m_reg_wave_params;      ///< regular wave parameters (optional)
+    IrregularWaveParams m_irreg_wave_params;  ///< irregular wave parameters (optional)
 
     friend class ChFsiSystemTDPF;
     friend class ChFsiInterfaceTDPF;

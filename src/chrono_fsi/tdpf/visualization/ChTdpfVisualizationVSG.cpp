@@ -107,7 +107,7 @@ class FSITDPFStatsVSG : public vsg3d::ChGuiComponentVSG {
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             static bool waves_visible = m_vsysFSI->m_waves_visible;
-            if (ImGui::Checkbox("Waves", &waves_visible)) {
+            if (ImGui::Checkbox("Render water surface", &waves_visible)) {
                 m_vsysFSI->m_waves_visible = !m_vsysFSI->m_waves_visible;
                 m_vsysFSI->SetWaveMeshVisibility(m_vsysFSI->m_waves_visible);
             }
