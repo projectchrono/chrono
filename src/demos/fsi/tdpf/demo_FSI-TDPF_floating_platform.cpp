@@ -9,13 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Radu Serban
-// =============================================================================
-//
-// Benchmark test for comparing solver performance on a Chrono::FSI-TDPF model.
-//
+// Author: Radu Serban, Dave Ogden
 // =============================================================================
 
+#include <iomanip>
+
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -23,7 +22,6 @@
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
-#include "chrono_fsi/ChFsiBenchmark.h"
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -37,83 +35,89 @@
     #include "chrono_fsi/tdpf/visualization/ChTdpfVisualizationVSG.h"
 #endif
 
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
+#include "chrono_thirdparty/filesystem/path.h"
+
+using std::cout;
+using std::cerr;
+using std::endl;
+
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::tdpf;
 
 // -----------------------------------------------------------------------------
-// Benchmark test parameters
 
-// Number of steps for hot start (1s if time_step = 1e-2)
-constexpr int NUM_SKIP_STEPS = 100;
-
-// Number of simulation steps for each benchmark (10s if time_step = 1e-2)
-constexpr int NUM_SIM_STEPS = 1000;
-
-// Number of test repetitions to extract statistics
-constexpr int REPEATS = 4;
-
-// -----------------------------------------------------------------------------
-// Simulation parameters
-
-double time_step = 1.0e-2;
-int solver_max_iterations = 100;
-bool solver_use_diag_precond = true;
-
-double wave_height = 4.0;
-double wave_period = 10;
-
-// -----------------------------------------------------------------------------
-
-template <ChSolver::Type T>
-class FsiTdpfSolverTest : public chrono::fsi::ChFsiBenchmarkTest {
+class FloatingPlatform {
   public:
-    FsiTdpfSolverTest();
-    ~FsiTdpfSolverTest() = default;
+    FloatingPlatform(double wave_height, double wave_period);
+    ~FloatingPlatform() {}
 
-    ChFsiSystem* GetFsiSystem() override { return sysFSI.get(); }
-    void ExecuteStep() override;
+    void SetStepSize(double step) { time_step = step; }
+    void SetSolver(ChSolver::Type type) { solver_type = type; }
+    void SetRenderFPS(double fps) { render_fps = 30; }
 
-    void SimulateVis();
+    void CreateModel();
+    void CreateVisualization();
+    void Simulate(double duration, bool real_time);
+    void Plot();
 
   private:
     int N;
     double L;
     double H;
 
+    double time_step;
+    ChSolver::Type solver_type;
+
     double wave_amplitude;
+    double wave_omega;
+
+    std::vector<double> out_time;
+    std::vector<std::vector<double>> out_heave;
 
     std::vector<std::shared_ptr<ChBody>> bodies;
 
     std::unique_ptr<ChFsiSystemTDPF> sysFSI;
     std::unique_ptr<ChFsiFluidSystemTDPF> sysTDPF;
     std::unique_ptr<ChSystem> sysMBS;
+
+    std::shared_ptr<ChVisualSystem> vis;
+    double render_fps;
 };
 
-// -----------------------------------------------------------------------------
+FloatingPlatform::FloatingPlatform(double wave_height, double wave_period)
+    : N(6),
+      L(29.0),
+      H(3.2),
+      time_step(1e-2),
+      render_fps(30),
+      solver_type(ChSolver::Type::GMRES),
+      wave_amplitude(wave_height / 2),
+      wave_omega(CH_2PI / wave_period) {}
 
-template <ChSolver::Type T>
-FsiTdpfSolverTest<T>::FsiTdpfSolverTest() : N(6), L(29), H(3.2), wave_amplitude(0.5 * wave_height) {
+void FloatingPlatform::CreateModel() {
     auto hydro_file = GetChronoDataFile("fsi-tdpf/floating_platform/floating_platform.h5");
-
     ChVector3d g_acc(0.0, 0.0, -9.81);
 
     // ----- Multibody system
     sysMBS = std::make_unique<ChSystemSMC>();
-
-    switch (T) {
+    switch (solver_type) {
         case ChSolver::Type::APGD:
         case ChSolver::Type::BARZILAIBORWEIN:
         case ChSolver::Type::GMRES: {
-            sysMBS->SetSolverType(T);
+            sysMBS->SetSolverType(solver_type);
             auto iterative = sysMBS->GetSolver()->AsIterative();
-            iterative->SetMaxIterations(solver_max_iterations);
-            iterative->EnableDiagonalPreconditioner(solver_use_diag_precond);
+            iterative->SetMaxIterations(100);
+            iterative->EnableDiagonalPreconditioner(true);
             break;
         }
         case ChSolver::Type::SPARSE_LU:
         case ChSolver::Type::SPARSE_QR: {
-            sysMBS->SetSolverType(T);
+            sysMBS->SetSolverType(solver_type);
             auto direct = sysMBS->GetSolver()->AsDirect();
             direct->LockSparsityPattern(true);
             direct->UseSparsityPatternLearner(false);
@@ -181,7 +185,7 @@ FsiTdpfSolverTest<T>::FsiTdpfSolverTest() : N(6), L(29), H(3.2), wave_amplitude(
     // Add regular wave
     RegularWaveParams reg_wave_params;
     reg_wave_params.regular_wave_amplitude_ = wave_amplitude;
-    reg_wave_params.regular_wave_omega_ = CH_2PI / wave_period;
+    reg_wave_params.regular_wave_omega_ = wave_omega;
     sysTDPF->AddWaves(reg_wave_params);
 
     // ----- FSI system
@@ -198,15 +202,7 @@ FsiTdpfSolverTest<T>::FsiTdpfSolverTest() : N(6), L(29), H(3.2), wave_amplitude(
     sysFSI->Initialize();
 }
 
-template <ChSolver::Type T>
-void FsiTdpfSolverTest<T>::ExecuteStep() {
-    sysFSI->DoStepDynamics(time_step);
-}
-
-template <ChSolver::Type T>
-void FsiTdpfSolverTest<T>::SimulateVis() {
-    double render_fps = 30;
-
+void FloatingPlatform::CreateVisualization() {
 #ifdef CHRONO_VSG
     auto visFSI = chrono_types::make_shared<ChTdpfVisualizationVSG>(sysFSI.get());
     visFSI->SetWaveMeshVisibility(true);
@@ -230,79 +226,78 @@ void FsiTdpfSolverTest<T>::SimulateVis() {
 
     visVSG->Initialize();
 
+    vis = visVSG;
+#endif
+}
+
+void FloatingPlatform::Simulate(double duration, bool real_time) {
+    out_heave.resize(N);
+
+    ChRealtimeStepTimer realtime_timer;
     double time = 0;
     int render_frame = 0;
-    while (true) {
+
+    while (time <= duration) {
+#ifdef CHRONO_VSG
         if (time >= render_frame / render_fps) {
-            if (!visVSG->Run())
+            if (!vis->Run())
                 break;
-            visVSG->Render();
+            vis->Render();
             render_frame++;
         }
+#endif
 
-        ExecuteStep();
+        sysFSI->DoStepDynamics(time_step);
+
+        out_time.push_back(sysFSI->GetSimTime());
+        for (int i = 0; i < N; ++i)
+            out_heave[i].push_back(bodies[i]->GetPos().z());
 
         time += time_step;
+        if (real_time)
+            realtime_timer.Spin(time_step);
     }
+}
+
+void FloatingPlatform::Plot() {
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot;
+    gplot.SetGrid();
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("heave (m)");
+    gplot.SetTitle("Body heave");
+    for (int i = 0; i < N; i++)
+        gplot.Plot(out_time, out_heave[i], bodies[i]->GetName(), " with lines lw 2");
 #endif
 }
 
 // -----------------------------------------------------------------------------
 
-CH_FSI_BM_SIMULATION_ONCE(BARZILAI_BORWEIN,
-                          FsiTdpfSolverTest<ChSolver::Type::BARZILAIBORWEIN>,
-                          NUM_SKIP_STEPS,
-                          NUM_SIM_STEPS,
-                          REPEATS);
-////CH_FSI_BM_SIMULATION_ONCE(APGD, FsiTdpfSolverTest<ChSolver::Type::APGD>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_FSI_BM_SIMULATION_ONCE(GMRES, FsiTdpfSolverTest<ChSolver::Type::GMRES>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_FSI_BM_SIMULATION_ONCE(SPARSE_LU,
-                          FsiTdpfSolverTest<ChSolver::Type::SPARSE_LU>,
-                          NUM_SKIP_STEPS,
-                          NUM_SIM_STEPS,
-                          REPEATS);
-CH_FSI_BM_SIMULATION_ONCE(SPARSE_QR,
-                          FsiTdpfSolverTest<ChSolver::Type::SPARSE_QR>,
-                          NUM_SKIP_STEPS,
-                          NUM_SIM_STEPS,
-                          REPEATS);
-
-#ifdef CHRONO_PARDISO_MKL
-CH_FSI_BM_SIMULATION_ONCE(PARDISO_MKL,
-                          FsiTdpfSolverTest<ChSolver::Type::PARDISO_MKL>,
-                          NUM_SKIP_STEPS,
-                          NUM_SIM_STEPS,
-                          REPEATS);
-
-#endif
-
-#ifdef CHRONO_MUMPS
-CH_FSI_BM_SIMULATION_ONCE(MUMPS, FsiTdpfSolverTest<ChSolver::Type::MUMPS>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-
-#endif
-
-// -----------------------------------------------------------------------------
-
 int main(int argc, char* argv[]) {
-    // Force tabular output for user counters
-    std::string extra_arg = "--benchmark_counters_tabular=true";
+    double duration = 200;
+    double time_step = 1.0e-2;
+    bool real_time = true;
 
-    std::vector<char*> new_argv(argv, argv + argc);
-    new_argv.push_back(extra_arg.data());
-    int new_argc = argc + 1;
+    double render_fps = 30;
 
-    // Initialize benchmark framework
-    ::benchmark::Initialize(&new_argc, new_argv.data());
+    double wave_height = 4.0;
+    double wave_period = 10;
 
-#ifdef CHRONO_VSG
-    // Pass a dummy argument to run a single simulation with visualization
-    if (::benchmark::ReportUnrecognizedArguments(new_argc, new_argv.data())) {
-        FsiTdpfSolverTest<ChSolver::Type::GMRES> solver_test;
-        solver_test.SimulateVis();
-        return 0;
-    }
-#endif
+    ////std::string out_dir = GetChronoOutputPath() + "FSI-TDPF_vlfp";
+    ////if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    ////    cerr << "Error creating directory " << out_dir << endl;
+    ////    return 1;
+    ////}
 
-    // Run all tests
-    ::benchmark::RunSpecifiedBenchmarks();
+    FloatingPlatform platform(wave_height, wave_period);
+    platform.SetStepSize(time_step);
+    platform.SetSolver(ChSolver::Type::GMRES);
+    platform.SetRenderFPS(render_fps);
+
+    platform.CreateModel();
+    platform.CreateVisualization();
+    platform.Simulate(duration, real_time);
+    platform.Plot();
+
+    return 0;
 }

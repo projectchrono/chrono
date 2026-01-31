@@ -4,7 +4,7 @@ set(DEMOS ${DEMOS}
    demo_FSI-TDPF_sphere_decay
    demo_FSI-TDPF_sphere_reg_waves
    demo_FSI-TDPF_sphere_irreg_waves
-   demo_FSI-TDPF_vlfp_reg_waves
+   demo_FSI-TDPF_floating_platform
 )
 
 #--------------------------------------------------------------
@@ -19,6 +19,10 @@ endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS Chrono_pardisomkl)
+endif()
+
+if(CH_ENABLE_MODULE_MUMPS)
+  list(APPEND LIBS Chrono_mumps)
 endif()
 
 #--------------------------------------------------------------
