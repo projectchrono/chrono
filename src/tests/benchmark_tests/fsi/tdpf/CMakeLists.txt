@@ -1,3 +1,5 @@
+return()
+
 if(NOT CH_ENABLE_MODULE_FSI_TDPF)
     return()
 endif()
