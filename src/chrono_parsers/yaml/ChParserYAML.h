@@ -37,8 +37,6 @@ namespace parsers {
 /// Base class for all YAML parsers.
 class ChApiParsers ChParserYAML {
   public:
-    enum class DataPathType { ABS, REL };
-
     ChParserYAML();
     virtual ~ChParserYAML() {}
 
@@ -64,6 +62,9 @@ class ChApiParsers ChParserYAML {
     virtual void SaveOutput(int frame);
 
   protected:
+    enum class YamlFileType { MBS, FSI, VEHICLE, UNKNOWN };
+    enum class DataPathType { ABS, REL };
+
     /// Output parameters.
     struct OutputParameters {
         OutputParameters();
@@ -81,6 +82,9 @@ class ChApiParsers ChParserYAML {
 
     /// Return the path to the specified data file.
     std::string GetDatafilePath(const std::string& filename);
+
+    /// Read the YAML file type.
+    static YamlFileType ReadYamlFileType(const YAML::Node& a);
 
     /// Read the data path type (absolute or relative).
     static DataPathType ReadDataPathType(const YAML::Node& a);

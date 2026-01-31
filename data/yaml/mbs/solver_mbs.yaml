@@ -1,0 +1,12 @@
+chrono-version: 9.0
+
+contact_method: SMC
+  
+integrator:
+  type: Euler_implicit_linearized
+  
+solver:
+  type: Barzilai_Borwein
+  max_iterations: 100
+  overrelaxation_factor: 1.0
+  sharpness_factor: 1.0

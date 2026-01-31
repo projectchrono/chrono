@@ -86,6 +86,17 @@ std::string ChParserYAML::GetDatafilePath(const std::string& filename) {
     return full_filename;
 }
 
+ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
+    auto type = ToUpper(a.as<std::string>());
+    if (type == "MBS")
+        return YamlFileType::MBS;
+    if (type == "FSI")
+        return YamlFileType::FSI;
+    if (type == "VEHICLE")
+        return YamlFileType::VEHICLE;
+    return YamlFileType::UNKNOWN;
+}
+
 ChParserYAML::DataPathType ChParserYAML::ReadDataPathType(const YAML::Node& a) {
     auto type = ToUpper(a.as<std::string>());
     if (type == "RELATIVE")

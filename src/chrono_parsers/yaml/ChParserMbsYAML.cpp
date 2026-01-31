@@ -65,60 +65,93 @@ namespace chrono {
 namespace parsers {
 
 ChParserMbsYAML::ChParserMbsYAML(bool verbose)
-    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
+    : ChParserYAML(), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
     SetVerbose(verbose);
 }
 
-ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_model_filename,
-                                 const std::string& yaml_sim_filename,
-                                 bool verbose)
-    : ChParserYAML(), m_sim_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
+ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_filename, bool verbose)
+    : ChParserYAML(), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
     SetVerbose(verbose);
-    LoadModelFile(yaml_model_filename);
-    LoadSimulationFile(yaml_sim_filename);
+    LoadFile(yaml_filename);
 }
 
 ChParserMbsYAML::~ChParserMbsYAML() {}
 
 // -----------------------------------------------------------------------------
 
-void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
-    }
+void ChParserMbsYAML::LoadFile(const std::string& yaml_filename) {
+    YAML::Node yaml;
 
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
+    // Load MBS YAML file
+    {
+        auto path = filesystem::path(yaml_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        m_script_directory = path.parent_path().str();
+        yaml = YAML::LoadFile(yaml_filename);
+    }
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
     CheckVersion(yaml["chrono-version"]);
 
-    // Check a simulation object exists
+    // Check the YAML file if of type "MBS"
+    ChAssertAlways(yaml["type"]);
+    auto type = ReadYamlFileType(yaml["type"]);
+    ChAssertAlways(type == ChParserYAML::YamlFileType::MBS);
+
+    // Load simulation, output, and run-time visualization data
+    LoadSimData(yaml);
+
+    // Load MBS model YAML file
+    {
+        ChAssertAlways(yaml["model"]);
+        auto model_fname = yaml["model"].as<std::string>();
+        auto model_filename = m_script_directory + "/" + model_fname;
+        auto path = filesystem::path(model_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << model_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\n[ChParserMbsYAML] Loading Chrono model specification from: '" << yaml_filename << "'\n" << endl;
+        }
+        auto model = YAML::LoadFile(model_filename);
+        ChAssertAlways(model["chrono-version"]);
+        CheckVersion(model["chrono-version"]);
+        LoadModelData(model);
+    }
+
+    // Load solver YAML file
+    {
+        ChAssertAlways(yaml["solver"]);
+        auto solver_fname = yaml["solver"].as<std::string>();
+        auto solver_filename = m_script_directory + "/" + solver_fname;
+        auto path = filesystem::path(solver_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << solver_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\n[ChParserMbsYAML] Loading Chrono solver specification from: " << yaml_filename << "\n" << endl;
+        }
+        auto solver = YAML::LoadFile(solver_filename);
+        ChAssertAlways(solver["chrono-version"]);
+        CheckVersion(solver["chrono-version"]);
+        LoadSolverData(solver);
+    }
+}
+
+void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
+    // Simulation settings
     ChAssertAlways(yaml["simulation"]);
     auto sim = yaml["simulation"];
-
-    if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserMbsYAML] Loading Chrono simulation specification from: " << yaml_filename << "\n" << endl;
-    }
-
-    // Mandatory
     ChAssertAlways(sim["time_step"]);
-    ChAssertAlways(sim["contact_method"]);
     m_sim.time_step = sim["time_step"].as<double>();
-    auto contact_method = ToUpper(sim["contact_method"].as<std::string>());
-    if (contact_method == "SMC") {
-        m_sim.contact_method = ChContactMethod::SMC;
-    } else if (contact_method == "NSC") {
-        m_sim.contact_method = ChContactMethod::NSC;
-    } else {
-        cerr << "Incorrect contact method: " << sim["contact_method"].as<std::string>() << endl;
-        throw std::runtime_error("Incorrect contact method");
-    }
-
-    // Optional
     if (sim["end_time"])
         m_sim.end_time = sim["end_time"].as<double>();
     if (sim["enforce_realtime"])
@@ -126,9 +159,72 @@ void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
     if (sim["gravity"])
         m_sim.gravity = ReadVector(sim["gravity"]);
 
+    // Output (optional)
+    if (yaml["output"]) {
+        ChAssertAlways(yaml["output"]["type"]);
+        m_output.type = ReadOutputType(yaml["output"]["type"]);
+        if (yaml["output"]["mode"])
+            m_output.mode = ReadOutputMode(yaml["output"]["mode"]);
+        if (yaml["output"]["fps"])
+            m_output.fps = yaml["output"]["fps"].as<double>();
+        if (yaml["output"]["output_directory"])
+            m_output.dir = yaml["output"]["output_directory"].as<std::string>();
+    }
+
+    // Run-time visualization (optional)
+    if (yaml["visualization"]) {
+        auto vis = yaml["visualization"];
+        m_vis.render = true;
+        if (vis["type"])
+            m_vis.type = ReadVisualizationType(vis["type"]);
+        if (vis["render_fps"])
+            m_vis.render_fps = vis["render_fps"].as<double>();
+        if (vis["enable_shadows"])
+            m_vis.enable_shadows = vis["enable_shadows"].as<bool>();
+        if (vis["camera"]) {
+            if (vis["camera"]["vertical"]) {
+                auto camera_vertical = ToUpper(vis["camera"]["vertical"].as<std::string>());
+                if (camera_vertical == "Y")
+                    m_vis.camera_vertical = CameraVerticalDir::Y;
+                else if (camera_vertical == "Z")
+                    m_vis.camera_vertical = CameraVerticalDir::Z;
+                else {
+                    cerr << "Incorrect camera vertical " << vis["camera"]["vertical"].as<std::string>() << endl;
+                    throw std::runtime_error("Incorrect camera vertical");
+                }
+            }
+            if (vis["camera"]["location"])
+                m_vis.camera_location = ReadVector(vis["camera"]["location"]);
+            if (vis["camera"]["target"])
+                m_vis.camera_target = ReadVector(vis["camera"]["target"]);
+        }
+    } else {
+        m_vis.render = false;
+    }
+
+    if (m_verbose) {
+        m_vis.PrintInfo();
+        cout << endl;
+        m_output.PrintInfo();
+    }
+}
+
+void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
+    // Mandatory
+    ChAssertAlways(yaml["contact_method"]);
+    auto contact_method = ToUpper(yaml["contact_method"].as<std::string>());
+    if (contact_method == "SMC") {
+        m_sim.contact_method = ChContactMethod::SMC;
+    } else if (contact_method == "NSC") {
+        m_sim.contact_method = ChContactMethod::NSC;
+    } else {
+        cerr << "Incorrect contact method: " << yaml["contact_method"].as<std::string>() << endl;
+        throw std::runtime_error("Incorrect contact method");
+    }
+
     // Integrator parameters (optional)
-    if (sim["integrator"]) {
-        auto intgr = sim["integrator"];
+    if (yaml["integrator"]) {
+        auto intgr = yaml["integrator"];
         ChAssertAlways(intgr["type"]);
         m_sim.integrator.type = ReadIntegratorType(intgr["type"]);
         switch (m_sim.integrator.type) {
@@ -160,8 +256,8 @@ void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Solver parameters (optional)
-    if (sim["solver"]) {
-        auto slvr = sim["solver"];
+    if (yaml["solver"]) {
+        auto slvr = yaml["solver"];
         ChAssertAlways(slvr["type"]);
         m_sim.solver.type = ReadSolverType(slvr["type"]);
         switch (m_sim.solver.type) {
@@ -181,6 +277,10 @@ void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     m_sim.solver.overrelaxation_factor = slvr["overrelaxation_factor"].as<double>();
                 if (slvr["sharpness_factor"])
                     m_sim.solver.sharpness_factor = slvr["sharpness_factor"].as<double>();
+                if (slvr["enable_diagonal_preconditioner"])
+                    m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
+                if (slvr["warm_start"])
+                    m_sim.solver.warm_start = slvr["warm_start"].as<bool>();
                 break;
             case ChSolver::Type::BICGSTAB:
             case ChSolver::Type::MINRES:
@@ -191,77 +291,20 @@ void ChParserMbsYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     m_sim.solver.tolerance = slvr["tolerance"].as<double>();
                 if (slvr["enable_diagonal_preconditioner"])
                     m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
+                if (slvr["warm_start"])
+                    m_sim.solver.warm_start = slvr["warm_start"].as<bool>();
                 break;
         }
     }
 
-    // Run-time visualization (optional)
-    if (sim["visualization"]) {
-        m_sim.visualization.render = true;
-        auto vis = sim["visualization"];
-        if (vis["type"])
-            m_sim.visualization.type = ReadVisualizationType(vis["type"]);
-        if (vis["render_fps"])
-            m_sim.visualization.render_fps = vis["render_fps"].as<double>();
-        if (vis["enable_shadows"])
-            m_sim.visualization.enable_shadows = vis["enable_shadows"].as<bool>();
-        if (vis["camera"]) {
-            if (vis["camera"]["vertical"]) {
-                auto camera_vertical = ToUpper(vis["camera"]["vertical"].as<std::string>());
-                if (camera_vertical == "Y")
-                    m_sim.visualization.camera_vertical = CameraVerticalDir::Y;
-                else if (camera_vertical == "Z")
-                    m_sim.visualization.camera_vertical = CameraVerticalDir::Z;
-                else {
-                    cerr << "Incorrect camera vertical " << vis["camera"]["vertical"].as<std::string>() << endl;
-                    throw std::runtime_error("Incorrect camera vertical");
-                }
-            }
-            if (vis["camera"]["location"])
-                m_sim.visualization.camera_location = ReadVector(vis["camera"]["location"]);
-            if (vis["camera"]["target"])
-                m_sim.visualization.camera_target = ReadVector(vis["camera"]["target"]);
-        }
-    } else {
-        m_sim.visualization.render = false;
-    }
-
-    // Output (optional)
-    if (sim["output"]) {
-        ChAssertAlways(sim["output"]["type"]);
-        m_output.type = ReadOutputType(sim["output"]["type"]);
-        if (sim["output"]["mode"])
-            m_output.mode = ReadOutputMode(sim["output"]["mode"]);
-        if (sim["output"]["fps"])
-            m_output.fps = sim["output"]["fps"].as<double>();
-        if (sim["output"]["output_directory"])
-            m_output.dir = sim["output"]["output_directory"].as<std::string>();
-    }
-
     if (m_verbose) {
         m_sim.PrintInfo();
-        cout << endl;
-        m_output.PrintInfo();
     }
 
-    m_sim_loaded = true;
+    m_solver_loaded = true;
 }
 
-void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
-    }
-
-    m_script_directory = path.parent_path().str();
-
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
-
-    // Check version compatibility
-    ChAssertAlways(yaml["chrono-version"]);
-    CheckVersion(yaml["chrono-version"]);
-
+void ChParserMbsYAML::LoadModelData(const YAML::Node& yaml) {
     // Check a model object exists
     ChAssertAlways(yaml["model"]);
     auto model = yaml["model"];
@@ -280,8 +323,6 @@ void ChParserMbsYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserMbsYAML] Loading Chrono model specification from: '" << yaml_filename << "'\n" << endl;
         cout << "model name: '" << m_name << "'" << endl;
         cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
         switch (m_data_path) {
@@ -646,6 +687,8 @@ void ChParserMbsYAML::SetSolver(ChSystem& sys, const SolverParams& params, int n
                 solver->SetMaxIterations(params.max_iterations);
                 solver->SetOmega(params.overrelaxation_factor);
                 solver->SetSharpnessLambda(params.sharpness_factor);
+                solver->EnableDiagonalPreconditioner(params.enable_diagonal_preconditioner);
+                solver->EnableWarmStart(params.warm_start);
                 break;
             }
             case ChSolver::Type::BICGSTAB:
@@ -655,6 +698,7 @@ void ChParserMbsYAML::SetSolver(ChSystem& sys, const SolverParams& params, int n
                 solver->SetMaxIterations(params.max_iterations);
                 solver->SetTolerance(params.tolerance);
                 solver->EnableDiagonalPreconditioner(params.enable_diagonal_preconditioner);
+                solver->EnableWarmStart(params.warm_start);
                 break;
             }
             default:
@@ -694,7 +738,7 @@ void ChParserMbsYAML::SetIntegrator(ChSystem& sys, const IntegratorParams& param
 }
 
 void ChParserMbsYAML::SetSimulationParameters(ChSystem& sys) {
-    if (!m_sim_loaded) {
+    if (!m_solver_loaded) {
         cerr << "[ChParserMbsYAML::SetSimulationParameters] Warning: no YAML simulation file loaded." << endl;
         cerr << "No changes applied to system." << endl;
         return;
@@ -712,7 +756,7 @@ void ChParserMbsYAML::SetSimulationParameters(ChSystem& sys) {
 }
 
 std::shared_ptr<ChSystem> ChParserMbsYAML::CreateSystem() {
-    if (!m_sim_loaded) {
+    if (!m_solver_loaded) {
         cerr << "[ChParserMbsYAML::CreateSystem] Warning: no YAML simulation file loaded." << endl;
         cerr << "Returning a default ChSystemNSC." << endl;
         return chrono_types::make_shared<ChSystemNSC>();
@@ -897,7 +941,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
 
     // Create body loads
     if (m_verbose)
-        cout << "create body loads...                     " << m_bodyload_params .size() << endl;
+        cout << "create body loads...                     " << m_bodyload_params.size() << endl;
     for (auto& item : m_bodyload_params) {
         auto body = FindBodyByName(item.second.body);
         std::shared_ptr<ChLoadCustom> load;
@@ -1016,7 +1060,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
 
     // Create visualization assets
     for (auto& item : m_body_params)
-        item.second.geometry->CreateVisualizationAssets(item.second.body[m_crt_instance], m_sim.visualization.type);
+        item.second.geometry->CreateVisualizationAssets(item.second.body[m_crt_instance], m_vis.type);
     for (auto& item : m_tsda_params)
         item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_crt_instance]);
     for (auto& item : m_distcnstr_params)
@@ -1283,7 +1327,8 @@ ChParserMbsYAML::SolverParams::SolverParams()
       max_iterations(100),
       enable_diagonal_preconditioner(false),
       overrelaxation_factor(1.0),
-      sharpness_factor(1.0) {}
+      sharpness_factor(1.0),
+      warm_start(false) {}
 
 ChParserMbsYAML::IntegratorParams::IntegratorParams()
     : type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
@@ -1329,6 +1374,7 @@ void ChParserMbsYAML::SolverParams::PrintInfo() {
             cout << "  max iterations:               " << max_iterations << endl;
             cout << "  overrelaxation factor:        " << overrelaxation_factor << endl;
             cout << "  sharpness factor:             " << sharpness_factor << endl;
+            cout << "  warm start?                   " << (warm_start ? "true" : "false");
             break;
         case ChSolver::Type::BICGSTAB:
         case ChSolver::Type::MINRES:
@@ -1336,6 +1382,7 @@ void ChParserMbsYAML::SolverParams::PrintInfo() {
             cout << "  max iterations:               " << max_iterations << endl;
             cout << "  tolerance:                    " << tolerance << endl;
             cout << "  use diagonal preconditioner?  " << std::boolalpha << enable_diagonal_preconditioner << endl;
+            cout << "  warm start?                   " << (warm_start ? "true" : "false");
             break;
         case ChSolver::Type::PARDISO_MKL:
         case ChSolver::Type::MUMPS:
@@ -1381,8 +1428,6 @@ void ChParserMbsYAML::SimParams::PrintInfo() {
     solver.PrintInfo();
     cout << endl;
     integrator.PrintInfo();
-    cout << endl;
-    visualization.PrintInfo();
 }
 
 void ChParserMbsYAML::VisParams::PrintInfo() {

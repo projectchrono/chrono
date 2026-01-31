@@ -154,32 +154,32 @@ set(Chrono_PARSERS_YAML_FILES
     yaml/ChParserMbsYAML.h
     yaml/ChParserMbsYAML.cpp
 )
-if(CH_ENABLE_MODULE_FSI)
-    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
-        yaml/ChParserFsiYAML.h
-        yaml/ChParserFsiYAML.cpp
-        yaml/ChParserCfdYAML.h
-        yaml/ChParserCfdYAML.cpp
-    )
-endif()
-if(CH_ENABLE_MODULE_FSI_SPH)
-    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
-        yaml/ChParserSphYAML.h
-        yaml/ChParserSphYAML.cpp
-    )
-endif()
-if(CH_ENABLE_MODULE_FSI_TDPF)
-    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
-        yaml/ChParserTdpfYAML.h
-        yaml/ChParserTdpfYAML.cpp
-    )
-endif()
-if(CH_ENABLE_MODULE_VEHICLE)
-    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
-        yaml/ChParserVehicleYAML.h
-        yaml/ChParserVehicleYAML.cpp
-    )
-endif()
+#if(CH_ENABLE_MODULE_FSI)
+#    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+#        yaml/ChParserFsiYAML.h
+#        yaml/ChParserFsiYAML.cpp
+#        yaml/ChParserCfdYAML.h
+#        yaml/ChParserCfdYAML.cpp
+#    )
+#endif()
+#if(CH_ENABLE_MODULE_FSI_SPH)
+#    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+#        yaml/ChParserSphYAML.h
+#        yaml/ChParserSphYAML.cpp
+#    )
+#endif()
+#if(CH_ENABLE_MODULE_FSI_TDPF)
+#    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+#        yaml/ChParserTdpfYAML.h
+#        yaml/ChParserTdpfYAML.cpp
+#    )
+#endif()
+#if(CH_ENABLE_MODULE_VEHICLE)
+#    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+#        yaml/ChParserVehicleYAML.h
+#        yaml/ChParserVehicleYAML.cpp
+#    )
+#endif()
 source_group("yaml" FILES ${Chrono_PARSERS_YAML_FILES})
 
 # ------------------------------------------------------------------------------
@@ -376,4 +376,10 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 #        install(FILES "${TINYXML2_DLL}" DESTINATION bin)
 #      endif()
 #    endif()
+#endif()
+
+#-------------------------------------------------------------------------------
+
+#if(INCLUDE_YAML_PARSER)
+#    add_subdirectory(yaml_app)
 #endif()
