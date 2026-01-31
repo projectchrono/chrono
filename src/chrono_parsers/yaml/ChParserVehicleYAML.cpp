@@ -33,10 +33,9 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_model_filename,
-                                         const std::string& yaml_sim_filename,
-                                         bool verbose)
+ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_filename, bool verbose)
     : ChParserYAML(),
+      m_model_loaded(false),
       m_init_position(VNULL),
       m_init_yaw(0.0),
       m_chassis_point(VNULL),
@@ -51,9 +50,7 @@ ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_model_filename,
       m_vis_tire(VisualizationType::MESH) {
     SetVerbose(verbose);
     m_parserMBS = chrono_types::make_shared<ChParserMbsYAML>(verbose);
-    m_parserMBS->LoadSimulationFile(yaml_sim_filename);
-
-    LoadModelFile(yaml_model_filename);
+    LoadFile(yaml_filename);
 }
 
 ChParserVehicleYAML::~ChParserVehicleYAML() {}
@@ -83,22 +80,77 @@ std::string ChParserVehicleYAML::GetVehicleTypeAsString() const {
     return "Tracked";
 }
 
-void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
+// -----------------------------------------------------------------------------
+
+void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
+    YAML::Node yaml;
+
+    // Load VEHICLE YAML file
+    {
+        auto path = filesystem::path(yaml_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        m_script_directory = path.parent_path().str();
+        yaml = YAML::LoadFile(yaml_filename);
     }
-
-    m_script_directory = path.parent_path().str();
-
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
     CheckVersion(yaml["chrono-version"]);
 
-    // Read the model
+    // Check the YAML file if of type "VEHICLE"
+    ChAssertAlways(yaml["type"]);
+    auto type = ReadYamlFileType(yaml["type"]);
+    ChAssertAlways(type == ChParserYAML::YamlFileType::VEHICLE);
+
+    // Load simulation, output, and run-time visualization data
+    m_parserMBS->LoadSimData(yaml);
+
+    // Load vehicle model YAML file
+    {
+        ChAssertAlways(yaml["model"]);
+        auto model_fname = yaml["model"].as<std::string>();
+        auto model_filename = m_script_directory + "/" + model_fname;
+        auto path = filesystem::path(model_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << model_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\nLoading Chrono::Vehicle specification from: " << yaml_filename << "\n" << endl;
+        }
+        auto model = YAML::LoadFile(model_filename);
+        ChAssertAlways(model["chrono-version"]);
+        CheckVersion(model["chrono-version"]);
+        LoadModelData(model);
+    }
+
+    // Load solver YAML file
+    {
+        ChAssertAlways(yaml["solver"]);
+        auto solver_fname = yaml["solver"].as<std::string>();
+        auto solver_filename = m_script_directory + "/" + solver_fname;
+        auto path = filesystem::path(solver_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << solver_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\n[ChParserMbsYAML] Loading Chrono solver specification from: " << yaml_filename << "\n" << endl;
+        }
+        auto solver = YAML::LoadFile(solver_filename);
+        ChAssertAlways(solver["chrono-version"]);
+        CheckVersion(solver["chrono-version"]);
+        m_parserMBS->LoadSolverData(solver);
+    }
+}
+
+void ChParserVehicleYAML::LoadModelData(const YAML::Node& yaml) {
+    // Check a model object exists
     ChAssertAlways(yaml["model"]);
     auto model = yaml["model"];
 
@@ -155,8 +207,6 @@ void ChParserVehicleYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\nLoading Chrono::Vehicle specification from: " << yaml_filename << "\n" << endl;
         cout << "Model name: '" << m_name << "'" << endl;
         cout << "JSON specification files" << endl;
         cout << "   Vehicle:      " << m_vehicle_json << endl;

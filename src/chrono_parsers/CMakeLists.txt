@@ -174,12 +174,12 @@ set(Chrono_PARSERS_YAML_FILES
 #        yaml/ChParserTdpfYAML.cpp
 #    )
 #endif()
-#if(CH_ENABLE_MODULE_VEHICLE)
-#    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
-#        yaml/ChParserVehicleYAML.h
-#        yaml/ChParserVehicleYAML.cpp
-#    )
-#endif()
+if(CH_ENABLE_MODULE_VEHICLE)
+    set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}
+        yaml/ChParserVehicleYAML.h
+        yaml/ChParserVehicleYAML.cpp
+    )
+endif()
 source_group("yaml" FILES ${Chrono_PARSERS_YAML_FILES})
 
 # ------------------------------------------------------------------------------

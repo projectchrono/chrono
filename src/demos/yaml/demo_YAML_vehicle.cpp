@@ -42,29 +42,24 @@ using namespace chrono;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Extract filenames from command-line arguments
-    std::string sim_yaml_filename = GetChronoDataFile("yaml/vehicle/simulation_vehicle.yaml");
-    std::string model_yaml_filename = GetChronoDataFile("yaml/vehicle/polaris.yaml");
-    ////std::string model_yaml_filename = GetChronoDataFile("yaml/vehicle/marder.yaml");
+    // Extract filename from command-line arguments
+    std::string yaml_filename = GetChronoDataFile("yaml/vehicle/vehicle.yaml");
 
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "m,model_file", "vehicle model specification YAML file", model_yaml_filename);
-    cli.AddOption<std::string>("", "s,sim_file", "simulation specification YAML file", sim_yaml_filename);
+    cli.AddOption<std::string>("", "s,simulation_file", "MBS simulation specification YAML file", yaml_filename);
     if (!cli.Parse(argc, argv, true))
         return 1;
     if (argc == 1) {
         cli.Help();
-        std::cout << "Using default YAML model and simulation specification" << std::endl;
+        std::cout << "Using default YAML simulation specification" << std::endl;
     }
-    model_yaml_filename = cli.GetAsType<std::string>("model_file");
-    sim_yaml_filename = cli.GetAsType<std::string>("sim_file");
+    yaml_filename = cli.GetAsType<std::string>("simulation_file");
 
     std::cout << std::endl;
-    std::cout << "Vehicle model YAML file: " << model_yaml_filename << std::endl;
-    std::cout << "Simulation YAML file:    " << sim_yaml_filename << std::endl;
+    std::cout << "Simulation YAML file: " << yaml_filename << std::endl;
 
     // Create the YAML parser object
-    parsers::ChParserVehicleYAML parser(model_yaml_filename, sim_yaml_filename, true);
+    parsers::ChParserVehicleYAML parser(yaml_filename, true);
 
     // Create Chrono system and vehicle model
     auto sys = parser.CreateSystem();

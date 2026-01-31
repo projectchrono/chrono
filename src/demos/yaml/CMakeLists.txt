@@ -10,9 +10,9 @@ set(DEMOS
 #  set(DEMOS ${DEMOS} demo_YAML_fsi)
 #endif()
 #
-#if(CH_ENABLE_MODULE_VEHICLE)
-#  set(DEMOS ${DEMOS} demo_YAML_vehicle)
-#endif()
+if(CH_ENABLE_MODULE_VEHICLE)
+  set(DEMOS ${DEMOS} demo_YAML_vehicle)
+endif()
 
 #--------------------------------------------------------------
 

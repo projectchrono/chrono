@@ -37,23 +37,35 @@ class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
   public:
     enum class VehicleType { WHEELED, TRACKED };
 
-    /// Create a YAML parser and load the model from the specified input YAML file.
-    ChParserVehicleYAML(const std::string& yaml_model_filename,
-                        const std::string& yaml_sim_filename,
-                        bool verbose = false);
+    ChParserVehicleYAML(const std::string& yaml_filename, bool verbose = false);
     ~ChParserVehicleYAML();
 
-    /// Return true if a YAML simulation file has been loaded.
-    bool HasSimulationData() const { return m_parserMBS->HasSimulationData(); }
+    /// Return true if a YAML solver file has been loaded.
+    bool HasSolverData() const { return m_parserMBS->HasSolverData(); }
 
     /// Return true if a YAML model file has been loaded.
     bool HasModelData() const { return m_model_loaded; }
+
+    // --------------
+
+    /// Load the specified MBS simulation input YAML file.
+    void LoadFile(const std::string& yaml_filename);
+
+    /// Load the vehicle model from the specified YAML node.
+    void LoadModelData(const YAML::Node& yaml);
+
+    /// Create and return a Chrono system configured from cached simulation parameters.
+    std::shared_ptr<ChSystem> CreateSystem() { return m_parserMBS->CreateSystem(); }
+
+    /// Populate the given system with the cached Chrono::Vehicle model.
+    void CreateVehicle(ChSystem& sys);
 
     // -------------
 
     double GetTimestep() const { return m_parserMBS->GetTimestep(); }
     double GetEndtime() const { return m_parserMBS->GetEndtime(); }
     bool EnforceRealtime() const { return m_parserMBS->EnforceRealtime(); }
+
     bool Render() const { return m_parserMBS->Render(); }
     double GetRenderFPS() const { return m_parserMBS->GetRenderFPS(); }
     CameraVerticalDir GetCameraVerticalDir() const { return m_parserMBS->GetCameraVerticalDir(); }
@@ -61,22 +73,13 @@ class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
     const ChVector3d& GetCameraTarget() const { return m_parserMBS->GetCameraTarget(); }
     bool EnableShadows() const { return m_parserMBS->EnableShadows(); }
 
-    /// Create and return a Chrono system configured from cached simulation parameters.
-    std::shared_ptr<ChSystem> CreateSystem() { return m_parserMBS->CreateSystem(); }
-
     // -------------
-
-    /// Load the specified vehicle model input YAML file.
-    void LoadModelFile(const std::string& yaml_filename);
 
     /// Get vehicle type (from specified vehicleJSON file).
     VehicleType GetVehicleType() const { return m_vehicle_type; }
 
     /// Get vehicle type as a string.
     std::string GetVehicleTypeAsString() const;
-
-    /// Populate the given system with the cached Chrono::Vehicle model.
-    void CreateVehicle(ChSystem& sys);
 
     /// Return the underlying vehicle model.
     std::shared_ptr<vehicle::ChVehicle> GetVehicle() const { return m_vehicle; }
