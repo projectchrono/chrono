@@ -84,8 +84,8 @@ typedef std::unordered_map<std::string, double> MotorControllerActuations;
 // -----------------------------------------------------------------------------
 
 /// Parser for YAML specification files for Chrono models and simulations.
-/// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
-/// populating a Chrono system and setting solver and simulation parameters.
+/// The parser caches model information and simulation settings from a YAML input file and then allows populating an MBS
+/// Chrono system and setting solver and simulation parameters.
 class ChApiParsers ChParserMbsYAML : public ChParserYAML {
   public:
     ChParserMbsYAML(bool verbose = false);
@@ -103,7 +103,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Load the specified MBS simulation input YAML file.
     void LoadFile(const std::string& yaml_filename);
 
-    /// Load the simulation, output, and visualization saettings from the specified YAML node.
+    /// Load the simulation, output, and visualization settings from the specified YAML node.
     void LoadSimData(const YAML::Node& yaml);
 
     /// Load the MBS model from the specified YAML node.
@@ -122,7 +122,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     // --------------
 
-    double GetTimestep() const { return m_sim.time_step; }
+    double GetTimestep() const { return m_sim.integrator.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
 
@@ -230,6 +230,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         void PrintInfo();
 
         ChTimestepper::Type type;
+        double time_step;
         double rtol;
         double atol_states;
         double atol_multipliers;
@@ -266,7 +267,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         int num_threads_eigen;
         int num_threads_pardiso;
 
-        double time_step;
         double end_time;
         bool enforce_realtime;
 

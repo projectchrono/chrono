@@ -190,11 +190,10 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         SimParams();
         void PrintInfo();
 
-        double time_step;
         double end_time;
-
         ChVector3d gravity;
 
+        double time_step;
         fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph;
     };
 

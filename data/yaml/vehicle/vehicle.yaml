@@ -6,7 +6,6 @@ model:  "polaris.yaml"
 solver: "solver_mbs.yaml"
 
 simulation:  
-  time_step: 5e-4
   end_time: 10
   enforce_realtime: true
   

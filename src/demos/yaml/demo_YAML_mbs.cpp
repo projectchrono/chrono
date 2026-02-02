@@ -69,14 +69,10 @@ int main(int argc, char* argv[]) {
     yaml_filename = cli.GetAsType<std::string>("simulation_file");
 
     std::cout << std::endl;
-    std::cout << "Simulation YAML file: " << yaml_filename << std::endl;
+    std::cout << "YAML specification file: " << yaml_filename << std::endl;
 
-    // Create YAML parser object
-    parsers::ChParserMbsYAML parser;
-    parser.SetVerbose(true);
-
-    // Load the YAML file, then create a Chrono system and populate it
-    parser.LoadFile(yaml_filename);
+    // Create YAML parser object, load the YAML file, then create a Chrono system and populate it
+    parsers::ChParserMbsYAML parser(yaml_filename, true);
     auto sys = parser.CreateSystem();
     instance1 = parser.Populate(*sys, frame1, prefix1);
     if (second_instance)

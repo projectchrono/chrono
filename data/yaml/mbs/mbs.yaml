@@ -10,7 +10,6 @@ solver: "solver_mbs.yaml"
 #solver: "solver_mbs_stiff.yaml"
 
 simulation:
-  time_step: 1e-4
   end_time: 100
   enforce_realtime: true
   

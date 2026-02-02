@@ -57,31 +57,6 @@ ChParserVehicleYAML::~ChParserVehicleYAML() {}
 
 // -----------------------------------------------------------------------------
 
-ChParserVehicleYAML::VehicleType ChParserVehicleYAML::ReadVehicleType(const std::string& vehicle_json) {
-    // Peek in vehicle JSON file and infer type
-    rapidjson::Document d;
-    vehicle::ReadFileJSON(vehicle_json, d);
-    ChAssertAlways(!d.IsNull());
-    ChAssertAlways(d.HasMember("Type"));
-    ChAssertAlways(d.HasMember("Template"));
-
-    std::string type = d["Type"].GetString();
-    ChAssertAlways(type.compare("Vehicle") == 0);
-    std::string subtype = d["Template"].GetString();
-
-    if (subtype == "WheeledVehicle")
-        return VehicleType::WHEELED;
-    return VehicleType::TRACKED;
-}
-
-std::string ChParserVehicleYAML::GetVehicleTypeAsString() const {
-    if (m_vehicle_type == VehicleType::WHEELED)
-        return "Wheeled";
-    return "Tracked";
-}
-
-// -----------------------------------------------------------------------------
-
 void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
     YAML::Node yaml;
 
@@ -289,6 +264,31 @@ void ChParserVehicleYAML::CreateVehicle(ChSystem& sys) {
         m_terrain = chrono_types::make_shared<vehicle::RigidTerrain>(&sys, m_terrain_json);
         m_terrain->Initialize();
     }
+}
+
+// -----------------------------------------------------------------------------
+
+ChParserVehicleYAML::VehicleType ChParserVehicleYAML::ReadVehicleType(const std::string& vehicle_json) {
+    // Peek in vehicle JSON file and infer type
+    rapidjson::Document d;
+    vehicle::ReadFileJSON(vehicle_json, d);
+    ChAssertAlways(!d.IsNull());
+    ChAssertAlways(d.HasMember("Type"));
+    ChAssertAlways(d.HasMember("Template"));
+
+    std::string type = d["Type"].GetString();
+    ChAssertAlways(type.compare("Vehicle") == 0);
+    std::string subtype = d["Template"].GetString();
+
+    if (subtype == "WheeledVehicle")
+        return VehicleType::WHEELED;
+    return VehicleType::TRACKED;
+}
+
+std::string ChParserVehicleYAML::GetVehicleTypeAsString() const {
+    if (m_vehicle_type == VehicleType::WHEELED)
+        return "Wheeled";
+    return "Tracked";
 }
 
 }  // namespace parsers

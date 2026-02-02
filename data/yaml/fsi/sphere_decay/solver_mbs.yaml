@@ -4,6 +4,7 @@ contact_method: SMC
 
 integrator:
   type: HHT
+  time_step: 1e-4
   rel_tolerance: 1e-4
   abs_tolerance_states: 1e-4
   abs_tolerance_multipliers: 1e2

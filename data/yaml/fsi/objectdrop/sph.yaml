@@ -5,7 +5,6 @@ model:  "model_sph.yaml"
 solver: "solver_sph.yaml"
 
 simulation:  
-  time_step: 1e-4
   end_time: 100
   
 output:

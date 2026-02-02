@@ -134,8 +134,6 @@ void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
     {
         ChAssertAlways(yaml["simulation"]);
         auto sim = yaml["simulation"];
-        ChAssertAlways(sim["time_step"]);
-        m_sim.time_step = sim["time_step"].as<double>();
         if (sim["end_time"])
             m_sim.end_time = sim["end_time"].as<double>();
         if (sim["gravity"])
@@ -337,6 +335,8 @@ void ChParserSphYAML::LoadSolverData(const YAML::Node& yaml) {
     // Integration parameters
     if (yaml["integration"]) {
         auto a = yaml["integration"];
+        ChAssertAlways(a["time_step"]);
+        m_sim.time_step = a["time_step"].as<double>();
         if (a["integration_scheme"])
             m_sim.sph.integration_scheme = ReadIntegrationScheme(a["integration_scheme"]);
         if (a["use_variable_time_step"])
@@ -960,10 +960,10 @@ ChParserSphYAML::SimParams::SimParams() : gravity({0, 0, -9.8}), time_step(1e-4)
 
 void ChParserSphYAML::SimParams::PrintInfo() {
     cout << "simulation end time:        " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
-    cout << "integration time step:      " << time_step << endl;
     cout << endl;
 
     cout << "SPH settings" << endl;
+    cout << "  integration time step:      " << time_step << endl;
 
     //// TODO
 }

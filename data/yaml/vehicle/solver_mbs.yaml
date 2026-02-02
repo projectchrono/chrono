@@ -4,7 +4,8 @@ contact_method: SMC
   
 integrator:
   type: Euler_implicit_linearized
-  
+  time_step: 5e-4
+
 solver:
   type: Barzilai_Borwein
   max_iterations: 100

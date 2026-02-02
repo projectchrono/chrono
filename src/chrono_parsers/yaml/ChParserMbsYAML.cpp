@@ -65,7 +65,7 @@ namespace chrono {
 namespace parsers {
 
 ChParserMbsYAML::ChParserMbsYAML(bool verbose)
-    : ChParserYAML(), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
+    : ChParserYAML(), m_loaded(false), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
     SetVerbose(verbose);
 }
 
@@ -117,7 +117,7 @@ void ChParserMbsYAML::LoadFile(const std::string& yaml_filename) {
         }
         if (m_verbose) {
             cout << "\n-------------------------------------------------" << endl;
-            cout << "\n[ChParserMbsYAML] Loading Chrono model specification from: '" << yaml_filename << "'\n" << endl;
+            cout << "\n[ChParserMbsYAML] Loading Chrono MBS model from: '" << model_filename << "'\n" << endl;
         }
         auto model = YAML::LoadFile(model_filename);
         ChAssertAlways(model["chrono-version"]);
@@ -137,27 +137,37 @@ void ChParserMbsYAML::LoadFile(const std::string& yaml_filename) {
         }
         if (m_verbose) {
             cout << "\n-------------------------------------------------" << endl;
-            cout << "\n[ChParserMbsYAML] Loading Chrono solver specification from: " << yaml_filename << "\n" << endl;
+            cout << "\n[ChParserMbsYAML] Loading Chrono MBS solver from: " << solver_filename << "\n" << endl;
         }
         auto solver = YAML::LoadFile(solver_filename);
         ChAssertAlways(solver["chrono-version"]);
         CheckVersion(solver["chrono-version"]);
         LoadSolverData(solver);
     }
+
+    if (m_verbose) {
+        m_sim.PrintInfo();
+        cout << endl;
+        m_vis.PrintInfo();
+        cout << endl;
+        m_output.PrintInfo();
+    }
+
+    m_loaded = true;
 }
 
 void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
-    // Simulation settings
-    ChAssertAlways(yaml["simulation"]);
-    auto sim = yaml["simulation"];
-    ChAssertAlways(sim["time_step"]);
-    m_sim.time_step = sim["time_step"].as<double>();
-    if (sim["end_time"])
-        m_sim.end_time = sim["end_time"].as<double>();
-    if (sim["enforce_realtime"])
-        m_sim.enforce_realtime = sim["enforce_realtime"].as<bool>();
-    if (sim["gravity"])
-        m_sim.gravity = ReadVector(sim["gravity"]);
+    // Simulation settings (required)
+    {
+        ChAssertAlways(yaml["simulation"]);
+        auto sim = yaml["simulation"];
+        if (sim["end_time"])
+            m_sim.end_time = sim["end_time"].as<double>();
+        if (sim["enforce_realtime"])
+            m_sim.enforce_realtime = sim["enforce_realtime"].as<bool>();
+        if (sim["gravity"])
+            m_sim.gravity = ReadVector(sim["gravity"]);
+    }
 
     // Output (optional)
     if (yaml["output"]) {
@@ -201,12 +211,6 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
     } else {
         m_vis.render = false;
     }
-
-    if (m_verbose) {
-        m_vis.PrintInfo();
-        cout << endl;
-        m_output.PrintInfo();
-    }
 }
 
 void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
@@ -226,7 +230,9 @@ void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
     if (yaml["integrator"]) {
         auto intgr = yaml["integrator"];
         ChAssertAlways(intgr["type"]);
+        ChAssertAlways(intgr["time_step"]);
         m_sim.integrator.type = ReadIntegratorType(intgr["type"]);
+        m_sim.integrator.time_step = intgr["time_step"].as<double>();
         switch (m_sim.integrator.type) {
             case ChTimestepper::Type::HHT:
                 if (intgr["rel_tolerance"])
@@ -295,10 +301,6 @@ void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
                     m_sim.solver.warm_start = slvr["warm_start"].as<bool>();
                 break;
         }
-    }
-
-    if (m_verbose) {
-        m_sim.PrintInfo();
     }
 
     m_solver_loaded = true;
@@ -1237,7 +1239,7 @@ void ChParserMbsYAML::ApplyMotorControllerActuations(const MotorControllerActuat
 
 void ChParserMbsYAML::DoStepDynamics() {
     double time = m_sys->GetChTime();
-    double time_step = m_sim.time_step;
+    double time_step = m_sim.integrator.time_step;
 
     // Process load controllers
     for (auto& load_controller : m_load_controllers) {
@@ -1332,6 +1334,7 @@ ChParserMbsYAML::SolverParams::SolverParams()
 
 ChParserMbsYAML::IntegratorParams::IntegratorParams()
     : type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
+      time_step(1e-3),
       rtol(1e-4),
       atol_states(1e-4),
       atol_multipliers(1e2),
@@ -1355,7 +1358,6 @@ ChParserMbsYAML::SimParams::SimParams()
       num_threads_collision(1),
       num_threads_eigen(1),
       num_threads_pardiso(1),
-      time_step(1e-3),
       end_time(-1),
       enforce_realtime(false) {}
 
@@ -1393,6 +1395,7 @@ void ChParserMbsYAML::SolverParams::PrintInfo() {
 
 void ChParserMbsYAML::IntegratorParams::PrintInfo() {
     cout << "integrator" << endl;
+    cout << "  time step:                    " << time_step << endl;
     cout << "  type:                         " << ChTimestepper::GetTypeAsString(type) << endl;
     switch (type) {
         case ChTimestepper::Type::HHT:
@@ -1417,7 +1420,6 @@ void ChParserMbsYAML::SimParams::PrintInfo() {
     cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
     cout << endl;
     cout << "simulation end time:    " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
-    cout << "integration time step:  " << time_step << endl;
     cout << "enforce real time?      " << std::boolalpha << enforce_realtime << endl;
     cout << endl;
     cout << "num threads Chrono:     " << num_threads_chrono << endl;

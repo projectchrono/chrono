@@ -24,6 +24,7 @@ boundary_conditions:
 
 integration:
    integration_scheme: RK2
+   time_step: 1e-4
    use_variable_time_step: false
 
 proximity_search:
