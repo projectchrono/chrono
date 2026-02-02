@@ -90,6 +90,10 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
     auto type = ToUpper(a.as<std::string>());
     if (type == "MBS")
         return YamlFileType::MBS;
+    if (type == "SPH")
+        return YamlFileType::SPH;
+    if (type == "TDPF")
+        return YamlFileType::TDPF;
     if (type == "FSI")
         return YamlFileType::FSI;
     if (type == "VEHICLE")

@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for FSI SPH problems specified through YAML files.
+// Demo for FSI problems specified through YAML files.
 //
 // =============================================================================
 
@@ -27,7 +27,6 @@
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -41,10 +40,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Extract filenames from command-line arguments
-    std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/objectdrop.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/baffleflow.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/wavetank.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/sphere_decay.yaml");
+    std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/fsi_objectdrop.yaml");
+    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/fsi_baffleflow.yaml");
+    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/fsi_wavetank.yaml");
+    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
 
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", fsi_yaml_filename);
@@ -79,9 +78,9 @@ int main(int argc, char* argv[]) {
     double output_fps = parser.GetOutputFPS();
 
     auto& parserMBS = parser.GetMbsParser();
-    CameraVerticalDir camera_vertical = parserMBS.GetCameraVerticalDir();
-    const ChVector3d& camera_location = parserMBS.GetCameraLocation();
-    const ChVector3d& camera_target = parserMBS.GetCameraTarget();
+    CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
+    const ChVector3d& camera_location = parser.GetCameraLocation();
+    const ChVector3d& camera_target = parser.GetCameraTarget();
     bool outputMBS = parserMBS.Output();
 
     auto& parserCFD = parser.GetCfdParser();

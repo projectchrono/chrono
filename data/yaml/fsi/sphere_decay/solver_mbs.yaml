@@ -1,0 +1,18 @@
+chrono-version: 9.0
+
+contact_method: SMC
+
+integrator:
+  type: HHT
+  rel_tolerance: 1e-4
+  abs_tolerance_states: 1e-4
+  abs_tolerance_multipliers: 1e2
+  max_iterations: 50
+  use_stepsize_control: false
+  use_modified_newton: false
+
+solver:
+  type: GMRES
+  max_iterations: 100
+  tolerance: 1e-8
+  enable_diagonal_preconditioner: false

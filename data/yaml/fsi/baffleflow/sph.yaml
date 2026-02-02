@@ -1,0 +1,30 @@
+chrono-version: 9.0
+type: SPH
+
+model:  "model_sph.yaml"
+solver: "solver_sph.yaml"
+
+simulation:  
+  time_step: 1e-4
+  end_time: 100
+  
+output:
+  type: NONE
+  mode: FRAMES
+  fps: 20
+  output_directory: "."
+
+visualization:
+  sph_markers: true
+  bndry_bce_markers: false
+  rigid_bce_markers: false
+  flex_bce_markers: false
+  active_boxes: false
+  color_map:
+     type: VELOCITY
+     map: JET
+     min: 0.0
+     max: 1.0
+  output:
+     save_images: false
+     output_directory: "."

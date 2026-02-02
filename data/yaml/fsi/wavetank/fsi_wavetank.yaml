@@ -1,18 +1,16 @@
 chrono-version: 9.0
+type: FSI
 
-model:
+mbs:   "mbs.yaml"
+fluid: "sph.yaml"
+
+fsi:
   name: Wavetank
   angle_degrees: true
   
   data_path:
     type: RELATIVE
     root: "../../.."
-
-  multibody_model:      "model_mbs.yaml"
-  multibody_simulation: "simulation_mbs.yaml"
-
-  fluid_model:          "model_sph.yaml"
-  fluid_simulation:     "simulation_sph.yaml"
 
   fsi_bodies: 
     - name: ball
@@ -27,7 +25,9 @@ simulation:
   gravity: [0, 0, -9.8]
 
 visualization:
-  render_fps: 100
-
-output:
-  output_fps: 100
+  render_fps: 240
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [0, -4.8, 0.2]
+    target: [0, 0, 0.2]

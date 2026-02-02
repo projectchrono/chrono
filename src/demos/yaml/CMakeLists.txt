@@ -6,10 +6,10 @@ set(DEMOS
     demo_YAML_mbs_controller
 )
 
-#if(CH_ENABLE_MODULE_FSI)
-#  set(DEMOS ${DEMOS} demo_YAML_fsi)
-#endif()
-#
+if(CH_ENABLE_MODULE_FSI)
+  set(DEMOS ${DEMOS} demo_YAML_fsi)
+endif()
+
 if(CH_ENABLE_MODULE_VEHICLE)
   set(DEMOS ${DEMOS} demo_YAML_vehicle)
 endif()

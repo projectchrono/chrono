@@ -1,0 +1,23 @@
+chrono-version: 9.0
+type: TDPF
+  
+model:  "model_tdpf.yaml"
+solver: "solver_tdpf.yaml"
+
+output:
+    type: NONE
+    mode: FRAMES
+    fps: 20
+    output_directory: "."
+
+visualization:
+  update_fps: 30
+  color_map:
+    type: HEIGHT
+    map: BLUE
+    min: -1.5
+    max: 1.5
+  output:
+    save_images: false
+    output_directory: "."
+  

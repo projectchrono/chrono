@@ -62,7 +62,7 @@ class ChApiParsers ChParserYAML {
     virtual void SaveOutput(int frame);
 
   protected:
-    enum class YamlFileType { MBS, FSI, VEHICLE, UNKNOWN };
+    enum class YamlFileType { MBS, SPH, TDPF, FSI, VEHICLE, UNKNOWN };
     enum class DataPathType { ABS, REL };
 
     /// Output parameters.

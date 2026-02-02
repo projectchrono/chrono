@@ -34,29 +34,32 @@ namespace parsers {
 /// @{
 
 /// Parser for YAML specification files for Chrono::TDPF models and simulations.
-/// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
-/// populating an FSI Chrono::TDPF system and setting solver and simulation parameters.
+/// The parser caches model information and simulation settings from a YAML input file and then allows populating an FSI
+/// Chrono::TDPF system and setting solver and simulation parameters.
 class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
   public:
-    /// Create a YAML parser and load the model from the specified input YAML file.
-    ChParserTdpfYAML(const std::string& yaml_model_filename,
-                     const std::string& yaml_sim_filename,
-                     bool verbose = false);
+    ChParserTdpfYAML(const std::string& yamlfilename, bool verbose = false);
     ~ChParserTdpfYAML();
 
-    /// Return true if a YAML simulation file has been loaded.
-    bool HasSimulationData() const { return m_sim_loaded; }
+    /// Return true if a YAML solver file has been loaded.
+    bool HasSolverData() const { return m_solver_loaded; }
 
     /// Return true if a YAML model file has been loaded.
     bool HasModelData() const { return m_model_loaded; }
 
     // --------------
 
-    /// Load the model from the specified input YAML model file.
-    void LoadModelFile(const std::string& yaml_filename);
+    /// Load the specified MBS simulation input YAML file.
+    void LoadFile(const std::string& yaml_filename);
 
-    /// Load the simulation parameters from the specified input YAML simulation file.
-    void LoadSimulationFile(const std::string& yaml_filename);
+    /// Load the simulation, output, and visualization settings from the specified YAML node.
+    void LoadSimData(const YAML::Node& yaml);
+
+    /// Load the MBS model from the specified YAML node.
+    void LoadModelData(const YAML::Node& yaml);
+
+    /// Load the solver parameters from the specified YAML node.
+    void LoadSolverData(const YAML::Node& yaml);
 
     // --------------
 
@@ -127,8 +130,9 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> m_sysTDPF;  ///< underlying TDPF fluid solver
     std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> m_sysFSI;        ///< underlying FSI system
 
-    bool m_sim_loaded;    ///< YAML simulation file loaded
-    bool m_model_loaded;  ///< YAML model file loaded
+    bool m_loaded;         ///< YAML simulation file loaded
+    bool m_solver_loaded;  ///< YAML solver file loaded
+    bool m_model_loaded;   ///< YAML model file loaded
 };
 
 /// @} parsers_module
