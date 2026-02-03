@@ -301,6 +301,7 @@ void ChParserFsiYAML::CreateFsiSystem() {
                 if (!m_fsi_bodies.empty())
                     cout << "  Associated FSI rigid bodies" << endl;
                 cout << "  Initialized FSI problem" << endl;
+                cout << endl;
             }
 #else
             throw std::runtime_error("Chrono::FSI-SPH not enabled");
@@ -342,6 +343,7 @@ void ChParserFsiYAML::CreateFsiSystem() {
                 if (!m_fsi_bodies.empty())
                     cout << "  Associated FSI rigid bodies" << endl;
                 cout << "  Initialized FSI problem" << endl;
+                cout << endl;
             }
 
 #else
@@ -376,7 +378,7 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
     if (m_parserCFD) {
         std::string out_dir_CFD = out_dir + "/fluid";
         if (filesystem::create_directory(filesystem::path(out_dir_CFD))) {
-            m_parserMBS->SetOutputDir(out_dir_CFD);
+            m_parserCFD->SetOutputDir(out_dir_CFD);
         } else {
             std::cerr << "Error creating directory " << out_dir_CFD << std::endl;
             throw std::runtime_error("Could not create output directory");

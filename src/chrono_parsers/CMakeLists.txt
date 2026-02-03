@@ -380,6 +380,6 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 
 #-------------------------------------------------------------------------------
 
-#if(INCLUDE_YAML_PARSER)
-#    add_subdirectory(yaml_app)
-#endif()
+if(INCLUDE_YAML_PARSER)
+    add_subdirectory(yaml_app)
+endif()

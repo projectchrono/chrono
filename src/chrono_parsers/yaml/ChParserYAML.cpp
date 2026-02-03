@@ -334,8 +334,7 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
                 return;
 #endif
         }
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\nOutput file: " << filename << endl;
+        cout << "Output file: " << filename << endl;
     }
 }
 
@@ -376,11 +375,6 @@ void ChParserYAML::SaveOutput(int frame) {
 #else
                 return;
 #endif
-        }
-
-        if (m_verbose) {
-            cout << "\n-------------------------------------------------" << endl;
-            cout << "\nOutput file: " << filename << endl;
         }
 
         m_output_db->Initialize();

@@ -986,7 +986,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
 
     // Create motors
     if (m_verbose && !m_motor_params.empty())
-        cout << "create motors" << endl;
+        cout << "create motors...                         " << m_motor_params.size() << endl;
     for (auto& item : m_motor_params) {
         auto body1 = FindBodyByName(item.second.body1);
         auto body2 = FindBodyByName(item.second.body2);
@@ -1045,6 +1045,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
             }
         }
     }
+
+    if (m_verbose)
+        cout << endl;
 
     // Create body collision models
     for (auto& item : m_body_params) {

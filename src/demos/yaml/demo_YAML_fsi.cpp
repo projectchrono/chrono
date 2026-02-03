@@ -66,7 +66,6 @@ int main(int argc, char* argv[]) {
     auto sysFSI = parser.GetFsiSystem();
     auto sysCFD = parser.GetFluidSystem();
     auto sysMBS = parser.GetMultibodySystem();
-    ////auto sysCFD_type = parser.GetFluidSystemType();
 
     // Extract information from parsed YAML files
     const std::string& model_name = parser.GetName();
@@ -74,17 +73,17 @@ int main(int argc, char* argv[]) {
     double time_step = parser.GetTimestep();
     bool render = parser.Render();
     double render_fps = parser.GetRenderFPS();
-    bool output = parser.Output();
-    double output_fps = parser.GetOutputFPS();
-
+    
     auto& parserMBS = parser.GetMbsParser();
     CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
     const ChVector3d& camera_location = parser.GetCameraLocation();
     const ChVector3d& camera_target = parser.GetCameraTarget();
-    bool outputMBS = parserMBS.Output();
+    bool output_MBS = parserMBS.Output();
+    double output_fps_MBS = parser.GetOutputFPS();
 
     auto& parserCFD = parser.GetCfdParser();
-    bool outputCFD = parserCFD.Output();
+    bool output_CFD = parserCFD.Output();
+    double output_fps_CFD = parser.GetOutputFPS();
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
@@ -102,7 +101,6 @@ int main(int argc, char* argv[]) {
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(-CH_PI_4, CH_PI_4);
         visVSG->EnableShadows(false);
-        ////visVSG->ToggleAbsFrameVisibility();
         visVSG->SetAbsFrameScale(2.0);
 
         auto plugin = parserCFD.GetVisualizationPlugin();
@@ -117,7 +115,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Create output directory
-    if (output) {
+    if (output_MBS || output_CFD) {
         std::string out_dir = GetChronoOutputPath() + "YAML_FSI";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -134,7 +132,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double time = 0;
     int render_frame = 0;
-    int output_frame = 0;
+    int output_frame_MBS = 0;
+    int output_frame_CFD = 0;
 
     while (true) {
         if (render) {
@@ -152,12 +151,14 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        if (output && time >= output_frame / output_fps) {
-            if (outputMBS)
-                parserMBS.SaveOutput(*sysMBS, output_frame);
-            if (outputCFD)
-                parserCFD.SaveOutput(output_frame);
-            output_frame++;
+        if (output_MBS && time >= output_frame_MBS / output_fps_MBS) {
+            parserMBS.SaveOutput(*sysMBS, output_frame_MBS);
+            output_frame_MBS++;
+        }
+
+        if (output_CFD && time >= output_frame_CFD / output_fps_CFD) {
+            parserCFD.SaveOutput(output_frame_CFD);
+            output_frame_CFD++;
         }
 
         sysFSI->DoStepDynamics(time_step);

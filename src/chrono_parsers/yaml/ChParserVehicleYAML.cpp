@@ -122,6 +122,16 @@ void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
         CheckVersion(solver["chrono-version"]);
         LoadSolverData(solver);
     }
+
+    if (m_verbose) {
+        m_sim.PrintInfo();
+        cout << endl;
+        m_vis.PrintInfo();
+        cout << endl;
+        m_output.PrintInfo();
+    }
+
+    m_loaded = true;
 }
 
 void ChParserVehicleYAML::LoadModelData(const YAML::Node& yaml) {
@@ -264,6 +274,9 @@ void ChParserVehicleYAML::CreateVehicle(ChSystem& sys) {
         m_terrain = chrono_types::make_shared<vehicle::RigidTerrain>(&sys, m_terrain_json);
         m_terrain->Initialize();
     }
+
+    if (m_verbose)
+        cout << endl;
 }
 
 // -----------------------------------------------------------------------------
