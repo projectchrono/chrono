@@ -8,7 +8,7 @@ simulation:
   end_time: 100
   
 output:
-    type: NONE
+    type: HDF5
     mode: FRAMES
     fps: 20
 

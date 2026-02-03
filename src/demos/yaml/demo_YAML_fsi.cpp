@@ -122,7 +122,12 @@ int main(int argc, char* argv[]) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
-        }        
+        }
+        out_dir = out_dir + "/" + model_name;
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
         parser.SetOutputDir(out_dir);
     }
 
