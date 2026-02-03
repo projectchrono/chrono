@@ -16,7 +16,6 @@ simulation:
 output:
   type: HDF5
   fps: 20
-  output_directory: "."
 
 visualization:
   type: Model_file

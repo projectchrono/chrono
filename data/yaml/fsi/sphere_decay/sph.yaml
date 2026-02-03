@@ -11,7 +11,6 @@ output:
     type: NONE
     mode: FRAMES
     fps: 20
-    output_directory: "."
 
 visualization:
     sph_markers: true

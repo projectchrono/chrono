@@ -170,16 +170,8 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
     }
 
     // Output (optional)
-    if (yaml["output"]) {
-        ChAssertAlways(yaml["output"]["type"]);
-        m_output.type = ReadOutputType(yaml["output"]["type"]);
-        if (yaml["output"]["mode"])
-            m_output.mode = ReadOutputMode(yaml["output"]["mode"]);
-        if (yaml["output"]["fps"])
-            m_output.fps = yaml["output"]["fps"].as<double>();
-        if (yaml["output"]["output_directory"])
-            m_output.dir = yaml["output"]["output_directory"].as<std::string>();
-    }
+    if (yaml["output"])
+        ReadOutputParams(yaml["output"]);
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {

@@ -141,17 +141,8 @@ void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
     }
 
     // Output (optional)
-    if (yaml["output"]) {
-        auto output = yaml["output"];
-        ChAssertAlways(output["type"]);
-        m_output.type = ReadOutputType(output["type"]);
-        if (output["mode"])
-            m_output.mode = ReadOutputMode(output["mode"]);
-        if (output["fps"])
-            m_output.fps = output["fps"].as<double>();
-        if (output["output_directory"])
-            m_output.dir = output["output_directory"].as<std::string>();
-    }
+    if (yaml["output"])
+        ReadOutputParams(yaml["output"]);
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {

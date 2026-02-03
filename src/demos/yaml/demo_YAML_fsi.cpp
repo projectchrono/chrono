@@ -40,26 +40,26 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Extract filenames from command-line arguments
-    std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/fsi_objectdrop.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/fsi_baffleflow.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/fsi_wavetank.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+    std::string yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/fsi_objectdrop.yaml");
+    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/fsi_baffleflow.yaml");
+    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/fsi_wavetank.yaml");
+    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
 
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", fsi_yaml_filename);
+    cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", yaml_filename);
     if (!cli.Parse(argc, argv, true))
         return 1;
     if (argc == 1) {
         cli.Help();
         std::cout << "Using default YAML specification file" << std::endl;
     }
-    fsi_yaml_filename = cli.GetAsType<std::string>("fsi_file");
+    yaml_filename = cli.GetAsType<std::string>("fsi_file");
 
     std::cout << std::endl;
-    std::cout << "YAML specification file: " << fsi_yaml_filename << std::endl;
+    std::cout << "YAML specification file: " << yaml_filename << std::endl;
 
     // Create the FSI YAML parser object
-    parsers::ChParserFsiYAML parser(fsi_yaml_filename, true);
+    parsers::ChParserFsiYAML parser(yaml_filename, true);
 
     // Create the FSI system and the underlying multibody and fluid systems
     parser.CreateFsiSystem();
@@ -122,20 +122,8 @@ int main(int argc, char* argv[]) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
-        }
-        std::string out_dirMBS = out_dir + "/MBS"; 
-        if (!filesystem::create_directory(filesystem::path(out_dirMBS))) {
-            std::cout << "Error creating directory " << out_dirMBS << std::endl;
-            return 1;
-        }
-        std::string out_dirCFD = out_dir + "/CFD";
-        if (!filesystem::create_directory(filesystem::path(out_dirCFD))) {
-            std::cout << "Error creating directory " << out_dirCFD << std::endl;
-            return 1;
-        }
-        
-        parserMBS.SetOutputDir(out_dirMBS);
-        parserCFD.SetOutputDir(out_dirCFD);
+        }        
+        parser.SetOutputDir(out_dir);
     }
 
     // Simulation loop

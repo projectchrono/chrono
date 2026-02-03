@@ -354,6 +354,38 @@ void ChParserFsiYAML::CreateFsiSystem() {
 
 // -----------------------------------------------------------------------------
 
+bool ChParserFsiYAML::Output() const {
+    if (m_parserMBS && m_parserCFD)
+        return m_parserMBS->Output() || m_parserCFD->Output();
+    return false;
+}
+
+void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
+    ChParserYAML::SetOutputDir(out_dir);
+
+    if (m_parserMBS) {
+        std::string out_dir_MBS = out_dir + "/mbs";
+        if (filesystem::create_directory(filesystem::path(out_dir_MBS))) {
+            m_parserMBS->SetOutputDir(out_dir_MBS);
+        } else {
+            std::cerr << "Error creating directory " << out_dir_MBS << std::endl;
+            throw std::runtime_error("Could not create output directory");
+        }
+    }
+
+    if (m_parserCFD) {
+        std::string out_dir_CFD = out_dir + "/fluid";
+        if (filesystem::create_directory(filesystem::path(out_dir_CFD))) {
+            m_parserMBS->SetOutputDir(out_dir_CFD);
+        } else {
+            std::cerr << "Error creating directory " << out_dir_CFD << std::endl;
+            throw std::runtime_error("Could not create output directory");
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 ChParserFsiYAML::SimParams::SimParams() : end_time(-1), gravity({0, 0, -9.8}) {}
 
 void ChParserFsiYAML::SimParams::PrintInfo() {

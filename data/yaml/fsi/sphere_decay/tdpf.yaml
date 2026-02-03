@@ -8,7 +8,6 @@ output:
     type: NONE
     mode: FRAMES
     fps: 20
-    output_directory: "."
 
 visualization:
   update_fps: 30

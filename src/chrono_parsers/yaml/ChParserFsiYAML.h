@@ -71,6 +71,12 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     /// A value of -1 indicates infinite end time.
     double GetEndtime() const { return m_sim.end_time; }
 
+    /// Set root output directory (default: ".").
+    virtual void SetOutputDir(const std::string& out_dir) override;
+
+    /// Return true if generating output.
+    virtual bool Output() const override;
+
     /// Indicate whether to enable run-time visualization.
     bool Render() const { return m_vis.render; }
 
