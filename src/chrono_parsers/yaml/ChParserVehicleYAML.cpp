@@ -13,6 +13,9 @@
 // =============================================================================
 
 //// TODO
+//// Add output channel specification to vehicle model YAML schema.
+
+//// TODO
 ////    For now, we assume that the YAML file and the vehicle JSON data files reside in the Chrono data directory.
 ////    Relax this constraint.
 
@@ -34,8 +37,7 @@ namespace chrono {
 namespace parsers {
 
 ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_filename, bool verbose)
-    : ChParserYAML(),
-      m_model_loaded(false),
+    : ChParserMbsYAML(verbose),
       m_init_position(VNULL),
       m_init_yaw(0.0),
       m_chassis_point(VNULL),
@@ -48,8 +50,6 @@ ChParserVehicleYAML::ChParserVehicleYAML(const std::string& yaml_filename, bool 
       m_vis_steering(VisualizationType::PRIMITIVES),
       m_vis_wheel(VisualizationType::MESH),
       m_vis_tire(VisualizationType::MESH) {
-    SetVerbose(verbose);
-    m_parserMBS = chrono_types::make_shared<ChParserMbsYAML>(verbose);
     LoadFile(yaml_filename);
 }
 
@@ -81,7 +81,7 @@ void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
     ChAssertAlways(type == ChParserYAML::YamlFileType::VEHICLE);
 
     // Load simulation, output, and run-time visualization data
-    m_parserMBS->LoadSimData(yaml);
+    LoadSimData(yaml);
 
     // Load vehicle model YAML file
     {
@@ -120,7 +120,7 @@ void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
         auto solver = YAML::LoadFile(solver_filename);
         ChAssertAlways(solver["chrono-version"]);
         CheckVersion(solver["chrono-version"]);
-        m_parserMBS->LoadSolverData(solver);
+        LoadSolverData(solver);
     }
 }
 

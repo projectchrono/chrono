@@ -60,6 +60,9 @@ class ChApiParsers ChParserYAML {
     /// Return the output type.
     ChOutput::Type GetOutputType() const { return m_output.type; }
 
+    /// Return the output mode.
+    ChOutput::Mode GetOutputMode() const { return m_output.mode; }
+
     /// Return the output frequency.
     virtual double GetOutputFPS() const { return m_output.fps; }
 

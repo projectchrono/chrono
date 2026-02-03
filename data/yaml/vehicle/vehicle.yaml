@@ -8,10 +8,11 @@ solver: "solver_mbs.yaml"
 simulation:  
   end_time: 10
   enforce_realtime: true
-  
+  gravity: [0, 0, -9.8]
+
 output:
-  type: NONE
-  fps: 20
+  type: HDF5
+  fps: 10
 
 visualization:
   type: Model_file

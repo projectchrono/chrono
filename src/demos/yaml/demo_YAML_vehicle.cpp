@@ -77,8 +77,6 @@ int main(int argc, char* argv[]) {
     bool render = parser.Render();
     double render_fps = parser.GetRenderFPS();
     bool enable_shadows = parser.EnableShadows();
-    bool output = parser.Output();
-    double output_fps = parser.GetOutputFPS();
 
     const ChVector3d& chassis_point = parser.GetChassisPoint();
     double chase_distance = parser.GetChaseDistance();
@@ -157,7 +155,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create output directory
-    if (output) {
+    if (parser.Output()) {
         std::string out_dir = GetChronoOutputPath() + "YAML_VEHICLE";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -170,9 +168,8 @@ int main(int argc, char* argv[]) {
         }
         parser.SetOutputDir(out_dir);
 
-        ////vehicle->SetSuspensionOutput(0, true);
-        ////vehicle->SetSuspensionOutput(1, true);
-        ////vehicle->SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, out_dir, "output", 0.1);
+        double out_step = 1.0 / parser.GetOutputFPS();
+        vehicle->SetOutput(parser.GetOutputType(), parser.GetOutputMode(), out_dir, model_name, out_step);
     }
 
     // Simulation loop

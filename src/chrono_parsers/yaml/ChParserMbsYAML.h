@@ -101,16 +101,16 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     // --------------
 
     /// Load the specified MBS simulation input YAML file.
-    void LoadFile(const std::string& yaml_filename);
+    virtual void LoadFile(const std::string& yaml_filename);
 
     /// Load the simulation, output, and visualization settings from the specified YAML node.
-    void LoadSimData(const YAML::Node& yaml);
+    virtual void LoadSimData(const YAML::Node& yaml);
 
     /// Load the MBS model from the specified YAML node.
-    void LoadModelData(const YAML::Node& yaml);
+    virtual void LoadModelData(const YAML::Node& yaml);
 
     /// Load the solver parameters from the specified YAML node.
-    void LoadSolverData(const YAML::Node& yaml);
+    virtual void LoadSolverData(const YAML::Node& yaml);
 
     /// Create and return a Chrono system configured from cached simulation parameters.
     /// If no YAML simulation file was loaded, this function returns a ChSystemNSC with default settings.

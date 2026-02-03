@@ -33,15 +33,12 @@ namespace parsers {
 
 /// Parser for YAML specification file for Chrono::Vehicle models.
 /// Supports both wheeled and tracked vehicles (defined through JSON specification files).
-class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
+class ChApiParsers ChParserVehicleYAML : public ChParserMbsYAML {
   public:
     enum class VehicleType { WHEELED, TRACKED };
 
     ChParserVehicleYAML(const std::string& yaml_filename, bool verbose = false);
     ~ChParserVehicleYAML();
-
-    /// Return true if a YAML solver file has been loaded.
-    bool HasSolverData() const { return m_parserMBS->HasSolverData(); }
 
     /// Return true if a YAML model file has been loaded.
     bool HasModelData() const { return m_model_loaded; }
@@ -49,29 +46,13 @@ class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
     // --------------
 
     /// Load the specified MBS simulation input YAML file.
-    void LoadFile(const std::string& yaml_filename);
+    virtual void LoadFile(const std::string& yaml_filename) override;
 
     /// Load the vehicle model from the specified YAML node.
-    void LoadModelData(const YAML::Node& yaml);
-
-    /// Create and return a Chrono system configured from cached simulation parameters.
-    std::shared_ptr<ChSystem> CreateSystem() { return m_parserMBS->CreateSystem(); }
+    virtual void LoadModelData(const YAML::Node& yaml) override;
 
     /// Populate the given system with the cached Chrono::Vehicle model.
     void CreateVehicle(ChSystem& sys);
-
-    // -------------
-
-    double GetTimestep() const { return m_parserMBS->GetTimestep(); }
-    double GetEndtime() const { return m_parserMBS->GetEndtime(); }
-    bool EnforceRealtime() const { return m_parserMBS->EnforceRealtime(); }
-
-    bool Render() const { return m_parserMBS->Render(); }
-    double GetRenderFPS() const { return m_parserMBS->GetRenderFPS(); }
-    CameraVerticalDir GetCameraVerticalDir() const { return m_parserMBS->GetCameraVerticalDir(); }
-    const ChVector3d& GetCameraLocation() const { return m_parserMBS->GetCameraLocation(); }
-    const ChVector3d& GetCameraTarget() const { return m_parserMBS->GetCameraTarget(); }
-    bool EnableShadows() const { return m_parserMBS->EnableShadows(); }
 
     // -------------
 
@@ -94,7 +75,6 @@ class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
   private:
     VehicleType ReadVehicleType(const std::string& vehicle_json);
 
-    bool m_model_loaded;
     VehicleType m_vehicle_type;
 
     std::string m_vehicle_json;
@@ -111,7 +91,6 @@ class ChApiParsers ChParserVehicleYAML : public ChParserYAML {
     VisualizationType m_vis_wheel;
     VisualizationType m_vis_tire;
 
-    std::shared_ptr<ChParserMbsYAML> m_parserMBS;
     std::shared_ptr<vehicle::ChVehicle> m_vehicle;
     std::shared_ptr<vehicle::RigidTerrain> m_terrain;
 
