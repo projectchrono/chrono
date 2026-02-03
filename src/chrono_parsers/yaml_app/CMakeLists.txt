@@ -52,6 +52,8 @@ add_executable(${PROGRAM}  "${PROGRAM}.cpp")
 source_group(""  FILES  "${PROGRAM}.cpp")
 
 if(APPLE)
+  set(CMAKE_MACOSX_BUNDLE OFF)
+  set(MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in")
   set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
 endif()
 if(MSVC)
