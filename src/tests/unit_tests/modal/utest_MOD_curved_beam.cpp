@@ -229,13 +229,23 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
     // Set gravity
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
 
-    // Set linear solver
+    // Set linear solver for both system simulation and modal reduction
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     sys.SetSolver(mkl_solver);
+
+    for (int i_part = 0; i_part < n_parts; i_part++) {
+        auto mkl_modal_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+        modal_assembly_list.at(i_part)->SetModalSolver(mkl_modal_solver);
+    }
 #else
     auto qr_solver = chrono_types::make_shared<ChSolverSparseQR>();
     sys.SetSolver(qr_solver);
+
+    for (int i_part = 0; i_part < n_parts; i_part++) {
+        auto qr_solver = chrono_types::make_shared<ChSolverSparseQR>();
+        modal_assembly_list.at(i_part)->SetModalSolver(qr_solver);
+    }
 #endif
 
     sys.Setup();
