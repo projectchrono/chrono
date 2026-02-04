@@ -1,4 +1,4 @@
-YAML schema for Chrono MBS model specification {#YAML_schema_mbs_models}
+YAML schema for Chrono MBS model specification {#YAML_schema_mbs_model}
 =======================================
 
 A Chrono YAML MBS model file defines a mechanical system and contains two main objects:
@@ -361,6 +361,6 @@ repeat:
 ```
 ## YAML schema
 
-The YAML model specification file must follow the ``data/yaml/schema/mbs_model.schema.yaml`` provided in the Chrono data directory: 
+The YAML MBS model specification file must follow the ``data/yaml/schema/mbs_model.schema.yaml`` provided in the Chrono data directory: 
 
 \include data/yaml/schema/mbs_model.schema.yaml

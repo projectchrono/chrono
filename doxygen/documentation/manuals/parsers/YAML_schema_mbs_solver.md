@@ -1,54 +1,28 @@
-YAML schema for Chrono MBS simulation specification {#YAML_schema_mbs_simulations}
+YAML schema for Chrono MBS solver specification {#YAML_schema_mbs_solver}
 =======================================
 
-A Chrono YAML MBS simulation file defines the parameters needed to run a Chrono simulation. It consists of two main objects:
-- The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
+A Chrono YAML MBS solver file defines the parameters needed to run a Chrono simulation. It consists of the following main objects:
+- [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
   This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
-- The `simulation` object that contains simulation methods, solver and integrator settings, and visualization options.
+- [required] The `contact_method` specifying the formulation for contact force generation.
+- [required] The `integrator` object specifying the type and settgins for the time integrator.
+- [required] The `solver` object specifying the type and settgins for the (linear or DVI) solver.
 
-## Simulation specification
-
-The `simulation` object in a Chrono YAML simulation specification file defines:
-    1. **Time Settings**: How long to run the simulation and at what resolution
-    2. **Contact Settings**: How to handle collisions and contacts
-    3. **Solver Settings**: How to solve the equations of motion
-    4. **Visualization Settings**: How to display the simulation
-
-<div class="ce-info">
-Enum values for various object types in the simulation description YAML file can be provided using any desired case.
-For example, the "Euler implicit" integrator can be specified using any of `euler_implicit`, `EULER_IMPLICIT`, `Euler_implicit`, `EUler_imPLICIt`, etc.
-</div>
-
-### Required Parameters
+## Contact formulation
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `time_step` | Integration timestep in seconds | double | -- | Yes | -- |
 | `contact_method` | Contact method for collision detection and response | string | `SMC`,`NSC` | Yes | -- |
 
-### Optional Parameters
-
-| Property | Description | Type | Available Values | Required | Default | 
-|----------|-------------|------|------------------|----------|---------|
-| `enforce_realtime` | Whether to enforce real-time simulation | boolean | -- | No | false |
-| `end_time` | Total simulation time in seconds | double | -- | No | -1 for infinite simulation |
-| `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
-
-### Integrator, solver, and visualization settings
-
-| Property | Description | Type | Available Values | Required | Default | 
-|----------|-------------|------|------------------|----------|---------|
-| `integrator` | Integrator type and parameters | object | `EULER_IMPLICIT_LINEARIZED`,<br>`EULER_IMPLICIT_PROJECTED`,<br>`EULER_IMPLICIT`,<br>`HHT` | No | `EULER_IMPLICIT_LINEARIZED`  |
-| `solver` | (DVI or linear) solver type and parameters | object |  `BARZILAI_BORWEIN`,<br>`PSOR`,<br>`APGD`,<br>`MINRES`,<br>`GMRES`,<br>`BICGSTAB`,<br>`PARDISO`,<br>`MUMPS`,<br>`SPARSE_LU`,<br>`SPARSE_QR` | No | `BARZILAI_BORWEIN` |
-| `visualization` | Run-time visualization settings | object | -- | No | `false` |
-
-### Integrator types and parameters
+## Integrator types and parameters
 
 Each integrator can support the following settings depending on the integrator type:
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
+| `type` | Integrator type | enum | `EULER_IMPLICIT_LINEARIZED`,<br>`EULER_IMPLICIT_PROJECTED`,<br>`EULER_IMPLICIT`,<br>`HHT` | Yes | `EULER_IMPLICIT_LINEARIZED`  |
 | `rel_tolerance` | Relative tolerance (HHT and implicit Euler) | double | -- | No | 1e-4 |
+| `time_step` | Integration timestep in seconds | double | -- | Yes | -- |
 | `abs_tolerance_states` | Absolute tolerance for state variables (HHT and implicit Euler) | double | -- | No | 1e-4 |
 | `abs_tolerance_multipliers` | Absolute tolerance for Lagrange multipliers (HHT and implicit Euler) | double | -- | No | 1e2 |
 | `max_iterations` | Maximum number of non-linear iteration for implicit integrators | integer | -- | No | 50 |
@@ -56,9 +30,13 @@ Each integrator can support the following settings depending on the integrator t
 | `use_modified_newton` | Whether to use a modified Newton iteration (HHT) | boolean | -- | No | false |
 
 
-### Solver types and parameters
+## Solver types and parameters
 
 Each solver supports different configuration parameters depending on the solver type: 
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | (DVI or linear) solver type | enum |  `BARZILAI_BORWEIN`,<br>`PSOR`,<br>`APGD`,<br>`MINRES`,<br>`GMRES`,<br>`BICGSTAB`,<br>`PARDISO`,<br>`MUMPS`,<br>`SPARSE_LU`,<br>`SPARSE_QR` | Yes | `BARZILAI_BORWEIN` |
 
 #### Iterative DVI Solvers (BARZILAI_BORWEIN, APGD, PSOR)
 
@@ -83,7 +61,7 @@ Each solver supports different configuration parameters depending on the solver 
 | `lock_sparsity_pattern`| Keep matrix sparsity pattern unchanged | boolean | -- | No | false |
 | `use_sparsity_pattern_learner` | Evaluate matrix sparsity pattern in a pre-processing stage (for `SPARSE_LU` and `SPARSE_QR` only) | boolean | -- | No | true |
 
-### Run-time visualization parameters
+## Run-time visualization parameters
 
 If an entry with key `visualization` is present, run-time visualization will be enabled.
 The following optional parameters can be set:
@@ -108,37 +86,12 @@ The `camera` object specifies the initial view configuration for run-time visual
 
 ## Example
 
-Below is an example of a simulation configuration:
+Below is an example of an MBS solver configuration:
 
-```yaml
-# Basic MBS simulation
-
-contact_method: SMC
-
-time_step: 1e-4
-end_time: 100
-enforce_realtime: true
-
-integrator:
-    type: Euler_implicit_linearized
-
-solver:
-    type: Barzilai_Borwein
-    max_iterations: 100
-    overrelaxation_factor: 1.0
-    sharpness_factor: 1.0
-
-visualization:
-    render_fps: 120
-    enable_shadows: true
-    camera:
-        vertical: Z
-        location: [9, -4, 1]
-        target: [2, 0, 0]
-```
+\include data/yaml/mbs/solver_mbs.yaml
 
 ## YAML schema
 
-The YAML model specification file must follow the ``data/yaml/schema/mbs_simulation.schema.yaml`` provided in the Chrono data directory: 
+The YAML MBS solver specification file must follow the ``data/yaml/schema/mbs_solver.schema.yaml`` provided in the Chrono data directory: 
 
-\include data/yaml/schema/mbs_simulation.schema.yaml
+\include data/yaml/schema/mbs_solver.schema.yaml

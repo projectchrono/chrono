@@ -156,7 +156,7 @@ simulation:
       type: number
       minimum: 0
     end_time:
-      description: Simulation duration.
+      description: Simulation duration
       type: number
       minimum: 0
     gravity:

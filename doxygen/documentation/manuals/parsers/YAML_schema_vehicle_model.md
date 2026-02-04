@@ -1,4 +1,4 @@
-YAML schema for Chrono::Vehicle model specification {#YAML_schema_vehicle_models}
+YAML schema for Chrono::Vehicle model specification {#YAML_schema_vehicle_model}
 ========================================
 
 A Chrono::Vehicle YAML FSI problem specification file defines the vehicle models and consists of two main objects:
