@@ -18,7 +18,7 @@ required: [chrono-version, model]
 
 chrono-version:
   type: string
-  description: Chrono version compatible with this YAML problem specification (M.m or M.m.p)
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
 
 # -----------------------------------------------------------------------------
 # Definitions of common Chrono types
@@ -41,20 +41,20 @@ model:
   required: [vehicle_json, engine_json, transmission_json]
   properties:
     vehicle_json:
-      description: JSON file for vehicle model specification.
+      description: JSON file for vehicle model specification
       type: string
     engine_json:
-      description: JSON file for engine model specification.
+      description: JSON file for engine model specification
       type: string
     transmission_json:
-      description: JSON file for transmission model specification.
+      description: JSON file for transmission model specification
       type: string
     time_json:
-      description: JSON file for tire model specification (WHEELED vehicles only).
+      description: JSON file for tire model specification (WHEELED vehicles only)
       type: string
 
 terrain_json:
-  description: JSON file for rigid terrain specification.
+  description: JSON file for rigid terrain specification
   type: string
   default: ""
       
@@ -69,13 +69,13 @@ initial_yaw:
   default: 0.0
 
 chase_camera:
-  description: PArameters for the vehicle chase camera.
+  description: PArameters for the vehicle chase camera
   type: object
   required: [chassis_point, chase_distance, chase_height]
   properties:
     chassis_point:
       <<: *VECTOR3D
-      description: Chase camera target point on chassis.
+      description: Chase camera target point on chassis
     chase_distance:
       description: Initial value of the horizontal distance between camera and target point
       type: number

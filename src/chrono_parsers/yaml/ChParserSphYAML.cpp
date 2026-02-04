@@ -131,8 +131,7 @@ void ChParserSphYAML::LoadFile(const std::string& yaml_filename) {
 
 void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
     // Simulation settings (required)
-    {
-        ChAssertAlways(yaml["simulation"]);
+    if (yaml["simulation"]) {
         auto sim = yaml["simulation"];
         if (sim["end_time"])
             m_sim.end_time = sim["end_time"].as<double>();

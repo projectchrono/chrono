@@ -25,7 +25,7 @@ required: [chrono-version, model]
 
 chrono-version:
   type: string
-  description: Chrono version compatible with this YAML model specification (M.m or M.m.p)
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
 
 # -----------------------------------------------------------------------------
 # Definitions of common Chrono types
