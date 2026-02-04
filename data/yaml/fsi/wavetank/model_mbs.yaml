@@ -6,7 +6,7 @@ model:
   
   data_path:
     type: RELATIVE
-    root: "../.."
+    root: "../../.."
   
   bodies:
     - name: ball

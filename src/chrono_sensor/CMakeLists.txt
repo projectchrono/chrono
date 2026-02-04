@@ -17,6 +17,10 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
   mark_as_advanced(FORCE GLEW_DIR)
   mark_as_advanced(FORCE glfw3_DIR)
 
+  set(CH_USE_SENSOR_OPTIX FALSE)
+  set(CH_USE_SENSOR_OPTIX ${CH_USE_SENSOR_OPTIX} PARENT_SCOPE)
+  mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
+
   return()
 endif()
 
@@ -519,7 +523,7 @@ if(CH_USE_SENSOR_OPTIX)
   endif()
   
   if(CH_USE_SENSOR_NVRTC)
-    message(STATUS "  CUDA::nvrtc found and enabled")
+    message(STATUS "  CUDA NVRTC found and enabled")
     message(STATUS "  Building Chrono::Sensor with NVRTC ON")
 
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
@@ -530,6 +534,7 @@ if(CH_USE_SENSOR_OPTIX)
     #set(CUDA_NVRTC_FLAGS -arch compute_30 -use_fast_math -lineinfo -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++11 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     mark_as_advanced(CUDA_NVRTC_FLAGS)
+    message(STATUS "  CUDA NVRTC flags: ${CUDA_NVRTC_FLAGS}")
 
     set(CUDA_NVRTC_FLAG_LIST)
     foreach(item ${CUDA_NVRTC_FLAGS}) #CUDA_NVRTC_FLAGS CUDA_NVCC_FLAGS

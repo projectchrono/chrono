@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
             body->SetInertiaXX(ChVector3d((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
 
             auto body_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.02, 0.02, 0.02);
-            floor->AddCollisionShape(body_ct_shape);
+            body->AddCollisionShape(body_ct_shape);
             body->EnableCollision(true);
 
             auto body_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.02, 0.02);

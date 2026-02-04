@@ -509,7 +509,7 @@ ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
     m_camera_control = new ChChaseCameraEventReceiver(this);
     m_vehicle_control = new ChVehicleEventReceiver(this);
 
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     m_sound_engine = 0;
     m_car_sound = 0;
 #endif
@@ -577,7 +577,7 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
 // configuration.
 // -----------------------------------------------------------------------------
 void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     if (sound) {
         // Start the sound engine with default parameters
         m_sound_engine = irrklang::createIrrKlangDevice();
@@ -619,7 +619,7 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
     GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
 
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     static int stepsbetweensound = 0;
 
     // Update sound pitch

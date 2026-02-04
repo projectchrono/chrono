@@ -234,9 +234,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrSurfaceShape(std::shared_ptr<ChS
 vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              const ChColor& default_color,
+                                                             float opacity,
                                                              bool wireframe) {
     auto scenegraph = vsg::Group::create();
     auto chronoMat = chrono_types::make_shared<ChVisualMaterial>();
+    chronoMat->SetOpacity(opacity);
 
     const auto& vertices = mesh->GetCoordsVertices();
     const auto& normals = mesh->GetCoordsNormals();

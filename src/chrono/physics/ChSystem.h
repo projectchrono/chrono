@@ -801,8 +801,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                                    const double c          ///< a scaling factor
                                    ) override;
 
+    /// Collect all variables and constraints for physical components into the underlying system descriptor.
+    void DescriptorPrepareInject();
+
   protected:
-    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
+    /// Collect all variables and constraints for physical components into the specified system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor);
 
     /// Initial system setup before analysis.

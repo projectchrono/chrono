@@ -32,13 +32,10 @@ using namespace chrono::utils;
 
 // =============================================================================
 // Local variables
-//
-static const std::string val_dir = "TEST_RESULTS/";
-static const std::string out_dir = val_dir + "rotspring_force/";
+static const std::string out_dir = GetChronoTestOutputPath() + "/rotspring_force/";
 static const std::string ref_dir = "testing/joints/rotspring_force/";
 
 // =============================================================================
-
 // Functor class for a custom rotaional spring constant modifier (function of
 // position only)
 class ChFunctionCustomSpring : public ChFunction {
@@ -55,7 +52,6 @@ class ChFunctionCustomSpring : public ChFunction {
 
 // =============================================================================
 // Prototypes of local functions
-//
 bool TestRotSpring(const ChVector3d& jointLoc,
                    const ChQuaternion<>& jointRot,
                    const int customSpringType,
@@ -68,15 +64,9 @@ bool ValidateEnergy(const std::string& testName, double tolerance);
 ChWriterCSV OutStream();
 
 // =============================================================================
-//
 // Main driver function for running the simulation and validating the results.
-//
 int main(int argc, char* argv[]) {
     // Create output directory (if it does not already exist)
-    if (!filesystem::create_directory(filesystem::path(val_dir))) {
-        std::cout << "Error creating directory " << val_dir << std::endl;
-        return 1;
-    }
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -125,9 +115,7 @@ int main(int argc, char* argv[]) {
 }
 
 // =============================================================================
-//
 // Worker function for performing the simulation with specified parameters.
-//
 bool TestRotSpring(const ChVector3d& jointLoc,      // absolute location of joint
                    const ChQuaternion<>& jointRot,  // orientation of joint
                    const int customSpringType,      // Flag for selecting a spring
@@ -383,10 +371,8 @@ bool TestRotSpring(const ChVector3d& jointLoc,      // absolute location of join
 }
 
 // =============================================================================
-//
 // Wrapper function for comparing the specified simulation quantities against a
 // reference file.
-//
 bool ValidateReference(const std::string& testName,  // name of this test
                        const std::string& what,      // identifier for test quantity
                        double tolerance)             // validation tolerance
@@ -422,9 +408,7 @@ bool ValidateConstraints(const std::string& testName,  // name of this test
 }
 
 // =============================================================================
-//
 // Utility function to create a CSV output stream and set output format options.
-//
 ChWriterCSV OutStream() {
     ChWriterCSV out("\t");
 

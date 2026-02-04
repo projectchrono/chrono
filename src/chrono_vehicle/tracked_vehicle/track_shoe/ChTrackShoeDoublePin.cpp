@@ -561,23 +561,23 @@ void ChTrackShoeDoublePin::PopulateComponentList() {
             m_bodies.push_back(m_connector_L);
             m_bodies.push_back(m_connector_R);
 
-            m_joint_L->IsKinematic() ? m_joints.push_back(m_joint_L->GetAsLink())
-                                     : m_body_loads.push_back(m_joint_L->GetAsBushing());
-            m_joint_R->IsKinematic() ? m_joints.push_back(m_joint_R->GetAsLink())
-                                     : m_body_loads.push_back(m_joint_R->GetAsBushing());
-            m_connection_joint_L->IsKinematic() ? m_joints.push_back(m_connection_joint_L->GetAsLink())
-                                                : m_body_loads.push_back(m_connection_joint_L->GetAsBushing());
-            m_connection_joint_R->IsKinematic() ? m_joints.push_back(m_connection_joint_R->GetAsLink())
-                                                : m_body_loads.push_back(m_connection_joint_R->GetAsBushing());
+            ////m_joint_L->IsKinematic() ? m_joints.push_back(m_joint_L->GetAsLink())
+            ////                         : m_body_loads.push_back(m_joint_L->GetAsBushing());
+            ////m_joint_R->IsKinematic() ? m_joints.push_back(m_joint_R->GetAsLink())
+            ////                         : m_body_loads.push_back(m_joint_R->GetAsBushing());
+            ////m_connection_joint_L->IsKinematic() ? m_joints.push_back(m_connection_joint_L->GetAsLink())
+            ////                                    : m_body_loads.push_back(m_connection_joint_L->GetAsBushing());
+            ////m_connection_joint_R->IsKinematic() ? m_joints.push_back(m_connection_joint_R->GetAsLink())
+            ////                                    : m_body_loads.push_back(m_connection_joint_R->GetAsBushing());
 
             break;
         case DoublePinTrackShoeType::ONE_CONNECTOR:
             m_bodies.push_back(m_connector_L);
 
-            m_joint_L->IsKinematic() ? m_joints.push_back(m_joint_L->GetAsLink())
-                                     : m_body_loads.push_back(m_joint_L->GetAsBushing());
-            m_connection_joint_L->IsKinematic() ? m_joints.push_back(m_connection_joint_L->GetAsLink())
-                                                : m_body_loads.push_back(m_connection_joint_L->GetAsBushing());
+            ////m_joint_L->IsKinematic() ? m_joints.push_back(m_joint_L->GetAsLink())
+            ////                         : m_body_loads.push_back(m_joint_L->GetAsBushing());
+            ////m_connection_joint_L->IsKinematic() ? m_joints.push_back(m_connection_joint_L->GetAsLink())
+            ////                                    : m_body_loads.push_back(m_connection_joint_L->GetAsBushing());
 
             break;
     }

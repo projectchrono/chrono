@@ -19,13 +19,15 @@
 #ifndef CH_ROS_TF_HANDLER_H
 #define CH_ROS_TF_HANDLER_H
 
+#include "chrono_ros/ChConfigROS.h"
+
 #include "chrono_ros/ChROSHandler.h"
 
 #include "chrono/physics/ChBody.h"
 
 #include "tf2_ros/transform_broadcaster.h"
 
-#ifdef CHRONO_PARSERS_URDF
+#ifdef CHRONO_HAS_URDF
     #include "chrono_parsers/ChParserURDF.h"
 #endif
 #ifdef CHRONO_SENSOR
@@ -100,7 +102,7 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
                       chrono::ChFrame<double> child_frame,
                       const std::string& child_frame_id);
 
-#ifdef CHRONO_PARSERS_URDF
+#ifdef CHRONO_HAS_URDF
     /// @brief Add a transform to be published from a URDF file. This method will step through the kinematic tree of the
     /// passed URDF parser and add transforms for each link.
     /// @param parser The URDF parser

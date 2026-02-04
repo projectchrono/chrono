@@ -55,36 +55,25 @@ int instance2 = -1;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Extract filenames from command-line arguments
-    std::string model_yaml_filename = GetChronoDataFile("yaml/mbs/slider_crank.yaml");
-    std::string sim_yaml_filename = GetChronoDataFile("yaml/mbs/simulation_mbs.yaml");
+    // Extract filename from command-line arguments
+    std::string yaml_filename = GetChronoDataFile("yaml/mbs/mbs.yaml");
 
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "m,model_file", "model specification YAML file", model_yaml_filename);
-    cli.AddOption<std::string>("", "s,sim_file", "simulation specification YAML file", sim_yaml_filename);
+    cli.AddOption<std::string>("", "s,simulation_file", "MBS simulation specification YAML file", yaml_filename);
     if (!cli.Parse(argc, argv, true))
         return 1;
     if (argc == 1) {
         cli.Help();
-        std::cout << "Using default YAML model and simulation specification" << std::endl;
+        std::cout << "Using default YAML simulation specification" << std::endl;
     }
-    model_yaml_filename = cli.GetAsType<std::string>("model_file");
-    sim_yaml_filename = cli.GetAsType<std::string>("sim_file");
+    yaml_filename = cli.GetAsType<std::string>("simulation_file");
 
     std::cout << std::endl;
-    std::cout << "Model YAML file:        " << model_yaml_filename << std::endl;
-    std::cout << "Simulation YAML file:   " << sim_yaml_filename << std::endl;
+    std::cout << "YAML specification file: " << yaml_filename << std::endl;
 
-    // Create YAML parser object
-    parsers::ChParserMbsYAML parser;
-    parser.SetVerbose(true);
-
-    // Load the YAML simulation file and create a Chrono system based on its content
-    parser.LoadSimulationFile(sim_yaml_filename);
+    // Create YAML parser object, load the YAML file, then create a Chrono system and populate it
+    parsers::ChParserMbsYAML parser(yaml_filename, true);
     auto sys = parser.CreateSystem();
-
-    // Load the YAML model and populate the Chrono system
-    parser.LoadModelFile(model_yaml_filename);
     instance1 = parser.Populate(*sys, frame1, prefix1);
     if (second_instance)
         instance2 = parser.Populate(*sys, frame2, prefix2);

@@ -30,6 +30,8 @@
 # CHRONO_CSHARP_SOURCES
 #       list of all SWIG-generated C# scripts corresponding to the requested components
 #       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono are wrapped)
+# CHRONO_SWIG_DIR
+#       path to the Chrono SWIG interface files
 # CHRONO_DATA_DIR
 #       path to the Chrono data directory
 # CHRONO_VEHICLE_DATA_DIR
@@ -151,6 +153,10 @@ if(CHRONO_MPI_CXX_AVAILABLE)
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
 else()
    set(Chrono_VEHICLECOSIM_AVAILABLE FALSE)
+endif()
+
+if(@CH_INSTALL_SWIG_INTERFACE@)
+   set(CHRONO_SWIG_DIR "@CHRONO_SWIG_DIR@")
 endif()
 
 #-------------------------------------------------------------------------------
@@ -619,7 +625,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(Chrono_IRRLICHT_REQUESTED AND Chrono_IRRLICHT_AVAILABLE)
-      if(@HAVE_IRRKLANG@)
+      if(@CH_USE_IRRKLANG@)
         set(IRRKLANG_ROOT "@IRRKLANG_ROOT@")
         set(IRRKLANG_LIBDIR "@IRRKLANG_LIBDIR@")
         find_package(IRRKLANG QUIET)
@@ -630,7 +636,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
         endif()
       endif()
 
-      if (NOT @HAVE_IRRKLANG@ OR IRRKLANG_FOUND)
+      if (NOT @CH_USE_IRRKLANG@ OR IRRKLANG_FOUND)
         list(PREPEND CHRONO_LIB_NAMES "Chrono_vehicle_irrlicht")
         if (NOT CHRONO_STATIC)
           list(APPEND CHRONO_DLL_NAMES "Chrono_vehicle_irrlicht.dll")
@@ -660,8 +666,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
     endif()
 
-    set(CHRONO_VEHICLE_IRRKLANG @HAVE_IRRKLANG@)
-    set(CHRONO_VEHICLE_OPENCRG @HAVE_OPENCRG@)
+    set(CHRONO_VEHICLE_IRRKLANG @CH_USE_IRRKLANG@)
+    set(CHRONO_VEHICLE_OPENCRG @CH_USE_OPENCRG@)
 
   elseif(${COMPONENT_UPPER} STREQUAL "FSI")
 
@@ -967,8 +973,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "PARSERS")
 
-    set(CHRONO_PARSERS_PYTHON @HAVE_PYTHON@)
-    set(CHRONO_PARSERS_URDF @HAVE_URDF@)
+    set(CHRONO_PARSERS_PYTHON @CH_USE_PYTHON@)
+    set(CHRONO_PARSERS_URDF @CH_USE_URDF@)
 
     list(PREPEND CHRONO_LIB_NAMES "Chrono_parsers")
     list(PREPEND CHRONO_LIB_NAMES "yaml-cpp")
@@ -981,7 +987,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       include_directories(${CHRONO_PACKAGE_PREFIX_DIR}/include/chrono_thirdparty/yaml-cpp/include)
     endif()
 
-    if(@HAVE_URDF@)
+    if(@CH_USE_URDF@)
       set(urdfdom_DIR "@urdfdom_DIR@" CACHE PATH "The directory containing a CMake configuration for urdfdom")
       set(urdfdom_headers_DIR "@urdfdom_headers_DIR@" CACHE PATH "The directory containing a CMake configuration for urdfdom_headers")
       set(console_bridge_DIR "@console_bridge_DIR@" CACHE PATH "The directory containing a CMake configuration for console_bridge")

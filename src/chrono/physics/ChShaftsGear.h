@@ -64,6 +64,49 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
                     std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
                     ) override;
 
+
+    /// Switch to compliant gear teeth contact model.
+    /// Automatically calls AvoidPhaseDrift(true), needed for compliant teeth.
+    void SetCompliant(bool mset, double mstiffness = 1e4, double mdamping = 1.0);
+
+    /// Switch off compliant gear teeth contact model
+    void SetRigid() { is_compliant = false; }
+
+    /// Is the compliant gear teeth contact model used?
+    bool IsCompliant() const { return is_compliant; }
+
+    /// Set the torsional stiffness [Nm/rad] for compliant gear model, for example because
+    /// of compliance in teeth. This is the torsional stiffness on the SECOND shaft, 
+    /// when the first is kept fixed.
+    /// Automatically calls SetTeethCompliant and AvoidPhaseDrift(true), needed for compliant teeth.
+    void SetTorsionalStiffness(double mstiffness);
+
+    /// Get the torsional stiffness [Nm/rad] for compliant gear model.
+    /// Assumed as torsional stiffness of the SECOND shaft, when first is fixed.
+    double GetTorsionalStiffness() const { return torsional_stiffness; }
+
+    /// Set the stiffness for compliant gear model, starting from the stiffness [N/m] of teeth contact.
+    /// Equivalent stiffenss of teeth assumed in the tangential direction of contact. The gear 
+    /// torsional stiffness will be automatically computed as a consequence of tangential teeth stiffness and 
+    /// primitive radius of second gear.
+    /// Automatically calls SetTeethCompliant and AvoidPhaseDrift(true), needed for compliant teeth.
+    void SetTeethStiffnessTangential(double mstiffness_tang, double radius_2);  
+
+    /// Set the teeth damping [Nm/(rad/s)] for compliant gear model.
+    /// Automatically calls SetTeethCompliant and AvoidPhaseDrift(true), needed for compliant teeth.
+    /// Assumed as torsional damping of the SECOND shaft, when first is fixed.
+    void SetTorsionalDamping(double damping);
+
+    /// Get the teeth damping [Nm/(rad/s)] for compliant gear model.
+    /// Assumed as torsional damping of the SECOND shaft, when first is fixed.
+    double GetTorsionalDamping() const { return torsional_damping; }
+
+    /// Equivalent contact force between gear teeth, as for beta=0 and alpha=0. Since this 1D model has no information
+    /// about the radius of the gear, radius_2 (the primitive radius of the 2nd gear) must be provided.
+    double GetContactForceTangential(double radius_2);
+
+
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -78,6 +121,12 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     bool avoid_phase_drift;
     double phase1;
     double phase2;
+
+    bool is_compliant;
+    double torsional_stiffness;
+    double torsional_damping;
+
+    // INTERFACE ChPhysicsItem
 
     virtual void Update(double time, UpdateFlags update_flags) override;
 
@@ -102,6 +151,11 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
                                    ChStateDelta& v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+                                   ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+                                   const double c           ///< a scaling factor
+                                   ) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void LoadConstraintJacobians() override;

@@ -24,11 +24,15 @@
     #include "chrono_sensor/sensors/ChOptixSensor.h"
 #endif
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verbose(false), m_optix_reflections(9) {
-    // save the chrono system handle
+CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
+    : m_verbose(false), m_debug(false), m_optix_reflections(9) {
     m_system = chrono_system;
     m_device_list = {0};
 #ifdef CHRONO_HAS_OPTIX
@@ -42,8 +46,8 @@ CH_SENSOR_API ChSensorManager::~ChSensorManager() {}
 CH_SENSOR_API std::shared_ptr<ChOptixEngine> ChSensorManager::GetEngine(int context_id) {
     if (context_id < m_engines.size())
         return m_engines[context_id];
-    std::cerr << "ERROR: index out of render group vector bounds\n";
-    return NULL;
+    cerr << "ERROR: index out of render group vector bounds\n";
+    return nullptr;
 }
 #endif
 
@@ -95,9 +99,13 @@ CH_SENSOR_API void ChSensorManager::SetRayRecursions(int rec) {
 CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) {
     // check if sensor is already in sensor list
     if (std::find(m_sensor_list.begin(), m_sensor_list.end(), sensor) != m_sensor_list.end()) {
-        std::cerr << "WARNING: Sensor already exists in manager. Ignoring this addition\n";
+        cerr << "WARNING: Sensor already exists in manager. Ignoring this addition\n";
         return;
     }
+
+    if (m_verbose)
+        cout << "Add sensor '" << sensor->GetName() << "'" << endl;
+
     m_sensor_list.push_back(sensor);
 
 #ifdef CHRONO_HAS_OPTIX
@@ -114,7 +122,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
 
                 engine->AssignSensor(pOptixSensor);
                 if (m_verbose)
-                    std::cout << "Sensor added to existing engine\n";
+                    cout << "Sensor added to existing engine\n";
             }
         }
 
@@ -122,27 +130,30 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             // create new engines only when we need them
             if (!found_group) {
                 if (m_engines.size() < m_allowable_groups) {
+                    // limits to 2 gpus, TODO: check if device supports CUDA
+                    if (m_verbose)
+                        cout << "Create new OptiX engine\n";
                     auto engine = chrono_types::make_shared<ChOptixEngine>(
-                        m_system, m_device_list[(int)m_engines.size()], m_optix_reflections,
-                        m_verbose);  // limits to 2 gpus, TODO: check if device supports CUDA
+                        m_system, m_device_list[(int)m_engines.size()], m_optix_reflections, m_verbose, m_debug);
 
                     // engine->ConstructScene();
 
                     engine->AssignSensor(pOptixSensor);
                     m_engines.push_back(engine);
-                    if (m_verbose)
-                        std::cout << "Created another OptiX engine. Now at: " << m_engines.size() << "\n";
 
-                } else {  // if we are not allowed to create additional groups, warn the user and polute the first group
-                    // std::cout << "No more allowable groups, consider allowing more groups if performace would
-                    // increase\n";
-                    m_engines[0]->AssignSensor(pOptixSensor);
                     if (m_verbose)
-                        std::cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
+                        cout << "Number of OptiX engines: " << m_engines.size() << endl;
+
+                } else {
+                    // if we are not allowed to create additional groups, warn the user and polute the first group
+                    m_engines[0]->AssignSensor(pOptixSensor);
+
+                    if (m_verbose)
+                        cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
                 }
             }
         } catch (std::exception& e) {
-            std::cerr << "Failed to create a ChOptixEngine, with error:\n" << e.what() << "\n";
+            cerr << "Failed to create a ChOptixEngine, with error:\n" << e.what() << endl;
             exit(1);
         }
 

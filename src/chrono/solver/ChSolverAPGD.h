@@ -24,8 +24,7 @@ namespace chrono {
 
 /// An iterative solver based on Nesterov's Projected Gradient Descent.
 ///
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
-/// solver.
+/// See ChSystemDescriptor for more information about the problem formulation and solver data structures.
 class ChApi ChSolverAPGD : public ChIterativeSolverVI {
   public:
     ChSolverAPGD();
@@ -41,13 +40,7 @@ class ChApi ChSolverAPGD : public ChIterativeSolverVI {
     /// For the APGD solver, this is the norm of the projected gradient.
     virtual double GetError() const override { return residual; }
 
-    void Dump_Rhs(std::vector<double>& temp);
-    void Dump_Lambda(std::vector<double>& temp);
-
   private:
-    void SchurBvectorCompute(ChSystemDescriptor& sysd);
-    double Res4(ChSystemDescriptor& sysd);
-
     double residual;
     int nc;
     ChVectorDynamic<> gamma_hat, gammaNew, g, y, gamma, yNew, r, tmp;

@@ -107,7 +107,6 @@ set(Chrono_Multicore_PHYSICS
 source_group(physics FILES ${Chrono_Multicore_PHYSICS})
     
 set(Chrono_Multicore_SOLVER
-    solver/ChSystemDescriptorMulticore.h
     solver/ChIterativeSolverMulticore.h
     solver/ChIterativeSolverMulticore.cpp
     solver/ChIterativeSolverMulticoreNSC.cpp

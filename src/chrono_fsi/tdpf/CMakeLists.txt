@@ -15,7 +15,14 @@ message(STATUS "TDPF-based Chrono::FSI submodule")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
-    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
+    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI-TDPF")
+    set(CH_ENABLE_MODULE_FSI_TDPF OFF CACHE BOOL "Enable the Chrono::TDPF FSI module" FORCE)
+    return()
+endif()
+
+# Return now if no HDF5 support
+if(NOT HDF5_FOUND)
+   message(WARNING "Required HDF5 support not available; disabling Chrono::FSI-TDPF")
     set(CH_ENABLE_MODULE_FSI_TDPF OFF CACHE BOOL "Enable the Chrono::TDPF FSI module" FORCE)
     return()
 endif()
@@ -27,7 +34,7 @@ endif()
 
 set(CH_HYDROCHRONO_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HydroChrono" CACHE PATH "Path to top-level HydroChrono directory")
 
-include_directories(${CH_HYDROCHRONO_DIR}/include)
+message(STATUS "  HydroChrono directory: ${CH_HYDROCHRONO_DIR}")
 
 #-----------------------------------------------------------------------------
 # List all files for the TDPF-based Chrono::FSI library
@@ -36,16 +43,60 @@ include_directories(${CH_HYDROCHRONO_DIR}/include)
 # --------------- TDPF FSI FILES
 
 set(FSITDPF_BASE_FILES
+    ChFsiSystemTDPF.h
+    ChFsiSystemTDPF.cpp
+    ChFsiInterfaceTDPF.h
+    ChFsiInterfaceTDPF.cpp
     ChFsiFluidSystemTDPF.h
     ChFsiFluidSystemTDPF.cpp
 )
 source_group("" FILES ${FSITDPF_BASE_FILES})
 
+set(FSITDPF_IMPL_FILES
+    impl/ChFsiFluidSystemTDPF_impl.h
+    impl/ChFsiFluidSystemTDPF_impl.cpp
+)
+source_group("impl" FILES ${FSITDPF_IMPL_FILES})
+
 # --------------- HydroChrono FILES
 
-set(FSITDPF_HC_FILES
+set(FSITDPF_HC_HEADERS
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/hydro_types.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/system_state.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/hydro_forces.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/core/force_component.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/io/h5_reader.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/logging.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/waves/wave_base.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/waves/regular_wave.h
+    ${CH_HYDROCHRONO_DIR}/include/hydroc/waves/irregular_wave.h    
+    #
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/radiation_component.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_convolution.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_processing.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/excitation_component.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/hydrostatics_component.h
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/wave_utilities.h
 )
-source_group("tdpf" FILES ${FSITDPF_HC_FILES})
+
+set(FSITDPF_HC_SOURCES
+    ${CH_HYDROCHRONO_DIR}/src/hydro/core/hydro_forces.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/io/h5_reader.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/logging/logging.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/logging/logger_backend.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/wave_base.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/regular_wave.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/irregular_wave.cpp
+    #
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/radiation_component.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_convolution.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/radiation/radiation_rirf_processing.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/excitation_component.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/force_components/hydrostatics_component.cpp
+    ${CH_HYDROCHRONO_DIR}/src/hydro/waves/wave_utilities.cpp
+)
+
+source_group("tdpf" FILES ${FSITDPF_HC_HEADERS} ${FSITDPF_HC_SOURCES})
 
 # --------------- 3rd party STB FILES
 
@@ -58,11 +109,26 @@ set(FSITDPF_STB_FILES
 )
 source_group("stb" FILES ${FSITDPF_STB_FILES})
 
+# --------------- TDPF FSI VSG INTERFACE
+
+if(CH_ENABLE_MODULE_VSG)
+    set(FSITDPF_VSG_FILES
+        visualization/ChTdpfVisualizationVSG.h
+        visualization/ChTdpfVisualizationVSG.cpp
+    )
+else()
+    set(FSITDPF_VSG_FILES "")
+endif()
+source_group("" FILES ${FSITDPF_VSG_FILES})
+
 # ------------------------------------------------------------------------------
 # Set dependencies on other Chrono modules
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_FSI_TDPF "FSI")
+if(CH_ENABLE_MODULE_VSG)
+  list (APPEND DEPENDENCIES_FSI_TDPF "VSG")
+endif()
 
 set(DEPENDENCIES_FSI_TDPF ${DEPENDENCIES_FSI_TDPF} PARENT_SCOPE)
 
@@ -87,7 +153,9 @@ message(STATUS "  Add Chrono_fsitdpf library")
 add_library(Chrono_fsitdpf
     ${FSITDPF_CONFIG_FILE}
     ${FSITDPF_BASE_FILES}
-    ${FSITDPF_HC_FILES}
+    ${FSITDPF_IMPL_FILES}
+    ${FSITDPF_HC_HEADERS}
+    ${FSITDPF_HC_SOURCES}
 )
 add_library(Chrono::fsitdpf ALIAS Chrono_fsitdpf)
 
@@ -97,9 +165,13 @@ if (CH_STATIC)
   set_target_properties(Chrono_fsitdpf PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
+target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/include")
+target_include_directories(Chrono_fsitdpf PRIVATE "${CH_HYDROCHRONO_DIR}/src")
+
 if(MSVC)
-  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)              # missing DLL interface
-  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)              # unreferenced formal parameter
+  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>) # missing DLL interface
+  target_compile_options(Chrono_fsitdpf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>) # unreferenced formal parameter
+
   set_target_properties(Chrono_fsitdpf PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
@@ -114,3 +186,43 @@ install(TARGETS Chrono_fsitdpf
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
+        
+#-------------------------------------------------------------------------------
+# Add the Chrono_fsitdpf_vsg library
+#-------------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_VSG)
+    message(STATUS "  Add Chrono_fsitdpf_vsg library")
+
+    add_library(Chrono_fsitdpf_vsg
+        ${FSITDPF_VSG_FILES}
+    )
+    add_library(Chrono::fsitdpf_vsg ALIAS Chrono_fsitdpf_vsg)
+
+    set_target_properties(Chrono_fsitdpf_vsg PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
+    if (CH_STATIC)
+      set_target_properties(Chrono_fsitdpf_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+ 
+    target_include_directories(Chrono_fsitdpf_vsg PRIVATE "${CH_HYDROCHRONO_DIR}/include")
+    target_include_directories(Chrono_fsitdpf_vsg PRIVATE "${CH_HYDROCHRONO_DIR}/src")
+
+    if(MSVC)
+      target_compile_options(Chrono_fsitdpf_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)  # missing DLL interface
+      set_target_properties(Chrono_fsitdpf_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
+    target_compile_definitions(Chrono_fsitdpf_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+    
+    target_link_libraries(Chrono_fsitdpf_vsg PRIVATE Chrono_core Chrono_fsitdpf)
+    target_link_libraries(Chrono_fsitdpf_vsg PUBLIC Chrono_vsg)
+
+    install(TARGETS Chrono_fsitdpf_vsg
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            INCLUDES DESTINATION include/chrono_fsi)
+
+endif()

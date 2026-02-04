@@ -181,11 +181,11 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     endif()
 endif()
 
-if(CH_ENABLE_MODULE_FSI_SPH)
-    option(BUILD_DEMOS_FSI "Build demo programs for FSI_SPH module" TRUE)
+if(CH_ENABLE_MODULE_FSI)
+    option(BUILD_DEMOS_FSI "Build demo programs for FSI module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_FSI)
     if(BUILD_DEMOS_FSI)
-      add_subdirectory(fsi/sph)
+      add_subdirectory(fsi)
     endif()
 endif()
 
@@ -251,6 +251,7 @@ if(CH_ENABLE_MODULE_CSHARP)
                  -DCH_ENABLE_MODULE_POSTPROCESS:BOOL=${CH_ENABLE_MODULE_POSTPROCESS}
                  -DCH_ENABLE_MODULE_IRRLICHT:BOOL=${CH_ENABLE_MODULE_IRRLICHT}
                  -DCH_ENABLE_MODULE_VSG:BOOL=${CH_ENABLE_MODULE_VSG}
+                 -DCH_USE_OPENCRG:BOOL=${CH_USE_OPENCRG}
                  -DCH_USE_CSHARP_WRAPPER:BOOL=${CH_USE_CSHARP_WRAPPER}
              COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/csharp --config $<CONFIG>)
        add_dependencies(Csharp_demos Chrono_csharp_core)

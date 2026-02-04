@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for FSI SPH problems specified through YAML files.
+// Demo for FSI problems specified through YAML files.
 //
 // =============================================================================
 
@@ -27,7 +27,6 @@
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -41,32 +40,32 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Extract filenames from command-line arguments
-    std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/objectdrop.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/baffleflow.yaml");
-    ////std::string fsi_yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/wavetank.yaml");
+    std::string yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/fsi_objectdrop.yaml");
+    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/fsi_baffleflow.yaml");
+    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/fsi_wavetank.yaml");
+    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
 
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", fsi_yaml_filename);
+    cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", yaml_filename);
     if (!cli.Parse(argc, argv, true))
         return 1;
     if (argc == 1) {
         cli.Help();
         std::cout << "Using default YAML specification file" << std::endl;
     }
-    fsi_yaml_filename = cli.GetAsType<std::string>("fsi_file");
+    yaml_filename = cli.GetAsType<std::string>("fsi_file");
 
     std::cout << std::endl;
-    std::cout << "YAML specification file: " << fsi_yaml_filename << std::endl;
+    std::cout << "YAML specification file: " << yaml_filename << std::endl;
 
     // Create the FSI YAML parser object
-    parsers::ChParserFsiYAML parser(fsi_yaml_filename, true);
+    parsers::ChParserFsiYAML parser(yaml_filename, true);
 
     // Create the FSI system and the underlying multibody and fluid systems
     parser.CreateFsiSystem();
     auto sysFSI = parser.GetFsiSystem();
     auto sysCFD = parser.GetFluidSystem();
     auto sysMBS = parser.GetMultibodySystem();
-    ////auto sysCFD_type = parser.GetFluidSystemType();
 
     // Extract information from parsed YAML files
     const std::string& model_name = parser.GetName();
@@ -74,17 +73,17 @@ int main(int argc, char* argv[]) {
     double time_step = parser.GetTimestep();
     bool render = parser.Render();
     double render_fps = parser.GetRenderFPS();
-    bool output = parser.Output();
-    double output_fps = parser.GetOutputFPS();
-
+    
     auto& parserMBS = parser.GetMbsParser();
-    CameraVerticalDir camera_vertical = parserMBS.GetCameraVerticalDir();
-    const ChVector3d& camera_location = parserMBS.GetCameraLocation();
-    const ChVector3d& camera_target = parserMBS.GetCameraTarget();
-    bool outputMBS = parserMBS.Output();
+    CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
+    const ChVector3d& camera_location = parser.GetCameraLocation();
+    const ChVector3d& camera_target = parser.GetCameraTarget();
+    bool output_MBS = parserMBS.Output();
+    double output_fps_MBS = parser.GetOutputFPS();
 
     auto& parserCFD = parser.GetCfdParser();
-    bool outputCFD = parserCFD.Output();
+    bool output_CFD = parserCFD.Output();
+    double output_fps_CFD = parser.GetOutputFPS();
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
@@ -96,12 +95,12 @@ int main(int argc, char* argv[]) {
         visVSG->AddCamera(camera_location, camera_target);
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
+        visVSG->SetBackgroundColor(ChColor(0.04f, 0.11f, 0.18f));
         visVSG->SetCameraVertical(camera_vertical);
         visVSG->SetCameraAngleDeg(40.0);
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(-CH_PI_4, CH_PI_4);
         visVSG->EnableShadows(false);
-        ////visVSG->ToggleAbsFrameVisibility();
         visVSG->SetAbsFrameScale(2.0);
 
         auto plugin = parserCFD.GetVisualizationPlugin();
@@ -116,31 +115,25 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Create output directory
-    if (output) {
+    if (output_MBS || output_CFD) {
         std::string out_dir = GetChronoOutputPath() + "YAML_FSI";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
-        std::string out_dirMBS = out_dir + "/MBS"; 
-        if (!filesystem::create_directory(filesystem::path(out_dirMBS))) {
-            std::cout << "Error creating directory " << out_dirMBS << std::endl;
+        out_dir = out_dir + "/" + model_name;
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
-        std::string out_dirCFD = out_dir + "/CFD";
-        if (!filesystem::create_directory(filesystem::path(out_dirCFD))) {
-            std::cout << "Error creating directory " << out_dirCFD << std::endl;
-            return 1;
-        }
-        
-        parserMBS.SetOutputDir(out_dirMBS);
-        parserCFD.SetOutputDir(out_dirCFD);
+        parser.SetOutputDir(out_dir);
     }
 
     // Simulation loop
     double time = 0;
     int render_frame = 0;
-    int output_frame = 0;
+    int output_frame_MBS = 0;
+    int output_frame_CFD = 0;
 
     while (true) {
         if (render) {
@@ -158,12 +151,14 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        if (output && time >= output_frame / output_fps) {
-            if (outputMBS)
-                parserMBS.SaveOutput(*sysMBS, output_frame);
-            if (outputCFD)
-                parserCFD.SaveOutput(output_frame);
-            output_frame++;
+        if (output_MBS && time >= output_frame_MBS / output_fps_MBS) {
+            parserMBS.SaveOutput(*sysMBS, output_frame_MBS);
+            output_frame_MBS++;
+        }
+
+        if (output_CFD && time >= output_frame_CFD / output_fps_CFD) {
+            parserCFD.SaveOutput(output_frame_CFD);
+            output_frame_CFD++;
         }
 
         sysFSI->DoStepDynamics(time_step);

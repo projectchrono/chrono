@@ -132,7 +132,7 @@ void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
     m_transforms.push_back(std::make_pair(parent_tf, child_tf));
 }
 
-#ifdef CHRONO_PARSERS_URDF
+#ifdef CHRONO_HAS_URDF
 void ChROSTFHandler::AddURDF(chrono::parsers::ChParserURDF& parser) {
     auto model = parser.GetModelTree();
 

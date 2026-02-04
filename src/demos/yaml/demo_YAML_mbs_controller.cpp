@@ -125,50 +125,22 @@ class InvertedPendulumController : public parsers::ChLoadController, public pars
 
 // -----------------------------------------------------------------------------
 
-enum class ControllerType { LOAD, MOTOR };
-
-// -----------------------------------------------------------------------------
-
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Extract controiller type from command-line arguments
-    ControllerType type = ControllerType::LOAD;
-    std::string type_string = "LOAD";
-
-    ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "c,controller", "controller type (LOAD or MOTOR)", type_string);
-    if (!cli.Parse(argc, argv, true))
-        return 1;
-    if (argc == 1)
-        cli.Help();
-    type_string = cli.GetAsType<std::string>("controller");
-
-    std::cout << std::endl;
-    std::cout << "Controller type: " << type_string << std::endl;
-    if (type_string == "MOTOR")
-        type = ControllerType::MOTOR;
-
-    // Extract filenames from command-line arguments
-    std::string model_yaml_filename = type == ControllerType::LOAD
-                                          ? GetChronoDataFile("yaml/mbs/inverted_pendulum_load.yaml")
-                                          : GetChronoDataFile("yaml/mbs/inverted_pendulum_motor.yaml");
-    std::string sim_yaml_filename = GetChronoDataFile("yaml/mbs/simulation_mbs.yaml");
+    // Extract filename from command-line arguments
+    std::string yaml_filename = GetChronoDataFile("yaml/mbs/mbs_controller.yaml");
 
     // Create YAML parser object
     parsers::ChParserMbsYAML parser;
     parser.SetVerbose(true);
 
-    // Load the YAML simulation file and create a Chrono system based on its content
-    parser.LoadSimulationFile(sim_yaml_filename);
+    // Load the YAML file, then create a Chrono system and populate it
+    parser.LoadFile(yaml_filename);
     auto sys = parser.CreateSystem();
-
-    // Load the YAML model and populate the Chrono system
-    parser.LoadModelFile(model_yaml_filename);
     parser.Populate(*sys);
 
     // Print hierarchy of modeling components in ChSystem
-    ////std::cout << "Number of moidel instances: " << parser.GetNumInstances() << std::endl;
     ////sys->ShowHierarchy(std::cout);
 
     // Extract information from parsed YAML files
@@ -180,9 +152,6 @@ int main(int argc, char* argv[]) {
     bool enable_shadows = parser.EnableShadows();
     bool output = parser.Output();
 
-    // Print system hierarchy
-    ////sys->ShowHierarchy(std::cout);
-
     // ------------------------------
 
     // Create a controller corresponding to the "cart_controller" definition in the YAML model file and specify that it
@@ -190,13 +159,19 @@ int main(int argc, char* argv[]) {
     auto controller = chrono_types::make_shared<InvertedPendulumController>(2.0, 20.0);
     controller->SetGainsCart(5, 0, -0.5);
     controller->SetGainsPend(-150, -100, -10);
-    switch (type) {
-        case ControllerType::LOAD:
-            parser.AttachLoadController(controller, "cart_controller", 0);
-            break;
-        case ControllerType::MOTOR:
+    try {
+        // Attempt to attach a load controller
+        parser.AttachLoadController(controller, "cart_controller", 0);
+        std::cout << "\n\nAttached load controller" << std::endl;
+    } catch (const std::exception&) {
+        try {
+            // Attempt to attach a motor controller
             parser.AttachMotorController(controller, "cart_controller", 0);
-            break;
+            std::cout << "\n\nAttached motor controller" << std::endl;
+        } catch (const std::exception&) {
+            std::cerr << "\n\nCannot attach controller" << std::endl;
+            return 1;
+        }
     }
 
     // ------------------------------

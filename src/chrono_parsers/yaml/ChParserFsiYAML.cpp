@@ -15,7 +15,12 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_parsers/yaml/ChParserFsiYAML.h"
-#include "chrono_parsers/yaml/ChParserSphYAML.h"
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_parsers/yaml/ChParserSphYAML.h"
+#endif
+#ifdef CHRONO_FSI_TDPF
+    #include "chrono_parsers/yaml/ChParserTdpfYAML.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -26,8 +31,7 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserFsiYAML::ChParserFsiYAML(const std::string& yaml_filename, bool verbose)
-    : ChParserYAML(), m_end_time(-1), m_render(false), m_output(false) {
+ChParserFsiYAML::ChParserFsiYAML(const std::string& yaml_filename, bool verbose) : ChParserYAML() {
     SetVerbose(verbose);
     LoadFile(yaml_filename);
 }
@@ -98,50 +102,91 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(co
 }
 
 void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
+    YAML::Node yaml;
+
+    // Load FSI YAML file
+    {
+        auto path = filesystem::path(yaml_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        m_script_directory = path.parent_path().str();
+        yaml = YAML::LoadFile(yaml_filename);
     }
-
-    std::string script_dir = path.parent_path().str();
-
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
     CheckVersion(yaml["chrono-version"]);
 
-    // Read the model
-    ChAssertAlways(yaml["model"]);
-    auto model = yaml["model"];
+    // Check the YAML file if of type "FSI"
+    ChAssertAlways(yaml["type"]);
+    auto type = ReadYamlFileType(yaml["type"]);
+    ChAssertAlways(type == ChParserYAML::YamlFileType::FSI);
 
-    if (model["name"])
-        m_name = model["name"].as<std::string>();
-
-    if (model["angle_degrees"])
-        m_use_degrees = model["angle_degrees"].as<bool>();
-
-    if (model["data_path"]) {
-        ChAssertAlways(model["data_path"]["type"]);
-        m_data_path = ReadDataPathType(model["data_path"]["type"]);
-        if (model["data_path"]["root"])
-            m_rel_path = model["data_path"]["root"].as<std::string>();
+    // Read the MBS and fluid specification files
+    ChAssertAlways(yaml["mbs"]);
+    ChAssertAlways(yaml["fluid"]);
+    auto mbs_fname = yaml["mbs"].as<std::string>();
+    auto fluid_fname = yaml["fluid"].as<std::string>();
+    auto mbs_filename = m_script_directory + "/" + mbs_fname;
+    auto fluid_filename = m_script_directory + "/" + fluid_fname;
+    if (m_verbose) {
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\n[ChParserFsiYAML] Loading Chrono::FSI specification from: " << yaml_filename << "\n" << endl;
+        cout << "specification files" << endl;
+        cout << "   multibody specification file:      " << mbs_filename << endl;
+        cout << "   fluid specification file:          " << fluid_filename << endl;
     }
 
-    auto modelMBS = model["multibody_model"].as<std::string>();
-    auto simMBS = model["multibody_simulation"].as<std::string>();
-    auto modelCFD = model["fluid_model"].as<std::string>();
-    auto simCFD = model["fluid_simulation"].as<std::string>();
+    // Load the MBS problem
+    m_parserMBS = chrono_types::make_shared<ChParserMbsYAML>(mbs_filename, m_verbose);
 
-    m_file_modelMBS = script_dir + "/" + modelMBS;
-    m_file_simMBS = script_dir + "/" + simMBS;
-    m_file_modelCFD = script_dir + "/" + modelCFD;
-    m_file_simCFD = script_dir + "/" + simCFD;
+    // Load the CFD problem
+    m_sysCFD_type = ChParserCfdYAML::ReadFluidSystemType(fluid_filename);
+    switch (m_sysCFD_type) {
+        case ChParserCfdYAML::FluidSystemType::SPH:
+#ifdef CHRONO_FSI_SPH
+            m_parserCFD = chrono_types::make_shared<ChParserSphYAML>(fluid_filename, m_verbose);
+#else
+            throw std::runtime_error("Chrono::FSI-SPH not enabled");
+#endif
+            break;
+        case ChParserCfdYAML::FluidSystemType::TDPF:
+#ifdef CHRONO_FSI_TDPF
+            m_parserCFD = chrono_types::make_shared<ChParserTdpfYAML>(fluid_filename, m_verbose);
+#else
+            throw std::runtime_error("Chrono::FSI-TDPF not enabled");
+#endif
+            break;
+    }
+
+    // Load the FSI problem
+    ChAssertAlways(yaml["fsi"]);
+    auto fsi = yaml["fsi"];
+    LoadFsiData(fsi);
+
+    // Load simulation and run-time visualization settings
+    LoadSimData(yaml);
+}
+
+void ChParserFsiYAML::LoadFsiData(const YAML::Node& yaml) {
+    if (yaml["name"])
+        m_name = yaml["name"].as<std::string>();
+
+    if (yaml["angle_degrees"])
+        m_use_degrees = yaml["angle_degrees"].as<bool>();
+
+    if (yaml["data_path"]) {
+        ChAssertAlways(yaml["data_path"]["type"]);
+        m_data_path = ReadDataPathType(yaml["data_path"]["type"]);
+        if (yaml["data_path"]["root"])
+            m_rel_path = yaml["data_path"]["root"].as<std::string>();
+    }
 
     // Read FSI bodies
-    if (model["fsi_bodies"]) {
-        auto fsi_bodies = model["fsi_bodies"];
+    if (yaml["fsi_bodies"]) {
+        auto fsi_bodies = yaml["fsi_bodies"];
         ChAssertAlways(fsi_bodies.IsSequence());
         for (int i = 0; i < fsi_bodies.size(); i++) {
             FsiBody fsi_body;
@@ -151,106 +196,227 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
         }
     }
 
-    // Read meta-step and simulation end time
-    ChAssertAlways(yaml["simulation"]);
-    auto sim = yaml["simulation"];
-    ChAssertAlways(sim["time_step"]);
-    m_step = sim["time_step"].as<double>();
-    if (sim["end_time"])
-        m_end_time = sim["end_time"].as<double>();
-
-    // Read visualization settings
-    if (yaml["visualization"]) {
-        m_render = true;
-        auto vis = yaml["visualization"];
-        ChAssertAlways(vis["render_fps"]);
-        m_render_fps = vis["render_fps"].as<double>();
-    }
-
-    // Read output settings
-    if (yaml["output"]) {
-        m_output = true;
-        auto out = yaml["output"];
-        ChAssertAlways(out["output_fps"]);
-        m_output_fps = out["output_fps"].as<double>();
-    }
-
     if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserFsiYAML] Loading Chrono::FSI specification from: " << yaml_filename << "\n" << endl;
-        cout << "    Model name: '" << m_name << "'" << endl;
-        cout << "    Specification files" << endl;
-        cout << "       Multibody model specification file:      " << m_file_modelMBS << endl;
-        cout << "       Multibody simulation specification file: " << m_file_simMBS << endl;
-        cout << "       Fluid model specification file:          " << m_file_modelCFD << endl;
-        cout << "       Fluid simulation specification file:     " << m_file_simCFD << endl;
-        cout << "    Angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
+        cout << "model name: '" << m_name << "'" << endl;
+        cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
         switch (m_data_path) {
             case ChParserYAML::DataPathType::ABS:
-                cout << "    Using absolute file paths" << endl;
+                cout << "using absolute file paths" << endl;
                 break;
             case ChParserYAML::DataPathType::REL:
-                cout << "    Using file paths relative to: '" << m_rel_path << "'" << endl;
+                cout << "using file paths relative to: '" << m_rel_path << "'" << endl;
                 break;
         }
     }
 }
 
-void ChParserFsiYAML::CreateFsiSystem() {
-    // Parse the multibody YAML files, create and populate MBS system
-    m_parserMBS = chrono_types::make_shared<ChParserMbsYAML>(m_file_modelMBS, m_file_simMBS, m_verbose);
-    m_sysMBS = m_parserMBS->CreateSystem();
-    m_parserMBS->Populate(*m_sysMBS);
+void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
+    // Simulation settings
+    ChAssertAlways(yaml["simulation"]);
+    auto sim = yaml["simulation"];
+    ChAssertAlways(sim["time_step"]);
+    m_sim.step = sim["time_step"].as<double>();
+    if (sim["end_time"])
+        m_sim.end_time = sim["end_time"].as<double>();
+    if (sim["gravity"])
+        m_sim.gravity = ReadVector(sim["gravity"]);
 
-    // Peek in fluid simulation YAML file and extract fluid solver type
-    m_sysCFD_type = ChParserCfdYAML::ReadFluidSystemType(m_file_simCFD);
+    // Run-time visualization (optional)
+    if (yaml["visualization"]) {
+        m_vis.render = true;
+        auto vis = yaml["visualization"];
+        ChAssertAlways(vis["render_fps"]);
+        m_vis.render_fps = vis["render_fps"].as<double>();
+        if (vis["enable_shadows"])
+            m_vis.enable_shadows = vis["enable_shadows"].as<bool>();
+        if (vis["camera"]) {
+            if (vis["camera"]["vertical"]) {
+                auto camera_vertical = ToUpper(vis["camera"]["vertical"].as<std::string>());
+                if (camera_vertical == "Y")
+                    m_vis.camera_vertical = CameraVerticalDir::Y;
+                else if (camera_vertical == "Z")
+                    m_vis.camera_vertical = CameraVerticalDir::Z;
+                else {
+                    cerr << "Incorrect camera vertical " << vis["camera"]["vertical"].as<std::string>() << endl;
+                    throw std::runtime_error("Incorrect camera vertical");
+                }
+            }
+            if (vis["camera"]["location"])
+                m_vis.camera_location = ReadVector(vis["camera"]["location"]);
+            if (vis["camera"]["target"])
+                m_vis.camera_target = ReadVector(vis["camera"]["target"]);
+        }
+
+    } else {
+        m_vis.render = false;
+    }
+
+    if (m_verbose) {
+        m_sim.PrintInfo();
+        cout << endl;
+        m_vis.PrintInfo();
+    }
+}
+
+void ChParserFsiYAML::CreateFsiSystem() {
+    // Create and populate MBS system
+    m_sysMBS = m_parserMBS->CreateSystem();
+    m_sysMBS->SetGravitationalAcceleration(m_sim.gravity);
+    m_parserMBS->Populate(*m_sysMBS);
 
     // Parse the fluid YAML files, create FSI system, and associate FSI solids
     switch (m_sysCFD_type) {
         case ChParserCfdYAML::FluidSystemType::SPH: {
 #ifdef CHRONO_FSI_SPH
-            // Create an SPH YAML parser
-            auto parserSPH = chrono_types::make_shared<ChParserSphYAML>(m_file_modelCFD, m_file_simCFD, m_verbose);
-
-            // Access the underlying FSI problem and attach the MBS system
+            // Create an SPH YAML parser and the underlying FSI problem, but do not initialize the FSI problem
+            auto parserSPH = std::static_pointer_cast<ChParserSphYAML>(m_parserCFD);
             auto problemSPH = parserSPH->CreateFsiProblemSPH(false);
-            if (m_verbose)
-                cout << "Attach MBS system" << endl;
-            problemSPH->AttachMultibodySystem(m_sysMBS.get());
 
             // Cache the underlying FSI and CFD systems
-            m_sysFSI = problemSPH->GetFsiSystemSPH();
-            m_sysCFD = problemSPH->GetFluidSystemSPH();
+            m_sysFSI = parserSPH->GetFsiSystem();
+            m_sysCFD = parserSPH->GetFluidSystem();
+            m_sysCFD->SetGravitationalAcceleration(m_sim.gravity);
+
+            // Create the FSI problem and attach the MBS system
+            problemSPH->AttachMultibodySystem(m_sysMBS.get());
 
             // Create FSI solids
-            if (m_verbose && !m_fsi_bodies.empty())
-                cout << "Associate FSI rigid bodies" << endl;
             for (const auto& fsi_body : m_fsi_bodies) {
                 auto bodies = m_parserMBS->FindBodiesByName(fsi_body.name);
                 if (bodies.empty())
                     cerr << "  Warning: No body with name '" << fsi_body.name << "' was found. Ignoring." << endl;
-                for (auto body : bodies)
+                for (const auto& body : bodies)
                     problemSPH->AddRigidBody(body, fsi_body.geometry, true);
             }
 
             // Initialize the FSI problem (now that an MBS system and FSI solids are specified)
-            if (m_verbose)
-                cout << "Initialize FSI problem" << endl;
             problemSPH->Initialize();
 
             m_parserCFD = parserSPH;
+
+            if (m_verbose) {
+                cout << "\n-------------------------------------------------" << endl;
+                cout << "\n[ChParserFsiYAML] Created FSI-SPH system" << endl;
+                cout << "  Attached MBS system" << endl;
+                if (!m_fsi_bodies.empty())
+                    cout << "  Associated FSI rigid bodies" << endl;
+                cout << "  Initialized FSI problem" << endl;
+                cout << endl;
+            }
+#else
+            throw std::runtime_error("Chrono::FSI-SPH not enabled");
 #endif
             break;
         }
-        case ChParserCfdYAML::FluidSystemType::BEM: {
+        case ChParserCfdYAML::FluidSystemType::TDPF: {
 #ifdef CHRONO_FSI_TDPF
-            throw std::runtime_error("BEM fluid system not yet supported");
-            ////auto parserBEM = chrono_types::make_shared<ChParserBemYAML>(m_file_modelCFD, m_file_simCFD, m_verbose);
-            ////m_parserCFD = parserBEM;
+            // Create  a TDPF YAML parser and the underlying FSI problem, but do not initialize the FSI problem
+            auto parserTDPF = std::static_pointer_cast<ChParserTdpfYAML>(m_parserCFD);
+            auto problemTDPF = parserTDPF->CreateFsiSystemTDPF(false);
+
+            // Cache the underlying FSI and CFD systems
+            m_sysFSI = parserTDPF->GetFsiSystem();
+            m_sysCFD = parserTDPF->GetFluidSystem();
+            m_sysCFD->SetGravitationalAcceleration(m_sim.gravity);
+
+            // Create the FSI problem and attach the MBS system
+            problemTDPF->AttachMultibodySystem(m_sysMBS.get());
+
+            // Specify FSI bodies
+            for (const auto& fsi_body : m_fsi_bodies) {
+                auto bodies = m_parserMBS->FindBodiesByName(fsi_body.name);
+                if (bodies.empty())
+                    cerr << "  Warning: No body with name '" << fsi_body.name << "' was found. Ignoring." << endl;
+                for (const auto& body : bodies)
+                    problemTDPF->AddFsiBody(body, fsi_body.geometry, true);
+            }
+
+            // Initialize the FSI problem (now that an MBS system and FSI solids are specified)
+            problemTDPF->Initialize();
+
+            m_parserCFD = parserTDPF;
+
+            if (m_verbose) {
+                cout << "\n-------------------------------------------------" << endl;
+                cout << "\n[ChParserFsiYAML] Created FSI-TDPF system" << endl;
+                cout << "  Attached MBS system" << endl;
+                if (!m_fsi_bodies.empty())
+                    cout << "  Associated FSI rigid bodies" << endl;
+                cout << "  Initialized FSI problem" << endl;
+                cout << endl;
+            }
+
+#else
+            throw std::runtime_error("Chrono::FSI-TDPF not enabled");
 #endif
             break;
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+
+bool ChParserFsiYAML::Output() const {
+    if (m_parserMBS && m_parserCFD)
+        return m_parserMBS->Output() || m_parserCFD->Output();
+    return false;
+}
+
+void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
+    ChParserYAML::SetOutputDir(out_dir);
+
+    if (m_parserMBS) {
+        std::string out_dir_MBS = out_dir + "/mbs";
+        if (filesystem::create_directory(filesystem::path(out_dir_MBS))) {
+            m_parserMBS->SetOutputDir(out_dir_MBS);
+        } else {
+            std::cerr << "Error creating directory " << out_dir_MBS << std::endl;
+            throw std::runtime_error("Could not create output directory");
+        }
+    }
+
+    if (m_parserCFD) {
+        std::string out_dir_CFD = out_dir + "/fluid";
+        if (filesystem::create_directory(filesystem::path(out_dir_CFD))) {
+            m_parserCFD->SetOutputDir(out_dir_CFD);
+        } else {
+            std::cerr << "Error creating directory " << out_dir_CFD << std::endl;
+            throw std::runtime_error("Could not create output directory");
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+ChParserFsiYAML::SimParams::SimParams() : end_time(-1), gravity({0, 0, -9.8}) {}
+
+void ChParserFsiYAML::SimParams::PrintInfo() {
+    cout << "co-simulation parameters" << endl;
+    cout << "   co-sim meta-step:  " << step << endl;
+    cout << "   end time:          " << (end_time > 0 ? std::to_string(end_time) : "undefined") << endl;
+    cout << "   gravitational acc: " << gravity << endl;
+}
+
+ChParserFsiYAML::VisParams::VisParams()
+    : render(false),
+      render_fps(120),
+      camera_vertical(CameraVerticalDir::Z),
+      camera_location({0, -1, 0}),
+      camera_target({0, 0, 0}),
+      enable_shadows(true) {}
+
+void ChParserFsiYAML::VisParams::PrintInfo() {
+    if (!render) {
+        cout << "no run-time visualization" << endl;
+        return;
+    }
+
+    cout << "run-time visualization" << endl;
+    cout << "  render FPS:           " << render_fps << endl;
+    cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
+    cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+    cout << "  camera location:      " << camera_location << endl;
+    cout << "  camera target:        " << camera_target << endl;
 }
 
 }  // namespace parsers

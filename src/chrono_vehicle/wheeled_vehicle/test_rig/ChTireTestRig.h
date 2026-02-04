@@ -214,6 +214,10 @@ class CH_VEHICLE_API ChTireTestRig {
         m_bce_callback = callback;
     }
 
+    /// Set size of the active box associated with the tire (CRM terrain only).
+    /// The default size is based on the tire AABB inflated by 25%.
+    void SetWheelActiveBox(const ChVector3d& size);
+
     /// Set time delay before applying motion functions (default: 0 s).
     void SetTimeDelay(double delay) { m_time_delay = delay; }
 
@@ -300,6 +304,8 @@ class CH_VEHICLE_API ChTireTestRig {
     double m_terrain_offset;                  ///< Y coordinate of tire center
     double m_terrain_height;                  ///< height coordinate for terrain subsystem
 
+    bool m_default_AABB;
+    ChVector3d m_AABB_size;
     std::shared_ptr<WheelBCECreationCallback> m_bce_callback;
 
     std::shared_ptr<ChBody> m_ground_body;   ///< ground body

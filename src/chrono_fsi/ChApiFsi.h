@@ -59,6 +59,9 @@
         @defgroup fsitdpf TDPF-based FSI module
         @brief TDPF-based fluid solver and FSI interface
         This sub-module provides a Time-Dependent Potential Flow fluid solver for FSI problems.
+        @{
+          @defgroup fsitdpf_visualization Visualization
+        @}
     @}
 */
 

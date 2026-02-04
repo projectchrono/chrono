@@ -86,6 +86,7 @@ set(CE_VSG_IMPL_FILES
     impl/BaseEventHandlers.h
     impl/VSGnodes.cpp
     impl/VSGnodes.h
+    impl/VSGvisitors.h
     impl/pcShader_frag.h
     impl/pcShader_vert.h
     impl/cubemapShaders.h

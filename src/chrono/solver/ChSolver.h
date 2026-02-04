@@ -29,22 +29,21 @@ class ChDirectSolverLS;
 /// @addtogroup chrono_solver
 /// @{
 
-/// Base class for all Chrono solvers (for linear problems or complementarity problems). \n
-/// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
-/// solver.
+/// Base class for all Chrono solvers (for linear problems or complementarity problems).
+/// See ChSystemDescriptor for more information about the problem formulation and the solver data structures.
 class ChApi ChSolver {
   public:
     /// Available types of solvers.
     enum class Type {
         // Iterative VI solvers
         PSOR,             ///< Projected SOR (Successive Over-Relaxation)
-        PSSOR,            ///< Projected symmetric SOR
+        PSSOR,            ///< Projected symmetric SOR (removed, falls back to PSOR)
         PJACOBI,          ///< Projected Jacobi
-        PMINRES,          ///< Projected MINRES
+        PMINRES,          ///< Projected MINRES (removed, falls back to MINRES)
         BARZILAIBORWEIN,  ///< Barzilai-Borwein
         APGD,             ///< Accelerated Projected Gradient Descent
         ADMM,             ///< Alternating Direction Method of Multipliers
-        // Direct linear solvers
+        // Direct sparse linear solvers
         SPARSE_LU,    ///< Sparse supernodal LU factorization
         SPARSE_QR,    ///< Sparse left-looking rank-revealing QR factorization
         PARDISO_MKL,  ///< Pardiso MKL (super-nodal sparse direct solver)

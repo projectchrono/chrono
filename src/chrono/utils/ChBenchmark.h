@@ -43,7 +43,8 @@ class ChBenchmarkTest {
     virtual ChSystem* GetSystem() = 0;
 
     void Simulate(int num_steps);
-    void ResetTimers();
+    virtual void ResetTimers();
+    virtual void UpdateTimers();
 
     double m_timer_step;              ///< time for performing simulation
     double m_timer_advance;           ///< time for integration
@@ -70,20 +71,10 @@ inline ChBenchmarkTest::ChBenchmarkTest()
       m_timer_update(0) {}
 
 inline void ChBenchmarkTest::Simulate(int num_steps) {
-    ////std::cout << "  simulate from t=" << GetSystem()->GetChTime() << " for steps=" << num_steps << std::endl;
     ResetTimers();
     for (int i = 0; i < num_steps; i++) {
         ExecuteStep();
-        m_timer_step += GetSystem()->GetTimerStep();
-        m_timer_advance += GetSystem()->GetTimerAdvance();
-        m_timer_jacobian += GetSystem()->GetTimerJacobian();
-        m_timer_ls_setup += GetSystem()->GetTimerLSsetup();
-        m_timer_ls_solve += GetSystem()->GetTimerLSsolve();
-        m_timer_collision += GetSystem()->GetTimerCollision();
-        m_timer_collision_broad += GetSystem()->GetTimerCollisionBroad();
-        m_timer_collision_narrow += GetSystem()->GetTimerCollisionNarrow();
-        m_timer_setup += GetSystem()->GetTimerSetup();
-        m_timer_update += GetSystem()->GetTimerUpdate();
+        UpdateTimers();
     }
 }
 
@@ -98,6 +89,19 @@ inline void ChBenchmarkTest::ResetTimers() {
     m_timer_collision_narrow = 0;
     m_timer_setup = 0;
     m_timer_update = 0;
+}
+
+inline void ChBenchmarkTest::UpdateTimers() {
+    m_timer_step += GetSystem()->GetTimerStep();
+    m_timer_advance += GetSystem()->GetTimerAdvance();
+    m_timer_jacobian += GetSystem()->GetTimerJacobian();
+    m_timer_ls_setup += GetSystem()->GetTimerLSsetup();
+    m_timer_ls_solve += GetSystem()->GetTimerLSsolve();
+    m_timer_collision += GetSystem()->GetTimerCollision();
+    m_timer_collision_broad += GetSystem()->GetTimerCollisionBroad();
+    m_timer_collision_narrow += GetSystem()->GetTimerCollisionNarrow();
+    m_timer_setup += GetSystem()->GetTimerSetup();
+    m_timer_update += GetSystem()->GetTimerUpdate();
 }
 
 // =============================================================================
@@ -151,16 +155,15 @@ template <typename TEST, int SKIP>
 class ChBenchmarkFixture : public ::benchmark::Fixture {
   public:
     ChBenchmarkFixture() : m_test(nullptr) {
-        ////std::cout << "CREATE TEST" << std::endl;
         if (SKIP != 0) {
             m_test = new TEST();
             m_test->Simulate(SKIP);
         }
     }
 
-    ~ChBenchmarkFixture() { delete m_test; }
+    virtual ~ChBenchmarkFixture() { delete m_test; }
 
-    void Report(benchmark::State& st) {
+    virtual void Report(benchmark::State& st) {
         st.counters["Step_Total"] = m_test->m_timer_step * 1e3;
         st.counters["Step_Advance"] = m_test->m_timer_advance * 1e3;
         st.counters["Step Setup"] = m_test->m_timer_setup * 1e3;
@@ -174,7 +177,6 @@ class ChBenchmarkFixture : public ::benchmark::Fixture {
     }
 
     void Reset(int num_init_steps) {
-        ////std::cout << "RESET" << std::endl;
         delete m_test;
         m_test = new TEST();
         m_test->Simulate(num_init_steps);

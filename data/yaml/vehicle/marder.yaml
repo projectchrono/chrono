@@ -8,11 +8,11 @@ model:
     type: RELATIVE
     root: "../.."
 
-  vehicle_json: "../../vehicle/Marder/vehicle/marder_sp_joints_shafts.json"
-  engine_json: "../../vehicle/Marder/powertrain/Marder_EngineSimple.json"
-  transmission_json: "../../vehicle/Marder/powertrain/Marder_AutomaticTransmissionSimpleMap.json"
+  vehicle_json: "vehicle/Marder/vehicle/marder_sp_joints_shafts.json"
+  engine_json: "vehicle/Marder/powertrain/Marder_EngineSimple.json"
+  transmission_json: "vehicle/Marder/powertrain/Marder_AutomaticTransmissionSimpleMap.json"
 
-terrain_json: "../../vehicle/terrain/RigidPlane.json"
+terrain_json: "vehicle/terrain/RigidPlane.json"
 
 initial_position: [0, 0, 0.9]
 initial_yaw: 0

@@ -395,8 +395,8 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
             body_states[ibody].lin_vel = body->GetPosDt();
             body_states[ibody].lin_acc = body->GetPosDt2();
             body_states[ibody].rot = body->GetRot();
-            body_states[ibody].ang_vel = body->GetAngVelLocal();
-            body_states[ibody].ang_acc = body->GetAngAccLocal();
+            body_states[ibody].ang_vel = body->GetAngVelParent();
+            body_states[ibody].ang_acc = body->GetAngAccParent();
         }
     }
 

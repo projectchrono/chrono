@@ -8,12 +8,12 @@ model:
     type: RELATIVE
     root: "../.."
 
-  vehicle_json: "../../vehicle/Polaris/Polaris.json"
-  engine_json: "../../vehicle/Polaris/Polaris_EngineSimpleMap.json"
-  transmission_json: "../../vehicle/Polaris/Polaris_AutomaticTransmissionSimpleMap.json"
-  tire_json: "../../vehicle/Polaris/Polaris_TMeasyTire.json"
+  vehicle_json: "vehicle/Polaris/Polaris.json"
+  engine_json: "vehicle/Polaris/Polaris_EngineSimpleMap.json"
+  transmission_json: "vehicle/Polaris/Polaris_AutomaticTransmissionSimpleMap.json"
+  tire_json: "vehicle/Polaris/Polaris_TMeasyTire.json"
 
-terrain_json: "../../vehicle/terrain/RigidPlane.json"
+terrain_json: "vehicle/terrain/RigidPlane.json"
 
 initial_position: [0, 0, 0.5]
 initial_yaw: 0

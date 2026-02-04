@@ -1,0 +1,24 @@
+chrono-version: 9.0
+type: VEHICLE
+
+model:  "polaris.yaml"
+#model:  "marder.yaml"
+solver: "solver_mbs.yaml"
+
+simulation:  
+  end_time: 10
+  enforce_realtime: true
+  gravity: [0, 0, -9.8]
+
+output:
+  type: HDF5
+  fps: 10
+
+visualization:
+  type: Model_file
+  render_fps: 60
+  enable_shadows: true
+  camera:
+    vertical: Z
+    location: [2, 2, 1.8]
+    target: [0, 0, 0.6]

@@ -1,0 +1,48 @@
+chrono-version: 9.0
+type: FSI
+
+mbs:   "mbs.yaml"
+fluid: "sph.yaml"
+
+fsi:
+  name: CRM baffle flow
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  fsi_bodies: 
+    - name: baffle1
+      shapes:
+        - type: BOX
+          dimensions: [0.1, 0.1, 0.16]
+          location: [0, 0, 0.08]
+          orientation: [0, 0, 0]
+  
+    - name: baffle2
+      shapes:
+        - type: BOX
+          dimensions: [0.1, 0.1, 0.16]
+          location: [0, 0, 0.08]
+          orientation: [0, 0, 0]
+  
+    - name: baffle3
+      shapes:
+        - type: BOX
+          dimensions: [0.1, 0.1, 0.16]
+          location: [0, 0, 0.08]
+          orientation: [0, 0, 0]
+
+simulation:
+  time_step: 1e-4
+  end_time: -1
+  gravity: [0, 0, -9.8]
+
+visualization:
+  render_fps: 120
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [1.5, -1.5, 0.5]
+    target: [0, 0, 0.0]

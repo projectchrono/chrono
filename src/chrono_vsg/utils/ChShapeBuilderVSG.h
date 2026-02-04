@@ -64,6 +64,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     vsg::ref_ptr<vsg::Group> CreateTrimeshColShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    const ChColor& default_color,
+                                                   float opacity,
                                                    bool wireframe);
 
     /// Convert the specified mesh into a triangle mesh with vertex colors.

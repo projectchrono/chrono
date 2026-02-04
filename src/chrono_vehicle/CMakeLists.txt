@@ -47,7 +47,7 @@ if(CH_ENABLE_OPENCRG)
         mark_as_advanced(FORCE OpenCRG_DLL)
     endif()
 
-    set(HAVE_OPENCRG ON)
+    set(CH_USE_OPENCRG ON)
 
     file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
     install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
@@ -66,12 +66,12 @@ if(CH_ENABLE_OPENCRG)
         mark_as_advanced(CLEAR OpenCRG_DLL)
     endif()
 
-    set(HAVE_OPENCRG OFF)
+    set(CH_USE_OPENCRG OFF)
 
   endif()
 endif()
 
-SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
+SET(CH_USE_OPENCRG "${CH_USE_OPENCRG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Find IrrKlang library
@@ -95,31 +95,31 @@ if(CH_ENABLE_IRRKLANG)
   message(STATUS "IrrKlang include dir: ${IRRKLANG_INCLUDE_DIR}")
   message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
 
-  set(HAVE_IRRKLANG ${IRRKLANG_FOUND})
+  set(CH_USE_IRRKLANG ${IRRKLANG_FOUND})
 
 else()
 
-  set(HAVE_IRRKLANG FALSE)
+  set(CH_USE_IRRKLANG FALSE)
 
 endif()
 
-SET(HAVE_IRRKLANG "${HAVE_IRRKLANG}" PARENT_SCOPE)
+set(CH_USE_IRRKLANG "${CH_USE_IRRKLANG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
 # Prepare replacement variables
-if(HAVE_OPENCRG)
-  set(CHRONO_OPENCRG "#define CHRONO_OPENCRG")
+if(CH_USE_OPENCRG)
+  set(CHRONO_OPENCRG "#define CHRONO_HAS_OPENCRG")
 else()
-  set(CHRONO_OPENCRG "#undef CHRONO_OPENCRG")
+  set(CHRONO_OPENCRG "#undef CHRONO_HAS_OPENCRG")
 endif()
 
 if(CH_ENABLE_IRRKLANG)
-  set(CHRONO_IRRKLANG "#define CHRONO_IRRKLANG")
+  set(CHRONO_IRRKLANG "#define CHRONO_HAS_IRRKLANG")
 else()
-  set(CHRONO_IRRKLANG "#undef CHRONO_IRRKLANG")
+  set(CHRONO_IRRKLANG "#undef CHRONO_HAS_IRRKLANG")
 endif()
 
 # Generate the configuration header file using substitution variables.
@@ -275,7 +275,7 @@ set(CV_TERRAIN_FILES
     terrain/FEATerrain.h
     terrain/FEATerrain.cpp
 )
-if(HAVE_OPENCRG)
+if(CH_USE_OPENCRG)
     set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
         terrain/CRGTerrain.h
         terrain/CRGTerrain.cpp
@@ -926,7 +926,7 @@ endif()
 
 target_link_libraries(Chrono_vehicle PUBLIC Chrono_core)
 
-if(HAVE_OPENCRG)
+if(CH_USE_OPENCRG)
   target_link_libraries(Chrono_vehicle PRIVATE OpenCRG::OpenCRG)
 endif()
 

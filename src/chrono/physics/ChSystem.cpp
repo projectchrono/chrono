@@ -31,9 +31,7 @@
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverPJacobi.h"
-#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverPSOR.h"
-#include "chrono/solver/ChSolverPSSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/utils/ChProfiler.h"
@@ -73,6 +71,9 @@ ChSystem::ChSystem(const std::string& name)
       nthreads_collision(1),
       applied_forces_current(false) {
     assembly.system = this;
+
+    // Set the system descriptor
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
     // Set default collision envelope and margin
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
@@ -269,20 +270,12 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     if (type == ChSolver::Type::CUSTOM)
         return;
 
-    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-
     switch (type) {
         case ChSolver::Type::PSOR:
             solver = chrono_types::make_shared<ChSolverPSOR>();
             break;
-        case ChSolver::Type::PSSOR:
-            solver = chrono_types::make_shared<ChSolverPSSOR>();
-            break;
         case ChSolver::Type::PJACOBI:
             solver = chrono_types::make_shared<ChSolverPJacobi>();
-            break;
-        case ChSolver::Type::PMINRES:
-            solver = chrono_types::make_shared<ChSolverPMINRES>();
             break;
         case ChSolver::Type::BARZILAIBORWEIN:
             solver = chrono_types::make_shared<ChSolverBB>();
@@ -304,6 +297,14 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             break;
         case ChSolver::Type::SPARSE_QR:
             solver = chrono_types::make_shared<ChSolverSparseQR>();
+            break;
+        case ChSolver::Type::PSSOR:
+            std::cerr << "\n\nWARNING: The PSSOR solver was removed. Falling back to PSOR\n\n" << std::endl;
+            solver = chrono_types::make_shared<ChSolverPSOR>();
+            break;
+        case ChSolver::Type::PMINRES:
+            std::cerr << "\n\nWARNING: The PMINRES solver was removed. Falling back to MINRES\n\n" << std::endl;
+            solver = chrono_types::make_shared<ChSolverMINRES>();
             break;
         default:
             std::cout << "Unknown solver type. No solver was set." << std::endl;
@@ -620,6 +621,10 @@ bool ChSystem::ManageSleepingBodies() {
 // -----------------------------------------------------------------------------
 //  DESCRIPTOR BOOKKEEPING
 // -----------------------------------------------------------------------------
+
+void ChSystem::DescriptorPrepareInject() {
+    DescriptorPrepareInject(*descriptor);
+}
 
 void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
     sys_descriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
@@ -1399,7 +1404,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
                                    const std::string& path,
                                    bool one_indexed) {
     // Prepare lists of variables and constraints, if not already prepared.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     if (save_M) {
         ChSparseMatrix mM;
@@ -1436,7 +1441,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // Setup system descriptor
     Setup();
     Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     ChSparseMatrix Cq;
     Cq.resize(descriptor->CountActiveConstraints(), descriptor->CountActiveVariables());
@@ -1548,7 +1553,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
     Update(UpdateFlags::UPDATE_ALL &~UpdateFlags::VISUAL_ASSETS);
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     if (verbose) {
         std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
@@ -1612,7 +1617,7 @@ bool ChSystem::AdvanceDynamics() {
     ManageSleepingBodies();
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
     ////descriptor->UpdateCountsAndOffsets();
@@ -1710,7 +1715,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
     Update(UpdateFlags::UPDATE_ALL);
 
     // Prepare lists of variables and constraints
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     ChAssemblyAnalysis assembling(*this);
     assembling.SetMaxAssemblyIters(max_num_iterationsNR);
@@ -1790,7 +1795,7 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     Setup();
     Update(UpdateFlags::UPDATE_ALL);
 
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
     analysis.SetIntegrable(this);
     analysis.StaticAnalysis();
 
@@ -1821,7 +1826,7 @@ bool ChSystem::DoStaticLinear() {
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticLinearAnalysis analysis;
@@ -1881,7 +1886,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticNonLinearAnalysis analysis;
@@ -1925,7 +1930,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticNonLinearRheonomicAnalysis analysis;

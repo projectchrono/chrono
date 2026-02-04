@@ -23,12 +23,11 @@ CH_FACTORY_REGISTER(ChSolverBB)
 ChSolverBB::ChSolverBB() : n_armijo(10), max_armijo_backtrace(3), lastgoodres(1e30) {}
 
 double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariables();
-
-    if (sysd.HasKRBlocks()) {
-        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness or damping matrices." << std::endl;
-        throw std::runtime_error("ChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness or damping matrices.");
+    if (!sysd.SupportsSchurComplement()) {
+        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if\n"
+                  << " - there are stiffness or damping matrices, or\n "
+                  << " - no inverse mass matrix was provided" << std::endl;
+        throw std::runtime_error("ChSolverBB: System descriptor does not support Schur complement-based solvers.");
     }
 
     // Tuning of the spectral gradient search
@@ -47,12 +46,12 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     double neg_BB2_fallback = 0.12;
 
     m_iterations = 0;
-    // Allocate auxiliary vectors;
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
         std::cout << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << std::endl;
 
+    // Allocate auxiliary vectors
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> ml_candidate(nc);
     ChVectorDynamic<> mg(nc);
@@ -63,72 +62,16 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> mb_tmp(nc);
     ChVectorDynamic<> ms(nc);
     ChVectorDynamic<> my(nc);
-    ChVectorDynamic<> mD(nc);
     ChVectorDynamic<> mDg(nc);
 
-    // Update auxiliary data in all constraints before starting,
-    // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        mconstraints[ic]->UpdateAuxiliary();
+    // Update auxiliary data in constraints
+    // Average entries for friction constraints
+    sysd.SchurComplementUpdateConstraints(true);
 
-    // Average all g_i for the triplet of contact constraints n,u,v.
-    //  Can be used for the fixed point phase and/or by preconditioner.
-    int j_friction_comp = 0;
-    double gi_values[3];
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
-            gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
-            j_friction_comp++;
-            if (j_friction_comp == 3) {
-                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
-                mconstraints[ic - 2]->SetSchurComplement(average_g_i);
-                mconstraints[ic - 1]->SetSchurComplement(average_g_i);
-                mconstraints[ic - 0]->SetSchurComplement(average_g_i);
-                j_friction_comp = 0;
-            }
-        }
-    }
-    // The vector with the diagonal of the N matrix
-    mD.setZero();
-    int d_i = 0;
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        if (mconstraints[ic]->IsActive()) {
-            mD(d_i, 0) = mconstraints[ic]->GetSchurComplement();
-            ++d_i;
-        }
-
-    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::SchurBvectorCompute() ?
-
-    // Compute the b_schur vector in the Schur complement equation N*l = b_schur
-    // with
-    //   N_schur  = D'* (M^-1) * D
-    //   b_schur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
-    // but flipping the sign of lambdas,  b_schur = - b_i - D'*(M^-1)*k
-    // Do this in three steps:
-
-    // Put (M^-1)*k    in  q  sparse vector of each variable..
-    for (unsigned int iv = 0; iv < mvariables.size(); iv++)
-        if (mvariables[iv]->IsActive())
-            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(),
-                                                          mvariables[iv]->Force());  // q = [M]'*fb
-
-    // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
-    mb.setZero();
-    int s_i = 0;
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        if (mconstraints[ic]->IsActive()) {
-            mb(s_i, 0) = -mconstraints[ic]->ComputeJacobianTimesState();
-            ++s_i;
-        }
-
-    // ..and finally do   b_schur = b_schur - c
-    sysd.BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
-    mb -= mb_tmp;
-
-    // Optimization: backup the  q  sparse data computed above,
-    // because   (M^-1)*k   will be needed at the end when computing primals.
-    ChVectorDynamic<> mq;
-    sysd.FromVariablesToVector(mq, true);
+    // Calculate the Schur complement transformed RHS
+    // Cache M^-1 * f in 'Mif'
+    ChVectorDynamic<> Mif;
+    sysd.SchurComplementRHS(mb, &Mif);
 
     // Initialize lambdas
     if (m_warm_start)
@@ -143,19 +86,25 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     lastgoodres = 1e30;
     ml_candidate = ml;
 
-    // g = gradient of 0.5*l'*N*l-l'*b
-    // g = N*l-b
-    sysd.SchurComplementProduct(mg, ml);  // 1)  g = N * l
-    mg -= mb;                             // 2)  g = N * l - b_schur
+    // Calculate g = grad(0.5*l'*N*l-l'*b) = N*l-b
+    // If using a diagonal preconditioner, cache the inverse diagonal of N
+    ChVectorDynamic<> iD(nc);
+
+    // 1) g = N*l 
+    if (m_use_precond)
+        sysd.SchurComplementProduct(mg, ml, &iD);
+    else
+        sysd.SchurComplementProduct(mg, ml);
+
+    // 2) g = N*l -b
+    mg -= mb;
 
     mg_p = mg;
 
     // initial norm of the gradient
     double mg_p_init_norm = std::max(1e-10, mg_p.norm());
 
-    //
-    // THE LOOP
-    //
+    // Iterations
 
     double mf_p = 0;
     double mf = 1e29;
@@ -168,7 +117,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         // Dg = Di*g;
         mDg = mg;
         if (m_use_precond)
-            mDg = mDg.array() / mD.array();
+            mDg = mDg.array() * iD.array();
 
         // dir  = [P(l - alpha*Dg) - l]
         mdir = ml - alpha * mDg;        // dir = l - alpha*Dg
@@ -239,7 +188,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
         if (((do_BB1e2) && (iter % 2 == 0)) || do_BB1) {
             if (m_use_precond)
-                mb_tmp = ms.array() * mD.array();
+                mb_tmp = ms.array() / iD.array();
             else
                 mb_tmp = ms;
             double sDs = ms.dot(mb_tmp);
@@ -276,7 +225,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         if (((do_BB1e2) && (iter % 2 != 0)) || do_BB2) {
             double sy = ms.dot(my);
             if (m_use_precond)
-                mb_tmp = my.array() / mD.array();
+                mb_tmp = my.array() * iD.array();
             else
                 mb_tmp = my;
             double yDy = my.dot(mb_tmp);
@@ -333,16 +282,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     sysd.FromVectorToConstraints(ml);
 
     // Resulting PRIMAL variables:
-    // compute the primal variables as   v = (M^-1)(k + D*l)
-
-    // v = (M^-1)*k  ...    (by rewinding to the backup vector computed ad the beginning)
-    sysd.FromVectorToVariables(mq);
-
-    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive())
-            mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
-    }
+    // compute the primal variables as   v = (M^-1)(f + Cq'*l)
+    sysd.SchurComplementIncrementVariables(&Mif);
 
     if (verbose)
         std::cout << "-----" << std::endl;
@@ -350,8 +291,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     return lastgoodres;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 void ChSolverBB::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

@@ -93,30 +93,40 @@ endif()
 # Set SWIG flags for optional modules
 #-----------------------------------------------------------------------------
 
-if (CH_ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
 endif()
 
-if (CH_ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
 endif()
 
-if (CH_ENABLE_MODULE_FSI_SPH)
+if(CH_ENABLE_MODULE_FSI_SPH)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI_SPH")
 endif()
 
-if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
-  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PARSERS_URDF")
-endif()
-
-if (CH_ENABLE_MODULE_SENSOR)
-  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
-  if(CH_USE_SENSOR_OPTIX)
-    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_OPTIX")
+if(CH_ENABLE_MODULE_PARSERS)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PARSERS")
+  if(CH_USE_URDF)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_HAS_URDF")
   endif()
 endif()
 
-if (CH_ROS_HAS_INTERFACES)
+if(CH_ENABLE_MODULE_SENSOR)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
+  if(CH_USE_SENSOR_OPTIX)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_HAS_OPTIX")
+  endif()
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VEHICLE")
+  if(CH_USE_OPENCRG)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_HAS_OPENCRG")
+  endif()
+endif()
+
+if(CH_ROS_HAS_INTERFACES)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_ROS_HAS_INTERFACES")
 endif()
 
@@ -952,7 +962,7 @@ if(CH_ENABLE_MODULE_SENSOR)
     endif()
 
     if (CH_USE_SENSOR_OPTIX)
-      target_compile_definitions(sensor PRIVATE "CHRONO_OPTIX")
+      target_compile_definitions(sensor PRIVATE "CHRONO_HAS_OPTIX")
     endif()
 
     if(APPLE)
@@ -1075,7 +1085,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 # Only build if have URDF for now
-if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
   message(STATUS "Add python PARSERS module")
 
   # Interface files
@@ -1188,6 +1198,10 @@ if(CH_ENABLE_MODULE_ROS)
     target_compile_options(ros PRIVATE "/wd4706")  # assignment within conditional expression
   else()
     target_compile_options(ros PRIVATE "-Wno-unused-variable")
+  endif()
+
+  if (CH_USE_SENSOR_OPTIX)
+    target_compile_definitions(ros PRIVATE "CHRONO_HAS_OPTIX")
   endif()
 
   if(APPLE)

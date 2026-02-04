@@ -30,7 +30,7 @@ class ChApi ChColormap {
   public:
     /// Colormap type.
     /// Data obtained from https://www.kennethmoreland.com/color-advice/
-    enum class Type { BLACK_BODY, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE, VIRIDIS };
+    enum class Type { BLACK_BODY, BLUE, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE, VIRIDIS };
 
     /// Names of colormap definition files.
     struct Files {
@@ -39,7 +39,7 @@ class ChApi ChColormap {
     };
 
     /// Construct a colormap of specified type.
-    ChColormap(Type type = Type::JET);
+    ChColormap(Type type);
 
     /// Load data for the specified colormap, replacing current data.
     void Load(Type type);
@@ -62,6 +62,9 @@ class ChApi ChColormap {
 
     /// Return the list of specification files for all available colormaps.
     static const std::unordered_map<Type, Files>& GetFilenames() { return m_colormap_files; }
+
+    /// Get colormap type as string.
+    static std::string GetTypeAsString(Type type);
 
     /// Method to allow serialization of transient data to archives.
     void ArchiveOut(ChArchiveOut& archive_out);

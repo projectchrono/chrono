@@ -72,10 +72,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChVisualSystemVSG(int num_divs = 24);
     ~ChVisualSystemVSG();
 
+    /// Set model scale (default: 1).
+    /// By default, graphical annotations (coordinate frames, COM symbols, etc.) are rendered with a physical size in
+    /// the range [1, 10]. For very large or very small models, this range may not be suitable. The 'model scale' set
+    /// here is used as a multiplier for all these graphical elements.
+    void SetModelScale(double scale) { m_scale_multiplier = scale; }
+
     /// Attach a custom plugin.
     /// Plugins offer a mechanism for extending a base VSG visual system with custom functionality; e.g., for rendering,
     /// controlling, and displaying information for specific types of Chrono systems. An arbitrary number of plugins can
-    /// be attached to a VSG visual system. Attaching plugins muct be done *before* initialization of the VSG system.
+    /// be attached to a VSG visual system. Attaching plugins must be done *before* initialization of the VSG system.
     void AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin);
 
     /// Initialize the visualization system.
@@ -168,8 +174,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetAbsFrameScale(double axis_length);
     void ToggleAbsFrameVisibility();
 
-    /// Render ref frames for all objects in the system.
-    void RenderRefFrames(double axis_length = 1);
     /// Set scale for rendering reference frames.
     void SetRefFrameScale(double axis_length);
     /// Toggle on/off visibility of reference frames.
@@ -690,6 +694,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_show_com_frames;     ///< flag to toggle COM frame visibility
     bool m_show_com_symbols;    ///< flag to toggle COM symbol visibility
     bool m_show_link_frames;    ///< flag to toggle link frame visibility
+
+    double m_scale_multiplier;  ///< measure of the model scale 
     double m_abs_frame_scale;   ///< current absolute frame scale
     double m_ref_frame_scale;   ///< current reference frame scale
     double m_com_frame_scale;   ///< current COM frame scale
@@ -762,7 +768,7 @@ class ChVisualSystemVSGPlugin {
     ChVisualSystemVSG& GetVisualSystemVSG() const { return *m_vsys; }
 
   protected:
-    ChVisualSystemVSGPlugin() {}
+    ChVisualSystemVSGPlugin() : m_vsys(nullptr) {}
 
     /// Allow this plugin to perform any operations when it is attached to a VSG visual system.
     /// The pointer `m_vsys` to the associated VSG visual system is set before calling OnAttach.

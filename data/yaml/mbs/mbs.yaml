@@ -1,0 +1,27 @@
+chrono-version: 9.0
+type: MBS
+
+model:  "model_slider_crank.yaml"
+#model:  "model_slider_crank_reduced.yaml"
+#model:  "model_motors.yaml"
+#model:  "model_bushing.yaml"
+
+solver: "solver_mbs.yaml"
+#solver: "solver_mbs_stiff.yaml"
+
+simulation:
+  end_time: 100
+  enforce_realtime: true
+  
+output:
+  type: HDF5
+  fps: 20
+
+visualization:
+  type: Model_file
+  render_fps: 120
+  enable_shadows: true
+  camera:
+    vertical: Z
+    location: [9, -4, 1]
+    target: [2, 0, 0]

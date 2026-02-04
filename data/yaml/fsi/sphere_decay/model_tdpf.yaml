@@ -1,0 +1,20 @@
+chrono-version: 9.0
+
+model:
+  name: water tank
+  angle_degrees: true
+   
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  h5_file: fsi-tdpf/sphere/sphere.h5
+
+  waves:
+    type: regular
+    height: 3.0
+    period: 5.0
+    direction: 0.0  # degrees, 0 = positive x
+    phase: 0.0
+
+    # type: no_wave

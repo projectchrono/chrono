@@ -54,15 +54,16 @@ bool SetChronoSolver(chrono::ChSystem& sys,
 
             if (slvr_type != chrono::ChSolver::Type::BARZILAIBORWEIN &&  //
                 slvr_type != chrono::ChSolver::Type::APGD &&             //
-                slvr_type != chrono::ChSolver::Type::PSOR &&             //
-                slvr_type != chrono::ChSolver::Type::PSSOR)
+                slvr_type != chrono::ChSolver::Type::PSOR)
                 cout << prefix << "NSC system - recommended solver: BARZILAIBORWEIN" << endl;
         }
     }
 
     // Barzilai-Borwein cannot be used with stiffness matrices
-    if (slvr_type == chrono::ChSolver::Type::BARZILAIBORWEIN && sys.GetSystemDescriptor()->HasKRBlocks()) {
-        cout << prefix << "BARZILAIBORWEIN cannot be used for a system that includes stiffness matrices" << endl;
+    if (slvr_type == chrono::ChSolver::Type::BARZILAIBORWEIN && !sys.GetSystemDescriptor()->SupportsSchurComplement()) {
+        cout << prefix << "BARZILAIBORWEIN cannot be used if:\n"
+             << " - there are stiffness or damping matrices, or\n "
+             << " - no inverse mass matrix was provided" << endl;
         return false;
     }
 

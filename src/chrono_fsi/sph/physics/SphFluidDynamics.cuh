@@ -44,9 +44,9 @@ class SphFluidDynamics {
     /// - Copy the pointer to SPH particle data, parameters,
     ///   and number of objects to member variables.
     SphFluidDynamics(FsiDataManager& data_mgr,  ///< FSI data manager
-                  SphBceManager& bce_mgr,       ///< BCE manager
-                  bool verbose,              ///< verbose output
-                  bool check_errors          ///< check CUDA errors
+                     SphBceManager& bce_mgr,    ///< BCE manager
+                     bool verbose,              ///< verbose output
+                     bool check_errors          ///< check CUDA errors
     );
 
     /// Destructor of the fluid/granular dynamics class.
@@ -75,9 +75,7 @@ class SphFluidDynamics {
                               std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Synchronize the async copy stream (used for the copySortedToOriginal function)
-    void SynchronizeCopyStream() {
-        cudaStreamSynchronize(m_copy_stream);
-    }
+    void SynchronizeCopyStream() { cudaStreamSynchronize(m_copy_stream); }
 
     /// Function to perform Shepard filtering.
     /// It calculates the densities directly, not based on the derivative of the density. This function is used in
@@ -103,8 +101,8 @@ class SphFluidDynamics {
     double computeTimeStep() const;
 
   private:
-    FsiDataManager& m_data_mgr;                        ///< FSI data manager
-    std::shared_ptr<SphForce> forceSystem;             ///< force system object; calculates the force between particles
+    FsiDataManager& m_data_mgr;             ///< FSI data manager
+    std::shared_ptr<SphForce> forceSystem;  ///< force system object; calculates the force between particles
     std::shared_ptr<SphCollisionSystem> collisionSystem;  ///< collision system for building neighbors list
 
     bool m_verbose;
@@ -118,7 +116,6 @@ class SphFluidDynamics {
 
     /// Apply boundary conditions on the sides of the computational domain.
     void ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
-
 
     cudaStream_t m_copy_stream;  ///< stream for async copy operations
 };

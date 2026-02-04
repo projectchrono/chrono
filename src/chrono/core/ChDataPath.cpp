@@ -39,23 +39,41 @@ std::string GetChronoDataFile(const std::string& filename) {
 }
 
 // -----------------------------------------------------------------------------
-// Functions for manipulating the Chrono data directory
+// Functions for manipulating the Chrono demo output directory
 // -----------------------------------------------------------------------------
 
 static std::string chrono_out_path("DEMO_OUTPUT/");
 
-// Set the path to the Chrono output directory (ATTENTION: not thread safe)
 void SetChronoOutputPath(const std::string& path) {
     chrono_out_path = path;
 }
 
 const std::string& GetChronoOutputPath() {
-    // If the directory does not yet exists, create it.
+    // If the directory does not yet exists, create it
     auto out_path = filesystem::path(chrono_out_path);
     if (!out_path.exists())
         filesystem::create_directory(out_path);
 
     return chrono_out_path;
+}
+
+// -----------------------------------------------------------------------------
+// Functions for manipulating the Chrono test output directory
+// -----------------------------------------------------------------------------
+
+static std::string chrono_test_out_path("TEST_OUTPUT/");
+
+void SetChronoTestOutputPath(const std::string& path) {
+    chrono_test_out_path = path;
+}
+
+const std::string& GetChronoTestOutputPath() {
+    // If the directory does not yet exists, create it
+    auto out_path = filesystem::path(chrono_test_out_path);
+    if (!out_path.exists())
+        filesystem::create_directory(out_path);
+
+    return chrono_test_out_path;
 }
 
 }  // end namespace chrono

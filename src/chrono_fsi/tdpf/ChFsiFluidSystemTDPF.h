@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Implementation of an FSI-aware TDPF fluid solver.
+// Definition of an FSI-aware TDPF fluid solver.
 //
 // =============================================================================
 
@@ -21,9 +21,17 @@
 
 #include "chrono_fsi/ChFsiFluidSystem.h"
 
+#include "hydroc/core/hydro_types.h"
+#include "hydroc/waves/regular_wave.h"
+#include "hydroc/waves/irregular_wave.h"
+#include "hydroc/radiation/radiation_types.h"
+
 namespace chrono {
 namespace fsi {
 namespace tdpf {
+
+// Forward declaration of TDPF implementation
+class ChFsiFluidSystemTDPF_impl;
 
 /// @addtogroup fsitdpf
 /// @{
@@ -34,13 +42,42 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     ChFsiFluidSystemTDPF();
     ~ChFsiFluidSystemTDPF();
 
+    /// Set input file name with hydro data (HDF5 format).
+    void SetHydroFilename(const std::string& filename);
+
     /// Set gravity for the FSI syatem.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Return gravitational acceleration.
     ChVector3d GetGravitationalAcceleration() const;
 
+    void SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode);
+    void SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts);
+
+    /// Add no wave conditions.
+    /// Note that the number of bodies is overwritten during initialization.
+    void AddWaves(const NoWaveParams& params);
+
+    /// Add regular wave conditions.
+    /// Note that the number of bodies is overwritten during initialization.
+    void AddWaves(const RegularWaveParams& params);
+
+    /// Add irregular wave conditions.
+    /// Note that the number of bodies is overwritten during initialization.
+    void AddWaves(const IrregularWaveParams& params);
+
+    /// Get current wave elevation at specified position (in X-Y plane).
+    double GetWaveElevation(const ChVector3d& pos);
+
+    /// Get current wave velocity at specified position (in X-Y plane).
+    ChVector3d GetWaveVelocity(const ChVector3d& pos);
+
+    /// Get current wave velocity at specified position (in X-Y plane).
+    ChVector3d GetWaveVelocity(const ChVector3d& pos, double elevation);
+
   private:
+    enum class WaveType { NONE, REGULAR, IRREGULAR };
+
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
@@ -89,13 +126,25 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
 
     // ----------
 
-    ChVector3d m_g;
-
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
+    unsigned int m_num_1D_meshes;        ///< number of 1-D meshes
     unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)
-    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
+    unsigned int m_num_2D_meshes;        ///< number of 2-D meshes
+    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+
+    std::string m_hydro_filename;                       ///< input hydro file name (HDF5 format)
+    std::unique_ptr<ChFsiFluidSystemTDPF_impl> m_impl;  ///< private implementation
+
+    WaveType m_wave_type;
+    NoWaveParams m_no_wave_params;            ///< no wave parameters (optional)
+    RegularWaveParams m_reg_wave_params;      ///< regular wave parameters (optional)
+    IrregularWaveParams m_irreg_wave_params;  ///< irregular wave parameters (optional)
+
+    friend class ChFsiSystemTDPF;
+    friend class ChFsiInterfaceTDPF;
+    friend class FSITDPFStatsVSG;
 };
 
 /// @} fsitdpf
