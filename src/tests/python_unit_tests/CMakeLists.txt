@@ -69,5 +69,6 @@ option(BUILD_TESTING_BASE "Build PyChrono unit tests for base Chrono module" TRU
 mark_as_advanced(FORCE BUILD_TESTING_BASE)
 if(BUILD_TESTING_BASE)
   ADD_SUBDIRECTORY(core)
+  ADD_SUBDIRECTORY(physics)
 endif()
 

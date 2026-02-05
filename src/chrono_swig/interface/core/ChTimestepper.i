@@ -153,3 +153,8 @@ FIX_IMPLICIT_TIMESTEPPER_INHERITANCE(ChTimestepperHHT)
 %include "../../../chrono/timestepper/ChTimestepperHHT.h"
 %include "../../../chrono/timestepper/ChAssemblyAnalysis.h"
 %include "../../../chrono/timestepper/ChStaticAnalysis.h"
+
+%DefSharedPtrDynamicCast(chrono, ChTimestepper, ChTimestepperImplicit)
+%DefSharedPtrDynamicCast(chrono, ChTimestepper, ChTimestepperHHT)
+%DefSharedPtrDynamicCast(chrono, ChTimestepperImplicit, ChTimestepperHHT)
+%DefSharedPtrDynamicCast(chrono, ChTimestepperIIorder, ChTimestepperHHT)
