@@ -15,16 +15,13 @@ A Chrono YAML vehicle simulation file defines the setup for a Chrono::Vehicle si
 
 A vehicle simulation must specify the vehicle model to be simulated, integrator and solver settings, as well as optional output and run-time visualization settings.
 
-** **TODO** ** Supported Chrono version and simulation type (VEHICLE)
-
 #### Model and solver specification
 
-** **TODO** **
+The `model` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with a vehicle model specification (which must follow the [vehicle model schema](@ref YAML_schema_vehicle_model)).
 
-The `model` YAML file must follow the [vehicle model schema](@ref YAML_schema_vehicle_model).
-
-The `solver` YAML file must follow the [MBS solver schema](@ref YAML_schema_mbs_solver).
-
+The `solver` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with an MBS solver specification (which must follow the [MBS solver schema](@ref YAML_schema_mbs_solver)).
 
 #### Simulation options
 
@@ -37,11 +34,32 @@ The `solver` YAML file must follow the [MBS solver schema](@ref YAML_schema_mbs_
 
 #### Output options
 
-** **TODO** **
+If the `output` key is present, it must specify a YAML object with the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Output DB type | enum | `NONE`,`ASCII`,`HDF5`  | No | `NONE` |
+| `mode` | Output mode | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
+| `fps` | Output frequency (FPS or Hz) | double | -- | No | 30 |
 
 #### Visualization options
 
-** **TODO** **
+If the `visualization` key is present, it must specify a YAML object with the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Type of visualization shapes | enum | `NONE`,`PRIMITIVES`,`MODEL_FILE`,`COLLISION`  | No | `NONE` |
+| `render_fps` | Rendering frequency (FPS or Hz) | double | -- | No | 120 |
+| `enable_shadows` | Turn on shadow rendering | boolean | -- | No | `true` |
+| `camera` | Camera settings | object | -- | No | -- |
+
+The `camera` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `vertical` | Vertical direction (camera "up") | enum | `Y`,`Z`  | No | `Z` |
+| `location` | Camera initial location | array[3] | -- | No | [0,-1,0] |
+| `target` | Camera initial target ("look-at" point) | array[3] | -- | No | [0,0,0]  |
 
 ## Example
 

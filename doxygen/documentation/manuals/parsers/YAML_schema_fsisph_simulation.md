@@ -16,20 +16,26 @@ An FSI-SPH simulation must specify the SPH model to be simulated, SPH solver sol
 
 #### Model and solver specification
 
-** **TODO** **
+The `model` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with an SPH model specification (which must follow the [SPH model schema](@ref YAML_schema_fsisph_model)).
 
-The `model` YAML file must follow the [SPH model schema](@ref YAML_schema_fsisph_model).
-
-The `solver` YAML file must follow the [SPH solver schema](@ref YAML_schema_fsisph_solver).
+The `solver` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with an SPH solver specification (which must follow the [SPH solver schema](@ref YAML_schema_fsisph_solver)).
 
 
 #### Output options
 
-** **TODO** **
+If the `output` key is present, it must specify a YAML object with the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Output DB type | enum | `NONE`,`ASCII`,`HDF5`  | No | `NONE` |
+| `mode` | Output mode | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
+| `fps` | Output frequency (FPS or Hz) | double | -- | No | 30 |
 
 #### Visualization options
 
-** **TODO** **
+** **TODO** **  (SPH-specific visualization options)
 
 
 ## Example

@@ -19,12 +19,11 @@ The multibody and fluid simulations are specified by referring to the correspond
 
 #### Multibody and fluid system specification
 
-** **TODO** **
+The `mbs` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with an MBS simulation specification (which must follow the [MBS simulation schema](@ref YAML_schema_mbs_simulation)).
 
-The `mbs` YAML file must follow the [MBS simulation schema](@ref YAML_schema_mbs_simulation).
-
-The `fluid` YAML file must follow one of the supported fluid dynamics schemas, 
-either the [SPH simulation schema](@ref YAML_schema_fsisph_simulation) or the [TDPF simulation schema](@ref YAML_schema_fsitdpf_simulation)
+The `fluid` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with a fluid simulation specification (which must follow the [SPH simulation schema](@ref YAML_schema_fsisph_simulation) or the [TDPF simulation schema](@ref YAML_schema_fsitdpf_simulation)).
 
 #### Specification of coupled FSI problem
 
@@ -39,14 +38,24 @@ either the [SPH simulation schema](@ref YAML_schema_fsisph_simulation) or the [T
 | `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
 
 
-#### Output options
-
-** **TODO** **
-
 #### Visualization options
 
-** **TODO** **
+If the `visualization` key is present, it must specify a YAML object with the following properties:
 
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Type of visualization shapes | enum | `NONE`,`PRIMITIVES`,`MODEL_FILE`,`COLLISION`  | No | `NONE` |
+| `render_fps` | Rendering frequency (FPS or Hz) | double | -- | No | 120 |
+| `enable_shadows` | Turn on shadow rendering | boolean | -- | No | `true` |
+| `camera` | Camera settings | object | -- | No | -- |
+
+The `camera` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `vertical` | Vertical direction (camera "up") | enum | `Y`,`Z`  | No | `Z` |
+| `location` | Camera initial location | array[3] | -- | No | [0,-1,0] |
+| `target` | Camera initial target ("look-at" point) | array[3] | -- | No | [0,0,0]  |
 
 ## Example
 

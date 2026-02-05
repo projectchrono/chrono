@@ -17,20 +17,25 @@ An FSI-TDPF simulation must specify the TDPF model to be simulated, as well as o
 
 #### Model and solver specification
 
-** **TODO** **
+The `model` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with a TDPF model specification (which must follow the [TDPF model schema](@ref YAML_schema_fsitdpf_model)).
 
-The `model` YAML file must follow the [TDPF model schema](@ref YAML_schema_fsitdpf_model).
-
-The `solver` YAML file must follow the [TDPF solver schema](@ref YAML_schema_fsitdpf_solver).
-
+The `solver` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
+the YAML file with a TDPF solver specification (which must follow the [TDPF solver schema](@ref YAML_schema_fsitdpf_solver)).
 
 #### Output options
 
-** **TODO** **
+If the `output` key is present, it must specify a YAML object with the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Output DB type | enum | `NONE`,`ASCII`,`HDF5`  | No | `NONE` |
+| `mode` | Output mode | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
+| `fps` | Output frequency (FPS or Hz) | double | -- | No | 30 |
 
 #### Visualization options
 
-** **TODO** **
+** **TODO** ** (TDPF-specific visualization options)
 
 
 ## Example
