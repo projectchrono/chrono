@@ -1,13 +1,10 @@
 message(STATUS "\n==== PyChrono Python Unit Tests ====\n")
 
-set(CH_PYUTEST_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
+if(NOT Python3_EXECUTABLE)
+	find_package(Python3 REQUIRED COMPONENTS Interpreter)
+endif()
 
 function(build_pyutests ADD_TESTS TESTS LIBS)
-
-	if(NOT Python3_EXECUTABLE)
-		find_package(Python3 REQUIRED COMPONENTS Interpreter)
-	endif()
-
 	# A hack to set the working directory in which to execute the CTest runs.
 	# This is needed for tests that need to access the Chrono data directory (since we use a relative path to it)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
