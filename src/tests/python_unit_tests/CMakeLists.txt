@@ -8,9 +8,9 @@ function(build_pyutests ADD_TESTS TESTS LIBS)
 		find_package(Python3 REQUIRED COMPONENTS Interpreter)
 	endif()
 
-  # A hack to set the working directory in which to execute the CTest runs.
-  # This is needed for tests that need to access the Chrono data directory (since we use a relative path to it)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	# A hack to set the working directory in which to execute the CTest runs.
+	# This is needed for tests that need to access the Chrono data directory (since we use a relative path to it)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
 	else()
 		set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}")
@@ -22,7 +22,7 @@ function(build_pyutests ADD_TESTS TESTS LIBS)
 		set(_py_path_sep ":")
 	endif()
 
-  set(_pythonpath "${PYTHONPATH_BUILD}${_py_path_sep}$ENV{PYTHONPATH}")
+  	set(_pythonpath "${PYTHONPATH_BUILD}${_py_path_sep}$ENV{PYTHONPATH}")
 
 	# Set up runtime loader path so extension modules can find Chrono shared libraries.
 	set(_libdir "${PROJECT_BINARY_DIR}/lib")
@@ -42,23 +42,23 @@ function(build_pyutests ADD_TESTS TESTS LIBS)
 		set(_loader_path "${_loader_path}${_loader_sep}$ENV{${_loader_var}}")
 	endif()
 
-  if(WIN32)
-    # Escape semicolons for Windows environment variables
-    string(REPLACE ";" "\\;" _pythonpath_esc "${_pythonpath}")
-    string(REPLACE ";" "\\;" _loader_path_esc "${_loader_path}")
-  endif()
+	if(WIN32)
+		# Escape semicolons for Windows environment variables
+		string(REPLACE ";" "\\;" _pythonpath "${_pythonpath}")
+		string(REPLACE ";" "\\;" _loader_path "${_loader_path}")
+	endif()
 
 	foreach(PROGRAM ${TESTS})
 		if(${ADD_TESTS})
 			add_test(
 				NAME ${PROGRAM}
-				COMMAND ${Python3_EXECUTABLE} "${CH_PYUTEST_ROOT_DIR}/run_pytest.py" "${CMAKE_CURRENT_SOURCE_DIR}/${PROGRAM}.py"
+				COMMAND "${Python3_EXECUTABLE}" -m pytest "${CMAKE_CURRENT_SOURCE_DIR}/${PROGRAM}.py"
 			)
 
 			set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY "${MY_WORKING_DIR}")
 			set_tests_properties(${PROGRAM} PROPERTIES
 				WORKING_DIRECTORY "${MY_WORKING_DIR}"
-				ENVIRONMENT "PYTHONPATH=${_pythonpath_esc};${_loader_var}=${_loader_path_esc}"
+				ENVIRONMENT "PYTHONPATH=${_pythonpath};${_loader_var}=${_loader_path}"
 			)
 		endif()
 	endforeach()
