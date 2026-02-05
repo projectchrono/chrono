@@ -56,10 +56,10 @@ function(build_pyutests ADD_TESTS TESTS LIBS)
 			)
 
 			set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY "${MY_WORKING_DIR}")
-      set_tests_properties(${PROGRAM} PROPERTIES
-        WORKING_DIRECTORY "${MY_WORKING_DIR}"
-        ENVIRONMENT "PYTHONPATH=${_pythonpath};${_loader_var}=${_loader_path}"
-      )
+			set_tests_properties(${PROGRAM} PROPERTIES
+				WORKING_DIRECTORY "${MY_WORKING_DIR}"
+				ENVIRONMENT "PYTHONPATH=${_pythonpath_esc};${_loader_var}=${_loader_path_esc}"
+			)
 		endif()
 	endforeach()
 
