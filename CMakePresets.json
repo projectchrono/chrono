@@ -137,9 +137,9 @@
 				"OpenCRG_LIBRARY": "$env{HOME}/dependencies/OpenCRG/lib/libOpenCRG.a",
 				"OpenCASCADE_DIR": "$env{HOMEBREW_PREFIX}/lib/cmake/opencascade",
 				"OpenMP_ROOT": "$env{HOMEBREW_PREFIX}/opt/libomp",
-				"PYTHON_EXECUTABLE": "/Users/builder/miniconda/bin/python",
+				"PYTHON_EXECUTABLE": "/Users/builder/dependencies/pyenv/bin/python",
 				"spectra_INCLUDE_DIR": "$env{HOME}/dependencies/spectra/include",
-				"SWIG_EXECUTABLE": "/Users/builder/miniconda/bin/swig",
+				"SWIG_EXECUTABLE": "/Users/builder/dependencies/pyenv/bin/swig",
 				"vsg_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/vsg",
 				"vsgImGui_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/vsgImGui",
 				"vsgXchange_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/vsgXchange"
