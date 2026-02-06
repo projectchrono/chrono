@@ -459,17 +459,16 @@ macos-apple:sonoma:test:
   before_script:
     - brew install wget
     - ARCHITECTURE=`uname -m`
-    # Uncomment the following lines to get a fresh install of Miniconda
-    # Since we also use conda as package manager during build process to provide numpy and pytest, we don't reinstall it every time
-    # - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-$ARCHITECTURE.sh -O ~/miniconda.sh
-    # - rm -r $HOME/miniconda > /dev/null 2>&1 || FAILED=true
-    # - bash ~/miniconda.sh -b -p $HOME/miniconda
+    - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-$ARCHITECTURE.sh -O ~/miniconda.sh
+    - rm -r $HOME/miniconda > /dev/null 2>&1 || FAILED=true
+    - bash ~/miniconda.sh -b -p $HOME/miniconda
     - export PATH=$HOME/miniconda/bin:$PATH
     - source activate $HOME/miniconda/
-    # - conda install --yes jinja2
-    # - conda config --set show_channel_urls true
-    # - conda install --yes conda-build "anaconda-client>=1.13.1"
-    # - conda config --add channels conda-forge
+    - conda install --yes jinja2
+    - conda config --set show_channel_urls true
+    - conda install --yes conda-build "anaconda-client>=1.13.1"
+    - conda config --add channels conda-forge
+    - ls $HOME/miniconda/lib/
     - conda build purge-all
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
