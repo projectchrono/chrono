@@ -431,51 +431,21 @@ public:
     /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
     /// It operates quadrature on the element, calling PointComputeInternalLoads(...) at each quadrature point.
     virtual void ElementComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
-        DataPerElement& data,
-        ChVectorDynamic<>& Fi
-    ) {
-        int quadorder = melement->GetQuadratureOrder();
-        int numpoints = melement->GetNumQuadraturePoints();
-        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
-        Fi.setZero(numelcoords);
-        ChMatrix33<> J;
-        ChVector3d eta;
-        double weight;
-        for (int i_point = 0; i_point < numpoints; ++i_point) {
-            melement->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
-            double det_J = melement->ComputeJ(eta, J);
-            double s = weight * det_J;
-            PointComputeInternalLoads(melement, data, i_point, eta, s, Fi);
-        }
-    }
+                                             DataPerElement& data,
+                                             ChVectorDynamic<>& Fi) = 0;
 
-    /// For a given finite element, computes matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of the tangent matrices M,R,K,:
-    /// H = Mfactor*M + Rfactor*R + Kfactor*K. 
-    /// Setting Mfactor=1 and Rfactor=Kfactor=0, it can be used to get just mass matrix, etc.
-    /// It operates quadrature on the element, calling PointComputeKRMmatrices(...) at each quadrature point.
-    virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, ChMatrixRef H,
-        double Kfactor,
-        double Rfactor = 0,
-        double Mfactor = 0
-    ) {
-        int quadorder = melement->GetQuadratureOrder();
-        int numpoints = melement->GetNumQuadraturePoints();
-        H.setZero(); // should be already of proper size
-        ChMatrix33<> J;
-        ChVector3d eta;
-        double weight;
-        for (int i_point = 0; i_point < numpoints; ++i_point) {
-            melement->GetQuadraturePointWeight(quadorder, i_point, weight, eta); // get eta coords and weight at this i-th point
-            double det_J = melement->ComputeJ(eta, J);
-            double s = weight * det_J;
-            PointComputeKRMmatrices(melement,
-                data, i_point,
-                eta, H,
-                Kfactor * s,
-                Rfactor * s,
-                Mfactor * s);
-        }
-    }
+    /// For a given finite element, computes matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of
+    /// the tangent matrices M,R,K,: H = Mfactor*M + Rfactor*R + Kfactor*K. Setting Mfactor=1 and Rfactor=Kfactor=0, it
+    /// can be used to get just mass matrix, etc. It operates quadrature on the element, calling
+    /// PointComputeKRMmatrices(...) at each quadrature point.
+    virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+                                           DataPerElement& data,
+                                           ChMatrixRef H,
+                                           double Kfactor,
+                                           double Rfactor = 0,
+                                           double Mfactor = 0) = 0;
+
+ 
 
     /// For a given finite element, computes the lumped mass matrix.
     /// This falls back to the generic "Diagonal Scaling with Mass Preservation" approach, that 
@@ -520,37 +490,7 @@ public:
         }
     }
 
-    // MATERIAL CONSTITUTIVE LAWS MUST IMPLEMENT THE FOLLOWING
 
-    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting, 
-    /// and *ADD* the s-scaled result to Fi vector.
-    /// For example, if internal load in discretized coords is 
-    ///    F   = \sum (Foo*B')*w*det(J);  
-    /// here you must compute  
-    ///    Fi += (Foo*B')*s
-    /// If the default quadrature is not good for you, then override ElementComputeInternalLoads() directly.
-    virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
-        DataPerElement& data,
-        const int i_point,
-        ChVector3d& eta,
-        const double s,
-        ChVectorDynamic<>& Fi) = 0;
-
-    /// Computes tangent matrix H for one quadrature point, except quadrature weighting, 
-    /// and *ADD* the scaled result to H matrix.
-    /// For example, if in discretized coords you have 
-    ///    K   = \sum (B*E*B')*w*det(J); M=\sum(rho*N*N')*w*det(J); R = ...
-    /// and since we assume H = Mfactor*K + Kfactor*K + Rfactor*R, then here you must compute  
-    ///    H  += Mpfactor*(rho*N*N') + Kpfactor*(B*E*B') + Rpfactor*...
-    /// If the default quadrature is not good for you, then override ElementComputeKRMmatrices() directly.
-    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
-        DataPerElement& data,
-        const int i_point,
-        ChVector3d& eta,
-        ChMatrixRef H,
-        double Kpfactor,
-        double Rpfactor = 0,
-        double Mpfactor = 0) = 0;
 
     /// Compute updates (ex. plastic flow, increments, etc.) at the end of a time step. 
     /// This may happen less frequently than a full Update. 
@@ -558,7 +498,7 @@ public:
         DataPerElement& data,
         const int i_point,
         const double time) = 0;
-
+    
 
     // INTERFACE to ChPhysicsItem
     //
@@ -1016,6 +956,135 @@ private:
 
 
 
+
+////////////////////////////////////
+
+
+/// Class for all domains that computes internal loads and tangent matrices by integrating 
+/// at quadrature points. Specialized sub classes must implement the two methods
+/// PointComputeInternalLoads(...) and PointComputeKRMmatrices(...), that will be automatically called by the default
+/// implementation of ElementComputeInternalLoads(...) and ElementComputeKRMmatrices(...), that will do the quadrature
+/// loop and call the pointwise methods.
+/// BTW: if your elements are not based on quadrature, (ex. collocation, neural networks,etc.), it is enough to override
+/// ElementComputeInternalLoads(...) and ElementComputeKRMmatrices(...) directly, without using the default quadrature
+/// loop, or even better, for clarity: inherit from ChDomainGeneric
+
+template <typename T_per_node = std::tuple<ChFieldScalar>,
+          typename T_per_matpoint_aux = ChFieldDataNONE,
+          typename T_per_element = ChElementDataNONE>
+class ChDomainIntegrating : public ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
+  public:
+    /// Construct a domain, given a tuple of fields.
+    ChDomainIntegrating(typename tuple_as_sharedptr<T_per_node>::type mfields)
+        : ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
+
+    /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
+    /// It operates quadrature on the element, calling PointComputeInternalLoads(...) at each quadrature point.
+    virtual void ElementComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+                                             DataPerElement& data,
+                                             ChVectorDynamic<>& Fi) {
+        int quadorder = melement->GetQuadratureOrder();
+        int numpoints = melement->GetNumQuadraturePoints();
+        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
+        Fi.setZero(numelcoords);
+        ChMatrix33<> J;
+        ChVector3d eta;
+        double weight;
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            melement->GetQuadraturePointWeight(quadorder, i_point, weight,
+                                               eta);  // get eta coords and weight at this i-th point
+            double det_J = melement->ComputeJ(eta, J);
+            double s = weight * det_J;
+            PointComputeInternalLoads(melement, data, i_point, eta, s, Fi);
+        }
+    }
+
+    /// For a given finite element, computes matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of
+    /// the tangent matrices M,R,K,: H = Mfactor*M + Rfactor*R + Kfactor*K. Setting Mfactor=1 and Rfactor=Kfactor=0, it
+    /// can be used to get just mass matrix, etc. It operates quadrature on the element, calling
+    /// PointComputeKRMmatrices(...) at each quadrature point.
+    virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+                                           DataPerElement& data,
+                                           ChMatrixRef H,
+                                           double Kfactor,
+                                           double Rfactor = 0,
+                                           double Mfactor = 0) {
+        int quadorder = melement->GetQuadratureOrder();
+        int numpoints = melement->GetNumQuadraturePoints();
+        H.setZero();  // should be already of proper size
+        ChMatrix33<> J;
+        ChVector3d eta;
+        double weight;
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            melement->GetQuadraturePointWeight(quadorder, i_point, weight,
+                                               eta);  // get eta coords and weight at this i-th point
+            double det_J = melement->ComputeJ(eta, J);
+            double s = weight * det_J;
+            PointComputeKRMmatrices(melement, data, i_point, eta, H, Kfactor * s, Rfactor * s, Mfactor * s);
+        }
+    }
+
+    // SPECIFIC DOMAINS (THERMAL, ELASTIC etc.) LAWS MUST IMPLEMENT THESE TWO PURE VIRTUAL
+    // FUNCTIONS PointComputeInternalLoads PointComputeKRMmatrices ACCORDING TO SOME 
+    // CONSTITUTIVE LAWS
+
+    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting,
+    /// and *ADD* the s-scaled result to Fi vector.
+    /// For example, if internal load in discretized coords is
+    ///    F   = \sum (Foo*B')*w*det(J);
+    /// here you must compute
+    ///    Fi += (Foo*B')*s
+    /// If the default quadrature is not good for you, then override ElementComputeInternalLoads() directly.
+    virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        const double s,
+        ChVectorDynamic<>& Fi) = 0;
+
+    /// Computes tangent matrix H for one quadrature point, except quadrature weighting,
+    /// and *ADD* the scaled result to H matrix.
+    /// For example, if in discretized coords you have
+    ///    K   = \sum (B*E*B')*w*det(J); M=\sum(rho*N*N')*w*det(J); R = ...
+    /// and since we assume H = Mfactor*K + Kfactor*K + Rfactor*R, then here you must compute
+    ///    H  += Mpfactor*(rho*N*N') + Kpfactor*(B*E*B') + Rpfactor*...
+    /// If the default quadrature is not good for you, then override ElementComputeKRMmatrices() directly.
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        ChMatrixRef H,
+        double Kpfactor,
+        double Rpfactor = 0,
+        double Mpfactor = 0) = 0;
+
+};
+
+
+////////////////////////////////////
+
+/// Class for all domains that computes internal loads and tangent matrices with 
+/// generic procedures (collocation, analytical formulas, neural networks, etc), not necessarily integrating at
+/// quadrature points.
+/// Specialized sub classes must implement the two methods ElementComputeInternalLoads and ElementComputeKRMmatrices.
+/// BTW: If you use elements with quadrature, it is better that you inherit from ChDomainIntegrating instead, 
+/// because it will do the quadrature loop for you and call the pointwise methods, so you can just focus on the
+/// constitutive law at the point level.
+
+template <typename T_per_node = std::tuple<ChFieldScalar>,
+          typename T_per_matpoint_aux = ChFieldDataNONE,
+          typename T_per_element = ChElementDataNONE>
+class ChDomainGeneric : public ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
+  public:
+    /// Construct a domain, given a tuple of fields.
+    ChDomainGeneric(typename tuple_as_sharedptr<T_per_node>::type mfields)
+        : ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
+
+    // SPECIFIC DOMAINS (THERMAL, ELASTIC etc.) LAWS MUST IMPLEMENT THE TWO PURE VIRTUAL
+    // FUNCTIONS PointComputeInternalLoads PointComputeKRMmatrices ACCORDING TO SOME
+    // CONSTITUTIVE LAWS
+
+};
 
 
 /// @} chrono_fea

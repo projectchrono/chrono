@@ -45,14 +45,14 @@ public:
 /// In case you need thermoelasticity, use ChDomainThermoelastic.
 /// Not copyable. So keep all in .h, hence don't do __declspec(dllexport), ie. "class ChApi ChDomainThermal..."
 
-class ChDomainThermal : public ChDomainImpl<
+class ChDomainThermal : public ChDomainIntegrating<
     std::tuple<ChFieldTemperature>,
     ChFieldDataAuxiliaryThermal,
     ChElementDataKRM> {
 public:
     
     // The following just to provide a shortcut in type naming.
-    using Base = ChDomainImpl<
+    using Base = ChDomainIntegrating<
         std::tuple<ChFieldTemperature>,
         ChFieldDataAuxiliaryThermal,
         ChElementDataKRM

@@ -49,14 +49,14 @@ public:
 /// conventional linear elasticity for small strains). 
 /// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChDomainDeformation...", just keep all in .h
 
-class ChDomainDeformation : public ChDomainImpl<
+class ChDomainDeformation : public ChDomainIntegrating<
     std::tuple<ChFieldDisplacement3D>, // per each node
     ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by domain algos - materials can add other data too.
     ChElementDataKRM> {                // auxiliary data per each element (defaults to jacobian matrices K, R, M)
 public:
 
     // The following just to provide a shortcut in type naming.
-    using Base = ChDomainImpl<
+    using Base = ChDomainIntegrating<
         std::tuple<ChFieldDisplacement3D>, // per each node
         ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by domain algos - materials can add other data too.
         ChElementDataKRM

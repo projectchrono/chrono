@@ -57,14 +57,14 @@ public:
 /// structural dynamics. 
 /// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChDomainThermoDeformation...", just keep all in .h
 
-class ChDomainThermoDeformation : public ChDomainImpl<
+class ChDomainThermoDeformation : public ChDomainIntegrating<
     std::tuple<ChFieldTemperature, ChFieldDisplacement3D>, 
     ChFieldDataAuxiliaryThermoDeformation,
     ChElementDataKRM> {
 public:
 
     // The following just to provide a shortcut in type naming.
-    using Base = ChDomainImpl<
+    using Base = ChDomainIntegrating<
         std::tuple<ChFieldTemperature, ChFieldDisplacement3D>,
         ChFieldDataAuxiliaryThermoDeformation,   
         ChElementDataKRM
@@ -385,7 +385,7 @@ public:
     // INTERFACE to ChPhysicsItem 
     //
 
-    /// Usually not necessary to override ChPhysicsItem because the parent ChDomainImpl does all needed.
+    /// Usually not necessary to override ChPhysicsItem because the parent ChDomainIntegrating does all needed.
     /// However, HERE WE OVERLOAD THE PARENT IMPLEMENTATION BECAUSE WE MAY ADD AUTOMATIC GRAVITY
     /// PER EACH ELEMENT.
     /// Takes the F force term, scale and adds to R at given offset:
