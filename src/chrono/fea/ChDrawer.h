@@ -293,7 +293,7 @@ public:
 class ChVisualDomainGlyphs : public ChGlyphs {
 public:
 
-    ChVisualDomainGlyphs(std::shared_ptr<ChDomain> adomain) : mdomain(adomain) {
+    ChVisualDomainGlyphs(std::shared_ptr<ChDomain> adomain) : mdomain(adomain) , colormap(ChColormap::Type::PLASMA) {
         is_mutable = true;
 
         ChPropertyColor my_colors;
@@ -626,7 +626,7 @@ protected:
 
 class ChVisualDomainMesh : public ChVisualShapeTriangleMesh {
 public:
-    ChVisualDomainMesh(std::shared_ptr<ChDomain> adomain) : mdomain(adomain) {
+    ChVisualDomainMesh(std::shared_ptr<ChDomain> adomain) : mdomain(adomain), colormap(ChColormap::Type::PLASMA) {
         is_mutable = true;
 
         i_vector_prop_colorized = -1;
