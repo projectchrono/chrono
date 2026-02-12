@@ -168,9 +168,9 @@ public:
         }
     };
 
-    virtual void Update(double time, bool update_assets) override {
+    virtual void Update(double time, UpdateFlags update_flags) override {
         // Parent class update
-        ChPhysicsItem::Update(time, update_assets);
+        ChPhysicsItem::Update(time, update_flags);
     }
 
     /// Set zero speed (and zero accelerations) in state without changing the position.
@@ -203,7 +203,7 @@ public:
         const unsigned int off_v,  ///< offset in v state vector
         const ChStateDelta& v,     ///< state vector, speed part
         const double T,            ///< time
-        bool full_update           ///< perform complete update
+        UpdateFlags update_flags   ///< perform complete update, or exclude visual assets, etc.
     ) {
         unsigned int local_off_x = 0;
         unsigned int local_off_v = 0;
@@ -214,7 +214,7 @@ public:
                 local_off_v += T_data_per_node::StaticGetNumCoordsVelLevel();
             }
         }
-        Update(T, full_update);
+        Update(T, update_flags);
     }
 
     /// From item's state acceleration to global acceleration vector

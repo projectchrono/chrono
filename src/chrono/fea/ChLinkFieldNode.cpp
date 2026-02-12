@@ -63,9 +63,9 @@ void ChLinkFieldField::SetOffset(std::shared_ptr<ChFunction> offset_f) {
     offset_function = offset_f;
 }
 
-void ChLinkFieldField::Update(double time, bool update_assets) {
+void ChLinkFieldField::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 
     // update class data
     // ...

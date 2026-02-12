@@ -598,9 +598,9 @@ public:
         }
     }
 
-    virtual void Update(double time, bool update_assets) override {
+    virtual void Update(double time, UpdateFlags update_flags) override {
         // Parent class update
-        ChPhysicsItem::Update(time, update_assets);
+        ChPhysicsItem::Update(time, update_flags);
 
         for (auto& mel : this->element_datamap) {
             mel.first->Update();
@@ -654,7 +654,7 @@ public:
         const unsigned int off_v,  ///< offset in v state vector
         const ChStateDelta& v,     ///< state vector, speed part
         const double T,            ///< time
-        bool full_update           ///< perform complete update
+        UpdateFlags update_flags   ///< perform complete update, or exclude visual assets, etc.
     ) override {
         unsigned int local_off_x = 0;
         unsigned int local_off_v = 0;
@@ -671,7 +671,7 @@ public:
                 });
             }
         }
-        Update(T, full_update);
+        Update(T, update_flags);
     }
 
     /// From element states (if any) acceleration to global acceleration vector
