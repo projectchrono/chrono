@@ -56,6 +56,9 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeBandANCF"; }
 
+    /// Return the ANCF element type.
+    ElementType GetElementType() const { return m_element_type; }
+
     /// Get track tension at this track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
     virtual ChVector3d GetTension() const override;
@@ -116,9 +119,7 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
                     const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
     );
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     ElementType m_element_type;
     bool m_constrain_curvature;

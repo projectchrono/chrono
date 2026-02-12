@@ -21,8 +21,9 @@
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/output/ChOutputASCII.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChOutputASCII.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -124,16 +125,16 @@ int main(int argc, char* argv[]) {
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 200);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/height_maps/test64.bmp"), 128,
                                      128, 0, 4);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, GetVehicleDataFile("terrain/meshes/test.obj"));
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
@@ -148,7 +149,6 @@ int main(int argc, char* argv[]) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
-        trimesh_shape->SetMutable(false);
         patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, QuatFromAngleZ(CH_PI_2)));
     }
 
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize output file for debug output
-    utils::ChWriterCSV vehicle_csv(" ");
+    ChWriterCSV vehicle_csv(" ");
 
     // Enable vehicle output
     vehicle.SetChassisOutput(true);

@@ -89,7 +89,7 @@ TEST_F(Mat33Test, constructors) {
 }
 
 TEST_F(Mat33Test, operators) {
-    const Mat33 A4(-24, 20, -5, 18, -15, 4, 5, -4, 1);
+    A4 = Mat33(-24, 20, -5, 18, -15, 4, 5, -4, 1);
 
     // () Operator
     ASSERT_EQ(A4(0, 0), -24);

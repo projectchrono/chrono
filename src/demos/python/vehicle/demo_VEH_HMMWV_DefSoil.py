@@ -60,11 +60,11 @@ def main():
     hmmwv.SetTireType(veh.TireModelType_RIGID)
     hmmwv.Initialize()
 
-    hmmwv.SetChassisVisualizationType(veh.VisualizationType_NONE)
-    hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
-    hmmwv.SetTireVisualizationType(veh.VisualizationType_MESH)
+    hmmwv.SetChassisVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    hmmwv.SetWheelVisualizationType(chrono.VisualizationType_NONE)
+    hmmwv.SetTireVisualizationType(chrono.VisualizationType_MESH)
 
     hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -135,12 +135,6 @@ def main():
 
     return 0
   
-
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # SCM patch dimensions
 terrainHeight = 0

@@ -48,7 +48,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Simulation step size
             double step_size = 2e-3;
@@ -116,11 +116,11 @@ namespace ChronoDemo
 
             // Create the ramp path. Place and rotate as per the world rotation
             var ramp = terrain.AddPatch(terrain_mat, new ChCoordsysd(new ChVector3d(20, (isYUp ? 0 : 3), (isYUp ? -3 : 0)), (isYUp ? resultantSlopeRot : slope)), 20, 6, 0.5);
-            ramp.SetTexture(GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
+            ramp.SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 2, 2);
 
             // Ground patch. Rotate as per the world rotation
             var patch = terrain.AddPatch(terrain_mat, new ChCoordsysd(new ChVector3d(), (isYUp ? rotateYUp : chrono.QUNIT)), 100.0, 100.0, 0.5);
-            patch.SetTexture(GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
+            patch.SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 20, 20);
             terrain.Initialize();
             
             

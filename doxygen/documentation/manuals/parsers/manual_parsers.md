@@ -13,18 +13,28 @@ Note that import of fnite element models (meshes) can be done using the @ref chr
 
 [Installation guide for Chrono::Parsers](@ref module_parsers_installation)
 
-## YAML parser
+## YAML parsers
 
-The @ref chrono::parsers::ChParserYAML class allows parsing YAML specification files for Chrono models and simulations. The parser caches model information and simulation settings from the corresponding YAML input files and then allows populating a Chrono system and setting solver and simulation parameters.
+The various YAML parser classes allows parsing YAML specification files for Chrono models and simulations. The parsers cache model information and simulation settings from the corresponding YAML input files and then allows populating a Chrono, Chrono::Vehicle, or Chrono::FSI system and setting solver and simulation parameters.
 
 * @subpage YAML_parser_overview
-* @subpage YAML_schema_models
-* @subpage YAML_schema_simulations
+* @subpage YAML_schema_mbs_simulation
+  * @subpage YAML_schema_mbs_model
+  * @subpage YAML_schema_mbs_solver
+* @subpage YAML_schema_vehicle_simulation
+  * @subpage YAML_schema_vehicle_model
+* @subpage YAML_schema_fsi_simulation
+  * @subpage YAML_schema_fsisph_simulation
+    * @subpage YAML_schema_fsisph_model
+    * @subpage YAML_schema_fsisph_solver
+  * @subpage YAML_schema_fsitdpf_simulation
+    * @subpage YAML_schema_fsitdpf_model
+    * @subpage YAML_schema_fsitdpf_solver
 
 
-## Python Engine (is not PyChrono)
-The @ref chrono::parsers::ChPythonEngine "ChPythonEngine" class allows to run Python code directly from C++ and to interact with it, also exchanging data from/to variables.  
-It should not be confused with [PyChrono](@ref pychrono_introduction) that is a completely stand-alone Python library that wraps Chrono C++ code.
+## Python Engine (not PyChrono)
+The @ref chrono::parsers::ChPythonEngine "ChPythonEngine" class allows running Python code directly from C++ and to interact with it by exchanging data from/to variables.  
+It should not be confused with [PyChrono](@ref pychrono_introduction) that is a completely stand-alone Python library that wraps Chrono C++ code:
 
 + @ref chrono::parsers::ChPythonEngine "ChPythonEngine" allows to run generic Python code from C++
 + [PyChrono](@ref pychrono_introduction) allows to use Chrono from Python

@@ -19,7 +19,7 @@
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include <vector>
 #include <sstream>
@@ -42,7 +42,7 @@ CH_SENSOR_API void ChFilterSavePtCloud::Apply() {
 
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
     m_frame_number++;
-    utils::ChWriterCSV csv_writer(",");
+    ChWriterCSV csv_writer(",");
     cudaStreamSynchronize(m_cuda_stream);
     std::cout << "Beam count: " << m_buffer_in->Beam_return_count << std::endl;
     for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {

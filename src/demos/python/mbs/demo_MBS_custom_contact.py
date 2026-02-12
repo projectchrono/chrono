@@ -17,12 +17,6 @@ import math
 
 print ("Example: demonstration of using friction models")
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-# chrono.SetChronoDataPath('../../../../data/')
-
-
 # Helper class to define a cylindrical shape
 class MyObstacle:
     def __init__(self, r, pos):

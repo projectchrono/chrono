@@ -29,7 +29,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
@@ -53,12 +53,14 @@ double sim_time = 2;            // Simulation time for generation of reference f
 double precision = 1e-7;        // Precision value used to assess results
 const int num_steps_UT = 40;    // Number of time steps for unit test (range 1 to 2000)
 
+std::string out_dir = GetChronoTestOutputPath() + "/fea_EAS_brick_ISO_grav";
+
 int main(int argc, char* argv[]) {
-    bool output = 0;  // Determines whether it tests (0) or generates golden file (1)
+    bool generate_output = false;  // Determines whether it tests (false) or generates golden file (true)
 
     ChMatrixDynamic<> FileInputMat(2000, 2);
-    if (output) {
-        std::cout << "Output file: ../TEST_Brick/UT_EASBrickIso_Grav.txt\n";
+    if (generate_output) {
+        std::cout << "Output file: " << out_dir + "/UT_EASBrickIso_Grav.txt\n";
     } else {
         // Utils to open/read files: Load reference solution ("golden") file
         std::string EASBrick_val_file = GetChronoDataPath() + "testing/fea/UT_EASBrickIso_Grav.txt";
@@ -235,7 +237,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_PARDISO_MKL
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
-        mkl_solver->SetVerbose(true);
+        mkl_solver->SetVerbose(false);
         sys.SetSolver(mkl_solver);
 #endif
     } else {
@@ -255,27 +257,25 @@ int main(int argc, char* argv[]) {
     mystepper->SetAbsTolerances(1e-5);
 
     // Simulation loop
-    if (output) {
+    if (generate_output) {
         // Create output directory (if it does not already exist).
-        if (!filesystem::create_directory(filesystem::path("../TEST_Brick"))) {
-            std::cout << "Error creating directory ../TEST_Brick\n";
+        if (!filesystem::create_directory(out_dir)) {
+            std::cout << "Error creating directory " << out_dir << "\n";
             return 1;
         }
         // Initialize the output stream and set precision.
-        utils::ChWriterCSV out("\t");
+        ChWriterCSV out("\t");
         out.Stream().setf(std::ios::scientific | std::ios::showpos);
         out.Stream().precision(7);
-        int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
         while (sys.GetChTime() < sim_time) {
             sys.DoStepDynamics(step_size);
-            Iterations += mystepper->GetNumIterations();
             out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
             std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
-                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
+                      << nodetip->GetForce().z() << "\t" << mystepper->GetNumIterations() << "\n";
         }
         // Write results to output file.
-        out.WriteToFile("../TEST_Brick/UT_EASBrickIso_Grav.txt.txt");
+        out.WriteToFile(out_dir + "/UT_EASBrickIso_Grav.txt");
     } else {
         double max_err = 0;
         for (unsigned int it = 0; it < num_steps_UT; it++) {

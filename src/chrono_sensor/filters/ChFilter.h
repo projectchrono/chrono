@@ -19,9 +19,12 @@
 
 #include <memory>
 #include <string>
-#include "chrono_sensor/sensors/ChSensorBuffer.h"
-#include "chrono_sensor/ChApiSensor.h"
+
 #include "chrono/core/ChTypes.h"
+
+#include "chrono_sensor/ChApiSensor.h"
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
 
 namespace chrono {
 namespace sensor {

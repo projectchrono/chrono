@@ -67,34 +67,31 @@ set(CE_VSG_BASE_FILES
     ChGuiComponentVSG.cpp
     ChEventHandlerVSG.h
 )
-
-set(CE_VSG_SHAPES_FILES
-    shapes/ShaderUtils.cpp
-    shapes/ShaderUtils.h
-    shapes/ShapeBuilder.cpp
-    shapes/ShapeBuilder.h
-)
-
-set(CE_VSG_RESOURCES_FILES
-    resources/chronoLineShader_frag.h
-    resources/chronoLineShader_vert.h
-    resources/chronoPbrShader_frag.h
-    resources/chronoPbrShader_vert.h
-    resources/pcShader_frag.h
-    resources/pcShader_vert.h
-    resources/cubemapShaders.h
-)
+source_group("" FILES ${CE_VSG_BASE_FILES})
 
 set(CE_VSG_UTILS_FILES
-    utils/ChUtilsVSG.cpp
-    utils/ChUtilsVSG.h
-    utils/ChConversionsVSG.cpp
-    utils/ChConversionsVSG.h)
-
-source_group("" FILES ${CE_VSG_BASE_FILES})
-source_group("shapes" FILES ${CE_VSG_SHAPES_FILES})
-source_group("resources" FILES ${CE_VSG_RESOURCES_FILES})
+    utils/ChDataUtilsVSG.cpp
+    utils/ChDataUtilsVSG.h
+    utils/ChShaderUtilsVSG.cpp
+    utils/ChShaderUtilsVSG.h
+    utils/ChShapeBuilderVSG.cpp
+    utils/ChShapeBuilderVSG.h
+)
 source_group("utils" FILES ${CE_VSG_UTILS_FILES})
+
+set(CE_VSG_IMPL_FILES
+    impl/BaseGuiComponents.cpp
+    impl/BaseGuiComponents.h
+    impl/BaseEventHandlers.cpp
+    impl/BaseEventHandlers.h
+    impl/VSGnodes.cpp
+    impl/VSGnodes.h
+    impl/VSGvisitors.h
+    impl/pcShader_frag.h
+    impl/pcShader_vert.h
+    impl/cubemapShaders.h
+)
+source_group("impl" FILES ${CE_VSG_IMPL_FILES})
 
 if(NOT VSGXCHANGE_STATIC)
     set(CE_VSG_STB_FILES
@@ -104,8 +101,7 @@ if(NOT VSGXCHANGE_STATIC)
         ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
         ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
     )
-    
-    source_group("utils" FILES ${CE_VSG_STB_FILES})
+    source_group("impl//stb" FILES ${CE_VSG_STB_FILES})
 else()
     set(CE_VSG_STB_FILES "")
 endif()
@@ -116,9 +112,8 @@ endif()
 
 add_library(Chrono_vsg
             ${CE_VSG_BASE_FILES}
-            ${CE_VSG_SHAPES_FILES}
-            ${CE_VSG_RESOURCES_FILES}
             ${CE_VSG_UTILS_FILES}
+            ${CE_VSG_IMPL_FILES}
             ${CE_VSG_STB_FILES})
 add_library(Chrono::vsg ALIAS Chrono_vsg)
 

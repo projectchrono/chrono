@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     auto phys_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     phys_mat->SetFriction(0.2f);

@@ -78,10 +78,6 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
 
   protected:
     utils::ChBodyGeometry m_geometry;  ///< collection of visualization and collision shapes
-
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
 };
 
 // -----------------------------------------------------------------------------
@@ -129,10 +125,6 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
 
   protected:
     utils::ChBodyGeometry m_geometry;  ///< collection of visualization and collision shapes
-
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
 };
 
 /// @} vehicle

@@ -16,7 +16,7 @@
 //  The obstacle is defined by three parameters
 //  - aa:        approach angle 180 deg = flat, aa < 180 deg = mound, aa > 180 deg = trench
 //  - length:    obstacle length for mound, base length for trench
-//  - obsheight: allways >= 0, obstacle height for mound, obstacle depth for trench
+//  - obsheight: always >= 0, obstacle height for mound, obstacle depth for trench
 //
 // =============================================================================
 
@@ -228,7 +228,6 @@ void ObsModTerrain::GenerateMesh() {
     }
     auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vmesh->SetMesh(m_mesh);
-    vmesh->SetMutable(false);
     vmesh->SetName("ISO_track");
     vmesh->SetColor(ChColor(0.6f, 0.6f, 0.8f));
     m_ground->AddVisualShape(vmesh);

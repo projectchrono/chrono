@@ -21,7 +21,7 @@
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/utils/ChBenchmark.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
@@ -100,7 +100,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     patch_material->SetYoungModulus(2e7f);
     auto patch = m_terrain->AddPatch(patch_material, CSYSNORM, 500, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 500, 5);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 500, 5);
     m_terrain->Initialize();
 
     // Create the straight path and the driver system

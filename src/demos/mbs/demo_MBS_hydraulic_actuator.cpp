@@ -25,9 +25,8 @@
 #include "chrono/physics/ChHydraulicActuator.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -48,6 +47,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto actuator = chrono_types::make_shared<ChHydraulicActuator3>();
     actuator->SetInputFunction(chrono_types::make_shared<ChFunctionSine>(1.0, 5.0));
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     double t = 0;
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     auto y0 = actuator->GetInitialStates();
     csv << t << 0 << y0.format(rowFmt) << std::endl;
 

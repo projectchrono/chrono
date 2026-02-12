@@ -25,12 +25,12 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/geometry/ChLineBezier.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     // Create the path
     // ---------------
 
-    std::string path_filename = vehicle::GetDataFile("paths/ISO_double_lane_change.txt");
+    std::string path_filename = GetVehicleDataFile("paths/ISO_double_lane_change.txt");
     auto path = ChBezierCurve::Read(path_filename, false);
 
     // Find initial position on path

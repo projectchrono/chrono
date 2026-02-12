@@ -26,6 +26,9 @@
 
 using namespace chrono::fea;
 
+using std::cout;
+using std::endl;
+
 namespace chrono {
 namespace vehicle {
 
@@ -62,7 +65,7 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(ChCollisionModel* 
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, VehicleSide side)
     : ChTrackAssemblyBand(name, side),
       m_contact_type(ContactSurfaceType::TRIANGLE_MESH),
@@ -88,7 +91,7 @@ ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChTrackAssemblyBandANCF::SetRubberLayerMaterial(double rho,
                                                      const ChVector3d& E,
                                                      const ChVector3d& nu,
@@ -238,6 +241,31 @@ void ChTrackAssemblyBandANCF::RemoveTrackShoes() {
 }
 
 // -----------------------------------------------------------------------------
+
+void ChTrackAssemblyBandANCF::Initialize(std::shared_ptr<ChChassis> chassis,
+                                         const ChVector3d& location,
+                                         bool create_shoes) {
+    ChTrackAssembly::Initialize(chassis, location, create_shoes);
+
+    auto element_type = m_shoes[0]->GetElementType();
+    int element_dof = (element_type == ChTrackShoeBandANCF::ElementType::ANCF_4 ? 24 : 72);
+    cout << "ANCF band track. ";
+    cout << m_track_mesh->GetNumElements() << " elements ";
+    cout << "(" << (element_type == ChTrackShoeBandANCF::ElementType::ANCF_4 ? "ANCF_4" : "ANCF_8") << "). ";
+    cout << m_track_mesh->GetNumNodes() << " nodes. ";
+    cout << (element_type == ChTrackShoeBandANCF::ElementType::ANCF_4 ? "24" : "72") << " dof/element." << endl;
+
+    unsigned int num_constraints = 0;
+    for (const auto& shoe: m_shoes) {
+        for (const auto& connection : shoe->m_connections) {
+            num_constraints += connection->GetNumConstraints();        
+        }
+    }
+
+    cout << "   num. states:      " << m_track_mesh->GetNumElements() * element_dof << endl;
+    cout << "   num. constraints: " << num_constraints << endl;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {

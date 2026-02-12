@@ -56,8 +56,9 @@ int main(int argc, char* argv[]) {
     filename = GetChronoDataFile(filename);
     ChParserOpenSim::VisType vis_type = mesh ? ChParserOpenSim::VisType::MESH : ChParserOpenSim::VisType::PRIMITIVES;
 
-    // Make a system and associated collsion detection system
+    // Make a system and associated collision detection system
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create parser instance and set options.

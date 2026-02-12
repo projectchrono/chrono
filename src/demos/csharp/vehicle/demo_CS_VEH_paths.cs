@@ -20,6 +20,7 @@ using System;
 using static ChronoGlobals;
 using System.IO;
 using static chrono_vehicle;
+using static chrono_postprocess;
 
 namespace ChronoDemo
 {
@@ -35,7 +36,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Create (if needed) output directory
             string out_dir = chrono.GetChronoOutputPath() + "DEMO_PATHS";

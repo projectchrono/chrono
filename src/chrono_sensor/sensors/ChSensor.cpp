@@ -18,10 +18,12 @@
 
 #include <iostream>
 
-#include "chrono_sensor/sensors/ChSensor.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtils.h"
+
+// NOTE: order is important! ChSensor.h must be included *before* ChFilterAccess.h
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/filters/ChFilterAccess.h"
 
 namespace chrono {
 namespace sensor {
@@ -73,6 +75,8 @@ CH_SENSOR_API void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
     }
 }
 
+#ifdef CHRONO_HAS_OPTIX
+
 // -----------------------------------------------------------------------------
 // retriever function for image data in greyscale 8-bit format
 // -----------------------------------------------------------------------------
@@ -91,6 +95,14 @@ CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserRGBA8BufferPtr, ChFilterRGBA8Access, ChFilterRGBA8AccessName>();
 }
 
+// -----------------------------------------------------------------------------
+// retriever function for image semantic data in semantic format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserSemanticBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserSemanticBufferPtr, ChFilterSemanticAccess, ChFilterSemanticAccessName>();
+}
 
 // -----------------------------------------------------------------------------
 // retriever function for image depth data as float values
@@ -133,6 +145,8 @@ CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
     return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess, ChFilterRadarXYZAccessName>();
 }
+
+#endif
 
 template <>
 CH_SENSOR_API UserAccelBufferPtr ChSensor::GetMostRecentBuffer() {

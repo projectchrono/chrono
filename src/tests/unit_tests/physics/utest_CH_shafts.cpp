@@ -41,6 +41,7 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
                 system = new ChSystemNSC();
                 break;
         }
+        system->SetGravityY();
 
         // Edit system settings
         if (GetParam() == ChContactMethod::NSC)

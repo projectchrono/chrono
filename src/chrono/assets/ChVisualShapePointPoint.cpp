@@ -61,6 +61,15 @@ void ChVisualShapeSegment::UpdateLineGeometry(const ChVector3d& endpoint1, const
 
 // Set line geometry as a coil between two end points.
 void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) {
+    // If the visualisation system doesn't need CPU-side geometry (for example - VSG generates
+    // springs procedurally on GPU, irrlicht does its own thing), then no-op return to skip expensive ChLinePath
+    // rebuilds of line vertices (which gets called every timestep on solvers that do full update!)
+    // Primiarly this impacts VSG becasue vsg is drawing the full 'mesh' of the lines every time, causing
+    // cpu to gpu overhead, when we could just keep a gpu side procedural between points
+    if (m_disable_geom_updates) {
+        return;
+    }
+    
     auto linepath = chrono_types::make_shared<ChLinePath>();
 
     // Following part was copied from irrlicht::tools::drawSpring()

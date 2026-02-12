@@ -18,7 +18,7 @@
 
 #include "chrono_models/vehicle/generic/tire/Generic_RigidMeshTire.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 namespace chrono {
 namespace vehicle {
@@ -41,10 +41,9 @@ const std::string Generic_RigidMeshTire::m_meshFile("generic/tire/generic_tire_c
 Generic_RigidMeshTire::Generic_RigidMeshTire(const std::string& name) : ChRigidTire(name) {
     // Contact and visualization meshes
     double sweep_radius = 0.005;
-    SetMeshFilename(vehicle::GetDataFile(m_meshFile), sweep_radius);
+    SetContactMesh(GetVehicleDataFile(m_meshFile), sweep_radius);
 }
 
-// -----------------------------------------------------------------------------
 void Generic_RigidMeshTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

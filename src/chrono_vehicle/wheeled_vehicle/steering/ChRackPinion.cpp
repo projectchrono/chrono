@@ -37,7 +37,7 @@ namespace vehicle {
 ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
 ChRackPinion::~ChRackPinion() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_prismatic->GetSystem();
@@ -156,31 +156,12 @@ void ChRackPinion::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    ExportBodyList(jsonDocument, bodies);
+void ChRackPinion::PopulateComponentList() {
+    m_bodies.push_back(m_link);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    joints.push_back(m_actuator);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChRackPinion::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_prismatic);
-    joints.push_back(m_actuator);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_prismatic);
+    m_joints.push_back(m_actuator);
 }
 
 }  // end namespace vehicle

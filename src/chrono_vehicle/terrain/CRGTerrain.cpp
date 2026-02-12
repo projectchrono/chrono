@@ -32,11 +32,10 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChVisualShapePath.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono/utils/ChFilters.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/geometry/ChLineSegment.h"

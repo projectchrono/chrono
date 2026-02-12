@@ -27,7 +27,7 @@ namespace vehicle {
 ChSuspension::ChSuspension(const std::string& name) : ChPart(name) {}
 
 ChSuspension::~ChSuspension() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_spindle[0]->GetSystem();
@@ -110,7 +110,7 @@ void ChSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
     Construct(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 }  // end namespace vehicle

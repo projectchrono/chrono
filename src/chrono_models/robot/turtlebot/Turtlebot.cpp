@@ -21,7 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono_models/robot/turtlebot/Turtlebot.h"
 
@@ -164,7 +164,6 @@ void Turtlebot_Part::AddVisualizationAssets() {
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(m_mesh_name);
-    trimesh_shape->SetMutable(false);
     m_body->AddVisualShape(trimesh_shape);
     return;
 }

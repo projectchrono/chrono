@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
 
 namespace chrono {
@@ -39,15 +39,13 @@ const std::string Generic_RigidTire::m_meshFile_left = "generic/tire/generic_tir
 const std::string Generic_RigidTire::m_meshFile_right = "generic/tire/generic_tire_coarse.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 Generic_RigidTire::Generic_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("generic/tire/generic_tire_coarse.obj"), 0.005);
+        SetContactMesh(GetVehicleDataFile("generic/tire/generic_tire_coarse.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void Generic_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;

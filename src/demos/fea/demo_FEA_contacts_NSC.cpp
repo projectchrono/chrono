@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
@@ -238,7 +239,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA contacts (NSC)",
-                                         ChVector3d(0.0, 0.6, -1.0));
+                                         ChVector3d(0.0, 1.2, -2.0));
 
     // SIMULATION LOOP
 

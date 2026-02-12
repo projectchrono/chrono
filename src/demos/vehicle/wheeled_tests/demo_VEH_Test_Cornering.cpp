@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
@@ -89,14 +89,14 @@ int main(int argc, char** argv) {
     std::string crg_road_file;
     if (big_radius) {
         if (right_turn)
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_100m_right.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_100m_right.crg");
         else
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_100m_left.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_100m_left.crg");
     } else {
         if (right_turn)
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_50m_right.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_50m_right.crg");
         else
-            crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_50m_left.crg");
+            crg_road_file = GetVehicleDataFile("terrain/crg_roads/circle_50m_left.crg");
     }
 
     // ----------------------------
@@ -189,17 +189,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv << "#time speed acc_y deviation" << std::endl;
 
     std::string datafilename = out_dir + "/ssc_accy_data_";
 
-    utils::ChWriterCSV csv_res("\t");
+    ChWriterCSV csv_res("\t");
     csv_res << "#acc_y steer" << std::endl;
 
     std::string resfilename = out_dir + "/ssc_result_data_";
 
-    utils::ChWriterCSV csv_angle("\t");
+    ChWriterCSV csv_angle("\t");
     csv_angle << "#acc_y roll pitch slip_angle" << std::endl;
 
     std::string anglefilename = out_dir + "/ssc_angle_data_";

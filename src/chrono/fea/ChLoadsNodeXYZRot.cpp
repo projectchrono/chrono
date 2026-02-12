@@ -56,8 +56,8 @@ void ChLoadNodeXYZRot::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         (bodycoordA.GetRot().RotateBack(computed_abs_torque)).eigen();  // because Q expect torque in local frame
 }
 
-void ChLoadNodeXYZRot::Update(double time, bool update_assets) {
-    ChLoadCustom::Update(time, update_assets);
+void ChLoadNodeXYZRot::Update(double time, UpdateFlags update_flags) {
+    ChLoadCustom::Update(time, update_flags);
 }
 
 // -----------------------------------------------------------------------------
@@ -76,10 +76,10 @@ void ChLoadNodeXYZRotForceAbs::ComputeForceTorque(const ChFrameMoving<>& node_fr
     abs_force = GetForce();
 }
 
-void ChLoadNodeXYZRotForceAbs::Update(double time, bool update_assets) {
+void ChLoadNodeXYZRotForceAbs::Update(double time, UpdateFlags update_flags) {
     m_modulation->Update(time);
     m_scale = m_modulation->GetVal(time);
-    ChLoadNodeXYZRot::Update(time, update_assets);
+    ChLoadNodeXYZRot::Update(time, update_flags);
 }
 
 void ChLoadNodeXYZRotForceAbs::SetForceBase(const ChVector3d& force) {

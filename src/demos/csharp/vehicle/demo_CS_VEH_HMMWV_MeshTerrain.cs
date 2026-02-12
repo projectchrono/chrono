@@ -31,6 +31,50 @@ namespace ChronoDemo
 {
     internal class Program
     {
+        // Helper method to create vehicle visualisation system based visual module available
+        static ChVehicleVisualSystem CreateVehicleVisualizationSystem(ChWheeledVehicle vehicle, bool isYUp)
+        {
+#if CHRONO_VSG
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Mesh Terrain Demo");
+            if (isYUp) { chrono_vsg.CastToChVisualSystemVSG(vis).SetCameraVertical(CameraVerticalDir.Y); }
+            vis.SetChaseCamera(new ChVector3d(-5.0, 0.0, 2.0), 2.0, 0.5);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyBox();
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis.AttachVehicle(vehicle);  // Must attach vehicle BEFORE Initialize()
+            vis.Initialize();
+            
+            Console.WriteLine("Using VSG visualization");
+            return vis;
+#elif CHRONO_IRRLICHT
+            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
+            vis.SetWindowTitle("Mesh Terrain Demo");
+            if (isYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); }
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis.Initialize();
+            if (isYUp)
+            {
+                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.5f, 0.5f, 0.5f));
+            }
+            else
+            {
+                vis.AddLightDirectional(80, 10);
+            }
+            vis.AddSkyBox();
+            vis.AddLogo();
+            vis.AttachVehicle(vehicle);
+            
+            Console.WriteLine("Using Irrlicht visualization");
+            return vis;
+#else
+            Console.WriteLine("Error: No visualization system available!");
+            Environment.Exit(1);
+            return null;
+#endif
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Copyright (c) 2017 projectchrono.org");
@@ -54,7 +98,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Simulation step size
             double step_size = 2e-3;
@@ -260,28 +304,10 @@ namespace ChronoDemo
             driver.Initialize();
 
             //------------------------------------------------------------
-            // Create the vehicle Irrlicht interface
+            // Create the vehicle visualisation interface
             //------------------------------------------------------------
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Mesh Terrain Demo");
-            if (isYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); } // Adjustment for Y-Up world
-            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
-            vis.Initialize();
-            if (isYUp)
-            { // add a light that's noticeably different for y up (green for y-axis)
-                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.5f, 0.5f, 0.5f));
-            } else
-            {
-                vis.AddLightDirectional(80, 10);
-            }
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(hmmwv.GetVehicle());
+            ChVehicleVisualSystem vis = CreateVehicleVisualizationSystem(hmmwv.GetVehicle(), isYUp);
             vis.AttachDriver(driver);
-
-            // Enable visualisation for reference
-            vis.EnableCollisionShapeDrawing(false);
-            vis.EnableBodyFrameDrawing(false);
 
             //------------------------------------------------------------
             // Simulation loop
@@ -311,6 +337,8 @@ namespace ChronoDemo
                 vis.Advance(step_size);
 
             }
+
+            // On exit with VSG, Win32 window destruction warning from VSG window is expected and is a garbage cleanup VSG issue
 
         }   // Main
     }       // Program

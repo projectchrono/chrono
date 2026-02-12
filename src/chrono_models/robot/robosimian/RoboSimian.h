@@ -176,7 +176,10 @@ class CH_MODELS_API RS_Part {
 /// RoboSimian chassis (torso).
 class CH_MODELS_API RS_Chassis : public RS_Part {
   public:
-    RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChContactMaterial> mat, chrono::ChSystem* system);
+    RS_Chassis(const std::string& name,
+               bool is_fixed,
+               std::shared_ptr<ChContactMaterial> mat,
+               chrono::ChSystem* system);
     ~RS_Chassis() {}
 
     /// Initialize the chassis at the specified (absolute) position.
@@ -292,7 +295,7 @@ struct CH_MODELS_API JointData {
     std::string name;
     std::string linkA;
     std::string linkB;
-    bool fixed;
+    bool is_fixed;
     chrono::ChVector3d xyz;
     chrono::ChVector3d rpy;
     chrono::ChVector3d axis;
@@ -408,13 +411,13 @@ class CH_MODELS_API RoboSimian {
     /// Construct a RoboSimian with an implicit Chrono system.
     RoboSimian(chrono::ChContactMethod contact_method,  ///< contact formulation (SMC or NSC)
                bool has_sled = false,                   ///< true if robot has sled body attached to chassis
-               bool fixed = false                       ///< true if robot chassis fixed to ground
+               bool is_fixed = false                    ///< true if robot chassis fixed to ground
     );
 
     /// Construct a RoboSimian within the specified Chrono system.
     RoboSimian(chrono::ChSystem* system,  ///< containing system
                bool has_sled = false,     ///< true if robot has sled body attached to chassis
-               bool fixed = false         ///< true if robot chassis fixed to ground
+               bool is_fixed = false      ///< true if robot chassis fixed to ground
     );
 
     ~RoboSimian();
@@ -534,7 +537,7 @@ class CH_MODELS_API RoboSimian {
     void ReportContacts();
 
   private:
-    void Create(bool has_sled, bool fixed);
+    void Create(bool has_sled, bool is_fixed);
 
     chrono::ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_owns_system;          ///< true if system created at construction

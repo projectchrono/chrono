@@ -73,16 +73,19 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     capsuleMesh = createCapsuleMesh(1, 1, 32, 32);
     coneMesh = createConeMesh(1, 1, 32);
 
+    // when meshes are created their reference counter is already at one;
+    // no need to grab if we are the owner of the first pointer
+
     // if (sphereMesh)
     //  sphereMesh->grab();
-    if (cubeMesh)
-        cubeMesh->grab();
-    if (cylinderMesh)
-        cylinderMesh->grab();
-    if (capsuleMesh)
-        capsuleMesh->grab();
-    if (coneMesh)
-        coneMesh->grab();
+    // if (cubeMesh)
+    //    cubeMesh->grab();
+    // if (cylinderMesh)
+    //    cylinderMesh->grab();
+    // if (capsuleMesh)
+    //    capsuleMesh->grab();
+    // if (coneMesh)
+    //    coneMesh->grab();
 
     // Create default colormap (for colorbar display)
     m_colormap_type = ChColormap::Type::JET;
@@ -113,6 +116,8 @@ ChVisualSystemIrrlicht::~ChVisualSystemIrrlicht() {
         cylinderMesh->drop();
     if (capsuleMesh)
         capsuleMesh->drop();
+    if (coneMesh)
+        coneMesh->drop();
 
     if (m_device)
         m_device->drop();
@@ -176,7 +181,7 @@ void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
         m_gui->Initialize(this);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
-        // This is a recursive call to accomodate any existing sub-assemblies.
+        // This is a recursive call to accommodate any existing sub-assemblies.
         BindAll();
     }
 }
@@ -202,7 +207,7 @@ void ChVisualSystemIrrlicht::Initialize() {
         }
     }
 
-    m_device->grab();
+    // m_device->grab();
 
     std::wstring title = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(m_win_title);
     m_device->setWindowCaption(title.c_str());
@@ -236,7 +241,7 @@ void ChVisualSystemIrrlicht::Initialize() {
         m_gui->Initialize(this);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
-        // This is a recursive call to accomodate any existing sub-assemblies.
+        // This is a recursive call to accommodate any existing sub-assemblies.
         BindAll();
     }
 
@@ -814,7 +819,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
             auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetMutable(false);
 
             // Create a number of Irrlicht mesh buffers equal to the number of materials.
             // If no materials defined, create a single mesh buffer.

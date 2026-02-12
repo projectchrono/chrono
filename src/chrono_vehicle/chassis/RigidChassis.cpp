@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -52,7 +52,7 @@ void RigidChassis::Create(const rapidjson::Document& d) {
     assert(d["Components"].IsArray());
     int num_comp = d["Components"].Size();
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
 
     for (int i = 0; i < num_comp; i++) {
         const Value& comp = d["Components"][i];
@@ -113,7 +113,7 @@ void RigidChassisRear::Create(const rapidjson::Document& d) {
     assert(d["Components"].IsArray());
     int num_comp = d["Components"].Size();
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
 
     for (int i = 0; i < num_comp; i++) {
         const Value& comp = d["Components"][i];

@@ -1,0 +1,41 @@
+chrono-version: 9.0
+type: SPH
+
+model:  "model_sph.yaml"
+solver: "solver_sph.yaml"
+
+simulation:  
+  end_time: 100
+  
+output:
+    type: HDF5
+    mode: FRAMES
+    fps: 20
+
+visualization:
+    sph_markers: true
+    bndry_bce_markers: true
+    rigid_bce_markers: true
+    flex_bce_markers: true
+    active_boxes: false
+    color_map:
+       type: VELOCITY
+       map: FAST
+       min: 0.0
+       max: 1.0
+    visibility:
+       SPH: true
+       BCE: true
+       mode: ALL
+       planes:
+           - point: [0, 0, 0]
+             normal: [1, 0, 0]
+           - point: [0, 0, 0]
+             normal: [0, 1, 0]
+    splashsurf:
+       smoothing_length: 2.0
+       cube_size: 0.3
+       surface_threshold: 0.6
+    output:
+       save_images: false
+       output_directory: "."

@@ -18,7 +18,7 @@
 
 #include <cmath>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/functions/ChFunction.h"
 
 #include "chrono_thirdparty/filesystem/path.h"

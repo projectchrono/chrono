@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(collision_type);
 
     // Settings specific to Chrono multicore collision system
@@ -200,7 +201,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowTitle("SMC callbacks");
+            vis_vsg->SetWindowTitle("NSC collision demo");
             vis_vsg->AddCamera(ChVector3d(0, 18, -20));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);

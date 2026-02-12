@@ -1,5 +1,5 @@
-Prismatic_Case02_ADAMS
-
+# Prismatic_Case02_ADAMS
+#
 Time	X_Torque	Y_Torque	Z_Torque
 +0.000000E+00	+0.000000E+00	+9.806650E+00	+9.806650E+00
 +1.000000E-02	+2.404260E-03	+9.806650E+00	+9.806650E+00

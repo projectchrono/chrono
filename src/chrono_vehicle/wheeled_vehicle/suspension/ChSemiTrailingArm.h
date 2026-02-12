@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     enum PointId {
         SPINDLE,   ///< spindle location (center of mass)
         TA_CM,     ///< trailing arm, center of mass
-        TA_O,      ///< trailing arm, chassis connection outter
+        TA_O,      ///< trailing arm, chassis connection outer
         TA_I,      ///< trailing arm, chassis connection inner
         TA_S,      ///< trailing arm, connection to spindle
         SHOCK_C,   ///< shock, chassis
@@ -213,9 +213,7 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
                                     const ChVector3d pt_S,
                                     double radius);
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

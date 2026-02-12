@@ -26,17 +26,17 @@
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 
+#include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"
+
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH, bool use_generic_interface)
+ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS, ChFsiFluidSystemSPH* sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH), m_generic_fsi_interface(use_generic_interface) {
     if (use_generic_interface) {
-        std::cout << "Create an FSI system using a generic FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysSPH);
     } else {
-        std::cout << "Create an FSI system using a custom SPH FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
     }
 }
@@ -44,18 +44,21 @@ ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH, bo
 ChFsiSystemSPH::~ChFsiSystemSPH() {}
 
 ChFsiFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
-    return m_sysSPH;
+    ChAssertAlways(m_sysSPH);
+    return *m_sysSPH;
 }
 
 std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body,
                                                     const std::vector<ChVector3d>& bce,
                                                     const ChFrame<>& rel_frame,
                                                     bool check_embedded) {
+    ChAssertAlways(m_sysSPH);
+
     // Add the FSI body with no geometry
     auto fsi_body = ChFsiSystem::AddFsiBody(body, nullptr, check_embedded);
 
     // Explicitly set the BCE marker locations
-    auto& fsisph_body = m_sysSPH.m_bodies.back();
+    auto& fsisph_body = m_sysSPH->m_bodies.back();
 
     fsisph_body.bce_ids.resize(bce.size(), (int)fsisph_body.fsi_body->index);
 
@@ -69,7 +72,20 @@ std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body
 }
 
 void ChFsiSystemSPH::AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& frame) {
-    m_sysSPH.AddBCEBoundary(bce, frame);
+    ChAssertAlways(m_sysSPH);
+    m_sysSPH->AddBCEBoundary(bce, frame);
+}
+
+void ChFsiSystemSPH::SynchronizeDevice() {
+    synchronizeDevice();
+}
+
+void ChFsiSystemSPH::Initialize() {
+    if (m_verbose)
+        std::cout << "FSI system has " << (m_generic_fsi_interface ? "generic" : "custom") << " interface" << std::endl;
+
+    // Initialize the SPH solver and the FSI interface
+    ChFsiSystem::Initialize();
 }
 
 }  // end namespace sph

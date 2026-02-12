@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Brick Elements",
-                                         ChVector3d(1.7, 1.0, -1.7), ChVector3d(0.2, 0.2, 0.0));
+                                         ChVector3d(3.4, 2.0, -3.4), ChVector3d(0.2, 0.2, 0.0));
 
     // Perform a dynamic time integration:
 

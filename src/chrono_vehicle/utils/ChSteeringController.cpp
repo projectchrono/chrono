@@ -72,7 +72,7 @@ void ChSteeringController::StartDataCollection() {
         return;
     // Create the ChWriterCSV object if needed (first call to this function).
     if (!m_csv) {
-        m_csv = new utils::ChWriterCSV("\t");
+        m_csv = new ChWriterCSV("\t");
         m_csv->Stream().setf(std::ios::scientific | std::ios::showpos);
         m_csv->Stream().precision(6);
     }
@@ -445,7 +445,7 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(std::shared_ptr<ChBezierC
       m_delta_max(max_wheel_turn_angle),
       m_umin(2),
       m_idx_curr(0) {
-    // retireve points
+    // retrieve points
     CalcPathPoints();
 }
 
@@ -461,7 +461,7 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
       m_delta_max(max_wheel_turn_angle),
       m_umin(1),
       m_idx_curr(0) {
-    // retireve points
+    // retrieve points
     CalcPathPoints();
 
     Document d;

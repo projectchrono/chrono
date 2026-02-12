@@ -24,7 +24,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     )
 endif()
 
-if(HAVE_OPENCRG) 
+if(CH_USE_OPENCRG) 
    if (CH_ENABLE_MODULE_IRRLICHT)
       set(DEMOS ${DEMOS}
           demo_VEH_CRGTerrain_IRR
@@ -45,7 +45,7 @@ if(CH_ENABLE_MODULE_MULTICORE AND CH_ENABLE_MODULE_VSG)
     )
 endif()
 
-if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_FSI_SPH AND CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_CRMTerrain_WheeledVehicle
         demo_VEH_CRMTerrain_TrackedVehicle
@@ -74,7 +74,7 @@ if(CH_ENABLE_MODULE_MULTICORE)
     list(APPEND LIBS "Chrono_multicore")
 endif()
 
-if(CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI_SPH)
     list(APPEND LIBS "Chrono_fsisph")
 endif()
 
@@ -97,7 +97,7 @@ endif()
 
 if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_vehicle_vsg")
-    if(CH_ENABLE_MODULE_FSI)
+    if(CH_ENABLE_MODULE_FSI_SPH)
       list(APPEND LIBS "Chrono_fsisph_vsg")
     endif()
 endif()

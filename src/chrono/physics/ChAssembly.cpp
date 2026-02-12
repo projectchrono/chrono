@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -642,26 +642,26 @@ void ChAssembly::Setup() {
 // - Update all physical items (bodies, links, meshes, etc), including their auxiliary variables
 // - Update all forces (automatic, as children of bodies)
 // - Update all markers (automatic, as children of bodies)
-void ChAssembly::Update(double time, bool update_assets) {
-    ChPhysicsItem::Update(time, update_assets);
+void ChAssembly::Update(double time, UpdateFlags update_flags) {
+    ChPhysicsItem::Update(time, update_flags);
 
     //// NOTE: do not switch these to range for loops (may want to use OMP for)
     for (auto& body : bodylist) {
-        body->Update(time, update_assets);
+        body->Update(time, update_flags);
     }
     for (auto& shaft : shaftlist) {
-        shaft->Update(time, update_assets);
+        shaft->Update(time, update_flags);
     }
     for (auto& mesh : meshlist) {
-        mesh->Update(time, update_assets);
+        mesh->Update(time, update_flags);
     }
     for (auto& otherphysics : otherphysicslist) {
-        otherphysics->Update(time, update_assets);
+        otherphysics->Update(time, update_flags);
     }
     // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
     // thus the update of linklist must be at the end.
     for (auto& link : linklist) {
-        link->Update(time, update_assets);
+        link->Update(time, update_flags);
     }
 }
 
@@ -718,7 +718,7 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) {
+                                 UpdateFlags update_flags) {
     // Notes:
     // 1. All IntStateScatter() calls below will automatically call Update() for each object, therefore:
     //    - do not call Update() on this (assembly).
@@ -732,25 +732,25 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
 
     for (auto& body : bodylist) {
         if (body->IsActive())
-            body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T, full_update);
+            body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T, update_flags);
         else
-            body->Update(T, full_update);
+            body->Update(T, update_flags);
     }
     for (auto& shaft : shaftlist) {
         if (shaft->IsActive())
             shaft->IntStateScatter(displ_x + shaft->GetOffset_x(), x, displ_v + shaft->GetOffset_w(), v, T,
-                                   full_update);
+                                   update_flags);
         else
-            shaft->Update(T, full_update);
+            shaft->Update(T, update_flags);
     }
     for (auto& mesh : meshlist) {
-        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, full_update);
+        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, update_flags);
     }
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
-            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
+            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, update_flags);
         else
-            item->Update(T, full_update);
+            item->Update(T, update_flags);
     }
     // Because the Update() of ChLink() depends on the frames of Body1 and Body2, the state scatter of linklist
     // must be behind of bodylist,shaftlist,meshlist,otherphysicslist; otherwise, the Update() of ChLink() would
@@ -758,9 +758,9 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
     // for one time step, then the simulation might diverge!
     for (auto& link : linklist) {
         if (link->IsActive())
-            link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T, full_update);
+            link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T, update_flags);
         else
-            link->Update(T, full_update);
+            link->Update(T, update_flags);
     }
 
     SetChTime(T);

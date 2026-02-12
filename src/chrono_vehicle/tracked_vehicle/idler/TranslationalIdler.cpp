@@ -18,7 +18,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -87,7 +87,7 @@ void TranslationalIdler::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Idler Wheel Input File"));
 
     std::string file_name = d["Idler Wheel Input File"].GetString();
-    m_idler_wheel = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
+    m_idler_wheel = ReadTrackWheelJSON(GetVehicleDataFile(file_name));
 }
 
 }  // end namespace vehicle

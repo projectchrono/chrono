@@ -17,9 +17,9 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/mtv/LMTV_ChassisRear.h"
 
@@ -78,7 +78,7 @@ LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, CollisionType chassi
     m_geometry.color_boxes = ChColor(0.4f, 0.2f, 0.2f);
     m_geometry.color_cylinders = ChColor(0.4f, 0.2f, 0.2f);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("mtv/meshes/m1078_rear.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("mtv/meshes/m1078_rear.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -86,12 +86,12 @@ LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, CollisionType chassi
             m_geometry.coll_boxes.push_back(box);
             break;
         case CollisionType::HULLS: {
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("mtv/meshes/m1078_rear.obj"), 0);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("mtv/meshes/m1078_rear.obj"), 0);
             m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, vehicle::GetDataFile("mtv/meshes/m1078_rear.obj"),
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, GetVehicleDataFile("mtv/meshes/m1078_rear.obj"),
                                                         1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;

@@ -29,7 +29,7 @@
 #endif
 
 /**
-    @defgroup peridynamics_module PERIDYNAMICS module
+    @defgroup chrono_peridynamics PERIDYNAMICS module
     @brief Classes for modeling meshless materials
 
     This module provides classes and tools for simulating materials with
@@ -42,13 +42,14 @@
 
 namespace chrono {
 
-/// @addtogroup peridynamics_module
+/// @addtogroup chrono_peridynamics
 /// @{
 
 /// Namespace with classes for the PERIDYNAMICS module.
 namespace peridynamics {}
 
-/// @}
+/// @} chrono_peridynamics
+
 }  // namespace chrono
 
 #endif

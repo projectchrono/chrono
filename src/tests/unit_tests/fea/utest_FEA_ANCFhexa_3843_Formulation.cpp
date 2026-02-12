@@ -146,7 +146,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(false);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
 
     // Mesh properties (Steel)
     double length = 1.0;  // m
@@ -203,7 +203,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     //  Update the system so that all of the required pre-computation steps are called for the element.
     // =============================================================================
 
-    m_system->Update(false);
+    m_system->Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 }
 
 bool ANCFBrickTest::RunElementChecks(int msglvl) {
@@ -1244,7 +1244,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -1438,7 +1438,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -1637,7 +1637,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -1792,7 +1792,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum except modified for a
     // square cross section.  The error is noticeably higher with the original cross-section.

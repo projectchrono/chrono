@@ -15,7 +15,7 @@ Additional Chrono functionality is provided through optional modules, enabled du
 
 -   [FSI module](@ref module_fsi_installation)
 
--   [GPU module](@ref module_gpu_installation)
+-   [DEM module](@ref module_dem_installation)
 
 -   [IRRLICHT module](@ref module_irrlicht_installation)
 
@@ -63,6 +63,8 @@ For some of these dependencies, we provide utility scripts that will download, c
 - OpenCRG library, required for the optional OpenCRG support in the Chrono::Vehicle module
 
 The subdirectories in `contrib/build-scripts` also include sample scripts (`buildChrono.bat`, `buildChrono.sh`, and `buildChronoMac.sh`) for configuring Chrono with CMake which can be used as examples of satisfying the dependencies for the various optional Chrono modules (assuming these dependencies were installed with the utility scripts described above).
+
+For more details, see the relevant [section](@ref scripts) in the Chrono core module installation guide.
 
 ### Building a project that uses Chrono
 

@@ -88,11 +88,12 @@ void ChShaft::IntStateScatter(const unsigned int off_x,  // offset in x state ve
                               const unsigned int off_v,  // offset in v state vector
                               const ChStateDelta& v,     // state vector, speed part
                               const double T,            // time
-                              bool full_update           // perform complete update
+                              UpdateFlags update_flags    // perform complete update?
 ) {
     SetPos(x(off_x));
     SetPosDt(v(off_v));
-    Update(T, full_update);
+
+    Update(T, update_flags);
 }
 
 void ChShaft::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -223,9 +224,9 @@ bool ChShaft::TrySleeping() {
     return false;
 }
 
-void ChShaft::Update(double time, bool update_assets) {
+void ChShaft::Update(double time, UpdateFlags update_flags) {
     // Update parent class too
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 
     // TrySleeping();    // See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.

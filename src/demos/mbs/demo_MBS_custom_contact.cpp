@@ -21,10 +21,19 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Helper class to define a cylindrical shape
 class MyObstacle {
@@ -202,19 +211,59 @@ int main(int argc, char* argv[]) {
         std::make_shared<MyCustomCollisionDetection>(ball, ground, ball_mat, obst_mat, ball_radius, obstacle);
     sys->RegisterCustomCollisionCallback(collision);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Custom contact demo");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector3d(8, 8, -6));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector3d(0.0, 24.0, 2.0), ChVector3d(0, 0, 0), 35, 2.2, 25.0, 40, 1024,
-                            ChColor(0.8f, 0.8f, 1.0f));
-    vis->EnableShadows();
+    // Create the run-time visualization system
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(sys);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Custom contact demo");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector3d(8, 8, -6));
+            vis_irr->AddTypicalLights();
+            vis_irr->AddLightWithShadow(ChVector3d(0.0, 24.0, 2.0), ChVector3d(0, 0, 0), 35, 2.2, 25.0, 40, 1024,
+                                    ChColor(0.8f, 0.8f, 1.0f));
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(sys);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->SetWindowTitle("Custom contact demo");
+            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->EnableSkyBox();
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->AddCamera(ChVector3d(8, 8, -6), ChVector3d(0, 0, 0));
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->EnableShadows();
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     int frame = 0;
     while (vis->Run()) {

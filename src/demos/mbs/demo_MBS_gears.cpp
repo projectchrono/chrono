@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Contact material shared among all bodies
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -69,7 +70,8 @@ int main(int argc, char* argv[]) {
     sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector3d(0, 0, -1));
     mbody_gearA->SetRot(QuatFromAngleX(CH_PI_2));
-    // for aesthetic reasons, also add a thin cylinder only as a visualization:
+    mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
+    // for aesthetic reasons, also add a thin cylinder only as a shaft visualization:
     auto mshaft_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radA * 0.4, 13);
     mbody_gearA->AddVisualShape(mshaft_shape, ChFrame<>(ChVector3d(0, 3.5, 0), QuatFromAngleX(CH_PI_2)));
 
@@ -109,6 +111,7 @@ int main(int argc, char* argv[]) {
     link_gearAB->SetFrameShaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_PI_2)));
     link_gearAB->SetTransmissionRatio(radA / radB);
     link_gearAB->SetEnforcePhase(true);
+    link_gearAB->SetPressureAngle(20 * CH_DEG_TO_RAD);  // set pressure angle to 20 deg (default was 0)
     sys.AddLink(link_gearAB);
 
     // ...the gear constraint between the second wheel B and a large wheel C with inner teeth, that
@@ -120,6 +123,7 @@ int main(int argc, char* argv[]) {
     link_gearBC->SetFrameShaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_PI_2)));
     link_gearBC->SetFrameShaft2(ChFrame<>(ChVector3d(0, 0, -4), QUNIT));
     link_gearBC->SetTransmissionRatio(radB / radC);
+    link_gearBC->SetPressureAngle(20 * CH_DEG_TO_RAD);  // set pressure angle to 20 deg (default was 0)
     link_gearBC->SetEpicyclic(true);  // <-- this means: use a wheel with internal teeth!
     sys.AddLink(link_gearBC);
 
@@ -145,9 +149,9 @@ int main(int argc, char* argv[]) {
     link_gearAD->SetFrameShaft2(ChFrame<>(ChVector3d(0, -7, 0), chrono::QuatFromAngleX(-CH_PI_2)));
     link_gearAD->SetTransmissionRatio(1);
     sys.AddLink(link_gearAD);
-
+    
     // ...the pulley at the side,
-    double radE = 2;
+    double radE = 5;
     auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radE, 0.8, 1000, true, false, mat);
     sys.Add(mbody_pulleyE);
     mbody_pulleyE->SetPos(ChVector3d(-10, -11, -9));
@@ -169,8 +173,7 @@ int main(int argc, char* argv[]) {
     link_pulleyDE->SetFrameShaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_PI_2)));
     link_pulleyDE->SetRadius1(radD);
     link_pulleyDE->SetRadius2(radE);
-    link_pulleyDE->SetEnforcePhase(
-        true);  // synchro belts don't tolerate slipping: this avoids it as numerical errors accumulate.
+    link_pulleyDE->SetEnforcePhase(true);  // synchro belts don't tolerate slipping: avoids error accumulation. Also needed if HHT or other implicit multi-iteration
     sys.AddLink(link_pulleyDE);
 
     // Create the Irrlicht visualization system
@@ -186,11 +189,29 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
+    //sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    //sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+    /*
+    auto mystepper = chrono_types::make_shared<ChTimestepperEulerImplicit>(&sys);
+    mystepper->SetStepControl(false);
+    mystepper->SetJacobianUpdateMethod(ChTimestepperHHT::JacobianUpdate::EVERY_ITERATION);
+    mystepper->SetMaxIters(3);
+    sys.SetTimestepper(mystepper);
+    */
+    /*
+    auto mystepper = chrono_types::make_shared<ChTimestepperHHT>(&sys);
+    mystepper->SetStepControl(false);
+    mystepper->SetJacobianUpdateMethod(ChTimestepperHHT::JacobianUpdate::EVERY_STEP);
+    mystepper->SetMaxIters(3);
+    sys.SetTimestepper(mystepper);
+    */
+
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(250);
 
     // Simulation loop
 
-    double timestep = 0.001;
+    double timestep = 0.002;
     ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();

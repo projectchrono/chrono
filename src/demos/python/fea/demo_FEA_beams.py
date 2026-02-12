@@ -18,20 +18,15 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: PyChrono using  beam finite elements");
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
 
 # ---------------------------------------------------------------------
 #
 #  Create the simulation system and add items
 #
 
-
 # Create a Chrono physical system
 sys = chrono.ChSystemSMC()
+sys.SetGravityY()
 
 ## Create a mesh, that is a container for groups
 ## of elements and their referenced nodes.

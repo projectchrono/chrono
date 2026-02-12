@@ -21,7 +21,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
@@ -49,6 +48,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create two meshes
     auto my_mesh = chrono_types::make_shared<ChMesh>();

@@ -117,9 +117,7 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const = 0;
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChBody> m_carrier;                 ///< carrier body
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< carrier-chassis translational joint

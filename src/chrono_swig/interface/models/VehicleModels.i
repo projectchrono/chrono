@@ -101,21 +101,32 @@
 %shared_ptr(chrono::vehicle::kraz::Kraz_trailer)
 
 
-#ifdef SWIGCSHARP
+#ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
 %import "chrono_swig/interface/core/ChContactMaterial.i"
-#endif
+#endif           // --------------------------------------------------------------------- CSHARP
 
 #ifdef SWIGPYCHRONO
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChContactMaterial.i"
 #endif
 
-%import "chrono_swig/interface/vehicle/ChSuspension.i"
-%import "chrono_swig/interface/vehicle/ChDriveline.i"
-%import "chrono_swig/interface/vehicle/ChSteering.i"
-%import "chrono_swig/interface/vehicle/ChPowertrain.i"
-%import "chrono_swig/interface/vehicle/ChChassis.i"
-%import "chrono_swig/interface/vehicle/ChTire.i"
+// these are redundant - already imported in chmodulevehicle.i
+// %import "chrono_swig/interface/vehicle/ChSuspension.i"
+// %import "chrono_swig/interface/vehicle/ChDriveline.i"
+// %import "chrono_swig/interface/vehicle/ChSteering.i"
+// %import "chrono_swig/interface/vehicle/ChPowertrain.i"
+// %import "chrono_swig/interface/vehicle/ChChassis.i"
+// %import "chrono_swig/interface/vehicle/ChTire.i"
 %import "chrono_swig/interface/vehicle/ChTrackAssembly.i"
+
+
+#ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
+
+// These directives must come before the %import statements that process these headers - allows SWIG
+// to understand that these methods override base class virtual functions (for Unity)
+%csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize "public override"
+%csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize "public override"
+
+#endif              // --------------------------------------------------------------------- CSHARP
 
 %import "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %import "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"

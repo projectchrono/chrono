@@ -34,7 +34,7 @@
     #include "chrono_sensor/sensors/ChGPSSensor.h"
 #else
     #define EARTH_RADIUS 6371000.0  // [meters]
-#endif                              // SENSOR
+#endif
 
 namespace chrono {
 namespace synchrono {

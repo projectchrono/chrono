@@ -148,9 +148,9 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // approximate mass & inertia to a cylinder:
         roller->SetMass(  //
-            ChCylinder::GetVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
+            ChCylinder::CalcVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
         roller->SetInertia(  //
-            ChCylinder::GetGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
+            ChCylinder::CalcGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
 
         // add collision shape
         auto shape = chrono_types::make_shared<ChCollisionShapeBarrel>(wheel_mat,                                 //
@@ -185,6 +185,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     double platform_radius = 8;

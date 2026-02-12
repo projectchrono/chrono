@@ -22,10 +22,10 @@
 // =============================================================================
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -219,9 +219,9 @@ int main(int argc, char* argv[]) {
     // Create the driver
     // -----------------
 
-    auto path = ChBezierCurve::Read(vehicle::GetDataFile(path_file));
-    ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
-                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
+    auto path = ChBezierCurve::Read(GetVehicleDataFile(path_file));
+    ChPathFollowerDriver driver(vehicle, GetVehicleDataFile(steering_controller_file),
+                                GetVehicleDataFile(speed_controller_file), path, "my_path", target_speed);
     driver.Initialize();
 
     // ---------------------------------
@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    utils::ChWriterCSV csv("\t");
+    ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
     csv.Stream().precision(6);
 
@@ -367,9 +367,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    std::cout << "data at: " << vehicle::GetDataFile(steering_controller_file) << std::endl;
-    std::cout << "data at: " << vehicle::GetDataFile(speed_controller_file) << std::endl;
-    std::cout << "data at: " << vehicle::GetDataFile(path_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(steering_controller_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(speed_controller_file) << std::endl;
+    std::cout << "data at: " << GetVehicleDataFile(path_file) << std::endl;
 
     int step_number = 0;
     double time = 0;

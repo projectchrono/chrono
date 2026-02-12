@@ -16,7 +16,7 @@ set(DEMOS
     demo_VEH_TrackTestRig
 )
 
-if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_FSI_SPH AND CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS} demo_VEH_TireTestRig_CRM)
 endif()
 
@@ -34,7 +34,7 @@ set(UTILS "../../SetChronoSolver.h")
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI_SPH)
     list(APPEND LIBS "Chrono_fsisph")
 endif()
 
@@ -56,7 +56,7 @@ endif()
 
 if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_vehicle_vsg")
-    if(CH_ENABLE_MODULE_FSI)
+    if(CH_ENABLE_MODULE_FSI_SPH)
       list(APPEND LIBS "Chrono_fsisph_vsg")
     endif()
 endif()

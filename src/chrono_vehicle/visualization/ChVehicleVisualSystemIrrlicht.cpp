@@ -509,7 +509,7 @@ ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
     m_camera_control = new ChChaseCameraEventReceiver(this);
     m_vehicle_control = new ChVehicleEventReceiver(this);
 
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     m_sound_engine = 0;
     m_car_sound = 0;
 #endif
@@ -577,7 +577,7 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
 // configuration.
 // -----------------------------------------------------------------------------
 void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     if (sound) {
         // Start the sound engine with default parameters
         m_sound_engine = irrklang::createIrrKlangDevice();
@@ -619,7 +619,7 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
     GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
 
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     static int stepsbetweensound = 0;
 
     // Update sound pitch
@@ -824,7 +824,7 @@ ChJoystickAxisIRR::ChJoystickAxisIRR()
 
 double ChJoystickAxisIRR::GetValue(const irr::SEvent::SJoystickEvent& joystickEvent) {
     if (joystickEvent.Joystick == id) {
-        // Scale raw_value fromm [scaled_min, scaled_max] to [min, max] range
+        // Scale raw_value from [scaled_min, scaled_max] to [min, max] range
         value = (joystickEvent.Axis[axis] - max) * (scaled_max - scaled_min) / (max - min) + scaled_max;
     }
     return value;
@@ -880,7 +880,7 @@ ChJoystickIRR::ChJoystickIRR(ChVehicleVisualSystemIrrlicht* vsys)
       m_joystick_proccess_frame(0),
       callback_button(-1),
       callback_function(nullptr),
-      joystick_file(GetDataFile("joystick/controller_Default.json")) {}
+      joystick_file(GetVehicleDataFile("joystick/controller_Default.json")) {}
 
 void ChJoystickIRR::Initialize() {
     // Activate joysticks, is any

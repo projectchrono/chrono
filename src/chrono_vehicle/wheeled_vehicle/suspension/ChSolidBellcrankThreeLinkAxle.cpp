@@ -47,7 +47,7 @@ const std::string ChSolidBellcrankThreeLinkAxle::m_pointNames[] = {
 ChSolidBellcrankThreeLinkAxle::ChSolidBellcrankThreeLinkAxle(const std::string& name) : ChSuspension(name) {}
 
 ChSolidBellcrankThreeLinkAxle::~ChSolidBellcrankThreeLinkAxle() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_axleTube->GetSystem();
@@ -402,7 +402,7 @@ void ChSolidBellcrankThreeLinkAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaLink(getLinkInertia());
     ChMatrix33<> inertiaTierod(getTierodInertia());
 
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
@@ -418,8 +418,7 @@ void ChSolidBellcrankThreeLinkAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleTubeInertia()));
     composite.AddComponent(m_bellcrank->GetFrameCOMToAbs(), getBellcrankMass(), ChMatrix33<>(getBellcrankInertia()));
     composite.AddComponent(m_draglink->GetFrameCOMToAbs(), getDraglinkMass(), ChMatrix33<>(getDraglinkInertia()));
-    composite.AddComponent(m_triangleBody->GetFrameCOMToAbs(), getTriangleMass(),
-                           ChMatrix33<>(getTriangleInertia()));
+    composite.AddComponent(m_triangleBody->GetFrameCOMToAbs(), getTriangleMass(), ChMatrix33<>(getTriangleInertia()));
 
     // Express COM and inertia in subsystem reference frame
     m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
@@ -464,10 +463,7 @@ void ChSolidBellcrankThreeLinkAxle::LogHardpointLocations(const ChVector3d& ref,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidBellcrankThreeLinkAxle::LogConstraintViolations(VehicleSide side) {
-    // TODO: Update this to reflect new suspension joints
-    // Revolute joints
-
-    {}
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------
@@ -481,13 +477,13 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationAssets(VisualizationType vis
     // visualize the axle tube
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
-    // visualize the trangle body
+    // visualize the triangle body
     AddVisualizationLink(m_triangleBody, m_triangle_sph_point, m_triangle_left_point, getAxleTubeRadius() / 2.0,
                          ChColor(0.7f, 0.3f, 0.8f));
     AddVisualizationLink(m_triangleBody, m_triangle_sph_point, m_triangle_right_point, getAxleTubeRadius() / 2.0,
                          ChColor(0.7f, 0.3f, 0.8f));
 
-    // visualize the trangle body
+    // visualize the triangle body
     AddVisualizationLink(m_linkBody[LEFT], m_link_axleL, m_link_chassisL, getAxleTubeRadius() / 2.0,
                          ChColor(0.3f, 0.3f, 0.8f));
     AddVisualizationLink(m_linkBody[RIGHT], m_link_axleR, m_link_chassisR, getAxleTubeRadius() / 2.0,
@@ -555,60 +551,22 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationLink(std::shared_ptr<ChBody>
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSolidBellcrankThreeLinkAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    ExportBodyList(jsonDocument, bodies);
+void ChSolidBellcrankThreeLinkAxle::PopulateComponentList() {
+    m_bodies.push_back(m_spindle[0]);
+    m_bodies.push_back(m_spindle[1]);
+    m_bodies.push_back(m_axleTube);
 
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    ExportShaftList(jsonDocument, shafts);
+    m_shafts.push_back(m_axle[0]);
+    m_shafts.push_back(m_axle[1]);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    ExportJointList(jsonDocument, joints);
+    m_joints.push_back(m_revolute[0]);
+    m_joints.push_back(m_revolute[1]);
 
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    ExportLinSpringList(jsonDocument, springs);
-}
-
-void ChSolidBellcrankThreeLinkAxle::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_spindle[0]);
-    bodies.push_back(m_spindle[1]);
-    bodies.push_back(m_axleTube);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChShaft>> shafts;
-    shafts.push_back(m_axle[0]);
-    shafts.push_back(m_axle[1]);
-    database.WriteShafts(shafts);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute[0]);
-    joints.push_back(m_revolute[1]);
-    database.WriteJoints(joints);
-
-    std::vector<std::shared_ptr<ChLinkTSDA>> springs;
-    springs.push_back(m_spring[0]);
-    springs.push_back(m_spring[1]);
-    springs.push_back(m_shock[0]);
-    springs.push_back(m_shock[1]);
-    database.WriteLinSprings(springs);
+    m_tsdas.push_back(m_spring[0]);
+    m_tsdas.push_back(m_spring[1]);
+    m_tsdas.push_back(m_shock[0]);
+    m_tsdas.push_back(m_shock[1]);
 }
 
 }  // namespace vehicle

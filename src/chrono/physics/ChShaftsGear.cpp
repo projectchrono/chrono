@@ -21,7 +21,16 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsGear)
 
-ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0), avoid_phase_drift(true), phase1(0), phase2(0), violation(0) {}
+ChShaftsGear::ChShaftsGear()
+    : ratio(1),
+      torque_react(0),
+      avoid_phase_drift(true),
+      phase1(0),
+      phase2(0),
+      violation(0),
+      is_compliant(false),
+      torsional_stiffness(1e4),
+      torsional_damping(1.0) {}
 
 ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other), violation(0) {
     ratio = other.ratio;
@@ -45,15 +54,101 @@ bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared_ptr<
     return true;
 }
 
-void ChShaftsGear::Update(double time, bool update_assets) {
+void ChShaftsGear::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
-    ChShaftsCouple::Update(time, update_assets);
+    ChShaftsCouple::Update(time, update_flags);
 
     // update class data
     violation = ratio * (shaft1->GetPos() - phase1) - 1.0 * (shaft2->GetPos() - phase2);
 }
 
+/// Switch to compliant gear teeth contact model
+void ChShaftsGear::SetCompliant(bool mset, double mstiffness, double mdamping) {
+    is_compliant = mset;
+    torsional_stiffness = mstiffness;
+    torsional_damping = mdamping;
+    this->AvoidPhaseDrift(true);
+}
+
+void ChShaftsGear::SetTorsionalStiffness(double mstiffness) {
+    is_compliant = true;
+    torsional_stiffness = mstiffness;
+    this->AvoidPhaseDrift(true);
+}
+
+void ChShaftsGear::SetTeethStiffnessTangential(double mstiffness_tangential, double radius_2) {
+    is_compliant = true;
+    torsional_stiffness = mstiffness_tangential * (radius_2*radius_2);
+    this->AvoidPhaseDrift(true);
+}
+
+void ChShaftsGear::SetTorsionalDamping(double mdamping) {
+    is_compliant = true;
+    torsional_damping = mdamping;
+    this->AvoidPhaseDrift(true);
+}
+
+double ChShaftsGear::GetContactForceTangential(double radius_2) {
+    if (!this->is_compliant)
+        return this->torque_react / radius_2;
+    else {
+        double res = this->ratio * (this->shaft1->GetPos() - phase1) + -1.0 * (this->shaft2->GetPos() - phase2);
+        double res_dt = this->ratio * (this->shaft1->GetPosDt()) + -1.0 * (this->shaft2->GetPosDt());
+        return -(res * this->torsional_stiffness + res_dt * this->torsional_damping) / radius_2;
+    }
+}
+
 // STATE BOOKKEEPING FUNCTIONS
+
+void ChShaftsGear::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // Inherit parent class
+    ChShaftsCouple::IntLoadResidual_F(off, R, c);
+
+    if (this->is_compliant) {
+        ChVectorDynamic<> tempL(1);
+        // compute compliant torque
+        double res = this->ratio * (this->shaft1->GetPos() - phase1) + -1.0 * (this->shaft2->GetPos() - phase2);
+        double res_dt = this->ratio * (this->shaft1->GetPosDt()) + -1.0 * (this->shaft2->GetPosDt());
+        tempL(0) = -(res * this->torsional_stiffness + res_dt * this->torsional_damping);
+        // map to R in system level coords
+        constraint.AddJacobianTransposedTimesScalarInto(R, tempL(0) * c);
+    }
+}
+
+void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,
+                                       ChVectorDynamic<>& Qc,
+                                       const double c,
+                                       bool do_clamp,
+                                       double recovery_clamp) {
+    if (this->is_compliant) {
+        // nothing to do - Qc as zero in case of compliant gear teeth
+
+    } else {
+        // rigid constraint: residual is  c * constraint violation
+        double res = this->ratio * (this->shaft1->GetPos() - phase1) + -1.0 * (this->shaft2->GetPos() - phase2);
+        if (!avoid_phase_drift)
+            res = 0;
+
+        double cnstr_violation = c * res;
+
+        if (do_clamp) {
+            cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
+        }
+
+        Qc(off_L) += cnstr_violation;
+    }
+}
+
+void ChShaftsGear::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
+    // Inherit parent class
+    ChShaftsCouple::LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
+
+    // intercept the Kfactor and Rfactor
+
+    if (this->is_compliant) {
+        this->constraint.SetComplianceTerm(1.0 / (torsional_stiffness * Kfactor + torsional_damping * Rfactor));
+    }
+}
 
 void ChShaftsGear::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = torque_react;
@@ -68,26 +163,9 @@ void ChShaftsGear::IntLoadResidual_CqL(const unsigned int off_L,    // offset in
                                        const ChVectorDynamic<>& L,  // the L vector
                                        const double c               // a scaling factor
 ) {
-    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
-}
-
-void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                       ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                       const double c,            // a scaling factor
-                                       bool do_clamp,             // apply clamping to c*C?
-                                       double recovery_clamp      // value for min/max clamping of c*C
-) {
-    double res = this->ratio * (this->shaft1->GetPos() - phase1) + -1.0 * (this->shaft2->GetPos() - phase2);
-    if (!avoid_phase_drift)
-        res = 0;
-
-    double cnstr_violation = c * res;
-
-    if (do_clamp) {
-        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
+    if (!this->is_compliant) {
+        constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
     }
-
-    Qc(off_L) += cnstr_violation;
 }
 
 void ChShaftsGear::IntToDescriptor(const unsigned int off_v,  // offset in v, R

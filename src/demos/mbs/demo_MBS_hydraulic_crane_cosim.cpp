@@ -30,9 +30,8 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -354,7 +353,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize combined output
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     double F;   // actuator force
     double s;   // actuator length
     double sd;  // actuator length rate

@@ -62,6 +62,12 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// Enable/disable information terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Checkpoint the state of this tire to the given checkpint file.
+    virtual void ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const override;
+
+    /// Initialize this tire from the given checkpoint file.
+    virtual void ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) override;
+
   protected:
     /// Construct a tire with the specified name.
     ChForceElementTire(const std::string& name);
@@ -86,6 +92,12 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
 
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override;
+
+    /// Get current internal dynamics ODE states (if any).
+    virtual void GetInternalStates(ChVector2d& states) const {}
+
+    /// Set the internal dynamics ODE states (if any).
+    virtual void SetInternalStates(const ChVector2d& states) {}
 
     ContactData m_data;          ///< tire-terrain collision information
     TerrainForce m_tireforce;    ///< tire forces (in tire contact frame)

@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChMarker.h"
@@ -118,13 +118,14 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const unsigned int off_v,  // offset in v state vector
                              const ChStateDelta& v,     // state vector, speed part
                              const double T,            // time
-                             bool full_update           // perform complete update
+                             UpdateFlags update_flags    // perform complete update?
 ) {
     SetCoordsys(x.segment(off_x, 7));
     SetPosDt(v.segment(off_v + 0, 3));
     SetAngVelLocal(v.segment(off_v + 3, 3));
     SetChTime(T);
-    Update(T, full_update);
+
+    Update(T, update_flags);
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -542,13 +543,13 @@ std::shared_ptr<ChForce> ChBody::SearchForce(const std::string& name) const {
 
 // -----------------------------------------------------------------------------
 
-void ChBody::UpdateMarkers(double time, bool update_assets) {
+void ChBody::UpdateMarkers(double time, UpdateFlags update_flags) {
     for (auto& marker : marklist) {
-        marker->Update(time, update_assets);
+        marker->Update(time, update_flags);
     }
 }
 
-void ChBody::UpdateForces(double time, bool update_assets) {
+void ChBody::UpdateForces(double time, UpdateFlags update_flags) {
     // Initialize body forces with gravitational forces (if included in a system)
     Xforce = system ? system->GetGravitationalAcceleration() * GetMass() : VNULL;
     Xtorque = VNULL;
@@ -561,7 +562,7 @@ void ChBody::UpdateForces(double time, bool update_assets) {
 
     // Accumulate applied generalized forces (if any)
     for (auto& f : forcelist) {
-        f->Update(time, update_assets);
+        f->Update(time, update_flags);
 
         ChVector3d force;
         ChVector3d torque;
@@ -572,9 +573,9 @@ void ChBody::UpdateForces(double time, bool update_assets) {
     }
 }
 
-void ChBody::Update(double time, bool update_assets) {
+void ChBody::Update(double time, UpdateFlags update_flags) {
     // Update time and assets
-    ChObj::Update(time, update_assets);
+    ChObj::Update(time, update_flags);
 
     // Test if body can be set asleep and if so, put it to sleeping
     ////TrySleeping();
@@ -586,10 +587,10 @@ void ChBody::Update(double time, bool update_assets) {
     ComputeGyro();
 
     // Updated associated markers at current body state
-    UpdateMarkers(time, update_assets);
+    UpdateMarkers(time, update_flags);
 
     // Update applied forces at current body state
-    UpdateForces(time, update_assets);
+    UpdateForces(time, update_flags);
 }
 
 // -----------------------------------------------------------------------------
@@ -654,7 +655,7 @@ void ChBody::EnableCollision(bool state) {
         return;
 
     // Nothing to do if no collision system or the system was not initialized
-    // (in the latter case, the collsion model will be processed at initialization)
+    // (in the latter case, the collision model will be processed at initialization)
     auto coll_sys = GetSystem()->GetCollisionSystem();
     if (!coll_sys || !coll_sys->IsInitialized())
         return;

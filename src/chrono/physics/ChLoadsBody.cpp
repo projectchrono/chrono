@@ -67,13 +67,13 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mbody->ComputeNF(abs_point.x(), abs_point.y(), abs_point.z(), load_Q, detJ, mF, state_x, state_w);
 }
 
-void ChLoadBodyForce::Update(double time, bool update_assets) {
+void ChLoadBodyForce::Update(double time, UpdateFlags update_flags) {
     if (!std::dynamic_pointer_cast<ChBody>(this->loadable)->Variables().IsActive())
         return;
 
     m_modulation->Update(time);
     m_scale = m_modulation->GetVal(time);
-    ChLoadCustom::Update(time, update_assets);
+    ChLoadCustom::Update(time, update_flags);
 }
 
 void ChLoadBodyForce::SetForce(const ChVector3d& force, bool is_local) {
@@ -126,13 +126,13 @@ void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mbody->ComputeNF(0, 0, 0, load_Q, detJ, mF, state_x, state_w);
 }
 
-void ChLoadBodyTorque::Update(double time, bool update_assets) {
+void ChLoadBodyTorque::Update(double time, UpdateFlags update_flags) {
     if (!std::dynamic_pointer_cast<ChBody>(this->loadable)->Variables().IsActive())
         return;
 
     m_modulation->Update(time);
     m_scale = m_modulation->GetVal(time);
-    ChLoadCustom::Update(time, update_assets);
+    ChLoadCustom::Update(time, update_flags);
 }
 
 void ChLoadBodyTorque::SetTorque(const ChVector3d& torque, bool is_local) {
@@ -388,10 +388,10 @@ void ChLoadBodyBodyTorque::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel
     loc_torque *= m_scale;
 }
 
-void ChLoadBodyBodyTorque::Update(double time, bool update_assets) {
+void ChLoadBodyBodyTorque::Update(double time, UpdateFlags update_flags) {
     m_modulation->Update(time);
     m_scale = m_modulation->GetVal(time);
-    ChLoadCustomMultiple::Update(time, update_assets);
+    ChLoadCustomMultiple::Update(time, update_flags);
 }
 
 // -----------------------------------------------------------------------------

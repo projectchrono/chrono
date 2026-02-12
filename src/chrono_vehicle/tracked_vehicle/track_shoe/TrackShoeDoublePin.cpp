@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeDoublePin.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -95,7 +95,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     }
     m_ground_geometry.materials = m_geometry.materials;
 
-    // Read geometric collison data
+    // Read geometric collision data
     int num_shapes = d["Contact"]["Shoe Shapes"].Size();
     assert(num_shapes > 0);
 
@@ -134,7 +134,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
                 m_ground_geometry.coll_cylinders.push_back(cylinder);
         } else if (type.compare("HULL") == 0) {
             std::string filename = shape["Filename"].GetString();
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile(filename), matID);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile(filename), matID);
             m_geometry.coll_hulls.push_back(hull);
             if (ground_geometry)
                 m_ground_geometry.coll_hulls.push_back(hull);
@@ -142,7 +142,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
             std::string filename = shape["Filename"].GetString();
             ChVector3d pos = ReadVectorJSON(shape["Location"]);
             double radius = shape["Contact Radius"].GetDouble();
-            utils::ChBodyGeometry::TrimeshShape mesh(pos, QUNIT, vehicle::GetDataFile(filename), 1.0, radius, matID);
+            utils::ChBodyGeometry::TrimeshShape mesh(pos, QUNIT, GetVehicleDataFile(filename), 1.0, radius, matID);
             m_geometry.coll_meshes.push_back(mesh);
             if (ground_geometry)
                 m_ground_geometry.coll_meshes.push_back(mesh);
@@ -153,7 +153,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
             std::string filename = d["Visualization"]["Mesh"].GetString();
-            m_geometry.vis_model_file = vehicle::GetDataFile(filename);
+            m_geometry.vis_model_file = GetVehicleDataFile(filename);
         }
 
         if (d["Visualization"].HasMember("Primitives")) {

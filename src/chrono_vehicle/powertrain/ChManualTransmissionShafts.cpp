@@ -22,7 +22,7 @@ namespace vehicle {
 ChManualTransmissionShafts::ChManualTransmissionShafts(const std::string& name) : ChManualTransmission(name) {}
 
 ChManualTransmissionShafts::~ChManualTransmissionShafts() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_motorshaft->GetSystem();
@@ -87,6 +87,8 @@ void ChManualTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassis) 
     m_gears->Initialize(m_clutchShaft, m_driveshaft, chassis->GetBody(), dir_transmissionblock);
     m_gears->SetTransmissionRatio(m_current_gear_ratio);
     sys->Add(m_gears);
+
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------
@@ -112,8 +114,7 @@ void ChManualTransmissionShafts::Synchronize(double time,
     // Clutch
     if (GetCurrentGear() == 0) {
         m_clutch->SetModulation(0.0);
-    }
-    else {
+    } else {
         m_clutch->SetModulation(1.0 - driver_inputs.m_clutch);
     }
 }
@@ -124,6 +125,17 @@ double ChManualTransmissionShafts::GetOutputDriveshaftTorque() const {
 
 double ChManualTransmissionShafts::GetOutputMotorshaftSpeed() const {
     return m_motorshaft->GetPosDt();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChManualTransmissionShafts::PopulateComponentList() {
+    m_shafts.push_back(m_motorshaft);
+    m_shafts.push_back(m_driveshaft);
+    m_shafts.push_back(m_transmissionblock);
+    m_shafts.push_back(m_clutchShaft);
+
+    m_couples.push_back(m_clutch);
 }
 
 }  // end namespace vehicle

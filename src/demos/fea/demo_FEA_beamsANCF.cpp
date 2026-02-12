@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
     sys.SetTimestepper(integrator);
 
     // Mesh properties
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "ANCF beam " + element_name,
-                                         ChVector3d(-0.4, 0.4, 0.4));
+                                         ChVector3d(-0.8, 0.8, 0.8));
 
     // Simulation loop
     while (vis->Run()) {

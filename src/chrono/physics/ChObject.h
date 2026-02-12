@@ -23,6 +23,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChUpdateFlags.h"
 
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChVisualModel.h"
@@ -32,7 +33,7 @@ namespace chrono {
 /// @addtogroup chrono_physics
 /// @{
 
-/// Base class for all Chrono objects. 
+/// Base class for all Chrono objects.
 /// Each object receives a unique identifier and can be named and/or tagged.
 class ChApi ChObj {
   public:
@@ -44,9 +45,9 @@ class ChApi ChObj {
     virtual ChObj* Clone() const = 0;
 
     /// Get the unique integer identifier of this object.
-    /// Object identifiers are generated automatically in incremental order based on the order in which objects are created.
-    /// These identifiers are transient and as such are not serialized.
-    /// However, user code can cache the identifier of any Chrono object and use it later (e.g., to search the item in a ChAssembly).
+    /// Object identifiers are generated automatically in incremental order based on the order in which objects are
+    /// created. These identifiers are transient and as such are not serialized. However, user code can cache the
+    /// identifier of any Chrono object and use it later (e.g., to search the item in a ChAssembly).
     int GetIdentifier() const { return m_identifier; }
 
     /// Set an object integer tag (default: -1).
@@ -117,7 +118,7 @@ class ChApi ChObj {
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
     /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
     /// only if requested).
-    virtual void Update(double time, bool update_assets);
+    virtual void Update(double time, UpdateFlags update_flags);
 
     /// Utility function to update only the associated visual assets (if any).
     void UpdateVisualModel();

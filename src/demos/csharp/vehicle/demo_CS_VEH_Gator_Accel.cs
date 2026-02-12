@@ -37,7 +37,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
             
             // Simulation step size
             double step_size = 1e-3;
@@ -97,17 +97,17 @@ namespace ChronoDemo
             var patch_mat = minfo.CreateMaterial(ChContactMethod.NSC);
 
             var patch1 = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(-25, 0, 0), chrono.QUNIT), 50.0, 20.0);
-            patch1.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
+            patch1.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 40);
             patch1.SetColor(new ChColor(0.8f, 0.8f, 0.5f));
 
             double s = Math.Sin(slope);
             double c = Math.Cos(slope);
             var patch2 = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(100 * c, 0, 100 * s), chrono.QuatFromAngleY(-slope)), 200.0, 20.0);
-            patch2.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
+            patch2.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 40);
             patch2.SetColor(new ChColor(0.8f, 0.5f, 0.8f));
 
             var patch3 = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(200 * c + 25, 0, 200 * s), chrono.QUNIT), 50.0, 20.0);
-            patch3.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
+            patch3.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 40);
             patch3.SetColor(new ChColor(0.8f, 0.8f, 0.5f));
 
             terrain.Initialize();

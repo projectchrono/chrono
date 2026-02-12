@@ -23,7 +23,6 @@
 #define CH_VEHCOSIM_TRACKED_MBS_NODE_H
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChBezierCurve.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -107,7 +106,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     virtual void PostAdvance(double step_size) {}
 
     /// Perform additional output at the specified frame (called from within OutputData).
-    /// For example, output mechanism-specific data for post-procesing.
+    /// For example, output mechanism-specific data for post-processing.
     virtual void OnOutputData(int frame) {}
 
     /// Apply the provided force to the specified track shoe body

@@ -1,0 +1,28 @@
+chrono-version: 9.0
+
+model:
+  name: water tank
+  physics_problem: CFD
+  geometry_type: CARTESIAN
+  angle_degrees: true
+ 
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+  
+  fluid_properties:
+    density: 1000.0
+    viscosity: 1.0
+    characteristic_length: 1.0
+
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 1.2
+
+  fluid_domain:
+    dimensions: [10, 10, 10]
+    box_origin: [0, 0, -10]
+    box_walls: 
+      x: [true, true]   # negative, positive
+      y: [true, true]   # negative, positive
+      z: [true, false]  # negative, positive

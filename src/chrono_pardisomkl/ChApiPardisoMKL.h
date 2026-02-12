@@ -30,7 +30,7 @@
 #endif
 
 /**
-    @defgroup pardisomkl_module Pardiso MKL module
+    @defgroup pardisomkl_module PARDISO-MKL module
     @brief Module for the Intel MKL library Pardiso direct solver
 
     This module provides an interface to the Pardiso parallel direct solver in the Intel MKL library.

@@ -32,6 +32,7 @@ namespace modal {
 class ChModalAssembly;
 }
 
+
 /// Base class for physics items that are part of a simulation.
 /// Such items (e.g., rigid bodies, joints, FEM meshes, etc.) can contain ChVariables or ChConstraints objects.
 class ChApi ChPhysicsItem : public ChObj {
@@ -70,7 +71,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// A derived class should invoke ChCollisionSystem::Remove for each of its collision models.
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {}
 
-    /// Synchronize the position and bounding box of any collsion models managed by this physics item.
+    /// Synchronize the position and bounding box of any collision models managed by this physics item.
     virtual void SyncCollisionModels() {}
 
     /// Get the axis-aligned bounding box (AABB) of this object.
@@ -94,7 +95,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
     /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
     /// only if requested).
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
@@ -122,7 +123,7 @@ class ChApi ChPhysicsItem : public ChObj {
     unsigned int GetOffset_x() { return offset_x; }
     /// Get offset in the state vector (speed part)
     unsigned int GetOffset_w() { return offset_w; }
-    /// Get offset in the lagrangian multipliers
+    /// Get offset in the Lagrange multipliers
     unsigned int GetOffset_L() { return offset_L; }
 
     /// Set offset in the state vector (position part)
@@ -131,7 +132,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Set offset in the state vector (speed part)
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_w(const unsigned int moff) { offset_w = moff; }
-    /// Set offset in the lagrangian multipliers
+    /// Set offset in the Lagrange multipliers
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_L(const unsigned int moff) { offset_L = moff; }
 
@@ -149,10 +150,10 @@ class ChApi ChPhysicsItem : public ChObj {
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
                                  const double T,            ///< time
-                                 bool full_update           ///< perform complete update
+                                 UpdateFlags update_flags    ///< perform complete update, or exclude visual assets, etc.
     ) {
         // Default behavior: even if no state is used, at least call Update()
-        Update(T, full_update);
+        Update(T, update_flags);
     }
 
     /// From item's state acceleration to global acceleration vector
@@ -366,7 +367,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
-    unsigned int offset_L;  ///< offset in vector of lagrangian multipliers
+    unsigned int offset_L;  ///< offset in vector of Lagrange multipliers
 
   private:
     virtual void SetupInitial() {}

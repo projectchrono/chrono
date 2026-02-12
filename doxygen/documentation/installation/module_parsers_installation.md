@@ -39,6 +39,11 @@ These scripts (`buildURDF.bat` and `buildURDF.sh`, for Windows and Linux, respec
 3. Run the script (`.\buildURDF.bat` or `sh buildURDF.sh`, as appropriate) from the location of the script copy. This will create a temporary directory where all source repositories will be cloned and a set of directories where the individual URDF dependencies are built.
 4. The install directory will contain, under `URDF_INSTALL_DIR/CMake` (on Windows) and under subdirectories `URDF_INSTALL_DIR/***/cmake` (on Linux)) all URDF CMake project configuration scripts required to configure Chrono with the Chrono::Parser module enabled.
 
+<div class="ce-warning">
+The Chrono YAML parser relies on the 3rd-party library `yaml-cpp` (included with the Chrono distribution).
+Due to a bug in yaml-cpp, this 3rd-party library cannot be built on Windows with a Visual Studio version **older than 2022**.
+If VS 2019 or older is detected, YAML support is disabled in the Chrono::Parsers module.
+</div>
 
 ## Building instructions
 

@@ -22,9 +22,8 @@
 #include "chrono/physics/ChExternalDynamicsDAE.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -351,6 +350,7 @@ void Test_pendulum2D_ODE(double L, double m, double t_end, double t_step, const 
     cout << "2D pendulum modeled as an ODE with 1 state and 0 constraints." << endl;
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto pendulum = chrono_types::make_shared<Pendulum2D_ODE>(L, m);
     pendulum->Initialize();
@@ -360,7 +360,7 @@ void Test_pendulum2D_ODE(double L, double m, double t_end, double t_step, const 
     ChVectorDynamic<> y(1);
     ChVectorDynamic<> yd(1);
 
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     y = pendulum->GetInitialStates();
     yd = pendulum->GetInitialStateDerivatives();
     csv << t << " " << L * std::cos(y(0)) << " " << L * std::sin(y(0)) << y(0) << " ";
@@ -394,6 +394,7 @@ void Test_pendulum2D_DAE(double L, double m, double t_end, double t_step, const 
     cout << "2D pendulum modeled as a DAE with 3 states and 2 constraints." << endl;
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto pendulum = chrono_types::make_shared<Pendulum2D_DAE>(L, m);
     pendulum->Initialize();
@@ -404,7 +405,7 @@ void Test_pendulum2D_DAE(double L, double m, double t_end, double t_step, const 
     ChVectorDynamic<> yd(3);
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     y = pendulum->GetInitialStates();
     yd = pendulum->GetInitialStateDerivatives();
     csv << t << y.format(rowFmt) << yd.format(rowFmt) << endl;
@@ -438,6 +439,7 @@ void Test_pendulum3D_DAE(double L, double m, double t_end, double t_step, const 
     cout << "3D pendulum modeled as a DAE with 7/6 states and 5 constraints." << endl;
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     auto pendulum = chrono_types::make_shared<Pendulum3D_DAE>(L, m);
     pendulum->Initialize();
@@ -448,7 +450,7 @@ void Test_pendulum3D_DAE(double L, double m, double t_end, double t_step, const 
     ChVectorDynamic<> yd(6);
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     y = pendulum->GetInitialStates();
     yd = pendulum->GetInitialStateDerivatives();
     csv << t << y.format(rowFmt) << yd.format(rowFmt) << endl;

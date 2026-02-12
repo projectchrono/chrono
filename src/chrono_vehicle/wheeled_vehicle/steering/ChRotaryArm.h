@@ -128,9 +128,7 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     std::shared_ptr<ChLinkMotorRotationAngle> m_revolute;  ///< handle to the chassis-arm revolute joint
 
   private:
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     // Flag indicating that the inertia matrices for the upright and control arms
     // are provided in vehicle-aligned centroidal frames

@@ -17,9 +17,9 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/feda/FEDA_Chassis.h"
 
@@ -70,7 +70,7 @@ FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("feda/meshes/feda_chassis.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("feda/meshes/feda_chassis.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -78,13 +78,13 @@ FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType ch
             m_geometry.coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("feda/meshes/feda_chassis_col.obj"), 0);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("feda/meshes/feda_chassis_col.obj"), 0);
             m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
             utils::ChBodyGeometry::TrimeshShape mesh(
-                VNULL, QUNIT, vehicle::GetDataFile("feda/meshes/feda_chassis_col.obj"), 1.0, 0.1, 0);
+                VNULL, QUNIT, GetVehicleDataFile("feda/meshes/feda_chassis_col.obj"), 1.0, 0.1, 0);
             m_geometry.coll_meshes.push_back(mesh);
             break;
         }

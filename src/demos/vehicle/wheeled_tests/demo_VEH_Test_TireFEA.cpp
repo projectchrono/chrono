@@ -17,17 +17,17 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/terrain/CRMTerrain.h"
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
@@ -41,8 +41,8 @@ using namespace chrono::irrlicht;
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-    #ifdef CHRONO_FSI
-        #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+    #ifdef CHRONO_FSI_SPH
+        #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
     #endif
 using namespace chrono::vsg3d;
 #endif
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
         hht->SetAlpha(-0.2);
         hht->SetMaxIters(5);
         hht->SetAbsTolerances(1e-2);
-        hht->SetModifiedNewton(true);
+        hht->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
         hht->SetStepControl(false);
         hht->SetMinStepSize(1e-4);
         ////hht->SetVerbose(true);
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     wheel->SetVisualizationType(VisualizationType::NONE);
 
     // Create the tire
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
     auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire);
     if (!tire_def) {
         cerr << "ERROR: Incorrect tire specification JSON file" << endl;
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     joint->Initialize(floor, spindle, ChFramed());
     sys.AddLink(joint);
 
-#ifndef CHRONO_FSI
+#ifndef CHRONO_FSI_SPH
     if (terrain_type == TerrainType::CRM) {
         cout << "CRM terrain not available (Chrono::FSI not enabled)." << endl;
         cout << "Revert to rigid terrain." << endl;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
             auto terrain_rigid = chrono_types::make_shared<RigidTerrain>(&sys);
             auto patch = terrain_rigid->AddPatch(mat, ChCoordsys<>(ChVector3d(0, 0, -radius - 0.01), QUNIT), 4 * radius,
                                                  4 * radius);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 10, 5);
+            patch->SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 10, 5);
             terrain_rigid->Initialize();
 
             terrain = terrain_rigid;
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case TerrainType::CRM: {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
             double spacing = 0.04;
             auto terrain_crm = chrono_types::make_shared<CRMTerrain>(sys, spacing);
             terrain_crm->SetGravitationalAcceleration(gacc);
@@ -278,10 +278,10 @@ int main(int argc, char* argv[]) {
             sph_params.initial_spacing = spacing;
             sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
             sph_params.d0_multiplier = 1;
-            sph_params.kernel_threshold = 0.8;
+            sph_params.free_surface_threshold = 2.0;
             sph_params.artificial_viscosity = 0.5;
-            sph_params.consistent_gradient_discretization = false;
-            sph_params.consistent_laplacian_discretization = false;
+            sph_params.use_consistent_gradient_discretization = false;
+            sph_params.use_consistent_laplacian_discretization = false;
             sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
             sph_params.boundary_method = BoundaryMethod::ADAMI;
             terrain_crm->SetSPHParameters(sph_params);
@@ -317,6 +317,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, -1.5, 0), VNULL);
+            vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
             vis = vis_irr;
 #endif
@@ -328,10 +329,10 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
 
-    #ifdef CHRONO_FSI
+    #ifdef CHRONO_FSI_SPH
             if (terrain_type == TerrainType::CRM) {
-                auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetSystemFSI();
-                auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetFsiSystemSPH();
+                auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
                 visFSI->EnableFluidMarkers(true);
                 visFSI->EnableBoundaryMarkers(false);
                 visFSI->EnableRigidBodyMarkers(false);
@@ -350,6 +351,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
+            vis_vsg->SetContactNormalsVisibility(true, -1);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -364,7 +366,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    utils::ChWriterCSV csv;
+    ChWriterCSV csv;
     csv.SetDelimiter(" ");
 
     // Simulation loop

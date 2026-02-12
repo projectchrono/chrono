@@ -135,6 +135,12 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Note that a tire is associated with a wheel only during initialization.
     std::shared_ptr<ChWheel> GetWheel() const { return m_wheel; }
 
+    /// Checkpoint the state of this tire to the given checkpint file.
+    virtual void ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {}
+
+    /// Initialize this tire from the given checkpoint file.
+    virtual void ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) {}
+
   public:
     // NOTE: Typically, users should not directly call these functions. They are public for use in special cases and to
     // allow extensions to Chrono::Vehicle in user code.

@@ -9,8 +9,6 @@
 %{
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #include "chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
@@ -22,9 +20,6 @@ using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace irr::scene; // This is inserted for the extend functions that use it
 
-// InteractiveDriver includes
-#include "chrono_vehicle/driver/ChInteractiveDriver.h"
-
 %}
 
 // Expose for both python and csharp
@@ -33,11 +28,6 @@ using namespace irr::scene; // This is inserted for the extend functions that us
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
 
 #ifdef SWIGCSHARP
-
-    // InteractiveDriverIRR
-    %include "../../../chrono/core/ChBezierCurve.h"
-    %import "ChDriver.i" // make SWIG aware of the ChDriver interface file
-    %shared_ptr(chrono::vehicle::ChInteractiveDriver)
 
     %ignore chrono::vehicle::ChJoystickAxisIRR; // Ignore this for now Using an alias enum, SWIG can't translate the irr namespace right.
 
@@ -67,12 +57,10 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     // Extending the missing functions is a workaround
     //
 
-    // Visual Systems, in SWIG order, 1- ChVehicleVisualSystem, 2- ChVehicleVisualSystemIrrlicht, 3 - ChVisualSystemIrrlicht
-    %include "../../../chrono_vehicle/ChVehicleVisualSystem.h"  
+    // Visual Systems, in SWIG order, 1- ChVehicleVisualSystem (in base ChModuleVehicle.i), 2- ChVisualSystemIrrlicht, 3- ChVehicleVisualSystemIrrlicht
+    // Ensure both base classes are fully defined before the derived MI class to avoid incomplete base warnings in C#.
+    %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
-    %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"    
-
-    %include "../../../chrono_vehicle/driver/ChInteractiveDriver.h"
 
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -142,7 +130,6 @@ using namespace irr::scene; // This is inserted for the extend functions that us
 // Separate out existing Python
 #ifdef SWIGPYTHON
     // Set up shared pointers prior to header inclusions
-    %shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
     %shared_ptr(chrono::vehicle::ChVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChTrackedVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht)
@@ -154,13 +141,6 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h"
-    %include "../../../chrono_vehicle/ChVehicle.h"
-    %include "../../../chrono_vehicle/ChDriver.h"
-    %include "../../../chrono_vehicle/driver/ChDataDriver.h"
-    %include "../../../chrono/core/ChBezierCurve.h"
-    %include "../../../chrono_vehicle/driver/ChInteractiveDriver.h"
-
-    %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"    
 
     //%DefSharedPtrDynamicCast2NS(chrono::irrlicht, chrono::vehicle, ChVisualSystemIrrlicht, ChVehicleVisualSystemIrrlicht)
     //%DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChVehicleVisualSystemIrrlicht)

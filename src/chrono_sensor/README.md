@@ -24,7 +24,7 @@ Current Tested Systems:
  - openGL (required)
  - TensorRT (optional)
      - tested with TensorRT 7.0.0
-     - need to explicitly enable TensorRT in cmake by setting CH_USE_TENSOR_RT=ON (default: USE_TENSOR_RT=OFF)
+     - need to explicitly enable TensorRT in cmake by setting CH_USE_SENSOR_TENSORRT=ON (default: OFF)
 
 ## CMake and Build Notes
  - consult the Chrono documentation for build instructions.

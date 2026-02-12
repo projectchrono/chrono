@@ -30,9 +30,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSystemNSC)
 
 ChSystemNSC::ChSystemNSC(const std::string& name) : ChSystem(name) {
-    // Set the system descriptor
-    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-
     // Set default solver
     SetSolverType(ChSolver::Type::PSOR);
 

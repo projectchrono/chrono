@@ -45,13 +45,13 @@ def main():
     m113.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     m113.Initialize()
 
-    m113.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    m113.SetSprocketVisualizationType(veh.VisualizationType_MESH);
-    m113.SetIdlerVisualizationType(veh.VisualizationType_MESH);
-    m113.SetIdlerWheelVisualizationType(veh.VisualizationType_MESH);
-    m113.SetSuspensionVisualizationType(veh.VisualizationType_MESH);
-    m113.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
-    m113.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
+    m113.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+    m113.SetSprocketVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetIdlerVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetIdlerWheelVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetSuspensionVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetRoadWheelVisualizationType(chrono.VisualizationType_MESH);
+    m113.SetTrackShoeVisualizationType(chrono.VisualizationType_MESH);
 
     m113.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -71,7 +71,7 @@ def main():
     patch = terrain.AddPatch(patch_mat, 
                              chrono.CSYSNORM, 
                              terrainLength, terrainWidth)
-    patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+    patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.5, 0.8, 0.5))
     terrain.Initialize()
     
@@ -144,13 +144,6 @@ def main():
 
     return 0
 
-
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 1.1)

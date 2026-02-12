@@ -16,11 +16,6 @@ import pychrono.irrlicht as chronoirr
 
 print ("Example: demonstration of collisions and contacts")
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('relative/path/to/data/directory/')
-
 def AddFallingItems(sys):
     # Shared contact materials for falling objects
     sph_mat = chrono.ChContactMaterialNSC()
@@ -124,6 +119,7 @@ def AddContainer(sys):
 
 #  Create the simulation sys and add items
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 mixer = AddContainer(sys)

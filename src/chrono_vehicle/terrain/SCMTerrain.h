@@ -255,7 +255,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Initialize the terrain system (height map).
     /// The initial undeformed terrain profile is provided via the specified image file as a height map.
     /// The terrain patch is scaled in the horizontal plane of the SCM frame to sizeX x sizeY, while the initial height
-    /// is scaled between hMin and hMax (with the former corresponding to a pure balck pixel and the latter to a pure
+    /// is scaled between hMin and hMax (with the former corresponding to a pure black pixel and the latter to a pure
     /// white pixel).  The SCM grid resolution is specified through 'delta' and initial heights at grid points are
     /// obtained through interpolation (outside the terrain patch, the SCM node height is initialized to the height of
     /// the closest image pixel). For visualization purposes, a triangular mesh is also generated from the provided
@@ -301,12 +301,12 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<NodeLevel>& nodes);
 
-    /// Return the cummulative contact force on the specified body  (due to interaction with the SCM terrain).
+    /// Return the cumulative contact force on the specified body  (due to interaction with the SCM terrain).
     /// The return value is true if the specified body experiences contact forces and false otherwise.
     /// If contact forces are applied to the body, they are reduced to the body center of mass.
     bool GetContactForceBody(std::shared_ptr<ChBody> body, ChVector3d& force, ChVector3d& torque) const;
 
-    /// Return the cummulative contact force on the specified mesh node (due to interaction with the SCM terrain).
+    /// Return the cumulative contact force on the specified mesh node (due to interaction with the SCM terrain).
     /// The return value is true if the specified node experiences contact forces and false otherwise.
     bool GetContactForceNode(std::shared_ptr<fea::ChNodeFEAxyz> node, ChVector3d& force) const;
 
@@ -323,7 +323,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     double GetTimerActiveDomains() const;
     /// Return time for geometric ray intersection tests at last step (ms).
     double GetTimerRayTesting() const;
-    /// Return time for ray casting at last step (ms). Includes time for ray intersectin testing.
+    /// Return time for ray casting at last step (ms). Includes time for ray intersection testing.
     double GetTimerRayCasting() const;
     /// Return time for computing contact patches at last step (ms).
     double GetTimerContactPatches() const;
@@ -350,7 +350,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 /// Parameters for soil-contactable interaction.
 class CH_VEHICLE_API SCMContactableData {
   public:
-    SCMContactableData(double area_ratio,     ///< area fraction with overriden parameters (in [0,1])
+    SCMContactableData(double area_ratio,     ///< area fraction with overridden parameters (in [0,1])
                        double Mohr_cohesion,  ///< cohesion for shear failure [Pa]
                        double Mohr_friction,  ///< friction angle for shear failure [degree]
                        double Janosi_shear    ///< shear parameter in Janosi-Hanamoto formula [m]
@@ -506,15 +506,15 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Update the forces and the geometry, at the beginning of each timestep.
     virtual void Setup() override {
         ComputeInternalForces();
-        ChLoadContainer::Update(ChTime, true);
+        ChLoadContainer::Update(ChTime, UpdateFlags::UPDATE_ALL);
     }
 
-    virtual void Update(double time, bool update_assets) override {
+    virtual void Update(double time, UpdateFlags update_flags) override {
         // Note!!! we cannot call ComputeInternalForces here, because Update() could
         // be called multiple times per timestep and not necessarily in time-increasing order;
         // this is a problem because in this force model the force is dissipative and keeps a 'history'.
         // Instead, we invoke ComputeInternalForces only at the beginning of the timestep in Setup().
-        ChPhysicsItem::Update(time, update_assets);
+        ChPhysicsItem::Update(time, update_flags);
     }
 
     // Synchronize information for a user-provided active domain.

@@ -557,15 +557,15 @@ void ChTrackCustomContact::Setup() {
     ApplyForces();
 
     // Perform a full update of the load container
-    ChLoadContainer::Update(ChTime, false);
+    ChLoadContainer::Update(ChTime, UpdateFlags::UPDATE_ALL);
 }
 
-void ChTrackCustomContact::Update(double time, bool update_assets) {
+void ChTrackCustomContact::Update(double time, UpdateFlags update_flags) {
     // Note: since Update could be called multiple times per time step, we do not invoke the
     // callback function here to calculate custom contact forces (since they are based on collision
     // detection information which only occurs once per time step). Instead, we do this in Setup.
     // We still override this function to prevent unnecessary calculations in the base class Update.
-    ChPhysicsItem::Update(time, update_assets);
+    ChPhysicsItem::Update(time, update_flags);
 }
 
 void ChTrackCustomContact::ApplyForces() {

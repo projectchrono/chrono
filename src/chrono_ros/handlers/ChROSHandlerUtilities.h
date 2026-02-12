@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
 // Utilities useful for all ROS handlers
@@ -32,22 +32,31 @@ namespace ros {
 /// @addtogroup ros_handlers
 /// @{
 
-/// Utility class with static functions that may be useful for ROS handlers
+// =============================================================================
+// UTILITY CLASS (no IPC needed)
+// =============================================================================
+
+/// Utility class with static helper functions for ROS handlers.
+/// These functions are used by both main process and subprocess handlers.
+/// No IPC support needed - these are pure utility functions.
 class CH_ROS_API ChROSHandlerUtilities {
   public:
-    /// Constructs a builtin_interfaces::msg::Time (helpful for std_msgs::msg::Header::stamp) msg from the current
-    /// simulation time
-    /// @param elapsed_time_s the current elapsed simulation time in seconds
+    /// Convert Chrono simulation time to ROS timestamp
+    /// Used when creating ROS message headers
+    /// @param elapsed_time_s Simulation time in seconds
+    /// @return ROS timestamp message
     static builtin_interfaces::msg::Time GetROSTimestamp(double elapsed_time_s);
 
-    /// Converts a builtin_interfaces::msg::Time to a chrono time
-    /// @param time the builtin_interfaces::msg::Time to convert
+    /// Convert ROS timestamp to Chrono simulation time
+    /// @param time ROS timestamp message
+    /// @return Simulation time in seconds
     static double GetChronoTime(const builtin_interfaces::msg::Time& time);
 
-    /// Constructs a relative topic name given variable number of inputs. A relative topic name, when used to construct
-    /// a ROS entity (publisher, subscription, etc.), is resolved to map to the node namespace. Using a relative topic
-    /// name is recommended as then all topics attached to the node are prepended with a like namespace. Usage:
-    /// BuildRelativeTopicName("sensing", "camera", "front", "rgb") constructs "~/sensing/camera/front/rgb"
+    /// Construct a relative topic name from path components
+    /// Relative topic names start with "~/" and are resolved to the node namespace
+    /// Example: BuildRelativeTopicName("sensing", "camera", "rgb") → "~/sensing/camera/rgb"
+    /// @param args Variable number of path components
+    /// @return Relative topic name string
     template <typename... Args>
     static std::string BuildRelativeTopicName(Args&&... args) {
         std::stringstream ss;
@@ -56,8 +65,10 @@ class CH_ROS_API ChROSHandlerUtilities {
         return ss.str();
     }
 
-    /// Checks the passed topic name is resolvable. Refer to the ROS documentation for information regarding what
-    /// defines a qualified topic name.
+    /// Validate that a topic name is valid according to ROS naming rules
+    /// @param interface ROS interface with node context
+    /// @param topic_name Topic name to validate
+    /// @return true if valid, false otherwise
     static bool CheckROSTopicName(std::shared_ptr<ChROSInterface> interface, const std::string& topic_name);
 };
 

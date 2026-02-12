@@ -39,7 +39,7 @@ namespace ChronoDemo
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+            chrono_vehicle.SetVehicleDataPath(CHRONO_VEHICLE_DATA_DIR);
             
             // Rigid terrain dimensions
             double terrainLength = 300.0;  // size in X direction
@@ -93,7 +93,7 @@ namespace ChronoDemo
             {
                 var patch = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(terrainLength * i, 0, 0), chrono.QUNIT), terrainLength, 5);
                 patch.SetColor(new ChColor(0.8f, 0.8f, 0.5f));
-                patch.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
+                patch.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 5);
             }
             terrain.Initialize();
 

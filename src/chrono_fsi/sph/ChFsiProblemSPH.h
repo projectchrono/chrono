@@ -20,6 +20,7 @@
 #define CH_FSI_PROBLEM_SPH_H
 
 #include <cmath>
+#include <cstdint>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -30,7 +31,7 @@
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiSplashsurfSPH.h"
-#include "chrono_fsi/sph/physics/FsiParticleRelocator.cuh"
+#include "chrono_fsi/sph/physics/SphParticleRelocator.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -45,14 +46,17 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Enable verbose output during construction of ChFsiProblemSPH (default: false).
     void SetVerbose(bool verbose);
 
+    /// Attach Chrono MBS system.
+    void AttachMultibodySystem(ChSystem* sys);
+
     /// Access the underlying FSI system.
-    ChFsiSystemSPH& GetSystemFSI() { return m_sysFSI; }
+    std::shared_ptr<ChFsiSystemSPH> GetFsiSystemSPH() { return m_sysFSI; }
 
     /// Access the underlying SPH system.
-    ChFsiFluidSystemSPH& GetFluidSystemSPH() { return m_sysSPH; }
+    std::shared_ptr<ChFsiFluidSystemSPH> GetFluidSystemSPH() { return m_sysSPH; }
 
     /// Access the underlying MBS system.
-    ChSystem& GetMultibodySystem() { return m_sysFSI.GetMultibodySystem(); }
+    ChSystem& GetMultibodySystem() { return m_sysFSI->GetMultibodySystem(); }
 
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& fluid_props);
@@ -98,11 +102,11 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Return the number of BCE markers associated with the specified rigid body.
     size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
 
-    /// Enable/disable use of node directions when assigning BCE locations on FEA elements.
+    /// Enable use and set method of obtaining FEA node directions for generating FEA BCE marker location.
     /// By default, node directions are not used, resulting in linear interpolation between nodes.
-    /// If enabled, node direction vectors (average of adjacent segment directions or average of face normals) are used,
-    /// resulting in a piecewise cubic Bezier interpolation.
-    void UseNodeDirections(bool val);
+    /// If enabled, exact node direction vectors are received from the FEA solver (NodeDirectionsMode::EXACT), or else
+    /// approximated as averages of directions from elements incident to the node.
+    void UseNodeDirections(NodeDirectionsMode mode);
 
     /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh.
     /// By default, a full set of BCE markers is used across each section, including a central marker.
@@ -125,7 +129,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
       public:
-        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL) {}
+        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL), pre_pressure_scale0(1.01) {}
         ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
         virtual ~ParticlePropertiesCallback() {}
 
@@ -137,12 +141,14 @@ class CH_FSI_API ChFsiProblemSPH {
             rho0 = sysSPH.GetDensity();
             mu0 = sysSPH.GetViscosity();
             v0 = VNULL;
+            pre_pressure_scale0 = 1.01;
         }
 
         double p0;
         double rho0;
         double mu0;
         ChVector3d v0;
+        double pre_pressure_scale0;
     };
 
     /// Register a callback for setting SPH particle initial properties.
@@ -151,14 +157,14 @@ class CH_FSI_API ChFsiProblemSPH {
     }
 
     /// Set gravitational acceleration for both multibody and fluid systems.
-    void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI.SetGravitationalAcceleration(gravity); }
+    void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI->SetGravitationalAcceleration(gravity); }
 
     /// Set integration step size for fluid dynamics.
-    void SetStepSizeCFD(double step) { m_sysFSI.SetStepSizeCFD(step); }
+    void SetStepSizeCFD(double step) { m_sysFSI->SetStepSizeCFD(step); }
 
     /// Set integration step size for multibody dynamics.
     /// If a value is not provided, the MBS system is integrated with the same step used for fluid dynamics.
-    void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
+    void SetStepsizeMBD(double step) { m_sysFSI->SetStepsizeMBD(step); }
 
     /// Explicitly set the computational domain limits.
     /// By default, this encompasses all SPH and BCE markers with no boundary conditions imposed in any direction.
@@ -170,7 +176,11 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Complete construction of the FSI problem and initialize the FSI system.
     /// After this call, no additional solid bodies should be added to the FSI problem.
-    void Initialize();
+    virtual void Initialize();
+
+    /// Print the FSI statistics
+    void PrintStats() const;
+    void PrintTimeSteps(const std::string& path) const;
 
     /// Advance the dynamics of the underlying FSI system by the specified step.
     void DoStepDynamics(double step);
@@ -204,10 +214,10 @@ class CH_FSI_API ChFsiProblemSPH {
     const ChVector3d& GetFsiBodyTorque(std::shared_ptr<ChBody> body) const;
 
     /// Get current estimated RTF (real time factor) for the fluid system.
-    double GetRtfCFD() const { return m_sysSPH.GetRtf(); }
+    double GetRtfCFD() const { return m_sysSPH->GetRtf(); }
 
     /// Get current estimated RTF (real time factor) for the multibody system.
-    double GetRtfMBD() const { return m_sysFSI.GetMultibodySystem().GetRTF(); }
+    double GetRtfMBD() const { return m_sysFSI->GetMultibodySystem().GetRTF(); }
 
     /// Set SPH simulation data output level (default: STATE_PRESSURE).
     /// Options:
@@ -235,22 +245,34 @@ class CH_FSI_API ChFsiProblemSPH {
     /// See ChFsiSplashsurfSPH.
     void WriteReconstructedSurface(const std::string& dir, const std::string& name, bool quiet = false);
 
-    PhysicsProblem GetPhysicsProblem() const { return m_sysSPH.GetPhysicsProblem(); }
-    std::string GetPhysicsProblemString() const { return m_sysSPH.GetPhysicsProblemString(); }
-    std::string GetSphIntegrationSchemeString() const { return m_sysSPH.GetSphIntegrationSchemeString(); }
+    PhysicsProblem GetPhysicsProblem() const { return m_sysSPH->GetPhysicsProblem(); }
+    std::string GetPhysicsProblemString() const { return m_sysSPH->GetPhysicsProblemString(); }
+    std::string GetSphIntegrationSchemeString() const { return m_sysSPH->GetSphIntegrationSchemeString(); }
+
+    void SetActiveDomain(const ChVector3d& box_dim) { m_sysSPH->SetActiveDomain(box_dim); }
 
   protected:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemSPH(ChSystem& sys, double spacing);
+    ChFsiProblemSPH(double spacing, ChSystem* sys = nullptr);
 
     /// Hash function for a 3D integer grid coordinate.
+    static inline std::uint64_t mix64(std::uint64_t x) {
+        x += 0x9e3779b97f4a7c15ULL;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+        return x ^ (x >> 31);
+    }
     struct CoordHash {
-        std::size_t operator()(const ChVector3i& p) const {
-            size_t h1 = std::hash<int>()(p.x());
-            size_t h2 = std::hash<int>()(p.y());
-            size_t h3 = std::hash<int>()(p.z());
-            return (h1 ^ (h2 << 1)) ^ h3;
+        std::size_t operator()(const ChVector3i& p) const noexcept {
+            // Pack the three ints into 64-bit lanes; mix each, then combine.
+            std::uint64_t x = static_cast<std::uint32_t>(p.x());
+            std::uint64_t y = static_cast<std::uint32_t>(p.y());
+            std::uint64_t z = static_cast<std::uint32_t>(p.z());
+            std::uint64_t h = mix64(x);
+            h ^= mix64(y) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+            h ^= mix64(z) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+            return static_cast<std::size_t>(h);
         }
     };
 
@@ -285,25 +307,26 @@ class CH_FSI_API ChFsiProblemSPH {
     void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest);
     void ForceProximitySearch();
 
-    ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
-    ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
-    ChFsiSplashsurfSPH m_splashsurf;   ///< surface reconstructor
-    double m_spacing;                  ///< particle and marker spacing
-    std::shared_ptr<ChBody> m_ground;  ///< ground body
-    GridPoints m_sph;                  ///< SPH particle grid locations
-    GridPoints m_bce;                  ///< boundary BCE marker grid locations
-    ChVector3d m_offset_sph;           ///< SPH particles offset
-    ChVector3d m_offset_bce;           ///< boundary BCE particles offset
-    ChAABB m_domain_aabb;              ///< computational domain bounding box
-    BoundaryConditions m_bc_type;      ///< boundary conditions in each direction
-    ChAABB m_sph_aabb;                 ///< SPH volume bounding box
+    std::shared_ptr<ChFsiFluidSystemSPH> m_sysSPH;     ///< underlying Chrono SPH system
+    std::shared_ptr<ChFsiSystemSPH> m_sysFSI;          ///< underlying Chrono FSI system
+    ChSystem* m_sysMBS;                                ///< associated MBS system
+    std::shared_ptr<ChFsiSplashsurfSPH> m_splashsurf;  ///< surface reconstructor
+    double m_spacing;                                  ///< particle and marker spacing
+    std::shared_ptr<ChBody> m_ground;                  ///< ground body
+    GridPoints m_sph;                                  ///< SPH particle grid locations
+    GridPoints m_bce;                                  ///< boundary BCE marker grid locations
+    ChVector3d m_offset_sph;                           ///< SPH particles offset
+    ChVector3d m_offset_bce;                           ///< boundary BCE particles offset
+    ChAABB m_domain_aabb;                              ///< computational domain bounding box
+    BoundaryConditions m_bc_type;                      ///< boundary conditions in each direction
+    ChAABB m_sph_aabb;                                 ///< SPH volume bounding box
 
     std::unordered_map<std::shared_ptr<ChBody>, size_t>
         m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 
-    std::unique_ptr<FsiParticleRelocator> m_relocator;
+    std::unique_ptr<SphParticleRelocator> m_relocator;
 
     bool m_verbose;      ///< if true, write information to standard output
     bool m_initialized;  ///< if true, problem was initialized
@@ -318,15 +341,17 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
   public:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemCartesian(ChSystem& sys, double spacing);
+    ChFsiProblemCartesian(double spacing, ChSystem* sys = nullptr);
 
     /// Construct using information from the specified files.
     /// The SPH particle and BCE marker locations are assumed to be provided on an integer grid.
     /// Locations in real space are generated using the specified grid separation value and the
     /// patch translated to the specified position.
-    void Construct(const std::string& sph_file,  ///< filename with SPH grid particle positions
-                   const std::string& bce_file,  ///< filename with BCE grid marker positions
-                   const ChVector3d& pos         ///< reference position
+    void Construct(const std::string& sph_file,      ///< filename with SPH grid particle positions
+                   const std::string& bce_file,      ///< filename with BCE grid marker positions
+                   const ChVector3d& pos,            ///< reference position,
+                   bool use_grid_coordinates = true  ///< if true, uses the data in the file as integer grid
+                                                     ///< coordinates, otherwise uses physical positions
     );
 
     /// Construct SPH particles and optionally BCE markers in a box of given dimensions.
@@ -384,7 +409,7 @@ class CH_FSI_API ChFsiProblemWavetank : public ChFsiProblemCartesian {
 
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemWavetank(ChSystem& sys, double spacing);
+    ChFsiProblemWavetank(double spacing, ChSystem* sys = nullptr);
 
     /// Interface for callback to specify wave tank profile.
     class CH_FSI_API Profile {
@@ -412,10 +437,18 @@ class CH_FSI_API ChFsiProblemWavetank : public ChFsiProblemCartesian {
                                               std::shared_ptr<ChFunction> actuation  ///< actuation function
     );
 
+    /// Complete construction of the FSI problem and initialize the FSI system.
+    /// After this call, no additional solid bodies should be added to the FSI problem.
+    virtual void Initialize() override;
+
   private:
     bool m_periodic_BC;
     bool m_end_wall;
     std::shared_ptr<Profile> m_profile;
+    std::shared_ptr<ChBody> m_wavemaker_body;
+    std::shared_ptr<ChLinkMotor> m_wavemaker_motor;
+    ChVector3d m_wavemaker_size;
+    ChVector3d m_wavemaker_pos;
 };
 
 // ----------------------------------------------------------------------------
@@ -425,7 +458,7 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
   public:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
-    ChFsiProblemCylindrical(ChSystem& sys, double spacing);
+    ChFsiProblemCylindrical(double spacing, ChSystem* sys = nullptr);
 
     /// Construct SPH particles and optionally BCE markers in a cylindrical annulus of given dimensions.
     /// Set inner radius to zero to create a cylindrical container.

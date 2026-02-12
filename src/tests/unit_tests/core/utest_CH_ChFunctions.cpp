@@ -15,6 +15,7 @@
 // Unit test for ChFunctions
 //
 // =============================================================================
+
 #include <cmath>
 
 #include "gtest/gtest.h"

@@ -32,8 +32,6 @@ throttle_value = 0.3
 
 # =============================================================================
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Create the HMMWV vehicle
 hmmwv = veh.HMMWV_Full()
 hmmwv.SetContactMethod(chrono.ChContactMethod_SMC)
@@ -47,11 +45,11 @@ hmmwv.SetTireType(veh.TireModelType_TMEASY)
 hmmwv.SetTireStepSize(step_size)
 hmmwv.Initialize()
 
-hmmwv.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
-hmmwv.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
+hmmwv.SetChassisVisualizationType(chrono.VisualizationType_PRIMITIVES)
+hmmwv.SetSuspensionVisualizationType(chrono.VisualizationType_PRIMITIVES)
+hmmwv.SetSteeringVisualizationType(chrono.VisualizationType_PRIMITIVES)
+hmmwv.SetWheelVisualizationType(chrono.VisualizationType_NONE)
+hmmwv.SetTireVisualizationType(chrono.VisualizationType_PRIMITIVES)
 
 hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -64,7 +62,7 @@ patch_mat = minfo.CreateMaterial(hmmwv.GetSystem().GetContactMethod())
 terrain = veh.RigidTerrain(hmmwv.GetSystem())
 patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 200)
 patch.SetColor(chrono.ChColor(1, 1, 1))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
 
 # Left circle path

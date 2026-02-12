@@ -50,6 +50,7 @@ TEST(SensorInterface, sensors) {
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    ////manager->SetVerbose(true);
 
     auto camera = chrono_types::make_shared<ChCameraSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1);
     camera->SetLag(0.f);
@@ -109,6 +110,7 @@ TEST(SensorInterface, shapes) {
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    ////manager->SetVerbose(true);
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector3d(0, 0, 0), QUNIT),
                                                           1, 1, 0, 0, 0, 100);
@@ -204,7 +206,6 @@ TEST(SensorInterface, mesh_channels) {
 
     auto triangle_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     triangle_shape->SetMesh(triangle);
-    triangle_shape->SetMutable(false);
 
     auto tri_body = chrono_types::make_shared<ChBodyAuxRef>();
     tri_body->SetFrameRefToAbs(ChFrame<>());
@@ -213,6 +214,7 @@ TEST(SensorInterface, mesh_channels) {
     sys.Add(tri_body);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    ////manager->SetVerbose(true);
     auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector3d(0, 0, 0), QUNIT),
                                                           1, 1, 0, 0, 0, 100);
     lidar->SetLag(0.f);

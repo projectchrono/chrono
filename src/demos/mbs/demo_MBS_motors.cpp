@@ -116,6 +116,7 @@ int main(int argc, char* argv[]) {
             sys = new ChSystemNSC;
             break;
     }
+    sys->SetGravityY();
     sys->SetCollisionSystemType(collision_type);
 
     // Contact material shared among all objects
@@ -793,9 +794,6 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(1, 3, -7));
-            vis_irr->AddLightWithShadow(ChVector3d(20.0, 35.0, -25.0), ChVector3d(0, 0, 0), 55, 20, 55, 35, 512,
-                                        ChColor(0.6f, 0.8f, 1.0f));
-            vis_irr->EnableShadows();
 
             vis = vis_irr;
 #endif
@@ -809,8 +807,6 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Motors");
             vis_vsg->AddCamera(ChVector3d(4.5, 4.5, -10.5));
             vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);

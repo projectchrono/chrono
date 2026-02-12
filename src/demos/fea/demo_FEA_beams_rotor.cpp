@@ -9,12 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// FEA nonlinear static analysis of 3D beams, including centrifugal effect.
+// FEA nonlinear static static_analysis of 3D beams, including centrifugal effect
 //
 // =============================================================================
+
+#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkLock.h"
@@ -37,7 +39,14 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::postprocess;
 
+// -----------------------------------------------------------------------------
+
+enum class BeamElementType { EULER, IGA, TIMOSHENKO };
+BeamElementType beam_type = BeamElementType::TIMOSHENKO;
+
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -50,9 +59,6 @@ int main(int argc, char* argv[]) {
     double beam_Rmin = 0.2;
     double rad_s = 3;
     ChVector3d tip_abs_force(0, 0, -36.4);  // for uniform rotation use only z value
-    bool use_euler = true;
-    bool use_iga = false;
-    bool use_timoshenko = false;
 
     // Directory for output data
     const std::string out_dir = GetChronoOutputPath() + "BEAM_ROTOR";
@@ -61,183 +67,181 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    //
+    // --------------------------
     // CREATE THE MODEL
-    //
+    // --------------------------
 
     // Create a Chrono physical system
     ChSystemNSC sys;
 
-    // BODY: the base & tower:
+    // Use MKL Pardiso solver
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    sys.SetSolver(mkl_solver);
 
-    auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(10, 2, 10, 3000);
-    my_body_A->SetFixed(true);
-    my_body_A->SetPos(ChVector3d(0, -10, 0));
-    sys.Add(my_body_A);
-
-    // Attach a 'cylinder' shape asset for visualization of the tower.
-    auto mtower = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 9.0);
-    my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector3d(0, 5.5, 0), QuatFromAngleX(CH_PI_2)));
-
-    // BODY: the rotating hub:
-
-    auto my_body_hub = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.2, 0.5, 1000);
-    my_body_hub->SetPos(ChVector3d(0, 0, 1));
-    my_body_hub->SetRot(QuatFromAngleX(CH_PI_2));
-    sys.Add(my_body_hub);
-
-    // CONSTRAINT: the hub of the motor.
-
-    // Since we are going to ue the DoStaticNonlinearRheonomic analysis, we must use
-    // a motor that imposes a speed (so, motor imposing torques are not fit). Hence:
-
-    if (false) {
-        // WARNING! the ChLinkMotorRotationSpeed introduces an aux state that cannot be solved via static analysis
-        // functions!!!
-        auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector3d(0, 0, 1)));
-        auto my_speed = chrono_types::make_shared<ChFunctionConst>(rad_s);  // rad/s
-        my_motor->SetSpeedFunction(my_speed);
-        sys.Add(my_motor);
-    } else {
-        auto my_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-        my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector3d(0, 0, 1)));
-        auto my_angle = chrono_types::make_shared<ChFunctionRamp>(0, rad_s);  // alpha_0, dalpha/dt (in rad/s)
-        my_motor->SetAngleFunction(my_angle);
-        sys.Add(my_motor);
+    // Use HHT integrator
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
+        // mystepper->SetVerbose(true);
+        mystepper->SetStepControl(false);
     }
 
-    // MESH:  Create a FEM mesh, that is a container for groups
-    //        of elements and their referenced nodes.
+    // Base and tower body
+    auto tower = chrono_types::make_shared<ChBodyEasyBox>(10, 2, 10, 3000);
+    tower->SetFixed(true);
+    tower->SetPos(ChVector3d(0, -10, 0));
+    sys.Add(tower);
 
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
-    sys.Add(my_mesh);
+    // Attach a cylinder shape asset for visualization of the tower
+    auto tower_shape = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 9.0);
+    tower->AddVisualShape(tower_shape, ChFrame<>(ChVector3d(0, 5.5, 0), QuatFromAngleX(CH_PI_2)));
+
+    // Rotating hub
+    auto hub = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.2, 0.5, 1000);
+    hub->SetPos(ChVector3d(0, 0, 1));
+    hub->SetRot(QuatFromAngleX(CH_PI_2));
+    sys.Add(hub);
+
+    // Hub motor
+    // Since we are going to ue the DoStaticNonlinearRheonomic static_analysis, we must use
+    // a motor that imposes a speed (so, motor imposing torques are not fit). Hence:
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+    motor->Initialize(hub, tower, ChFrame<>(ChVector3d(0, 0, 1)));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, rad_s));
+    sys.Add(motor);
+
+    // FEA mesh
+    auto fea_mesh = chrono_types::make_shared<ChMesh>();
+    sys.Add(fea_mesh);
 
     // no gravity used here
     sys.SetGravitationalAcceleration(VNULL);
-    my_mesh->SetAutomaticGravity(false);
+    fea_mesh->SetAutomaticGravity(false);
 
-    // BEAMS:
-
+    // FEA beams
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes;
+    switch (beam_type) {
+        case BeamElementType::EULER: {
+            // Create a simplified section, i.e. thickness and material properties
+            // for beams. This will be shared among some beams.
+            auto section = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
-    if (use_euler) {
-        // Create a simplified section, i.e. thickness and material properties
-        // for beams. This will be shared among some beams.
-        auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+            section->SetDensity(beam_density);
+            section->SetYoungModulus(beam_Young);
+            section->SetShearModulusFromPoisson(0.31);
+            section->SetRayleighDampingBeta(0 * 0.00001);
+            section->SetRayleighDampingAlpha(0 * 0.001);
+            section->SetAsRectangularSection(beam_wy, beam_wz);
+            section->compute_inertia_damping_matrix = true;    //// NOTE: not much different
+            section->compute_inertia_stiffness_matrix = true;  //// NOTE: not much different
 
-        msection->SetDensity(beam_density);
-        msection->SetYoungModulus(beam_Young);
-        msection->SetShearModulusFromPoisson(0.31);
-        msection->SetRayleighDampingBeta(0 * 0.00001);
-        msection->SetRayleighDampingAlpha(0 * 0.001);
-        msection->SetAsRectangularSection(beam_wy, beam_wz);
-        msection->compute_inertia_damping_matrix = true;    //// NOTE: not much different
-        msection->compute_inertia_stiffness_matrix = true;  //// NOTE: not much different
+            // This helps creating sequences of nodes and ChElementBeamEuler elements:
+            ChBuilderBeamEuler builder;
 
-        // This helps creating sequences of nodes and ChElementBeamEuler elements:
-        ChBuilderBeamEuler builder;
-
-        builder.BuildBeam(my_mesh,   // the mesh where to put the created nodes and elements
-                          msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
-                          6,         // the number of ChElementBeamEuler to create
-                          ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
-                          ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
-                          ChVector3d(0, 0, 1)           // the 'Y' up direction of the section for the beam
-        );
-
-        for (auto el : builder.GetLastBeamElements())
-            el->SetUseGeometricStiffness(true);  // default true, if false convergence is bad
-
-        sys.SetNumThreads(1);  //// TODO: fix race conditions in num diff
-        // for (auto el : builder.GetLastBeamElements())
-        //    el->use_numerical_diff_for_KR = true;
-
-        nodes = builder.GetLastBeamNodes();
-    }
-    if (use_iga) {
-        auto msection =
-            chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(beam_wy,  // width of section in y direction
-                                                                            beam_wz,  // width of section in z direction
-                                                                            beam_Young,        // Young modulus
-                                                                            beam_Young * 0.3,  // shear modulus
-                                                                            beam_density       // density
+            builder.BuildBeam(fea_mesh,  // the mesh where to put the created nodes and elements
+                              section,   // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
+                              6,         // the number of ChElementBeamEuler to create
+                              ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
+                              ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
+                              ChVector3d(0, 0, 1)           // the 'Y' up direction of the section for the beam
             );
 
-        ChBuilderBeamIGA builder;
-        builder.BuildBeam(my_mesh,                      // the mesh to put the elements in
-                          msection,                     // section of the beam
-                          6,                            // number of sections (spans)
-                          ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
-                          ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
-                          ChVector3d(0, 0, 1),          // the 'Y' up direction of the section for the beam
-                          1);                           // order (3 = cubic, etc)
+            for (auto el : builder.GetLastBeamElements())
+                el->SetUseGeometricStiffness(true);  // default true, if false convergence is bad
 
-        nodes = builder.GetLastBeamNodes();
+            sys.SetNumThreads(1);  //// TODO: fix race conditions in num diff
+            // for (auto el : builder.GetLastBeamElements())
+            //    el->use_numerical_diff_for_KR = true;
+
+            nodes = builder.GetLastBeamNodes();
+
+            break;
+        }
+        case BeamElementType::IGA: {
+            auto section = chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(
+                beam_wy,           // width of section in y direction
+                beam_wz,           // width of section in z direction
+                beam_Young,        // Young modulus
+                beam_Young * 0.3,  // shear modulus
+                beam_density       // density
+            );
+
+            ChBuilderBeamIGA builder;
+            builder.BuildBeam(fea_mesh,                     // the mesh to put the elements in
+                              section,                      // section of the beam
+                              6,                            // number of sections (spans)
+                              ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
+                              ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
+                              ChVector3d(0, 0, 1),          // the 'Y' up direction of the section for the beam
+                              1);                           // order (3 = cubic, etc)
+
+            nodes = builder.GetLastBeamNodes();
+
+            break;
+        }
+        case BeamElementType::TIMOSHENKO: {
+            double Izz = (1.0 / 12.0) * beam_wz * std::pow(beam_wy, 3);
+            double Iyy = (1.0 / 12.0) * beam_wy * std::pow(beam_wz, 3);
+            DampingCoefficients damping_coeffs;
+            damping_coeffs.bt = damping_coeffs.bx = damping_coeffs.by = damping_coeffs.bz = 0.001;
+            auto section = chrono_types::make_shared<ChBeamSectionTimoshenkoAdvancedGeneric>(
+                beam_Young * beam_wy * beam_wz, (Izz + Iyy) * beam_Young * 0.3, Iyy * beam_Young, Izz * beam_Young,
+                beam_Young * 0.3 * beam_wy * beam_wz, beam_Young * 0.3 * beam_wy * beam_wz, damping_coeffs, 0, 0, 0, 0,
+                0, beam_density * beam_wy * beam_wz, beam_density * Iyy, beam_density * Izz, 0, 0, 0, 0);
+            // for visualization as rectangular section
+            section->SetDrawShape(chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam_wy, beam_wz));
+
+            auto tapered_section = chrono_types::make_shared<ChBeamSectionTaperedTimoshenkoAdvancedGeneric>();
+            tapered_section->SetSectionA(section);
+            tapered_section->SetSectionB(section);
+
+            ChBuilderBeamTaperedTimoshenko builder;
+            builder.BuildBeam(fea_mesh,                     // the mesh to put the elements in
+                              tapered_section,              // section of the beam
+                              6,                            // number of sections (spans)
+                              ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
+                              ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
+                              ChVector3d(0, 0, 1)           // the 'Y' up direction of the section for the beam
+            );                                              // order (3 = cubic, etc)
+
+            nodes = builder.GetLastBeamNodes();
+
+            break;
+        }
     }
-    if (use_timoshenko) {
-        double Izz = (1.0 / 12.0) * beam_wz * std::pow(beam_wy, 3);
-        double Iyy = (1.0 / 12.0) * beam_wy * std::pow(beam_wz, 3);
-        DampingCoefficients mcoeffs;
-        mcoeffs.bt = mcoeffs.bx = mcoeffs.by = mcoeffs.bz = 0.001;
-        auto msection = chrono_types::make_shared<ChBeamSectionTimoshenkoAdvancedGeneric>(
-            beam_Young * beam_wy * beam_wz, (Izz + Iyy) * beam_Young * 0.3, Iyy * beam_Young, Izz * beam_Young,
-            beam_Young * 0.3 * beam_wy * beam_wz, beam_Young * 0.3 * beam_wy * beam_wz, mcoeffs, 0, 0, 0, 0, 0,
-            beam_density * beam_wy * beam_wz, beam_density * Iyy, beam_density * Izz, 0, 0, 0, 0);
-        // for visualization as rectangular section
-        msection->SetDrawShape(chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam_wy, beam_wz));
 
-        auto mtaperedsection = chrono_types::make_shared<ChBeamSectionTaperedTimoshenkoAdvancedGeneric>();
-        mtaperedsection->SetSectionA(msection);
-        mtaperedsection->SetSectionB(msection);
+    // Connect root of blade to the hub (use a motor, but with zero speed)
+    auto root_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+    root_motor->Initialize(nodes.front(), hub, ChFrame<>(ChVector3d(0, 0.5, 1), QuatFromAngleX(CH_PI_2)));
+    root_motor->SetMotorFunction(chrono_types::make_shared<ChFunctionConst>(0));
+    sys.Add(root_motor);
 
-        ChBuilderBeamTaperedTimoshenko builder;
-        builder.BuildBeam(my_mesh,                      // the mesh to put the elements in
-                          mtaperedsection,              // section of the beam
-                          6,                            // number of sections (spans)
-                          ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
-                          ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
-                          ChVector3d(0, 0, 1)           // the 'Y' up direction of the section for the beam
-        );                                              // order (3 = cubic, etc)
-
-        nodes = builder.GetLastBeamNodes();
-    }
-
-    // CONSTRAINT: connect root of blade to the hub. Use a motor, but with zero speed.
-
-    auto my_root = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    my_root->Initialize(nodes.front(), my_body_hub, ChFrame<>(ChVector3d(0, 0.5, 1), QuatFromAngleX(CH_PI_2)));
-    auto my_angle = chrono_types::make_shared<ChFunctionConst>(0);  // rad
-    my_root->SetMotorFunction(my_angle);
-    sys.Add(my_root);
-
+    // Apply tip force (in absolute frame)
     nodes.back()->SetForce(tip_abs_force);
 
-    //
-    // VISUALIZATION ASSETS:
-    //
+    // FEA mesh visualization
+    auto vis_beam_1 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_beam_1->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
+    vis_beam_1->SetColormapRange(-0.001, 600);
+    vis_beam_1->SetSmoothFaces(true);
+    vis_beam_1->SetWireframe(false);
+    fea_mesh->AddVisualShapeFEA(vis_beam_1);
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    mvisualizebeamA->SetColormapRange(-0.001, 600);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
+    auto vis_beam_2 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_beam_2->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    vis_beam_2->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_beam_2->SetSymbolsThickness(0.2);
+    vis_beam_2->SetSymbolsScale(0.1);
+    vis_beam_2->SetZbufferHide(false);
+    fea_mesh->AddVisualShapeFEA(vis_beam_2);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.2);
-    mvisualizebeamC->SetSymbolsScale(0.1);
-    mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
-
-    // Create the run-time visualization system
+    // Run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys,
                                          "Rotor with simplified blade: steady state statics & dynamics",
-                                         ChVector3d(1.0, 0.3, 10.0));
+                                         ChVector3d(2.0, 0.6, 20.0));
 
-    // --TEST--
+    // --------------------------
+    // TEST
+    // --------------------------
 
     /// Given the position of a point in local frame coords, and
     /// assuming it is sticky to frame, return the acceleration in parent coords.
@@ -292,63 +296,45 @@ int main(int argc, char* argv[]) {
     chrono::ChVector3d dpos_rel2 = chrono::ChVector3d(0, -7, 0);
     std::cout << "Test case 2: a rotating point P along Y axis, so its velocity and accelerations have some values."
               << std::endl
-              << "But the acceleration from chrono methos is A HALF of new method." << std::endl;
+              << "But the acceleration from chrono method is A HALF of new method." << std::endl;
     TestCase(rot_frame, dpos_rel2);
 
-    system("pause");
-
-    // Some general settings:
-    // Change solver to PardisoMKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-    sys.SetSolver(mkl_solver);
-
-    // use HHT second order integrator (but slower)
-    sys.SetTimestepperType(ChTimestepper::Type::HHT);
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
-        // mystepper->SetVerbose(true);
-        mystepper->SetStepControl(false);
-    }
-
-    // 1- STATICS
-
-    // sys.EnableSolverMatrixWrite(true);
+    // --------------------------
+    // STATICS
+    // --------------------------
 
     // Perform nonlinear statics, with assigned speeds and accelerations (that generate inertial and gyroscopic loads)
     // as for a blade in steady-state rotation.
-    // In order to provide speeds and accelerations, there are two ways:
-    // - using a callback to update them at each iteration via    myanalysis->SetCallbackIterationBegin(mycallback);
-    // - or letting the solver compute them from motors, via
-    // myanalysis->SetAutomaticSpeedAndAccelerationComputation(true); The latter is limited in functionality, so for the
-    // moment let's use a callback that is called at each nonlinear statics iteration step:
-
-    class MyCallback : public ChStaticNonLinearRheonomicAnalysis::IterationCallback {
+    // There are two ways to provide speeds and accelerations:
+    //   1. using a callback to update them at each iteration via SetCallbackIterationBegin(IterationCallback), or
+    //   2. letting the solver compute them from motors, via SetAutomaticSpeedAndAccelerationComputation(true).
+    // The latter is limited in functionality, so use option 1.
+    class StaticsIterationCallback : public ChStaticNonLinearRheonomicAnalysis::IterationCallback {
       public:
-        // Override this function of the callback to update speeds
-        // and accelerations during the nonlinear static loop.
-        void OnIterationBegin(const double load_scaling,
-                              const int iteration_n,
-                              ChStaticNonLinearRheonomicAnalysis* analysis) override {
-            for (auto in : blade_nodes) {
-                // Set node speed and angular velocity, as moved by hub motor:
-                in->SetPosDt(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
-                in->SetAngVelParent(ChVector3d(0, 0, blade_rad_s));
-                // Set also centripetal acceleration:
-                in->SetPosDt2(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
+        StaticsIterationCallback(const std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes, double blade_rad)
+            : nodes(nodes), radius(blade_rad) {}
+
+        void OnIterationBegin(const int iteration_n, ChStaticNonLinearRheonomicAnalysis* static_analysis) override {
+            for (auto in : nodes) {
+                // Set node speed and angular velocity, as moved by hub motor
+                in->SetPosDt(ChVector3d(-in->GetPos().y() * radius, 0, 0));
+                in->SetAngVelParent(ChVector3d(0, 0, radius));
+                // Set node centripetal acceleration
+                in->SetPosDt2(ChVector3d(0, -in->GetPos().y() * radius * radius, 0));
             }
         }
-        // some data used by the callback to make things simple
-        std::vector<std::shared_ptr<ChNodeFEAxyzrot>> blade_nodes;
-        double blade_rad_s;
+
+      private:
+        std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes;
+        double radius;
     };
 
-    auto mycallback = chrono_types::make_shared<MyCallback>();
-    mycallback->blade_nodes = nodes;
-    mycallback->blade_rad_s = rad_s;
+    auto statics_callback = chrono_types::make_shared<StaticsIterationCallback>(nodes, rad_s);
 
-    ChStaticNonLinearRheonomicAnalysis analysis;
-    analysis.SetMaxIterations(25);
-    analysis.SetVerbose(true);
-    analysis.SetCallbackIterationBegin(mycallback);
+    ChStaticNonLinearRheonomicAnalysis static_analysis;
+    static_analysis.SetMaxIterations(25);
+    static_analysis.SetVerbose(true);
+    static_analysis.SetCallbackIterationBegin(statics_callback);
 
     // As an alternative to providing the callback, a much simpler option is to let the static solver
     // compute the speed and acceleration as inferred by the rheonomic joints, instead of the
@@ -357,10 +343,10 @@ int main(int argc, char* argv[]) {
     // However this functionality is currently limited because it computes speeds/accelerations only at initial
     // undeformed state.
 
-    // EXECUTE NONLINEAR STATIC ANALYSIS HERE:
-    sys.DoStaticAnalysis(analysis);
+    // Perform nonlinear static static_analysis
+    sys.DoStaticAnalysis(static_analysis);
 
-    // Some plots after the static analysis:
+    // Some plots after the static static_analysis
     {
         ChVectorDynamic<> plotx(nodes.size());
         ChVectorDynamic<> ploty(nodes.size());
@@ -368,30 +354,30 @@ int main(int argc, char* argv[]) {
             plotx(i) = nodes[i]->GetPos().y();
             ploty(i) = nodes[i]->GetPos().z();
         }
-        ChGnuPlot mplot_flap_displ(out_dir + "/flapwise_displ.dat");
-        mplot_flap_displ.SetGrid();
-        mplot_flap_displ.Plot(plotx, ploty, "Flapwise displacement", " with lines lt -1 lc rgb'#00AAEE'");
+        ChGnuPlot plot_flap_displ(out_dir + "/flapwise_displ.dat");
+        plot_flap_displ.SetGrid();
+        plot_flap_displ.Plot(plotx, ploty, "Flapwise displacement", " with lines lt -1 lc rgb'#00AAEE'");
 
         ChVectorDynamic<> ploty_analytic(nodes.size());
         for (int i = 0; i < nodes.size(); ++i) {
             ploty(i) = nodes[i]->GetPosDt().x();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s;
         }
-        ChGnuPlot mplot_edge_speed(out_dir + "/flapwise_speed.dat");
-        mplot_edge_speed.SetGrid();
-        mplot_edge_speed.Plot(plotx, ploty, "Edgewise speed", " with lines lt -1 lc rgb'#00AAEE'");
-        mplot_edge_speed.Plot(plotx, ploty_analytic, "Expected analytic edgewise speed",
-                              " with lines lt -1 lc rgb'#AA00EE'");
+        ChGnuPlot plot_edge_speed(out_dir + "/flapwise_speed.dat");
+        plot_edge_speed.SetGrid();
+        plot_edge_speed.Plot(plotx, ploty, "Edgewise speed", " with lines lt -1 lc rgb'#00AAEE'");
+        plot_edge_speed.Plot(plotx, ploty_analytic, "Expected analytic edgewise speed",
+                             " with lines lt -1 lc rgb'#AA00EE'");
 
         for (int i = 0; i < nodes.size(); ++i) {
             ploty(i) = nodes[i]->GetPosDt2().y();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s * rad_s;
         }
-        ChGnuPlot mplot_centeripetal_accel(out_dir + "/centripetal_acc.dat");
-        mplot_centeripetal_accel.SetGrid();
-        mplot_centeripetal_accel.Plot(plotx, ploty, "Centripetal acceleration", " with lines lt -1 lc rgb'#00AAEE'");
-        mplot_centeripetal_accel.Plot(plotx, ploty_analytic, "Expected centripetal acceleration",
-                                      " with lines lt -1 lc rgb'#AA00EE'");
+        ChGnuPlot plot_centeripetal_accel(out_dir + "/centripetal_acc.dat");
+        plot_centeripetal_accel.SetGrid();
+        plot_centeripetal_accel.Plot(plotx, ploty, "Centripetal acceleration", " with lines lt -1 lc rgb'#00AAEE'");
+        plot_centeripetal_accel.Plot(plotx, ploty_analytic, "Expected centripetal acceleration",
+                                     " with lines lt -1 lc rgb'#AA00EE'");
     }
 
     /*
@@ -401,43 +387,47 @@ int main(int argc, char* argv[]) {
         in->SetAngVelParent(ChVector3d(0, 0,  rad_s));
     }
     */
-    // sys.EnableSolverMatrixWrite(false);
 
-    // 2- DYNAMICS
+    // --------------------------
+    // DYNAMICS
+    // --------------------------
 
     std::vector<double> rec_t;
     std::vector<double> rec_tip_edge_d;
     std::vector<double> rec_tip_flap_d;
 
+    ChRealtimeStepTimer realtime_timer;
+    double time_step = 0.01;
+
     while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-
-        sys.DoStepDynamics(0.01);
-
         // for plotting the tip oscillations, in the blade root coordinate:
         rec_t.push_back(sys.GetChTime());
         rec_tip_edge_d.push_back(nodes.front()->TransformPointParentToLocal(nodes.back()->GetPos()).z());
         rec_tip_flap_d.push_back(nodes.front()->TransformPointParentToLocal(nodes.back()->GetPos()).y());
 
         /*
-        // for simplified testing of the tilting control of the blade, with sudden jump:
+        // simplified testing of the tilting control of the blade, with sudden jump
         if (sys.GetChTime() > 2){
-            if (auto myfunct = std::dynamic_pointer_cast<ChFunctionConst>(my_root->GetMotorFunction()))
+            if (auto myfunct = std::dynamic_pointer_cast<ChFunctionConst>(root_motor->GetMotorFunction()))
                 myfunct->SetConstant(0.4);
         }
         */
 
+        vis->BeginScene();
+        vis->Render();
         vis->EndScene();
+
+        sys.DoStepDynamics(time_step);
+        realtime_timer.Spin(time_step);
     }
 
-    ChGnuPlot mplot_tip_edge_d(out_dir + "/tip_edge_d.dat");
-    mplot_tip_edge_d.SetGrid();
-    mplot_tip_edge_d.Plot(rec_t, rec_tip_edge_d, "Edgewise displacement (t)", " with lines lt -1 lc rgb'#00AAEE'");
+    ChGnuPlot plot_tip_edge_d(out_dir + "/tip_edge_d.dat");
+    plot_tip_edge_d.SetGrid();
+    plot_tip_edge_d.Plot(rec_t, rec_tip_edge_d, "Edgewise displacement (t)", " with lines lt -1 lc rgb'#00AAEE'");
 
-    ChGnuPlot mplot_tip_flap_d(out_dir + "/tip_flap_d.dat");
-    mplot_tip_flap_d.SetGrid();
-    mplot_tip_flap_d.Plot(rec_t, rec_tip_flap_d, "Flapwise displacement (t)", " with lines lt -1 lc rgb'#00AAEE'");
+    ChGnuPlot plot_tip_flap_d(out_dir + "/tip_flap_d.dat");
+    plot_tip_flap_d.SetGrid();
+    plot_tip_flap_d.Plot(rec_t, rec_tip_flap_d, "Flapwise displacement (t)", " with lines lt -1 lc rgb'#00AAEE'");
 
     return 0;
 }

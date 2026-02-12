@@ -71,11 +71,12 @@ def main():
     patch = terrain.AddPatch(patch_mat, 
                              chrono.CSYSNORM, 
                              terrainLength, terrainWidth)
-    patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
+    patch.SetTexture(veh.GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
     
     # Create the interactive driver system
+
     driver = veh.ChInteractiveDriver(hmmwv.GetVehicle())
     steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
     throttle_time = 1.0  # time to go from 0 to +1
@@ -86,6 +87,7 @@ def main():
     driver.Initialize()
 
     # Create the vehicle Irrlicht interface
+
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
     vis.SetWindowTitle('HMMWV')
     vis.SetWindowSize(1280, 1024)
@@ -106,17 +108,15 @@ def main():
            print("Error creating output directory " )
 
     # Set up vehicle output
-    hmmwv.GetVehicle().SetChassisOutput(True);
-    hmmwv.GetVehicle().SetSuspensionOutput(0, True);
-    hmmwv.GetVehicle().SetSteeringOutput(0, True);
-    hmmwv.GetVehicle().SetOutput(chrono.ChOutput.ASCII , out_dir, "output", 0.1);
+    hmmwv.GetVehicle().SetChassisOutput(True)
+    hmmwv.GetVehicle().SetSuspensionOutput(0, True)
+    hmmwv.GetVehicle().SetSteeringOutput(0, True)
+    hmmwv.GetVehicle().SetOutput(chrono.ChOutput.Type_ASCII, chrono.ChOutput.Mode_FRAMES, out_dir, "output", 0.1)
 
     # Generate JSON information with available output channels
-    hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
-
+    hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json")
 
     # Simulation loop
-
 
     # Number of simulation steps between miscellaneous events
     render_steps = m.ceil(render_step_size / step_size)
@@ -127,8 +127,8 @@ def main():
     render_frame = 0
 
     if (contact_vis):
-        vis.SetSymbolScale(1e-4);
-        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES);
+        vis.SetSymbolScale(1e-4)
+        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES)
 
     hmmwv.GetVehicle().EnableRealtime(True)
 
@@ -186,23 +186,16 @@ def main():
     return 0
 
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
-
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
-
 # Initial vehicle location and orientation
 initLoc = chrono.ChVector3d(0, 0, 1.6)
 initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-chassis_vis_type = veh.VisualizationType_MESH
-suspension_vis_type =  veh.VisualizationType_PRIMITIVES
-steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH 
+chassis_vis_type = chrono.VisualizationType_MESH
+suspension_vis_type =  chrono.VisualizationType_PRIMITIVES
+steering_vis_type = chrono.VisualizationType_PRIMITIVES
+wheel_vis_type = chrono.VisualizationType_MESH
+tire_vis_type = chrono.VisualizationType_MESH 
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.CollisionType_NONE
@@ -221,29 +214,32 @@ steering_type = veh.SteeringTypeWV_PITMAN_ARM
 tire_model = veh.TireModelType_TMEASY
 
 # Rigid terrain
-terrainHeight = 0;      # terrain height (FLAT terrain only)
-terrainLength = 100.0;  # size in X direction
-terrainWidth = 100.0;   # size in Y direction
+terrainHeight = 0      # terrain height (FLAT terrain only)
+terrainLength = 100.0  # size in X direction
+terrainWidth = 100.0   # size in Y direction
 
 # Point on chassis tracked by the camera
 trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC
-contact_vis = False;
+contact_vis = False
 
 # Simulation step sizes
-step_size = 3e-3;
-tire_step_size = 1e-3;
+step_size = 3e-3
+tire_step_size = 1e-3
 
 # Simulation end time
-t_end = 1000;
+t_end = 1000
 
 # Time interval between two render frames
-render_step_size = 1.0 / 50;  # FPS = 50
+render_step_size = 1.0 / 50  # FPS = 50
+
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
 # Output directories
-out_dir = os.path.join(os.path.dirname(__file__), "HMMWV_demo")
+out_dir = chrono.GetChronoOutputPath() + "HMMWV/"
 
 # Debug logging
 debug_output = True

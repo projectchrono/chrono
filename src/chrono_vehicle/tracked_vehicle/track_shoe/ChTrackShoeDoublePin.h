@@ -104,9 +104,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
                     const ChQuaternion<>& rot_connector  ///< [in] orientation of connector bodies
     );
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     // Note: the one-connector, reduced model uses only the bodies, joints, and RSDA from the left side.
 
@@ -147,11 +145,11 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     );
 
     /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    /// This version used with the two-conector topology.
+    /// This version used with the two-connector topology.
     void AddConnectorVisualization2(std::shared_ptr<ChBody> connector, VisualizationType vis);
 
     /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    /// This version used with the one-conector topology.
+    /// This version used with the one-connector topology.
     void AddConnectorVisualization1(std::shared_ptr<ChBody> connector, VisualizationType vis);
 
     virtual void EnableTrackBendingStiffness(bool val) override final;

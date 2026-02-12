@@ -28,6 +28,7 @@ import math as m
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 
 # Create ground body
 ground = chrono.ChBody()

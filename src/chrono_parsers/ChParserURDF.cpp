@@ -40,7 +40,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef HAVE_ROS
+#ifdef CHRONO_HAS_ROS
     #include "ament_index_cpp/get_package_prefix.hpp"
     #include "ament_index_cpp/get_package_share_directory.hpp"
 #endif
@@ -189,7 +189,7 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
         const std::string path = filename.substr(pos_separator + separator.length(), std::string::npos);
 
         if (scheme == "package") {
-#ifdef HAVE_ROS
+#ifdef CHRONO_HAS_ROS
             const size_t pos_package = path.find("/");
             if (pos_package == std::string::npos) {
                 cerr << "While resolving " + filename + ": Could not parse package:// format." << endl;
@@ -405,7 +405,7 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
         contact_material = m_default_mat_data.CreateMaterial(m_sys->GetContactMethod());
 
     // Create collision shapes
-    // Note: a collision model is created for this body when the first collsion shape is added
+    // Note: a collision model is created for this body when the first collision shape is added
     for (const auto& collision : collision_array) {
         if (collision) {
             auto frame = ref_frame * toChFrame(collision->origin);

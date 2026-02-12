@@ -37,17 +37,17 @@ ChVector3d ChRoundedBox::Evaluate(double parU, double parV, double parW) const {
 
 // -----------------------------------------------------------------------------
 
-double ChRoundedBox::GetVolume(const ChVector3d& lengths, double srad) {
+double ChRoundedBox::CalcVolume(const ChVector3d& lengths, double srad) {
     return lengths.x() * lengths.y() * lengths.z() +
            0.5 * srad * (lengths.x() * lengths.y() + lengths.y() * lengths.z() + lengths.z() * lengths.x()) +
            (4.0 * CH_PI_3) * srad * srad * srad;
 }
 
 double ChRoundedBox::GetVolume() const {
-    return GetVolume(2.0 * hlen, srad);
+    return CalcVolume(2.0 * hlen, srad);
 }
 
-ChMatrix33<> ChRoundedBox::GetGyration(const ChVector3d& lengths, double srad) {
+ChMatrix33<> ChRoundedBox::CalcGyration(const ChVector3d& lengths, double srad) {
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = (1.0 / 12.0) * (lengths.y() * lengths.y() + lengths.z() * lengths.z());
@@ -58,10 +58,10 @@ ChMatrix33<> ChRoundedBox::GetGyration(const ChVector3d& lengths, double srad) {
 }
 
 ChMatrix33<> ChRoundedBox::GetGyration() const {
-    return GetGyration(hlen, srad);
+    return CalcGyration(hlen, srad);
 }
 
-ChAABB ChRoundedBox::GetBoundingBox(const ChVector3d& lengths, double srad) {
+ChAABB ChRoundedBox::CalcBoundingBox(const ChVector3d& lengths, double srad) {
     auto hlen = lengths / 2;
 
     std::vector<ChVector3d> vertices{
@@ -90,15 +90,15 @@ ChAABB ChRoundedBox::GetBoundingBox(const ChVector3d& lengths, double srad) {
 }
 
 ChAABB ChRoundedBox::GetBoundingBox() const {
-    return GetBoundingBox(2.0 * hlen, srad);
+    return CalcBoundingBox(2.0 * hlen, srad);
 }
 
-double ChRoundedBox::GetBoundingSphereRadius(const ChVector3d& lengths, double srad) {
+double ChRoundedBox::CalcBoundingSphereRadius(const ChVector3d& lengths, double srad) {
     return lengths.Length() / 2 + srad;
 }
 
 double ChRoundedBox::GetBoundingSphereRadius() const {
-    return GetBoundingSphereRadius(2.0 * hlen, srad);
+    return CalcBoundingSphereRadius(2.0 * hlen, srad);
 }
 
 // -----------------------------------------------------------------------------

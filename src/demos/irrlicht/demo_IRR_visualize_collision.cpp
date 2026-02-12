@@ -58,8 +58,9 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create the Chrono system, bodies, and collison shapes
+    // Create the Chrono system, bodies, and collision shapes
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(csys_type);
 
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();

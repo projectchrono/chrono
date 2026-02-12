@@ -24,7 +24,7 @@
 #include <set>
 #include <vector>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
@@ -264,7 +264,7 @@ void ChVehicleCosimTrackedVehicleNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
@@ -275,7 +275,7 @@ void ChVehicleCosimTrackedVehicleNode::OnOutputData(int frame) {
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimTrackedVehicleNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimTrackedVehicleNode::WriteBodyInformation(ChWriterCSV& csv) {
     //// RADU TODO
     /*
 

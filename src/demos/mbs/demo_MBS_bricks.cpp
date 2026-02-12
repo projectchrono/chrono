@@ -35,7 +35,7 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Create a bunch of rigid bodies that represent bricks in a large wall.
 void create_wall_bodies(ChSystemNSC& sys) {
@@ -159,6 +159,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create all the rigid bodies.
@@ -202,7 +203,6 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle("VSG Bricks Demo");
-            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector3d(-30, 28, -60), ChVector3d(0, 5, 0));

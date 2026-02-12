@@ -17,9 +17,9 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 
@@ -69,7 +69,7 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("hmmwv/hmmwv_chassis.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("hmmwv/hmmwv_chassis.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -77,13 +77,13 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
             m_geometry.coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("hmmwv/hmmwv_chassis_col.obj"), 0);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("hmmwv/hmmwv_chassis_col.obj"), 0);
             m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
             utils::ChBodyGeometry::TrimeshShape trimesh(
-                VNULL, QUNIT, vehicle::GetDataFile("hmmwv/hmmwv_chassis_col.obj"), 1.0, 0.005, 0);
+                VNULL, QUNIT, GetVehicleDataFile("hmmwv/hmmwv_chassis_col.obj"), 1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }

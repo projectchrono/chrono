@@ -115,7 +115,7 @@ bool AxialDisplacementCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -282,7 +282,7 @@ bool CantileverTipLoadCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -455,7 +455,7 @@ bool CantileverGravityCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -586,7 +586,7 @@ bool AxialTwistCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -757,7 +757,7 @@ bool MLCantileverCheck1A(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 32;
@@ -899,7 +899,7 @@ bool MLCantileverCheck1B(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 1;
@@ -1044,7 +1044,7 @@ bool MLCantileverCheck2A(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 32;
@@ -1189,7 +1189,7 @@ bool MLCantileverCheck2B(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 1;

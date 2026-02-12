@@ -26,10 +26,10 @@
 
 // -----------------------------------------------------------------------------
 
-// If OpenCRG support was enabled, define CHRONO_OPENCRG
+// If OpenCRG support was enabled, define CHRONO_HAS_OPENCRG
 @CHRONO_OPENCRG@
 
-// If Irrklang suppport was enabled, define CHRONO_IRRKLANG
+// If Irrklang support was enabled, define CHRONO_HAS_IRRKLANG
 @CHRONO_IRRKLANG@
 
 

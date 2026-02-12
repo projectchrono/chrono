@@ -17,7 +17,7 @@
 // =============================================================================
 
 //// TODO:
-////   - use ChFsiParamsSPH::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
+////   - use ChFsiParamsSPH::free_surface_threshold (kernel threshold) for both CFD and CRM (currently, only CRM)
 
 //// #define DEBUG_LOG
 
@@ -34,23 +34,17 @@
 #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/physics/FluidDynamics.cuh"
-#include "chrono_fsi/sph/physics/BceManager.cuh"
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
+#include "chrono_fsi/sph/physics/SphFluidDynamics.cuh"
+#include "chrono_fsi/sph/physics/SphBceManager.cuh"
 
-#include "chrono_fsi/sph/math/CustomMath.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsLogging.cuh"
 
-#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
-#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
-#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
+#include "chrono_fsi/sph/math/SphCustomMath.cuh"
 
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_thirdparty/filesystem/resolver.h"
-
-#include "chrono_thirdparty/rapidjson/document.h"
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
-using namespace rapidjson;
+#include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"
 
 using std::cout;
 using std::cerr;
@@ -121,15 +115,15 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->shifting_diffusion_A = Real(1.0);
     m_paramsH->shifting_diffusion_AFSM = Real(3.0);
     m_paramsH->shifting_diffusion_AFST = Real(2);
-    m_paramsH->densityReinit = 2147483647;
+    m_paramsH->density_reinit_steps = 2147483647;
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
     m_paramsH->laplacian_type = 0;
-    m_paramsH->USE_Consistent_L = false;
-    m_paramsH->USE_Consistent_G = false;
+    m_paramsH->use_consistent_laplacian_discretization = false;
+    m_paramsH->use_consistent_gradient_discretization = false;
 
     m_paramsH->density_delta = Real(0.1);
-    m_paramsH->USE_Delta_SPH = false;
+    m_paramsH->use_delta_sph = false;
 
     m_paramsH->epsMinMarkersDis = Real(0.01);
 
@@ -140,7 +134,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->dT = Real(-1);
 
     // Pressure equation
-    m_paramsH->DensityBaseProjection = false;
+    m_paramsH->use_density_based_projection = false;
     m_paramsH->Alpha = m_paramsH->h;
     m_paramsH->PPE_relaxation = Real(1.0);
     m_paramsH->LinearSolver = SolverType::JACOBI;
@@ -153,7 +147,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->ClampPressure = false;
 
     // Elastic SPH
-    m_paramsH->C_Wi = Real(0.8);
+    m_paramsH->free_surface_threshold = Real(2.0);
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
@@ -169,381 +163,16 @@ void ChFsiFluidSystemSPH::InitParams() {
     // Elastic SPH
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
-    m_paramsH->elastic_SPH = false;        // default: fluid dynamics
-    m_paramsH->Ar_vis_alpha = Real(0.02);  // Does this mess with one for CRM?
+    m_paramsH->elastic_SPH = false;                // default: fluid dynamics
+    m_paramsH->artificial_viscosity = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
 
-    m_paramsH->num_proximity_search_steps = 4;
-}
-
-//------------------------------------------------------------------------------
-
-Real3 LoadVectorJSON(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return mR3(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
-    if (m_verbose)
-        cout << "Reading parameters from: " << json_file << endl;
-
-    FILE* fp = fopen(json_file.c_str(), "r");
-    if (!fp) {
-        cerr << "Invalid JSON file!" << endl;
-        return;
-    }
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    fclose(fp);
-
-    Document doc;
-
-    doc.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-    if (!doc.IsObject()) {
-        cerr << "Invalid JSON file!!" << endl;
-        return;
-    }
-
-    if (doc.HasMember("Physical Properties of Fluid")) {
-        if (doc["Physical Properties of Fluid"].HasMember("Density"))
-            m_paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
-
-        if (doc["Physical Properties of Fluid"].HasMember("Viscosity"))
-            m_paramsH->mu0 = doc["Physical Properties of Fluid"]["Viscosity"].GetDouble();
-
-        if (doc["Physical Properties of Fluid"].HasMember("Body Force"))
-            m_paramsH->bodyForce3 = LoadVectorJSON(doc["Physical Properties of Fluid"]["Body Force"]);
-
-        if (doc["Physical Properties of Fluid"].HasMember("Gravity"))
-            m_paramsH->gravity = LoadVectorJSON(doc["Physical Properties of Fluid"]["Gravity"]);
-
-        if (doc["Physical Properties of Fluid"].HasMember("Characteristic Length"))
-            m_paramsH->L_Characteristic = doc["Physical Properties of Fluid"]["Characteristic Length"].GetDouble();
-    }
-
-    if (doc.HasMember("SPH Parameters")) {
-        if (doc["SPH Parameters"].HasMember("Method")) {
-            std::string method = doc["SPH Parameters"]["Method"].GetString();
-            if (m_verbose)
-                cout << "Modeling method is: " << method << endl;
-            if (method == "I2SPH") {
-                m_paramsH->integration_scheme = IntegrationScheme::IMPLICIT_SPH;
-                if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
-                    m_paramsH->shifting_beta_implicit = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
-            } else if (method == "WCSPH") {
-                m_paramsH->integration_scheme = IntegrationScheme::RK2;
-            } else {
-                cerr << "Incorrect SPH method in the JSON file: " << method << endl;
-                cerr << "Falling back to RK2 WCSPH " << endl;
-                m_paramsH->integration_scheme = IntegrationScheme::RK2;
-            }
-        }
-
-        if (doc["SPH Parameters"].HasMember("Initial Spacing"))
-            m_paramsH->d0 = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Kernel Multiplier"))
-            m_paramsH->d0_multiplier = doc["SPH Parameters"]["Kernel Multiplier"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Epsilon"))
-            m_paramsH->epsMinMarkersDis = doc["SPH Parameters"]["Epsilon"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Maximum Velocity"))
-            m_paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Shifting Method")) {
-            std::string method = doc["SPH Parameters"]["Shifting Method"].GetString();
-            if (method == "XSPH")
-                m_paramsH->shifting_method = ShiftingMethod::XSPH;
-            else if (method == "PPST_XSPH")
-                m_paramsH->shifting_method = ShiftingMethod::PPST_XSPH;
-            else if (method == "PPST")
-                m_paramsH->shifting_method = ShiftingMethod::PPST;
-            else if (method == "DIFFUSION")
-                m_paramsH->shifting_method = ShiftingMethod::DIFFUSION;
-            else if (method == "DIFFUSION_XSPH")
-                m_paramsH->shifting_method = ShiftingMethod::DIFFUSION_XSPH;
-            else {
-                m_paramsH->shifting_method = ShiftingMethod::NONE;
-            }
-        }
-
-        if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
-            m_paramsH->shifting_xsph_eps = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("PPST Push Coefficient"))
-            m_paramsH->shifting_ppst_push = doc["SPH Parameters"]["PPST Push Coefficient"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("PPST Pull Coefficient"))
-            m_paramsH->shifting_ppst_pull = doc["SPH Parameters"]["PPST Pull Coefficient"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Diffusion A Coefficient"))
-            m_paramsH->shifting_diffusion_A = doc["SPH Parameters"]["Diffusion A Coefficient"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Diffusion AFSM"))
-            m_paramsH->shifting_diffusion_AFSM = doc["SPH Parameters"]["Diffusion AFSM"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Diffusion AFST"))
-            m_paramsH->shifting_diffusion_AFST = doc["SPH Parameters"]["Diffusion AFST"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Kernel Type")) {
-            std::string type = doc["SPH Parameters"]["Kernel Type"].GetString();
-            if (type == "Quadratic")
-                m_paramsH->kernel_type = KernelType::QUADRATIC;
-            else if (type == "Cubic")
-                m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
-            else if (type == "Quintic")
-                m_paramsH->kernel_type = KernelType::QUINTIC_SPLINE;
-            else if (type == "Wendland")
-                m_paramsH->kernel_type = KernelType::WENDLAND;
-            else {
-                cerr << "Incorrect kernel type in the JSON file: " << type << endl;
-                cerr << "Falling back to cubic spline." << endl;
-                m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
-            }
-        }
-
-        if (doc["SPH Parameters"].HasMember("Boundary Treatment Type")) {
-            std::string type = doc["SPH Parameters"]["Boundary Treatment Type"].GetString();
-            if (type == "Adami")
-                m_paramsH->boundary_method = BoundaryMethod::ADAMI;
-            else if (type == "Holmes")
-                m_paramsH->boundary_method = BoundaryMethod::HOLMES;
-            else {
-                cerr << "Incorrect boundary treatment type in the JSON file: " << type << endl;
-                cerr << "Falling back to Adami " << endl;
-                m_paramsH->boundary_method = BoundaryMethod::ADAMI;
-            }
-        }
-
-        if (doc["SPH Parameters"].HasMember("Viscosity Treatment Type")) {
-            std::string type = doc["SPH Parameters"]["Viscosity Treatment Type"].GetString();
-            if (m_verbose)
-                cout << "viscosity treatment is : " << type << endl;
-            if (type == "Laminar")
-                m_paramsH->viscosity_method = ViscosityMethod::LAMINAR;
-            else if (type == "Artificial Unilateral") {
-                m_paramsH->viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
-            } else if (type == "Artificial Bilateral") {
-                m_paramsH->viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
-            } else {
-                cerr << "Incorrect viscosity type in the JSON file: " << type << endl;
-                cerr << "Falling back to Artificial Unilateral Viscosity" << endl;
-                m_paramsH->viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
-            }
-        }
-
-        if (doc["SPH Parameters"].HasMember("Artificial viscosity alpha"))
-            m_paramsH->Ar_vis_alpha = doc["SPH Parameters"]["Artificial viscosity alpha"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("Use Delta SPH"))
-            m_paramsH->USE_Delta_SPH = doc["SPH Parameters"]["Use Delta SPH"].GetBool();
-
-        if (doc["SPH Parameters"].HasMember("density diffusion delta"))
-            m_paramsH->density_delta = doc["SPH Parameters"]["density diffusion delta"].GetDouble();
-
-        if (doc["SPH Parameters"].HasMember("EOS Type")) {
-            std::string type = doc["SPH Parameters"]["EOS Type"].GetString();
-            if (m_verbose)
-                cout << "Eos type is : " << type << endl;
-            if (type == "Tait")
-                m_paramsH->eos_type = EosType::TAIT;
-            else if (type == "Isothermal")
-                m_paramsH->eos_type = EosType::ISOTHERMAL;
-            else {
-                cerr << "Incorrect eos type in the JSON file: " << type << endl;
-                cerr << "Falling back to Tait Equation of State " << endl;
-                m_paramsH->eos_type = EosType::ISOTHERMAL;
-            }
-        }
-
-        if (doc["SPH Parameters"].HasMember("Density Reinitialization"))
-            m_paramsH->densityReinit = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
-
-        if (doc["SPH Parameters"].HasMember("Conservative Discretization"))
-            m_paramsH->Conservative_Form = doc["SPH Parameters"]["Conservative Discretization"].GetBool();
-
-        if (doc["SPH Parameters"].HasMember("Gradient Discretization Type"))
-            m_paramsH->gradient_type = doc["SPH Parameters"]["Gradient Discretization Type"].GetInt();
-
-        if (doc["SPH Parameters"].HasMember("Laplacian Discretization Type"))
-            m_paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
-
-        if (doc["SPH Parameters"].HasMember("Consistent Discretization for Laplacian"))
-            m_paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetBool();
-
-        if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
-            m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
-
-        if (doc["SPH Parameters"].HasMember("Time steps per proximity search"))
-            m_paramsH->num_proximity_search_steps = doc["SPH Parameters"]["Time steps per proximity search"].GetInt();
-    }
-
-    if (doc.HasMember("Time Stepping")) {
-        if (doc["Time Stepping"].HasMember("Time step")) {
-            m_paramsH->dT = doc["Time Stepping"]["Time step"].GetDouble();
-            m_step = m_paramsH->dT;
-        }
-    }
-
-    if (doc.HasMember("Pressure Equation")) {
-        if (doc["Pressure Equation"].HasMember("Linear solver")) {
-            std::string solver = doc["Pressure Equation"]["Linear solver"].GetString();
-            if (solver == "Jacobi") {
-                m_paramsH->LinearSolver = SolverType::JACOBI;
-            } else if (solver == "BICGSTAB") {
-                m_paramsH->LinearSolver = SolverType::BICGSTAB;
-            } else if (solver == "GMRES")
-                m_paramsH->LinearSolver = SolverType::GMRES;
-        } else {
-            m_paramsH->LinearSolver = SolverType::JACOBI;
-        }
-
-        if (doc["Pressure Equation"].HasMember("Poisson source term")) {
-            std::string source = doc["Pressure Equation"]["Poisson source term"].GetString();
-            if (source == "Density-Based")
-                m_paramsH->DensityBaseProjection = true;
-            else
-                m_paramsH->DensityBaseProjection = false;
-        }
-
-        if (doc["Pressure Equation"].HasMember("Alpha Source Term"))
-            m_paramsH->Alpha = doc["Pressure Equation"]["Alpha Source Term"].GetDouble();
-
-        if (doc["Pressure Equation"].HasMember("Under-relaxation"))
-            m_paramsH->PPE_relaxation = doc["Pressure Equation"]["Under-relaxation"].GetDouble();
-
-        if (doc["Pressure Equation"].HasMember("Absolute residual"))
-            m_paramsH->LinearSolver_Abs_Tol = doc["Pressure Equation"]["Absolute residual"].GetDouble();
-
-        if (doc["Pressure Equation"].HasMember("Relative residual"))
-            m_paramsH->LinearSolver_Rel_Tol = doc["Pressure Equation"]["Relative residual"].GetDouble();
-
-        if (doc["Pressure Equation"].HasMember("Maximum Iterations"))
-            m_paramsH->LinearSolver_Max_Iter = doc["Pressure Equation"]["Maximum Iterations"].GetInt();
-
-        if (doc["Pressure Equation"].HasMember("Verbose monitoring"))
-            m_paramsH->Verbose_monitoring = doc["Pressure Equation"]["Verbose monitoring"].GetBool();
-
-        if (doc["Pressure Equation"].HasMember("Constraint Pressure")) {
-            m_paramsH->Pressure_Constraint = doc["Pressure Equation"]["Constraint Pressure"].GetBool();
-            if (doc["Pressure Equation"].HasMember("Average Pressure"))
-                m_paramsH->base_pressure = doc["Pressure Equation"]["Average Pressure"].GetDouble();
-        }
-
-        if (doc["Pressure Equation"].HasMember("Clamp Pressure"))
-            m_paramsH->ClampPressure = doc["Pressure Equation"]["Clamp Pressure"].GetBool();
-    }
-
-    // this part is for modeling granular material dynamics using elastic SPH
-    if (doc.HasMember("Elastic SPH")) {
-        m_paramsH->elastic_SPH = true;
-
-        if (doc["Elastic SPH"].HasMember("Poisson ratio"))
-            m_paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("Young modulus"))
-            m_paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha"))
-            m_paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("I0"))
-            m_paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("mu_s"))
-            m_paramsH->mu_fric_s = doc["Elastic SPH"]["mu_s"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("mu_2"))
-            m_paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("particle diameter"))
-            m_paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("cohesion coefficient"))
-            m_paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("kernel threshold"))
-            m_paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble();
-    }
-
-    // Geometry Information
-    if (doc.HasMember("Geometry Inf")) {
-        if (doc["Geometry Inf"].HasMember("BoxDimensionX"))
-            m_paramsH->boxDimX = doc["Geometry Inf"]["BoxDimensionX"].GetDouble();
-
-        if (doc["Geometry Inf"].HasMember("BoxDimensionY"))
-            m_paramsH->boxDimY = doc["Geometry Inf"]["BoxDimensionY"].GetDouble();
-
-        if (doc["Geometry Inf"].HasMember("BoxDimensionZ"))
-            m_paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
-    }
-
-    if (doc.HasMember("Body Active Domain")) {
-        auto size = LoadVectorJSON(doc["Body Active Domain"]);
-        m_paramsH->use_active_domain = true;
-        m_paramsH->bodyActiveDomain = size / 2;
-    }
-
-    if (doc.HasMember("Settling Time"))
-        m_paramsH->settlingTime = doc["Settling Time"].GetDouble();
-
-    //===============================================================
-    // Material Models
-    //===============================================================
-    if (doc.HasMember("Material Model")) {
-        m_paramsH->non_newtonian = doc["Material Model"]["Non-Newtonian"].GetBool();
-        //===============================================================
-        // For a simple non-newtonian flow
-        //==============================================================
-        if (m_paramsH->non_newtonian) {
-            m_paramsH->mu_max = doc["Material Model"]["max Viscosity"].GetDouble();
-
-            if (m_paramsH->non_newtonian) {
-                if (doc["Material Model"].HasMember("HerschelBulkley")) {
-                    m_paramsH->HB_k = doc["Material Model"]["HerschelBulkley"]["k"].GetDouble();
-                    m_paramsH->HB_n = doc["Material Model"]["HerschelBulkley"]["n"].GetInt();
-                    m_paramsH->HB_tau0 = doc["Material Model"]["HerschelBulkley"]["tau_0"].GetDouble();
-                    if (doc["Material Model"]["HerschelBulkley"].HasMember("sr0"))
-                        m_paramsH->HB_sr0 = doc["Material Model"]["HerschelBulkley"]["sr0"].GetDouble();
-                    else
-                        m_paramsH->HB_sr0 = 0.0;
-                } else {
-                    if (m_verbose)
-                        cout << "Constants of HerschelBulkley not found. Using default Newtonian values." << endl;
-                    m_paramsH->HB_k = m_paramsH->mu0;
-                    m_paramsH->HB_n = 1;
-                    m_paramsH->HB_tau0 = 0;
-                    m_paramsH->HB_sr0 = 0.0;
-                }
-            }
-        }
-    } else {
-        m_paramsH->non_newtonian = false;
-    }
-
-    // Calculate dependent parameters
-    m_paramsH->ood0 = 1 / m_paramsH->d0;
-    m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
-    m_paramsH->ooh = 1 / m_paramsH->h;
-    m_paramsH->volume0 = cube(m_paramsH->d0);
-    m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
-    m_paramsH->invrho0 = 1 / m_paramsH->rho0;
-
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
-        m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
-        m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
-    }
+    m_paramsH->num_proximity_search_steps = 1;
+    m_paramsH->use_variable_time_step = false;
 }
 
 //------------------------------------------------------------------------------
@@ -557,7 +186,7 @@ void ChFsiFluidSystemSPH::SetViscosityType(ViscosityMethod viscosity_method) {
 }
 
 void ChFsiFluidSystemSPH::SetArtificialViscosityCoefficient(double coefficient) {
-    m_paramsH->Ar_vis_alpha = coefficient;
+    m_paramsH->artificial_viscosity = coefficient;
 }
 
 void ChFsiFluidSystemSPH::SetKernelType(KernelType kernel_type) {
@@ -678,8 +307,8 @@ void ChFsiFluidSystemSPH::SetShiftingDiffusionParameters(double A, double AFSM, 
 }
 
 void ChFsiFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
-    m_paramsH->USE_Consistent_G = consistent_gradient;
-    m_paramsH->USE_Consistent_L = consistent_Laplacian;
+    m_paramsH->use_consistent_gradient_discretization = consistent_gradient;
+    m_paramsH->use_consistent_laplacian_discretization = consistent_Laplacian;
 }
 
 void ChFsiFluidSystemSPH::SetOutputLevel(OutputLevel output_level) {
@@ -692,6 +321,10 @@ void ChFsiFluidSystemSPH::SetCohesionForce(double Fc) {
 
 void ChFsiFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
     m_paramsH->num_proximity_search_steps = steps;
+}
+
+void ChFsiFluidSystemSPH::SetUseVariableTimeStep(bool use_variable_time_step) {
+    m_paramsH->use_variable_time_step = use_variable_time_step;
 }
 
 void ChFsiFluidSystemSPH::CheckSPHParameters() {
@@ -808,25 +441,44 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mu_fric_s(0.7),
       mu_fric_2(0.7),
       average_diam(0.005),
-      cohesion_coeff(0) {}
+      cohesion_coeff(0),
+      rheology_model(RheologyCRM::MU_OF_I),
+      mcc_M(0),
+      mcc_kappa(0),
+      mcc_lambda(0),
+      mcc_v_lambda(2.0) {}
 
 void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
     m_paramsH->elastic_SPH = true;
 
     SetDensity(mat_props.density);
+    m_paramsH->rheology_model_crm = mat_props.rheology_model;
 
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
-    m_paramsH->mu_I0 = Real(mat_props.mu_I0);
-    m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
-    m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+
     m_paramsH->ave_diam = Real(mat_props.average_diam);
-    m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
 
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
-    m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+
+    switch (m_paramsH->rheology_model_crm) {
+        case RheologyCRM::MCC:
+            m_paramsH->mcc_M = Real(mat_props.mcc_M);
+            m_paramsH->mcc_kappa = Real(mat_props.mcc_kappa);
+            m_paramsH->mcc_lambda = Real(mat_props.mcc_lambda);
+            m_paramsH->mcc_v_lambda = Real(mat_props.mcc_v_lambda);
+            break;
+        case RheologyCRM::MU_OF_I:
+            m_paramsH->mu_I0 = Real(mat_props.mu_I0);
+            m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
+            m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+            m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
+            break;
+        default:
+            throw std::runtime_error("Invalid rheology model");
+    }
 }
 
 ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
@@ -845,17 +497,18 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       density_reinit_steps(2e8),
       use_density_based_projection(false),
       num_bce_layers(3),
-      consistent_gradient_discretization(false),
-      consistent_laplacian_discretization(false),
+      use_consistent_gradient_discretization(false),
+      use_consistent_laplacian_discretization(false),
       viscosity_method(ViscosityMethod::ARTIFICIAL_UNILATERAL),
       boundary_method(BoundaryMethod::ADAMI),
       kernel_type(KernelType::CUBIC_SPLINE),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
-      kernel_threshold(0.8),
-      num_proximity_search_steps(4),
-      eos_type(EosType::ISOTHERMAL) {}
+      free_surface_threshold(2.0),
+      num_proximity_search_steps(1),
+      eos_type(EosType::ISOTHERMAL),
+      use_variable_time_step(false) {}
 
 void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->integration_scheme = sph_params.integration_scheme;
@@ -875,7 +528,6 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->ooh = 1 / m_paramsH->h;
 
     m_paramsH->v_Max = sph_params.max_velocity;
-    m_paramsH->Cs = 10 * m_paramsH->v_Max;
     m_paramsH->shifting_xsph_eps = sph_params.shifting_xsph_eps;
     m_paramsH->shifting_ppst_push = sph_params.shifting_ppst_push;
     m_paramsH->shifting_ppst_pull = sph_params.shifting_ppst_pull;
@@ -885,20 +537,22 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->shifting_diffusion_AFST = sph_params.shifting_diffusion_AFST;
     m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
 
-    m_paramsH->densityReinit = sph_params.density_reinit_steps;
-    m_paramsH->DensityBaseProjection = sph_params.use_density_based_projection;
+    m_paramsH->density_reinit_steps = sph_params.density_reinit_steps;
+    m_paramsH->use_density_based_projection = sph_params.use_density_based_projection;
 
     m_paramsH->num_bce_layers = sph_params.num_bce_layers;
 
-    m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
-    m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
-    m_paramsH->Ar_vis_alpha = sph_params.artificial_viscosity;
-    m_paramsH->USE_Delta_SPH = sph_params.use_delta_sph;
+    m_paramsH->use_consistent_gradient_discretization = sph_params.use_consistent_gradient_discretization;
+    m_paramsH->use_consistent_laplacian_discretization = sph_params.use_consistent_laplacian_discretization;
+    m_paramsH->artificial_viscosity = sph_params.artificial_viscosity;
+    m_paramsH->use_delta_sph = sph_params.use_delta_sph;
     m_paramsH->density_delta = sph_params.delta_sph_coefficient;
 
-    m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
+    m_paramsH->free_surface_threshold = Real(sph_params.free_surface_threshold);
 
     m_paramsH->num_proximity_search_steps = sph_params.num_proximity_search_steps;
+
+    m_paramsH->use_variable_time_step = sph_params.use_variable_time_step;
 }
 
 ChFsiFluidSystemSPH::LinSolverParameters::LinSolverParameters()
@@ -1092,11 +746,11 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             break;
         case ViscosityMethod::ARTIFICIAL_UNILATERAL:
             cout << "  Viscosity treatment: Artificial Unilateral";
-            cout << "  (coefficient: " << params.Ar_vis_alpha << ")" << endl;
+            cout << "  (coefficient: " << params.artificial_viscosity << ")" << endl;
             break;
         case ViscosityMethod::ARTIFICIAL_BILATERAL:
             cout << "  Viscosity treatment: Artificial Bilateral";
-            cout << "  (coefficient: " << params.Ar_vis_alpha << ")" << endl;
+            cout << "  (coefficient: " << params.artificial_viscosity << ")" << endl;
             break;
     }
     if (params.boundary_method == BoundaryMethod::ADAMI) {
@@ -1156,7 +810,14 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             cout << "  Integration scheme: Implicit SPH" << endl;
             break;
     }
-
+    switch (params.rheology_model_crm) {
+        case RheologyCRM::MU_OF_I:
+            cout << "  Rheology model: MU_OF_I" << endl;
+            break;
+        case RheologyCRM::MCC:
+            cout << "  Rheology model: MCC" << endl;
+            break;
+    }
     cout << "  num_neighbors: " << params.num_neighbors << endl;
     cout << "  rho0: " << params.rho0 << endl;
     cout << "  invrho0: " << params.invrho0 << endl;
@@ -1198,9 +859,10 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
         cout << "  shifting_diffusion_AFSM: " << params.shifting_diffusion_AFSM << endl;
         cout << "  shifting_diffusion_AFST: " << params.shifting_diffusion_AFST << endl;
     }
-    cout << "  densityReinit: " << params.densityReinit << endl;
+    cout << "  density_reinit_steps: " << params.density_reinit_steps << endl;
 
     cout << "  Proximity search performed every " << params.num_proximity_search_steps << " steps" << endl;
+    cout << "  use_variable_time_step: " << params.use_variable_time_step << endl;
     cout << "  dT: " << params.dT << endl;
 
     cout << "  non_newtonian: " << params.non_newtonian << endl;
@@ -1212,6 +874,10 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  mu_fric_2: " << params.mu_fric_2 << endl;
     cout << "  mu_I0: " << params.mu_I0 << endl;
     cout << "  mu_I_b: " << params.mu_I_b << endl;
+    cout << "  mcc_M: " << params.mcc_M << endl;
+    cout << "  mcc_kappa: " << params.mcc_kappa << endl;
+    cout << "  mcc_lambda: " << params.mcc_lambda << endl;
+    cout << "  mcc_v_lambda: " << params.mcc_v_lambda << endl;
     cout << "  HB_k: " << params.HB_k << endl;
     cout << "  HB_n: " << params.HB_n << endl;
     cout << "  HB_tau0: " << params.HB_tau0 << endl;
@@ -1221,7 +887,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  G_shear: " << params.G_shear << endl;
     cout << "  INV_G_shear: " << params.INV_G_shear << endl;
     cout << "  K_bulk: " << params.K_bulk << endl;
-    cout << "  C_Wi: " << params.C_Wi << endl;
+    cout << "  free_surface_threshold: " << params.free_surface_threshold << endl;
 
     cout << "  PPE_relaxation: " << params.PPE_relaxation << endl;
     cout << "  Conservative_Form: " << params.Conservative_Form << endl;
@@ -1359,7 +1025,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
         bce_coords.clear();
         const auto& X_G_COM = fsi_body->body->GetFrameCOMToAbs();
         std::transform(bce.begin(), bce.end(), std::back_inserter(bce_coords),
-                       [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v);});
+                       [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v); });
 
         // Set BCE body association
         bce_ids.resize(bce_coords.size(), fsi_body->index);
@@ -1388,9 +1054,16 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    // Calculate nodal directions if requested
+    // Load nodal directions if requested (from FSI mesh or calculate)
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
     std::vector<ChVector3d> dir;
-    if (m_use_node_directions) {
+
+    if (m_node_directions_mode == NodeDirectionsMode::EXACT) {
+        //// TODO - exact node directions
+        //// use from FSI mesh or fall back on average
+    }
+
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         dir.resize(fsi_mesh->GetNumNodes());
         std::fill(dir.begin(), dir.end(), VNULL);
         for (const auto& seg : surface->GetSegmentsXYZ()) {
@@ -1437,7 +1110,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
 
             ChVector3d P;
             ChVector3d D;
-            if (m_use_node_directions) {
+            if (use_node_directions) {
                 auto t2 = t * t;
                 auto t3 = t2 * t;
 
@@ -1490,9 +1163,16 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
     auto meshID = fsi_mesh->index;
     const auto& surface = fsi_mesh->contact_surface;
 
-    // Calculate nodal directions if requested
+    // Load nodal directions if requested (from FSI mesh or calculate)
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
     std::vector<ChVector3d> dir;
-    if (m_use_node_directions) {
+
+    if (m_node_directions_mode == NodeDirectionsMode::EXACT) {
+        //// TODO - exact node directions
+        //// use from FSI mesh or fall back on average
+    }
+
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         dir.resize(fsi_mesh->GetNumNodes());
         std::fill(dir.begin(), dir.end(), VNULL);
         for (const auto& tri : surface->GetTrianglesXYZ()) {
@@ -1598,6 +1278,9 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
                     continue;
 
                 //// TODO RADU - add cubic interpolation (position and normal) if using nodal directions
+                if (use_node_directions) {
+                    //// TODO
+                }
 
                 auto P = lambda[0] * P0 + lambda[1] * P1 + lambda[2] * P2;  // absolute coordinates of BCE marker
 
@@ -1829,24 +1512,42 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1,
                                      m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
                                      m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
-
+    // Update the speed of sound
+    if (m_paramsH->elastic_SPH) {
+        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+    } else {
+        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    }
     // ----------------
+
+    // Hack to prevent bringing in Chrono core headers in CUDA code
+    // Copy from one enum class (NodeDirectionsMode) to another (NodeDirections)
+    NodeDirections node_directions_mode = NodeDirections::NONE;
+    switch (m_node_directions_mode) {
+        case NodeDirectionsMode::NONE:
+            node_directions_mode = NodeDirections::NONE;
+            break;
+        case NodeDirectionsMode::AVERAGE:
+            node_directions_mode = NodeDirections::AVERAGE;
+            break;
+        case NodeDirectionsMode::EXACT:
+            node_directions_mode = NodeDirections::EXACT;
+            break;
+    }
 
     // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
     // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
     m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
                            m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
-                           m_use_node_directions);
-
-    // ----------------
+                           node_directions_mode);
 
     // Load the initial body and mesh node states
     ChDebugLog("load initial states");
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_use_node_directions, m_verbose, m_check_errors);
-    m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
+    m_bce_mgr = chrono_types::make_unique<SphBceManager>(*m_data_mgr, node_directions_mode, m_verbose, m_check_errors);
+    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
 
     // Initialize worker objects
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
@@ -1877,20 +1578,38 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 }
 
 //------------------------------------------------------------------------------
+double ChFsiFluidSystemSPH::GetCurrentStepSize() {
+    // Variable time step requires the state from the previous time step.
+    // Thus, it cannot directly be used in the first time step.
+    if (m_paramsH->use_variable_time_step && m_frame != 0) {
+        return m_fluid_dynamics->computeTimeStep();
+    } else {
+        return GetStepSize();
+    }
+}
+
+void ChFsiFluidSystemSPH::PrintStats() const {
+    QuantityLogger::GetInstance().PrintStats();
+}
+
+void ChFsiFluidSystemSPH::PrintTimeSteps(const std::string& path) const {
+    std::vector<std::string> quantities = {"time_step", "min_courant_viscous_time_step", "min_acceleration_time_step"};
+    QuantityLogger::GetInstance().WriteQuantityValuesToFile(path, quantities);
+}
 
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
+    SynchronizeCopyStream();
     // Update particle activity
     m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D, time);
-
-    // Resize arrays
-    bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();
-    if (m_frame == 0 || resize_arrays) {
-        m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
-    }
 
     // Perform proximity search
     bool proximity_search = m_frame % m_paramsH->num_proximity_search_steps == 0 || m_force_proximity_search;
     if (proximity_search) {
+        // Resize arrays
+        bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();
+        if (m_frame == 0 || resize_arrays) {
+            m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
+        }
         m_fluid_dynamics->ProximitySearch();
     }
 
@@ -1927,6 +1646,10 @@ void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
                                            m_data_mgr->sphMarkers_D);
 }
 
+void ChFsiFluidSystemSPH::SynchronizeCopyStream() const {
+    m_fluid_dynamics->SynchronizeCopyStream();
+}
+
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
@@ -1934,6 +1657,7 @@ void ChFsiFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
 }
 
 void ChFsiFluidSystemSPH::SaveParticleData(const std::string& dir) const {
+    SynchronizeCopyStream();
     if (m_paramsH->elastic_SPH)
         saveParticleDataCRM(dir, m_output_level, *m_data_mgr);
     else
@@ -1941,6 +1665,7 @@ void ChFsiFluidSystemSPH::SaveParticleData(const std::string& dir) const {
 }
 
 void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
+    SynchronizeCopyStream();
     saveSolidData(dir, time, *m_data_mgr);
 }
 
@@ -1952,15 +1677,17 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          double mu,
                                          const ChVector3d& vel,
                                          const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz) {
-    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz));
+                                         const ChVector3d& tauXyXzYz,
+                                         const double pc) {
+    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
 }
 
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          const ChVector3d& vel,
                                          const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz) {
-    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
+                                         const ChVector3d& tauXyXzYz,
+                                         const double pc) {
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz, pc);
 }
 
 void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
@@ -1972,9 +1699,10 @@ void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
-                       ChVector3d(0),   // initial velocity
-                       ChVector3d(0),   // tauxxyyzz
-                       ChVector3d(0));  // tauxyxzyz
+                       ChVector3d(0),  // initial velocity
+                       ChVector3d(0),  // tauxxyyzz
+                       ChVector3d(0),  // tauxyxzyz
+                       0);             // pc
     }
 }
 
@@ -2515,6 +2243,12 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
 }
 
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad, double height, bool polar) const {
+    return CreatePointsTruncatedConeInterior(rad, 0, height, polar);
+}
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeInterior(double rad,
+                                                                               double rad_tip,
+                                                                               double height,
+                                                                               bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2528,7 +2262,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
     if (polar) {
         for (int iz = 0; iz < np_h; iz++) {
             double z = iz * delta_h;
-            double rz = rad * (height - z) / height;
+            // Interpolate between rad_tip and rad based on the height
+            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
             double rad_out = rz;
             double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
             if (iz >= np_h - num_layers)
@@ -2548,7 +2283,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
             }
         }
 
-        bce.push_back({0.0, 0.0, height});
+        // Add tip point only for a true cone (rad_tip = 0)
+        if (rad_tip < std::numeric_limits<double>::epsilon()) {
+            bce.push_back({0.0, 0.0, height});
+        }
 
         //// TODO: add cap
 
@@ -2561,7 +2299,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 
     for (int iz = 0; iz <= np_h; iz++) {
         double z = iz * delta_h;
-        double rz = rad * (height - z) / height;
+        // Interpolate between rad_tip and rad based on the height
+        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
         double rad_out = rz;
         double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
         double r_out2 = rad_out * rad_out;
@@ -2584,6 +2323,12 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad
 }
 
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad, double height, bool polar) const {
+    return CreatePointsTruncatedConeExterior(rad, 0, height, polar);
+}
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(double rad,
+                                                                               double rad_tip,
+                                                                               double height,
+                                                                               bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2601,7 +2346,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
     if (polar) {
         for (int iz = 0; iz < np_h; iz++) {
             double z = iz * delta_h;
-            double rz = rad * (height - z) / height;
+            // Interpolate between rad_tip and rad based on the height
+            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
             double rad_out = rz + num_layers * spacing;
             double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
             if (iz >= np_h - num_layers)
@@ -2621,7 +2367,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
             }
         }
 
-        bce.push_back({0.0, 0.0, height});
+        // Add tip point only for a true cone (rad_tip = 0)
+        if (rad_tip < std::numeric_limits<double>::epsilon()) {
+            bce.push_back({0.0, 0.0, height});
+        }
 
         //// TODO: add cap
 
@@ -2634,7 +2383,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad
 
     for (int iz = 0; iz <= np_h; iz++) {
         double z = iz * delta_h;
-        double rz = rad * (height - z) / height;
+        // Interpolate between rad_tip and rad based on the height
+        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
         double rad_out = rz + num_layers * spacing;
         double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
         double r_out2 = rad_out * rad_out;
@@ -2848,6 +2598,13 @@ ChVector3d ChFsiFluidSystemSPH::GetGravitationalAcceleration() const {
 }
 
 double ChFsiFluidSystemSPH::GetSoundSpeed() const {
+    // This can be called even before Initialize() is called (For instance DepthPressurePropertiesCallback in
+    // ChFsiProblemSPH) This means that we need to update Cs based on the current set of parameters.
+    if (m_paramsH->elastic_SPH) {
+        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+    } else {
+        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    }
     return m_paramsH->Cs;
 }
 
@@ -2857,6 +2614,10 @@ ChVector3d ChFsiFluidSystemSPH::GetBodyForce() const {
 
 int ChFsiFluidSystemSPH::GetNumProximitySearchSteps() const {
     return m_paramsH->num_proximity_search_steps;
+}
+
+bool ChFsiFluidSystemSPH::GetUseVariableTimeStep() const {
+    return m_paramsH->use_variable_time_step;
 }
 
 size_t ChFsiFluidSystemSPH::GetNumFluidMarkers() const {
@@ -2945,38 +2706,47 @@ std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame,
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetPositions();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetVelocities();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetAccelerations() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetAccelerations();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetForces() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetForces();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetProperties() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetProperties();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetPositions(indices);
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetVelocities(indices);
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetAccelerations(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetAccelerations(indices);
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetForces(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetForces(indices);
 }
 

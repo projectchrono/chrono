@@ -34,6 +34,7 @@ void CheckBox(ChSystemNSC& system, ChParserURDF& parser, const std::string& name
 
 TEST(ChParserURDF, URDF_simple) {
     ChSystemNSC system;
+    system.SetGravityY();
 
     // Create the URDF parser with a basic file
     const std::string filename = "urdf/box.urdf";

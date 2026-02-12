@@ -1,22 +1,32 @@
 #=============================================================================
-# CMake configuration file for Chrono FSI module
+# CMake configuration file for the Chrono::SPH FSI module
 #
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
+
+cmake_dependent_option(CH_ENABLE_MODULE_FSI_SPH "Enable the Chrono::SPH FSI module" ON
+                       "CH_ENABLE_MODULE_FSI" ON)
+                 
+if(NOT CH_ENABLE_MODULE_FSI_SPH)
+  mark_as_advanced(FORCE CH_USE_SPH_DOUBLE)
+  return()
+else()
+  mark_as_advanced(CLEAR CH_USE_SPH_DOUBLE)
+endif()
 
 message(STATUS "SPH-based Chrono::FSI submodule")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
-    set(CH_ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    set(CH_ENABLE_MODULE_FSI_SPH OFF CACHE BOOL "Enable the Chrono::SPH FSI module" FORCE)
     return()
 endif()
 
 # Return now if CUDA is not available
 if(NOT CHRONO_CUDA_FOUND)
     message(WARNING "Chrono::FSI::SPH requires CUDA, but CUDA was not found; disabling Chrono::FSI::SPH")
-    set(CH_ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    set(CH_ENABLE_MODULE_FSI_SPH OFF CACHE BOOL "Enable the Chrono::SPH FSI module" FORCE)
     return()
 endif()
 
@@ -25,12 +35,12 @@ message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 #-----------------------------------------------------------------------------
 
 # Additional options for this module
-option(CH_USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" OFF)
-if(CH_USE_FSI_DOUBLE)
-  set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
+option(CH_USE_SPH_DOUBLE "Compile Chrono::SPH with double precision math" OFF)
+if(CH_USE_SPH_DOUBLE)
+  set(CHRONO_SPH_USE_DOUBLE "#define CHRONO_SPH_USE_DOUBLE")
 endif()
 
-message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
+message(STATUS "  Use double precision? ${CH_USE_SPH_DOUBLE}")
 
 #-----------------------------------------------------------------------------
 
@@ -75,50 +85,51 @@ set(FSISPH_BASE_FILES
 source_group("" FILES ${FSISPH_BASE_FILES})
 
 set(FSISPH_PHYSICS_FILES
-    physics/MarkerType.cuh
-    physics/FsiDataManager.cuh
-    physics/FsiInterface.cuh
-    physics/BceManager.cuh
-    physics/FluidDynamics.cuh
-    physics/CollisionSystem.cuh
-    physics/FsiForce.cuh    
-    physics/FsiForceWCSPH.cuh
-    physics/FsiForceISPH.cuh
+    physics/SphBceManager.cuh
+    physics/SphCollisionSystem.cuh
+    physics/SphDataManager.cuh
+    physics/SphFluidDynamics.cuh
+    physics/SphForce.cuh    
+    physics/SphForceWCSPH.cuh
+    physics/SphForceISPH.cuh
+    physics/SphFsiInterface.cuh
     physics/SphGeneral.cuh
-    physics/FsiParticleRelocator.cuh
+    physics/SphMarkerType.cuh
+    physics/SphParticleRelocator.cuh
     #
-    physics/FsiDataManager.cu
-    physics/FsiInterface.cu
-    physics/BceManager.cu
-    physics/FluidDynamics.cu
-    physics/CollisionSystem.cu
-    physics/FsiForce.cu
-    physics/FsiForceWCSPH.cu
-    physics/FsiForceISPH.cu
+    physics/SphBceManager.cu
+    physics/SphCollisionSystem.cu
+    physics/SphDataManager.cu
+    physics/SphFluidDynamics.cu
+    physics/SphForce.cu
+    physics/SphForceWCSPH.cu
+    physics/SphForceISPH.cu
+    physics/SphFsiInterface.cu
     physics/SphGeneral.cu
-    physics/FsiParticleRelocator.cu
+    physics/SphParticleRelocator.cu
 )
 source_group("physics" FILES ${FSISPH_PHYSICS_FILES})
 
 set(FSISPH_MATH_FILES
-    math/LinearSolver.h
-    #math/LinearSolverBiCGStab.h
-    #math/LinearSolverGMRES.h
+    math/SphLinearSolver.h
+    #math/SphLinearSolverBiCGStab.h
+    #math/SphLinearSolverGMRES.h
 
-    math/CustomMath.cuh
-    math/ExactLinearSolvers.cuh
+    math/SphCustomMath.cuh
+    math/SphExactLinearSolvers.cuh
 
-    #math/LinearSolverBiCGStab.cpp
-    #math/LinearSolverGMRES.cpp
+    #math/SphLinearSolverBiCGStab.cpp
+    #math/SphLinearSolverGMRES.cpp
 )
 source_group("math" FILES ${FSISPH_MATH_FILES})
 
 set(FSISPH_UTILS_FILES
-    utils/UtilsDevice.cuh
-    utils/UtilsDevice.cu
-    utils/UtilsTypeConvert.cuh
-    utils/UtilsPrintSph.cuh
-    utils/UtilsPrintSph.cu
+    utils/SphUtilsDevice.cuh
+    utils/SphUtilsDevice.cu
+    utils/SphUtilsTypeConvert.cuh
+    utils/SphUtilsPrint.cuh
+    utils/SphUtilsPrint.cu
+    utils/SphUtilsLogging.cuh
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 
@@ -137,8 +148,8 @@ source_group("stb" FILES ${FSISPH_STB_FILES})
 
 if(CH_ENABLE_MODULE_VSG)
     set(FSISPH_VSG_FILES
-        visualization/ChFsiVisualizationVSG.h
-        visualization/ChFsiVisualizationVSG.cpp
+        visualization/ChSphVisualizationVSG.h
+        visualization/ChSphVisualizationVSG.cpp
     )
 else()
     set(FSISPH_VSG_FILES "")
@@ -149,12 +160,24 @@ source_group("" FILES ${FSISPH_VSG_FILES})
 # Set dependencies on other Chrono modules
 # ------------------------------------------------------------------------------
 
-set(DEPENDENCIES_FSI "")
+set(DEPENDENCIES_FSI_SPH "FSI")
 if(CH_ENABLE_MODULE_VSG)
-  list (APPEND DEPENDENCIES_FSI "VSG")
+  list (APPEND DEPENDENCIES_FSI_SPH "VSG")
 endif()
 
-set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
+set(DEPENDENCIES_FSI_SPH ${DEPENDENCIES_FSI_SPH} PARENT_SCOPE)
+
+#-----------------------------------------------------------------------------
+# Generate and install configuration file
+#-----------------------------------------------------------------------------
+
+set(FSISPH_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigSPH.h.in ${FSISPH_CONFIG_FILE} @ONLY)
+
+source_group("" FILES ${FSISPH_CONFIG_FILE})
+
+install(FILES ${FSISPH_CONFIG_FILE} DESTINATION include/chrono_fsi/sph)
 
 #-----------------------------------------------------------------------------
 # Create the Chrono_fsisph library
@@ -168,6 +191,7 @@ add_library(Chrono_fsisph
     ${FSISPH_MATH_FILES}
     ${FSISPH_UTILS_FILES}
     ${FSISPH_STB_FILES}
+    ${FSISPH_CONFIG_FILE}
 )
 add_library(Chrono::fsisph ALIAS Chrono_fsisph)
 
@@ -183,6 +207,8 @@ if(MSVC)
   target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4324>)  # unreferenced formal parameter
   set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
 
 target_link_libraries(Chrono_fsisph PRIVATE Chrono_core)
 target_link_libraries(Chrono_fsisph PUBLIC Chrono_fsi)
@@ -207,16 +233,6 @@ install(TARGETS Chrono_fsisph
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
-
-#-----------------------------------------------------------------------------
-# Generate and install configuration file
-#-----------------------------------------------------------------------------
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigSPH.h.in
-               ${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h)
-
-install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h"
-        DESTINATION include/chrono_fsi/sph)
 
 #-------------------------------------------------------------------------------
 # Add the Chrono_fsisph_vsg library

@@ -12,7 +12,7 @@
 
 #include <atomic>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChObject.h"
 
 namespace chrono {
@@ -82,10 +82,10 @@ void ChObj::AddCamera(std::shared_ptr<ChCamera> camera) {
 
 // -----------------------------------------------------------------------------
 
-void ChObj::Update(double time, bool update_assets) {
+void ChObj::Update(double time, UpdateFlags update_flags) {
     ChTime = time;
 
-    if (update_assets) {
+    if (has_flag(update_flags, UpdateFlags::VISUAL_ASSETS)) {
         UpdateVisualModel();
         for (auto& camera : cameras)
             camera->Update();

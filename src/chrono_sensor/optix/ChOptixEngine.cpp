@@ -41,6 +41,7 @@
 #include "chrono/assets/ChVisualShapeRoundedBox.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/optix/ChNVDBVolume.h"
@@ -51,16 +52,15 @@
 namespace chrono {
 namespace sensor {
 
-
-// using namespace optix;
-ChOptixEngine::ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections, bool verbose)
-    : m_verbose(verbose), m_deviceId(device_id), m_recursions(max_scene_reflections), m_sceneThread() {
+ChOptixEngine::ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections, bool verbose, bool debug)
+    : m_verbose(verbose), m_debug(debug), m_deviceId(device_id), m_recursions(max_scene_reflections), m_sceneThread() {
     m_sceneThread.start = false;
     m_sceneThread.terminate = false;
     m_sceneThread.done = true;  // thread is done to begin with (no work to complete)
     m_system = sys;
     Initialize();
 }
+
 ChOptixEngine::~ChOptixEngine() {
     StopAllThreads();  // if it hasn't been stopped yet, stop it ourselves
     // cleanup ChOptixGeometry and ChOptixPipeline before destroying the context
@@ -82,7 +82,7 @@ void ChOptixEngine::Initialize() {
     OptixDeviceContextOptions options = {};
     options.logCallbackFunction = &optix_log_callback;
 
-    if (m_verbose) {
+    if (m_debug) {
         options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
         options.logCallbackLevel = 4;
     } else {
@@ -113,7 +113,7 @@ void ChOptixEngine::Initialize() {
     m_params.root = {};
 
     m_geometry = chrono_types::make_shared<ChOptixGeometry>(m_context);
-    m_pipeline = chrono_types::make_shared<ChOptixPipeline>(m_context, m_recursions, m_verbose);
+    m_pipeline = chrono_types::make_shared<ChOptixPipeline>(m_context, m_recursions, m_debug);
 
     // TODO: enable multigpu
 }
@@ -569,19 +569,19 @@ void ChOptixEngine::ConstructScene() {
                 #endif
                 else if (auto sphere_shape = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
                     sphereVisualization(body, sphere_shape, shape_frame);
-
                 } else if (auto cylinder_shape = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
                     cylinderVisualization(body, cylinder_shape, shape_frame);
-
                 } else if (auto trimesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
                     if (!trimesh_shape->IsMutable()) {
                         rigidMeshVisualization(body, trimesh_shape, shape_frame);
-
-                        // added_asset_for_body = true;
                     } else {
                         deformableMeshVisualization(body, trimesh_shape, shape_frame);
                     }
-
+                } else if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+                    auto obj_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
+                    auto obj_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+                    obj_trimesh_shape->SetMesh(obj_trimesh);
+                    rigidMeshVisualization(body, obj_trimesh_shape, shape_frame);
                 } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
                 } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
                 } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {

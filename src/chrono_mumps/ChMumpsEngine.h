@@ -22,12 +22,12 @@
 #define USE_COMM_WORLD -987654
 
 /* macro s.t. indices match documentation */
-#define ICNTL(I) icntl[(I)-1]
-#define CNTL(I) cntl[(I)-1]
-#define INFO(I) info[(I)-1]
-#define INFOG(I) infog[(I)-1]
-#define RINFO(I) rinfo[(I)-1]
-#define RINFOG(I) rinfog[(I)-1]
+#define ICNTL(I) icntl[(I) - 1]
+#define CNTL(I) cntl[(I) - 1]
+#define INFO(I) info[(I) - 1]
+#define INFOG(I) infog[(I) - 1]
+#define RINFO(I) rinfo[(I) - 1]
+#define RINFOG(I) rinfog[(I) - 1]
 
 namespace chrono {
 

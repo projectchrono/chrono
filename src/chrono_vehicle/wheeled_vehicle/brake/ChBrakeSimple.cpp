@@ -27,7 +27,7 @@ namespace vehicle {
 ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {}
 
 ChBrakeSimple::~ChBrakeSimple() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_brake->GetSystem();
@@ -74,6 +74,12 @@ void ChBrakeSimple::Synchronize(double time, double braking) {
         m_hub->Lock(false);
         m_locked = false;
     }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChBrakeSimple::PopulateComponentList() {
+    m_joints.push_back(m_brake);
 }
 
 }  // end namespace vehicle

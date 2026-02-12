@@ -22,23 +22,21 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/utils/ChValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 
 // =============================================================================
 // Local variables
-//
-static const std::string val_dir = "../RESULTS/";
-static const std::string out_dir = val_dir + "rackpinion_joint/";
+static const std::string out_dir = GetChronoTestOutputPath() + "/rackpinion_joint/";
 static const std::string ref_dir = "testing/joints/rackpinion_joint/";
 
 // =============================================================================
 // Prototypes of local functions
-//
 bool TestRackPinion(const ChVector3d& jointLoc,
                     const ChQuaternion<>& jointRot,
                     double simTimeStep,
@@ -47,18 +45,12 @@ bool TestRackPinion(const ChVector3d& jointLoc,
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::ChWriterCSV OutStream();
+ChWriterCSV OutStream();
 
 // =============================================================================
-//
 // Main driver function for running the simulation and validating the results.
-//
 int main(int argc, char* argv[]) {
     // Create output directory (if it does not already exist)
-    if (!filesystem::create_directory(filesystem::path(val_dir))) {
-        std::cout << "Error creating directory " << val_dir << std::endl;
-        return 1;
-    }
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -187,23 +179,23 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::ChWriterCSV out_posPinion = OutStream();
-    utils::ChWriterCSV out_velPinion = OutStream();
-    utils::ChWriterCSV out_accPinion = OutStream();
+    ChWriterCSV out_posPinion = OutStream();
+    ChWriterCSV out_velPinion = OutStream();
+    ChWriterCSV out_accPinion = OutStream();
 
-    utils::ChWriterCSV out_quatPinion = OutStream();
-    utils::ChWriterCSV out_avelPinion = OutStream();
-    utils::ChWriterCSV out_aaccPinion = OutStream();
+    ChWriterCSV out_quatPinion = OutStream();
+    ChWriterCSV out_avelPinion = OutStream();
+    ChWriterCSV out_aaccPinion = OutStream();
 
-    utils::ChWriterCSV out_posRack = OutStream();
-    utils::ChWriterCSV out_velRack = OutStream();
-    utils::ChWriterCSV out_accRack = OutStream();
+    ChWriterCSV out_posRack = OutStream();
+    ChWriterCSV out_velRack = OutStream();
+    ChWriterCSV out_accRack = OutStream();
 
-    utils::ChWriterCSV out_quatRack = OutStream();
-    utils::ChWriterCSV out_avelRack = OutStream();
-    utils::ChWriterCSV out_aaccRack = OutStream();
+    ChWriterCSV out_quatRack = OutStream();
+    ChWriterCSV out_avelRack = OutStream();
+    ChWriterCSV out_aaccRack = OutStream();
 
-    utils::ChWriterCSV out_energy = OutStream();
+    ChWriterCSV out_energy = OutStream();
 
     // Write headers
     out_posPinion << "Time"
@@ -337,43 +329,41 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     }
 
     // Write output files
-    out_posPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Pos.txt", testName + "\n");
-    out_velPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Vel.txt", testName + "\n");
-    out_accPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Acc.txt", testName + "\n");
+    out_posPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Pos.txt", "# " + testName);
+    out_velPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Vel.txt", "# " + testName);
+    out_accPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Acc.txt", "# " + testName);
 
-    out_posRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Pos.txt", testName + "\n");
-    out_velRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Vel.txt", testName + "\n");
-    out_accRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Acc.txt", testName + "\n");
+    out_posRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Pos.txt", "# " + testName);
+    out_velRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Vel.txt", "# " + testName);
+    out_accRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Acc.txt", "# " + testName);
 
-    out_quatPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Quat.txt", testName + "\n");
-    out_avelPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Avel.txt", testName + "\n");
-    out_aaccPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Aacc.txt", testName + "\n");
+    out_quatPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Quat.txt", "# " + testName);
+    out_avelPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Avel.txt", "# " + testName);
+    out_aaccPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Aacc.txt", "# " + testName);
 
-    out_quatRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Quat.txt", testName + "\n");
-    out_avelRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Avel.txt", testName + "\n");
-    out_aaccRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Aacc.txt", testName + "\n");
+    out_quatRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Quat.txt", "# " + testName);
+    out_avelRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Avel.txt", "# " + testName);
+    out_aaccRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Aacc.txt", "# " + testName);
 
-    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", "# " + testName);
 
     return true;
 }
 
 // =============================================================================
-//
 // Wrapper function for comparing the specified simulation quantities against a
 // reference file.
-//
 bool ValidateReference(const std::string& testName,  // name of this test
                        const std::string& what,      // identifier for test quantity
                        double tolerance)             // validation tolerance
 {
     std::string sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -381,14 +371,13 @@ bool ValidateReference(const std::string& testName,  // name of this test
 }
 
 // wrapper function for checking energy conservation.
-//
 bool ValidateEnergy(const std::string& testName,  // name of this test
                     double tolerance)             // validation tolerance
 {
     std::string sim_file = out_dir + testName + "_CHRONO_Energy.txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+    ChValidation::Test(sim_file, ChValidation::NormType::RMS, tolerance, norms);
 
     bool check = norms[norms.size() - 1] <= tolerance;
     std::cout << "   validate Energy" << (check ? ": Passed" : ": Failed") << "  [  " << norms[norms.size() - 1]
@@ -398,11 +387,9 @@ bool ValidateEnergy(const std::string& testName,  // name of this test
 }
 
 // =============================================================================
-//
 // Utility function to create a CSV output stream and set output format options.
-//
-utils::ChWriterCSV OutStream() {
-    utils::ChWriterCSV out("\t");
+ChWriterCSV OutStream() {
+    ChWriterCSV out("\t");
 
     out.Stream().setf(std::ios::scientific | std::ios::showpos);
     out.Stream().precision(6);

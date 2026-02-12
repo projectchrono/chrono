@@ -61,8 +61,14 @@
 // If module FSI was enabled, define CHRONO_FSI
 @CHRONO_FSI@
 
-// If module GPU was enabled, define CHRONO_GPU
-@CHRONO_GPU@
+// If FSI_SPH module was enabled, define CHRONO_FSI_SPH
+@CHRONO_FSI_SPH@
+
+// If FSI_TDPF module was enabled, define CHRONO_FSI_TDPF
+@CHRONO_FSI_TDPF@
+
+// If module DEM was enabled, define CHRONO_DEM
+@CHRONO_DEM@
 
 // If module SYNCHRONO was enabled, define CHRONO_SYNCHRONO
 @CHRONO_SYNCHRONO@
@@ -78,6 +84,20 @@
 
 // If module FMI was enabled, define CHRONO_FMI
 @CHRONO_FMI@
+
+// -----------------------------------------------------------------------------
+// C++ standard support
+// -----------------------------------------------------------------------------
+
+// If Chrono was built with C++17 support, define CHRONO_HAS_CXX17
+@CHRONO_HAS_CXX17@
+
+// -----------------------------------------------------------------------------
+// GnuPlot
+// -----------------------------------------------------------------------------
+
+// If GnuPlot was found, define CHRONO_HAS_GNUPLOT
+@CHRONO_HAS_GNUPLOT@
 
 // -----------------------------------------------------------------------------
 // OpenMP settings

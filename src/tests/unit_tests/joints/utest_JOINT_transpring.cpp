@@ -22,23 +22,21 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/utils/ChValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 
 // =============================================================================
 // Local variables
-//
-static const std::string val_dir = "../RESULTS/";
-static const std::string out_dir = val_dir + "transpring_force/";
+static const std::string out_dir = GetChronoTestOutputPath() + "/transpring_force/";
 static const std::string ref_dir = "testing/joints/transpring_force/";
 
 // =============================================================================
 // Prototypes of local functions
-//
 bool TestTranSpring(const ChVector3d& jointLocGnd,
                     const ChVector3d& jointLocPend,
                     const ChCoordsys<>& PendCSYS,
@@ -50,18 +48,12 @@ bool TestTranSpring(const ChVector3d& jointLocGnd,
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::ChWriterCSV OutStream();
+ChWriterCSV OutStream();
 
 // =============================================================================
-//
 // Main driver function for running the simulation and validating the results.
-//
 int main(int argc, char* argv[]) {
     // Create output directory (if it does not already exist)
-    if (!filesystem::create_directory(filesystem::path(val_dir))) {
-        std::cout << "Error creating directory " << val_dir << std::endl;
-        return 1;
-    }
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -180,18 +172,18 @@ bool TestTranSpring(
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::ChWriterCSV out_pos = OutStream();
-    utils::ChWriterCSV out_vel = OutStream();
-    utils::ChWriterCSV out_acc = OutStream();
+    ChWriterCSV out_pos = OutStream();
+    ChWriterCSV out_vel = OutStream();
+    ChWriterCSV out_acc = OutStream();
 
-    utils::ChWriterCSV out_quat = OutStream();
-    utils::ChWriterCSV out_avel = OutStream();
-    utils::ChWriterCSV out_aacc = OutStream();
+    ChWriterCSV out_quat = OutStream();
+    ChWriterCSV out_avel = OutStream();
+    ChWriterCSV out_aacc = OutStream();
 
-    utils::ChWriterCSV out_rfrc = OutStream();
-    utils::ChWriterCSV out_rtrq = OutStream();
+    ChWriterCSV out_rfrc = OutStream();
+    ChWriterCSV out_rtrq = OutStream();
 
-    utils::ChWriterCSV out_energy = OutStream();
+    ChWriterCSV out_energy = OutStream();
 
     // Write headers
     out_pos << "Time"
@@ -306,38 +298,36 @@ bool TestTranSpring(
     }
 
     // Write output files
-    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", "# " + testName);
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", "# " + testName);
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", "# " + testName);
 
-    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", "# " + testName);
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", "# " + testName);
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", "# " + testName);
 
-    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
-    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
+    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", "# " + testName);
+    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", "# " + testName);
 
-    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", "# " + testName);
 
     return true;
 }
 
 // =============================================================================
-//
 // Wrapper function for comparing the specified simulation quantities against a
 // reference file.
-//
 bool ValidateReference(const std::string& testName,  // name of this test
                        const std::string& what,      // identifier for test quantity
                        double tolerance)             // validation tolerance
 {
     std::string sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
-    utils::DataVector norms;
+    ChValidation::DataVector norms;
 
-    bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+    bool check = ChValidation::Test(sim_file, utils::GetValidationDataFile(ref_file), ChValidation::NormType::RMS, tolerance, norms);
     std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
-    for (size_t col = 0; col < norms.size(); col++)
+    for (Eigen::Index col = 0; col < norms.size(); col++)
         std::cout << norms[col] << "  ";
     std::cout << "  ]" << std::endl;
 
@@ -345,11 +335,9 @@ bool ValidateReference(const std::string& testName,  // name of this test
 }
 
 // =============================================================================
-//
 // Utility function to create a CSV output stream and set output format options.
-//
-utils::ChWriterCSV OutStream() {
-    utils::ChWriterCSV out("\t");
+ChWriterCSV OutStream() {
+    ChWriterCSV out("\t");
 
     out.Stream().setf(std::ios::scientific | std::ios::showpos);
     out.Stream().precision(6);

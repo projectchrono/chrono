@@ -1,0 +1,14 @@
+chrono-version: 9.0
+
+contact_method: SMC
+  
+integrator:
+  type: Euler_implicit_linearized
+  time_step: 1e-4
+ 
+solver:
+  type: MINRES
+  max_iterations: 200
+  tolerance: 1e-10
+  enable_diagonal_preconditioner: true
+  warm_start: true

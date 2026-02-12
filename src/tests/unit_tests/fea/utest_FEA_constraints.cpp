@@ -25,7 +25,6 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "gtest/gtest.h"
@@ -48,6 +47,7 @@ class Model {
 
 Model::Model() {
     m_system = chrono_types::make_shared<ChSystemNSC>();
+    m_system->SetGravityY();
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.

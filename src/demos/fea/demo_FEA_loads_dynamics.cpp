@@ -74,6 +74,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------------
 
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create a mesh
     auto mesh = chrono_types::make_shared<ChMesh>();
@@ -453,7 +454,7 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Loads on beams",
-                                         ChVector3d(0.5, 0.0, -3.0), ChVector3d(0.5, 0.0, 0.0));
+                                         ChVector3d(1.0, 0.0, -6.0), ChVector3d(0.5, 0.0, 0.0));
 
     // -----------------------------------------------------------------
 

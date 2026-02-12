@@ -24,7 +24,7 @@
 
 #include "chrono/ChConfig.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -36,11 +36,11 @@
 #ifdef CHRONO_MULTICORE
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
-#ifdef CHRONO_GPU
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
+#ifdef CHRONO_DEM
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularDEM.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -183,15 +183,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 #endif
-#ifndef CHRONO_GPU
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_GPU) {
+#ifndef CHRONO_DEM
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_DEM) {
         if (rank == 0)
-            cout << "Chrono::Gpu is required for GRANULAR_GPU terrain type!" << endl;
+            cout << "Chrono::Dem is required for GRANULAR_DEM terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
 #endif
-#ifndef CHRONO_FSI
+#ifndef CHRONO_FSI_SPH
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH) {
         if (rank == 0)
             cout << "Chrono::FSI is required for GRANULAR_SPH terrain type!" << endl;
@@ -388,9 +388,9 @@ int main(int argc, char** argv) {
                 break;
             }
 
-            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_GPU: {
-#ifdef CHRONO_GPU
-                auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(terrain_specfile);
+            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_DEM: {
+#ifdef CHRONO_DEM
+                auto terrain = new ChVehicleCosimTerrainNodeGranularDEM(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
@@ -421,7 +421,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
-#ifdef CHRONO_FSI
+#ifdef CHRONO_FSI_SPH
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);

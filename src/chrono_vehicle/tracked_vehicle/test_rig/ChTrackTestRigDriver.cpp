@@ -49,7 +49,7 @@ bool ChTrackTestRigDriver::Started() const {
 }
 
 // -----------------------------------------------------------------------------
-// Initialize output file for recording deriver inputs.
+// Initialize output file for recording driver inputs.
 // -----------------------------------------------------------------------------
 bool ChTrackTestRigDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;

@@ -73,6 +73,10 @@ enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 /// Linear solver type.
 enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 
+/// Rheology for CRM
+/// Mu_of_I: Rate dependent friction law
+/// MCC: Modified Cam Clay with hardening
+enum class RheologyCRM { MU_OF_I, MCC };
 // -----------------------------------------------------------------------------
 
 /// Enumeration for specifying whether the sides of a computational domain are
@@ -128,6 +132,9 @@ enum Enum {
 namespace CylSide {
 enum Enum { NONE = 0x0000, SIDE_INT = 1 << 0, SIDE_EXT = 1 << 1, Z_NEG = 1 << 2, Z_POS = 1 << 3, ALL = 0xFFFF };
 }
+
+/// Methods for FEA node direction information.
+enum class NodeDirections { NONE, AVERAGE, EXACT };
 
 /// BCE pattern in cross section of 1-D flexible elements.
 /// The available patterns are illustrated below (assuming 3 BCE layers):

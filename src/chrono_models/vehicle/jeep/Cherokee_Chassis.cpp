@@ -20,7 +20,7 @@
 
 #include "Cherokee_Chassis.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 namespace chrono {
 namespace vehicle {
@@ -67,7 +67,7 @@ Cherokee_Chassis::Cherokee_Chassis(const std::string& name, bool fixed, Collisio
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("jeep/JeepCherokee.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("jeep/JeepCherokee.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -75,12 +75,12 @@ Cherokee_Chassis::Cherokee_Chassis(const std::string& name, bool fixed, Collisio
             m_geometry.coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("jeep/JeepCherokee_col.obj"), 0);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("jeep/JeepCherokee_col.obj"), 0);
             m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, vehicle::GetDataFile("jeep/JeepCherokee_col.obj"),
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, GetVehicleDataFile("jeep/JeepCherokee_col.obj"),
                                                         1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;

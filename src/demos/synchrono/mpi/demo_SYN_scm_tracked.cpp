@@ -27,7 +27,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
@@ -38,7 +38,7 @@
 #include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
 #include "chrono_synchrono/agent/SynSCMTerrainAgent.h"
 #include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynDataPath.h"
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -46,11 +46,14 @@
 #endif
 
 #ifdef CHRONO_SENSOR
+    #include "chrono_sensor/ChConfigSensor.h"
     #include "chrono_sensor/ChSensorManager.h"
-    #include "chrono_sensor/sensors/ChCameraSensor.h"
     #include "chrono_sensor/filters/ChFilterAccess.h"
-    #include "chrono_sensor/filters/ChFilterSave.h"
-    #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #ifdef CHRONO_HAS_OPTIX
+        #include "chrono_sensor/sensors/ChCameraSensor.h"
+        #include "chrono_sensor/filters/ChFilterSave.h"
+        #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #endif
 using namespace chrono::sensor;
 #endif
 
@@ -162,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     // Add vehicle as an agent
     auto vehicle_agent = chrono_types::make_shared<SynTrackedVehicleAgent>(&m113.GetVehicle(),
-                                                                           synchrono::GetDataFile("vehicle/M113.json"));
+                                                                           GetSynchronoDataFile("vehicle/M113.json"));
     syn_manager.AddAgent(vehicle_agent);
 
     // ----------------------
@@ -190,7 +193,7 @@ int main(int argc, char* argv[]) {
     if (flat_patch) {
         terrain->Initialize(size_x, size_y, 1 / dpu);
     } else {
-        terrain->Initialize(vehicle::GetDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
+        terrain->Initialize(GetVehicleDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
     }
 
     // Create an SCMTerrainAgent and add it to the SynChrono manager
@@ -243,7 +246,7 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
 #endif
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
     ChSensorManager sensor_manager(m113.GetSystem());
     if (cli.HasValueInVector<int>("sens", node_id)) {
         // Give the camera a fixed place to live
@@ -350,7 +353,7 @@ int main(int argc, char* argv[]) {
             app->Advance(step_size);
 #endif
 
-#ifdef CHRONO_SENSOR
+#if defined(CHRONO_SENSOR) && defined(CHRONO_HAS_OPTIX)
         sensor_manager.Update();
 #endif
 

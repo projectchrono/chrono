@@ -19,10 +19,12 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
+
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
+
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "FEAvisualization.h"
@@ -237,36 +239,38 @@ int main(int argc, char* argv[]) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto visualizemeshA = chrono_types::make_shared<ChVisualShapeFEA>();
-    visualizemeshA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    visualizemeshA->SetColormapRange(0.0, 5.50);
-    visualizemeshA->SetShrinkElements(true, 0.85);
-    visualizemeshA->SetSmoothFaces(true);
-    mesh->AddVisualShapeFEA(visualizemeshA);
+    auto shapeA = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    shapeA->SetColormapRange(0.0, 5.50);
+    shapeA->SetShrinkElements(true, 0.85);
+    shapeA->SetSmoothFaces(true);
+    shapeA->SetShellResolution(4);
+    mesh->AddVisualShapeFEA(shapeA);
 
-    auto visualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>();
-    visualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-    visualizemeshB->SetWireframe(true);
-    visualizemeshB->SetDrawInUndeformedReference(true);
-    mesh->AddVisualShapeFEA(visualizemeshB);
+    auto shapeB = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+    shapeB->SetWireframe(true);
+    shapeB->SetShellResolution(4);
+    shapeB->SetDrawInUndeformedReference(true);
+    mesh->AddVisualShapeFEA(shapeB);
 
-    auto visualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
-    visualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    visualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    visualizemeshC->SetSymbolsThickness(0.004);
-    mesh->AddVisualShapeFEA(visualizemeshC);
+    auto shapeC = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    shapeC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    shapeC->SetSymbolsThickness(0.004);
+    mesh->AddVisualShapeFEA(shapeC);
 
-    auto visualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
-    visualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
-    visualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    visualizemeshD->SetSymbolsScale(1);
-    visualizemeshD->SetColormapRange(-0.5, 5);
-    visualizemeshD->SetZbufferHide(false);
-    mesh->AddVisualShapeFEA(visualizemeshD);
+    auto shapeD = chrono_types::make_shared<ChVisualShapeFEA>();
+    shapeD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    shapeD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    shapeD->SetSymbolsScale(1);
+    shapeD->SetColormapRange(-0.5, 5);
+    shapeD->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(shapeD);
 
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Shells 3833",
-                                         ChVector3d(0.5, -0.5, 0.5), ChVector3d(0.5, 0.25, 0.0));
+                                         ChVector3d(1.0, -1.0, 1.0), ChVector3d(0.5, 0.25, 0.0));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -286,7 +290,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxIters(50);
     mystepper->SetAbsTolerances(1e-4, 1e2);
     mystepper->SetStepControl(false);
-    mystepper->SetModifiedNewton(true);
+    mystepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";

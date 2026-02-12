@@ -44,7 +44,7 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
@@ -85,7 +85,7 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     m_ground->SetFixed(true);
     m_ground->EnableCollision(false);
 
-    // Create a collsion model for the ground body (required for the custom boundary detection algorithm)
+    // Create a collision model for the ground body (required for the custom boundary detection algorithm)
     m_ground->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
 
     system->AddBody(m_ground);

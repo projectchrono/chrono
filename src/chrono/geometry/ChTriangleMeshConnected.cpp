@@ -108,7 +108,7 @@ void ChTriangleMeshConnected::Clear() {
     m_properties_per_vertex.clear();
 }
 
-ChAABB ChTriangleMeshConnected::GetBoundingBox(std::vector<ChVector3d> vertices) {
+ChAABB ChTriangleMeshConnected::CalcBoundingBox(std::vector<ChVector3d> vertices) {
     ChAABB bbox;
     for (const auto& v : vertices) {
         bbox.min.x() = std::min(bbox.min.x(), v.x());
@@ -123,7 +123,7 @@ ChAABB ChTriangleMeshConnected::GetBoundingBox(std::vector<ChVector3d> vertices)
 }
 
 ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
-    return GetBoundingBox(m_vertices);
+    return CalcBoundingBox(m_vertices);
 }
 
 // Following function is a modified version of:
@@ -140,7 +140,7 @@ ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
 //                             const int* indices, bool bodyCoords, Real& mass,
 //                             Vector3<Real>& center, Matrix3<Real>& inertia)
 //
-void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
+void ChTriangleMeshConnected::ComputeMassProperties(bool body_coords,
                                                     double& mass,
                                                     ChVector3d& center,
                                                     ChMatrix33<>& inertia,
@@ -240,7 +240,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
     inertia(2, 2) = integral[4] + integral[5];
 
     // inertia relative to center of mass
-    if (bodyCoords) {
+    if (body_coords) {
         inertia(0, 0) -= mass * (center.y() * center.y() + center.z() * center.z());
         inertia(0, 1) += mass * center.x() * center.y();
         inertia(0, 2) += mass * center.z() * center.x();
@@ -257,6 +257,12 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
 
     mass *= s3;
     inertia *= s5;
+}
+
+ChMassProperties ChTriangleMeshConnected::ComputeMassProperties(bool body_coords, double scale) const {
+    ChMassProperties mp;
+    ComputeMassProperties(body_coords, mp.mass, mp.com, mp.inertia, scale);
+    return mp;
 }
 
 std::shared_ptr<ChTriangleMeshConnected> ChTriangleMeshConnected::CreateFromWavefrontFile(const std::string& filename,

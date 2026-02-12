@@ -32,7 +32,7 @@ ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 ChPitmanArm::~ChPitmanArm() {
-    if (!m_initialized)
+    if (!IsInitialized())
         return;
 
     auto sys = m_arm->GetSystem();
@@ -188,7 +188,7 @@ void ChPitmanArm::UpdateInertiaProperties() {
     m_xform = m_parent->GetTransform().TransformLocalToParent(m_rel_xform);
 
     // Calculate COM and inertia expressed in global frame
-    utils::CompositeInertia composite;
+    CompositeInertia composite;
     composite.AddComponent(m_link->GetFrameCOMToAbs(), m_link->GetMass(), m_link->GetInertia());
     composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
 
@@ -255,35 +255,14 @@ void ChPitmanArm::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    bodies.push_back(m_arm);
-    ExportBodyList(jsonDocument, bodies);
+void ChPitmanArm::PopulateComponentList() {
+    m_bodies.push_back(m_link);
+    m_bodies.push_back(m_arm);
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_revsph);
-    joints.push_back(m_universal);
-    ExportJointList(jsonDocument, joints);
-}
-
-void ChPitmanArm::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_link);
-    bodies.push_back(m_arm);
-    database.WriteBodies(bodies);
-
-    std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_revolute);
-    joints.push_back(m_revsph);
-    joints.push_back(m_universal);
-    database.WriteJoints(joints);
+    m_joints.push_back(m_revolute);
+    m_joints.push_back(m_revsph);
+    m_joints.push_back(m_universal);
 }
 
 }  // end namespace vehicle

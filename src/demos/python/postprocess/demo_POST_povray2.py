@@ -10,40 +10,33 @@
 #
 # =============================================================================
 
-
 import pychrono as chrono
 import pychrono.postprocess as postprocess
-
-# We will create two directories for saving some files, we need this:
 import os
 
-# The path to the Chrono data directory containing various assets (meshes, textures, data files)
-# is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
+# Set output root directory
+chrono.SetChronoOutputPath("../DEMO_OUTPUT/")
 
-
-# ---------------------------------------------------------------------
-#
-#  Create the simulation system and add items
-#
+# Create the output directory
+out_dir = chrono.GetChronoOutputPath() + "Povray2/"
+try:
+    os.mkdir(out_dir)
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+       print("Error creating output directory " )
 
 # Create a physical system,
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-
 
 # Set the default margins for collision detection, this is epecially
 # important for very large or very small objects.
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
-
-
-# Create the set of the particle clones (many rigid bodies that
-# share the same mass and collision shape, so they are memory efficient
-# in case you want to simulate granular material)
-
+# Create the set of the particle clones (many rigid bodies that share the same mass and collision shape,
+# so they are memory efficient in case you want to simulate granular material)
 body_particles = chrono.ChParticleCloud()
 body_particles.SetMass(0.01);
 inertia = 2/5*(pow(0.005,2))*0.01;
@@ -68,12 +61,7 @@ body_particles.AddVisualShape(body_particles_shape)
 
 sys.Add(body_particles)
 
-
-
-
-# Create the floor: a simple fixed rigid body with a collision shape
-# and a visualization shape
-
+# Create the floor: a simple fixed rigid body with a collision shape and a visualization shape
 body_floor = chrono.ChBody()
 body_floor.SetFixed(True)
 
@@ -91,9 +79,7 @@ body_floor.AddVisualShape(body_floor_shape)
 
 sys.Add(body_floor)
 
-
-
-# Create boxes that fall
+# Create falling boxes
 for ix in range(0,2):
     for iz in range(0,4):
         body_brick = chrono.ChBody()
@@ -113,26 +99,18 @@ for ix in range(0,2):
 
         sys.Add(body_brick)
 
-
-
-# ---------------------------------------------------------------------
-#
-#  Render a short animation by generating scripts
-#  to be used with POV-Ray
-#
-
+#  Render a short animation by generating scripts  to be used with POV-Ray
 pov_exporter = postprocess.ChPovRay(sys)
 
-# Important: set where the template is (this path depends to where you execute this script,
-# ex.here we assume you run it from src/demo/python/postprocess/ )
-pov_exporter.SetTemplateFile  (chrono.GetChronoDataFile("POVRay_chrono_template.pov"))
+# Important: set the location of the template
+# This path depends to where you execute this script.
+# Here we assume you run it from src/demo/python/postprocess/
+pov_exporter.SetTemplateFile(chrono.GetChronoDataFile("POVRay_chrono_template.pov"))
 
-# Set the path where it will save all .pov, .ini, .asset and .dat files,
-# this directory will be created if not existing. For example:
-pov_exporter.SetBasePath("povray2")
+# Set the path where it will save all .pov, .ini, .asset and .dat files
+pov_exporter.SetBasePath(out_dir)
 
-
-# Some  settings for the POV rendering:
+# Some settings for the POV rendering
 pov_exporter.SetCamera(chrono.ChVector3d(0.2,0.3,0.5), chrono.ChVector3d(0,0,0), 35)
 pov_exporter.SetLight(chrono.ChVector3d(-2,2,-1), chrono.ChColor(1,1,1), True)
 pov_exporter.SetPictureSize(640,480)
@@ -160,11 +138,9 @@ pov_exporter.SetShowContacts(True,
  #    only once at the beginning of the simulation).
 pov_exporter.ExportScript()
 
-#sys.SetSolverType(chrono.ChSolver.Type_PMINRES)
 sys.GetSolver().AsIterative().SetMaxIterations(50)
 
-
- # Perform a short simulation
+# Perform a short simulation
 while (sys.GetChTime() < 0.7) :
 
     sys.DoStepDynamics(0.005)

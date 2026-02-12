@@ -102,6 +102,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         const ChModalDamping& damping_model = ChModalDampingNone()  ///< damping model
     );
 
+    /// Set a new linear solver to use for K_IIc^{-1} computation
+    void SetModalSolver(std::shared_ptr<ChDirectSolverLS> newsolver);
+
+    /// Return the internal linear solver for K_IIc^{-1} computation
+    std::shared_ptr<ChDirectSolverLS> GetModalSolver() const;
+
     /// Get the floating frame F of the reduced modal assembly.
     ChFrameMoving<> GetFloatingFrameOfReference() { return floating_frame_F; }
 
@@ -143,7 +149,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// state snapshot x0 stored last time one called a modal reduction. This is not necessary, but useful during
     /// animations, in fact the internal nodes would be completely neglected if m_internal_nodes_update == false; but
     /// calling this function one can update their changing positions for visualization, stress recovery, etc.
-    void UpdateInternalState(bool full_update);
+    void UpdateInternalState(UpdateFlags update_flags);
 
     /// Resets the state of this modal assembly (both boundary and internal items) to the state snapshot in the initial
     /// configuration.
@@ -393,7 +399,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Updates all the auxiliary data and children of
     /// bodies, forces, links, given their current state.
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void ForceToRest() override;
@@ -420,7 +426,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -615,8 +621,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         Psi_D_LambdaI;  ///< dynamic mode transformation matrix - corresponding to internal Lagrange multipliers.
     ChMatrixDynamic<> Psi_Cor_LambdaI;  ///< static correction mode - corresponding to internal Lagrange multipliers.
 
-    Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>>
-        m_solver_invKIIc;  // linear solver for K_IIc^{-1}
+    std::shared_ptr<ChDirectSolverLS> m_solver_invKIIc;  /// linear solver for K_IIc^{-1}
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped():
     ChMatrixDynamic<std::complex<double>> m_modal_eigvect;  // eigenvectors
@@ -804,7 +809,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
 
     SetupInitial();
     Setup();
-    Update(ChTime, true);
+    Update(ChTime, UpdateFlags::UPDATE_ALL);
 
     Initialize();
 

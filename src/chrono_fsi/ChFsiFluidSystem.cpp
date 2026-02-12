@@ -40,7 +40,7 @@ namespace fsi {
 ChFsiFluidSystem::ChFsiFluidSystem()
     : m_is_initialized(false),
       m_verbose(false),
-      m_use_node_directions(false),
+      m_node_directions_mode(NodeDirectionsMode::NONE),
       m_step(-1),
       m_time(0),
       m_frame(0),

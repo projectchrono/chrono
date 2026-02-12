@@ -18,8 +18,12 @@
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_HAS_CXX17
+    #include <filesystem>
+#endif
 
 #include <optix_stack_size.h>
 #include <optix_stubs.h>
@@ -249,6 +253,13 @@ void ChOptixPipeline::CleanMaterials() {
 }
 
 void ChOptixPipeline::CompileBaseShaders() {
+    if (m_debug) {
+#ifdef CHRONO_HAS_CXX17
+        std::cout << "Current directory: " << std::filesystem::current_path() << std::endl;
+        std::cout << "Shader directory:  " << GetSensorShaderDir() << std::endl;
+#endif
+    }
+
     OptixModuleCompileOptions module_compile_options = {};
     if (m_debug) {
         module_compile_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
@@ -419,7 +430,7 @@ void ChOptixPipeline::UpdateBackground(Background b) {
         if (md_miss_texture_sampler) {
             CUDA_ERROR_CHECK(cudaDestroyTextureObject(md_miss_texture_sampler));
         }
-        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex, false, false);
+        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex, false, true);
         miss_rec.data.camera_miss.env_map = md_miss_texture_sampler;
     }
 

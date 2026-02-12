@@ -24,6 +24,15 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
 endif()
 
+# Add demos that require VSG run-time visualization
+if(CH_ENABLE_MODULE_VSG)
+    if(CH_ENABLE_MODULE_PARDISO_MKL)
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_checkpoint
+    )
+    endif()
+endif()
+
 # Add demos that require run-time visualization (IRRLICHT or VSG)
 if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
 
@@ -32,7 +41,7 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
         demo_FEA_electrostatics
         demo_FEA_contacts_SMC
         demo_FEA_cables
-        demo_FEA_shellsANCF_3423
+        demo_FEA_shellsANCF_3423_3443
         demo_FEA_shellsANCF_3833
         demo_FEA_hexaANCF_3813
         demo_FEA_loads_dynamics

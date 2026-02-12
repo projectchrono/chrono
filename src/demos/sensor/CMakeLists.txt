@@ -1,32 +1,38 @@
 #--------------------------------------------------------------
 # List of all sensor demos
 
-# Demos that show the sensor framework
 set(DEMOS
-  demo_SEN_buildtest
-  demo_SEN_camera
-  demo_SEN_JSON
-  demo_SEN_lidar
   demo_SEN_GPSIMU
-  demo_SEN_radar
-  demo_SEN_tachometer
-  demo_SEN_radar1
 )
 
-# Demos that combine sensor simulation with vehicle dynamics
-if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
-    set(DEMOS ${DEMOS}
-      demo_SEN_HMMWV
-      demo_SEN_Gator
-      demo_SEN_deformableSoil
-    )
-endif()
+if(CH_USE_SENSOR_OPTIX)
 
-# Demos that require tensorrt
-if(CH_USE_TENSOR_RT)
-    set(DEMOS ${DEMOS}
-      demo_SEN_NNCamera
-    )
+  set(DEMOS ${DEMOS}
+      demo_SEN_buildtest
+      demo_SEN_JSON
+      demo_SEN_camera
+      demo_SEN_lidar
+      demo_SEN_radar
+      demo_SEN_radar1
+      demo_SEN_tachometer  
+  )
+
+  # Demos that combine sensor simulation with vehicle dynamics
+  if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
+      set(DEMOS ${DEMOS}
+        demo_SEN_HMMWV
+        demo_SEN_Gator
+        demo_SEN_deformableSoil
+      )
+  endif()
+  
+  # Demos that require tensorrt
+  if(CH_USE_SENSOR_TENSORRT)
+      set(DEMOS ${DEMOS}
+        demo_SEN_NNCamera
+      )
+  endif()
+
 endif()
 
 #--------------------------------------------------------------

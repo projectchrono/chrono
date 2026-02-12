@@ -27,7 +27,7 @@
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChObjectExplorer.h"
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
@@ -496,6 +496,7 @@ void my_deserialization_example(ChArchiveIn& archive_in) {
 void my_system_serialization_example(ChArchiveOut& archive_out) {
     // ..create a system:
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // ..create a truss
     auto my_body_A = chrono_types::make_shared<ChBody>();
@@ -523,6 +524,7 @@ void my_system_serialization_example(ChArchiveOut& archive_out) {
 // we will deserialize a ChSystem including its children objects (bodies, links etc.)
 void my_system_deserialization_example(ChArchiveIn& archive_in) {
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // deserialize all the physical system (including bodies, links etc.),
     // it takes just a single line:

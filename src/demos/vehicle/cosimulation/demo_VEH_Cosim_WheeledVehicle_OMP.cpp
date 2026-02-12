@@ -29,7 +29,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
     cosim::InitializeFramework(4);
 
     // Peek in spec file and check terrain type
-    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
+    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(GetVehicleDataFile(terrain_specfile));
     if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP) {
         if (rank == 0)
             std::cout << "Incorrect terrain type" << std::endl;
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
     }
 
     // Peek in spec file and extract tire type
-    auto tire_type = ChVehicleCosimTireNode::GetTireTypeFromSpecfile(vehicle::GetDataFile(tire_specfile));
+    auto tire_type = ChVehicleCosimTireNode::GetTireTypeFromSpecfile(GetVehicleDataFile(tire_specfile));
     if (tire_type == ChVehicleCosimTireNode::TireType::UNKNOWN) {
         if (rank == 0)
             std::cout << "Unsupported tire type" << std::endl;
@@ -162,9 +162,9 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
         ChVehicleCosimWheeledVehicleNode* vehicle;
-        vehicle = new ChVehicleCosimWheeledVehicleNode(vehicle::GetDataFile(vehicle_specfile),
-                                                       vehicle::GetDataFile(engine_specfile),
-                                                       vehicle::GetDataFile(transmission_specfile));
+        vehicle = new ChVehicleCosimWheeledVehicleNode(GetVehicleDataFile(vehicle_specfile),
+                                                       GetVehicleDataFile(engine_specfile),
+                                                       GetVehicleDataFile(transmission_specfile));
         vehicle->SetVerbose(verbose);
         vehicle->SetInitialLocation(init_loc);
         vehicle->SetInitialYaw(0);
@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
-        auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(contact_method, vehicle::GetDataFile(terrain_specfile));
+        auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(contact_method, GetVehicleDataFile(terrain_specfile));
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_terrain);
         terrain->SetOutDir(out_dir);
@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
+        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, GetVehicleDataFile(tire_specfile));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_tire);
         tire->SetOutDir(out_dir);

@@ -23,7 +23,7 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
@@ -69,7 +69,7 @@ void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     wheel->GetSpindle()->SetInertiaXX(wheel->GetSpindle()->GetInertiaXX() + GetAddedInertia());
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------
@@ -109,12 +109,11 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const st
     ChQuaternion<> rot = left ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
-    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_vis_mesh_file), true, true);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-    trimesh_shape->SetMutable(false);
     m_wheel->GetSpindle()->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, GetOffset(), 0), ChMatrix33<>(rot)));
 
     return trimesh_shape;

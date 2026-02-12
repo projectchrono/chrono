@@ -21,6 +21,7 @@
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -30,12 +31,9 @@
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverPJacobi.h"
-#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverPSOR.h"
-#include "chrono/solver/ChSolverPSSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
 
 namespace chrono {
@@ -46,7 +44,7 @@ namespace chrono {
 
 ChSystem::ChSystem(const std::string& name)
     : m_name(name),
-      G_acc(ChVector3d(0, -9.8, 0)),
+      G_acc(ChVector3d(0, 0, 0)),
       is_initialized(false),
       is_updated(false),
       m_num_coords_pos(0),
@@ -73,6 +71,9 @@ ChSystem::ChSystem(const std::string& name)
       nthreads_collision(1),
       applied_forces_current(false) {
     assembly.system = this;
+
+    // Set the system descriptor
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
     // Set default collision envelope and margin
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
@@ -269,20 +270,12 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     if (type == ChSolver::Type::CUSTOM)
         return;
 
-    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-
     switch (type) {
         case ChSolver::Type::PSOR:
             solver = chrono_types::make_shared<ChSolverPSOR>();
             break;
-        case ChSolver::Type::PSSOR:
-            solver = chrono_types::make_shared<ChSolverPSSOR>();
-            break;
         case ChSolver::Type::PJACOBI:
             solver = chrono_types::make_shared<ChSolverPJacobi>();
-            break;
-        case ChSolver::Type::PMINRES:
-            solver = chrono_types::make_shared<ChSolverPMINRES>();
             break;
         case ChSolver::Type::BARZILAIBORWEIN:
             solver = chrono_types::make_shared<ChSolverBB>();
@@ -296,11 +289,22 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
         case ChSolver::Type::MINRES:
             solver = chrono_types::make_shared<ChSolverMINRES>();
             break;
+        case ChSolver::Type::BICGSTAB:
+            solver = chrono_types::make_shared<ChSolverBiCGSTAB>();
+            break;
         case ChSolver::Type::SPARSE_LU:
             solver = chrono_types::make_shared<ChSolverSparseLU>();
             break;
         case ChSolver::Type::SPARSE_QR:
             solver = chrono_types::make_shared<ChSolverSparseQR>();
+            break;
+        case ChSolver::Type::PSSOR:
+            std::cerr << "\n\nWARNING: The PSSOR solver was removed. Falling back to PSOR\n\n" << std::endl;
+            solver = chrono_types::make_shared<ChSolverPSOR>();
+            break;
+        case ChSolver::Type::PMINRES:
+            std::cerr << "\n\nWARNING: The PMINRES solver was removed. Falling back to MINRES\n\n" << std::endl;
+            solver = chrono_types::make_shared<ChSolverMINRES>();
             break;
         default:
             std::cout << "Unknown solver type. No solver was set." << std::endl;
@@ -457,24 +461,24 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
             timestepper = chrono_types::make_shared<ChTimestepperTrapezoidalLinearized>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxIters(4);
             break;
+        case ChTimestepper::Type::NEWMARK:
+            timestepper = chrono_types::make_shared<ChTimestepperNewmark>(this);
+            break;
         case ChTimestepper::Type::HHT:
             timestepper = chrono_types::make_shared<ChTimestepperHHT>(this);
             std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxIters(4);
             break;
+        case ChTimestepper::Type::EULER_EXPLICIT_II:
+            timestepper = chrono_types::make_shared<ChTimestepperEulerExplicitIIorder>(this);
+            break;
+        case ChTimestepper::Type::RUNGE_KUTTA:
+            timestepper = chrono_types::make_shared<ChTimestepperRungeKutta>(this);
+            break;
         case ChTimestepper::Type::HEUN:
             timestepper = chrono_types::make_shared<ChTimestepperHeun>(this);
             break;
-        case ChTimestepper::Type::RUNGEKUTTA45:
-            timestepper = chrono_types::make_shared<ChTimestepperRungeKuttaExpl>(this);
-            break;
-        case ChTimestepper::Type::EULER_EXPLICIT:
-            timestepper = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(this);
-            break;
         case ChTimestepper::Type::LEAPFROG:
             timestepper = chrono_types::make_shared<ChTimestepperLeapfrog>(this);
-            break;
-        case ChTimestepper::Type::NEWMARK:
-            timestepper = chrono_types::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
             throw std::invalid_argument("SetTimestepperType: timestepper not supported");
@@ -618,6 +622,10 @@ bool ChSystem::ManageSleepingBodies() {
 //  DESCRIPTOR BOOKKEEPING
 // -----------------------------------------------------------------------------
 
+void ChSystem::DescriptorPrepareInject() {
+    DescriptorPrepareInject(*descriptor);
+}
+
 void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
     sys_descriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
 
@@ -713,12 +721,12 @@ void ChSystem::Setup() {
 // - updates all forces  (automatic, as children of bodies)
 // - updates all markers (automatic, as children of bodies).
 
-void ChSystem::Update(double time, bool update_assets) {
+void ChSystem::Update(double time, UpdateFlags update_flags) {
     ch_time = time;
-    Update(update_assets);
+    Update(update_flags);
 }
 
-void ChSystem::Update(bool update_assets) {
+void ChSystem::Update(UpdateFlags update_flags) {
     CH_PROFILE("Update");
 
     Initialize();
@@ -726,13 +734,13 @@ void ChSystem::Update(bool update_assets) {
     timer_update.start();  // Timer for profiling
 
     // Update underlying assembly (recursively update sub objects bodies, links, etc)
-    assembly.Update(ch_time, update_assets);
+    assembly.Update(ch_time, update_flags);
 
     // Update all contacts, if any
-    contact_container->Update(ch_time, update_assets);
+    contact_container->Update(ch_time, update_flags);
 
     // Update any attached visualization system only when also updating assets
-    if (visual_system && update_assets)
+    if (visual_system && has_flag(update_flags,UpdateFlags::VISUAL_ASSETS))
         visual_system->OnUpdate(this);
 
     timer_update.stop();
@@ -932,20 +940,20 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
 }
 
 // From state Y={x,v} to system.
-void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) {
+void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) {
     unsigned int off_x = 0;
     unsigned int off_v = 0;
 
     // Let each object (bodies, links, etc.) in the assembly extract its own states.
     // Note that each object also performs an update
-    assembly.IntStateScatter(off_x, x, off_v, v, T, full_update);
+    assembly.IntStateScatter(off_x, x, off_v, v, T, update_flags);
 
     // Use also on contact container:
     unsigned int displ_x = off_x - assembly.offset_x;
     unsigned int displ_v = off_v - assembly.offset_w;
     contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,  //
                                        displ_v + contact_container->GetOffset_w(), v,  //
-                                       T, full_update);
+                                       T, update_flags);
 
     ch_time = T;
 }
@@ -1027,9 +1035,9 @@ void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDe
 // This function returns true if successful and false otherwise.
 bool ChSystem::StateSolveCorrection(
     ChStateDelta& Dv,             // result: computed Dv
-    ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any. Note sign.
+    ChVectorDynamic<>& Dl,        // result: computed Dl Lagrange multipliers
     const ChVectorDynamic<>& R,   // the R residual
-    const ChVectorDynamic<>& Qc,  // the Qc residual. Note sign.
+    const ChVectorDynamic<>& Qc,  // the Qc residual
     const double c_a,             // the factor in c_a*M
     const double c_v,             // the factor in c_v*dF/dv
     const double c_x,             // the factor in c_x*dF/dx
@@ -1037,20 +1045,21 @@ bool ChSystem::StateSolveCorrection(
     const ChStateDelta& v,        // current state, v part
     const double T,               // current time T
     bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-    bool full_update,             // if true, perform a full update during scatter
-    bool force_setup              // if true, call the solver's Setup() function
+    UpdateFlags update_flags,      // if true, perform a full update during scatter
+    bool call_setup,              // if true, call the solver's Setup() function
+    bool call_analyze             // if true, call the solver's Setup analyze phase
 ) {
     CH_PROFILE("StateSolveCorrection");
 
     if (force_state_scatter)
-        StateScatter(x, v, T, full_update);
+        StateScatter(x, v, T, update_flags);
 
     // R and Qc vectors  --> solver sparse solver structures  (also sets Dl and Dv to warmstart)
     IntToDescriptor(0, Dv, R, 0, Dl, Qc);
 
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
-    if (force_setup || GetSolver()->SolveRequiresMatrix()) {
+    if (call_setup || solver->SolveRequiresMatrix()) {
         timer_jacobian.start();
 
         // Cq  matrix
@@ -1086,13 +1095,13 @@ bool ChSystem::StateSolveCorrection(
         StreamOut(v, file_v);
     }
 
-    GetSolver()->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
+    solver->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
 
     // If indicated, first perform a solver setup.
     // Return 'false' if the setup phase fails.
-    if (force_setup) {
+    if (call_setup) {
         timer_ls_setup.start();
-        bool success = GetSolver()->Setup(*descriptor);
+        bool success = solver->Setup(*descriptor, call_analyze);
         timer_ls_setup.stop();
         setupcount++;
         if (!success)
@@ -1102,7 +1111,7 @@ bool ChSystem::StateSolveCorrection(
     // Solve the problem
     // The solution is scattered in the provided system descriptor
     timer_ls_solve.start();
-    GetSolver()->Solve(*descriptor);
+    solver->Solve(*descriptor);
     timer_ls_solve.stop();
 
     // Dv and Dl vectors  <-- sparse solver structures
@@ -1395,7 +1404,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
                                    const std::string& path,
                                    bool one_indexed) {
     // Prepare lists of variables and constraints, if not already prepared.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     if (save_M) {
         ChSparseMatrix mM;
@@ -1431,8 +1440,8 @@ void ChSystem::WriteSystemMatrices(bool save_M,
 unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_tol, bool verbose) {
     // Setup system descriptor
     Setup();
-    Update(false);
-    DescriptorPrepareInject(*descriptor);
+    Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
+    DescriptorPrepareInject();
 
     ChSparseMatrix Cq;
     Cq.resize(descriptor->CountActiveConstraints(), descriptor->CountActiveVariables());
@@ -1543,8 +1552,8 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
-    Update(false);
-    DescriptorPrepareInject(*descriptor);
+    Update(UpdateFlags::UPDATE_ALL &~UpdateFlags::VISUAL_ASSETS);
+    DescriptorPrepareInject();
 
     if (verbose) {
         std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
@@ -1600,7 +1609,7 @@ bool ChSystem::AdvanceDynamics() {
 
     // If needed, update everything. No need to update visualization assets here.
     if (!is_updated) {
-        Update(false);
+        Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
     }
 
     // Re-wake the bodies that cannot sleep because they are in contact with
@@ -1608,7 +1617,7 @@ bool ChSystem::AdvanceDynamics() {
     ManageSleepingBodies();
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
     ////descriptor->UpdateCountsAndOffsets();
@@ -1642,7 +1651,7 @@ bool ChSystem::AdvanceDynamics() {
     if (visual_system)
         visual_system->OnUpdate(this);
 
-    // Tentatively mark system as unchanged (i.e., no updated necessary)
+    // Tentatively mark system as unchanged (i.e., no update necessary)
     is_updated = true;
 
     return true;
@@ -1703,10 +1712,10 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Prepare lists of variables and constraints
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     ChAssemblyAnalysis assembling(*this);
     assembling.SetMaxAssemblyIters(max_num_iterationsNR);
@@ -1736,7 +1745,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoStepKinematics(double step_size) {
     step = step_size;
     ch_time += step_size;
 
-    Update(true);
+    Update(UpdateFlags::UPDATE_ALL);
     AssemblyAnalysis::ExitFlag exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
     return exit_flag;
@@ -1784,9 +1793,9 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlags::UPDATE_ALL);
 
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
     analysis.SetIntegrable(this);
     analysis.StaticAnalysis();
 
@@ -1806,7 +1815,7 @@ bool ChSystem::DoStaticLinear() {
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1817,7 +1826,7 @@ bool ChSystem::DoStaticLinear() {
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticLinearAnalysis analysis;
@@ -1866,7 +1875,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1877,7 +1886,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticNonLinearAnalysis analysis;
@@ -1910,7 +1919,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     setupcount = 0;
 
     Setup();
-    Update(true);
+    Update(UpdateFlags::UPDATE_ALL);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1921,7 +1930,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     }
 
     // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    DescriptorPrepareInject();
 
     // Perform analysis
     ChStaticNonLinearRheonomicAnalysis analysis;

@@ -47,7 +47,7 @@ void ChElementCableANCF::ShapeFunctions(ShapeVector& N, double xi) {
     N(1) = l * (xi - 2 * std::pow(xi, 2) + std::pow(xi, 3));
     N(2) = 3 * std::pow(xi, 2) - 2 * std::pow(xi, 3);
     N(3) = l * (-std::pow(xi, 2) + std::pow(xi, 3));
-};
+}
 
 void ChElementCableANCF::ShapeFunctionsDerivatives(ShapeVector& Nd, double xi) {
     double l = GetRestLength();
@@ -56,7 +56,7 @@ void ChElementCableANCF::ShapeFunctionsDerivatives(ShapeVector& Nd, double xi) {
     Nd(1) = 1.0 - 4.0 * xi + 3.0 * std::pow(xi, 2.0);
     Nd(2) = -(6.0 * std::pow(xi, 2.0) - 6.0 * xi) / l;
     Nd(3) = -2.0 * xi + 3.0 * std::pow(xi, 2.0);
-};
+}
 
 void ChElementCableANCF::ShapeFunctionsDerivatives2(ShapeVector& Ndd, double xi) {
     double l = GetRestLength();
@@ -64,12 +64,12 @@ void ChElementCableANCF::ShapeFunctionsDerivatives2(ShapeVector& Ndd, double xi)
     Ndd(1) = (-4 + 6 * xi) / l;
     Ndd(2) = (6 - 12 * xi) / std::pow(l, 2);
     Ndd(3) = (-2 + 6 * xi) / l;
-};
+}
 
 void ChElementCableANCF::Update() {
     // parent class update:
     ChElementGeneric::Update();
-};
+}
 
 void ChElementCableANCF::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
@@ -687,11 +687,11 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector3d& poin
 void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) {
     assert(m_section);
 
-    ShapeVector N;
-    ShapeVector Nd;
-    ShapeVector Ndd;
-    // double xi = (eta*2 - 1.0);
-    // double xi = (eta + 1.0) / 2.0;
+    ////ShapeVector N;
+    ////ShapeVector Nd;
+    ////ShapeVector Ndd;
+    ////double xi = (eta*2 - 1.0);
+    ////double xi = (eta + 1.0) / 2.0;
 
     /* To be completed*/
 }
@@ -777,7 +777,7 @@ void ChElementCableANCF::LoadableGetVariables(std::vector<ChVariables*>& mvars) 
     mvars.push_back(&m_nodes[0]->VariablesSlope1());
     mvars.push_back(&m_nodes[1]->Variables());
     mvars.push_back(&m_nodes[1]->VariablesSlope1());
-};
+}
 
 // Evaluate N'*F , where N is some type of shape function evaluated at U,V coordinates of the surface,
 // each ranging in -1..+1

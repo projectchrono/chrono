@@ -10,3 +10,5 @@ Chrono::ROS is a module developed by the Simulation-Based Engineering Lab ([SBEL
 Chrono::ROS is not necessarily tied to any one Chrono module; however, currently, only a limited number of handlers have been implemented for existing Chrono functionality. For instance, [Chrono::Vehicle](@ref manual_vehicle) and [Chrono::Sensor](@ref manual_sensor) have general purpose handlers implemented for rapid prototyping.
 
 If other modules are used, custom handlers can be implemented that handle this functionality. Please refer to the [Chrono::ROS page on Custom Handlers](@ref custom_handlers) for more information on how to implement custom handlers.
+
+PyChrono/Chrono:Python wrapper is supported.

@@ -45,5 +45,9 @@ void ChEngineSimpleMap::Synchronize(double time, const DriverInputs& driver_inpu
     m_motor_torque = zeroThrottleTorque * (1 - throttle) + fullThrottleTorque * (throttle);
 }
 
+// -----------------------------------------------------------------------------
+
+void ChEngineSimpleMap::PopulateComponentList() {}
+
 }  // end namespace vehicle
 }  // end namespace chrono

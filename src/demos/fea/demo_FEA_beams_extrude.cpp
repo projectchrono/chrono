@@ -21,7 +21,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
@@ -79,6 +78,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetGravityY();
 
     // Create and set the collision system
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);

@@ -113,9 +113,7 @@ class CH_VEHICLE_API ChRotationalDamperSuspension : public ChTrackSuspension {
     /// Returning nullptr (default) results in using a kinematic revolute joint.
     virtual std::shared_ptr<ChJoint::BushingData> getArmBushingData() const { return nullptr; }
 
-    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChOutput& database) const override;
+    virtual void PopulateComponentList() override;
 
     std::shared_ptr<ChBody> m_arm;            ///< trailing arm body
     std::shared_ptr<ChJoint> m_joint;  ///< joint arm-chassis

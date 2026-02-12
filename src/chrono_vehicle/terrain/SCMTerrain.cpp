@@ -35,7 +35,7 @@
 #include "chrono/utils/ChConvexHull.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/stb/stb.h"
@@ -391,6 +391,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     if (visualization_mesh) {
         // Create the visualization mesh and asset
         m_trimesh_shape = std::shared_ptr<ChVisualShapeTriangleMesh>(new ChVisualShapeTriangleMesh);
+        m_trimesh_shape->SetMutable(true);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
     }
@@ -973,7 +974,7 @@ void SCMLoader::UpdateActiveDomain(ActiveDomainInfo& ad, const ChVector3d& Z) {
     }
 
     // Calculate inverse of SCM normal expressed in body frame (for optimization of ray-OBB test)
-    ChVector3d dir = ad.m_body->TransformDirectionParentToLocal(Z);
+    ChVector3d dir = ad.m_body->GetFrameRefToAbs().TransformDirectionParentToLocal(Z);
     ad.m_ooN.x() = (dir.x() == 0) ? 1e10 : 1.0 / dir.x();
     ad.m_ooN.y() = (dir.y() == 0) ? 1e10 : 1.0 / dir.y();
     ad.m_ooN.z() = (dir.z() == 0) ? 1e10 : 1.0 / dir.z();

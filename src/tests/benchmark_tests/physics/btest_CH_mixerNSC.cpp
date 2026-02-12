@@ -50,6 +50,7 @@ class MixerTestNSC : public utils::ChBenchmarkTest {
 
 template <int N>
 MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
+    m_system->SetGravityY();
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();

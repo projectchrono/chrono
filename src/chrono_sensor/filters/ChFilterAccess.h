@@ -14,20 +14,25 @@
 //
 // =============================================================================
 
-#ifndef CHFILTERACCESS_H
-#define CHFILTERACCESS_H
+#ifndef CH_FILTER_ACCESS_H
+#define CH_FILTER_ACCESS_H
 
 #include <functional>
 #include <memory>
 #include <queue>
 #include <stack>
 #include <mutex>
-#include "chrono_sensor/sensors/ChSensorBuffer.h"
-#include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include <typeinfo>
+
 #include "chrono/physics/ChSystem.h"
 
-#include <typeinfo>
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
+#include "chrono_sensor/filters/ChFilter.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/sensors/ChOptixSensor.h"
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -44,7 +49,7 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
   public:
     /// Class constructor
     /// @param name String name of the filter. Defaults to empty.
-    ChFilterAccess(std::string name = {}) : ChFilter(name.length() > 0 ? name : "CopyToFilter"){};
+    ChFilterAccess(std::string name = {}) : ChFilter(name.length() > 0 ? name : "CopyToFilter") {}
 
     /// Virtual class destructor
     virtual ~ChFilterAccess() {}
@@ -69,15 +74,16 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
             InvalidFilterGraphBufferTypeMismatch(pSensor);
         }
 
+#ifdef CHRONO_HAS_OPTIX
         if (auto pOpx = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
             m_cuda_stream = pOpx->GetCudaStream();
         }
+#endif
 
         m_sensor = pSensor;  // save handle to the parent sensor (weak ptr to not cause loop dependency)
         m_max_lag_buffers = 1 + (unsigned int)std::ceil((pSensor->GetLag() + pSensor->GetCollectionWindow()) *
                                                         pSensor->GetUpdateRate());
         m_user_buffer = chrono_types::make_shared<BufferType>();
-
     }
 
     /// User calls this to get access and ownership of the buffer memory on the host.
@@ -122,16 +128,19 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
     UserBufferType m_user_buffer;            ///< buffer that can be returned
     std::weak_ptr<ChSensor> m_sensor;        ///< pointer to the sensor to which this filter is attached
     std::shared_ptr<BufferType> m_bufferIn;  ///< shared pointer to the buffer coming in
-    CUstream m_cuda_stream;                  ///< reference to the cuda stream for device-side buffers
+#ifdef CHRONO_HAS_OPTIX
+    CUstream m_cuda_stream;  ///< reference to the cuda stream for device-side buffers
+#endif
 
-    std::queue<std::shared_ptr<BufferType>>
-        m_lag_buffers;  ///< buffers that are time stamped and held until past their lag time
-    std::stack<std::shared_ptr<BufferType>>
-        m_empty_lag_buffers;         ///< buffers that can be reused rather than allocating new memory each time
-    unsigned int m_max_lag_buffers;  ///< maximum number of buffers that could be needed
+    std::queue<std::shared_ptr<BufferType>> m_lag_buffers;        ///< time-stamped buffers held until past lag time
+    std::stack<std::shared_ptr<BufferType>> m_empty_lag_buffers;  ///< buffers to reuse without allocating new memory
+    unsigned int m_max_lag_buffers;                               ///< maximum number of buffers that could be needed
 };
 
 // Typedefs for explicit Filters
+
+#ifdef CHRONO_HAS_OPTIX
+
 /// Access to greyscale data
 using ChFilterR8Access = ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>;
 /// Access to RGBA8 data
@@ -142,6 +151,15 @@ using ChFilterSemanticAccess = ChFilterAccess<SensorHostSemanticBuffer, UserSema
 using ChFilterXYZIAccess = ChFilterAccess<SensorHostXYZIBuffer, UserXYZIBufferPtr>;
 /// Access to depth/intensity data
 using ChFilterDIAccess = ChFilterAccess<SensorHostDIBuffer, UserDIBufferPtr>;
+/// Access to Radar data
+using ChFilterRadarAccess = ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>;
+/// Access to Processed Radar data
+using ChFilterRadarXYZAccess = ChFilterAccess<SensorHostRadarXYZBuffer, UserRadarXYZBufferPtr>;
+/// Access to depth camera data
+using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
+
+#endif
+
 /// Access to accelerometer data
 using ChFilterAccelAccess = ChFilterAccess<SensorHostAccelBuffer, UserAccelBufferPtr>;
 /// Access to gyroscope data
@@ -150,16 +168,10 @@ using ChFilterGyroAccess = ChFilterAccess<SensorHostGyroBuffer, UserGyroBufferPt
 using ChFilterMagnetAccess = ChFilterAccess<SensorHostMagnetBuffer, UserMagnetBufferPtr>;
 /// Access to GPS data
 using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
-/// Access to Radar data
-using ChFilterRadarAccess = ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>;
-/// Access to Processed Radar data
-using ChFilterRadarXYZAccess = ChFilterAccess<SensorHostRadarXYZBuffer, UserRadarXYZBufferPtr>;
 /// Access to Tachoemter data
 using ChFilterTachometerAccess = ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>;
 /// Access to Encoder data
 // using ChFilterEncoderAccess = ChFilterAccess<SensorHostEncoderBuffer, UserEncoderBufferPtr>;
-/// Access to depth camera data
-using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
 
 /// @}
 

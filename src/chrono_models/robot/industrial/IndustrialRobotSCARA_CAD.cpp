@@ -24,7 +24,7 @@ namespace industrial {
 IndustrialRobotSCARA_CAD::IndustrialRobotSCARA_CAD(ChSystem* sys,
                                                    const ChFramed& base_frame,
                                                    unsigned int id,
-                                                   std::vector<std::string> bodynames)
+                                                   const std::vector<std::string>& bodynames)
     : m_id(id), m_bodynames(bodynames) {
     m_sys = sys;
     m_base_frame = base_frame;

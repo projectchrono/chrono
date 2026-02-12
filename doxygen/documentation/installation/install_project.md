@@ -22,7 +22,7 @@ find_package(Chrono
 to find a Chono build or install which provides the `required_components` modules and, optionally, also the `optional_components` modules. Note that `OPTIONAL_COMPONENTS` can be missing if there are no optional components needed.
 
 In the call to find_package(), the following Chrono components can be requested (case insensitive): 
-Cascade, CSharp, FMI, FSI, GPU, Irrlicht, VSG, Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono, Vehicle, VehicleCosim.<br>
+Cascade, CSharp, DEM, FMI, FSI, FSI_SPH, FSI_TDPF, Irrlicht, VSG, Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono, Vehicle, VehicleCosim.<br>
 __Notes__: 
 - The core Chrono module is included automatically as a required component.
 - A particular component is available only if the targeted Chrono package was built with the corresponding module enabled.
@@ -49,8 +49,6 @@ On return from `find_package`, the following variables will be set:
        path to the Chrono data directory
 - CHRONO_VEHICLE_DATA_DIR
        path to the Chrono::Vehicle data directory
-- CHRONO_FSI_DATA_DIR
-       path to the Chrono::FSI data directory
 - SYNCHRONO_DATA_DIR
        path to the Chrono::Synchrono data directory
 

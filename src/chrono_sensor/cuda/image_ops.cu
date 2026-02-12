@@ -299,5 +299,126 @@ void cuda_depth_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& str
                                                              *(result.second), w * h);
 }
 
+//--------------------------------------------//
+// Functions for cuda_camera_exposure_correct //
+//--------------------------------------------//
+// kernel function to modify image exposure
+// Step 1: convert image from pixel domain to exposure domain, and calculate mean values of R, G, and B
+__global__ void exposure_correct_kernel_1(unsigned char* bufPtr, size_t pixel_num, float* dev_expsr_means,
+                                          int* dev_pixel_counts) {
+    size_t pixel_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    // declare shared memory
+    // extern __shared__ float shared_memo[];
+    
+    if (pixel_idx < pixel_num) {
+        // get pixel values and convert to float format
+        float pix_r = ((float)(bufPtr[pixel_idx * 4])) / 255.0;
+        float pix_g = ((float)(bufPtr[pixel_idx * 4 + 1])) / 255.0;
+        float pix_b = ((float)(bufPtr[pixel_idx * 4 + 2])) / 255.0;
+
+        // convert pixel domain into exposure domain
+        
+        if (0.001 < pix_r && pix_r < 0.999) {
+            atomicAdd(&(dev_expsr_means[0]), logf(pix_r / (1.0 - pix_r)) / pixel_num);
+            // shared_memo[threadIdx.x * 3] = logf(pix_r / (1.0 - pix_r)) / pixel_num;
+            atomicAdd(&(dev_pixel_counts[0]), 1);
+        }
+        if (0.001 < pix_g && pix_g < 0.999) {
+            atomicAdd(&(dev_expsr_means[1]), logf(pix_g / (1.0 - pix_g)) / pixel_num);
+            // shared_memo[threadIdx.x * 3 + 1] = logf(pix_g / (1.0 - pix_g)) / pixel_num;
+            atomicAdd(&(dev_pixel_counts[1]), 1);
+        }
+        if (0.001 < pix_b && pix_b < 0.999) {
+            atomicAdd(&(dev_expsr_means[2]), logf(pix_b / (1.0 - pix_b)) / pixel_num);
+            // shared_memo[threadIdx.x * 3 + 2] = logf(pix_b / (1.0 - pix_b)) / pixel_num;
+            atomicAdd(&(dev_pixel_counts[2]), 1);
+        }
+        
+        /* a more efficient way but having bug
+        // wait for all threads finishing putting values in shared memory
+        __syncthreads();
+
+        // use the 0th thread in the block to accumulate the results of the other threads in the same block
+        if (threadIdx.x == 0) {
+            for (size_t thread_idx = 1; thread_idx < blockDim.x && thread_idx < pixel_num; ++thread_idx) {
+                shared_memo[0] += shared_memo[thread_idx * 3]; // R exposure partial sum
+                shared_memo[1] += shared_memo[thread_idx * 3 + 1]; // G exposure partial sum
+                shared_memo[2] += shared_memo[thread_idx * 3 + 2]; // B exposure partial sum
+            }
+            __syncthreads();
+            // printf("%d, %f, %f, %f\n", pixel_idx, shared_memo[0], shared_memo[1], shared_memo[2]);
+            atomicAdd(&(dev_expsr_means[0]), shared_memo[0]);
+            atomicAdd(&(dev_expsr_means[1]), shared_memo[1]);
+            atomicAdd(&(dev_expsr_means[2]), shared_memo[2]);
+            // printf("%d, %f, %f, %f\n", pixel_idx, dev_expsr_means[0], dev_expsr_means[1], dev_expsr_means[2]);
+        }
+        */
+        
+    }
+}
+
+// kernel function to modify image exposure
+// Step 2: do linear mapping and then convert back into pixel domain
+__global__ void exposure_correct_kernel_2(unsigned char* bufPtr, size_t pixel_num, float a, float a1, float b, float b1,
+                                          float* dev_expsr_means, int* dev_pixel_counts) {
+    size_t pixel_idx = blockDim.x * blockIdx.x + threadIdx.x;
+    if (pixel_idx < pixel_num) {
+        // get pixel values and convert to float format
+        float pix_r = ((float)(bufPtr[pixel_idx * 4])) / 255.0;
+        float pix_g = ((float)(bufPtr[pixel_idx * 4 + 1])) / 255.0;
+        float pix_b = ((float)(bufPtr[pixel_idx * 4 + 2])) / 255.0;
+
+        // convert into exposure domain
+        float exp_r = logf(pix_r / (1.0 - pix_r));
+        float exp_g = logf(pix_g / (1.0 - pix_g));
+        float exp_b = logf(pix_b / (1.0 - pix_b));
+
+        // do linear mapping
+        float expsr_r_mean = dev_expsr_means[0] * pixel_num / dev_pixel_counts[0];
+        float expsr_g_mean = dev_expsr_means[1] * pixel_num / dev_pixel_counts[1];
+        float expsr_b_mean = dev_expsr_means[2] * pixel_num / dev_pixel_counts[2];
+        exp_r = (a + a1 * expsr_r_mean) * exp_r + (b + b1 * expsr_r_mean);
+        exp_g = (a + a1 * expsr_g_mean) * exp_g + (b + b1 * expsr_g_mean);
+        exp_b = (a + a1 * expsr_b_mean) * exp_b + (b + b1 * expsr_b_mean);
+
+        // convert back into pixel domain and prevent overflow
+        pix_r = clamp(1.0 / (1.0 + exp(- exp_r)), 0.f, 1.f);
+        pix_g = clamp(1.0 / (1.0 + exp(- exp_g)), 0.f, 1.f);
+        pix_b = clamp(1.0 / (1.0 + exp(- exp_b)), 0.f, 1.f);
+
+        // convert back to char and save in image
+        bufPtr[pixel_idx * 4] = (unsigned char)(pix_r * 255.999);
+        bufPtr[pixel_idx * 4 + 1] = (unsigned char)(pix_g * 255.999);
+        bufPtr[pixel_idx * 4 + 2] = (unsigned char)(pix_b * 255.999);
+    }
+}
+
+// host function to modify image exposure
+__host__ void cuda_camera_exposure_correct(unsigned char* bufPtr, size_t width, size_t height, float a, float a1, float b,
+                                           float b1, CUstream& stream) {
+    const int threads_per_block = 512;
+    const size_t channel_num = 3;
+    
+    size_t pixel_num = width * height;
+    const int blocks_per_grid = ((int)pixel_num + threads_per_block - 1) / threads_per_block;
+    // const int shared_memo_size = (3 * threads_per_block) * sizeof(float); // 3 * 512 * 4 = 6K [Bytes]
+    
+    float *dev_expsr_means;
+    cudaMalloc((void**)&dev_expsr_means, sizeof(float) * channel_num);
+    cudaMemset(dev_expsr_means, 0, sizeof(float) * channel_num);
+
+    int *dev_pixel_counts;
+    cudaMalloc((void**)&dev_pixel_counts, sizeof(int) * channel_num);
+    cudaMemset(dev_pixel_counts, 0, sizeof(int) * channel_num);
+
+    // exposure_correct_kernel_1<<<blocks_per_grid, threads_per_block, shared_memo_size, stream>>>(bufPtr, pixel_num, dev_expsr_means, dev_pixel_counts);
+    exposure_correct_kernel_1<<<blocks_per_grid, threads_per_block, 0, stream>>>(bufPtr, pixel_num, dev_expsr_means, dev_pixel_counts);
+    exposure_correct_kernel_2<<<blocks_per_grid, threads_per_block, 0, stream>>>(bufPtr, pixel_num, a, a1, b, b1, dev_expsr_means, dev_pixel_counts);
+    
+    cudaFree(dev_expsr_means);
+    cudaFree(dev_pixel_counts);
+}
+
 }  // namespace sensor
 }  // namespace chrono

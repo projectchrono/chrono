@@ -24,10 +24,10 @@
 #include <array>
 
 #include "chrono/core/ChTimer.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
@@ -101,7 +101,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
 
     // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
     std::string data_path = "../data/vehicle/";
-    std::string vehicle_JSON = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
+    std::string vehicle_JSON = GetVehicleDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
 
     vehicle_fmu.SetVariable("data_path", data_path);
     vehicle_fmu.SetVariable("vehicle_JSON", vehicle_JSON);
@@ -145,10 +145,10 @@ void CreatePowertrainFMU(FmuChronoUnit& powertrain_fmu,
     powertrain_fmu.SetVariable("out_path", out_path);
 
     // Set fixed parameters
-    ////std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
-    ////std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
-    std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineSimpleMap.json");
-    std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json");
+    ////std::string engine_JSON = GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
+    ////std::string transmission_JSON = GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
+    std::string engine_JSON = GetVehicleDataFile("hmmwv/powertrain/HMMWV_EngineSimpleMap.json");
+    std::string transmission_JSON = GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json");
 
     powertrain_fmu.SetVariable("engine_JSON", engine_JSON);
     powertrain_fmu.SetVariable("transmission_JSON", transmission_JSON);
@@ -194,8 +194,8 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
     driver_fmu.SetVariable("out_path", out_path);
 
     // Set fixed parameters
-    std::string path_file = vehicle::GetDataFile("paths/ISO_double_lane_change.txt");
-    ////std::string path_file = vehicle::GetDataFile("paths/ISO_double_lane_change2.txt");
+    std::string path_file = GetVehicleDataFile("paths/ISO_double_lane_change.txt");
+    ////std::string path_file = GetVehicleDataFile("paths/ISO_double_lane_change2.txt");
     double throttle_threshold = 0.2;
     double look_ahead_dist = 5.0;
 
@@ -242,7 +242,7 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
     tire_fmu.SetVariable("out_path", out_path);
 
     // Set fixed parameters
-    std::string tire_JSON = vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
+    std::string tire_JSON = GetVehicleDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
 
     tire_fmu.SetVariable("tire_JSON", tire_JSON);
 }
@@ -411,7 +411,7 @@ int main(int argc, char* argv[]) {
     FlatTerrain terrain(0.0, 0.8f);
 
     // Initialize output
-    utils::ChWriterCSV csv;
+    ChWriterCSV csv;
     csv.SetDelimiter(" ");
 
     // Enable/disable saving snapshots

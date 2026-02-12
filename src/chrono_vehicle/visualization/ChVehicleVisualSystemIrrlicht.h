@@ -36,7 +36,7 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     #include <irrKlang.h>
 #endif
 
@@ -132,7 +132,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     int m_HUD_x;                                   ///< x-coordinate of upper-left corner of HUD elements
     int m_HUD_y;                                   ///< y-coordinate of upper-left corner of HUD elements
 
-#ifdef CHRONO_IRRKLANG
+#ifdef CHRONO_HAS_IRRKLANG
     irrklang::ISoundEngine* m_sound_engine;  ///< Sound player
     irrklang::ISound* m_car_sound;           ///< Sound
 #endif

@@ -66,7 +66,18 @@ struct FsiMeshForce {
     std::vector<ChVector3d> force;  ///< force, expressed in the global frame
 };
 
-// =============================================================================
+// -----------------------------------------------------------------------------
+
+/// Methods for providing FEA node direction information.
+/// If provided, node direction vectors can be used to provide a more accurate interpolation of positions between nodes
+/// (piece-wise cubic as opposed to only piece-wise linear).
+enum class NodeDirectionsMode {
+    NONE,     ///< do not use FEA node directions (piece-wise linear interpolation)
+    AVERAGE,  ///< approximate directions by averaging over incident elements
+    EXACT     ///< use node directions communicated from FEA mesh
+};
+
+// -----------------------------------------------------------------------------
 
 /// Description of a rigid body exposed to the FSI system.
 struct FsiBody {

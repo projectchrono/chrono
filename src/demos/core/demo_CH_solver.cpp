@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/core/ChMatrix.h"
 
 #include "chrono/solver/ChVariablesGeneric.h"
@@ -127,7 +127,7 @@ void test_1(const std::string& out_dir) {
     }
 
     // Pass the constraint and the variables to the solver to solve
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // Output results
@@ -224,7 +224,7 @@ void test_2(const std::string& out_dir) {
     }
 
     // .. pass the constraint and the variables to the solver to solve
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // Output values
@@ -293,7 +293,7 @@ void test_3(const std::string& out_dir) {
 
     // Create two C++ objects representing 'constraints' between variables
     // and set the jacobian to random values;
-    // Also set cfm term (E diagonal = -cfm)
+    // Also set "compliance" cfm term in constraints, inverse of constr.stiffness (E diagonal = -cfm)
 
     ChConstraintTwoBodies mca(&mvarA, &mvarB);
     mca.SetRightHandSide(3);
@@ -340,8 +340,8 @@ void test_3(const std::string& out_dir) {
 
     mdescriptor.EndInsertion();  // ----- system description ends here
 
-    // Create the solver (MINRES) ...
-    ChSolverMINRES solver;
+    // Create a GMRES solver (note MINRES cannot be used now: constr.compliance cause negative E lower-right block) ...
+    ChSolverGMRES solver;
     solver.SetMaxIterations(100);
     solver.SetTolerance(1e-12);
     solver.EnableDiagonalPreconditioner(true);
@@ -360,7 +360,7 @@ void test_3(const std::string& out_dir) {
 
     // .. solve the system (passing variables, constraints, stiffness
     //    blocks with the ChSystemDescriptor that we populated above)
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // .. optional: get the result as a single vector (it collects all q_i and l_i
@@ -447,7 +447,7 @@ void test_4(const std::string& out_dir) {
     }
 
     // .. pass the constraint and the variables to the solver to solve
-    solver.Setup(mdescriptor);
+    solver.Setup(mdescriptor, true);
     solver.Solve(mdescriptor);
 
     // Print results

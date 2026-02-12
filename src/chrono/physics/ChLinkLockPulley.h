@@ -54,7 +54,7 @@ class ChApi ChLinkLockPulley : public ChLinkLockLock {
     virtual ChLinkLockPulley* Clone() const override { return new ChLinkLockPulley(*this); }
 
     /// Updates motion laws, marker positions, etc.
-    virtual void UpdateTime(double time) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     /// Set radius of 1st pulley.
     void SetRadius1(double mr);

@@ -229,7 +229,7 @@ void RunSlewingBeam(bool do_modal_reduction,
     }
 
     sys.Setup();
-    sys.Update(true);
+    sys.Update(UpdateFlags::UPDATE_ALL);
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
@@ -254,7 +254,7 @@ void RunSlewingBeam(bool do_modal_reduction,
         // hht_stepper->SetRelTolerance(1e-4);
         // hht_stepper->SetAbsTolerances(1e-6);
         // hht_stepper->SetAlpha(-0.2);
-        // hht_stepper->SetModifiedNewton(false);
+        // hht_stepper->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
         // hht_stepper->SetMaxiters(10);
     }
 

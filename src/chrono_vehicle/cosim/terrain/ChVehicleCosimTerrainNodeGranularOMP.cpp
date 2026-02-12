@@ -33,7 +33,6 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
@@ -648,7 +647,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         // Output (if enabled)
         if (m_settling_output && steps % output_steps == 0) {
             std::string filename = OutputFilename(m_node_out_dir + "/settling", "settling", "dat", output_frame + 1, 5);
-            utils::ChWriterCSV csv(" ");
+            ChWriterCSV csv(" ");
             WriteParticleInformation(csv);
             csv.WriteToFile(filename);
             output_frame++;
@@ -909,7 +908,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         //// RADU TODO: angular velocity
         proxy->bodies[it]->SetAngVelLocal(ChVector3d(0, 0, 0));
 
-        // Update triangle contact shape (expressed in local frame) by writting directly
+        // Update triangle contact shape (expressed in local frame) by writing directly
         // into the Chrono::Multicore data structures.
         // ATTENTION: It is assumed that no other triangle contact shapes have been added
         // to the system BEFORE those corresponding to the object mesh faces!
@@ -1056,14 +1055,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnOutputData(int frame) {
     // Create and write frame output file.
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "simulation", "dat", frame + 1, 5);
 
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     WriteParticleInformation(csv);
     csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(ChWriterCSV& csv) {
     // Write particle positions and linear velocities
     for (auto body : m_system->GetBodies()) {
         if (body->GetTag() < tag_particles)
@@ -1073,7 +1072,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::ChWri
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& filename) const {
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
 
     // Write current time and number of granular material bodies.
     csv << m_system->GetChTime() << endl;

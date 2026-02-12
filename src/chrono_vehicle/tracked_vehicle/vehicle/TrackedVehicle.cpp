@@ -18,7 +18,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -68,7 +68,7 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Chassis"]["Input File"].GetString();
-        m_chassis = ReadChassisJSON(vehicle::GetDataFile(file_name));
+        m_chassis = ReadChassisJSON(GetVehicleDataFile(file_name));
         if (d["Chassis"].HasMember("Output")) {
             m_chassis->SetOutput(d["Chassis"]["Output"].GetBool());
         }
@@ -84,7 +84,7 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Track Assemblies"][0u]["Input File"].GetString();
-        m_tracks[VehicleSide::LEFT] = ReadTrackAssemblyJSON(vehicle::GetDataFile(file_name));
+        m_tracks[VehicleSide::LEFT] = ReadTrackAssemblyJSON(GetVehicleDataFile(file_name));
         if (d["Track Assemblies"][0u].HasMember("Output")) {
             m_tracks[VehicleSide::LEFT]->SetOutput(d["Track Assemblies"][0u]["Output"].GetBool());
         }
@@ -92,7 +92,7 @@ void TrackedVehicle::Create(const std::string& filename) {
     }
     {
         std::string file_name = d["Track Assemblies"][1u]["Input File"].GetString();
-        m_tracks[VehicleSide::RIGHT] = ReadTrackAssemblyJSON(vehicle::GetDataFile(file_name));
+        m_tracks[VehicleSide::RIGHT] = ReadTrackAssemblyJSON(GetVehicleDataFile(file_name));
         if (d["Track Assemblies"][1u].HasMember("Output")) {
             m_tracks[VehicleSide::RIGHT]->SetOutput(d["Track Assemblies"][1u]["Output"].GetBool());
         }
@@ -107,7 +107,7 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        m_driveline = ReadDrivelineTVJSON(vehicle::GetDataFile(file_name));
+        m_driveline = ReadDrivelineTVJSON(GetVehicleDataFile(file_name));
         if (d["Driveline"].HasMember("Output")) {
             m_driveline->SetOutput(d["Driveline"]["Output"].GetBool());
         }

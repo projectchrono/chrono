@@ -31,7 +31,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChShaftBodyConstraint.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono_models/robot/curiosity/Curiosity.h"
 
@@ -210,7 +210,6 @@ void CuriosityPart::Construct(ChSystem* system) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetMutable(false);
 
         m_body->AddVisualShape(trimesh_shape);
     }

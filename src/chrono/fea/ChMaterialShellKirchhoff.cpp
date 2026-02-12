@@ -96,7 +96,7 @@ void ChElasticityKirchhoffIsothropic::ComputeStress(ChVector3d& n,
         Q(0, 2) = 0;
         Q(1, 0) = Q(0, 1);
         Q(1, 1) = Q(0, 0);
-        Q(1, 3) = 0;
+        Q(1, 2) = 0;
         Q(2, 0) = 0;
         Q(2, 1) = 0;
         Q(2, 2) = G;
@@ -144,7 +144,7 @@ void ChElasticityKirchhoffIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
         Q(0, 2) = 0;
         Q(1, 0) = Q(0, 1);
         Q(1, 1) = Q(0, 0);
-        Q(1, 3) = 0;
+        Q(1, 2) = 0;
         Q(2, 0) = 0;
         Q(2, 1) = 0;
         Q(2, 2) = G;

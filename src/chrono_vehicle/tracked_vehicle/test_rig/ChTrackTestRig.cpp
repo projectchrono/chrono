@@ -31,7 +31,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -412,7 +412,7 @@ void ChTrackTestRig::Output(int frame, ChOutput& database) const {
 void ChTrackTestRig::SetPlotOutput(double output_step) {
     m_plot_output = true;
     m_plot_output_step = output_step;
-    m_csv = new utils::ChWriterCSV(" ");
+    m_csv = new ChWriterCSV(" ");
 }
 
 void ChTrackTestRig::CollectPlotData(double time) {

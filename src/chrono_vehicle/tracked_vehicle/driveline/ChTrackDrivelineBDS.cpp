@@ -53,8 +53,6 @@ ChTrackDrivelineBDS::~ChTrackDrivelineBDS() {
 void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
                                      std::shared_ptr<ChTrackAssembly> track_left,
                                      std::shared_ptr<ChTrackAssembly> track_right) {
-    ChDriveline::Initialize(chassis);
-
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -70,7 +68,7 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddShaft(m_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
-    // non parallel shafts. This is the case of the 90° bevel gears in the
+    // non parallel shafts. This is the case of the 90 deg bevel gears in the
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
@@ -94,6 +92,9 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     m_clutch->SetTorqueLimit(GetDifferentialLockingLimit());
     m_clutch->SetModulation(0);
     sys->Add(m_clutch);
+
+    // Mark initialized
+    ChPart::Initialize();
 }
 
 // -----------------------------------------------------------------------------

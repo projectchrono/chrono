@@ -27,15 +27,15 @@ ChSphere::ChSphere(const ChSphere& source) {
 
 // -----------------------------------------------------------------------------
 
-double ChSphere::GetVolume(double radius) {
+double ChSphere::CalcVolume(double radius) {
     return CH_4_3 * CH_PI * radius * radius * radius;
 }
 
 double ChSphere::GetVolume() const {
-    return GetVolume(rad);
+    return CalcVolume(rad);
 }
 
-ChMatrix33<> ChSphere::GetGyration(double radius) {
+ChMatrix33<> ChSphere::CalcGyration(double radius) {
     double Jxx = (2.0 / 5.0) * radius * radius;
 
     ChMatrix33<> J;
@@ -48,23 +48,23 @@ ChMatrix33<> ChSphere::GetGyration(double radius) {
 }
 
 ChMatrix33<> ChSphere::GetGyration() const {
-    return GetGyration(rad);
+    return CalcGyration(rad);
 }
 
-ChAABB ChSphere::GetBoundingBox(double radius) {
+ChAABB ChSphere::CalcBoundingBox(double radius) {
     return ChAABB(ChVector3d(-radius), ChVector3d(+radius));
 }
 
 ChAABB ChSphere::GetBoundingBox() const {
-    return GetBoundingBox(rad);
+    return CalcBoundingBox(rad);
 }
 
-double ChSphere::GetBoundingSphereRadius(double radius) {
+double ChSphere::CalcBoundingSphereRadius(double radius) {
     return radius;
 }
 
 double ChSphere::GetBoundingSphereRadius() const {
-    return GetBoundingSphereRadius(rad);
+    return CalcBoundingSphereRadius(rad);
 }
 
 // -----------------------------------------------------------------------------

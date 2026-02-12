@@ -154,7 +154,7 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(false);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
 
     // Mesh properties (Steel)
     double length = 1.0;      // m
@@ -210,7 +210,7 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     //  Update the system so that all of the required pre-computation steps are called for the element.
     // =============================================================================
 
-    m_system->Update(false);
+    m_system->Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
 }
 
 bool ANCFShellTest::RunElementChecks(int msglvl) {
@@ -1258,7 +1258,7 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -1445,7 +1445,7 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -1636,7 +1636,7 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -1785,7 +1785,7 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties - Dimensions and material from the Princeton Beam Experiment Addendum
     int num_elements = 20;
@@ -1976,7 +1976,7 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 32;
@@ -2138,7 +2138,7 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 1;
@@ -2300,7 +2300,7 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 32;
@@ -2462,7 +2462,7 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
-    integrator->SetModifiedNewton(true);
+    integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_STEP);
 
     // Mesh properties
     int num_elements_x = 1;

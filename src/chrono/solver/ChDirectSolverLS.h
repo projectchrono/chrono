@@ -116,15 +116,19 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
 
     /// Get cumulative time for assembly operations in Solve phase.
     double GetTimeSolve_Assembly() const { return m_timer_solve_assembly(); }
+
     /// Get cumulative time for Pardiso calls in Solve phase.
     double GetTimeSolve_SolverCall() const { return m_timer_solve_solvercall(); }
+
     /// Get cumulative time for assembly operations in Setup phase.
     double GetTimeSetup_Assembly() const { return m_timer_setup_assembly(); }
+
     /// Get cumulative time for Pardiso calls in Setup phase.
     double GetTimeSetup_SolverCall() const { return m_timer_setup_solvercall(); }
 
     /// Return the number of calls to the solver's Setup function.
     unsigned int GetNumSetupCalls() const { return m_setup_call; }
+
     /// Return the number of calls to the solver's Setup function.
     unsigned int GetNumSolveCalls() const { return m_solve_call; }
 
@@ -141,12 +145,15 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     ChVectorDynamic<double>& b() { return m_rhs; }
 
     /// Perform the solver setup operations.
-    /// Here, sysd is the system description with constraints and variables.
-    /// Returns true if successful and false otherwise.
-    virtual bool Setup(ChSystemDescriptor& sysd) override;
+    /// The system descriptor contains the constraints and variables.
+    /// The argument `analyze` indicates if a full analysis of the system matrix is required. This is true when a
+    /// structural change in the system was detected (e.g., when a physical component was added to or removed from the
+    /// Chrono system).
+    virtual bool Setup(ChSystemDescriptor& sysd, bool analyze) override;
 
-    /// Solve linear system.
-    /// Here, sysd is the system description with constraints and variables.
+    /// Solve the linear system.
+    /// The system descriptor contains the constraints and variables.
+    /// Return 1 if successful and 0 otherwise.
     virtual double Solve(ChSystemDescriptor& sysd) override;
 
     /// Generic setup-solve without passing through the ChSystemDescriptor,
@@ -169,6 +176,9 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
+    /// Return the given Eigen info flag as a string.
+    static std::string ComputationInfoString(Eigen::ComputationInfo info);
+
   protected:
     ChDirectSolverLS();
 
@@ -177,7 +187,10 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     virtual ChDirectSolverLS* AsDirect() override { return this; }
 
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() = 0;
+    /// The flag `analyze` indicates if a potential matrix analyze phase is necessary before the factorization. This
+    /// flag is true if a structural change in the matrix was detected (e.g., addition or removal of a physical
+    /// component in a Chrono system).
+    virtual bool FactorizeMatrix(bool analze) = 0;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.
@@ -233,7 +246,7 @@ class ChApi ChSolverSparseLU : public ChDirectSolverLS {
 
   private:
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() override;
+    virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.
@@ -258,7 +271,7 @@ class ChApi ChSolverSparseQR : public ChDirectSolverLS {
 
   private:
     /// Factorize the current sparse matrix and return true if successful.
-    virtual bool FactorizeMatrix() override;
+    virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
     /// Load the solution vector (already of appropriate size) and return true if succesful.

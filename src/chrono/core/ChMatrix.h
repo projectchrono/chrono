@@ -184,6 +184,10 @@ using ChArrayConstRef = const Eigen::Ref<const Eigen::Array<T, Eigen::Dynamic, 1
 /// A ChSparseMatrix is an Eigen SparseMatrix with double coefficients, row-major storage order, and int indices.
 using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
+/// Sparse complex matrix representation.
+/// A ChComplexSparseMatrix is an Eigen matrix with complex coefficients, column-major storage order, and int indices.
+using ChComplexSparseMatrix = Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>;
+
 // -----------------------------------------------------------------------------
 
 //// RADU

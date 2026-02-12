@@ -38,11 +38,11 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
@@ -86,7 +86,7 @@ double ChPac02Tire::GetNormalDampingForce(double depth, double velocity) const {
 void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
     ChVector2d F;
     /*
-     The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+     The Dahl Friction Model elastic tread blocks represented by a single bristle. At tire stand still it acts
      like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
      have been added to calm down the oscillations of the pure spring.
 
@@ -98,7 +98,7 @@ void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
      differential equation:
          dz/dt = v - sigma0*z*abs(v)/fc
 
-     When z is known, the friction force F can be calulated to:
+     When z is known, the friction force F can be calculated to:
         F = sigma0 * z
 
      For practical use some damping is needed, that leads to:
@@ -145,7 +145,7 @@ void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
 
 void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, double alpha, double Fz, double gamma) {
     // steady state calculation
-    double Fx0 = 0;  // longitudinal steady stae force
+    double Fx0 = 0;  // longitudinal steady state force
     double Cx = m_par.PCX1 * m_par.LCX;
     double Shx = (m_par.PHX1 + m_par.PHX2 * m_states.dfz0) * m_par.LHX;
     double Svx = Fz * (m_par.PVX1 + m_par.PVX2 * m_states.dfz0) * m_par.LVX * m_par.LMUX;
@@ -1708,7 +1708,7 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_par.UNLOADED_RADIUS, m_areaDep);
 
-    // all parameters are known now pepare mirroring
+    // all parameters are known now prepare mirroring
     if (m_allow_mirroring) {
         if (wheel->GetSide() != m_measured_side) {
             // we flip the sign of some parameters to compensate asymmetry

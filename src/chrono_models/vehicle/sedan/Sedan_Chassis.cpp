@@ -17,9 +17,9 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/sedan/Sedan_Chassis.h"
 
@@ -63,7 +63,7 @@ Sedan_Chassis::Sedan_Chassis(const std::string& name, bool fixed, CollisionType 
 
     m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.vis_model_file = vehicle::GetDataFile("sedan/sedan_chassis_vis.obj");
+    m_geometry.vis_model_file = GetVehicleDataFile("sedan/sedan_chassis_vis.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -71,13 +71,13 @@ Sedan_Chassis::Sedan_Chassis(const std::string& name, bool fixed, CollisionType 
             m_geometry.coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("sedan/sedan_chassis_col.obj"), 0);
+            utils::ChBodyGeometry::ConvexHullsShape hull(GetVehicleDataFile("sedan/sedan_chassis_col.obj"), 0);
             m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
             utils::ChBodyGeometry::TrimeshShape trimesh(
-                VNULL, QUNIT, vehicle::GetDataFile("sedan/sedan_chassis_col.obj"), 1.0, 0.005, 0);
+                VNULL, QUNIT, GetVehicleDataFile("sedan/sedan_chassis_col.obj"), 1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }

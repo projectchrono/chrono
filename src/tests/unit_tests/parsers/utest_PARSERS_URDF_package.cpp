@@ -21,10 +21,10 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono_parsers/ChParserURDF.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef HAVE_ROS
+#include "chrono_parsers/ChParserURDF.h"
+
+#ifdef CHRONO_HAS_ROS
     #include "ament_index_cpp/get_package_prefix.hpp"
     #include "ament_index_cpp/get_package_share_directory.hpp"
 #endif
@@ -34,6 +34,7 @@ using namespace chrono::parsers;
 
 TEST(ChParserURDF, URDF_package) {
     ChSystemNSC system;
+    system.SetGravityY();
 
     // Create the URDF parser with a file that contains a filename with package://
     const std::string filename = "robot/r2d2/r2d2-package.urdf";
@@ -50,7 +51,7 @@ TEST(ChParserURDF, URDF_package) {
     EXPECT_TRUE(std::dynamic_pointer_cast<ChVisualShapeModelFile>(right_tip_vis_shape) != nullptr);
     auto right_tip_vis_filename = std::dynamic_pointer_cast<ChVisualShapeModelFile>(right_tip_vis_shape)->GetFilename();
 
-#ifdef HAVE_ROS
+#ifdef CHRONO_HAS_ROS
     try {
         // Checks if the urdf_tutorial package exists. Will throw an exception if it does not.
         ament_index_cpp::get_package_share_directory("urdf_tutorial");

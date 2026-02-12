@@ -32,11 +32,13 @@
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 #include "chrono_multicore/ChSettings.h"
 #include "chrono_multicore/ChMeasures.h"
+#include "chrono_multicore/physics/Ch3DOFContainer.h"
+#include "chrono_multicore/solver/ChSolverMulticore.h"
+#include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 namespace chrono {
 
@@ -135,7 +137,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const override;
 
-    /// Calculate cummulative contact forces for all bodies in the system.
+    /// Calculate cumulative contact forces for all bodies in the system.
     /// Note that this function must be explicitly called by the user at each time where
     /// calls to GetContactableForce or ContactableTorque are made.
     virtual void CalculateContactForces() {}

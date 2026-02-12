@@ -19,17 +19,11 @@
 
 namespace chrono {
 
-/// A motor that enforces the rotation angle r(t) between two frames on two bodies, using a rheonomic constraint.
-/// The r(t) angle of frame A rotating on Z axis of frame B, is imposed via an exact function of time f(t),
-/// and an optional angle offset:
-///    r(t) = f(t) + offset
-/// Note: no compliance is allowed, so if the actuator hits an undeformable obstacle it hits a pathological
-/// situation and the solver result can be unstable/unpredictable.
-/// Think at it as a servo drive with "infinitely stiff" control.
-/// This type of motor is very easy to use, stable and efficient, and should be used if the 'infinitely stiff'
-/// control assumption  is a good approximation of what you simulate (e.g., very good and reactive controllers).
-/// By default it is initialized with linear ramp: df/dt= 1.
-/// Use SetAngleFunction() to change to other motion functions.
+/// A motor that enforces the rotation angle between two frames on two bodies, using a rheonomic constraint.
+/// The angle of frame A rotating on Z axis of frame B, is imposed via an exact function of time f(t) and an optional
+/// angle offset: r(t) = f(t) + offset.
+/// Note: no compliance is allowed, so if the actuator hits a fixed, rigid obstacle it reaches a pathological
+/// situation were solver results are incorrect. As such, this models a servo drive with "infinitely stiff" control.
 class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
   public:
     ChLinkMotorRotationAngle();
@@ -39,23 +33,21 @@ class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotorRotationAngle* Clone() const override { return new ChLinkMotorRotationAngle(*this); }
 
-    /// Set the rotation angle function of time a(t).
-    /// This function should be C0 continuous and, to prevent acceleration spikes,
-    /// it should ideally be C1 continuous.
+    /// Set the rotation angle function of time (default: zero constant function).
+    /// This function should be C0 continuous and, to prevent acceleration spikes, ideally C1 continuous.
     void SetAngleFunction(const std::shared_ptr<ChFunction> function) { SetMotorFunction(function); }
 
     /// Get the rotation angle function f(t).
     std::shared_ptr<ChFunction> GetAngleFunction() const { return GetMotorFunction(); }
 
-    /// Get initial angle offset for f(t)=0, in [rad]. Rotation on Z of the two axes
-    /// will be r(t) = f(t) + offset.
-    /// By default, offset = 0
+    /// Set the initial angle offset, in [rad] (default: 0).
+    /// Rotation on Z of the two axes will be r(t) = f(t) + offset.
     void SetAngleOffset(double mo) { rot_offset = mo; }
 
-    /// Get initial offset for f(t)=0, in [rad]
+    /// Get initial angle offset, in [rad].
     double GetAngleOffset() { return rot_offset; }
 
-    /// Get the current actuator reaction torque [Nm]
+    /// Get the current actuator reaction torque.
     virtual double GetMotorTorque() const override { return -this->react_torque.z(); }
 
     /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
@@ -71,7 +63,7 @@ class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
   private:
     double rot_offset;
 
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 };

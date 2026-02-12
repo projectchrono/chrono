@@ -212,16 +212,39 @@ set(CPACK_SOURCE_STRIP_FILES "")
 #set(CPACK_STRIP_FILES "bin/ccmake;bin/cmake;bin/cpack;bin/ctest")
 #set(CPACK_TOPLEVEL_TAG "Linux-x64")
 
-#------------------------------------------------------------
-# Install destinations for data and demo programs
-#------------------------------------------------------------
+#--------------------------------------------------------------------------
+# Destination directories for data and Chrono::Sensor shaders in BUILD tree
+#--------------------------------------------------------------------------
+
+get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+if(MULTI_CONFIG)
+    set(CH_BUILD_DATA "${CMAKE_BINARY_DIR}/bin/data")
+    set(CH_BUILD_SENSOR_SHADERS "${CMAKE_BINARY_DIR}/bin/sensor_shaders")
+    message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
+    message(STATUS "  Data directory copied to: ${CMAKE_BINARY_DIR}/bin/data/")
+    message(STATUS "  Binaries will be created in ${CMAKE_BINARY_DIR}/bin/<CONFIGURATION>/")
+else()
+    set(CH_BUILD_DATA "${CMAKE_BINARY_DIR}/data")
+    set(CH_BUILD_SENSOR_SHADERS "${CMAKE_BINARY_DIR}/sensor_shaders")
+    message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
+    message(STATUS "  Data directory copied to: ${CMAKE_BINARY_DIR}/data/")
+    message(STATUS "  Binaries will be created in ${CMAKE_BINARY_DIR}/bin/")
+endif()
+
+#------------------------------------------------------------------------
+# Destination directories for data, shaders, and programs in INSTALL tree
+# (relative to CMAKE_CURRENT_SOURCE_DIR)
+#------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_INSTALL_DATA "data")
+    set(CH_INSTALL_SENSOR_SHADERS "sensor_shaders")
     set(CH_INSTALL_DEMO "bin")
     set(CH_INSTALL_PYTHON "bin")
 else()
     set(CH_INSTALL_DATA "share/chrono/data")
+    set(CH_INSTALL_SENSOR_SHADERS "share/chrono/sensor_shaders")
     set(CH_INSTALL_DEMO "share/chrono/bin")
     set(CH_INSTALL_PYTHON "share/chrono/python")
 endif()
@@ -233,20 +256,7 @@ endif()
 # Install blender import script
 #------------------------------------------------------------
 
-get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(MULTI_CONFIG)
-    set(CH_BUILD_DATA ${CMAKE_BINARY_DIR}/bin/data)
-    file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
-    message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
-    message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/bin/data/")
-    message(STATUS "Binaries will be created in ${CMAKE_BINARY_DIR}/bin/<CONFIGURATION>/")
-else()
-    set(CH_BUILD_DATA ${CMAKE_BINARY_DIR}/data)
-    file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
-    message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
-    message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/data/")
-    message(STATUS "Binaries will be created in ${CMAKE_BINARY_DIR}/bin/")
-endif()
+file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_BUILD_DATA})
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
 

@@ -28,17 +28,13 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChContactMethod contact_method)
     : ChVehicle(name, contact_method), m_parking_on(false) {}
 
 ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system)
     : ChVehicle(name, system), m_parking_on(false) {}
 
-// -----------------------------------------------------------------------------
 // Initialize a tire and attach it to one of the vehicle's wheels.
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
                                       std::shared_ptr<ChWheel> wheel,
                                       VisualizationType tire_vis,
@@ -53,12 +49,9 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
     InitializeInertiaProperties();
 }
 
-// -----------------------------------------------------------------------------
-// Update the state of this vehicle at the current time.
-// The vehicle system is provided the current driver inputs (throttle between 0
-// and 1, steering between -1 and +1, braking between 0 and 1), and a reference
-// to the terrain system.
-// -----------------------------------------------------------------------------
+// Update the state of this vehicle at the current time. The vehicle system is provided the current driver inputs
+// (throttle between 0 and 1, steering between -1 and +1, braking between 0 and 1), and a reference to the terrain
+// system.
 void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs) {
     double powertrain_torque = m_powertrain_assembly ? m_powertrain_assembly->GetOutputTorque() : 0;
     double driveline_speed = m_driveline ? m_driveline->GetOutputDriveshaftSpeed() : 0;
@@ -104,9 +97,7 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
     Synchronize(time, driver_inputs);
 }
 
-// -----------------------------------------------------------------------------
 // Advance the state of this vehicle by the specified time step.
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::Advance(double step) {
     // Advance state of the associated powertrain (if any)
     if (m_powertrain_assembly) {
@@ -128,9 +119,7 @@ void ChWheeledVehicle::Advance(double step) {
     ChVehicle::Advance(step);
 }
 
-// -----------------------------------------------------------------------------
 // Enable/disable differential locking.
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {
     if (m_driveline)
         m_driveline->LockAxleDifferential(axle, lock);
@@ -147,9 +136,7 @@ void ChWheeledVehicle::DisconnectDriveline() {
         m_driveline->Disconnect();
 }
 
-// -----------------------------------------------------------------------------
 // Brake behavior
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::EnableBrakeLocking(bool lock) {
     for (auto& axle : m_axles) {
         if (axle->m_brake_left)
@@ -170,9 +157,7 @@ void ChWheeledVehicle::ApplyParkingBrake(bool lock) {
     m_parking_on = lock;
 }
 
-// -----------------------------------------------------------------------------
 // Set visualization type for the various subsystems
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::SetSubchassisVisualizationType(VisualizationType vis) {
     for (auto& sc : m_subchassis)
         sc->SetVisualizationType(vis);
@@ -217,10 +202,8 @@ void ChWheeledVehicle::SetWheelCollide(bool state) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// Enable/disable collision between the chassis and all other vehicle subsystems
-// This only controls collisions between the chassis and the tire systems.
-// -----------------------------------------------------------------------------
+// Enable/disable collision between the chassis and all other vehicle subsystems This only controls collisions between
+// the chassis and the tire systems.
 void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with tires
@@ -241,9 +224,7 @@ void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
     }
 }
 
-// -----------------------------------------------------------------------------
 // Enable/disable output from the various subsystems
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::SetSuspensionOutput(int id, bool state) {
     m_axles[id]->m_suspension->SetOutput(state);
 }
@@ -266,9 +247,7 @@ void ChWheeledVehicle::SetDrivelineOutput(bool state) {
         m_driveline->SetOutput(state);
 }
 
-// -----------------------------------------------------------------------------
 // Get the specified wheel or tire (axle, side, location)
-// -----------------------------------------------------------------------------
 std::shared_ptr<ChWheel> ChWheeledVehicle::GetWheel(int axle, VehicleSide side, WheelLocation location) const {
     return m_axles[axle]->GetWheel(side, location);
 }
@@ -277,16 +256,12 @@ std::shared_ptr<ChTire> ChWheeledVehicle::GetTire(int axle, VehicleSide side, Wh
     return m_axles[axle]->GetWheel(side, location)->GetTire();
 }
 
-// -----------------------------------------------------------------------------
 // Get the specified brake (axle, side)
-// -----------------------------------------------------------------------------
 std::shared_ptr<ChBrake> ChWheeledVehicle::GetBrake(int axle, VehicleSide side) const {
     return m_axles[axle]->GetBrake(side);
 }
 
-// -----------------------------------------------------------------------------
 // Calculate the total vehicle mass
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::InitializeInertiaProperties() {
     m_mass = 0;
 
@@ -316,9 +291,7 @@ void ChWheeledVehicle::InitializeInertiaProperties() {
         steering->AddMass(m_mass);
 }
 
-// -----------------------------------------------------------------------------
 // Calculate current vehicle inertia properties
-// -----------------------------------------------------------------------------
 void ChWheeledVehicle::UpdateInertiaProperties() {
     // 1. Calculate vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
@@ -358,10 +331,11 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
     const ChMatrix33<>& A = GetTransform().GetRotMat();
-    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com) / GetMass()) * A;
+    m_inertia = A.transpose() * (inertia - CompositeInertia::InertiaShiftMatrix(com) / GetMass()) * A;
 }
 
 // -----------------------------------------------------------------------------
+
 const ChVector3d& ChWheeledVehicle::GetSpindlePos(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetSpindlePos(side);
 }
@@ -397,10 +371,8 @@ double ChWheeledVehicle::GetSteeringAngle(int axle, VehicleSide side) const {
     return angle;
 }
 
-// -----------------------------------------------------------------------------
-// Estimate the maximum steering angle based on a bicycle model, from the vehicle
-// minimum turning radius, the wheelbase, and the track of the front suspension.
-// -----------------------------------------------------------------------------
+// Estimate the maximum steering angle based on a bicycle model, from the vehicle minimum turning radius, the wheelbase,
+// and the track of the front suspension.
 double ChWheeledVehicle::GetMaxSteeringAngle() const {
     return std::asin(GetWheelbase() / (GetMinTurningRadius() - 0.5 * GetWheeltrack(0)));
 }
@@ -423,80 +395,80 @@ void ChWheeledVehicle::LogConstraintViolations() {
     }
 }
 
-void ChWheeledVehicle::LogSubsystemTypes() {
-    cout << "\nSubsystem types\n";
+void ChWheeledVehicle::LogSubsystemTypes(std::ostream& os) {
+    os << "\nSubsystem types\n";
 
     {
-        cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
+        os << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
 
         int body_tag = m_chassis->GetBodyTag();
         auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
         auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-        cout << "         vehicle tag: " << m_chassis->GetVehicleTag();
-        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        os << "         vehicle tag: " << m_chassis->GetVehicleTag();
+        os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
 
     if (m_powertrain_assembly) {
-        cout << "Powertrain:\n";
-        cout << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
-        cout << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
+        os << "Powertrain:\n";
+        os << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
+        os << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
     }
 
     if (m_driveline)
-        cout << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
+        os << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
 
     for (int i = 0; i < m_steerings.size(); i++) {
-        cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
+        os << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
 
         int body_tag = m_steerings[i]->GetBodyTag();
         auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
         auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-        cout << "         vehicle tag: " << m_steerings[i]->GetVehicleTag();
-        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        os << "         vehicle tag: " << m_steerings[i]->GetVehicleTag();
+        os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
 
     for (int i = 0; i < m_axles.size(); i++) {
-        cout << "Axle " << i << "\n";
+        os << "Axle " << i << "\n";
 
         {
-            cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
+            os << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_suspension->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << m_axles[i]->m_suspension->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << m_axles[i]->m_suspension->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         if (m_axles[i]->m_antirollbar) {
-            cout << "  Antiroll bar: " << m_axles[i]->m_antirollbar->GetTemplateName() << "\n";
+            os << "  Antiroll bar: " << m_axles[i]->m_antirollbar->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_antirollbar->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << m_axles[i]->m_antirollbar->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << m_axles[i]->m_antirollbar->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
-        
+
         if (m_axles[i]->m_brake_left) {
-            cout << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
-            cout << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
+            os << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
+            os << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
         }
 
         {
-            cout << "  Wheel:        " << m_axles[i]->m_wheels[0]->GetTemplateName() << "\n";
+            os << "  Wheel:        " << m_axles[i]->m_wheels[0]->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_wheels[0]->GetBodyTag();
             auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
             auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
-            cout << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
-            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+            os << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
+            os << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
 
         if (m_axles[i]->m_wheels.size() == 2) {
-            cout << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName() << "\n";
+            os << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName() << "\n";
         } else {
-            cout << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName() << "\n";
+            os << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName() << "\n";
         }
     }
 }
@@ -637,6 +609,81 @@ void ChWheeledVehicle::Output(int frame, ChOutput& database) const {
         }
     }
 }
+
+void ChWheeledVehicle::WriteCheckpoint(ChCheckpoint& database) const {
+    m_chassis->WriteCheckpoint(database);
+
+    for (auto& c : m_chassis_rear) {
+        c->WriteCheckpoint(database);
+    }
+
+    for (auto& subchassis : m_subchassis) {
+        subchassis->WriteCheckpoint(database);
+    }
+
+    for (auto& steering : m_steerings) {
+        steering->WriteCheckpoint(database);
+    }
+
+    for (auto& axle : m_axles) {
+        axle->m_suspension->WriteCheckpoint(database);
+        if (axle->m_brake_left) {
+            axle->m_brake_left->WriteCheckpoint(database);
+        }
+        if (axle->m_brake_right) {
+            axle->m_brake_right->WriteCheckpoint(database);
+        }
+        if (axle->m_antirollbar) {
+            axle->m_antirollbar->WriteCheckpoint(database);
+        }
+    }
+
+    if (m_driveline)
+        m_driveline->WriteCheckpoint(database);
+
+    if (m_powertrain_assembly) {
+        GetEngine()->WriteCheckpoint(database);
+        GetTransmission()->WriteCheckpoint(database);
+    }
+}
+
+void ChWheeledVehicle::ReadCheckpoint(ChCheckpoint& database) {
+    m_chassis->ReadCheckpoint(database);
+
+    for (auto& c : m_chassis_rear) {
+        c->ReadCheckpoint(database);
+    }
+
+    for (auto& subchassis : m_subchassis) {
+        subchassis->ReadCheckpoint(database);
+    }
+
+    for (auto& steering : m_steerings) {
+        steering->ReadCheckpoint(database);
+    }
+
+    for (auto& axle : m_axles) {
+        axle->m_suspension->ReadCheckpoint(database);
+        if (axle->m_brake_left) {
+            axle->m_brake_left->ReadCheckpoint(database);
+        }
+        if (axle->m_brake_right) {
+            axle->m_brake_right->ReadCheckpoint(database);
+        }
+        if (axle->m_antirollbar) {
+            axle->m_antirollbar->ReadCheckpoint(database);
+        }
+    }
+
+    if (m_driveline)
+        m_driveline->ReadCheckpoint(database);
+
+    if (m_powertrain_assembly) {
+        GetEngine()->ReadCheckpoint(database);
+        GetTransmission()->ReadCheckpoint(database);
+    }
+}
+
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -28,7 +28,7 @@
 #     - cuda
 #     - optix
 #     - csharp
-#     - GPU
+#     - DEM
 #     - FSI
 #     - CSHARP
 #     - COSIMULATION
@@ -79,7 +79,7 @@ BUILDSYSTEM="Ninja Multi-Config"
 
 rm -rf $BUILD_DIR
 
-cmake -G "${BUILDSYSTEM}" -B ${BUILD_DIR} -S ${SOURCE_DIR} \
+cmake -G "${BUILDSYSTEM}" -B "${BUILD_DIR}" -S "${SOURCE_DIR}" \
       -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DIR} \
       -DBUILD_BENCHMARKING:BOOL=ON \
       -DBUILD_TESTING:BOOL=ON \

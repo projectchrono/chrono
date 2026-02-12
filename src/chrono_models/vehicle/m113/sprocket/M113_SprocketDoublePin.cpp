@@ -18,9 +18,9 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/m113/sprocket/M113_SprocketDoublePin.h"
 
@@ -73,7 +73,6 @@ void M113_SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
-        trimesh_shape->SetMutable(false);
         ////std::vector<ChTriangleMeshConnected> meshes = {*trimesh};
         ////ChTriangleMeshConnected::WriteWavefront("mySprocket.obj", meshes);
         m_gear->AddVisualShape(trimesh_shape);

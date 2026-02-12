@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/optix/ChOptixUtils.h"
-#include "chrono_sensor/ChConfigSensor.h"
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -27,6 +25,9 @@
 #include <optix_stubs.h>
 // #include <optix_function_table_definition.h>
 
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/optix/ChOptixUtils.h"
+
 #ifdef USE_CUDA_NVRTC
     #include <nvrtc.h>
 #endif
@@ -34,10 +35,14 @@
 namespace chrono {
 namespace sensor {
 
-static std::string shader_dir = SHADER_OUTPUT_PATH;
+static std::string shader_dir = CHRONO_SENSOR_SHADER_DIR;
 
 void SetSensorShaderDir(const std::string& path) {
     shader_dir = path;
+}
+
+const std::string& GetSensorShaderDir() {
+    return shader_dir;
 }
 
 void GetShaderFromFile(OptixDeviceContext context,
@@ -112,7 +117,7 @@ void GetShaderFromFile(OptixDeviceContext context,
     // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
 #else
-    std::string ptx_file = shader_dir + "/" +  file_name + ".ptx";
+    std::string ptx_file = shader_dir + "/" + file_name + ".ptx";
     std::string ptx;
     std::ifstream f(ptx_file);
     if (f.good()) {

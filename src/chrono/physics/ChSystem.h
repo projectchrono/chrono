@@ -23,7 +23,7 @@
 #include <iostream>
 #include <list>
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/collision/ChCollisionSystem.h"
@@ -36,9 +36,11 @@
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperExplicit.h"
+#include "chrono/timestepper/ChTimestepperImplicit.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
-#include "chrono/output/ChOutput.h"
+#include "chrono/input_output/ChOutput.h"
 
 namespace chrono {
 
@@ -154,8 +156,17 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Access directly the 'system descriptor'.
     std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
-    /// Set the gravitational acceleration vector.
+    /// Set the gravitational acceleration vector (default: [0, 0, 0]).
     void SetGravitationalAcceleration(const ChVector3d& gacc) { G_acc = gacc; }
+
+    /// Set gravitational acceleration (9.81 m/s^2) in negative X direction.
+    void SetGravityX() { G_acc = ChVector3d(-9.8, 0, 0); }
+
+    /// Set gravitational acceleration (9.81 m/s^2) in negative Y direction.
+    void SetGravityY() { G_acc = ChVector3d(0, -9.8, 0); }
+
+    /// Set gravitational acceleration (9.81 m/s^2) in negative Z direction.
+    void SetGravityZ() { G_acc = ChVector3d(0, 0, -9.8); }
 
     /// Get the gravitatoinal acceleration vector.
     const ChVector3d& GetGravitationalAcceleration() const { return G_acc; }
@@ -497,24 +508,32 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }
+
     /// Return the time (in seconds) for time integration, within the time step.
     virtual double GetTimerAdvance() const { return timer_advance(); }
+
     /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
     virtual double GetTimerLSsolve() const { return timer_ls_solve(); }
+
     /// Return the time (in seconds) for the solver Setup phase, within the time step.
     virtual double GetTimerLSsetup() const { return timer_ls_setup(); }
+
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const { return timer_jacobian(); }
+
     /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
+
     /// Return the time (in seconds) for system setup, within the time step.
     virtual double GetTimerSetup() const { return timer_setup(); }
+
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const { return timer_update(); }
 
     /// Return the time (in seconds) for broadphase collision detection, within the time step.
     double GetTimerCollisionBroad() const;
+
     /// Return the time (in seconds) for narrowphase collision detection, within the time step.
     double GetTimerCollisionNarrow() const;
 
@@ -544,7 +563,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// - v_pre: the velocity vector before the integration step
     /// - F_pre: unscaled loads before the integration step
     /// - Dv: the state variation
-    /// - Dl: the lagrangian multipliers variation
+    /// - Dl: the Lagrange multipliers variation
     /// if the solver is direct then also the following are output:
     /// - f, b: subparts of 'rhs'
     /// - H, Cq, E: the submatrices of Z
@@ -607,10 +626,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void Setup();
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(double time, bool update_assets);
+    void Update(double time, UpdateFlags update_flags);
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(bool update_assets);
+    void Update(UpdateFlags update_flags);
 
     /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
     /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
@@ -681,7 +700,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
 
     /// From state Y={x,v} to system. This also triggers an update operation.
-    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override;
+    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
 
     /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
     virtual void StateGatherAcceleration(ChStateDelta& a) override;
@@ -704,6 +723,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                                  const ChStateDelta& Dx  ///< state increment Dx
                                  ) override;
 
+    /// Return true if the number of states or Jacobian structure has changed.
+    /// In such cases, an implicit integrator should force a Jacobian re-evaluation.
+    /// For a ChSystem, this happens when a physics item is added to or removed from the underlying assembly.
+    virtual bool StateModified() const override { return !is_updated; }
+
     /// Assuming a DAE of the form
     /// <pre>
     ///       M*a = F(x,v,t) + Cq'*L
@@ -719,18 +743,20 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(
         ChStateDelta& Dv,             ///< result: computed Dv
-        ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
+        ChVectorDynamic<>& L,         ///< result: computed Lagrange multipliers
         const ChVectorDynamic<>& R,   ///< the R residual
-        const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
+        const ChVectorDynamic<>& Qc,  ///< the Qc residual
         const double c_a,             ///< the factor in c_a*M
         const double c_v,             ///< the factor in c_v*dF/dv
         const double c_x,             ///< the factor in c_x*dF/dv
         const ChState& x,             ///< current state, x part
         const ChStateDelta& v,        ///< current state, v part
         const double T,               ///< current time T
-        bool force_state_scatter,     ///< if false, x and v are not scattered to the system
-        bool full_update,             ///< if true, perform a full update during scatter
-        bool force_setup              ///< if true, call the solver's Setup() function
+        bool force_state_scatter,     ///< if true, scatter x and v to the system
+        UpdateFlags update_flags,  ///< if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise switch off
+                                  ///< visual asset update, etc.
+        bool call_setup,          ///< if true, call the solver's Setup function
+        bool call_analyze         ///< if true, call the solver's Setup analyze phase
         ) override;
 
     /// Increment a vector R with the term c*F:
@@ -775,8 +801,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                                    const double c          ///< a scaling factor
                                    ) override;
 
+    /// Collect all variables and constraints for physical components into the underlying system descriptor.
+    void DescriptorPrepareInject();
+
   protected:
-    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
+    /// Collect all variables and constraints for physical components into the specified system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor);
 
     /// Initial system setup before analysis.

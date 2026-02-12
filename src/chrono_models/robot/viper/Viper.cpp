@@ -42,7 +42,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChShaftBodyConstraint.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono/utils/ChUtils.h"
 
@@ -224,7 +224,6 @@ void ViperPart::Construct(ChSystem* system) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetMutable(false);
         m_body->AddVisualShape(trimesh_shape);
     }
 

@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -56,8 +56,8 @@ ChWrenchd ChLink::GetReaction2() const {
 
 // -----------------------------------------------------------------------------
 
-void ChLink::Update(double time, bool update_assets) {
-    ChPhysicsItem::Update(time, update_assets);
+void ChLink::Update(double time, UpdateFlags update_flags) {
+    ChPhysicsItem::Update(time, update_flags);
 }
 
 void ChLink::ArchiveOut(ChArchiveOut& archive_out) {

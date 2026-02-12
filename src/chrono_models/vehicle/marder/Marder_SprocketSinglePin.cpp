@@ -18,9 +18,9 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/marder/Marder_SprocketSinglePin.h"
 
@@ -72,7 +72,6 @@ void Marder_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetTexture(GetChronoDataFile("textures/metal.jpg"), 20, 20);
-        trimesh_shape->SetMutable(false);
         m_gear->AddVisualShape(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);

@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/artcar/ARTcar_Wheel.h"
 
@@ -65,7 +65,6 @@ void ARTcar_Wheel::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(GetMeshName());
-        m_trimesh_shape->SetMutable(false);
         m_spindle->AddVisualShape(m_trimesh_shape);
     } else {
         ChWheel::AddVisualizationAssets(vis);

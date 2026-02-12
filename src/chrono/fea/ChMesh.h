@@ -21,6 +21,7 @@
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChElementBase.h"
@@ -159,7 +160,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Update time dependent data, for all elements.
     /// Updates all [A] coord.systems for all (corotational) elements.
-    virtual void Update(double m_time, bool update_assets) override;
+    virtual void Update(double m_time, UpdateFlags update_flags) override;
 
     /// Add the mesh contact surfaces (if any) to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
@@ -180,12 +181,16 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Tell if this mesh will add automatically a gravity load to all contained elements.
     bool GetAutomaticGravity() { return automatic_gravity_load; }
 
-    /// Get ChMesh mass properties. The inertia tensor is solved with respect to the absolute frame,
-    /// and also aligned with the absolute frame, NOT at the center of mass.
+    /// Calculate and load ChMesh mass properties.
+    /// The inertia tensor is calculated with respect to the absolute frame and also aligned with the absolute frame.
     void ComputeMassProperties(double& mass,          ///< ChMesh object mass
                                ChVector3d& com,       ///< ChMesh center of gravity
                                ChMatrix33<>& inertia  ///< ChMesh inertia tensor
     );
+
+    /// Calculate and return ChMesh mass properties.
+    /// The inertia tensor is calculated with respect to the absolute frame and also aligned with the absolute frame.
+    ChMassProperties ComputeMassProperties();
 
     // STATE FUNCTIONS
 
@@ -200,7 +205,7 @@ class ChApi ChMesh : public ChIndexedNodes {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,

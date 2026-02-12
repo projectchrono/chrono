@@ -89,21 +89,21 @@ int main(int argc, char* argv[]) {
                 auto sphere = utils::ChBodyGeometry::SphereShape(VNULL, radius, 0);
                 sphere.color = ChColor(0.1f, 0.5f, 0.9f);
                 geometry.coll_spheres.push_back(sphere);
-                inertia = mass * ChSphere::GetGyration(radius);
+                inertia = mass * ChSphere::CalcGyration(radius);
                 break;
             }
             case ObjectType::CYLINDER: {
                 auto cylinder = utils::ChBodyGeometry::CylinderShape(VNULL, VECT_Y, radius, height, 0);
                 cylinder.color = ChColor(0.1f, 0.5f, 0.9f);
                 geometry.coll_cylinders.push_back(cylinder);
-                inertia = mass * ChCylinder::GetGyration(radius, height);
+                inertia = mass * ChCylinder::CalcGyration(radius, height);
                 break;
             }
             case ObjectType::CONE: {
                 auto cone = utils::ChBodyGeometry::ConeShape(ChVector3d(0, 0, 0), VECT_Y, radius, height, 0);
                 cone.color = ChColor(0.1f, 0.5f, 0.9f);
                 geometry.coll_cones.push_back(cone);
-                inertia = mass * ChCone::GetGyration(radius, height);
+                inertia = mass * ChCone::CalcGyration(radius, height);
                 break;
             }
         }
@@ -182,8 +182,6 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(0, 3, -6));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);

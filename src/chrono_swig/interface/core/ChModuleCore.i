@@ -75,16 +75,20 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChBodyGeometry.h"
 
-#include "chrono/output/ChOutput.h"
+#include "chrono/input_output/ChOutput.h"
+#include "chrono/input_output/ChCheckpoint.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 using namespace chrono::fea;
 %}
 
@@ -213,7 +217,6 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChParticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
-%shared_ptr(chrono::ChParticleCloud)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
@@ -275,30 +278,6 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChLinkBushing)
 %shared_ptr(chrono::ChJoint)
 
-%shared_ptr(chrono::ChGeometry)
-%shared_ptr(chrono::ChLine)
-%shared_ptr(chrono::ChVolume)
-%shared_ptr(chrono::ChSurface)
-%shared_ptr(chrono::ChBox)
-%shared_ptr(chrono::ChSphere)
-%shared_ptr(chrono::ChCylinder)
-%shared_ptr(chrono::ChCapsule)
-%shared_ptr(chrono::ChCone)
-%shared_ptr(chrono::ChEllipsoid)
-%shared_ptr(chrono::ChLineArc)
-%shared_ptr(chrono::ChLineSegment)
-%shared_ptr(chrono::ChLineNurbs)
-%shared_ptr(chrono::ChLinePath)
-%shared_ptr(chrono::ChLinePoly)
-%shared_ptr(chrono::ChLineBezier)
-%shared_ptr(chrono::ChLineCam)
-%shared_ptr(chrono::ChLineBSpline)
-%shared_ptr(chrono::ChTriangle)
-%shared_ptr(chrono::ChSurfaceNurbs)
-%shared_ptr(chrono::ChTriangleMesh)
-%shared_ptr(chrono::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChTriangleMeshSoup)
-
 // Cross-inheritance for callbacks that must be inherited.
 // Put these 'director' features _before_ class wrapping declaration.
 
@@ -326,7 +305,7 @@ inline const char* ChUtils_GetFilename() {
 
 //  core/  classes
 %include "ChClassFactory.i"
-%include "../../../chrono/core/ChGlobal.h"
+%include "../../../chrono/core/ChDataPath.h"
 //%include "ChArchive.i"
 %include "ChMatrix.i"
 %include "ChVector2.i"
@@ -346,10 +325,10 @@ inline const char* ChUtils_GetFilename() {
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 
+%include "ChMassProperties.i" // needed by ChTriangleMeshConnected in ChGeometry.i
+
 // geometry/   classes
 %include "ChGeometry.i"
-
-%include "ChBodyGeometry.i"
 
 
 //collision classes
@@ -366,6 +345,10 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 
+// utils classes
+%include "ChBodyGeometry.i"
+%include "ChUtilsSamplers.i"
+
 // functions/   classes
 %include "ChFunction.i"
 
@@ -381,7 +364,6 @@ inline const char* ChUtils_GetFilename() {
 %include "ChTexture.i"
 %include "ChCamera.i"
 %include "../../../chrono/assets/ChGlyphs.h"
-%include "ChVisualSystem.i"
 
 // physics/  classes
 %include "ChControllers.i"
@@ -438,18 +420,22 @@ inline const char* ChUtils_GetFilename() {
 %include "ChLinkBushing.i"
 %include "../../../chrono/physics/ChJoint.h"
 
+%include "ChVisualSystem.i" // ChVisualSystem needs to be put after ChSystem
+
 // Utils
 // for hulls and meshing
 %include "../../../chrono/collision/ChConvexDecomposition.h"
 
+%include "../../../chrono/input_output/ChWriterCSV.h"
+%include "../../../chrono/input_output/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChConstants.h"
 %include "../../../chrono/utils/ChUtils.h"
-%include "../../../chrono/utils/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
 
-%include "../../../chrono/output/ChOutput.h"
+%include "../../../chrono/input_output/ChOutput.h"
+%include "../../../chrono/input_output/ChCheckpoint.h"
 
 %include "ChParticleFactory.i"
 //

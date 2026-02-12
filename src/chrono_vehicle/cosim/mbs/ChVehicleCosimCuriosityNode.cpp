@@ -26,7 +26,7 @@
 
 #include "chrono/physics/ChLoadContainer.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -240,7 +240,7 @@ void ChVehicleCosimCuriosityNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
+    ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
@@ -251,7 +251,7 @@ void ChVehicleCosimCuriosityNode::OnOutputData(int frame) {
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimCuriosityNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
+void ChVehicleCosimCuriosityNode::WriteBodyInformation(ChWriterCSV& csv) {
     // Write number of bodies
     csv << 1 + 6 << endl;
 

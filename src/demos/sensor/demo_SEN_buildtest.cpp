@@ -27,7 +27,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChInertiaUtils.h"
+#include "chrono/physics/ChMassProperties.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/core/ChRandom.h"
 
@@ -144,7 +144,6 @@ int main(int argc, char* argv[]) {
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Mesh");
-    trimesh_shape->SetMutable(false);
 
     std::shared_ptr<ChBody> imu_parent;
     std::shared_ptr<ChBody> gps_parent;

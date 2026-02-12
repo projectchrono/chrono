@@ -1,0 +1,16 @@
+chrono-version: 9.0
+type: MBS
+
+model:  "model_mbs.yaml"
+solver: "solver_mbs.yaml"
+
+simulation:
+  end_time: 100
+  enforce_realtime: true
+  
+output:
+  type: NONE
+  fps: 20
+
+visualization:
+  type: Model_file

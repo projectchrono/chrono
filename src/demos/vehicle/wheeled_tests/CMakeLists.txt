@@ -14,7 +14,7 @@ set(DEMOS
     demo_VEH_Test_TireFEA
 )
 
-if(HAVE_OPENCRG)
+if(CH_USE_OPENCRG)
    if(CH_ENABLE_MODULE_VSG)
       set(DEMOS ${DEMOS}
           demo_VEH_Test_FEDA_Ride
@@ -29,7 +29,7 @@ endif()
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(CH_ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI_SPH)
     list(APPEND LIBS "Chrono_fsisph")
 endif()
 
@@ -53,7 +53,7 @@ endif()
 
 if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_vehicle_vsg")
-    if(CH_ENABLE_MODULE_FSI)
+    if(CH_ENABLE_MODULE_FSI_SPH)
       list(APPEND LIBS "Chrono_fsisph_vsg")
     endif()
 endif()

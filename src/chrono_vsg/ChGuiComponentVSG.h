@@ -63,6 +63,9 @@ class CH_VSG_API ChGuiComponentVSG {
                          float width,
                          uint32_t deviceID);
 
+    /// Utilityy function to display a (?) mark which shows a tooltip when hovered.
+    static void HelpMarker(const char* desc);
+
   protected:
     bool m_visible;
     ChVisualSystemVSG* m_vsys;

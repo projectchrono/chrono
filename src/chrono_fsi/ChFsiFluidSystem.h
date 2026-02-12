@@ -56,7 +56,7 @@ class CH_FSI_API ChFsiFluidSystem {
     /// Get current simulation time.
     double GetSimTime() const { return m_time; }
 
-    /// Get the integration step size.
+    /// Get the default constant integration step size.
     double GetStepSize() const { return m_step; }
 
     /// Get current estimated RTF (real time factor).
@@ -92,10 +92,15 @@ class CH_FSI_API ChFsiFluidSystem {
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) = 0;
 
+    /// Get the current step size.
+    /// The default implementation returns the specified constant step size.
+    /// A derived class may use a variable step size, in which case it must override this function.
+    virtual double GetCurrentStepSize() { return GetStepSize(); }
+
   protected:
     ChFsiFluidSystem();
 
-    void UseNodeDirections(bool val) { m_use_node_directions = val; }
+    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
 
     /// Solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {}
@@ -115,16 +120,16 @@ class CH_FSI_API ChFsiFluidSystem {
     bool m_verbose;        ///< enable/disable m_verbose terminal output
     std::string m_outdir;  ///< output directory
 
-    bool m_use_node_directions;  ///< use FEA node directions
-    bool m_is_initialized;       ///< set to true once the Initialize function is called
+    NodeDirectionsMode m_node_directions_mode;  ///< mode used for FEA node directions
+    bool m_is_initialized;                      ///< set to true once the Initialize function is called
 
+    double m_time;         ///< current simulation time
     double m_step;         ///< time step for fluid dynamics
     unsigned int m_frame;  ///< current simulation frame
 
   private:
     ChTimer m_timer_step;  ///< timer for integration step
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
-    double m_time;         ///< current simulation time
 
     friend class ChFsiSystem;
     friend class ChFsiInterface;

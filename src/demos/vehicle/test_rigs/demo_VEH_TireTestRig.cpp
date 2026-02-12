@@ -25,7 +25,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
@@ -62,7 +62,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Terrain type (RIGID or SCM)
 enum class TerrainType { RIGID, SCM };
-TerrainType terrain_type = TerrainType::RIGID;
+ChTireTestRig::TerrainType terrain_type = ChTireTestRig::TerrainType::RIGID;
 
 // Tire specification file
 ////std::string tire_json = "hmmwv/tire/HMMWV_RigidTire.json";
@@ -94,13 +94,13 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = ReadWheelJSON(vehicle::GetDataFile(wheel_json));
-    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
+    auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
     bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
     bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 
-    if (handling_tire && terrain_type == TerrainType::SCM) {
+    if (handling_tire && terrain_type == ChTireTestRig::TerrainType::SCM) {
         cerr << "ERROR: Handling tire models cannot be used with SCM terrain." << endl;
         return 1;
     }
@@ -110,7 +110,7 @@ int main() {
         int collision_family = 7;
         auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
         double surface_dim = 0.02;
-        if (terrain_type == TerrainType::SCM) {
+        if (terrain_type == ChTireTestRig::TerrainType::SCM) {
             surface_type = ChTire::ContactSurfaceType::TRIANGLE_MESH;
             surface_dim = 0;
         }
@@ -172,15 +172,17 @@ int main() {
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
-    if (terrain_type == TerrainType::RIGID) {
+    ChTireTestRig::TerrainPatchSize size;
+    size.length = 10;
+    size.width = 1;
+
+    if (terrain_type == ChTireTestRig::TerrainType::RIGID) {
         ChTireTestRig::TerrainParamsRigid params;
         params.friction = 0.8f;
         params.restitution = 0;
         params.Young_modulus = 2e7f;
-        params.length = 10;
-        params.width = 1;
 
-        rig.SetTerrainRigid(params);
+        rig.SetTerrainRigid(size, params);
     } else {
         ChTireTestRig::TerrainParamsSCM params;
         params.Bekker_Kphi = 2e6;
@@ -189,11 +191,9 @@ int main() {
         params.Mohr_cohesion = 0;
         params.Mohr_friction = 30;
         params.Janosi_shear = 0.01;
-        params.length = 10;
-        params.width = 1;
         params.grid_spacing = 0.05;
 
-        rig.SetTerrainSCM(params);
+        rig.SetTerrainSCM(size, params);
     }
 
     // -----------------
@@ -221,11 +221,14 @@ int main() {
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
     rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
 
-    // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
+    // Scenario: specified longitudinal slip (overrrides other definitions of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
+    // Set delay before applying inputs (settling time)
+    double input_time_delay = 1.0;
+    rig.SetTimeDelay(input_time_delay);
+
     // Initialize the tire test rig
-    rig.SetTimeDelay(1.0);
     ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
     rig.Initialize(ChTireTestRig::Mode::TEST);
@@ -341,17 +344,9 @@ int main() {
     ChFunctionInterp slip_angle_fct;
     ChFunctionInterp camber_angle_fct;
 
-    double time_offset = 0.5;
-
     timer.start();
     while (vis->Run()) {
         time = sys->GetChTime();
-
-        if ((debug_output || gnuplot_output) && time >= time_offset) {
-            long_slip_fct.AddPoint(time, tire->GetLongitudinalSlip());
-            slip_angle_fct.AddPoint(time, tire->GetSlipAngle() * CH_RAD_TO_DEG);
-            camber_angle_fct.AddPoint(time, tire->GetCamberAngle() * CH_RAD_TO_DEG);
-        }
 
         if (time >= render_frame / render_fps) {
             auto& loc = rig.GetPos();
@@ -370,11 +365,18 @@ int main() {
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
 
+        auto long_slip = rig.GetLongitudinalSlip();
+        auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
+        auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
+
+        if (gnuplot_output && time > input_time_delay) {
+            long_slip_fct.AddPoint(time, long_slip);
+            slip_angle_fct.AddPoint(time, slip_angle);
+            camber_angle_fct.AddPoint(time, camber_angle);
+        }
+
         if (debug_output) {
             cout << time << endl;
-            auto long_slip = tire->GetLongitudinalSlip();
-            auto slip_angle = tire->GetSlipAngle();
-            auto camber_angle = tire->GetCamberAngle();
             cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
             auto tforce = rig.ReportTireForce();
             auto frc = tforce.force;
@@ -389,33 +391,36 @@ int main() {
     }
     timer.stop();
 
-    double step_time = timer();
+    double total_time = timer();
     cout << "\rSimulated time: " << time << endl;
     cout << "Run time (simulation): " << sim_time << "  |  RTF: " << sim_time / time << endl;
-    cout << "Run time (total):      " << step_time << "  |  RTF: " << step_time / time << endl;
+    cout << "Run time (total):      " << total_time << "  |  RTF: " << total_time / time << endl;
 
 #ifdef CHRONO_POSTPROCESS
     // ------------
     // Plot results
     // ------------
 
-    if (gnuplot_output && sys->GetChTime() > time_offset) {
+    if (gnuplot_output && sys->GetChTime() > input_time_delay) {
         postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
         gplot_long_slip.SetGrid();
         gplot_long_slip.SetLabelX("time (s)");
         gplot_long_slip.SetLabelY("Long. slip");
+        gplot_long_slip.SetRangeY(-2, +2);
         gplot_long_slip.Plot(long_slip_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
         postprocess::ChGnuPlot gplot_slip_angle(out_dir + "/tmp2.gpl");
         gplot_slip_angle.SetGrid();
         gplot_slip_angle.SetLabelX("time (s)");
-        gplot_slip_angle.SetLabelY("Slip angle");
+        gplot_slip_angle.SetLabelY("Slip angle (deg)");
+        gplot_slip_angle.SetRangeY(-25, +25);
         gplot_slip_angle.Plot(slip_angle_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
         postprocess::ChGnuPlot gplot_camber_angle(out_dir + "/tmp3.gpl");
         gplot_camber_angle.SetGrid();
         gplot_camber_angle.SetLabelX("time (s)");
-        gplot_camber_angle.SetLabelY("Camber angle");
+        gplot_camber_angle.SetLabelY("Camber angle (deg)");
+        gplot_camber_angle.SetRangeY(-5, +5);
         gplot_camber_angle.Plot(camber_angle_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
     }
 #endif

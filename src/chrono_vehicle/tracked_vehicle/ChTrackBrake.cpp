@@ -38,7 +38,7 @@ void ChTrackBrake::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_pt
     Construct(chassis, sprocket);
 
     // Mark as initialized
-    m_initialized = true;
+    ChPart::Initialize();
 }
 
 }  // end namespace vehicle

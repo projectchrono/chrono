@@ -1,0 +1,172 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono::TDPF YAML fluid model specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+# The `model` object contains the schema for the model YAML specification.
+#
+# =============================================================================
+
+required: [chrono-version, model]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+# -----------------------------------------------------------------------------
+
+# Specification of a ChVector3d
+vector3d: &VECTOR3D
+    type: array
+    items:
+        type: number
+    minItems: 3
+    maxItems: 3
+
+# Specification of a 3D rotation
+# A rotation can be provided as:
+# - an Euler angle sequence [yaw, pitch, roll], with angles assumed in radians or degrees, or
+# - a unit quaternion [e0, e1, e2, e3]
+orientation3d: &ORIENTATION3D
+    type: array
+    description: Frame orientation as Euler angles or as quaternion
+    items:
+      type: number
+    minItems: 3
+    maxItems: 4
+
+# Specification of a color
+color: &COLOR
+  type: array
+  description: RGB color [r, g, b]
+  items:
+    type: number
+    minimum: 0
+    maximum: 1
+  minItems: 3
+  maxItems: 3
+
+# Specification of a data array with 2 columns
+data_array_2: &DATA_ARRAY_2
+    type: array
+    description: Array of number pairs
+    items:
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+
+# Specification of a function of one variable
+function: &FUNCTION
+    type: object
+    description: Function of one variable
+    required: [type]
+    properties:
+      type:
+        type: string
+        enum: [CONSTANT, POLYNOMIAL, SINE, RAMP, DATA]
+        description: Function type
+      repeat:
+        type: object
+        description: Periodic replication of the underlying function
+        start:
+          type: number
+          description: Slice start position
+        width:
+          type: number
+          description: Slice width
+        shift:
+          type: number
+          description: Slice shift
+      value:
+        type: number
+        description: Constant value for CONSTANT type
+      coefficients:
+        type: array
+        description: Coefficents for POLYNOMIAL type
+        items:
+          type: number
+        minItems: 2
+      amplitude:
+        type: number
+        description: Amplitude for SINE type
+      frequency:
+        type: number
+        description: Frequency for SINE type
+      phase:
+        type: number
+        description: Phase for SINE type
+        default: 0.0
+      slope:
+        type: number
+        description: Slope for RAMP type
+      intercept:
+        type: number
+        description: Intercept value for RAMP type
+        default: 0.0
+      data:
+        <<: *DATA_ARRAY_2
+        description: Interpolation data points for DATA type [[x, f(x)], ...]  
+
+# -----------------------------------------------------------------------------
+# Definition of a Chrono::SPH fluid model
+# -----------------------------------------------------------------------------
+
+model:
+  description: Definition of a Chrono::TDPF fluid model
+  type: object
+  required: [h5_file]
+
+  properties:
+
+    name:
+      type: string
+      description: Name of the model
+      default: ''
+
+    angle_degrees:
+      type: boolean
+      description: Whether angles are specified in degrees (true) or radians (false)
+      default: true
+
+    data_path:
+      type: object
+      description: Location of data files in the model specification.
+      required: [type]
+      properties:
+        type: 
+            type: string
+            description: Mode for data file location
+            enum: [ABSOLUTE, RELATIVE]
+            default: ABSOLUTE
+        root:
+            type: string
+            description: Root of data files, relatiuve to location of this script
+            default: "."
+
+    h5_file:
+      description: Input file with hydrodynamic data (HDF5 format)
+      type: string
+
+    waves:
+      description: Specification of wave conditions
+      type: object
+      properties:
+        type:
+             type: string
+             description: Wave type
+             enum: [NO_WAVE, REGULAR, IRREGULAR]
+             default: NO_WAVE
+        
+        # TODO

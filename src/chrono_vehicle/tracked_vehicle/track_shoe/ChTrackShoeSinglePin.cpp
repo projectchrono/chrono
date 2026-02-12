@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
@@ -139,21 +139,9 @@ ChVector3d ChTrackShoeSinglePin::GetTension() const {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChPart::ExportComponentList(jsonDocument);
 
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    ExportBodyList(jsonDocument, bodies);
-}
-
-void ChTrackShoeSinglePin::Output(ChOutput& database) const {
-    if (!m_output)
-        return;
-
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    bodies.push_back(m_shoe);
-    database.WriteBodies(bodies);
+void ChTrackShoeSinglePin::PopulateComponentList() {
+    m_bodies.push_back(m_shoe);
 }
 
 }  // end namespace vehicle

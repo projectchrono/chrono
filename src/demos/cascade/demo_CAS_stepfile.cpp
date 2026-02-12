@@ -37,12 +37,24 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::cascade;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::NONE;
 
 int main(int argc, char* argv[]) {
+#ifdef CHRONO_IRRLICHT
+    vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+#ifdef CHRONO_VSG
+    vis_type = ChVisualSystem::Type::VSG;
+#endif
+    // Check for valid visualization system
+    if(vis_type == ChVisualSystem::Type::NONE) {
+        std::cout << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
+        return 99;
+    }
     // Create a Chrono physical system: all bodies and constraints
     // will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -54,7 +66,7 @@ int main(int argc, char* argv[]) {
     ChCascadeDoc mydoc;
 
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("cascade/assembly.stp").c_str());
+    bool load_ok = mydoc.LoadSTEP(GetChronoDataFile("cascade/assembly.stp").c_str());
     // or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
 
     // print the contained shapes

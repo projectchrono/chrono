@@ -27,6 +27,7 @@ print("Copyright (c) 2017 projectchrono.org")
 
 # Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
+sys.SetGravityY()
 
 # Contact material shared among all bodies
 mat = chrono.ChContactMaterialNSC()

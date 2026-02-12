@@ -74,6 +74,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravityY();
 
     // Create five pendulum chains
     for (int k = 0; k < 5; k++) {

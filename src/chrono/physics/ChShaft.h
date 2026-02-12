@@ -150,7 +150,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
-    virtual void Update(double time, bool update_assets) override;
+    virtual void Update(double time, UpdateFlags update_flags) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -162,7 +162,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) override;
+                                 UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
