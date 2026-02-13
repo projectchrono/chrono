@@ -34,18 +34,14 @@ namespace sensor {
 ChOptixPipeline::ChOptixPipeline(OptixDeviceContext context, unsigned int trace_depth, bool debug)
     : m_trace_depth(trace_depth), m_context(context), m_debug(debug) {
     // define some pipeline basics
-    m_pipeline_compile_options = {
-        true,                                    // use motion blur
-        OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY,  // traversableGraphFlags
-        3,                          // all ray gens should pack data into a pointer (2 ints worth) and a Ray type
-        8,                          // geometry uses 8 attributes
-        OPTIX_EXCEPTION_FLAG_NONE,  // exceptionFlags
-        "params",                   // pipelineLaunchParamsVariableName
-        0                           // use custom primitives and triangles
-    };
-    if (m_debug) {
-        m_pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_DEBUG;
-    }
+    m_pipeline_compile_options = {};
+    m_pipeline_compile_options.usesMotionBlur = true; // use motion blur 
+    m_pipeline_compile_options.traversableGraphFlags = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY; // traversableGraphFlags
+    m_pipeline_compile_options.numPayloadValues = 3; // all ray gens should pack data into a pointer (3 ints worth) and a Ray type
+    m_pipeline_compile_options.numAttributeValues = 8; // number of attribute values - we are using this to pass the barycentrics and normal for our intersection shaders
+    m_pipeline_compile_options.exceptionFlags = (m_debug) ? (OPTIX_EXCEPTION_FLAG_STACK_OVERFLOW | OPTIX_EXCEPTION_FLAG_TRACE_DEPTH) : OPTIX_EXCEPTION_FLAG_NONE; // exceptionFlags
+    m_pipeline_compile_options.pipelineLaunchParamsVariableName = "params"; // variable name for pipeline launch parameters
+    m_pipeline_compile_options.usesPrimitiveTypeFlags = 0; // we are not using primitive type flags
 
     CompileBaseShaders();
     AssembleBaseProgramGroups();
@@ -572,7 +568,8 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
     program_groups.push_back(m_nvdb_vol_group);
     #endif
     
-    OptixPipelineLinkOptions pipeline_link_options = {m_trace_depth};
+    OptixPipelineLinkOptions pipeline_link_options = {};
+    pipeline_link_options.maxTraceDepth = m_trace_depth;
 
     char log[2048];
     size_t sizeof_log = sizeof(log);
