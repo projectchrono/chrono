@@ -21,5 +21,5 @@ foreach(PROGRAM ${TESTS})
     target_link_libraries(${PROGRAM} ${LIBS} gtest_main)
 
     install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
-    ##add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 endforeach(PROGRAM)
