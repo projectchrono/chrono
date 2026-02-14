@@ -36,20 +36,16 @@ ChParserCfdYAML::FluidSystemType ChParserCfdYAML::ReadFluidSystemType(const std:
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
-    if (yaml["fluid_dynamics_solver"]) {
-        auto sysCFD_type = yaml["fluid_dynamics_solver"].as<std::string>();
-
+    if (yaml["type"]) {
+        auto sysCFD_type = yaml["type"].as<std::string>();
         if (sysCFD_type == "SPH")
             return FluidSystemType::SPH;
         if (sysCFD_type == "TDPF")
             return FluidSystemType::TDPF;
-
-        cerr << "Error: unknown fluid system type '" << sysCFD_type << "'." << endl;
-        throw std::runtime_error("Unknown fluid system type");
-    } else {
-        cerr << "Error: file '" << yaml_filename << "' is not a fluid simulation YAML file." << endl;
-        throw std::runtime_error("Invalid file");
     }
+
+    cerr << "Error: file '" << yaml_filename << "' is not a known fluid YAML specification." << endl;
+    throw std::runtime_error("Invalid fluid YAML specification file");
 }
 
 }  // namespace parsers

@@ -28,6 +28,11 @@
 #include "chrono/physics/ChLinkMotor.h"
 #include "chrono/physics/ChContactMaterial.h"
 
+// Ignore legacy keywords 'near' and 'far' in Visual Studio compiler
+#ifdef _WIN32 
+#undef near
+#undef far
+#endif
 #include <urdf_parser/urdf_parser.h>
 
 #include <tinyxml2.h>

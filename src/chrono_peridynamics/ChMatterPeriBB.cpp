@@ -59,8 +59,8 @@ void ChMatterPeriBB::ComputeForces() {
     }
 
     // loop on bonds
-    for (auto& bond : this->bonds) {
-        ChMatterDataPerBondBB& mbond = bond.second;
+    for (auto it = bonds.begin(); it != bonds.end();) {
+        ChMatterDataPerBondBB& mbond = it->second;
         if (!mbond.broken) {
             ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
             ChVector3d vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
@@ -101,8 +101,9 @@ void ChMatterPeriBB::ComputeForces() {
                 mbond.nodeA->is_boundary = true;
                 mbond.nodeB->is_boundary = true;
             }
+            ++it;
         } else {
-            bonds.erase(bond.first);
+            it = bonds.erase(it);
         }
     }
 }

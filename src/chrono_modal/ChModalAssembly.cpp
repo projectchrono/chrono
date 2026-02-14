@@ -20,6 +20,7 @@
 #include "chrono/core/ChSparsityPatternLearner.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 namespace chrono {
 
@@ -36,7 +37,9 @@ ChModalAssembly::ChModalAssembly()
       m_num_coords_static_correction(0),
       m_is_model_reduced(false),
       m_internal_nodes_update(true),
-      m_modal_automatic_gravity(true) {}
+      m_modal_automatic_gravity(true) {
+    m_solver_invKIIc = chrono_types::make_shared<ChSolverSparseQR>();
+}
 
 ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(other) {
     m_modal_reduction_type = other.m_modal_reduction_type;
@@ -75,6 +78,14 @@ ChModalAssembly& ChModalAssembly::operator=(ChModalAssembly other) {
 void ChModalAssembly::FlagModelAsReduced() {
     m_is_model_reduced = true;
     Setup();
+}
+
+void ChModalAssembly::SetModalSolver(std::shared_ptr<ChDirectSolverLS> newsolver) {
+    m_solver_invKIIc = newsolver;
+}
+
+std::shared_ptr<ChDirectSolverLS> ChModalAssembly::GetModalSolver() const {
+    return m_solver_invKIIc;
 }
 
 void ChModalAssembly::SetUseStaticCorrection(bool flag) {
@@ -585,11 +596,11 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
         // K_IIc = [  K_II   Cq_II' ]
         //         [ Cq_II     0    ]
         util_sparse_assembly_2x2symm(H_II, K_II_loc, Cq_II_loc * m_scaling_factor_CqI);
-        m_solver_invKIIc.analyzePattern(H_II);
-        m_solver_invKIIc.factorize(H_II);
+        m_solver_invKIIc->GetMatrix() = H_II;
+        m_solver_invKIIc->SetupCurrent();
     } else {
-        m_solver_invKIIc.analyzePattern(K_II_loc);
-        m_solver_invKIIc.factorize(K_II_loc);
+        m_solver_invKIIc->GetMatrix() = K_II_loc;
+        m_solver_invKIIc->SetupCurrent();
     }
 
     // 1) Matrix of static modes (constrained, so use K_IIc instead of K_II,
@@ -608,7 +619,9 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
         else
             rhs << K_IB_loc.col(i).toDense();
 
-        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
+        m_solver_invKIIc->b() = rhs;
+        m_solver_invKIIc->SolveCurrent();
+        ChVectorDynamic<>& x = m_solver_invKIIc->x();
 
         Psi_S.col(i) = -x.head(m_num_coords_vel_internal);
         // Psi_S_C.col(i) = -x;
@@ -652,7 +665,9 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
         else
             rhs << rhs_dyn.col(i);
 
-        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
+        m_solver_invKIIc->b() = rhs;
+        m_solver_invKIIc->SolveCurrent();
+        ChVectorDynamic<>& x = m_solver_invKIIc->x();
 
         Psi_D.col(i) = -x.head(m_num_coords_vel_internal);
         // Psi_D_C.col(i) = -x;
@@ -699,7 +714,9 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
         else
             rhs << f_loc;
 
-        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
+        m_solver_invKIIc->b() = rhs;
+        m_solver_invKIIc->SolveCurrent();
+        ChVectorDynamic<>& x = m_solver_invKIIc->x();
 
         Psi_Cor = x.head(m_num_coords_vel_internal);
         // Psi_Cor_C = x;
@@ -882,7 +899,9 @@ void ChModalAssembly::UpdateStaticCorrectionMode() {
     else
         rhs << f_loc;
 
-    ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
+    m_solver_invKIIc->b() = rhs;
+    m_solver_invKIIc->SolveCurrent();
+    ChVectorDynamic<>& x = m_solver_invKIIc->x();
 
     Psi_Cor = x.head(m_num_coords_vel_internal);
     // Psi_Cor_C = x;

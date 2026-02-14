@@ -35,181 +35,137 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserSphYAML::ChParserSphYAML(const std::string& yaml_model_filename,
-                                 const std::string& yaml_sim_filename,
-                                 bool verbose)
+ChParserSphYAML::ChParserSphYAML(const std::string& yaml_filename, bool verbose)
     : ChParserCfdYAML(verbose),
       m_has_wavetank(false),
       m_depth_based_pressure(false),
       m_initial_velocity(false),
       m_velocity(VNULL),
-      m_sim_loaded(false),
+      m_loaded(false),
+      m_solver_loaded(false),
       m_model_loaded(false) {
     SetVerbose(verbose);
-    LoadModelFile(yaml_model_filename);
-    LoadSimulationFile(yaml_sim_filename);
+    LoadFile(yaml_filename);
 }
 
 ChParserSphYAML::~ChParserSphYAML() {}
 
 // -----------------------------------------------------------------------------
 
-void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
-    }
+void ChParserSphYAML::LoadFile(const std::string& yaml_filename) {
+    YAML::Node yaml;
 
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
-
-    // Check that the file is an SPH specification
-    ChAssertAlways(yaml["fluid_dynamics_solver"]);
-    if (ToUpper(yaml["fluid_dynamics_solver"].as<std::string>()) != "SPH") {
-        cerr << "Error: file '" << yaml_filename << "' is not an SPH specification file." << endl;
-        throw std::runtime_error("Not an SPH specification file");
+    // Load SPH YAML file
+    {
+        auto path = filesystem::path(yaml_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        m_script_directory = path.parent_path().str();
+        yaml = YAML::LoadFile(yaml_filename);
     }
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
     CheckVersion(yaml["chrono-version"]);
 
-    // Check a simulation object exists
-    ChAssertAlways(yaml["simulation"]);
-    auto sim = yaml["simulation"];
+    // Check the YAML file if of type "SPH"
+    ChAssertAlways(yaml["type"]);
+    auto type = ReadYamlFileType(yaml["type"]);
+    ChAssertAlways(type == ChParserYAML::YamlFileType::SPH);
+
+    // Load simulation, output, and run-time visualization data
+    LoadSimData(yaml);
+
+    // Load SPH model YAML file
+    {
+        ChAssertAlways(yaml["model"]);
+        auto model_fname = yaml["model"].as<std::string>();
+        auto model_filename = m_script_directory + "/" + model_fname;
+        auto path = filesystem::path(model_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << model_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\n[ChParserSphYAML] Loading Chrono SPH model from: '" << yaml_filename << "'\n" << endl;
+        }
+        auto model = YAML::LoadFile(model_filename);
+        ChAssertAlways(model["chrono-version"]);
+        CheckVersion(model["chrono-version"]);
+        LoadModelData(model);
+    }
+
+    // Load solver YAML file
+    {
+        ChAssertAlways(yaml["solver"]);
+        auto solver_fname = yaml["solver"].as<std::string>();
+        auto solver_filename = m_script_directory + "/" + solver_fname;
+        auto path = filesystem::path(solver_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << solver_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\n[ChParserSphYAML] Loading Chrono SPH solver from: " << solver_filename << "\n" << endl;
+        }
+        auto solver = YAML::LoadFile(solver_filename);
+        ChAssertAlways(solver["chrono-version"]);
+        CheckVersion(solver["chrono-version"]);
+        LoadSolverData(solver);
+    }
 
     if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserSphYAML] Loading Chrono::SPH simulation specification from: " << yaml_filename << "\n"
-             << endl;
+        m_sim.PrintInfo();
+        cout << endl;
+        m_vis.PrintInfo();
+        cout << endl;
+        m_output.PrintInfo();
     }
 
-    ChAssertAlways(sim["time_step"]);
-    m_sim.time_step = sim["time_step"].as<double>();
-    if (sim["end_time"])
-        m_sim.end_time = sim["end_time"].as<double>();
-    if (sim["gravity"])
-        m_sim.gravity = ReadVector(sim["gravity"]);
+    m_loaded = true;
+}
 
-    // Base SPH parameters
-    if (sim["sph"]) {
-        auto a = sim["sph"];
-        if (a["eos_type"])
-            m_sim.sph.eos_type = ReadEosType(a["eos_type"]);
-        if (a["use_delta_sph"])
-            m_sim.sph.use_delta_sph = a["use_delta_sph"].as<bool>();
-        if (a["delta_sph_coefficient"])
-            m_sim.sph.delta_sph_coefficient = a["delta_sph_coefficient"].as<double>();
-        if (a["max_velocity"])
-            m_sim.sph.max_velocity = a["max_velocity"].as<double>();
-        if (a["min_distance_coefficient"])
-            m_sim.sph.min_distance_coefficient = a["min_distance_coefficient"].as<double>();
-        if (a["density_reinit_steps"])
-            m_sim.sph.density_reinit_steps = a["density_reinit_steps"].as<int>();
-        if (a["use_density_based_projection"])
-            m_sim.sph.use_density_based_projection = a["use_density_based_projection"].as<bool>();
-        if (a["free_surface_threshold"])
-            m_sim.sph.free_surface_threshold = a["free_surface_threshold"].as<double>();
+void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
+    // Simulation settings (required)
+    if (yaml["simulation"]) {
+        auto sim = yaml["simulation"];
+        if (sim["end_time"])
+            m_sim.end_time = sim["end_time"].as<double>();
+        if (sim["gravity"])
+            m_sim.gravity = ReadVector(sim["gravity"]);
     }
 
-    // SPH kernel parameters
-    if (sim["kernel"]) {
-        auto a = sim["kernel"];
-        if (a["kernel_type"])
-            m_sim.sph.kernel_type = ReadKernelType(a["kernel_type"]);
-        if (a["initial_spacing"])
-            m_sim.sph.initial_spacing = a["initial_spacing"].as<double>();
-        if (a["d0_multiplier"])
-            m_sim.sph.d0_multiplier = a["d0_multiplier"].as<double>();
-    }
-
-    // SPH discretization parameters
-    if (sim["discretization"]) {
-        auto a = sim["discretization"];
-        if (a["use_consistent_gradient_discretization"])
-            m_sim.sph.use_consistent_gradient_discretization = a["use_consistent_gradient_discretization"].as<bool>();
-        if (a["use_consistent_laplacian_discretization"])
-            m_sim.sph.use_consistent_laplacian_discretization = a["use_consistent_laplacian_discretization"].as<bool>();
-    }
-
-    // Boundary condition parameters
-    if (sim["boundary_conditions"]) {
-        auto a = sim["boundary_conditions"];
-        if (a["boundary_method"])
-            m_sim.sph.boundary_method = ReadBoundaryMethod(a["boundary_method"]);
-        if (a["num_bce_layers"])
-            m_sim.sph.num_bce_layers = a["num_bce_layers"].as<int>();
-    }
-
-    // Integration parameters
-    if (sim["integration"]) {
-        auto a = sim["integration"];
-        if (a["integration_scheme"])
-            m_sim.sph.integration_scheme = ReadIntegrationScheme(a["integration_scheme"]);
-        if (a["use_variable_time_step"])
-            m_sim.sph.use_variable_time_step = a["use_variable_time_step"].as<bool>();
-    }
-
-    // Proximity search
-    if (sim["proximity_search"]) {
-        auto a = sim["proximity_search"];
-        if (a["num_proximity_search_steps"])
-            m_sim.sph.num_proximity_search_steps = a["num_proximity_search_steps"].as<int>();
-    }
-
-    // Particle shifting
-    if (sim["particle_shifting"]) {
-        auto a = sim["particle_shifting"];
-        if (a["shifting_method"])
-            m_sim.sph.shifting_method = ReadShiftingMethod(a["shifting_method"]);
-        if (a["shifting_xsph_eps"])
-            m_sim.sph.shifting_xsph_eps = a["shifting_xsph_eps"].as<double>();
-        if (a["shifting_ppst_push"])
-            m_sim.sph.shifting_ppst_push = a["shifting_ppst_push"].as<double>();
-        if (a["shifting_ppst_pull"])
-            m_sim.sph.shifting_ppst_pull = a["shifting_ppst_pull"].as<double>();
-        if (a["shifting_beta_implicit"])
-            m_sim.sph.shifting_beta_implicit = a["shifting_beta_implicit"].as<double>();
-        if (a["shifting_diffusion_A"])
-            m_sim.sph.shifting_diffusion_A = a["shifting_diffusion_A"].as<double>();
-        if (a["shifting_diffusion_AFSM"])
-            m_sim.sph.shifting_diffusion_AFSM = a["shifting_diffusion_AFSM"].as<double>();
-        if (a["artificial_viscosity"])
-            m_sim.sph.shifting_diffusion_AFST = a["shifting_diffusion_AFST"].as<double>();
-    }
-
-    // Viscosity parameters
-    if (sim["viscosity"]) {
-        auto a = sim["viscosity"];
-        if (a["viscosity_method"])
-            m_sim.sph.viscosity_method = ReadViscosityMethod(a["viscosity_method"]);
-        if (a["artificial_viscosity"])
-            m_sim.sph.artificial_viscosity = a["artificial_viscosity"].as<double>();
-    }
+    // Output (optional)
+    if (yaml["output"])
+        ReadOutputParams(yaml["output"]);
 
     // Run-time visualization (optional)
-    if (sim["visualization"]) {
+    if (yaml["visualization"]) {
 #ifdef CHRONO_VSG
-        m_sim.visualization.render = true;
-        auto a = sim["visualization"];
+        m_vis.render = true;
+        auto a = yaml["visualization"];
 
         if (a["sph_markers"])
-            m_sim.visualization.sph_markers = a["sph_markers"].as<bool>();
+            m_vis.sph_markers = a["sph_markers"].as<bool>();
         if (a["rigid_bce_markers"])
-            m_sim.visualization.rigid_bce_markers = a["rigid_bce_markers"].as<bool>();
+            m_vis.rigid_bce_markers = a["rigid_bce_markers"].as<bool>();
         if (a["flex_bce_markers"])
-            m_sim.visualization.flex_bce_markers = a["flex_bce_markers"].as<bool>();
+            m_vis.flex_bce_markers = a["flex_bce_markers"].as<bool>();
         if (a["bndry_bce_markers"])
-            m_sim.visualization.bndry_bce_markers = a["bndry_bce_markers"].as<bool>();
+            m_vis.bndry_bce_markers = a["bndry_bce_markers"].as<bool>();
         if (a["active_boxes"])
-            m_sim.visualization.active_boxes = a["active_boxes"].as<bool>();
+            m_vis.active_boxes = a["active_boxes"].as<bool>();
 
         if (a["color_map"]) {
             auto b = a["color_map"];
             ChAssertAlways(b["type"]);
             auto type = ReadParticleColoringType(b["type"]);
             if (b["map"])
-                m_sim.visualization.colormap = ReadColorMapType(b["map"]);
+                m_vis.colormap = ReadColorMapType(b["map"]);
             switch (type) {
                 case ParticleColoringType::NONE:
                     break;
@@ -221,7 +177,7 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     ChVector3d up = VECT_Z;
                     if (b["up"])
                         up = ReadVector(b["up"]);
-                    m_sim.visualization.color_callback =
+                    m_vis.color_callback =
                         chrono_types::make_shared<fsi::sph::ParticleHeightColorCallback>(min, max, up);
                     break;
                 }
@@ -230,8 +186,7 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     ChAssertAlways(b["max"]);
                     double min = b["min"].as<double>();
                     double max = b["max"].as<double>();
-                    m_sim.visualization.color_callback =
-                        chrono_types::make_shared<fsi::sph::ParticleVelocityColorCallback>(min, max);
+                    m_vis.color_callback = chrono_types::make_shared<fsi::sph::ParticleVelocityColorCallback>(min, max);
                     break;
                 }
                 case ParticleColoringType::DENSITY: {
@@ -239,8 +194,7 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     ChAssertAlways(b["max"]);
                     double min = b["min"].as<double>();
                     double max = b["max"].as<double>();
-                    m_sim.visualization.color_callback =
-                        chrono_types::make_shared<fsi::sph::ParticleDensityColorCallback>(min, max);
+                    m_vis.color_callback = chrono_types::make_shared<fsi::sph::ParticleDensityColorCallback>(min, max);
                     break;
                 }
                 case ParticleColoringType::PRESSURE: {
@@ -250,7 +204,7 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
                     double min = b["min"].as<double>();
                     double max = b["max"].as<double>();
                     bool bimodal = b["bimodal"].as<bool>();
-                    m_sim.visualization.color_callback =
+                    m_vis.color_callback =
                         chrono_types::make_shared<fsi::sph::ParticlePressureColorCallback>(min, max, bimodal);
                     break;
                 }
@@ -287,72 +241,139 @@ void ChParserSphYAML::LoadSimulationFile(const std::string& yaml_filename) {
                 mode = fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
 
             if (sph_visibility)
-                m_sim.visualization.visibility_callback_sph =
+                m_vis.visibility_callback_sph =
                     chrono_types::make_shared<fsi::sph::MarkerPlanesVisibilityCallback>(planes, mode);
             if (bce_visibility)
-                m_sim.visualization.visibility_callback_bce =
+                m_vis.visibility_callback_bce =
                     chrono_types::make_shared<fsi::sph::MarkerPlanesVisibilityCallback>(planes, mode);
         }
 
         if (a["splashsurf"]) {
-            m_sim.visualization.use_splashsurf = true;
-            m_sim.visualization.splashsurf_params =
-                chrono_types::make_unique<fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters>();
+            m_vis.use_splashsurf = true;
+            m_vis.splashsurf_params = chrono_types::make_unique<fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters>();
             auto b = a["splashsurf"];
             if (b["smoothing_length"])
-                m_sim.visualization.splashsurf_params->smoothing_length = b["smoothing_length"].as<double>();
+                m_vis.splashsurf_params->smoothing_length = b["smoothing_length"].as<double>();
             if (b["cube_size"])
-                m_sim.visualization.splashsurf_params->cube_size = b["cube_size"].as<double>();
+                m_vis.splashsurf_params->cube_size = b["cube_size"].as<double>();
             if (b["surface_threshold"])
-                m_sim.visualization.splashsurf_params->surface_threshold = b["surface_threshold"].as<double>();
+                m_vis.splashsurf_params->surface_threshold = b["surface_threshold"].as<double>();
         }
 
         if (a["output"]) {
             auto b = a["output"];
             if (b["save_images"])
-                m_sim.visualization.write_images = b["save_images"].as<bool>();
+                m_vis.write_images = b["save_images"].as<bool>();
             if (b["output_directory"])
-                m_sim.visualization.image_dir = b["output_directory"].as<std::string>();
+                m_vis.image_dir = b["output_directory"].as<std::string>();
         }
 #endif
     }
-
-    // Output (optional)
-    if (sim["output"]) {
-        ChAssertAlways(sim["output"]["type"]);
-        m_output.type = ReadOutputType(sim["output"]["type"]);
-        if (sim["output"]["mode"])
-            m_output.mode = ReadOutputMode(sim["output"]["mode"]);
-        if (sim["output"]["fps"])
-            m_output.fps = sim["output"]["fps"].as<double>();
-        if (sim["output"]["output_directory"])
-            m_output.dir = sim["output"]["output_directory"].as<std::string>();
-    }
-
-    if (m_verbose) {
-        m_sim.PrintInfo();
-        cout << endl;
-        m_output.PrintInfo();
-    }
-
-    m_sim_loaded = true;
 }
 
-void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
+void ChParserSphYAML::LoadSolverData(const YAML::Node& yaml) {
+    // Base SPH parameters
+    if (yaml["sph"]) {
+        auto a = yaml["sph"];
+        if (a["eos_type"])
+            m_sim.sph.eos_type = ReadEosType(a["eos_type"]);
+        if (a["use_delta_sph"])
+            m_sim.sph.use_delta_sph = a["use_delta_sph"].as<bool>();
+        if (a["delta_sph_coefficient"])
+            m_sim.sph.delta_sph_coefficient = a["delta_sph_coefficient"].as<double>();
+        if (a["max_velocity"])
+            m_sim.sph.max_velocity = a["max_velocity"].as<double>();
+        if (a["min_distance_coefficient"])
+            m_sim.sph.min_distance_coefficient = a["min_distance_coefficient"].as<double>();
+        if (a["density_reinit_steps"])
+            m_sim.sph.density_reinit_steps = a["density_reinit_steps"].as<int>();
+        if (a["use_density_based_projection"])
+            m_sim.sph.use_density_based_projection = a["use_density_based_projection"].as<bool>();
+        if (a["free_surface_threshold"])
+            m_sim.sph.free_surface_threshold = a["free_surface_threshold"].as<double>();
     }
 
-    m_script_directory = path.parent_path().str();
+    // SPH kernel parameters
+    if (yaml["kernel"]) {
+        auto a = yaml["kernel"];
+        if (a["kernel_type"])
+            m_sim.sph.kernel_type = ReadKernelType(a["kernel_type"]);
+        if (a["initial_spacing"])
+            m_sim.sph.initial_spacing = a["initial_spacing"].as<double>();
+        if (a["d0_multiplier"])
+            m_sim.sph.d0_multiplier = a["d0_multiplier"].as<double>();
+    }
 
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
+    // SPH discretization parameters
+    if (yaml["discretization"]) {
+        auto a = yaml["discretization"];
+        if (a["use_consistent_gradient_discretization"])
+            m_sim.sph.use_consistent_gradient_discretization = a["use_consistent_gradient_discretization"].as<bool>();
+        if (a["use_consistent_laplacian_discretization"])
+            m_sim.sph.use_consistent_laplacian_discretization = a["use_consistent_laplacian_discretization"].as<bool>();
+    }
 
-    // Check version compatibility
-    ChAssertAlways(yaml["chrono-version"]);
-    CheckVersion(yaml["chrono-version"]);
+    // Boundary condition parameters
+    if (yaml["boundary_conditions"]) {
+        auto a = yaml["boundary_conditions"];
+        if (a["boundary_method"])
+            m_sim.sph.boundary_method = ReadBoundaryMethod(a["boundary_method"]);
+        if (a["num_bce_layers"])
+            m_sim.sph.num_bce_layers = a["num_bce_layers"].as<int>();
+    }
 
+    // Integration parameters
+    if (yaml["integration"]) {
+        auto a = yaml["integration"];
+        ChAssertAlways(a["time_step"]);
+        m_sim.time_step = a["time_step"].as<double>();
+        if (a["integration_scheme"])
+            m_sim.sph.integration_scheme = ReadIntegrationScheme(a["integration_scheme"]);
+        if (a["use_variable_time_step"])
+            m_sim.sph.use_variable_time_step = a["use_variable_time_step"].as<bool>();
+    }
+
+    // Proximity search
+    if (yaml["proximity_search"]) {
+        auto a = yaml["proximity_search"];
+        if (a["num_proximity_search_steps"])
+            m_sim.sph.num_proximity_search_steps = a["num_proximity_search_steps"].as<int>();
+    }
+
+    // Particle shifting
+    if (yaml["particle_shifting"]) {
+        auto a = yaml["particle_shifting"];
+        if (a["shifting_method"])
+            m_sim.sph.shifting_method = ReadShiftingMethod(a["shifting_method"]);
+        if (a["shifting_xsph_eps"])
+            m_sim.sph.shifting_xsph_eps = a["shifting_xsph_eps"].as<double>();
+        if (a["shifting_ppst_push"])
+            m_sim.sph.shifting_ppst_push = a["shifting_ppst_push"].as<double>();
+        if (a["shifting_ppst_pull"])
+            m_sim.sph.shifting_ppst_pull = a["shifting_ppst_pull"].as<double>();
+        if (a["shifting_beta_implicit"])
+            m_sim.sph.shifting_beta_implicit = a["shifting_beta_implicit"].as<double>();
+        if (a["shifting_diffusion_A"])
+            m_sim.sph.shifting_diffusion_A = a["shifting_diffusion_A"].as<double>();
+        if (a["shifting_diffusion_AFSM"])
+            m_sim.sph.shifting_diffusion_AFSM = a["shifting_diffusion_AFSM"].as<double>();
+        if (a["artificial_viscosity"])
+            m_sim.sph.shifting_diffusion_AFST = a["shifting_diffusion_AFST"].as<double>();
+    }
+
+    // Viscosity parameters
+    if (yaml["viscosity"]) {
+        auto a = yaml["viscosity"];
+        if (a["viscosity_method"])
+            m_sim.sph.viscosity_method = ReadViscosityMethod(a["viscosity_method"]);
+        if (a["artificial_viscosity"])
+            m_sim.sph.artificial_viscosity = a["artificial_viscosity"].as<double>();
+    }
+
+    m_solver_loaded = true;
+}
+
+void ChParserSphYAML::LoadModelData(const YAML::Node& yaml) {
     // Check a model object exists
     ChAssertAlways(yaml["model"]);
     auto model = yaml["model"];
@@ -379,9 +400,8 @@ void ChParserSphYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserSphYAML] Loading Chrono::SPH model specification from: '" << yaml_filename << "'\n" << endl;
         cout << "model name: '" << m_name << "'" << endl;
+        cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
         switch (m_data_path) {
             case ChParserYAML::DataPathType::ABS:
                 cout << "using absolute file paths" << endl;
@@ -712,9 +732,9 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
         throw std::runtime_error("No YAML model file loaded");
     }
 
-    if (!m_sim_loaded) {
-        cerr << "[ChParserSphYAML::CreateFsiProblemSPH] Error: no YAML simulation file loaded." << endl;
-        throw std::runtime_error("No YAML simulation file loaded");
+    if (!m_solver_loaded) {
+        cerr << "[ChParserSphYAML::CreateFsiProblemSPH] Error: no YAML solver file loaded." << endl;
+        throw std::runtime_error("No YAML solver file loaded");
     }
 
     // Create a Chrono FSI SPH problem of specified type with no MBS attached
@@ -816,16 +836,16 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserSphYAML::GetVisualizationPlugin() const {
     auto vis = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(m_fsi_problem->GetFsiSystemSPH().get());
 
-    vis->EnableFluidMarkers(m_sim.visualization.sph_markers);
-    vis->EnableBoundaryMarkers(m_sim.visualization.bndry_bce_markers);
-    vis->EnableRigidBodyMarkers(m_sim.visualization.rigid_bce_markers);
+    vis->EnableFluidMarkers(m_vis.sph_markers);
+    vis->EnableBoundaryMarkers(m_vis.bndry_bce_markers);
+    vis->EnableRigidBodyMarkers(m_vis.rigid_bce_markers);
 
-    if (m_sim.visualization.color_callback)
-        vis->SetSPHColorCallback(m_sim.visualization.color_callback, m_sim.visualization.colormap);
-    if (m_sim.visualization.visibility_callback_sph)
-        vis->SetSPHVisibilityCallback(m_sim.visualization.visibility_callback_sph);
-    if (m_sim.visualization.visibility_callback_bce)
-        vis->SetBCEVisibilityCallback(m_sim.visualization.visibility_callback_bce);
+    if (m_vis.color_callback)
+        vis->SetSPHColorCallback(m_vis.color_callback, m_vis.colormap);
+    if (m_vis.visibility_callback_sph)
+        vis->SetSPHVisibilityCallback(m_vis.visibility_callback_sph);
+    if (m_vis.visibility_callback_bce)
+        vis->SetBCEVisibilityCallback(m_vis.visibility_callback_bce);
     return vis;
 }
 #endif
@@ -930,15 +950,12 @@ ChParserSphYAML::SimParams::SimParams() : gravity({0, 0, -9.8}), time_step(1e-4)
 
 void ChParserSphYAML::SimParams::PrintInfo() {
     cout << "simulation end time:        " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
-    cout << "integration time step:      " << time_step << endl;
     cout << endl;
 
     cout << "SPH settings" << endl;
+    cout << "  integration time step:      " << time_step << endl;
 
     //// TODO
-
-    cout << endl;
-    visualization.PrintInfo();
 }
 
 void ChParserSphYAML::VisParams::PrintInfo() {

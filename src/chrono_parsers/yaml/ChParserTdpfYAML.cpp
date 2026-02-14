@@ -34,54 +34,101 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserTdpfYAML::ChParserTdpfYAML(const std::string& yaml_model_filename,
-                                   const std::string& yaml_sim_filename,
-                                   bool verbose)
-    : ChParserCfdYAML(verbose), m_gravity({0, 0, -9.8}), m_sim_loaded(false), m_model_loaded(false) {
+ChParserTdpfYAML::ChParserTdpfYAML(const std::string& yaml_filename, bool verbose)
+    : ChParserCfdYAML(verbose),
+      m_gravity({0, 0, -9.8}),
+      m_loaded(false),
+      m_solver_loaded(false),
+      m_model_loaded(false) {
     SetVerbose(verbose);
-    LoadModelFile(yaml_model_filename);
-    LoadSimulationFile(yaml_sim_filename);
+    LoadFile(yaml_filename);
 }
 
 ChParserTdpfYAML::~ChParserTdpfYAML() {}
 
 // -----------------------------------------------------------------------------
 
-void ChParserTdpfYAML::LoadSimulationFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
-    }
+void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
+    YAML::Node yaml;
 
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
-
-    // Check that the file is an TDPF specification
-    ChAssertAlways(yaml["fluid_dynamics_solver"]);
-    if (ToUpper(yaml["fluid_dynamics_solver"].as<std::string>()) != "TDPF") {
-        cerr << "Error: file '" << yaml_filename << "' is not a TDPF specification file." << endl;
-        throw std::runtime_error("Not a TDPF specification file");
-    }
-
-    if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserTdpfYAML] Loading Chrono::TDPF simulation specification from: " << yaml_filename << "\n"
-             << endl;
+    // Load SPH YAML file
+    {
+        auto path = filesystem::path(yaml_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        m_script_directory = path.parent_path().str();
+        yaml = YAML::LoadFile(yaml_filename);
     }
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
     CheckVersion(yaml["chrono-version"]);
 
-    // Check a simulation object exists
-    ChAssertAlways(yaml["simulation"]);
-    auto sim = yaml["simulation"];
+    // Check the YAML file if of type "TDPF"
+    ChAssertAlways(yaml["type"]);
+    auto type = ReadYamlFileType(yaml["type"]);
+    ChAssertAlways(type == ChParserYAML::YamlFileType::TDPF);
 
+    // Load simulation, output, and run-time visualization data
+    LoadSimData(yaml);
+
+    // Load TDPF model YAML file
+    {
+        ChAssertAlways(yaml["model"]);
+        auto model_fname = yaml["model"].as<std::string>();
+        auto model_filename = m_script_directory + "/" + model_fname;
+        auto path = filesystem::path(model_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << model_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\n[ChParserTdpfYAML] Loading Chrono TDPF model from: '" << yaml_filename << "'\n" << endl;
+        }
+        auto model = YAML::LoadFile(model_filename);
+        ChAssertAlways(model["chrono-version"]);
+        CheckVersion(model["chrono-version"]);
+        LoadModelData(model);
+    }
+
+    // Load solver YAML file
+    {
+        ChAssertAlways(yaml["solver"]);
+        auto solver_fname = yaml["solver"].as<std::string>();
+        auto solver_filename = m_script_directory + "/" + solver_fname;
+        auto path = filesystem::path(solver_filename);
+        if (!path.exists() || !path.is_file()) {
+            cerr << "Error: file '" << solver_filename << "' not found." << endl;
+            throw std::runtime_error("File not found");
+        }
+        if (m_verbose) {
+            cout << "\n-------------------------------------------------" << endl;
+            cout << "\n[ChParserTdpfYAML] Loading Chrono TDPF solver from: " << solver_filename << "\n" << endl;
+        }
+        auto solver = YAML::LoadFile(solver_filename);
+        ChAssertAlways(solver["chrono-version"]);
+        CheckVersion(solver["chrono-version"]);
+        LoadSolverData(solver);
+    }
+
+    if (m_verbose) {
+        m_vis.PrintInfo();
+        cout << endl;
+        m_output.PrintInfo();
+    }
+
+    m_loaded = true;
+}
+
+void ChParserTdpfYAML::LoadSimData(const YAML::Node& yaml) {
     // Run-time visualization (optional)
-    if (sim["visualization"]) {
+    if (yaml["visualization"]) {
 #ifdef CHRONO_VSG
+        auto a = yaml["visualization"];
         m_vis.render = true;
-        auto a = sim["visualization"];
 
         if (a["update_fps"]) {
             m_vis.update_fps = a["update_fps"].as<double>();
@@ -108,41 +155,16 @@ void ChParserTdpfYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Output (optional)
-    if (sim["output"]) {
-        ChAssertAlways(sim["output"]["type"]);
-        m_output.type = ReadOutputType(sim["output"]["type"]);
-        if (sim["output"]["mode"])
-            m_output.mode = ReadOutputMode(sim["output"]["mode"]);
-        if (sim["output"]["fps"])
-            m_output.fps = sim["output"]["fps"].as<double>();
-        if (sim["output"]["output_directory"])
-            m_output.dir = sim["output"]["output_directory"].as<std::string>();
-    }
-
-    if (m_verbose) {
-        m_vis.PrintInfo();
-        cout << endl;
-        m_output.PrintInfo();
-    }
-
-    m_sim_loaded = true;
+    if (yaml["output"])
+        ReadOutputParams(yaml["output"]);
 }
 
-void ChParserTdpfYAML::LoadModelFile(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
-        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-        throw std::runtime_error("File not found");
-    }
+void ChParserTdpfYAML::LoadSolverData(const YAML::Node& yaml) {
+    // Nothing to do here
+    m_solver_loaded = true;
+}
 
-    m_script_directory = path.parent_path().str();
-
-    YAML::Node yaml = YAML::LoadFile(yaml_filename);
-
-    // Check version compatibility
-    ChAssertAlways(yaml["chrono-version"]);
-    CheckVersion(yaml["chrono-version"]);
-
+void ChParserTdpfYAML::LoadModelData(const YAML::Node& yaml) {
     // Check a model object exists
     ChAssertAlways(yaml["model"]);
     auto model = yaml["model"];
@@ -161,10 +183,8 @@ void ChParserTdpfYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     if (m_verbose) {
-        cout << "\n-------------------------------------------------" << endl;
-        cout << "\n[ChParserTdpfYAML] Loading Chrono::TDPF model specification from: '" << yaml_filename << "'\n"
-             << endl;
         cout << "model name: '" << m_name << "'" << endl;
+        cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
         switch (m_data_path) {
             case ChParserYAML::DataPathType::ABS:
                 cout << "using absolute file paths" << endl;
@@ -207,10 +227,6 @@ void ChParserTdpfYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
-    if (m_verbose) {
-        cout << endl;
-    }
-
     m_model_loaded = true;
 }
 
@@ -227,7 +243,7 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
         throw std::runtime_error("No YAML model file loaded");
     }
 
-    if (!m_sim_loaded) {
+    if (!m_solver_loaded) {
         cerr << "[ChParserTdpfYAML::CreateFsiSystemTDPF] Error: no YAML simulation file loaded." << endl;
         throw std::runtime_error("No YAML simulation file loaded");
     }
@@ -257,6 +273,9 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
     // Create a Chrono::FSI-TDPF system with no MBS attached
     m_sysFSI = chrono_types::make_shared<fsi::tdpf::ChFsiSystemTDPF>(nullptr, m_sysTDPF.get());
     m_sysFSI->SetVerbose(m_verbose);
+
+    // Set a dummy time step (not needed by TDPF)
+    m_sysFSI->SetStepSizeCFD(1);
 
     // Initialize FSI problem
     if (initialize)

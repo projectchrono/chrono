@@ -1,0 +1,33 @@
+chrono-version: 9.0
+type: FSI
+
+mbs:   "mbs.yaml"
+fluid: "sph.yaml"
+
+fsi:
+  name: Wavetank
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  fsi_bodies: 
+    - name: ball
+      shapes:
+        - type: SPHERE
+          location: [0, 0, 0]
+          radius: 0.12
+        
+simulation:
+  time_step: 1e-4
+  end_time: -1
+  gravity: [0, 0, -9.8]
+
+visualization:
+  render_fps: 240
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [0, -4.8, 0.2]
+    target: [0, 0, 0.2]

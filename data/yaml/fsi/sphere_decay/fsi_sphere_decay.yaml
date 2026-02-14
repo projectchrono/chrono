@@ -1,0 +1,35 @@
+chrono-version: 9.0
+type: FSI
+
+mbs:   "mbs.yaml"
+fluid: "tdpf.yaml"
+#fluid: "sph.yaml"
+
+fsi:
+  name: FSI sphere decay
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  fsi_bodies: 
+    - name: body1
+      shapes:
+        - type: SPHERE
+          location: [0, 0, 0]
+          radius: 5.0
+        
+simulation:
+  time_step: 1e-2
+  #time_step: 1e-4
+  end_time: -1
+  gravity: [0, 0, -9.8]
+
+visualization:
+  render_fps: 100
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [20, -60, 20]
+    target: [0, 0, 0]

@@ -38,6 +38,11 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     /// Load the specified input YAML file.
     void LoadFile(const std::string& yaml_filename);
 
+    void LoadFsiData(const YAML::Node& yaml);
+
+    /// Load the simulation and visualization saettings from the specified YAML node.
+    void LoadSimData(const YAML::Node& yaml);
+
     /// Create and return a ChFsiSystem combining a Chrono MBS system and a fluid solver.
     void CreateFsiSystem();
 
@@ -60,58 +65,76 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     std::shared_ptr<ChSystem> GetMultibodySystem() const { return m_sysMBS; }
 
     /// Get meta-step (communication time step).
-    double GetTimestep() const { return m_step; }
+    double GetTimestep() const { return m_sim.step; }
 
     /// Get simulation end time.
     /// A value of -1 indicates infinite end time.
-    double GetEndtime() const { return m_end_time; }
+    double GetEndtime() const { return m_sim.end_time; }
+
+    /// Set root output directory (default: ".").
+    virtual void SetOutputDir(const std::string& out_dir) override;
+
+    /// Return true if generating output.
+    virtual bool Output() const override;
 
     /// Indicate whether to enable run-time visualization.
-    bool Render() const { return m_render; }
+    bool Render() const { return m_vis.render; }
 
     /// Return frequency (frames-per-second) for run-time visualization rendering.
-    double GetRenderFPS() const { return m_render_fps; }
+    double GetRenderFPS() const { return m_vis.render_fps; }
 
-    /// Indicate whether to enable simulation output.
-    virtual bool Output() const override { return m_output; }
-
-    /// Return frequency (frames-per-second) for simulation output.
-    virtual double GetOutputFPS() const override { return m_output_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
+    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
+    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
+    bool EnableShadows() const { return m_vis.enable_shadows; }
 
   private:
+    /// FSI rigid body definition.
     struct FsiBody {
         std::string name;                                 ///< body name
         std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
         std::shared_ptr<utils::ChBodyGeometry> geometry;  ///< FSI geometry
     };
 
-    std::shared_ptr<utils::ChBodyGeometry> ReadCollisionGeometry(const YAML::Node& a);
+    /// Co-simulation settings.
+    struct SimParams {
+        SimParams();
+        void PrintInfo();
 
-    std::string m_file_modelMBS;
-    std::string m_file_simMBS;
-    std::string m_file_modelCFD;
-    std::string m_file_simCFD;
+        double step;
+        double end_time;
+        ChVector3d gravity;
+    };
+
+    /// Run-time visualization settings.
+    struct VisParams {
+        VisParams();
+        void PrintInfo();
+
+        bool render;
+        double render_fps;
+        CameraVerticalDir camera_vertical;
+        ChVector3d camera_location;
+        ChVector3d camera_target;
+        bool enable_shadows;
+    };
+
+    std::shared_ptr<utils::ChBodyGeometry> ReadCollisionGeometry(const YAML::Node& a);
 
     std::shared_ptr<ChParserMbsYAML> m_parserMBS;
     std::shared_ptr<ChParserCfdYAML> m_parserCFD;
 
     ChParserCfdYAML::FluidSystemType m_sysCFD_type;
 
+    //// TODO: do I need to cache these?
     std::shared_ptr<fsi::ChFsiSystem> m_sysFSI;
     std::shared_ptr<fsi::ChFsiFluidSystem> m_sysCFD;
     std::shared_ptr<ChSystem> m_sysMBS;
 
     std::vector<FsiBody> m_fsi_bodies;
 
-    double m_step;
-    double m_end_time;
-    ChVector3d m_gravity;
-
-    bool m_render;
-    double m_render_fps;
-
-    bool m_output;
-    double m_output_fps;
+    SimParams m_sim; ///< co-simulation settings
+        VisParams m_vis;  ///< visualization settings
 };
 
 /// @} parsers_module

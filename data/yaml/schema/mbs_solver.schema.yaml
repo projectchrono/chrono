@@ -1,0 +1,111 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono YAML MBS solver specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+#
+# =============================================================================
+
+required: [chrono-version, contact_method, integrator, solver]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
+
+contact_method:
+  type: string
+  description: Contact method for collision detection and response
+  enum: [SMC, NSC]
+
+integrator:
+  type: object
+  description: Integrator type and parameters
+  required: [type, time-step]
+  properties:
+      type:
+          type: string
+          description: Type of numerical integrator.
+          enum: [EULER_IMPLICIT_LINEARIZED, EULER_IMPLICIT_PROJECTED, EULER_IMPLICIT, HHT]
+      time_step:
+          type: number
+          description: Time step size in seconds.
+          minimum: 0
+      rel_tolerance:
+          type: number
+          description: Relative tolerance (HHT and implicit Euler)
+          minimum: 0
+          default: 1e-4
+      abs_tolerance_states:
+          type: number
+          description: Absolute tolerance for state variables (HHT and implicit Euler)
+          minimum: 0
+          default: 1e-4
+      abs_tolerance_multipliers:
+          type: number
+          description: Absolute tolerance for Lagrange multipliers (HHT and implicit Euler)
+          minimum: 0
+          default: 1e2
+      max_iterations:
+          type: number
+          description: Maximum number of non-linear iteration for implicit integrators
+          minimum: 0
+          default: 50
+      use_stepsize_control:
+          type: boolean
+          description: Whether to use internal step-size control (HHT)
+          default: false
+      use_modified_newton:
+          type: boolean
+          description: Whether to use a modified Newton iteration (HHT)
+          default: false
+    
+solver:
+  type: object
+  description: Solver type and parameters.
+  required: [type]
+  properties:
+      type:
+          type: string
+          description: Type of linear solver
+          enum: [BARZILAI_BORWEIN, PSOR, APGD, MINRES, GMRES, BICGSTAB, PARDISO, MUMPS, SPARSE_LU, SPARSE_QR]
+      max_iterations:
+          type: number
+          description: Maximum number of iteration for iterative DVI and linear solvers
+          minimum: 0
+          default: 100
+      overrelaxation_factor:
+          type: number
+          description: Overrelaxation factor for iterative DVI solvers
+          minimum: 0
+          default: 1.0
+      sharpness_factor:
+          type: number
+          description: Sharpness factor for iterative DVI solvers
+          minimum: 0
+          default: 1.0
+      tolerance:
+          type: number
+          description: Tolerance for iterative Krylov linear solvers
+          minimum: 0
+          default: 0.0
+      enable_diagonal_preconditioner:
+          type: boolean
+          description: Whether to use a diagonal preconditioner for iterative Krylov linear solvers
+          default: false
+      lock_sparsity_pattern:
+          type: boolean
+          description: Keep matrix sparsity pattern unchanged (direct sparse linear solvers)
+          default: false
+      use_sparsity_pattern_learner:
+          type: boolean
+          description: Evaluate matrix sparsity pattern in a pre-processing stage (direct sparse linear solvers)
+          default: true
+  

@@ -1,7 +1,7 @@
 chrono-version: 9.0
 
 model:
-  name: iea_sphere_model
+  name: Sphere
   angle_degrees: false
   
   data_path:

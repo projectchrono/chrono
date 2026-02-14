@@ -32,27 +32,32 @@ namespace parsers {
 /// @{
 
 /// Parser for YAML specification files for Chrono::SPH models and simulations.
-/// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
-/// populating an FSI Chrono::SPH system and setting solver and simulation parameters.
+/// The parser caches model information and simulation settings from a YAML input file and then allows populating an FSI
+/// Chrono::SPH system and setting solver and simulation parameters.
 class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
   public:
-    /// Create a YAML parser and load the model from the specified input YAML file.
-    ChParserSphYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);
+    ChParserSphYAML(const std::string& yaml_filename, bool verbose = false);
     ~ChParserSphYAML();
 
-    /// Return true if a YAML simulation file has been loaded.
-    bool HasSimulationData() const { return m_sim_loaded; }
+    /// Return true if a YAML solver file has been loaded.
+    bool HasSolverData() const { return m_solver_loaded; }
 
     /// Return true if a YAML model file has been loaded.
     bool HasModelData() const { return m_model_loaded; }
 
     // --------------
 
-    /// Load the model from the specified input YAML model file.
-    void LoadModelFile(const std::string& yaml_filename);
+    /// Load the specified MBS simulation input YAML file.
+    void LoadFile(const std::string& yaml_filename);
 
-    /// Load the simulation parameters from the specified input YAML simulation file.
-    void LoadSimulationFile(const std::string& yaml_filename);
+    /// Load the simulation, output, and visualization settings from the specified YAML node.
+    void LoadSimData(const YAML::Node& yaml);
+
+    /// Load the MBS model from the specified YAML node.
+    void LoadModelData(const YAML::Node& yaml);
+
+    /// Load the solver parameters from the specified YAML node.
+    void LoadSolverData(const YAML::Node& yaml);
 
     double GetTimestep() const { return m_sim.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
@@ -75,11 +80,11 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     // --------------
 
-    bool Render() const { return m_sim.visualization.render; }
-    bool UseSplashurf() const { return m_sim.visualization.use_splashsurf; }
+    bool Render() const { return m_vis.render; }
+    bool UseSplashurf() const { return m_vis.use_splashsurf; }
 #ifdef CHRONO_VSG
     const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters() {
-        return *m_sim.visualization.splashsurf_params;
+        return *m_vis.splashsurf_params;
     }
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
 #endif
@@ -185,13 +190,11 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         SimParams();
         void PrintInfo();
 
-        double time_step;
         double end_time;
-
         ChVector3d gravity;
 
+        double time_step;
         fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph;
-        VisParams visualization;
     };
 
     /// Output database.
@@ -227,7 +230,8 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     MaterialProperties m_material;  ///< material properties
     ProblemGeometry m_geometry;     ///< fluid parameters
     Wavetank m_wavetank;            ///< wave tank settings
-    SimParams m_sim;                ///< simulation parameters
+    SimParams m_sim;                ///< simulation settings
+    VisParams m_vis;                ///< run-time visualization settings
 
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> m_fsi_problem;  ///< underlying FSI problem
 
@@ -240,8 +244,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     OutputData m_output_data;  ///< output data
 
-    bool m_sim_loaded;    ///< YAML simulation file loaded
-    bool m_model_loaded;  ///< YAML model file loaded
+    bool m_loaded;         ///< YAML simulation file loaded
+    bool m_solver_loaded;  ///< YAML solver file loaded
+    bool m_model_loaded;   ///< YAML model file loaded
 };
 
 /// @} parsers_module
