@@ -269,6 +269,12 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Get the spindle object.
     std::shared_ptr<ChSpindle> GetSpindle() const { return m_spindle; }
 
+    /// Get the linear motor used to actuate the carrier.
+    std::shared_ptr<ChLinkMotorLinearSpeed> GetMotorCarrier() const { return m_lin_motor; }
+
+    /// Get the rotation motor used to actuate the wheel.
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetMotorWheel() const { return m_rot_motor; }
+
   private:
     void CreateMechanism(Mode mode);
 
