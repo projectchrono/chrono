@@ -219,11 +219,22 @@ class CH_VEHICLE_API ChTireTestRig {
     void SetWheelActiveBox(const ChVector3d& size);
 
     /// Set time delay before applying motion functions (default: 0 s).
+    /// In TEST mode, this delay is measured after the wheel bottom point reaches the terrain height.
     void SetTimeDelay(double delay) { m_time_delay = delay; }
+
+    /// Get time delay after which mesurements are calculated.
+    /// After the drop phase (TEST mode only), this value is set to the input time delay increased by the wheel drop
+    /// time. Before the drop phase is completed, this function returns the input time delay.
+    double GetTimeDelay() const { return m_time_delay; }
+
+    /// Check if kinematic and kinetic quantities are collected.
+    /// This function returns true only in TEST mode once the motion functions are activated.
+    bool OutputEnabled() const { return m_output; }
 
     /// Initialize the rig system.
     /// It is the user's responsibility to set the operation mode and motion functions in a consistent way.
-    void Initialize(Mode mode);
+    /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`. 
+    void Initialize(Mode mode, double drop_speed = 0.1);
 
     /// Get suggested collision settings.
     /// These values are meaningful only when using granular terrain and Chrono::Multicore.
@@ -276,7 +287,7 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChLinkMotorRotationSpeed> GetMotorWheel() const { return m_rot_motor; }
 
   private:
-    void CreateMechanism(Mode mode);
+    void CreateMechanism();
 
     void CreateTerrain();
     void CreateTerrainSCM();
@@ -285,6 +296,9 @@ class CH_VEHICLE_API ChTireTestRig {
     void CreateTerrainCRM();
 
     ChSystem* m_system;  ///< pointer to the Chrono system
+
+    Mode m_mode;    ///< testing mode
+    bool m_output;  ///< if false, report default measurements (typically 0)
 
     std::shared_ptr<ChTerrain> m_terrain;  ///< handle to underlying terrain subsystem
     std::shared_ptr<ChWheel> m_wheel;      ///< handle to wheel subsystem
@@ -327,6 +341,7 @@ class CH_VEHICLE_API ChTireTestRig {
     double m_long_slip;         ///< user-specified longitudinal slip
     double m_base_speed;        ///< base speed for long slip calculation
 
+    std::shared_ptr<ChLinkMotorLinearSpeed> m_drop_motor;   ///< actuator for controlled wheel drop
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;    ///< carrier actuator
     std::shared_ptr<ChLinkMotorRotationSpeed> m_rot_motor;  ///< wheel actuator
     std::shared_ptr<ChLinkLockLock> m_slip_lock;            ///< slip angle actuator
