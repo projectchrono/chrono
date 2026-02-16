@@ -442,6 +442,8 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/input_output/ChCheckpoint.h"
 
 %include "ChParticleFactory.i"
+%include "ChOpenMP.i"
+
 //
 // C- CASTING OF SHARED POINTERS
 // 
