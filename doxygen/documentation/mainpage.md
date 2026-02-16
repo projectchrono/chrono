@@ -29,6 +29,10 @@ Instructions for setting up an external project that uses Chrono.
 
   Ground vehicle modeling and simulation with the Chrono::Vehicle module
 
+- [Chrono::FSI](@ref manual_fsi)
+
+  SPH-based fluid-solid interaction and CRM terrain simulation with Chrono::FSI
+
 - [Chrono::Sensor](@ref manual_sensor)
 
   Sensor modeling and simulation with the Chrono::Sensor module
