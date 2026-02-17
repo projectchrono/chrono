@@ -291,6 +291,9 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_camera_trackball(true),
       m_capture_image(false),
       //
+      m_use_skysphere(false),
+      m_skysphere_path("vsg/textures/citrus_orchard_road_puresky.jpg"),
+      //
       m_use_skybox(false),
       m_skybox_path("vsg/textures/vsg_skybox.ktx"),
       //
@@ -576,10 +579,28 @@ void ChVisualSystemVSG::EnableSkyBox(bool val) {
         return;
     }
     m_use_skybox = val;
+    if (m_use_skybox) {
+        m_use_skysphere = false;
+    }
+}
+
+void ChVisualSystemVSG::EnableSkySphere(bool val) {
+    if (m_initialized) {
+        std::cerr << "Function ChVisualSystemVSG::EnableSkyDome can only be called before initialization!" << std::endl;
+        return;
+    }
+    m_use_skysphere = val;
+    if (m_use_skysphere) {
+        m_use_skybox = false;
+    }
 }
 
 void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename) {
     m_skybox_path = filename;
+}
+
+void ChVisualSystemVSG::SetSkySphereTexture(const std::string& filename) {
+    m_skysphere_path = filename;
 }
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
@@ -721,6 +742,15 @@ void ChVisualSystemVSG::Initialize() {
             m_scene->addChild(skyPtr);
         else
             m_use_skybox = false;
+    }
+
+    if (m_use_skysphere) {
+        vsg::Path fileName(m_skysphere_path);
+        auto skyPtr = createSkysphere(fileName, m_options, m_yup);
+        if (skyPtr)
+            m_scene->addChild(skyPtr);
+        else
+            m_use_skysphere = false;
     }
 
     auto ambientLight = vsg::AmbientLight::create();
@@ -2463,7 +2493,8 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto trimesh_connected = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh->GetMesh());
             if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
                 continue;
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+            auto grp =
+                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
             group->addChild(grp);
         } else if (auto hull = std::dynamic_pointer_cast<ChCollisionShapeConvexHull>(shape)) {
             if (hull->IsMutable())  // already treated as deformable mesh
@@ -2473,7 +2504,8 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             lh.ComputeHull(hull->GetPoints(), *trimesh_connected);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+            auto grp =
+                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
             group->addChild(grp);
         }
     }
