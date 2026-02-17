@@ -108,7 +108,7 @@ Some other features of the Chrono SCM implementation are:
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
 
-## Granular terrain {#vehicle_terrain_granular}
+## Deformable DEM (granular dyynamics) {#vehicle_terrain_granular}
 
 [GranularTerrain](@ref chrono::vehicle::GranularTerrain) implements a rectangular patch of granular material and leverages Chrono's extensive support for so-called Discrete Element Method (DEM) simulations. Currently, this terrain model is limited to monodisperse spherical granular material.
 
@@ -138,3 +138,12 @@ This terrain model permits:
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/FEA_terrain.png" width="600" />
+
+## Deformable CRM (SPH-based Continuous Representation Model) {#vehicle_terrain_crm}
+
+[CRMTerrain](@ref chrono::vehicle::CRMTerrain) provides a deformable terrain model based on the so-called Continuous Representation Model (CRM) approach which involves solving a set of PDEs describing soil dynamics. These PDEs are solved using the [Chrono::FSI-SPH](group__fsisph.html) module with the appropriate underlying dynamics.
+
+CRMTerrain provides a very attractive alternative to granular dynamics as it gives sdimilar accuracy and fidelity of soil dynamics with much better computational performance.
+
+Further details on using a CRM terrain with Chrono::Vehicle is provided in:
+* @subpage vehicle_terrain_crm_api_

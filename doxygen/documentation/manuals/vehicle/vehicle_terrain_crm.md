@@ -1,4 +1,4 @@
-CRM Deformable Terrain (SPH) for Vehicle Users {#vehicle_terrain_crm}
+CRM deformable terrain (SPH) for Chrono::Vehicle simulations {#vehicle_terrain_crm_api_}
 ======================================================================
 
 \tableofcontents
