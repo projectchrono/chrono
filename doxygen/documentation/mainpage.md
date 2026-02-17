@@ -31,7 +31,7 @@ Instructions for setting up an external project that uses Chrono.
 
 - [Chrono::FSI](@ref manual_fsi)
 
-  SPH-based fluid-solid interaction and CRM terrain simulation with Chrono::FSI
+  Fluid-solid interaction with the Chrono::FSI-SPH and Chrono::FSI-TDPF modules
 
 - [Chrono::Sensor](@ref manual_sensor)
 

@@ -52,7 +52,7 @@ Built-in rigid BCE generation in Chrono
 
 Chrono exposes two API levels over the same BCE generation machinery.
 
-### A) High-level: `ChFsiProblemSPH::AddRigidBody(...)`
+### A) High-level: ChFsiProblemSPH::AddRigidBody(...)
 
 Recommended when using `ChFsiProblemSPH` / `ChFsiProblemCartesian`.
 
@@ -79,7 +79,7 @@ FSI rigid body.
 
 During `Initialize()`, if `check_embedded=true`, SPH particles overlapping rigid volumes are pruned.
 
-### B) Low-level: `ChFsiFluidSystemSPH::CreatePoints*` + `ChFsiSystemSPH::AddFsiBody(...)`
+### B) Low-level: ChFsiFluidSystemSPH::CreatePoints* + ChFsiSystemSPH::AddFsiBody(...)
 
 Useful when you want direct control over point generation and attachment.
 

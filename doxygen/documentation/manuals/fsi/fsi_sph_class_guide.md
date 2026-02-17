@@ -1,4 +1,4 @@
-Chrono FSI SPH Class Guide {#manual_fsi_sph_class_guide}
+Chrono::FSI-SPH Class Guide {#manual_fsi_sph_class_guide}
 ===========================================================
 
 Scope
@@ -29,7 +29,7 @@ Primary Classes
 ### 1) Generic FSI layer (solver-independent)
 
 - `chrono::fsi::ChFsiSystem`:
-  Owns one multibody system and one fluid system, advances them, and performs CFD<->MBD data exchange.
+  Owns one multibody system and one fluid system, advances them, and performs CFD&harr;MBD data exchange.
 - `chrono::fsi::ChFsiFluidSystem`:
   Abstract base for fluid-side solvers that participate in FSI.
 - `chrono::fsi::ChFsiInterface`:
@@ -131,7 +131,7 @@ ChFsiFluidSystemSPH
 Interface Clarity
 -----------------------
 
-### `ChFsiInterface` vs `ChFsiInterfaceGeneric` vs `ChFsiInterfaceSPH`
+### ChFsiInterface vs. ChFsiInterfaceGeneric vs. ChFsiInterfaceSPH
 
 - `chrono::fsi::ChFsiInterface` is an **abstract base class**.
   It provides shared utilities:
@@ -149,10 +149,10 @@ Interface Clarity
 For SPH, `ChFsiSystemSPH` uses `ChFsiInterfaceSPH` by default.
 `ChFsiInterfaceGeneric` is used only if `ChFsiSystemSPH(..., use_generic_interface=true)` is requested.
 
-SPH Particle Initialization control when using `ChFsiProblemSPH` class
+SPH Particle Initialization control when using ChFsiProblemSPH class
 ---------------------------------
 
-### `ParticlePropertiesCallback`
+### ParticlePropertiesCallback
 
 - Declared inside `ChFsiProblemSPH`.
 - Purpose: define initial per-particle properties before particles are inserted into `ChFsiFluidSystemSPH`.
@@ -169,7 +169,7 @@ Execution timing:
 - Called once per particle during `ChFsiProblemSPH::Initialize()`.
 - Not called during time stepping.
 
-### `DepthPressurePropertiesCallback`
+### DepthPressurePropertiesCallback
 
 - A ready-made callback derived from `ParticlePropertiesCallback`.
 - It sets hydrostatic initial pressure using particle depth:
@@ -179,19 +179,19 @@ Execution timing:
   - `v0 = 0`
 - Use this when you want a hydrostatic initial state (common in tank/drop/wave-type initializations).
 
-### Do you use these with `ChFsiFluidSystemSPH + ChFsiSystemSPH` directly?
+### Do you use these with ChFsiFluidSystemSPH + ChFsiSystemSPH directly?
 
 - Usually **no**, because these callbacks belong to the `ChFsiProblemSPH` setup API.
 - With direct low-level setup, you set properties yourself when calling `AddSPHParticle(...)`.
 - For simple global hydrostatic pressure setup in direct mode, `SetInitPressure(...)` is another option.
 
-Using `ChSphVisualizationVSG` with VSG
+Using ChSphVisualizationVSG with VSG
 --------------------------------------
 
 `ChSphVisualizationVSG` is a **VSG plugin**, not a standalone visual system.
 You use it in addition to a regular VSG visual system.
 
-### Standard VSG (`vsg3d::ChVisualSystemVSG`)
+### Standard VSG (vsg3d::ChVisualSystemVSG)
 
 Use this sequence:
 
@@ -222,7 +222,7 @@ counts.
 When To Use Which Class
 -----------------------
 
-### Use `ChFsiProblemCartesian` when
+### Use ChFsiProblemCartesian when
 
 - you want the simplest SPH-FSI setup path
 - your domain is box-like, heightmap-based, or loaded from marker files
@@ -230,23 +230,23 @@ When To Use Which Class
 
 This is the most common entry point in `src/demos/fsi/sph/`.
 
-### Use `ChFsiProblemWavetank` when
+### Use ChFsiProblemWavetank when
 
 - you need a wave tank with piston/flap wavemaker
 - you want built-in beach profile support and optional lateral periodic BC
 
-### Use `ChFsiProblemCylindrical` when
+### Use ChFsiProblemCylindrical when
 
 - your natural geometry is cylindrical/annular
 - you want cylindrical discretization helpers
 
-### Use direct `ChFsiFluidSystemSPH + ChFsiSystemSPH` when
+### Use direct ChFsiFluidSystemSPH + ChFsiSystemSPH when
 
 - you need full control over particle creation (`AddSPHParticle`)
 - you need explicit/manual BCE generation and placement
 - you are doing method development or low-level debugging
 
-### Use `CRMTerrain` when
+### Use CRMTerrain when
 
 - your application is a Chrono vehicle terramechanics problem (CRM soil)
 - you need vehicle-facing terrain API plus SPH CRM
