@@ -2,8 +2,7 @@ Chrono core tutorials      {#tutorial_table_of_content_chrono}
 ==========================
 
 The tutorials below focus on how to set up physical systems in Chrono. 
-No graphical user interface comes into play. See the [Irrlicht tutorials](@ref tutorial_table_of_content_chrono_irrlicht) 
-for examples with a 3D graphical output. 
+No graphical user interface comes into play.
 
 - [demo_MBS_crank](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_crank.cpp)  
   the first example from which to start, with links, bodies and simple visualization

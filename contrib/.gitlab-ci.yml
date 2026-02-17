@@ -268,7 +268,7 @@ windows:vs2022:test:
   - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\bin"
   - cd build
   - cmake --install . --config Release
-  - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
+  - ctest --output-on-failure -E "utest_PARSERS|utest_FSI" -C Release
   dependencies: ["windows:vs2022:build"]
 
 .windows-deploy-base:

@@ -114,6 +114,12 @@ void CreateCantilever(ChSystem& sys,
     // 2. CRAIG_BAMPTON: clamped-clamped modes are used as the modal basis.
     modal_assembly->SetReductionType(ChModalAssembly::ReductionType::HERTING);
 
+#ifdef CHRONO_PARDISO_MKL
+    // Provide MKL solver to compute modal reduction
+    auto mkl_modal_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    modal_assembly->SetModalSolver(mkl_modal_solver);
+#endif
+
     // Now populate the assembly to analyze.
     // In this demo, make a cantilever with fixed end
 
@@ -396,7 +402,8 @@ int main(int argc, char* argv[]) {
     auto my_gui_info =
         vis.GetGUIEnvironment()->addStaticText(L" ", irr::core::rect<irr::s32>(400, 80, 850, 200), false, true, 0);
 
-    // Set linear solver
+    // Set linear solver for system simulation
+    // The linear solver for modal reduction shall be set directly on ChModalAssembly if neeeded
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     sys.SetSolver(mkl_solver);

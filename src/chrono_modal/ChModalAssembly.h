@@ -102,6 +102,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         const ChModalDamping& damping_model = ChModalDampingNone()  ///< damping model
     );
 
+    /// Set a new linear solver to use for K_IIc^{-1} computation
+    void SetModalSolver(std::shared_ptr<ChDirectSolverLS> newsolver);
+
+    /// Return the internal linear solver for K_IIc^{-1} computation
+    std::shared_ptr<ChDirectSolverLS> GetModalSolver() const;
+
     /// Get the floating frame F of the reduced modal assembly.
     ChFrameMoving<> GetFloatingFrameOfReference() { return floating_frame_F; }
 
@@ -615,8 +621,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         Psi_D_LambdaI;  ///< dynamic mode transformation matrix - corresponding to internal Lagrange multipliers.
     ChMatrixDynamic<> Psi_Cor_LambdaI;  ///< static correction mode - corresponding to internal Lagrange multipliers.
 
-    Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>>
-        m_solver_invKIIc;  // linear solver for K_IIc^{-1}
+    std::shared_ptr<ChDirectSolverLS> m_solver_invKIIc;  /// linear solver for K_IIc^{-1}
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped():
     ChMatrixDynamic<std::complex<double>> m_modal_eigvect;  // eigenvectors

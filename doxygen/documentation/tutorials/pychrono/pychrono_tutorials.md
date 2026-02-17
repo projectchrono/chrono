@@ -16,16 +16,15 @@ For examples of using Chrono::Python to parse and execute Python programs **from
 
 ## Introductory tutorials
 
-- **core/demo_CH_coords.py**
+- [core/demo_CH_coords.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/core/demo_CH_coords.py)
 
     Learn the basics of Python interoperation with Chrono.
     - import the PyChrono module
     - use basic classes: vectors, matrices, etc.
     - inherit classes 
 
-<br>
 
-- **core/demo_CH_buildsystem.py**
+- [core/demo_CH_buildsystem.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/core/demo_CH_buildsystem.py)
 
     Basic creation of a physical system and rigid bodies.
     - create a ChSystem
@@ -33,9 +32,8 @@ For examples of using Chrono::Python to parse and execute Python programs **from
     - iterate on created contacts
     - iterate on added rigid bodies using the Python syntax 
 
-<br>
 
-- **postprocess/demo_POST_povray1.py**
+- [postprocess/demo_POST_povray1.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/postprocess/demo_POST_povray1.py)
 
     Create a postprocessing system based on POVray.
     - create a basic system with two bodies
@@ -43,43 +41,37 @@ For examples of using Chrono::Python to parse and execute Python programs **from
     - add asset objects to rigid bodies, for visualization
     - generate POVray scripts for rendering 3D animation as post-processing
 
-<br>
 
-- **irrlicht/demo_IRR_revolute.py**
+- [mbs/demo_MBS_revolute.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/mbs/demo_MBS_revolute.py)
 
     Create a simple pendulum and display it in an interactive 3D view
-    - use pychrono.irrlicht, the Irrlicht 3D realtime visualization of PyChrono
+    - use pychrono.irrlicht, the Irrlicht 3D run-time visualization of PyChrono
     - attach textures as visualization assets
     - create bodies and constraints
 
-<br>
 
-- **irrlicht/demo_IRR_earthquake.py**
+- [mbs/demo_MBS_earthquake.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/mbs/demo_MBS_earthquake.py)
 
     Create a small stack of bricks, move the floor like an earthquake, and see the bricks falling.
     - impose a motion law to an object (the shaking platform)
-    - add soft shadows to the Irrlicht realtime simulation  
 
-<br>
 
-- **irrlicht/demo_IRR_crank_plot.py**
+- [mbs/demo_MBS_crank_plot.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/mbs/demo_MBS_crank_plot.py)
 
     Create a slider-crank.
     - add a motor with imposed angular speed
     - plot results using python's matplotlib library 
 
-<br>
 
-- **irrlicht/demo_IRR_paths.py**
+- [mbs/demo_MBS_imposed_motion.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/mbs/demo_MBS_imposed_motion.py)
 
     Create two pendulums following parametric lines. Learn how:
     - create piecewise paths built from sub-lines, and visualize them
     - add a constraint of 'curvilinear glyph' type (the body can freely move with one of its points being constrained to slide along a path)
     - add a constraint of 'imposed trajectory' type (the body must with one of its points being constrained to walk along a path as a parametric line with motion function)
 
-<br>
 
-- **irrlicht/demo_IRR_collision_trimesh.py**
+- [mbs/demo_MBS_collision_trimesh.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/mbs/demo_MBS_collision_trimesh.py)
 
     Create complex rigid body shapes based on meshes. Learn how:
     - load a .obj mesh file and use it for visualization of the shape
@@ -95,15 +87,14 @@ For examples of using Chrono::Python to parse and execute Python programs **from
 	
 ## FEA tutorials
 
-- **fea/demo_FEA_beams.py**
+- [fea/demo_FEA_beams.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/fea/demo_FEA_beams.py)
 
     Use the pychrono.fea module to simulate flexible beams
     - use the python.fea module
     - create beams with constraints
 
-<br>
 
-- **fea/demo_FEA_beamsIGA.py**
+- [fea/demo_FEA_beamsIGA.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/fea/demo_FEA_beamsIGA.py)
 
     Use the pychrono.fea module to simulate the Jeffcott rotor
     - use the python.fea module
@@ -111,86 +102,73 @@ For examples of using Chrono::Python to parse and execute Python programs **from
 	- tweak the integrator and solver settings for higher precision
 	- create an ad-hoc motion function by python-side inheritance from ChFunction
 
-<br>
 
 ## Chrono::Vehicle tutorials
 
 Simulate vehicle dynamics in Python, using complete pre-built wheeled vehicle models.
 
-- **vehicle/demo_VEH_HMMWV.py**
+- [vehicle/demo_VEH_HMMWV.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/vehicle/demo_VEH_HMMWV.py)
 
     HMMWV vehicle demo using pre-built model
 
-<br>
 
-- **vehicle/demo_VEH_WheeledJSON.py**
+- [vehicle/demo_VEH_WheeledJSON.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/vehicle/demo_VEH_WheeledJSON.py)
 
     Simulation of a vehicle completely specified through JSON files (in this case the same HMMWV vehicle as in demo_vehicle_HMMWV.py)
 
-<br>
 
-- **vehicle/demo_VEH_HMMWV9_YUP.py**
+- [vehicle/demo_VEH_HMMWV9_YUP.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/vehicle/demo_VEH_HMMWV9_YUP.py)
 
     Demonstration of setting a world frame with a vertical Y axis, using a reduced-order model of the HMMWV vehicle
 
-<br>
 
-- **vehicle/demo_VEH_CityBus.py**
+- [vehicle/demo_VEH_CityBus.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/vehicle/demo_VEH_CityBus.py)
 
     Bus vehicle demo showing a vehicle with double tires on the rear axle
 
-<br>
 
-- **vehicle/demo_VEH_UAZBUS.py**
+- [vehicle/demo_VEH_UAZBUS.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/vehicle/demo_VEH_UAZBUS.py)
 
     Demo of a van (UAZ) vehicle simulation  
 
-<br>
 
-- **vehicle/demo_VEH_MAN_10t.py** 
+- [vehicle/demo_VEH_MAN_10t.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/vehicle/demo_VEH_MAN_10t.py) 
 
     Truck vehicle demo showing a vehicle with two steerable axles
 
-<br>
 
 
 ## OpenCascade tutorials
 	
-- **cascade/demo_CAS_cascade.py**
+- [cascade/demo_CAS_cascade.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/cascade/demo_CAS_cascade.py)
 
     Use the pychrono.cascade module to create a shape with the OpenCascade kernel, then let it fall on the ground.
     - use the python.cascade module
     - create collisions with concave meshes
 	- control collision tolerances (envelope, margin)
 
-<br>
 
-- **cascade/demo_CAS_stepfile.py**
+- [cascade/demo_CAS_stepfile.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/cascade/demo_CAS_stepfile.py)
 
     Use the pychrono.cascade module to load a STEP file saved from a CAD.
     - load a STEP file, saved from a 3D CAD.
 	- fetch parts from the STEP document and convert into Chrono bodies.
 
-<br>
 
-- **cascade/demo_CAS_robot.py**
+- [cascade/demo_CAS_robot.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/cascade/demo_CAS_robot.py)
 
     Use pychrono.cascade to load a STEP file and create constraints between the bodies.
     - load a STEP file, saved from a 3D CAD.
 	- fetch parts and recerences from the STEP document, and create joints between them.
 	- assign a ChLinkTrajectory to a part
-
-
-
 	
 ## Machine Learning Tutorials
 
 - Using PyChrono with TensorFlow
 
-    Ttrain a Neural Network in simulation to control actuators.
+    Train a Neural Network in simulation to control actuators.
     - Build a learning model with Tensorflow
     - Build a training environment with Pychrono
     - Use simulation to train the Neural Network 
     - [Additional details](@ref tutorial_pychrono_demo_tensorflow)
 
-<br>
