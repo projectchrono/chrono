@@ -244,8 +244,15 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// This function must be called before Initialize().
     void EnableSkyBox(bool val = true);
 
-    /// Set the sky box texture.
+    /// Set the sky box texture file, it must be a cubemap file (ktx, ktx2 or dds)
     void SetSkyBoxTexture(const std::string& filename);
+
+    /// Enable/disable use of a sky box background (default: false).
+    /// This function must be called before Initialize().
+    void EnableSkySphere(bool val = true);
+
+    /// Set the sky box texture file it must be a 2d panaorama image (png, jpg, bmp...)
+    void SetSkySphereTexture(const std::string& filename);
 
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
@@ -651,6 +658,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_use_skybox;
     std::string m_skybox_path;
 
+    bool m_use_skysphere;
+    std::string m_skysphere_path;
+
     vsg::dvec3 m_camera_up_vector;
     bool m_yup;
     double m_camera_angle_deg;
@@ -689,13 +699,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_forces_colors;
 
     // Frame rendering
-    bool m_show_abs_frame;      ///< flag to toggle absolute frame visibility
-    bool m_show_ref_frames;     ///< flag to toggle object reference frame visibility
-    bool m_show_com_frames;     ///< flag to toggle COM frame visibility
-    bool m_show_com_symbols;    ///< flag to toggle COM symbol visibility
-    bool m_show_link_frames;    ///< flag to toggle link frame visibility
+    bool m_show_abs_frame;    ///< flag to toggle absolute frame visibility
+    bool m_show_ref_frames;   ///< flag to toggle object reference frame visibility
+    bool m_show_com_frames;   ///< flag to toggle COM frame visibility
+    bool m_show_com_symbols;  ///< flag to toggle COM symbol visibility
+    bool m_show_link_frames;  ///< flag to toggle link frame visibility
 
-    double m_scale_multiplier;  ///< measure of the model scale 
+    double m_scale_multiplier;  ///< measure of the model scale
     double m_abs_frame_scale;   ///< current absolute frame scale
     double m_ref_frame_scale;   ///< current reference frame scale
     double m_com_frame_scale;   ///< current COM frame scale
