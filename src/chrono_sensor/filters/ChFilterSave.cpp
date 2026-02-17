@@ -24,11 +24,92 @@
 
 #include <vector>
 #include <sstream>
+#include <fstream>
 
 #include <cuda_runtime_api.h>
 
 namespace chrono {
 namespace sensor {
+
+/// @brief Helper function to write an image data in RGBA 16-bit format to a binary file
+/// @param file_path The path string to the output file
+/// @param width The width of the image in pixels
+/// @param height The height of the image in pixels
+/// @param data A pointer to the image data in RGBA 16-bit format (uint16_t)
+/// @return true if the file was successfully written, false otherwise
+bool WriteRGBA16ToBinary(const std::string& file_path, uint16_t width, uint16_t height, const void* data) {
+    
+    const uint16_t channels = 4; // number of channels (RGBA)
+    const uint16_t bit_depth = 16; // uint16 for each pixel channel
+
+    // recursively create folder if not exists
+    // std::filesystem::path path(file_path);
+    // std::filesystem::create_directories(path.parent_path());
+
+    // Open file in binary mode
+    std::ofstream file(file_path, std::ios::binary);
+    if (!file) {
+        std::cerr << "Failed to open file: " << file_path << std::endl;
+        return false;
+    }
+    else {
+        // Write width, height, number of channels, and bit depth
+        file.write(reinterpret_cast<const char*>(&width), sizeof(uint16_t));
+        file.write(reinterpret_cast<const char*>(&height), sizeof(uint16_t));
+        file.write(reinterpret_cast<const char*>(&channels), sizeof(uint16_t));
+        file.write(reinterpret_cast<const char*>(&bit_depth), sizeof(uint16_t));
+
+        // Calculate the total number of pixels
+        size_t totalPixels = width * height * channels;
+
+        // Write image data
+        file.write(reinterpret_cast<const char*>(data), totalPixels * sizeof(uint16_t));
+
+        // Close the file
+        file.close();
+        return true;
+    }
+}
+
+/// @brief Helper function to write a float map (ex: depth map) to a binary file
+/// @param file_path The path string to the output file
+/// @param width The width of the image in pixels
+/// @param height The height of the image in pixels
+/// @param data A pointer to the image data in float format
+/// @return true if the file was successfully written, false otherwise
+bool WriteFloatToBinary(const std::string& file_path, uint16_t width, uint16_t height, const void* data) {
+    
+    const uint16_t channels = 1; // Number of channels
+    const uint16_t bit_depth = 32; // bit length of FLOAT
+
+    // recursively create folder if not exists
+    // std::filesystem::path path(file_path);
+    // std::filesystem::create_directories(path.parent_path());
+
+    // Open file in binary mode
+    std::ofstream file(file_path, std::ios::binary);
+    if (!file) {
+        std::cerr << "Failed to open file: " << file_path << std::endl;
+        return false;
+    }
+    else {
+        // Write width, height, number of channels, and bit depth
+        file.write(reinterpret_cast<const char*>(&width), sizeof(uint16_t));
+        file.write(reinterpret_cast<const char*>(&height), sizeof(uint16_t));
+        file.write(reinterpret_cast<const char*>(&channels), sizeof(uint16_t));
+        file.write(reinterpret_cast<const char*>(&bit_depth), sizeof(uint16_t));
+
+        // Calculate the total number of pixels
+        size_t totalPixels = width * height * channels;
+
+        // Write image data
+        file.write(reinterpret_cast<const char*>(data), totalPixels * sizeof(float));
+
+        // Close the file
+        file.close();
+        return true;
+    }
+}
 
 CH_SENSOR_API ChFilterSave::ChFilterSave(std::string data_path, std::string name) : ChFilter(name) {
     m_path = data_path;
@@ -57,6 +138,15 @@ CH_SENSOR_API void ChFilterSave::Apply() {
                             m_host_rgba8->Buffer.get(), sizeof(PixelRGBA8) * m_host_rgba8->Width)) {
             std::cerr << "Failed to write RGBA8 image: " << filename << "\n";
         }
+    } else if (m_rgba16_in) {
+        cudaMemcpyAsync(m_host_rgba16->Buffer.get(), m_rgba16_in->Buffer.get(),
+                        m_rgba16_in->Width * m_rgba16_in->Height * sizeof(PixelRGBA16), cudaMemcpyDeviceToHost,
+                        m_cuda_stream);
+        cudaStreamSynchronize(m_cuda_stream);
+        filename.replace(filename.length() - 3, 3, "bin");
+        if (!WriteRGBA16ToBinary(filename, m_host_rgba16->Width, m_host_rgba16->Height, m_host_rgba16->Buffer.get())) {
+            std::cerr << "Failed to write RGBA16 image: " << filename << "\n";
+        }
     } else if (m_semantic_in) {
         cudaMemcpyAsync(m_host_semantic->Buffer.get(), m_semantic_in->Buffer.get(),
                         m_semantic_in->Width * m_semantic_in->Height * sizeof(PixelSemantic), cudaMemcpyDeviceToHost,
@@ -66,6 +156,16 @@ CH_SENSOR_API void ChFilterSave::Apply() {
         if (!stbi_write_png(filename.c_str(), m_host_semantic->Width, m_host_semantic->Height, 4,
                             m_host_semantic->Buffer.get(), 4 * m_host_semantic->Width)) {
             std::cerr << "Failed to write semantic image: " << filename << "\n";
+        }
+    } else if (m_depth_in) {
+        cudaMemcpyAsync(m_host_depth->Buffer.get(), m_depth_in->Buffer.get(),
+                        m_depth_in->Width * m_depth_in->Height * sizeof(PixelDepth), cudaMemcpyDeviceToHost,
+                        m_cuda_stream);
+        cudaStreamSynchronize(m_cuda_stream);
+        // write the depth map
+        filename.replace(filename.length() - 3, 3, "bin");
+        if (!WriteFloatToBinary(filename, m_host_depth->Width, m_host_depth->Height, m_host_depth->Buffer.get())) {
+            std::cerr << "Failed to write depth map to " << filename << "\n";
         }
     }
 }
@@ -91,6 +191,14 @@ CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor,
         m_host_rgba8->Buffer = std::move(b);
         m_host_rgba8->Width = m_rgba8_in->Width;
         m_host_rgba8->Height = m_rgba8_in->Height;
+    } else if (auto pRGBA16 = std::dynamic_pointer_cast<SensorDeviceRGBA16Buffer>(bufferInOut)) {
+        m_rgba16_in = pRGBA16;
+        m_host_rgba16 = chrono_types::make_shared<SensorHostRGBA16Buffer>();
+        std::shared_ptr<PixelRGBA16[]> b(cudaHostMallocHelper<PixelRGBA16>(m_rgba16_in->Width * m_rgba16_in->Height),
+                                         cudaHostFreeHelper<PixelRGBA16>);
+        m_host_rgba16->Buffer = std::move(b);
+        m_host_rgba16->Width = m_rgba16_in->Width;
+        m_host_rgba16->Height = m_rgba16_in->Height;
     } else if (auto pSemantic = std::dynamic_pointer_cast<SensorDeviceSemanticBuffer>(bufferInOut)) {
         m_semantic_in = pSemantic;
         m_host_semantic = chrono_types::make_shared<SensorHostSemanticBuffer>();
@@ -100,6 +208,14 @@ CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor,
         m_host_semantic->Buffer = std::move(b);
         m_host_semantic->Width = m_semantic_in->Width;
         m_host_semantic->Height = m_semantic_in->Height;
+    } else if (auto pDepth = std::dynamic_pointer_cast<SensorDeviceDepthBuffer>(bufferInOut)) {
+        m_depth_in = pDepth;
+        m_host_depth = chrono_types::make_shared<SensorHostDepthBuffer>();
+        std::shared_ptr<PixelDepth[]> b(cudaHostMallocHelper<PixelDepth>(m_depth_in->Width * m_depth_in->Height),
+                                        cudaHostFreeHelper<PixelDepth>);
+        m_host_depth->Buffer = std::move(b);
+        m_host_depth->Width = m_depth_in->Width;
+        m_host_depth->Height = m_depth_in->Height;
     } else {
         InvalidFilterGraphBufferTypeMismatch(pSensor);
     }
@@ -136,6 +252,10 @@ CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor,
 
     // openGL buffers are bottom to top...so flip when writing png.
     stbi_flip_vertically_on_write(1);
+}
+
+CH_SENSOR_API void ChFilterSave::ChangeDataPath(std::string data_path) {
+    m_path = data_path;
 }
 
 }  // namespace sensor

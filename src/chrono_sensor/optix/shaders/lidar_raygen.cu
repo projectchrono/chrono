@@ -18,6 +18,15 @@
 
 #include "chrono_sensor/optix/shaders/device_utils.h"
 
+/// Default of LiDAR per ray data (PRD)
+__device__ __inline__ PerRayData_lidar DefaultLidarPRD() {
+    PerRayData_lidar prd = {
+        0.f,  // default range
+        0.f   // default intensity
+    };
+    return prd;
+};
+
 extern "C" __global__ void __raygen__lidar_single() {
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
     const LidarParameters& lidar = raygen->specific.lidar;
@@ -44,11 +53,11 @@ extern "C" __global__ void __raygen__lidar_single() {
     basis_from_quaternion(ray_quat, forward, left, up);
     float3 ray_direction = normalize(forward * x + left * y + up * z);
     
-    PerRayData_lidar prd_lidar = default_lidar_prd();
+    PerRayData_lidar prd_lidar = DefaultLidarPRD();
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd_lidar, opt1, opt2);
-    unsigned int raytype = (unsigned int)LIDAR_RAY_TYPE;
+    unsigned int raytype = (unsigned int)RayType::LIDAR_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse,
                OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
 
@@ -126,11 +135,11 @@ extern "C" __global__ void __raygen__lidar_multi() {
     basis_from_quaternion(ray_quat, forward, left, up);
     float3 ray_direction = normalize(forward * x + left * y + up * z);
 
-    PerRayData_lidar prd_lidar = default_lidar_prd();  // make_lidar_data(0, 0.f);
+    PerRayData_lidar prd_lidar = DefaultLidarPRD();  // make_lidar_data(0, 0.f);
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd_lidar, opt1, opt2);
-    unsigned int raytype = (unsigned int)LIDAR_RAY_TYPE;
+    unsigned int raytype = (unsigned int)RayType::LIDAR_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse,
                OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
 

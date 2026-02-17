@@ -71,26 +71,94 @@ void ChOptixPipeline::Cleanup() {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_cyl_intersection_module));
         m_cyl_intersection_module = 0;
     }
-    if (m_camera_raygen_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_raygen_module));
-        m_camera_raygen_module = 0;
+    if (m_material_shaders_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_material_shaders_module));
+        m_material_shaders_module = 0;
     }
-    if (m_lidar_raygen_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_lidar_raygen_module));
-        m_lidar_raygen_module = 0;
-    }
-    if (m_radar_raygen_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_radar_raygen_module));
-        m_radar_raygen_module = 0;
-    }
-    if (m_material_shading_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_material_shading_module));
-        m_material_shading_module = 0;
+    if (m_shader_utils_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_shader_utils_module));
+        m_shader_utils_module = 0;
     }
     if (m_miss_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_miss_module));
         m_miss_module = 0;
     }
+    // Camera
+    if (m_camera_raygen_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_raygen_module));
+        m_camera_raygen_module = 0;
+    }
+    if (m_camera_hapke_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_hapke_shader_module));
+        m_camera_hapke_shader_module = 0;
+    }
+    if (m_camera_path_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_path_shader_module));
+        m_camera_path_shader_module = 0;
+    }
+    if (m_camera_legacy_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_legacy_shader_module));
+        m_camera_legacy_shader_module = 0;
+    }
+    if (m_camera_volumetric_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_volumetric_shader_module));
+        m_camera_volumetric_shader_module = 0;
+    }
+    if (m_camera_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_shader_module));
+        m_camera_shader_module = 0;
+    }
+    // LiDAR
+    if (m_lidar_raygen_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_lidar_raygen_module));
+        m_lidar_raygen_module = 0;
+    }
+    if (m_lidar_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_lidar_shader_module));
+        m_lidar_shader_module = 0;
+    }
+    // RADAR
+    if (m_radar_raygen_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_radar_raygen_module));
+        m_radar_raygen_module = 0;
+    }
+    if (m_radar_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_radar_shader_module));
+        m_radar_shader_module = 0;
+    }
+    // Depth camera
+    if (m_depth_cam_raygen_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_depth_cam_raygen_module));
+        m_depth_cam_raygen_module = 0;
+    }
+    if (m_depth_cam_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_depth_cam_shader_module));
+        m_depth_cam_shader_module = 0;
+    }
+    // Normal camera
+    if (m_normal_cam_raygen_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_normal_cam_raygen_module));
+        m_normal_cam_raygen_module = 0;
+    }
+    if (m_normal_cam_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_normal_cam_shader_module));
+        m_normal_cam_shader_module = 0;
+    }
+    // Segmentation camera
+    if (m_segment_cam_raygen_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_segment_cam_raygen_module));
+        m_segment_cam_raygen_module = 0;
+    }
+    if (m_segment_cam_shader_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_segment_cam_shader_module));
+        m_segment_cam_shader_module = 0;
+    }
+    if (m_phys_cam_raygen_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_phys_cam_raygen_module));
+        m_phys_cam_raygen_module = 0;
+    }
+    //// ---- Register Your Customized Sensor Here (raygen module destruction) ---- ////
+    //// ---- Register Your Customized Sensor Here (shader module destruction) ---- ////
 
     #ifdef USE_SENSOR_NVDB
     if (m_nvdb_vol_intersection_module) {
@@ -105,23 +173,36 @@ void ChOptixPipeline::Cleanup() {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_camera_raygen_group));
         m_camera_raygen_group = 0;
     }
+
+    if (m_phys_camera_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_phys_camera_raygen_group));
+        m_phys_camera_raygen_group = 0;
+    }
+
     // if (m_camera_fov_lens_raygen_group) {
     //     OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_camera_fov_lens_raygen_group));
     //     m_camera_fov_lens_raygen_group = 0;
     // }
-    if (m_segmentation_raygen_group) {
-        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_raygen_group));
-        m_segmentation_raygen_group = 0;
+    if (m_segment_cam_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segment_cam_raygen_group));
+        m_segment_cam_raygen_group = 0;
     }
 
     if (m_depthCamera_raygen_group) {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_depthCamera_raygen_group));
         m_depthCamera_raygen_group = 0;
     }
+
+    if (m_normalCamera_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_normalCamera_raygen_group));
+        m_normalCamera_raygen_group = 0;
+    }
+
     // if (m_segmentation_fov_lens_raygen_group) {
     //     OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_fov_lens_raygen_group));
     //     m_segmentation_fov_lens_raygen_group = 0;
     // }
+
     if (m_lidar_single_raygen_group) {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_lidar_single_raygen_group));
         m_lidar_single_raygen_group = 0;
@@ -134,6 +215,8 @@ void ChOptixPipeline::Cleanup() {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_radar_raygen_group));
         m_radar_raygen_group = 0;
     }
+
+    //// ---- Register Your Customized Sensor Here (raygen group destruction) ---- ////
 
     // miss groups
     if (m_miss_group) {
@@ -282,13 +365,32 @@ void ChOptixPipeline::CompileBaseShaders() {
     #endif
 
     // material shaders
-    GetShaderFromFile(m_context, m_material_shading_module, "material_shaders", module_compile_options,
-                      m_pipeline_compile_options);
-    // ray gen shaders
-    GetShaderFromFile(m_context, m_camera_raygen_module, "camera", module_compile_options, m_pipeline_compile_options);
-    GetShaderFromFile(m_context, m_lidar_raygen_module, "lidar", module_compile_options, m_pipeline_compile_options);
-    GetShaderFromFile(m_context, m_radar_raygen_module, "radar", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_material_shaders_module, "material_shaders", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_shader_utils_module, "shader_utils", module_compile_options, m_pipeline_compile_options);
+
+    // Ray-gen shaders
     GetShaderFromFile(m_context, m_miss_module, "miss", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_camera_raygen_module, "camera_raygen", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_lidar_raygen_module, "lidar_raygen", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_radar_raygen_module, "radar_raygen", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_depth_cam_raygen_module, "depth_cam_raygen", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_normal_cam_raygen_module, "normal_cam_raygen", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_segment_cam_raygen_module, "segment_cam_raygen", module_compile_options, m_pipeline_compile_options);
+    GetShaderFromFile(m_context, m_phys_cam_raygen_module, "phys_cam_raygen", module_compile_options, m_pipeline_compile_options);
+    //// ---- Register Your Customized Sensor Here (raygen shader) ---- ////
+    
+    // Sensor shaders
+    // GetShaderFromFile(m_context, m_camera_hapke_shader_module, "camera_hapke_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_camera_volumetric_shader_module, "camera_volumetric_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_camera_legacy_shader_module, "camera_legacy_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_camera_path_shader_module, "camera_path_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_camera_shader_module, "camera_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_lidar_shader_module, "lidar_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_radar_shader_module, "radar_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_depth_cam_shader_module, "depth_cam_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_normal_cam_shader_module, "normal_cam_shader", module_compile_options, m_pipeline_compile_options);
+    // GetShaderFromFile(m_context, m_segment_cam_shader_module, "segment_cam_shader", module_compile_options, m_pipeline_compile_options);
+    //// ---- Register Your Customized Sensor Here (sensor shader) ---- ////
 
     auto end_compile = std::chrono::high_resolution_clock::now();
 
@@ -337,25 +439,25 @@ void ChOptixPipeline::CreateOptixProgramGroup(OptixProgramGroup& group,
 void ChOptixPipeline::AssembleBaseProgramGroups() {
     // box intersection and shading
     CreateOptixProgramGroup(m_hit_box_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_box_intersection_module,
-                            "__intersection__box_intersect", m_material_shading_module,
+                            "__intersection__box_intersect", m_material_shaders_module,
                             "__closesthit__material_shader");
     // sphere intersection and shading
     CreateOptixProgramGroup(m_hit_sphere_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_sphere_intersection_module,
-                            "__intersection__sphere_intersect", m_material_shading_module,
+                            "__intersection__sphere_intersect", m_material_shaders_module,
                             "__closesthit__material_shader");
     // cylinder intersection and shading
     CreateOptixProgramGroup(m_hit_cyl_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_cyl_intersection_module,
-                            "__intersection__cylinder_intersect", m_material_shading_module,
+                            "__intersection__cylinder_intersect", m_material_shaders_module,
                             "__closesthit__material_shader");
     // mesh shading
     CreateOptixProgramGroup(m_hit_mesh_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, nullptr, nullptr,
-                            m_material_shading_module, "__closesthit__material_shader");
+                            m_material_shaders_module, "__closesthit__material_shader");
 
     #ifdef USE_SENSOR_NVDB
-    // NanoVDB Voulume intersection and shading
-    CreateOptixProgramGroup(m_nvdb_vol_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_nvdb_vol_intersection_module,
-                            "__intersection__nvdb_vol_intersect", m_material_shading_module,
-                            "__closesthit__material_shader");
+        // NanoVDB Voulume intersection and shading
+        CreateOptixProgramGroup(m_nvdb_vol_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_nvdb_vol_intersection_module,
+                                "__intersection__nvdb_vol_intersect", m_material_shaders_module,
+                                "__closesthit__material_shader");
     #endif
 
     // miss shading
@@ -366,31 +468,42 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
     CreateOptixProgramGroup(m_radar_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_radar_raygen_module, "__raygen__radar");
                             
-    // camera pinhole raygen
+    // Pinhole camera raygen
     CreateOptixProgramGroup(m_camera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_camera_raygen_module, "__raygen__camera");
+    
     // camera fov lens raygen
     // CreateOptixProgramGroup(m_camera_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
     //                         m_camera_raygen_module, "__raygen__camera_fov_lens");
     
-
+    // Depth camera raygen
     CreateOptixProgramGroup(m_depthCamera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
-                            m_camera_raygen_module, "__raygen__depthcamera");
+                            m_depth_cam_raygen_module, "__raygen__depth_camera");
 
-    // segmentation pinhole raygen
-    CreateOptixProgramGroup(m_segmentation_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
-                            m_camera_raygen_module, "__raygen__segmentation");
+    // Normal camera raygen
+    CreateOptixProgramGroup(m_normalCamera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_normal_cam_raygen_module, "__raygen__normal_camera");
+
+    // Segmentation camera raygen
+    CreateOptixProgramGroup(m_segment_cam_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_segment_cam_raygen_module, "__raygen__segment_camera");
     
     // segmentation fov lens raygen
     // CreateOptixProgramGroup(m_segmentation_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
     //                         m_camera_raygen_module, "__raygen__segmentation_fov_lens");
+    
     // lidar single raygen
     CreateOptixProgramGroup(m_lidar_single_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_lidar_raygen_module, "__raygen__lidar_single");
     // lidar multi raygen
     CreateOptixProgramGroup(m_lidar_multi_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_lidar_raygen_module, "__raygen__lidar_multi");
-    
+
+    // Physics-based camera raygen
+    CreateOptixProgramGroup(m_phys_camera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_phys_cam_raygen_module, "__raygen__phys_camera"); // __raygen__phys_camera in phys_cam_raygen.cu
+
+    //// ---- Register Your Customized Sensor Here (program group assembly) ---- ////
 }
 
 void ChOptixPipeline::CreateBaseSBT() {
@@ -470,23 +583,52 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.camera.gamma = 2.2f;          // default value
             raygen_record->data.specific.camera.lens_model = PINHOLE;  // default value
             raygen_record->data.specific.camera.lens_parameters = {};
+            raygen_record->data.specific.camera.integrator = Integrator::LEGACY;
             break;
         }
 
-            // case PipelineType::CAMERA_FOV_LENS: {
-            //     program_groups.push_back(m_camera_fov_lens_raygen_group);
-            //     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_fov_lens_raygen_group, raygen_record.get()));
-            //     raygen_record->data.specific.camera.hFOV = 3.14f / 4;   // default value
-            //     raygen_record->data.specific.camera.frame_buffer = {};  // default value
-            //     raygen_record->data.specific.camera.use_gi = false;     // default value
-            //     raygen_record->data.specific.camera.use_fog = true;     // default value
-            //     raygen_record->data.specific.camera.gamma = 2.2f;        // default value
-            //     break;
-            // }
+        case PipelineType::PHYS_CAMERA: {
+            program_groups.push_back(m_phys_camera_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_phys_camera_raygen_group, raygen_record.get()));
+            
+            // Set default values
+            raygen_record->data.specific.phys_camera.aperture_num = 1.6f;
+            raygen_record->data.specific.phys_camera.expsr_time = 0.512f;
+            raygen_record->data.specific.phys_camera.ISO = 100.0f;
+            raygen_record->data.specific.phys_camera.focal_length = 0.012f;
+            raygen_record->data.specific.phys_camera.focus_dist = 3.0f;
+            raygen_record->data.specific.phys_camera.max_scene_light_amount = 1000.f;
+            raygen_record->data.specific.phys_camera.sensor_width = 0.013035f;
+            raygen_record->data.specific.phys_camera.pixel_size = 5.86e-6;
+            raygen_record->data.specific.phys_camera.gain_params = {};
+            raygen_record->data.specific.phys_camera.noise_params = {};
+            raygen_record->data.specific.phys_camera.hFOV = 2.f * atanf(0.5f * 0.013035f / 0.012f);
+            raygen_record->data.specific.phys_camera.rgbd_buffer = {};
+            raygen_record->data.specific.phys_camera.use_gi = false;
+            raygen_record->data.specific.phys_camera.use_fog = true;
+            raygen_record->data.specific.phys_camera.gamma = 1.0f;
+            raygen_record->data.specific.phys_camera.lens_model = PINHOLE;
+            raygen_record->data.specific.phys_camera.lens_parameters = {};
+            raygen_record->data.specific.phys_camera.integrator = Integrator::LEGACY;
+            raygen_record->data.specific.phys_camera.super_sample_factor = 1;
+            break;
+        }
+
+
+        // case PipelineType::CAMERA_FOV_LENS: {
+        //     program_groups.push_back(m_camera_fov_lens_raygen_group);
+        //     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_fov_lens_raygen_group, raygen_record.get()));
+        //     raygen_record->data.specific.camera.hFOV = 3.14f / 4;   // default value
+        //     raygen_record->data.specific.camera.frame_buffer = {};  // default value
+        //     raygen_record->data.specific.camera.use_gi = false;     // default value
+        //     raygen_record->data.specific.camera.use_fog = true;     // default value
+        //     raygen_record->data.specific.camera.gamma = 2.2f;        // default value
+        //     break;
+        // }
 
         case PipelineType::SEGMENTATION: {
-            program_groups.push_back(m_segmentation_raygen_group);
-            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_raygen_group, raygen_record.get()));
+            program_groups.push_back(m_segment_cam_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segment_cam_raygen_group, raygen_record.get()));
             raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;      // default value
             raygen_record->data.specific.segmentation.frame_buffer = {};     // default value
             raygen_record->data.specific.segmentation.lens_model = PINHOLE;  // default value
@@ -505,13 +647,25 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             break;
         }
 
-            // case PipelineType::SEGMENTATION_FOV_LENS: {
-            //     program_groups.push_back(m_segmentation_fov_lens_raygen_group);
-            //     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_fov_lens_raygen_group,
-            //     raygen_record.get())); raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
-            //     raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
-            //     break;
-            // }
+        case PipelineType::NORMAL_CAMERA: {
+            program_groups.push_back(m_normalCamera_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_normalCamera_raygen_group, raygen_record.get()));
+            
+            // Set default values
+            raygen_record->data.specific.normalCamera.hFOV = 3.14f / 4; // [rad]
+            raygen_record->data.specific.normalCamera.frame_buffer = {};
+            raygen_record->data.specific.normalCamera.lens_model = PINHOLE;
+            raygen_record->data.specific.normalCamera.lens_parameters = {};
+            break;
+        }
+
+        // case PipelineType::SEGMENTATION_FOV_LENS: {
+        //     program_groups.push_back(m_segmentation_fov_lens_raygen_group);
+        //     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_fov_lens_raygen_group,
+        //     raygen_record.get())); raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
+        //     raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
+        //     break;
+        // }
 
         case PipelineType::LIDAR_SINGLE: {
             program_groups.push_back(m_lidar_single_raygen_group);
@@ -719,7 +873,6 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.class_id = mat->GetClassID();
         material.instance_id = mat->GetInstanceID();
 
-        material.use_hapke = mat->GetUseHapke();
         material.w = mat->GetHapkeW();
         material.b = mat->GetHapkeB();
         material.c = mat->GetHapkeC();
@@ -730,8 +883,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
 
         material.tex_scale = {mat->GetTextureScale().x(), mat->GetTextureScale().y()};
         material.emissive_power = mat->GetEmissivePower();
-
-      
+        material.bsdf_type = mat->GetBSDF();
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
@@ -796,7 +948,6 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.opacity_tex = 0;
             material.weight_tex = 0;
             material.use_specular_workflow = 0;
-            material.use_hapke = 0;
             material.w = 0.0f;
             material.b = 0.0f;
             material.c = 0.0f;
@@ -808,13 +959,11 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.tex_scale = {1.f, 1.f};
             material.emissive_power = 0.f;
             material.pad = {0.f, 0.f, 0.f};
+            material.bsdf_type = BSDFType::PRINCIPLED;
 
             m_material_pool.push_back(material);
             m_default_material_id = static_cast<unsigned int>(m_material_pool.size() - 1);
             m_default_material_inst = true;
-            
-           
-
         }
 
         return m_default_material_id;
@@ -937,6 +1086,7 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
                                                 (unsigned int)mesh->GetIndicesVertexes()[i].y(),  //
                                                 (unsigned int)mesh->GetIndicesVertexes()[i].z(), 0);
         }
+
         uint4* d_vertex_index_buffer = {};
         CUDA_ERROR_CHECK(
             cudaMalloc(reinterpret_cast<void**>(&d_vertex_index_buffer), sizeof(uint4) * vertex_index_buffer.size()));
@@ -1213,6 +1363,7 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
         img_data = std::vector<unsigned char>(img.h * img.w * 4);
         for (int i = 0; i < img.h; i++) {
             for (int j = 0; j < img.w; j++) {
+                // Flip the image to match typical texturing UV coordinates and add an alpha channel of 255
                 img_data[i * img.w * 4 + j * 4 + 0] = img.data[(img.h - i - 1) * img.w * 3 + j * 3 + 0];
                 img_data[i * img.w * 4 + j * 4 + 1] = img.data[(img.h - i - 1) * img.w * 3 + j * 3 + 1];
                 img_data[i * img.w * 4 + j * 4 + 2] = img.data[(img.h - i - 1) * img.w * 3 + j * 3 + 2];
@@ -1262,7 +1413,7 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
     texture_description.filterMode = cudaFilterModeLinear;
     // texture_description.filterMode = cudaFilterModePoint;
     texture_description.readMode = cudaReadModeNormalizedFloat;
-    texture_description.normalizedCoords = 1;
+    texture_description.normalizedCoords = 1; // texture coordinates are mapped to a floating-point range of [0.0, 1.0) rather than the absolute pixel/texel dimensions [0, N-1]
     texture_description.maxAnisotropy = 1;
     texture_description.maxMipmapLevelClamp = 99;
     texture_description.minMipmapLevelClamp = 0;

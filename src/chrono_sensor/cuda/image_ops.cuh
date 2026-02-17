@@ -48,6 +48,16 @@ void cuda_image_alias_float(void* bufIn,
                             int pix_size,
                             CUstream& stream);
 
+/// An anti-aliasing helper function that reduces RGBA16 image quality by performing mean reduction of image
+/// @param bufIn  A device pointer to the image image.
+/// @param bufOut A device pointer to the ouput image.
+/// @param w_out The output image width.
+/// @param h_out The output image height.
+/// @param factor The reduction factor per dimension.
+/// @param channel_num number of channels.
+/// @param stream cuda stream for computation
+void cuda_image_alias_rgba16(void* bufIn, void* bufOut, int w_out, int h_out, int factor, int channel_num, CUstream& stream);
+
 /// An image blurring function that reduces performs Gaussian blur.
 /// @param buf
 /// @param w
@@ -65,6 +75,30 @@ void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor, CUst
 /// @param stream cuda stream for computation
 void cuda_image_half4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream);
 
+/// Conversion from float4 to uchar4
+/// @param bufIn  A device pointer to the image image.
+/// @param bufOut A device pointer to the ouput image.
+/// @param w The output image width.
+/// @param h The output image height.
+/// @param stream cuda stream for computation
+void cuda_image_float4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream);
+
+/// Conversion from half4 to uint16_t4
+/// @param bufIn  A device pointer to the input image.
+/// @param bufOut A device pointer to the ouput image.
+/// @param w The output image width.
+/// @param h The output image height.
+/// @param stream cuda stream for computation
+void cuda_image_half4_to_uint16_t4(void* bufIn, void* bufOut, int w, int h, CUstream& stream);
+
+/// Conversion from RGBD half4 to RGBA half4
+/// @param bufIn  A device pointer to the input RGBD image.
+/// @param bufOut A device pointer to the ouput RGBA image.
+/// @param w The output image width.
+/// @param h The output image height.
+/// @param stream cuda stream for computation
+void cuda_image_RGBDhalf4_to_Half4(void* bufIn, void* bufOut, int w, int h, CUstream& stream);
+
 /// Conversion from float depth value to uchar4
 /// @param bufIn  A device pointer to the image image.
 /// @param bufOut A device pointer to the ouput image.
@@ -73,6 +107,21 @@ void cuda_image_half4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstrea
 /// @param stream cuda stream for computation
 void cuda_depth_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream);
 
+/// Conversion from RGBD half4 to D-channel uchar
+/// @param bufIn  A device pointer to the input RGBD image.
+/// @param bufOut A device pointer to the ouput R8 image.
+/// @param w The output image width.
+/// @param h The output image height.
+/// @param stream cuda stream for computation
+void cuda_RGBDhalf4_to_uchar(void* bufIn, void* bufOut, int w, int h, CUstream& stream);
+
+/// Conversion from normal map to RGBA uchar4
+/// @param bufIn  A device pointer to the normal map.
+/// @param bufOut A device pointer to the ouput image.
+/// @param width The output image width [pixel].
+/// @param height The output image height [pixel].
+/// @param stream cuda stream for computation
+void cuda_normal_to_uchar4(void* bufIn, void* bufOut, int width, int height, CUstream& stream);
 
 /// Host function for applying exposure correction to an image.
 /// @param bufPtr A uchar (values 0-255) pointer to device memory where the image is stored. Memory assumed to be row

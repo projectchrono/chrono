@@ -50,6 +50,15 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
             cudaMemcpyAsync(m_hostRGBA8->Buffer.get(), m_bufferRGBA8->Buffer.get(),
                             m_hostRGBA8->Width * m_hostRGBA8->Height * sizeof(PixelRGBA8), cudaMemcpyDeviceToHost,
                             m_cuda_stream);
+        } else if (m_bufferRGBA16) {
+            cudaMemcpyAsync(m_hostRGBA16->Buffer.get(), m_bufferRGBA16->Buffer.get(),
+                            m_hostRGBA16->Width * m_hostRGBA16->Height * sizeof(PixelRGBA16), cudaMemcpyDeviceToHost,
+                            m_cuda_stream);
+        } else if (m_bufferRGBDHalf4) {
+            cudaMemcpyAsync(m_hostRGBDHalf4->Buffer.get(), m_bufferRGBDHalf4->Buffer.get(),
+                            m_hostRGBDHalf4->Width * m_hostRGBDHalf4->Height * sizeof(PixelRGBDHalf4), cudaMemcpyDeviceToHost,
+                            m_cuda_stream);
+            // throw std::runtime_error("RGBD cannot be directly visualized");
         } else if (m_bufferSemantic) {
             cudaMemcpyAsync(m_hostSemantic->Buffer.get(), m_bufferSemantic->Buffer.get(),
                             m_hostSemantic->Width * m_hostSemantic->Height * sizeof(PixelSemantic),
@@ -57,6 +66,10 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         } else if(m_bufferDepth) {
              cudaMemcpyAsync(m_hostDepth->Buffer.get(), m_bufferDepth->Buffer.get(),
                             m_hostDepth->Width * m_hostDepth->Height * sizeof(PixelDepth),
+                            cudaMemcpyDeviceToHost, m_cuda_stream);
+        } else if (m_bufferNormal) {
+             cudaMemcpyAsync(m_hostNormal->Buffer.get(), m_bufferNormal->Buffer.get(),
+                            m_hostNormal->Width * m_hostNormal->Height * sizeof(PixelNormal),
                             cudaMemcpyDeviceToHost, m_cuda_stream);
         } else if (m_bufferDI) {
             cudaMemcpyAsync(m_hostDI->Buffer.get(), m_bufferDI->Buffer.get(),
@@ -101,12 +114,20 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         } else if (m_bufferRGBA8) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_hostRGBA8->Width, m_hostRGBA8->Height, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, m_hostRGBA8->Buffer.get());
+        } else if (m_bufferRGBA16) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_hostRGBA16->Width, m_hostRGBA16->Height, 0, GL_RGBA,
+                         GL_UNSIGNED_SHORT, m_hostRGBA16->Buffer.get()); // ???
+        } else if (m_bufferRGBDHalf4) {
+            throw std::runtime_error("RGBD cannot be directly visualized");
         } else if (m_bufferSemantic) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, m_hostSemantic->Width, m_hostSemantic->Height, 0, GL_RG,
                          GL_UNSIGNED_SHORT, m_hostSemantic->Buffer.get());
         } else if(m_bufferDepth) {
              glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, m_hostDepth->Width, m_hostDepth->Height, 0, GL_RED, GL_FLOAT,
                          m_hostDepth->Buffer.get());
+        } else if (m_bufferNormal) {
+             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, m_hostNormal->Width, m_hostNormal->Height, 0, GL_RGBA, GL_FLOAT,
+                          m_hostNormal->Buffer.get());
         } else if (m_bufferDI) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostDI->Width, m_hostDI->Height, 0, GL_RG, GL_FLOAT,
                          m_hostDI->Buffer.get());
@@ -158,10 +179,13 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
     m_cuda_stream = pOptixSen->GetCudaStream();
     m_bufferR8 = std::dynamic_pointer_cast<SensorDeviceR8Buffer>(bufferInOut);
     m_bufferRGBA8 = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
+    m_bufferRGBA16 = std::dynamic_pointer_cast<SensorDeviceRGBA16Buffer>(bufferInOut);
+    m_bufferRGBDHalf4 = std::dynamic_pointer_cast<SensorDeviceRGBDHalf4Buffer>(bufferInOut);
     m_bufferSemantic = std::dynamic_pointer_cast<SensorDeviceSemanticBuffer>(bufferInOut);
     m_bufferDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut);
     m_bufferRadar = std::dynamic_pointer_cast<SensorDeviceRadarBuffer>(bufferInOut);
     m_bufferDepth = std::dynamic_pointer_cast<SensorDeviceDepthBuffer>(bufferInOut);
+    m_bufferNormal = std::dynamic_pointer_cast<SensorDeviceNormalBuffer>(bufferInOut);
 
     if (m_bufferR8) {
         m_hostR8 = chrono_types::make_shared<SensorHostR8Buffer>();
@@ -178,6 +202,26 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
         m_hostRGBA8->Buffer = std::move(b);
         m_hostRGBA8->Width = m_bufferRGBA8->Width;
         m_hostRGBA8->Height = m_bufferRGBA8->Height;
+    } else if (m_bufferRGBA16) {
+        m_hostRGBA16 = chrono_types::make_shared<SensorHostRGBA16Buffer>();
+        std::shared_ptr<PixelRGBA16[]> b(
+            cudaHostMallocHelper<PixelRGBA16>(m_bufferRGBA16->Width * m_bufferRGBA16->Height),
+            cudaHostFreeHelper<PixelRGBA16>
+        );
+        m_hostRGBA16->Buffer = std::move(b);
+        m_hostRGBA16->Width = m_bufferRGBA16->Width;
+        m_hostRGBA16->Height = m_bufferRGBA16->Height;
+
+    } else if (m_bufferRGBDHalf4) {
+        m_hostRGBDHalf4 = chrono_types::make_shared<SensorHostRGBDHalf4Buffer>();
+        std::shared_ptr<PixelRGBDHalf4[]> b(
+            cudaHostMallocHelper<PixelRGBDHalf4>(m_bufferRGBDHalf4->Width * m_bufferRGBDHalf4->Height),
+            cudaHostFreeHelper<PixelRGBDHalf4>
+        );
+        m_hostRGBDHalf4->Buffer = std::move(b);
+        m_hostRGBDHalf4->Width = m_bufferRGBDHalf4->Width;
+        m_hostRGBDHalf4->Height = m_bufferRGBDHalf4->Height;
+        
     } else if (m_bufferSemantic) {
         m_hostSemantic = chrono_types::make_shared<SensorHostSemanticBuffer>();
         std::shared_ptr<PixelSemantic[]> b(
@@ -195,6 +239,15 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
         m_hostDepth->Buffer = std::move(b);
         m_hostDepth->Width = m_bufferDepth->Width;
         m_hostDepth->Height = m_bufferDepth->Height;
+
+    } else if (m_bufferNormal) {
+        m_hostNormal = chrono_types::make_shared<SensorHostNormalBuffer>();
+         std::shared_ptr<PixelNormal[]> b(
+            cudaHostMallocHelper<PixelNormal>(m_bufferNormal->Width * m_bufferNormal->Height),
+            cudaHostFreeHelper<PixelNormal>);
+        m_hostNormal->Buffer = std::move(b);
+        m_hostNormal->Width = m_bufferNormal->Width;
+        m_hostNormal->Height = m_bufferNormal->Height;
 
     } else if (m_bufferDI) {
         m_hostDI = chrono_types::make_shared<SensorHostDIBuffer>();

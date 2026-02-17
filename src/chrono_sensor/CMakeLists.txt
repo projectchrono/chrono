@@ -95,11 +95,37 @@ if(CH_USE_SENSOR_OPTIX)
       optix/shaders/box.cu
       optix/shaders/sphere.cu
       optix/shaders/cylinder.cu
-      optix/shaders/camera.cu
-      optix/shaders/lidar.cu
       optix/shaders/miss.cu
       optix/shaders/material_shaders.cu
-      optix/shaders/radar.cu
+      optix/shaders/shader_utils.cu
+      optix/shaders/camera_raygen.cu
+      optix/shaders/depth_cam_raygen.cu
+      optix/shaders/lidar_raygen.cu
+      optix/shaders/normal_cam_raygen.cu
+      optix/shaders/phys_cam_raygen.cu
+      optix/shaders/radar_raygen.cu
+      optix/shaders/segment_cam_raygen.cu
+      # ---- Register Your Customized Sensor Raygen Here (Cmake compiling) ---- #
+      optix/shaders/camera_hapke_shader.cu
+      optix/shaders/camera_volumetric_shader.cu
+      optix/shaders/camera_legacy_shader.cu
+      optix/shaders/camera_path_shader.cu
+      optix/shaders/camera_shader.cu
+      optix/shaders/depth_cam_shader.cu
+      optix/shaders/lidar_shader.cu
+      optix/shaders/normal_cam_shader.cu
+      optix/shaders/radar_shader.cu
+      optix/shaders/segment_cam_shader.cu
+      optix/shaders/shadow_shader.cu
+      # ---- Register Your Customized Sensor Shader Here (Cmake compiling) ---- #
+      optix/shaders/ChOptixLightHubs.cu
+      optix/shaders/ChOptixPointLight.cu
+      optix/shaders/ChOptixSpotLight.cu
+      optix/shaders/ChOptixDirectionalLight.cu
+      optix/shaders/ChOptixRectangleLight.cu
+      optix/shaders/ChOptixDiskLight.cu
+      optix/shaders/ChOptixEnvironmentLight.cu
+      # ---- Register Your Customized Light Type Here (Cmake compiling) ---- #
   )
 
   if(CH_USE_SENSOR_NVDB)
@@ -110,6 +136,7 @@ if(CH_USE_SENSOR_OPTIX)
 
   set(Chrono_sensor_RT_HEADERS
       optix/shaders/device_utils.h
+      optix/shaders/ChOptixLightStructs.h
   )
 
   source_group("RT Programs" FILES ${Chrono_sensor_RT_SOURCES} ${Chrono_sensor_RT_HEADERS})
@@ -127,33 +154,35 @@ endif()
 
 if(CH_USE_SENSOR_OPTIX)
 
-  set(Chrono_sensor_CUDA_SOURCES
-      cuda/grayscale.cu
-      cuda/pointcloud.cu
-      cuda/lidar_reduce.cu
-      cuda/camera_noise.cu
-      cuda/lidar_noise.cu
-      cuda/curand_utils.cu
-      cuda/image_ops.cu
-      cuda/nn_prep.cu
-      cuda/lidar_clip.cu
-      cuda/radarprocess.cu
-      cuda/cuda_utils.cu
-  )
+set(Chrono_sensor_CUDA_SOURCES
+	  cuda/grayscale.cu
+    cuda/pointcloud.cu
+    cuda/lidar_reduce.cu
+    cuda/camera_noise.cu
+    cuda/lidar_noise.cu
+    cuda/curand_utils.cu
+    cuda/image_ops.cu
+    cuda/nn_prep.cu
+    cuda/lidar_clip.cu
+    cuda/radarprocess.cu
+    cuda/cuda_utils.cu
+    cuda/phys_cam_ops.cu
+)
 
-  set(Chrono_sensor_CUDA_HEADERS
-      cuda/grayscale.cuh
-      cuda/grayscale.cuh
-      cuda/lidar_reduce.cuh
-      cuda/camera_noise.cuh
-      cuda/lidar_noise.cuh
-      cuda/curand_utils.cuh
-      cuda/image_ops.cuh
-      cuda/nn_prep.cuh
-      cuda/lidar_clip.cuh
-      cuda/radarprocess.cuh
-      cuda/cuda_utils.cuh
-  )
+set(Chrono_sensor_CUDA_HEADERS
+	  cuda/grayscale.cuh
+    cuda/grayscale.cuh
+    cuda/lidar_reduce.cuh
+    cuda/camera_noise.cuh
+    cuda/lidar_noise.cuh
+    cuda/curand_utils.cuh
+    cuda/image_ops.cuh
+    cuda/nn_prep.cuh
+    cuda/lidar_clip.cuh
+    cuda/radarprocess.cuh
+    cuda/cuda_utils.cuh
+    cuda/phys_cam_ops.cuh
+)
 
   source_group("cuda" FILES ${Chrono_sensor_CUDA_SOURCES} ${Chrono_sensor_CUDA_HEADERS})
 
@@ -204,16 +233,20 @@ if(CH_USE_SENSOR_OPTIX)
   set(Chrono_sensor_SENSORS_SOURCES ${Chrono_sensor_SENSORS_SOURCES}
       sensors/ChOptixSensor.cpp
       sensors/ChCameraSensor.cpp
+      sensors/ChPhysCameraSensor.cpp
       sensors/ChSegmentationCamera.cpp
       sensors/ChDepthCamera.cpp
+      sensors/ChNormalCamera.cpp
       sensors/ChLidarSensor.cpp
       sensors/ChRadarSensor.cpp
   )
   set(Chrono_sensor_SENSORS_HEADERS ${Chrono_sensor_SENSORS_HEADERS}
       sensors/ChOptixSensor.h
       sensors/ChCameraSensor.h
+      sensors/ChPhysCameraSensor.h
       sensors/ChSegmentationCamera.h
       sensors/ChDepthCamera.h
+      sensors/ChNormalCamera.h
       sensors/ChLidarSensor.h
       sensors/ChRadarSensor.h
  )
@@ -288,6 +321,12 @@ set(Chrono_sensor_FILTERS_SOURCES
     filters/ChFilterIMUUpdate.cpp
     filters/ChFilterGPSUpdate.cpp
     filters/ChFilterTachometerUpdate.cpp
+    filters/ChFilterCameraExposure.cpp
+    filters/ChFilterPhysCameraDefocusBlur.cpp
+    filters/ChFilterPhysCameraVignetting.cpp
+    filters/ChFilterPhysCameraAggregator.cpp
+    filters/ChFilterPhysCameraNoise.cpp
+    filters/ChFilterPhysCameraExpsrToDV.cpp
 )
 
 set(Chrono_sensor_FILTERS_HEADERS
@@ -336,6 +375,11 @@ if(CH_USE_SENSOR_OPTIX)
       filters/ChFilterSave.h
       filters/ChFilterSavePtCloud.h
       filters/ChFilterVisualizePointCloud.h
+      filters/ChFilterPhysCameraDefocusBlur.h
+      filters/ChFilterPhysCameraVignetting.h
+      filters/ChFilterPhysCameraAggregator.h
+      filters/ChFilterPhysCameraNoise.h
+      filters/ChFilterPhysCameraExpsrToDV.h  
   )
 endif()
 

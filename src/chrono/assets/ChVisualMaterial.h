@@ -26,7 +26,7 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColor.h"
-
+#include "chrono/assets/ChVisualBSDFType.h"
 namespace chrono {
 
 /// @addtogroup chrono_assets
@@ -70,8 +70,10 @@ class ChApi ChVisualMaterial {
     void SetMetallic(float m);
     void SetAnisotropy(float a);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
-    /// @brief Enable or disable the use of the Hapke material model. We implement the modern hapke model descried in  https://doi.org/10.1002/2013JE004580
-    void SetUseHapke(bool h) {use_hapke = h;}
+
+    /// @brief  Set the type of the material to be used for rendering.
+    /// @param s The BSDF type of the material. See ChVisualBSDFType.h for details.
+    void SetBSDF(BSDFType s) {bsdf_type = s;}
 
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
@@ -126,6 +128,10 @@ class ChApi ChVisualMaterial {
     float GetHapkePhi() const {return hapke_phi;}
     float GetHapkeRoughness() const {return hapke_theta_p;}
 
+    /// @brief Get the BSDF type of the material.
+    /// @return The BSDF type of the material. See ChVisualBSDFType.h for details.
+    BSDFType GetBSDF() const {return bsdf_type;}
+
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
 
@@ -160,6 +166,7 @@ class ChApi ChVisualMaterial {
 
     bool use_specular_workflow;
     bool use_hapke;
+    BSDFType bsdf_type;
 
     ChTexture kd_texture;         ///< diffuse texture map
     ChTexture ks_texture;         ///< specular texture map

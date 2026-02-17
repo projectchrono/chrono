@@ -33,6 +33,7 @@ namespace sensor {
 
 CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
     : m_verbose(false), m_debug(false), m_optix_reflections(9) {
+    // Assign the Chrono system handle
     m_system = chrono_system;
     m_device_list = {0};
 #ifdef CHRONO_HAS_OPTIX
@@ -133,6 +134,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                     // limits to 2 gpus, TODO: check if device supports CUDA
                     if (m_verbose)
                         cout << "Create new OptiX engine\n";
+                    
                     auto engine = chrono_types::make_shared<ChOptixEngine>(
                         m_system, m_device_list[(int)m_engines.size()], m_optix_reflections, m_verbose, m_debug);
 
