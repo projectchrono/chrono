@@ -11,6 +11,9 @@ where the given location is assumed to be expressed in the current world frame.
 
 See the definition of the base class [ChTerrain](@ref chrono::vehicle::ChTerrain).
 
+For a quick user-facing comparison between SPH-based CRM terrain and SCM terrain (with API-focused usage guidance),
+see [CRM Deformable Terrain (SPH) for Vehicle Users](@ref vehicle_terrain_crm).
+
 
 Note however that these quantities are relevant only for the interaction with the so-called [semi-empirical tire models](@ref vehicle_tire_empirical).  As such, they are not used for the case of deformable terrain (SCM, granular, or FEA-based) which can only work in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles (as they rely on the underlying Chrono collision and contact system).
 

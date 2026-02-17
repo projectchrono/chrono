@@ -27,6 +27,7 @@ Chrono::Vehicle Reference Manual {#manual_vehicle}
 * @subpage vehicle_powertrain
 
 * @subpage vehicle_terrain
+    * @subpage vehicle_terrain_crm
 
 * @subpage vehicle_driver
 
