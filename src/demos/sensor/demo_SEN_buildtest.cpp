@@ -294,11 +294,11 @@ int main(int argc, char* argv[]) {
     manager->SetVerbose(false);
 
     // make some changes/additions to the scene
-    PointLight p0 = {{10, 10, 10}, {1, 1, 1}, 1000};
-    PointLight p1 = {{10, 10, 10}, {0, 0, 1}, 1000};
-    manager->scene->AddPointLight(p0);
-    manager->scene->AddPointLight(p1);
-    manager->scene->AddPointLight({0, 0, 100}, {1, 1, 1}, 1000);
+    unsigned int p0_idx = manager->scene->AddPointLight({10, 10, 10}, {1, 1, 1}, 1000);
+    ChOptixLight p0 = manager->scene->GetLights()[p0_idx];
+    unsigned int p1_idx = manager->scene->AddPointLight({10, 10, 10}, {0, 0, 1}, 1000);
+    ChOptixLight p1 = manager->scene->GetLights()[p1_idx];
+    unsigned int p2_idx = manager->scene->AddPointLight({ 0, 0, 100}, {1, 1, 1}, 1000);
 
     // set the background
     Background b;
@@ -519,18 +519,18 @@ int main(int argc, char* argv[]) {
         scalebox->SetRot(QuatFromAngleY(ch_time * .3));
 
         p0.pos = {-orbit_radius * cos(ch_time * orbit_rate * 2), -orbit_radius * sin(ch_time * orbit_rate * 2), 10};
-        manager->scene->ModifyPointLight(0, p0);
+        manager->scene->ModifyPointLight(p0_idx, p0);
 
-        p1.color = make_float3(p1.color.x, p1.color.y, p1.color.z + light_change);
-        if (p1.color.z < 0) {
-            p1.color = make_float3(0, 0, 0);
+        p1.specific.point.color = {p1.specific.point.color.x, p1.specific.point.color.y, p1.specific.point.color.z + light_change};
+        if (p1.specific.point.color.z < 0) {
+            p1.specific.point.color = make_float3(0, 0, 0);
             light_change = -light_change;
         }
-        if (p1.color.z > 1) {
-            p1.color = make_float3(0, 0, 1);
+        if (p1.specific.point.color.z > 1) {
+            p1.specific.point.color = make_float3(0, 0, 1);
             light_change = -light_change;
         }
-        manager->scene->ModifyPointLight(1, p1);
+        manager->scene->ModifyPointLight(p1_idx, p1);
 
         // origin->SetRot(QuatFromAngleZ(ch_time * orbit_rate));
         // origin->SetPos({0, 0, 3 * sin(ch_time * orbit_rate)});

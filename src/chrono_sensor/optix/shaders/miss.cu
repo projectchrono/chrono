@@ -1,4 +1,4 @@
-/* =============================================================================
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2019 projectchrono.org
@@ -14,9 +14,17 @@
 //
 // RT kernels for coloring upon ray not intersecting anything
 //
-// ============================================================================= */
+// =============================================================================
 
 #include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/shader_utils.cu"
+#include "chrono_sensor/optix/shaders/shadow_shader.cu"
+#include "chrono_sensor/optix/shaders/normal_cam_shader.cu"
+#include "chrono_sensor/optix/shaders/depth_cam_shader.cu"
+#include "chrono_sensor/optix/shaders/segment_cam_shader.cu"
+#include "chrono_sensor/optix/shaders/radar_shader.cu"
+#include "chrono_sensor/optix/shaders/lidar_shader.cu"
+#include "chrono_sensor/optix/shaders/camera_shader.cu"
 
 extern "C" __global__ void __miss__shader() {
     const MissParameters* miss = (MissParameters*)optixGetSbtDataPointer();
@@ -25,17 +33,30 @@ extern "C" __global__ void __miss__shader() {
     RayType raytype = (RayType)optixGetPayload_2();
 
     switch (raytype) {
-        case CAMERA_RAY_TYPE: {
+        case RayType::OCCLUSION_RAY_TYPE: {
+            PerRayData_occlusion* prd = GetOcclusionPRD();
+            prd->occluded = false;
+            break;
+        }
+        
+        case RayType::PHYS_CAMERA_RAY_TYPE: 
+        case RayType::CAMERA_RAY_TYPE: {
             const CameraMissParameters& camera_miss = miss->camera_miss;
-            PerRayData_camera* prd = getCameraPRD();
+            PerRayData_camera* prd;
+            if (raytype == RayType::PHYS_CAMERA_RAY_TYPE) {
+                prd = reinterpret_cast<PerRayData_phys_camera*>(GetPhysCameraPRD());
+            }
+            else {
+                prd = GetCameraPRD();
+            }
 
             if (camera_miss.mode == BackgroundMode::ENVIRONMENT_MAP && camera_miss.env_map) {
                 // evironment map assumes z up
                 float3 ray_dir = optixGetWorldRayDirection();
-                float theta = atan2f(ray_dir.x, ray_dir.y);
-                float phi = asinf(ray_dir.z);
-                float tex_x = theta / (2 * CUDART_PI_F);
-                float tex_y = phi / CUDART_PI_F + 0.5;
+                float azimuth = atan2f(ray_dir.y, ray_dir.x); // in [-pi, pi]
+                float elevation = asinf(ray_dir.z); // in [-pi/2, pi/2]
+                float tex_x =   azimuth / (2 * CUDART_PI_F) + 0.5f; // in [0, 1]
+                float tex_y = elevation /      CUDART_PI_F  + 0.5f; // in [0, 1]
                 float4 tex = tex2D<float4>(camera_miss.env_map, tex_x, tex_y);
                 // Gamma Correction
                 prd->color = Pow(make_float3(tex.x, tex.y, tex.z), 2.2) * prd->contrib_to_pixel;
@@ -52,22 +73,30 @@ extern "C" __global__ void __miss__shader() {
             // apply fog model
             if (prd->use_fog && params.fog_scattering > 0.f) {
                 float blend_alpha = expf(-params.fog_scattering * optixGetRayTmax());
-                prd->color = blend_alpha * prd->color + (1 - blend_alpha) * params.fog_color*prd->contrib_to_pixel;
+                prd->color = blend_alpha * prd->color + (1 - blend_alpha) * params.fog_color * prd->contrib_to_pixel;
             }
 
             break;
         }
-        case LIDAR_RAY_TYPE: {
+
+        case RayType::LIDAR_RAY_TYPE: {
             // leave as default values
             break;
         }
-        case RADAR_RAY_TYPE: {
+
+        case RayType::RADAR_RAY_TYPE: {
             // leave as default values
             break;
         }
-        case DEPTH_RAY_TYPE: {
-            PerRayData_depthCamera* prd = getDepthCameraPRD();
+
+        case RayType::DEPTH_RAY_TYPE: {
+            PerRayData_depthCamera* prd = GetDepthCameraPRD();
             prd->depth = prd->max_depth; // set miss hit to max depth
+            break;
+        }
+
+        case RayType::NORMAL_RAY_TYPE: {
+            // leave as default values
             break;
         }
     }

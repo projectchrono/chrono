@@ -72,6 +72,9 @@ float exposure_time = 0.02f;
 
 int alias_factor = 2;
 
+Integrator cam_integrator = Integrator::LEGACY;
+// Integrator cam_integrator = Integrator::PATH;
+
 // -----------------------------------------------------------------------------
 // Simulation parameters
 // -----------------------------------------------------------------------------
@@ -185,8 +188,11 @@ int main(int argc, char* argv[]) {
     // Create a sensor manager
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    //manager->scene->AddPointLight({0.0f, 0.0f, 3.8f}, {2.0f / 2, 1.8902f / 2, 1.7568f / 2}, 5.0f);
-    manager->scene->AddAreaLight({0.0f, 0.0f, 3.8f}, {2.0f/2, 1.8902f/2, 1.7568f/2}, 5.0f, {1.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f});
+    unsigned int light_idx = manager->scene->AddPointLight({0.0f, 0.0f, 3.8f}, {2.0f / 2, 1.8902f / 2, 1.7568f / 2}, 5.0f);
+    // unsigned int light_idx = manager->scene->AddRectangleLight(
+    //     {0.0f, 0.0f, 4.24f}, {50.f, 50.f, 50.f}, 8.0f, {2.0f, 0.0f, 0.0f}, {0.0f, -2.0f, 0.0f}, true
+    // );
+
     // -------------------------------------------------------
     // Create a camera and add it to the sensor manager
     // -------------------------------------------------------
@@ -200,7 +206,11 @@ int main(int argc, char* argv[]) {
                                                          fov,           // camera's horizontal field of view
                                                          alias_factor,  // supersample factor for antialiasing
                                                          lens_model,    // FOV
-                                                         true);         // use global illumination or not
+                                                         true,          // whether consider diffuse reflection
+                                                         true,          // whether use OptiX denoiser 
+                                                         cam_integrator,// integrator algorithm for rendering
+                                                         2.2,           // gamma correction
+                                                         false);        // whether account for fog effect
     cam->SetName("Global Illum Camera");
     cam->SetLag(lag);
     cam->SetCollectionWindow(exposure_time);
@@ -218,7 +228,11 @@ int main(int argc, char* argv[]) {
                                                           fov,           // camera's horizontal field of view
                                                           alias_factor,  // supersample factor for antialiasing
                                                           lens_model,    // FOV
-                                                          false);        // use global illumination or not
+                                                          false,         // whether consider diffuse reflection
+                                                          false,         // whether use OptiX denoiser 
+                                                          cam_integrator,// integrator algorithm for rendering
+                                                          2.2,           // gamma correction
+                                                          false);        // whether account for fog effect
     cam2->SetName("Whitted Camera");
     cam2->SetLag(lag);
     cam2->SetCollectionWindow(exposure_time);

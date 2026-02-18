@@ -22,6 +22,9 @@
 #include <cuda_runtime_api.h>
 #include <curand_kernel.h>
 #include <cuda_fp16.h>
+#include "chrono/assets/ChVisualBSDFType.h"
+#include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"
+
 
 #ifdef USE_SENSOR_NVDB
     #include <nanovdb/NanoVDB.h>
@@ -39,14 +42,33 @@ struct half4 {
 /// @addtogroup sensor_optix
 /// @{
 
+// enum class BSDFType {
+//     DIFFUSE,
+//     SPECULAR,
+//     DIELECTRIC,
+//     GLOSSY,
+//     SIMPLEPRINCIPLED,
+//     PRINCIPLED,
+//     HAPKE,
+//     RETROREFLECTIVE,
+//     VDB,
+//     VDBHAPKE,
+//     VDBVOL
+// };
+
 /// Ray types, used to determine the shading and miss functions for populating ray information
-enum RayType {
-    CAMERA_RAY_TYPE = 0,       /// camera rays
-    SHADOW_RAY_TYPE = 1,       /// shadow rays
-    LIDAR_RAY_TYPE = 2,        /// lidar rays
-    RADAR_RAY_TYPE = 3,        /// radar rays
-    SEGMENTATION_RAY_TYPE = 4, /// semantic camera rays 
-    DEPTH_RAY_TYPE = 5,        /// depth camera rays
+enum class RayType {
+    OCCLUSION_RAY_TYPE,    /// occlusion rays for visibility testing
+    CAMERA_RAY_TYPE,       /// camera rays
+    SHADOW_RAY_TYPE,       /// shadow rays
+    LIDAR_RAY_TYPE,        /// lidar rays
+    RADAR_RAY_TYPE,        /// radar rays
+    SEGMENTATION_RAY_TYPE, /// semantic camera rays 
+    DEPTH_RAY_TYPE,        /// depth camera rays
+    LASER_SAMPLE_RAY_TYPE, /// lidar laser sample rays
+    PHYS_CAMERA_RAY_TYPE,  /// physics-based camera rays
+    NORMAL_RAY_TYPE        /// normal camera rays
+    //// ---- Register Your Customized Sensor Here (define customized ray types) ---- ////
 };
 
 /// The type of lens model that camera can use for rendering
@@ -56,29 +78,7 @@ enum CameraLensModelType {
     RADIAL     ///< Wide angle lens model based on polynomial fit
 };
 
-/// The different types of area lights that can exist in our current models
-/*enum AreaLightType {
-    CIRCLE,     ///< circular-disk area light with a radius value
-    SQUARE,     ///< square-shaped area light with a side length value
-    RECTANGLE   ///< retangular area light with a length and width value
-}
-*/
-
-/// Parameters for an area light
-struct AreaLight {
-    float3 pos;         ///< the centre position of the area light from a global perspective
-    float3 color;       ///< the light's color and intensity
-    float max_range;    ///< the range at which 10% of the light's intensity remains
-    float3 du;          ///< the vector signifying the length of the area light
-    float3 dv;          ///< The vector signifying the width of the area light
-};
-
-/// Packed parameters of a point light
-struct PointLight {
-    float3 pos;       ///< the light's global position
-    float3 color;     ///< the light's color and intensity
-    float max_range;  ///< the range at which 10% of the light's intensity remains
-};
+enum class Integrator {PATH, VOLUMETRIC, TRANSIENT, TIMEGATED, MITRANSIENT, LEGACY};
 
 /// Type of background to be spherically mapped when rays miss all objects in the scene
 enum class BackgroundMode {
@@ -113,6 +113,24 @@ struct LensParams {
     float a8;
 };
 
+struct PhysCameraGainParams {
+    float defocus_gain;
+    float defocus_bias;
+    float vignetting_gain;
+    float aggregator_gain;
+    float3 expsr2dv_gains;
+    float3 expsr2dv_biases;
+    float expsr2dv_gamma;
+    int expsr2dv_crf_type; // camera response function type, 0: gamma_correct, 1: sigmoid, 2: linear
+};
+
+struct PhysCameraNoiseParams {
+    float3 dark_currents;   // dark currents and hot-pixel noises, [electron/sec]
+    float3 noise_gains;     // temporal noise gains, [1/1]
+    float3 STD_reads;       // STDs of FPN and readout noises, [electron]
+    int FPN_rng_seed;       // seed of random number generator for readout and FPN noises
+};
+
 /// The parameters needed to define a camera
 struct CameraParameters {
     float hFOV;                        ///< horizontal field of view
@@ -120,13 +138,41 @@ struct CameraParameters {
     LensParams lens_parameters;        ///< lens fitting parameters (if applicable)
     unsigned int super_sample_factor;  ///< number of samples per pixel in each dimension
     float gamma;                       ///< camera's gamma value
-    bool use_gi;                       ///< whether to use global illumination
+    bool use_gi;                       ///< whether also consider diffuse reflection. If false, only consider specular reflection.
+    bool use_denoiser;                 ///< whether use OptiX denoiser on the rendered image
     bool use_fog;                      ///< whether to use the scene fog model
     half4* frame_buffer;               ///< buffer of camera pixels
-    half4* albedo_buffer;  ///< the material color of the first hit. Only initialized if using global illumination
-    half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
-                           ///< (screenspace normal)
-    curandState_t* rng_buffer;  ///< The random number generator object. Only initialized if using global illumination
+    half4* albedo_buffer;              ///< the material color of the first hit. Only initialized if using global illumination
+    half4* normal_buffer;              ///< The screen-space normal of the first hit. Only initialized if using global illumination (screenspace normal)
+    curandState_t* rng_buffer;         ///< The random number generator object. Only initialized if using global illumination
+    Integrator integrator;             ///< the integrator algorithm to use for rendering
+};
+
+/// The parameters needed to define a physics-based camera
+struct PhysCameraParameters {
+    float hFOV;                         ///< horizontal field of view
+    CameraLensModelType lens_model;     ///< lens model to use
+    LensParams lens_parameters;         ///< lens fitting parameters (if applicable)
+    unsigned int super_sample_factor;   ///< number of samples per pixel in each dimension
+    float gamma;                        ///< camera's gamma value
+    bool use_gi;                        ///< whether also consider diffuse reflection. If false, only consider specular reflection.
+    bool use_denoiser;                  ///< whether use OptiX denoiser on the rendered image
+    bool use_fog;                       ///< whether to use the scene fog model
+    float aperture_num;          		///< F-number (or aperture number) = focal_length / aperture_diameter, [1/1]
+    float expsr_time;                   ///< exposure time, [sec]
+    float ISO;                          ///< ISO exposure gain, [1/1]
+    float focal_length;                 ///< focal length, [m]
+    float focus_dist;                   ///< focus distance, [m]
+    float max_scene_light_amount;		///< maximum light amount in the scene, [lumen]
+    float sensor_width;                 ///< equivalent width of the image sensor, [m]
+    float pixel_size;                   ///< length of a pixel, [m]
+    PhysCameraGainParams gain_params;	///< gain parameters in camera model, [1/1]
+    PhysCameraNoiseParams noise_params;	///< noise model parameters in camera model
+    half4* rgbd_buffer;                 ///< buffer in RGBD format for camera pixels and distance map
+    half4* albedo_buffer;               ///< the material color of the first hit. Only initialized if using global illumination
+    half4* normal_buffer;               ///< The screen-space normal of the first hit. Only initialized if using global illumination (screenspace normal)
+    curandState_t* rng_buffer;          ///< The random number generator object. Only initialized if using global illumination
+    Integrator integrator;             ///< the integrator algorithm to use for rendering
 };
 
 // Parameters for specifying a depth camera
@@ -137,6 +183,15 @@ struct DepthCameraParameters {
     float* frame_buffer;             ///< buffer of class and instance ids
     curandState_t* rng_buffer;       ///< only initialized if using global illumination
     float max_depth;                 ///< maximum depth value for the depth camera
+};
+
+// Parameters for specifying a normal camera
+struct NormalCameraParameters {
+    float hFOV;                      ///< horizontal field of view
+    CameraLensModelType lens_model;  ///< lens model to use
+    LensParams lens_parameters;      ///< lens fitting parameters (if applicable)
+    float3* frame_buffer;            ///< buffer of class and instance ids to put normal vector
+    curandState_t* rng_buffer;       ///< only initialized if using global illumination
 };
 
 /// Parameters need to define a camera that generates semantic segmentation data
@@ -196,10 +251,13 @@ struct RaygenParameters {
     float4 rot1;  ///< sensor rotation at t1
     union {
         CameraParameters camera;                ///< the specific data when modeling a camera
+        PhysCameraParameters phys_camera;       ///< the specific data when modeling a physics-based camera
         SemanticCameraParameters segmentation;  ///< the specific data when modeling a semantic segementation camera
         LidarParameters lidar;                  ///< the specific data when modeling a lidar
         RadarParameters radar;                  ///< the specific data when modeling a radar
         DepthCameraParameters depthCamera;      /// < the specific data when modeling a depth camera
+        NormalCameraParameters normalCamera;    /// < the specific data when modeling a normal camera
+        //// ---- Register Your Customized Sensor Here (register ray-gen parameters) ---- ////
     } specific;                                 ///< the data for the specific sensor
 };
 
@@ -241,11 +299,11 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
     float2 tex_scale;                   ///< texture scaling // size 8
     unsigned short int class_id;        ///< a class id of an object // size 2
     unsigned short int instance_id;     ///< an instance id of an object // size 2
-   
-    int use_hapke;                      // toggle between disney and hapke shader // size 4
+    BSDFType bsdf_type;                 ///< the BSDF model to use for shading this material // size 4
     float emissive_power;               // size 4
 
-    // hapke parameters
+    // TODO: Should be moved out to other place for Hapke-specific material struct
+    // Hapke parameters
     float w; // average single scattering albedo
     float b; // shape controlling parameter for the amplitude of backward and forward scatter of particles
     float c; // weighting factor that controls the contribution of backward and forward scatter.
@@ -253,32 +311,35 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
     float h_s;
     float phi; 
     float theta_p;
+    
     float3 pad; // padding to ensure 16 byte alignment
     
 };
 
 /// Parameters associated with the entire optix scene
 struct ContextParameters {
-    AreaLight* arealights;              ///< device pointer to the set of area lights in the scene
-    PointLight* lights;                 ///< device pointer to set of point lights in the scene
-    int num_arealights;                ///< the number of area lights in the scene
+    ChOptixLight* lights;                  ///< device pointer to set of lights in the scene
     int num_lights;                     ///< the number of point lights in the scene
     float3 ambient_light_color;         ///< the ambient light color and intensity
     float3 fog_color;                   ///< color of fog in the scene
-    float fog_scattering;               ///< scattering coefficient of fog in the scene
+    float fog_scattering;               ///< scattering coefficient of fog in the scene (larger value means denser fog)
     int max_depth;                      ///< maximum traversable depth
-    float scene_epsilon;                ///< an epsilon value used for detecting self intersections
+    float scene_epsilon;                ///< an epsilon value used for detecting self intersections (“shadow acne”)
     float importance_cutoff;            ///< mimumum value before killing rays
     OptixTraversableHandle root;        ///< a handle to the root node in the scene
     MaterialParameters* material_pool;  ///< device pointer to list of materials to use for shading
     MeshParameters* mesh_pool;          ///< device pointer to list of meshes for instancing
-    
+
     #ifdef USE_SENSOR_NVDB
-    //nanovdb::GridHandle<nanovdb::CudaDeviceBuffer>* handle_ptr; // NanoVDB grid handle
-    //nanovdb::NanoGrid<float>* handle_ptr;
+        // nanovdb::GridHandle<nanovdb::CudaDeviceBuffer>* handle_ptr; // NanoVDB grid handle
+        // nanovdb::NanoGrid<float>* handle_ptr;
         nanovdb::NanoGrid<nanovdb::Point>* handle_ptr;
+        nanovdb::NanoGrid<nanovdb::Vec3f>* normal_handle_ptr;
+        nanovdb::NanoGrid<float>* density_grid_ptr;
     #else
         int handle_ptr;
+        int normal_handle_ptr;
+        int density_grid_ptr;
     #endif
 };
 
@@ -303,6 +364,13 @@ struct PerRayData_camera {
     float3 albedo;            ///< the albed of the first hit
     float3 normal;            ///< the global normal of the first hit
     bool use_fog;             ///< whether to use fog on this prd
+    float transparency;       ///< the transparency of the pixel
+    Integrator integrator;    ///< tthe integrator algorithm to use for rendering
+};
+
+/// Data associated with a single physics-based camera ray
+struct PerRayData_phys_camera : PerRayData_camera {
+    float distance;           ///< the distance from the camera to the first hit
 };
 
 struct PerRayData_depthCamera {
@@ -310,8 +378,13 @@ struct PerRayData_depthCamera {
     float max_depth;
 };
 
+/// Data associated with a single normal camera ray
+struct PerRayData_normalCamera {
+    float3 normal;            ///< the global normal vector of the first hit
+};
+
 /// Data associated with a single segmentation camera ray
-struct PerRayData_semantic {
+struct PerRayData_segment {
     unsigned short int class_id;     ///< the class id of the first hit
     unsigned short int instance_id;  ///< the instance id of the first hit
 };
@@ -321,6 +394,11 @@ struct PerRayData_shadow {
     float3 attenuation;    ///< the current attenuation of the light
     int depth;             ///< the current traversal depth of the ray
     float ramaining_dist;  ///< the remaining distance to the light
+};
+
+/// Data associated with a single occlusion ray
+struct PerRayData_occlusion {
+    bool occluded;  ///< whether the ray is occluded
 };
 
 /// Data associated with a single lidar ray

@@ -30,12 +30,19 @@
 // #include <optix.h>
 // #include <optix_world.h>
 // #include <optixu/optixu_math_namespace.h>
+#include <cuda_runtime.h>
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
+#include "chrono_sensor/optix/ChOptixUtils.h"
+#include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"
+
+#ifdef USE_SENSOR_NVDB
+  #include <openvdb/openvdb.h>
+#endif
 
 
 namespace chrono {
@@ -61,39 +68,96 @@ class CH_SENSOR_API ChScene {
     /// Class destructor
     ~ChScene();
 
-    /// Add a point light that emits light in all directions.
-    /// @param pos The global position of the light source
-    /// @param color The golor of the light source
-    /// @param max_range the range at which the light intensity is equal to 1% of its maximum intensity
+    /// @brief Add a point light that emits light in all directions.
+    /// @param pos The world position of the point light
+    /// @param color [W/sr/m^2] or [lumen/sr/m^2], color radiance of the light
+    /// @param max_range [m], range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
     /// @return the index of the light that has been added
-    unsigned int AddPointLight(ChVector3f pos, ChColor color, float max_range);
+    unsigned int AddPointLight(ChVector3f pos, ChColor color, float max_range, bool const_color = true);
 
-    /// Add a point light that emits light in all directions.
-    /// @param p A point light the will be added directly
+    /// @brief Function for modifying an existing point light in the scene
+    /// @param light_ID the index of the point light to be modified
+    /// @param point_light the new point light
+    void ModifyPointLight(unsigned int light_ID, const ChOptixLight& point_light);
+
+    /// @brief Add a directional light that emits light in a particular direction.
+    /// @param color [W/m^2] or [lumen/m^2], color irradiance of the light
+    /// @param elevation [rad], elevation angle of the directional light comes from
+    /// @param azimuth [rad], azimuth angle of the directional light comes from
     /// @return the index of the light that has been added
-    unsigned int AddPointLight(const PointLight& p);
+    unsigned int AddDirectionalLight(ChColor color, float elevation, float azimuth);
 
-    /// Add an area light that emits light in a particular direction
-    /// @param pos The global position of the light source
-    /// @param color The golor of the light source
-    /// @param max_range the range at which the light intensity is equal to 1% of its maximum intensity
-    /// @param du the x vector of the area light
-    /// @param dv the y vector of the ara light
+    /// @brief Function for modifying an existing directional light in the scene
+    /// @param light_ID the index of the directional light to be modified
+    /// @param directional_light the new directional light
+    void ModifyDirectionalLight(unsigned int light_ID, const ChOptixLight& directional_light);
+
+
+    /// @brief Add a spot light that emits light in a particular direction.
+    /// @param pos the world position of the spot light
+    /// @param color color radiance of the light
+    /// @param max_range range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
+    /// @param light_dir the direction in which the spotlight points (no need to be normalized)
+    /// @param angle_falloff_start [m], angle at which the spotlight starts to linearly fall off
+    /// @param angle_range [rad], angle range of the spotlight falling off to zero.
+    /// @param const_color whether to use constant color (no attenuation with distance)
     /// @return the index of the light that has been added
-    unsigned int AddAreaLight(ChVector3f pos, ChColor color, float max_range, ChVector3f du, ChVector3f dv);
+    unsigned int AddSpotLight(
+      ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float angle_falloff_start, float angle_range, bool const_color = true
+    );
 
-    /// Function for gaining access to the vector of point lights and can be used to modify lighting dynamically.
-    /// @return m_pointlights A vector of point lights in the scene currently
-    std::vector<PointLight> GetPointLights() { return m_pointlights; }
+    /// @brief Function for modifying an existing spot light in the scene
+    /// @param light_ID the index of the spot light to be modified
+    /// @param spot_light the new spot light
+    void ModifySpotLight(unsigned int light_ID, const ChOptixLight& spot_light);
+    
+    /// @brief Add a rectangle light that emits light forward from a rectangle area.
+    /// @param pos [m], the world position of the rectangle light
+    /// @param color [W/m^2] or [lumen/m^2], color radiance of the light
+    /// @param max_range [m], range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
+    /// @param length_vec [m], one edge vector of the rectangle light
+    /// @param width_vec [m], the other edge vector of the rectangle light perpendicular to `length_vec`. Light direction is: length_vec x width_vec.
+    /// @param const_color whether to use constant color (no attenuation with distance)
+    /// @return the index of the added light
+    unsigned int AddRectangleLight(
+      ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color = true
+    );
 
-    /// Function for gaining access to the vector of area lights and can be used to modify lighting dynamically.
-    /// @return m_arealights A vector of area lights in the scene currently
-    std::vector<AreaLight> GetAreaLights() { return m_arealights; }
+    /// @brief Function for modifying an existing rectangle light in the scene
+    /// @param light_ID the index of the rectangle light to be modified
+    /// @param rectangle_light the new rectangle light
+    void ModifyRectangleLight(unsigned int light_ID, const ChOptixLight& rectangle_light);
 
-    /// Function for gaining access to the vector of point lights and can be used to modify lighting dynamically.
-    /// @param id the index of the point light to be modified
-    /// @param p the new point light that will replace the values at the given index
-    void ModifyPointLight(unsigned int id, PointLight p);
+    /// @brief Add a disk light that emits light forward from a circular area.
+    /// @param pos [m], the world position of the rectangle light
+    /// @param color [W/m^2] or [lumen/m^2], color radiance of the light
+    /// @param max_range [m], range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
+    /// @param light_dir the direction in which the disk light points (no need to be normalized)
+    /// @param radius [m], radius of the disk light
+    /// @param const_color whether to use constant color (no attenuation with distance)
+    /// @return the index of the added light
+    unsigned int AddDiskLight(
+      ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color = true
+    );
+
+    /// @brief Function for modifying an existing disk light in the scene
+    /// @param light_ID the index of the disk light to be modified
+    /// @param disk_light the new disk light
+    void ModifyDiskLight(unsigned int light_ID, const ChOptixLight& disk_light);
+    
+    /// @brief Add the environment light that emits light from all directions based on an environment map.
+    /// @param env_tex_path the full path of the environment map texture.
+    /// @param intensity_scale a scale factor for the intensity of the environment light. Default value is 1.0 (no scaling).
+    /// @return the index of the light that has been added
+    unsigned int AddEnvironmentLight(std::string env_tex_path, float intensity_scale = 1.f);
+
+    /// Function for gaining access to the vector of lights which can be used to modify lighting dynamically.
+    /// @return A vector of lights in the scene currently
+    std::vector<ChOptixLight> GetLights() {return m_lights;}
 
     /// Function for gaining access to the background. Can be used to dynamically change the background color, or
     /// texture
@@ -116,14 +180,8 @@ class CH_SENSOR_API ChScene {
     /// Function for resetting the lights changed variable
     void ResetLightsChanged() { lights_changed = false; }
 
-    /// Function for resetting the area lights changed variable
-    void ResetAreaLightsChanged() { arealights_changed = false; }
-
     /// Function for getting the lights changed variable
     bool GetLightsChanged() { return lights_changed; }
-
-    /// Function for getting the area lights changed variable
-    bool GetAreaLightsChanged() { return arealights_changed; }
 
     /// Function for resetting the background changed variable
     void ResetBackgroundChanged() { background_changed = false; }
@@ -152,6 +210,12 @@ class CH_SENSOR_API ChScene {
     /// Accessor to the scene epsilon value
     /// @return the scene epsilon
     float GetSceneEpsilon() { return m_scene_epsilon; }
+
+    void AddSprite(std::shared_ptr<ChBody> sprite);
+    void SetSprites(std::vector<std::shared_ptr<ChBody>> sprites) {m_sprites = sprites;}
+
+    std::shared_ptr<ChBody> GetSprite(int i) { return m_sprites[i]; }
+    std::vector<std::shared_ptr<ChBody>> GetSprites() { return m_sprites; }
 
     #ifdef USE_SENSOR_NVDB
     /// @brief  Allows passing in Chrono::FSI SPH markers to the scene, to be used for rendering SPH simulations. Note: Must also add a ChNVDBVolume body to the scene as well.
@@ -199,13 +263,10 @@ class CH_SENSOR_API ChScene {
     // int GetGVDBChan() { return m_gvdb_chan; }
 
   private:
-    std::vector<PointLight> m_pointlights;  //< list of point lights in the scene
-    std::vector<AreaLight> m_arealights;  //< list of area lights in the scene
-    
+    std::vector<ChOptixLight> m_lights;     //< list of all lights in the scene
     Background m_background;                ///< The background object
     ChVector3f m_ambient_light;        ///< ambient light color used in the scene
 
-    bool arealights_changed;  ////< for detecting if area lights changed
     bool lights_changed;      ///< for detecting if lights changed
     bool background_changed;  ///< for detecting if background changed
 
@@ -219,12 +280,13 @@ class CH_SENSOR_API ChScene {
     float m_fog_scattering;       ///< scattering coefficient of fog in the scene
     ChVector3f m_fog_color;  ///< color of the fog in the scene
 
+    std::vector<std::shared_ptr<ChBody>> m_sprites;  ///< list of sprites in the scene
     // nvdb::VolumeGVDB* m_gvdb;  // GVDB volume of the scene
     // int m_gvdb_chan;           // GVDB render channel
 
     #ifdef USE_SENSOR_NVDB
-    float* m_fsi_points = nullptr; // Pointer to FSI particle positions in host
-    int m_num_fsi_points = 0; // Number of FSI particles
+      float* m_fsi_points = nullptr; // Pointer to FSI particle positions in host
+      int m_num_fsi_points = 0; // Number of FSI particles
     #endif
 };
 

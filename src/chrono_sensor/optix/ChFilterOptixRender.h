@@ -85,7 +85,7 @@ class CH_SENSOR_API ChFilterOptixRender : public ChFilter {
     std::weak_ptr<ChOptixSensor> m_optixSensor;  ///< for holding a weak reference to parent sensor
     CUstream m_cuda_stream;                      ///< reference to a cuda stream
 
-    std::shared_ptr<ChOptixDenoiser> m_denoiser;  ///< denoiser in case there is global illumination
+    std::shared_ptr<ChOptixDenoiser> m_denoiser;  ///< denoiser in case diffuse reflection or area lights are considered by a camera
     std::shared_ptr<curandState_t> m_rng;         ///< rng buffer for camera jitter or ray bounces
 
     // Special handles that will accessed by ChOptixEngine

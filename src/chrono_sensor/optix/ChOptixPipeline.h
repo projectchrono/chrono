@@ -26,6 +26,8 @@
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono_sensor/optix/scene/ChScene.h"
 
 #include "chrono_sensor/ChApiSensor.h"
@@ -47,15 +49,17 @@ struct Record {
 
 /// The type of ray tracing used to model the sensor
 enum class PipelineType {
-    CAMERA,  ///< camera rendering pipeline
-    // CAMERA_FOV_LENS,        ///< FOV lens model
-    SEGMENTATION,  ///< segmentation camera pipeline
-    DEPTH_CAMERA, /// < depth camera pipeline>   
-    // SEGMENTATION_FOV_LENS,  ///< FOV lens segmentation camera
-    LIDAR_SINGLE,  ///< single sample lidar
-    LIDAR_MULTI,   ///< multi sample lidar
-    RADAR          ///< radar model
-
+    CAMERA,                     ///< camera rendering pipeline
+    PHYS_CAMERA,                ///< physics-based camera rendering pipeline
+    // CAMERA_FOV_LENS,            ///< FOV lens model
+    SEGMENTATION,               ///< segmentation camera pipeline
+    DEPTH_CAMERA,               ///< depth camera pipeline
+    NORMAL_CAMERA,              ///< normal camera pipeline
+    // SEGMENTATION_FOV_LENS,      ///< FOV lens segmentation camera
+    LIDAR_SINGLE,               ///< single sample lidar
+    LIDAR_MULTI,                ///< multi sample lidar
+    RADAR,                      ///< radar model
+    //// ---- Register Your Customized Sensor Here (OptiX pipeline type) ---- ////
 };
 // TODO: how do we allow custom ray gen programs? (Is that ever going to be a thing?)
 
@@ -171,6 +175,10 @@ class CH_SENSOR_API ChOptixPipeline {
     /// @param b a new background to use for the scene. The old background will be removed
     void UpdateBackground(Background b);
 
+     /// @brief Access the background texture sampler
+     /// @return the background texture CUDA sampler
+     cudaTextureObject_t GetBackgroundTexSampler() const { return md_miss_texture_sampler; }
+
   private:
     void CompileBaseShaders();
     void AssembleBaseProgramGroups();
@@ -200,34 +208,41 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixModule m_box_intersection_module = 0;     // box.cu file
     OptixModule m_sphere_intersection_module = 0;  // sphere.cu file
     OptixModule m_cyl_intersection_module = 0;     // cylinder.cu file
-    OptixModule m_camera_raygen_module = 0;        // camera.cu file
-    OptixModule m_lidar_raygen_module = 0;         // lidar.cu file
-    OptixModule m_radar_raygen_module = 0;         // lidar.cu file
-    OptixModule m_material_shading_module = 0;     // material shader file
+    OptixModule m_material_shaders_module = 0;     // material_shaders.cu file
     OptixModule m_miss_module = 0;                 // miss.cu
+    OptixModule m_camera_raygen_module = 0;        // camera_raygen.cu file
+    OptixModule m_lidar_raygen_module = 0;         // lidar_raygen.cu file
+    OptixModule m_radar_raygen_module = 0;         // radar_raygen.cu file
+    OptixModule m_depth_cam_raygen_module = 0;     // depth_cam_raygen.cu file
+    OptixModule m_normal_cam_raygen_module = 0;    // normal_cam_raygen.cu file
+    OptixModule m_segment_cam_raygen_module = 0;    // segment_cam_raygen.cu file
+    OptixModule m_phys_cam_raygen_module = 0;       // phys_cam_raygen.cu file
+    //// ---- Register Your Customized Sensor Here (OptiX Raygen Module) ---- ////
+
 
     #ifdef USE_SENSOR_NVDB
       OptixModule m_nvdb_vol_intersection_module = 0;  // nvdb_vol_intersect.cu
     #endif
 
     // program groups - we only make one of each - do not clear when rebuilding root
-    OptixProgramGroup m_camera_raygen_group = 0;
-    // OptixProgramGroup m_camera_fov_lens_raygen_group = 0;
-    OptixProgramGroup m_segmentation_raygen_group = 0;
-
-    OptixProgramGroup m_depthCamera_raygen_group = 0;
-    
-    // OptixProgramGroup m_segmentation_fov_lens_raygen_group = 0;
-    OptixProgramGroup m_lidar_single_raygen_group = 0;
-    OptixProgramGroup m_lidar_multi_raygen_group = 0;
-    OptixProgramGroup m_radar_raygen_group = 0;
-
     OptixProgramGroup m_hit_box_group = 0;
     OptixProgramGroup m_hit_sphere_group = 0;
     OptixProgramGroup m_hit_cyl_group = 0;
     OptixProgramGroup m_hit_mesh_group = 0;
     OptixProgramGroup m_miss_group = 0;
     OptixProgramGroup m_nvdb_vol_group = 0;
+
+    OptixProgramGroup m_camera_raygen_group = 0;
+    OptixProgramGroup m_phys_camera_raygen_group = 0;
+    // OptixProgramGroup m_camera_fov_lens_raygen_group = 0;
+    OptixProgramGroup m_segment_cam_raygen_group = 0;
+    OptixProgramGroup m_depthCamera_raygen_group = 0;    
+    OptixProgramGroup m_normalCamera_raygen_group = 0;
+    // OptixProgramGroup m_segmentation_fov_lens_raygen_group = 0;
+    OptixProgramGroup m_lidar_single_raygen_group = 0;
+    OptixProgramGroup m_lidar_multi_raygen_group = 0;
+    OptixProgramGroup m_radar_raygen_group = 0;
+    //// ---- Register Your Customized Sensor Here (OptixRaygenGroup) ---- ////
 
     // compile options - TODO: should probably depend on the pipeline - do not clear for now
     OptixPipelineCompileOptions m_pipeline_compile_options;
