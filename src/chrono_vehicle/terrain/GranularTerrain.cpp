@@ -486,14 +486,23 @@ void GranularTerrain::Synchronize(double time) {
     }
 }
 
-double GranularTerrain::GetHeight(const ChVector3d& loc) const {
+//// TODO: work in the World vertical direction
+
+ChVector3d GranularTerrain::GetPoint(const ChVector3d& loc) const {
+    ChVector3d point;
     double highest = m_bottom;
     for (auto body : m_ground->GetSystem()->GetBodies()) {
-        ////double height = ChWorldFrame::Height(body->GetPos());
-        if (body->GetTag() >= tag_particles && body->GetPos().z() > highest)
-            highest = body->GetPos().z();
+        if (body->GetTag() >= tag_particles && body->GetPos().z() > highest) {
+            point = body->GetPos();
+            highest = point.z();
+        }
     }
-    return highest + m_radius;
+    return point;
+}
+
+double GranularTerrain::GetHeight(const ChVector3d& loc) const {
+    auto point = GetPoint(loc);
+    return point.z() + m_radius;
 }
 
 ChVector3d GranularTerrain::GetNormal(const ChVector3d& loc) const {

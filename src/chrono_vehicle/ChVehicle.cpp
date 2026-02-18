@@ -291,8 +291,9 @@ double ChVehicle::GetRoll(const ChTerrain& terrain) const {
     // Find terrain normal below vehicle position (single point)
     double h;
     float mu;
+    ChVector3d tP;
     ChVector3d tZ;
-    terrain.GetProperties(vP, h, tZ, mu);
+    terrain.GetProperties(vP, tP, h, tZ, mu);
 
     // Calculate terrain Y direction in the vehicle transversal plane
     ChVector3d tY = Vcross(tZ, vX);
@@ -316,8 +317,9 @@ double ChVehicle::GetPitch(const ChTerrain& terrain) const {
     // Find terrain normal below vehicle position (single point)
     double h;
     float mu;
+    ChVector3d tP;
     ChVector3d tZ;
-    terrain.GetProperties(vP, h, tZ, mu);
+    terrain.GetProperties(vP, tP, h, tZ, mu);
 
     // Calculate terrain X direction in the vehicle longitudinal plane
     ChVector3d tX = Vcross(vY, tZ);

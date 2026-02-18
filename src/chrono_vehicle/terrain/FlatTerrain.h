@@ -44,6 +44,9 @@ class CH_VEHICLE_API FlatTerrain : public ChTerrain {
     /// Returns the constant value passed at construction.
     virtual double GetHeight(const ChVector3d& loc) const override;
 
+    /// Get the terrain point below the specified location.
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override;
+
     /// Get the terrain normal at the point below the specified location.
     /// Returns a constant unit vector along the vertical axis.
     virtual ChVector3d GetNormal(const ChVector3d& loc) const override;

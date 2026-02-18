@@ -28,6 +28,10 @@ double ChTerrain::GetHeight(const ChVector3d& loc) const {
     return 0;
 }
 
+ChVector3d ChTerrain::GetPoint(const ChVector3d& loc) const {
+    return ChVector3d(loc.x(), loc.y(), 0);
+}
+
 ChVector3d ChTerrain::GetNormal(const ChVector3d& loc) const {
     return ChWorldFrame::Vertical();
 }
@@ -36,7 +40,12 @@ float ChTerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     return 0.8f;
 }
 
-void ChTerrain::GetProperties(const ChVector3d& loc, double& height, ChVector3d& normal, float& friction) const {
+void ChTerrain::GetProperties(const ChVector3d& loc,
+                              ChVector3d& point,
+                              double& height,
+                              ChVector3d& normal,
+                              float& friction) const {
+    point = GetPoint(loc);
     height = GetHeight(loc);
     normal = GetNormal(loc);
     friction = GetCoefficientFriction(loc);

@@ -75,7 +75,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
       protected:
         Patch();
 
-        virtual bool FindPoint(const ChVector3d& loc, double& height, ChVector3d& normal) const = 0;
+        virtual bool FindPoint(const ChVector3d& loc, ChVector3d& point, double& height, ChVector3d& normal) const = 0;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
         virtual void ExportMeshWavefront(const std::string& out_dir) {}
 
@@ -187,15 +187,19 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Get the terrain height below the specified location.
     /// This function should return the height of the closest point *below* the specified location (in the direction of
     /// the current world vertical). If a user-provided functor object of type ChTerrain::HeightFunctor is provided,
-    /// that will take precedence over the internal mechanism for calculating terrain height based on the specified
-    /// geometry.
+    /// that will take precedence over the internal mechanism for calculating terrain height.
     virtual double GetHeight(const ChVector3d& loc) const override;
+
+    /// Get the terrain point below the specified location.
+    /// This function should return the closest point *below* the specified location (in the direction of the current
+    /// world vertical). If a user-provided functor object of type ChTerrain::PointFunctor is provided, that will take
+    /// precedence over the internal mechanism for calculating the terrain point.
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
     /// This function should return the normal at the closest point *below* the specified location (in the direction of
     /// the current world vertical). If a user-provided functor object of type ChTerrain::NormalFunctor is provided,
-    /// that will take precedence over the internal mechanism for calculating terrain normal based on the specified
-    /// geometry.
+    /// that will take precedence over the internal mechanism for calculating terrain normal.
     virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
@@ -210,9 +214,10 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Get all terrain characteristics at the point below the specified location.
     /// This function should return the terrain properties at the closest point *below* the specified location (in
-    /// the direction of the current world vertical). This is more efficient than calling GetHeight, GetNormal, and
-    /// GetCoefficientFriction separately, as it performs a single ray-casting operation (if needed at all).
+    /// the direction of the current world vertical). This is more efficient than calling GetHeight, GetPoint, GetNormal,
+    /// and GetCoefficientFriction separately, as it performs a single ray-casting operation (if needed at all).
     virtual void GetProperties(const ChVector3d& loc,
+                               ChVector3d& point,
                                double& height,
                                ChVector3d& normal,
                                float& friction) const override;
@@ -223,11 +228,11 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Export all patch meshes as Wavefront files.
     void ExportMeshWavefront(const std::string& out_dir);
 
-    /// Find the terrain height, normal, and coefficient of friction at the point below the specified location.
+    /// Find the terrain height, point, normal, and coefficient of friction at the point below the specified location.
     /// The point on the terrain surface is obtained through ray casting into the terrain contact model. The return
     /// value is 'true' if the ray intersection succeeded and 'false' otherwise (in which case the output is set to
     /// height=0, normal=world vertical, and friction=0.8).
-    bool FindPoint(const ChVector3d loc, double& height, ChVector3d& normal, float& friction) const;
+    bool FindPoint(const ChVector3d loc, ChVector3d& point, double& height, ChVector3d& normal, float& friction) const;
 
     /// Set common collision family for patches. Default: 14.
     /// Collision is disabled with all other objects in this family.
@@ -242,7 +247,10 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         double m_hwidth;        ///< patch half-width
         double m_hthickness;    ///< patch half-thickness
         virtual void Initialize() override;
-        virtual bool FindPoint(const ChVector3d& loc, double& height, ChVector3d& normal) const override;
+        virtual bool FindPoint(const ChVector3d& loc,
+                               ChVector3d& point,
+                               double& height,
+                               ChVector3d& normal) const override;
     };
 
     /// Patch represented as a mesh.
@@ -251,7 +259,10 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChTriangleMeshSoup> m_trimesh_s;     ///< associated contact mesh soup
         std::string m_mesh_name;                             ///< name of associated mesh
         virtual void Initialize() override;
-        virtual bool FindPoint(const ChVector3d& loc, double& height, ChVector3d& normal) const override;
+        virtual bool FindPoint(const ChVector3d& loc,
+                               ChVector3d& point,
+                               double& height,
+                               ChVector3d& normal) const override;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) override;
         virtual void ExportMeshWavefront(const std::string& out_dir) override;
     };
