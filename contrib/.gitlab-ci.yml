@@ -83,6 +83,8 @@ linux:doxygen:deploy:
     - export IOMP5_DIR=""
     - source /opt/intel/oneapi/setvars.sh
     - ldconfig
+    # Check the NVIDIA Driver's version
+    - nvidia-smi
     # ROS
     - source /opt/ros/humble/setup.sh
     - mkdir -p $CI_PROJECT_DIR/contrib/ros_ws/src
@@ -231,6 +233,7 @@ linux:ubuntu22.04:deploy-python3.13:
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
   - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
   - echo $CI_PROJECT_DIR
+  - nvidia-smi # Check the NVIDIA Driver's version
   - git submodule init
   - git submodule update
   - mkdir -Force -p build
