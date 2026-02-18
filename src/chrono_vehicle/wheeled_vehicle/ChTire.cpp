@@ -302,7 +302,7 @@ bool ChTire::DiscTerrainCollision4pt(const ChTerrain& terrain,  // reference to 
     // Approximate terrain with a plane (P, n)
     // Find 4 reference points around disc center
     // -------
-
+    n.Normalize();
     ChVector3d fwd = Vcross(dn, n);
     fwd.Normalize();
     ChVector3d lat = Vcross(n, fwd);
@@ -314,7 +314,7 @@ bool ChTire::DiscTerrainCollision4pt(const ChTerrain& terrain,  // reference to 
 
     // Process each reference points and accumulate
     depth = 0;
-    P = VNULL;
+    ChVector3d P_sum = VNULL;
     for (const ChVector3d& A : Q) {
         // Intersect line (A, -n) with the circle (C, r)
         bool check = LineCircleIntersection(C, r, A, n, -1, B);
@@ -330,22 +330,30 @@ bool ChTire::DiscTerrainCollision4pt(const ChTerrain& terrain,  // reference to 
         // Calculate depth (along n) and update
         double AB = (B - A).Length();
         double AP = (Pp - A).Length();
-        depth += AB - AP;
+        double deltaDepth = AB - AP;
+        if (deltaDepth <= 0.0) {
+            num_points--;
+            continue;
+        }
+        depth += deltaDepth;
 
         // Query terrain at projection point
         terrain.GetProperties(Pp + voffset, Pp, h, n, mu);
 
         // Accumulate Pp
-        P += Pp;
+        P_sum += Pp;
     }
+
+    if (num_points == 0)
+        return false;
 
     depth /= num_points;
     if (depth <= 0)
         return false;
 
     // Query terrain at average projection
-    P /= num_points;
-    terrain.GetProperties(P + voffset, P, h, n, mu);
+    P_sum /= num_points;
+    terrain.GetProperties(P_sum + voffset, P, h, n, mu);
 
     // Construct contact patch frame from P and n
     fwd = Vcross(dn, n);
