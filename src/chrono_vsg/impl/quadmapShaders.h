@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2022 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Rainer Gericke, code taken from https://github.com/vsg-dev/vsgExamples.git
+// Rainer Gericke, code like pcShaders, but modified
 // =============================================================================
 
 #ifndef QUADMAP_SHADERS_H

@@ -13,7 +13,7 @@
 // =============================================================================
 
 #ifndef PC_SHADERS_H
-#define PC_SHADER_H
+#define PC_SHADERS_H
 
 #include <vsg/io/VSG.h>
 #include <vsg/io/mem_stream.h>
