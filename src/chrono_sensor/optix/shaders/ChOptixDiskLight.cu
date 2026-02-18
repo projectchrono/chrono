@@ -22,6 +22,7 @@
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"	// for DiskLightData, LightSample
 #include "chrono_sensor/optix/ChOptixDefinitions.h"				// for PerRayData_camera, ContextParameters
 #include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/shader_utils.cu"			// for SampleCosineHemisphereDir(...)
 
 
 /// @brief Uniformly sample a point on the disk surface

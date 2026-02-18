@@ -79,13 +79,16 @@ static __device__ __inline__ void CameraShader(
 		case BSDFType::VDBVOL: {
 			CameraVolumetricShader(
 				prd_camera, mat_record_params, material_id, mat_record_params->num_blended_materials, world_normal, uv, tangent, ray_dist,
-				ray_origin, ray_dir);
+				ray_origin, ray_dir
+			);
 			break;
 		}
 
 		default: {
+			// printf("%d\n", prd_camera->integrator);
 			switch (prd_camera->integrator) {
 				case Integrator::PATH: {
+					// printf("path integrator\n");
 					CameraPathIntegrator(
 						cntxt_params, prd_camera, mat_record_params, material_id, world_normal, uv, tangent, ray_dist, hit_point, ray_dir,
 						ray_origin
@@ -94,9 +97,10 @@ static __device__ __inline__ void CameraShader(
 				}
 
 				case Integrator::LEGACY: {
+					// printf("legacy integrator\n");
 					CameraLegacyShader(
 						cntxt_params, prd_camera, mat_record_params, material_id, mat_record_params->num_blended_materials, world_normal, uv,
-						tangent, ray_dist, hit_point, ray_dir
+						tangent, ray_dist, ray_origin, ray_dir
 					);
 					break;
 				}

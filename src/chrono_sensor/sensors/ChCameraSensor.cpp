@@ -46,6 +46,7 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
       m_lens_model_type(lens_model),
       m_use_gi(use_diffuse_reflect),
       m_use_denoiser(use_denoiser),
+      m_integrator(integrator),
       m_gamma(gamma),
       m_use_fog(use_fog),
       m_lens_parameters({}),

@@ -209,27 +209,15 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixModule m_sphere_intersection_module = 0;  // sphere.cu file
     OptixModule m_cyl_intersection_module = 0;     // cylinder.cu file
     OptixModule m_material_shaders_module = 0;     // material_shaders.cu file
-    OptixModule m_shader_utils_module = 0;         // shader_utils.cu file
     OptixModule m_miss_module = 0;                 // miss.cu
     OptixModule m_camera_raygen_module = 0;        // camera_raygen.cu file
-    OptixModule m_camera_hapke_shader_module = 0; // camera_hapke_shader.cu file
-    OptixModule m_camera_volumetric_shader_module = 0; // camera_volumetric_shader.cu file
-    OptixModule m_camera_legacy_shader_module = 0; // camera_legacy_shader.cu file
-    OptixModule m_camera_path_shader_module = 0;   // camera_path_shader.cu file
-    OptixModule m_camera_shader_module = 0;        // camera_shader.cu file
     OptixModule m_lidar_raygen_module = 0;         // lidar_raygen.cu file
-    OptixModule m_lidar_shader_module = 0;         // lidar_shader.cu file
     OptixModule m_radar_raygen_module = 0;         // radar_raygen.cu file
-    OptixModule m_radar_shader_module = 0;         // radar_shader.cu file
     OptixModule m_depth_cam_raygen_module = 0;     // depth_cam_raygen.cu file
-    OptixModule m_depth_cam_shader_module = 0;     // depth_cam_shader.cu file
     OptixModule m_normal_cam_raygen_module = 0;    // normal_cam_raygen.cu file
-    OptixModule m_normal_cam_shader_module = 0;    // normal_cam_shader.cu file
     OptixModule m_segment_cam_raygen_module = 0;    // segment_cam_raygen.cu file
-    OptixModule m_segment_cam_shader_module = 0;    // segment_cam_shader.cu file
     OptixModule m_phys_cam_raygen_module = 0;       // phys_cam_raygen.cu file
     //// ---- Register Your Customized Sensor Here (OptiX Raygen Module) ---- ////
-    //// ---- Register Your Customized Sensor Here (OptiX Shader Module) ---- ////
 
 
     #ifdef USE_SENSOR_NVDB
@@ -254,7 +242,7 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixProgramGroup m_lidar_single_raygen_group = 0;
     OptixProgramGroup m_lidar_multi_raygen_group = 0;
     OptixProgramGroup m_radar_raygen_group = 0;
-    //// ---- Register Your Customized Sensor Here (OptixProgramGroup) ---- ////
+    //// ---- Register Your Customized Sensor Here (OptixRaygenGroup) ---- ////
 
     // compile options - TODO: should probably depend on the pipeline - do not clear for now
     OptixPipelineCompileOptions m_pipeline_compile_options;

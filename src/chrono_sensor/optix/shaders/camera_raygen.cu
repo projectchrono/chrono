@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+#ifndef CAMERA_RAYGEN_CU
+#define CAMERA_RAYGEN_CU
+
 #include "chrono_sensor/optix/shaders/device_utils.h"
 
 /// @brief Initialize a PerRayData_camera struct with default values for camera ray generation
@@ -29,15 +32,15 @@ __device__ __inline__ PerRayData_camera DefaultCameraPRD() {
     prd.use_gi = false;
     prd.albedo = make_float3(0.f, 0.f, 0.f);
     prd.normal = make_float3(0.f, 0.f, 0.f);
-    prd.use_fog = true;
+    prd.use_fog = false;
     prd.transparency = 1.f;
-    prd.integrator = Integrator::PATH;
+    prd.integrator = Integrator::LEGACY;
     return prd;
 };
 
 /// Camera ray generation program with using a lens distortion model
 extern "C" __global__ void __raygen__camera() {
-
+    
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
     const CameraParameters& camera = raygen->specific.camera;
 
@@ -111,6 +114,7 @@ extern "C" __global__ void __raygen__camera() {
         PerRayData_camera prd = DefaultCameraPRD();
         prd.integrator = camera.integrator;
         prd.use_gi = camera.use_gi;
+        prd.use_fog = camera.use_fog;
         prd.rng = camera.rng_buffer[pixel_idx];
         unsigned int opt1;
         unsigned int opt2;
@@ -162,3 +166,5 @@ extern "C" __global__ void __raygen__camera() {
         pow(color_result.x, 1.0f / gamma), pow(color_result.y, 1.0f / gamma), pow(color_result.z, 1.0f / gamma), opacity_result
     );
 }
+
+#endif // CAMERA_RAYGEN_CU

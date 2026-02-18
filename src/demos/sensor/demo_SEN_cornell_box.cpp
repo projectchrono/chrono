@@ -12,8 +12,8 @@
 // Authors: Asher Elmquist, Yan Xiao
 // =============================================================================
 //
-// Chrono demonstration of a camera sensor.
-// Generates a mesh object and rotates camera sensor around the mesh.
+// Chrono demonstration of a camera sensor with different types of lights inside
+// a Cornell box for benchmarking and observing color bleeding
 //
 // =============================================================================
 
@@ -58,8 +58,8 @@ CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 float update_rate = 30;
 
 // Image width and height
-unsigned int image_width = 1280;
-unsigned int image_height = 720;
+unsigned int image_width = 1920;
+unsigned int image_height = 1080;
 
 // Camera's horizontal field of view
 float fov = (float)CH_PI / 2.;
@@ -72,8 +72,10 @@ float exposure_time = 0.02f;
 
 int alias_factor = 2;
 
-Integrator cam_integrator = Integrator::LEGACY;
-// Integrator cam_integrator = Integrator::PATH;
+bool use_diffuse_1 = false;  // whether Camera 1 consinders diffuse reflection
+bool use_diffuse_2 = false;  // whether Camera 2 consinders diffuse reflection
+bool use_denoiser_1 = false; // whether Camera 1 uses the OptiX denoiser
+bool use_denoiser_2 = false; // whether Camera 2 uses the OptiX denoiser
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -97,11 +99,42 @@ const std::string out_dir = "SENSOR_OUTPUT/";
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    // Address arguments
+    if (argc < 3) {
+        std::cout << "Please assign the number of samples per pixel (spp) and light type to illuminate the scene." << std::endl;
+        std::cout << "And optionally, you can decide whether Cameras 1 and 2 consider diffuse reflection and attach the OptiX denoisers,";
+        std::cout << "following the command line as:" << std::endl;
+        std::cout << "demo_SEN_cornell_box <number of samples per pixel> <light type: point, spot, rectangle, disk> ";
+        std::cout<< "--use_diffuse_1 --use_diffuse_2 --use_denoiser_1 --use_denoiser_2"<< std::endl;
+        exit(1);
+    }
+
+    alias_factor = sqrt(std::atoi(argv[1]));
+    std::string light_type_str = argv[2];
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--use_diffuse_1") == 0) {
+            use_diffuse_1 = true;
+			std::cout << "\nPath Camera considers diffuse reflection\n";
+        }
+        else if (std::strcmp(argv[i], "--use_diffuse_2") == 0) {
+            use_diffuse_2 = true;
+			std::cout << "\nLegacy Camera considers diffuse reflection\n";
+        }
+        else if (std::strcmp(argv[i], "--use_denoiser_1") == 0) {
+            use_denoiser_1 = true;
+			std::cout << "\nPath Camera uses OptiX denoiser\n";
+        }
+        else if (std::strcmp(argv[i], "--use_denoiser_2") == 0) {
+            use_denoiser_2 = true;
+			std::cout << "\nLegacy Camera uses OptiX denoiser\n";
+        }
+    }
+
     // -----------------
     // Create the system
     // -----------------
     ChSystemNSC sys;
-    sys.SetGravityY();
 
     // ---------------------------------------
     // add set of boxes to be visualized by camera
@@ -112,12 +145,27 @@ int main(int argc, char* argv[]) {
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Box");
+    trimesh_shape->SetMutable(false);
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape);
+    // mesh_body->GetVisualShape(0)->GetMaterial(0)->SetBSDF(BSDFType::DIFFUSE);
+    mesh_body->GetVisualShape(0)->GetMaterial(0)->SetRoughness(1.0f);
+    mesh_body->GetVisualShape(0)->GetMaterial(0)->SetMetallic(0.f);
     mesh_body->SetFixed(true);
     sys.Add(mesh_body);
+
+    // for (auto mat : mesh_body->GetVisualShape(0)->GetMaterials()) {
+    //     mat->SetBSDF(BSDFType::DIFFUSE);
+    // }
+
+    // auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    // // auto box_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
+    // // auto box_body = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, .25, 1, 1000, true, false);
+    // box_body->SetPos({0, 0, 2});
+    // box_body->SetFixed(true);
+    // sys.Add(box_body);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     floor->SetPos({0, 0, 0});
@@ -188,17 +236,53 @@ int main(int argc, char* argv[]) {
     // Create a sensor manager
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    unsigned int light_idx = manager->scene->AddPointLight({0.0f, 0.0f, 3.8f}, {2.0f / 2, 1.8902f / 2, 1.7568f / 2}, 5.0f);
-    // unsigned int light_idx = manager->scene->AddRectangleLight(
-    //     {0.0f, 0.0f, 4.24f}, {50.f, 50.f, 50.f}, 8.0f, {2.0f, 0.0f, 0.0f}, {0.0f, -2.0f, 0.0f}, true
-    // );
+    manager->SetRayRecursions(6);
+    manager->scene->SetAmbientLight({0.f, 0.f, 0.f});
 
+    Background b;
+    b.mode = BackgroundMode::SOLID_COLOR;
+    b.color_zenith = {0,0,0};
+    manager->scene->SetBackground(b);
+
+    float intensity = 0.f;
+    unsigned int light_idx = 0;
+    if (light_type_str.find("point") != std::string::npos) {
+        intensity = 1.0;
+        /// AddPointLight(pos, color, max_range, const_color)
+        light_idx = manager->scene->AddPointLight({0.0f, 0.0f, 4.0f - 1e-6f}, {intensity, intensity, intensity}, 25.0f);
+    }
+    else if (light_type_str.find("spot") != std::string::npos) {
+        intensity = 10.0;
+        /// AddSpotLight(pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color)
+        light_idx = manager->scene->AddSpotLight(
+            {0.0f, 0.0f, 4.0f - 1e-6f}, {intensity, intensity, intensity}, 8.00f, {0.f, 0.f, -1.f}, 60.f * CH_PI/180, 120.f * CH_PI/180, false
+        );
+    }
+    else if (light_type_str.find("rectangle") != std::string::npos) {
+        intensity = 50.0f;
+        /// AddRectangleLight(ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color)
+        light_idx = manager->scene->AddRectangleLight(
+            {0.0f, 0.0f, 4.24f}, {intensity, intensity, intensity}, 8.0f, {2.0f, 0.0f, 0.0f}, {0.0f, -2.0f, 0.0f}, true
+        );
+    }
+    else if (light_type_str.find("disk") != std::string::npos) {
+        intensity = 50.0f;
+        /// AddDiskLight(ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color)
+        light_idx = manager->scene->AddDiskLight(
+            {0.0f, 0.0f, 4.24f}, {intensity, intensity, intensity}, 8.0f, {0.f, 0.f, -1.f}, 1.f, true
+        );
+    }
+    else {
+        std::cout << "\nUnsupported type of light in this scene ...\n" << std::endl;
+        exit(1);
+    }
+    
     // -------------------------------------------------------
     // Create a camera and add it to the sensor manager
     // -------------------------------------------------------
     chrono::ChFrame<double> offset_pose2({-7, 0, 2}, QUNIT);
     // chrono::ChFrame<double> offset_pose2({-3, 0, 0}, QUNIT);
-    auto cam = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
+    auto cam1 = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
                                                          update_rate,   // update rate in Hz
                                                          offset_pose2,  // offset pose
                                                          image_width,   // image width
@@ -206,19 +290,22 @@ int main(int argc, char* argv[]) {
                                                          fov,           // camera's horizontal field of view
                                                          alias_factor,  // supersample factor for antialiasing
                                                          lens_model,    // FOV
-                                                         true,          // whether consider diffuse reflection
-                                                         true,          // whether use OptiX denoiser 
-                                                         cam_integrator,// integrator algorithm for rendering
+                                                         use_diffuse_1, // whether consider diffuse reflection. If false, then only considers specular reflection
+                                                         use_denoiser_1,// whether use denoiser for diffuse reflection or area lights
+                                                         Integrator::PATH, // integrator type
                                                          2.2,           // gamma correction
-                                                         false);        // whether account for fog effect
-    cam->SetName("Global Illum Camera");
-    cam->SetLag(lag);
-    cam->SetCollectionWindow(exposure_time);
+                                                         false);        // whether use fog
+    cam1->SetName("Path Camera");
+    cam1->SetLag(lag);
+    cam1->SetCollectionWindow(exposure_time);
     if (vis)
-        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Global Illumination"));
+        cam1->PushFilter(chrono_types::make_shared<ChFilterVisualize>(
+            image_width, image_height,
+            (use_denoiser_1) ? "Path Integrator Denoised" : "Path Integrator"
+        ));
     if (save)
-        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "globalillum/"));
-    manager->AddSensor(cam);
+        cam1->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "globalillum/"));
+    manager->AddSensor(cam1);
 
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
                                                           update_rate,   // update rate in Hz
@@ -228,17 +315,20 @@ int main(int argc, char* argv[]) {
                                                           fov,           // camera's horizontal field of view
                                                           alias_factor,  // supersample factor for antialiasing
                                                           lens_model,    // FOV
-                                                          false,         // whether consider diffuse reflection
-                                                          false,         // whether use OptiX denoiser 
-                                                          cam_integrator,// integrator algorithm for rendering
+                                                          use_diffuse_2, // whether consider diffuse reflection. If false, then only considers specular reflection
+                                                          use_denoiser_2,// whether use denoiser for diffuse reflection or area lights
+                                                          Integrator::LEGACY, // integrator type
                                                           2.2,           // gamma correction
-                                                          false);        // whether account for fog effect
-    cam2->SetName("Whitted Camera");
+                                                          false);        // whether use fog
+    cam2->SetName("Legacy Camera");
     cam2->SetLag(lag);
     cam2->SetCollectionWindow(exposure_time);
     if (vis)
         cam2->PushFilter(
-            chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Whitted Ray Tracing"));
+            chrono_types::make_shared<ChFilterVisualize>(
+                image_width, image_height,
+                (use_denoiser_2) ? "Legacy Integrator Denoised" : "Legacy Integrator"
+            ));
     if (save)
         cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "whitted/"));
     manager->AddSensor(cam2);

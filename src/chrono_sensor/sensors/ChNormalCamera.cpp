@@ -18,6 +18,7 @@
 
 #include "chrono_sensor/sensors/ChNormalCamera.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
+#include "chrono_sensor/filters/ChFilterAccess.h"
 
 namespace chrono {
 namespace sensor {
@@ -39,6 +40,8 @@ CH_SENSOR_API ChNormalCamera::ChNormalCamera(std::shared_ptr<chrono::ChBody> par
     // set the pipeline for this
     m_pipeline_type = PipelineType::NORMAL_CAMERA;
 
+    // Push the access filter before converting to RGBA8 for visualization
+    m_filters.push_back(chrono_types::make_shared<ChFilterNormalAccess>());
 
     m_filters.push_back(chrono_types::make_shared<ChFilterNormalToRGBA8>());
 

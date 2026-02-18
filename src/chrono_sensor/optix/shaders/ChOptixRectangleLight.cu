@@ -22,6 +22,7 @@
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"	// for RectangleLightData, LightSample
 #include "chrono_sensor/optix/ChOptixDefinitions.h"				// for PerRayData_camera, ContextParameters
 #include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/shader_utils.cu"			// for SampleCosineHemisphereDir(...)
 
 /// @brief Analytically check whether a ray intersects with a rectangle. If it does, return the hit distance `t_hit` and hit point `p_hit`.
 /// @param ray_o origin of the ray

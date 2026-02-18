@@ -26,97 +26,14 @@
 #include "chrono_sensor/optix/shaders/device_utils.h"
 #include "chrono_sensor/optix/shaders/shader_utils.cu"
 #include "chrono_sensor/optix/shaders/ChOptixLightHubs.cu"
+#include "chrono_sensor/optix/shaders/camera_raygen.cu"
 
 static __device__ __inline__ void RussianRoulette(curandState_t& rng, float3& contrib_to_pixel) {
 	float p = fmaxf(0.05, fminf(fmaxf(contrib_to_pixel), 0.95));
 	contrib_to_pixel = (curand_uniform(&rng) > p) ? make_float3(0.f) : (contrib_to_pixel / p);
 }
 
-// static __device__ __inline__ bool CheckPointLightVisible(
-// 	const ContextParameters& cntxt_params, const PerRayData_camera* prd_camera, const Light& light, LightSample& light_sample
-// ) {
-// 	// Direction and distance from hit-point to light
-// 	light_sample.dir = light.pos - light_sample.hitpoint;
-// 	light_sample.dist = Length(light_sample.dir);
-// 	light_sample.dir = light_sample.dir / light_sample.dist;
-// 	light_sample.NdL = Dot(light_sample.n, light_sample.dir);
 	
-// 	// Light is below the surface
-// 	if (light_sample.NdL < 0) {
-// 		// prd_camera->color = make_float3(1.0, 0.0, 0.); // debug
-// 		return false;  
-// 	}
-// 	// prd_camera->color = {1.0, 0.0, 0.}; // debug
-
-// 	// Check visibility to the light source
-	
-// 	PerRayData_occlusion prd_occ;
-// 	prd_occ.occluded = false;
-
-// 	unsigned int opt1;
-// 	unsigned int opt2;
-// 	pointer_as_ints(&prd_occ, opt1, opt2);
-
-//     // Payload 2: ray type (if your code uses it)
-//     unsigned int raytype = (unsigned int)RayType::OCCLUSION_RAY_TYPE;
-
-//     // Trace only up to the light (dist - eps).
-//     // float tmin = scene_epsilon;
-//     // float tmax = dist - scene_epsilon;
-
-//     // Flags: terminate on first hit is ideal for shadow rays
-//     unsigned int flags = OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
-
-// 	optixTrace(
-// 		cntxt_params.root,          // The scene traversable handle (OptixTraversableHandle); basically the top-level acceleration structure (TLAS).
-// 		light_sample.hitpoint, 		// origin of the traced ray
-// 		light_sample.dir,          	// direction of the traced ray
-// 		cntxt_params.scene_epsilon, // minimum intersection distance to avoid self-intersection (“shadow acne”)
-// 		light_sample.dist,			// A very large max distance (effectively “infinite” for the scene scale)
-// 		optixGetRayTime(),          // time value for launching this ray
-// 		OptixVisibilityMask(1),     // Only intersects geometry whose instance mask matches 1
-// 		OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT, // terminate on first hit is ideal for occlusion rays
-// 		0,                          // SBT offset (used when you have multiple SBT records for the same ray type). It selects the first “ray type slot”
-// 		1,                          // SBT stride (used when you have multiple SBT records for the same ray type). It usually means “one ray type stride”
-// 		0,                          // missSBTIndex. It selects the first miss program
-// 		opt1,                       // Final payloads; the per-ray data pointer (first 32 bits); optixGetPayload_0() = opt1
-// 		opt2,                       // Final payloads; the per-ray data pointer (second 32 bits); optixGetPayload_1() = opt2
-// 		raytype                     // The ray type index (used when you have multiple ray types, e.g., radiance rays, shadow rays, etc.)
-// 	);
-	
-// 	// Check shadows
-// 	/*
-// 	PerRayData_shadow prd_shadow = DefaultShadowPRD();
-// 	prd_shadow.depth = prd_camera->depth + 1;
-// 	prd_shadow.ramaining_dist = light_sample.dist;
-// 	unsigned int opt1;
-// 	unsigned int opt2;
-// 	unsigned int raytype = static_cast<unsigned int>(RayType::SHADOW_RAY_TYPE);
-// 	pointer_as_ints(&prd_shadow, opt1, opt2);
-// 	optixTrace(
-// 		cntxt_params.root, light_sample.hitpoint, light_sample.dir, cntxt_params.scene_epsilon, 1e16f, optixGetRayTime(),
-// 		OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype
-// 	);
-// 	*/
-// 	light_sample.L = light.color;
-// 	// light_sample.L = 170.f * 170.f * light.color / (light_sample.dist * light_sample.dist); // inverse square law
-// 	// light_sample.L = light.color * (light.max_range * light.max_range / (light_sample.dist * light_sample.dist + light.max_range * light.max_range));
-// 	light_sample.L = light_sample.L * light_sample.NdL; 	
-// 	// light_sample.L = light_sample.L * prd_shadow.attenuation * light_sample.NdL;
-// 	// Caculate the remaining attributes of light sample
-// 	//  if (fmaxf(light_sample.L) < 1e-6f) {
-// 	if (fmaxf(light_sample.L) < 1e-6f || prd_occ.occluded) {
-// 	//  if (prd_occ.occluded) {
-// 	 	light_sample.L = {0.f, 0.f, 0.f};
-// 		// prd_camera->color = {1.0, 0.0, 0.}; // debug
-// 		return false;
-// 	}
-// 	 else {
-// 		light_sample.pdf = 1.0f; // Delta light
-// 		return true;
-// 	}
-// }
-
 /// @brief Camera path integrator
 /// @param cntxt_params Context parameters containing scene information
 /// @param prd_camera Pointer to the PerRayData_camera struct
@@ -299,41 +216,6 @@ static __device__ __inline__ void CameraPathIntegrator(
 			float3 halfway = normalize(next_dir - ray_dir);
 			float NdH = Dot(world_normal, halfway);
 			float VdH = Dot(-ray_dir, halfway);  // Same as LdH
-
-			// Legacy dielectric Fresnel
-			
-			// float3 F = make_float3(0.0f);
-			// // === dielectric workflow
-			// if (mat.use_specular_workflow) {
-			// 	float3 specular = (mat.ks_tex) ? GetTexFloat4ValFloat3(mat.ks_tex, mat.tex_scale, uv) : mat.Ks;
-			// 	float3 F0 = specular * 0.08f;
-			// 	F = fresnel_schlick(VdH, 5.f, F0, make_float3(1.f));
-			// } else {
-			// 	float3 default_dielectrics_F0 = make_float3(0.04f);
-			// 	F = metallic * albedo + (1 - metallic) * default_dielectrics_F0;
-			// }
-
-			// float D = NormalDist(NdH, roughness);        // 1/pi omitted
-			// float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
-
-			// float3 f_ct = F * D * G;
-
-			// // Note only specular part appears here. Energy preserve
-			// // Since it is not random, PDF is 1 (normally 1/pi),
-			// // If the camera uses GI, then it will trace two rays. So each ray's contribution should be halfed
-
-			// // mirror correction accounts for us oversampling this direction
-			// // following line comes from a heuristic. Perect reflection for metalic smooth objects,
-			// // no reflection for rough non-metalic objects
-			// float mirror_correction = (1.f - roughness) * (1.f - roughness) * metallic * metallic;
-
-			// float3 partial_contrib = mirror_correction * f_ct * NdL / (4 * CUDART_PI_F);
-			// partial_contrib = clamp(partial_contrib, make_float3(0), make_float3(1));
-
-			// partial_contrib = partial_contrib * prd_camera->contrib_to_pixel;
-			// float3 next_contrib_to_pixel = clamp(partial_contrib, make_float3(0), make_float3(1));
-			
-			
 			float sampling_pdf = NdL / CUDART_PI_F; // cosine hemisphere pdf
 			float3 this_contrib_to_pixel = PrincipledBRDF(albedo, roughness, metallic, specular, 1.0f, mat.use_specular_workflow, NdV, NdL, NdH, VdH);
 			// float3 this_contrib_to_pixel = make_float3(1.f) * NdL;
@@ -358,6 +240,7 @@ static __device__ __inline__ void CameraPathIntegrator(
 				prd_reflection.rng = prd_camera->rng;
 				prd_reflection.depth = prd_camera->depth + 1;
 				prd_reflection.use_gi = prd_camera->use_gi;
+				prd_reflection.use_fog = prd_camera->use_fog;
 				prd_reflection.contrib_to_pixel = next_contrib_to_pixel;
 				unsigned int opt1, opt2;
 				pointer_as_ints(&prd_reflection, opt1, opt2);
@@ -390,6 +273,7 @@ static __device__ __inline__ void CameraPathIntegrator(
 
 	// Add ambient light response
 	prd_camera->color += cntxt_params.ambient_light_color * albedo;
+	// prd_camera->color = albedo; // debug
 
 	// Account for fog
     AddFogEffect(prd_camera, cntxt_params, ray_dist);

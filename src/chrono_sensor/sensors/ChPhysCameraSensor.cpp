@@ -43,6 +43,7 @@ CH_SENSOR_API ChPhysCameraSensor::ChPhysCameraSensor(
     bool use_aggregator,				// whether to activate illumination irradiance aggregation
     bool use_noise,                     // whether to add noises
     bool use_expsr_to_dv,               // whether to convert exposure to digital values
+    Integrator integrator,              // integrator algorithm to use for rendering
     float gamma,						// 1.0 for linear color space, 2.2 for sRGB
     bool use_fog,						// whether to use fog on this camera
     bool use_motion_blur        		// whether to use motion blur effect
@@ -56,6 +57,7 @@ CH_SENSOR_API ChPhysCameraSensor::ChPhysCameraSensor(
     m_use_aggregator(use_aggregator),
     m_use_noise(use_noise),
     m_use_expsr_to_dv(use_expsr_to_dv),
+    m_integrator(integrator),
     m_gamma(gamma),
     m_use_fog(use_fog),
     m_use_motion_blur(use_motion_blur),
@@ -104,9 +106,9 @@ CH_SENSOR_API ChPhysCameraSensor::ChPhysCameraSensor(
 	// calculate inferred parameters in camera.cu
     m_hFOV = 2.f * atanf(0.5f * m_sensor_width / m_focal_length); // [rad]
 
-    // ----------------------------------------------------------- //
+    // ------------------------------------------------------ //
     // push back filters to build up the physics-based camera //
-    // ----------------------------------------------------------- //
+    // ------------------------------------------------------ //
     if (m_use_defocus_blur == true) {
         m_defocus_blur_ptr = chrono_types::make_shared<ChFilterPhysCameraDefocusBlur>(
             m_focal_length, m_focus_dist, m_aperture_num, m_pixel_size, m_gain_params.defocus_gain, m_gain_params.defocus_bias

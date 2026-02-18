@@ -154,35 +154,35 @@ endif()
 
 if(CH_USE_SENSOR_OPTIX)
 
-set(Chrono_sensor_CUDA_SOURCES
-	  cuda/grayscale.cu
-    cuda/pointcloud.cu
-    cuda/lidar_reduce.cu
-    cuda/camera_noise.cu
-    cuda/lidar_noise.cu
-    cuda/curand_utils.cu
-    cuda/image_ops.cu
-    cuda/nn_prep.cu
-    cuda/lidar_clip.cu
-    cuda/radarprocess.cu
-    cuda/cuda_utils.cu
-    cuda/phys_cam_ops.cu
-)
+  set(Chrono_sensor_CUDA_SOURCES
+      cuda/grayscale.cu
+      cuda/pointcloud.cu
+      cuda/lidar_reduce.cu
+      cuda/camera_noise.cu
+      cuda/lidar_noise.cu
+      cuda/curand_utils.cu
+      cuda/image_ops.cu
+      cuda/nn_prep.cu
+      cuda/lidar_clip.cu
+      cuda/radarprocess.cu
+      cuda/cuda_utils.cu
+      cuda/phys_cam_ops.cu
+  )
 
-set(Chrono_sensor_CUDA_HEADERS
-	  cuda/grayscale.cuh
-    cuda/grayscale.cuh
-    cuda/lidar_reduce.cuh
-    cuda/camera_noise.cuh
-    cuda/lidar_noise.cuh
-    cuda/curand_utils.cuh
-    cuda/image_ops.cuh
-    cuda/nn_prep.cuh
-    cuda/lidar_clip.cuh
-    cuda/radarprocess.cuh
-    cuda/cuda_utils.cuh
-    cuda/phys_cam_ops.cuh
-)
+  set(Chrono_sensor_CUDA_HEADERS
+      cuda/grayscale.cuh
+      cuda/grayscale.cuh
+      cuda/lidar_reduce.cuh
+      cuda/camera_noise.cuh
+      cuda/lidar_noise.cuh
+      cuda/curand_utils.cuh
+      cuda/image_ops.cuh
+      cuda/nn_prep.cuh
+      cuda/lidar_clip.cuh
+      cuda/radarprocess.cuh
+      cuda/cuda_utils.cuh
+      cuda/phys_cam_ops.cuh
+  )
 
   source_group("cuda" FILES ${Chrono_sensor_CUDA_SOURCES} ${Chrono_sensor_CUDA_HEADERS})
 
@@ -379,7 +379,7 @@ if(CH_USE_SENSOR_OPTIX)
       filters/ChFilterPhysCameraVignetting.h
       filters/ChFilterPhysCameraAggregator.h
       filters/ChFilterPhysCameraNoise.h
-      filters/ChFilterPhysCameraExpsrToDV.h  
+      filters/ChFilterPhysCameraExpsrToDV.h
   )
 endif()
 
@@ -634,11 +634,12 @@ if(CH_USE_SENSOR_OPTIX)
       PRE_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CH_BUILD_SENSOR_SHADERS}"
       COMMAND_EXPAND_LISTS
+      DEPENDS Chrono_sensor_ptx
       COMMENT "Copy Chrono::Sensor PTX files."
     )
     
     # Link PTX helper library, use NVCC, and set macro with location of PTX files
-    target_link_libraries(Chrono_sensor PUBLIC ${Chrono_sensor_ptx})
+    add_dependencies(Chrono_sensor Chrono_sensor_ptx)
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVCC>)
   endif()
 

@@ -52,6 +52,7 @@ class CH_SENSOR_API ChPhysCameraSensor : public ChOptixSensor {
 		/// @param use_vignetting whether to use vignetting effect
 		/// @param use_aggregator whether to aggregate illumination irradiance over exposure time and pixel area
 		/// @param use_expsr_to_dv whether to convert exposure domain to digital value domain
+		/// @param integrator The type of integrator algorithm to use for rendering.
 		/// @param gamma correction of the image, 1 for linear color space, 2.2 for sRGB
 		/// @param use_fog whether to use fog on this camera
 		/// @param use_motion_blur whether to use motion blur effect
@@ -70,6 +71,7 @@ class CH_SENSOR_API ChPhysCameraSensor : public ChOptixSensor {
 			bool use_aggregator = false,									// whether to aggregate irradiance
 			bool use_noise = false,											// whether to add noises
 			bool use_expsr_to_dv = false,									// whether to convert exposure to digital values
+			Integrator integrator = Integrator::LEGACY,						// integrator algorithm to use for rendering
 			float gamma = 1.0f,												// gamma correction value
 			bool use_fog = false,											// whether to use fog
 			bool use_motion_blur = false									// whether to open motion blur effect

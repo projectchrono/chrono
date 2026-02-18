@@ -50,7 +50,7 @@ void GetShaderFromFile(OptixDeviceContext context,
                        const std::string& file_name,
                        OptixModuleCompileOptions& module_compile_options,
                        OptixPipelineCompileOptions& pipeline_compile_options) {
-    std::cout << "Loading shader from file: " << file_name << "......";
+    
 #ifdef USE_CUDA_NVRTC
     // std::chrono::high_resolution_clock::time_point start_compile = std::chrono::high_resolution_clock::now();
     
@@ -135,7 +135,7 @@ void GetShaderFromFile(OptixDeviceContext context,
     size_t sizeof_log = sizeof(log);
     OPTIX_ERROR_CHECK(optixModuleCreate(context, &module_compile_options, &pipeline_compile_options, ptx.c_str(),
                                         ptx.size(), log, &sizeof_log, &module));
-    std::cout << "Done" << std::endl;
+    
 }
 
 void optix_log_callback(unsigned int level, const char* tag, const char* message, void*) {

@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+#ifndef DEPTH_CAM_RAYGEN_CU
+#define DEPTH_CAM_RAYGEN_CU
+
 #include "chrono_sensor/optix/shaders/device_utils.h"
 
 /// Default of depth camera per ray data (PRD)
@@ -84,3 +87,5 @@ extern "C" __global__ void __raygen__depth_camera() {
 
     camera.frame_buffer[image_index] = prd.depth;
 }
+
+#endif // DEPTH_CAM_RAYGEN_CU

@@ -75,10 +75,6 @@ void ChOptixPipeline::Cleanup() {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_material_shaders_module));
         m_material_shaders_module = 0;
     }
-    if (m_shader_utils_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_shader_utils_module));
-        m_shader_utils_module = 0;
-    }
     if (m_miss_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_miss_module));
         m_miss_module = 0;
@@ -88,77 +84,37 @@ void ChOptixPipeline::Cleanup() {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_raygen_module));
         m_camera_raygen_module = 0;
     }
-    if (m_camera_hapke_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_hapke_shader_module));
-        m_camera_hapke_shader_module = 0;
-    }
-    if (m_camera_path_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_path_shader_module));
-        m_camera_path_shader_module = 0;
-    }
-    if (m_camera_legacy_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_legacy_shader_module));
-        m_camera_legacy_shader_module = 0;
-    }
-    if (m_camera_volumetric_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_volumetric_shader_module));
-        m_camera_volumetric_shader_module = 0;
-    }
-    if (m_camera_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_camera_shader_module));
-        m_camera_shader_module = 0;
-    }
     // LiDAR
     if (m_lidar_raygen_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_lidar_raygen_module));
         m_lidar_raygen_module = 0;
-    }
-    if (m_lidar_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_lidar_shader_module));
-        m_lidar_shader_module = 0;
     }
     // RADAR
     if (m_radar_raygen_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_radar_raygen_module));
         m_radar_raygen_module = 0;
     }
-    if (m_radar_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_radar_shader_module));
-        m_radar_shader_module = 0;
-    }
     // Depth camera
     if (m_depth_cam_raygen_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_depth_cam_raygen_module));
         m_depth_cam_raygen_module = 0;
-    }
-    if (m_depth_cam_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_depth_cam_shader_module));
-        m_depth_cam_shader_module = 0;
     }
     // Normal camera
     if (m_normal_cam_raygen_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_normal_cam_raygen_module));
         m_normal_cam_raygen_module = 0;
     }
-    if (m_normal_cam_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_normal_cam_shader_module));
-        m_normal_cam_shader_module = 0;
-    }
     // Segmentation camera
     if (m_segment_cam_raygen_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_segment_cam_raygen_module));
         m_segment_cam_raygen_module = 0;
     }
-    if (m_segment_cam_shader_module) {
-        OPTIX_ERROR_CHECK(optixModuleDestroy(m_segment_cam_shader_module));
-        m_segment_cam_shader_module = 0;
-    }
+    // Physics-based camera
     if (m_phys_cam_raygen_module) {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_phys_cam_raygen_module));
         m_phys_cam_raygen_module = 0;
     }
     //// ---- Register Your Customized Sensor Here (raygen module destruction) ---- ////
-    //// ---- Register Your Customized Sensor Here (shader module destruction) ---- ////
 
     #ifdef USE_SENSOR_NVDB
     if (m_nvdb_vol_intersection_module) {
@@ -364,12 +320,13 @@ void ChOptixPipeline::CompileBaseShaders() {
                       m_pipeline_compile_options);
     #endif
 
-    // material shaders
+    // __closesthit__ modules
     GetShaderFromFile(m_context, m_material_shaders_module, "material_shaders", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_shader_utils_module, "shader_utils", module_compile_options, m_pipeline_compile_options);
-
-    // Ray-gen shaders
+    
+    // __miss__ modules
     GetShaderFromFile(m_context, m_miss_module, "miss", module_compile_options, m_pipeline_compile_options);
+
+    // __raygen__ modules
     GetShaderFromFile(m_context, m_camera_raygen_module, "camera_raygen", module_compile_options, m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_lidar_raygen_module, "lidar_raygen", module_compile_options, m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_radar_raygen_module, "radar_raygen", module_compile_options, m_pipeline_compile_options);
@@ -377,20 +334,7 @@ void ChOptixPipeline::CompileBaseShaders() {
     GetShaderFromFile(m_context, m_normal_cam_raygen_module, "normal_cam_raygen", module_compile_options, m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_segment_cam_raygen_module, "segment_cam_raygen", module_compile_options, m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_phys_cam_raygen_module, "phys_cam_raygen", module_compile_options, m_pipeline_compile_options);
-    //// ---- Register Your Customized Sensor Here (raygen shader) ---- ////
-    
-    // Sensor shaders
-    // GetShaderFromFile(m_context, m_camera_hapke_shader_module, "camera_hapke_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_camera_volumetric_shader_module, "camera_volumetric_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_camera_legacy_shader_module, "camera_legacy_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_camera_path_shader_module, "camera_path_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_camera_shader_module, "camera_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_lidar_shader_module, "lidar_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_radar_shader_module, "radar_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_depth_cam_shader_module, "depth_cam_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_normal_cam_shader_module, "normal_cam_shader", module_compile_options, m_pipeline_compile_options);
-    // GetShaderFromFile(m_context, m_segment_cam_shader_module, "segment_cam_shader", module_compile_options, m_pipeline_compile_options);
-    //// ---- Register Your Customized Sensor Here (sensor shader) ---- ////
+    //// ---- Register Your Customized Sensor Here (raygen modules) ---- ////
 
     auto end_compile = std::chrono::high_resolution_clock::now();
 

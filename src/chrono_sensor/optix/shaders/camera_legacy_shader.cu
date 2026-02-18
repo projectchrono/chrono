@@ -29,9 +29,10 @@
 
 
 /// Global illumination ray
-static __device__ __inline__ float3 CalculateGIReflectionColor(PerRayData_camera* prd_camera,
+static __device__ __inline__ float3 CalculateGIReflectionColor(const ContextParameters& params,
+                                                               PerRayData_camera* prd_camera,
                                                                const int& num_blended_materials,
-                                                               unsigned int& material_id,
+                                                               const unsigned int& material_id,
                                                                const float2& uv,
                                                                const float3& world_normal,
                                                                const float3& ray_dir,
@@ -137,9 +138,10 @@ static __device__ __inline__ float3 CalculateGIReflectionColor(PerRayData_camera
 
 
 /// If the surface is very smoooth, trace the reflected direction. Do this reflection regardless of GI on or off.
-static __device__ __inline__ float3 CalculateContributionToPixel(PerRayData_camera* prd_camera,
+static __device__ __inline__ float3 CalculateContributionToPixel(const ContextParameters& params,
+                                                                 PerRayData_camera* prd_camera,
                                                                  const int& num_blended_materials,
-                                                                 unsigned int& material_id,
+                                                                 const unsigned int& material_id,
                                                                  const float2& uv,
                                                                  const float3& world_normal,
                                                                  const float3& ray_dir,
@@ -249,9 +251,10 @@ static __device__ __inline__ float3 CalculateContributionToPixel(PerRayData_came
 
 
 /// Calculating Ambient Light
-static __device__ __inline__ float3 CalculateAmbientLight(PerRayData_camera* prd_camera,
+static __device__ __inline__ float3 CalculateAmbientLight(const ContextParameters& params,
+                                                          PerRayData_camera* prd_camera,
                                                           const int& num_blended_materials,
-                                                          unsigned int& material_id,
+                                                          const unsigned int& material_id,
                                                           const float2& uv,
                                                           const float3& world_normal,
                                                           const float3& ray_dir) {
@@ -292,9 +295,10 @@ static __device__ __inline__ float3 CalculateAmbientLight(PerRayData_camera* prd
 
 
 /// Calculating Surface reflection toward light sources
-static __device__ __inline__ float3 CalculateReflectedColor(PerRayData_camera* prd_camera,
+static __device__ __inline__ float3 CalculateReflectedColor(const ContextParameters& params,
+                                                            PerRayData_camera* prd_camera,
                                                             const int& num_blended_materials,
-                                                            unsigned int& material_id,
+                                                            const unsigned int& material_id,
                                                             const float2& uv,
                                                             const float3& hit_point,
                                                             const float3& world_normal,
@@ -407,9 +411,10 @@ static __device__ __inline__ float3 CalculateReflectedColor(PerRayData_camera* p
 
 
 /// Calculating Refracted color
-static __device__ __inline__ float3 CalculateRefractedColor(PerRayData_camera* prd_camera,
+static __device__ __inline__ float3 CalculateRefractedColor(const ContextParameters& params,
+                                                            PerRayData_camera* prd_camera,
                                                             const int& num_blended_materials,
-                                                            unsigned int& material_id,
+                                                            const unsigned int& material_id,
                                                             const float2& uv,
                                                             const float3& hit_point,
                                                             const float3& ray_dir) {
@@ -473,7 +478,7 @@ static __device__ __inline__ float3 CalculateRefractedColor(PerRayData_camera* p
 static __device__ __inline__ void CameraLegacyShader(const ContextParameters& params,
                                                      PerRayData_camera* prd_camera,
                                                      const MaterialRecordParameters* mat_params,
-                                                     unsigned int& material_id,
+                                                     const unsigned int& material_id,
                                                      const unsigned int& num_blended_materials,
                                                      const float3& world_normal,
                                                      const float2& uv,
@@ -530,24 +535,24 @@ static __device__ __inline__ void CameraLegacyShader(const ContextParameters& pa
 
     // for each blended material accumulate transparency, and perform traversal
     float3 refracted_color =
-        CalculateRefractedColor(prd_camera, num_blended_materials, material_id, uv, hit_point, ray_dir);
+        CalculateRefractedColor(params, prd_camera, num_blended_materials, material_id, uv, hit_point, ray_dir);
 
     // for each light, traverse to light, and calculate each material's shading
     float3 light_reflected_color =
-        CalculateReflectedColor(prd_camera, num_blended_materials, material_id, uv, hit_point, world_normal, ray_dir);
+        CalculateReflectedColor(params, prd_camera, num_blended_materials, material_id, uv, hit_point, world_normal, ray_dir);
 
     // for each blended material, calculating total ambient light
     float3 ambient_light =
-        CalculateAmbientLight(prd_camera, num_blended_materials, material_id, uv, world_normal, ray_dir);
+        CalculateAmbientLight(params, prd_camera, num_blended_materials, material_id, uv, world_normal, ray_dir);
 
     // for each blended material accumulate reflection, and perform traversal
     float3 next_dir = normalize(reflect(ray_dir, world_normal));
-    float3 mirror_reflection_color = CalculateContributionToPixel(prd_camera, num_blended_materials, material_id, uv,
+    float3 mirror_reflection_color = CalculateContributionToPixel(params, prd_camera, num_blended_materials, material_id, uv,
                                                                   world_normal, ray_dir, hit_point);
 
     // send ray in random direction if global illumination enabled, calculate each materia's shading for a combined
     // shading
-    float3 gi_reflection_color = CalculateGIReflectionColor(prd_camera, num_blended_materials, material_id, uv,
+    float3 gi_reflection_color = CalculateGIReflectionColor(params, prd_camera, num_blended_materials, material_id, uv,
                                                             world_normal, ray_dir, hit_point, mirror_reflection_color);
 
     //=================
