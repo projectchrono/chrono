@@ -18,8 +18,8 @@
 //
 // =============================================================================
 
-#ifndef CHVISUALMATERIAL_H
-#define CHVISUALMATERIAL_H
+#ifndef CH_VISUAL_MATERIAL_H
+#define CH_VISUAL_MATERIAL_H
 
 #include <string>
 
@@ -27,6 +27,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualBSDFType.h"
+
 namespace chrono {
 
 /// @addtogroup chrono_assets
@@ -71,22 +72,23 @@ class ChApi ChVisualMaterial {
     void SetAnisotropy(float a);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
 
-    /// @brief  Set the type of the material to be used for rendering.
-    /// @param s The BSDF type of the material. See ChVisualBSDFType.h for details.
+    /// Set the BSDF type of the material to be used for rendering.
     void SetBSDF(BSDFType s) {bsdf_type = s;}
 
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
-    /// @brief  Set the Hapke material parameters. Note that in our implementation, we ignore the impact of coherent backscatter. 
-    /// @param w  single scattering albedo
-    /// @param b  shape controlling parameter for the amplitude of backward and forward scatter of particles
-    /// @param c  weighting factor that controls the contribution of backward and forward scatter.
-    /// @param B_s0 Amplitude of the opposition effect caused by shadow hiding
-    /// @param h_s  Angular width of the opposition effect caused by shadow hiding.
-    /// @param phi Fillig factor of the regolith
-    /// @param theta_p Effective value of the photometric roughness which controls the surface roughness
-    void SetHapkeParameters(float w, float b, float c, float B_s0, float h_s, float phi, float theta_p);
+    /// Set the Hapke material parameters.
+    /// Note that this implementation ignores the impact of coherent backscatter.
+    void SetHapkeParameters(
+        float w,       ///< single scattering albedo
+        float b,       ///< shape controlling parameter for the amplitude of backward and forward scatter of particles
+        float c,       ///< weighting factor that controls the contribution of backward and forward scatter
+        float B_s0,    ///< amplitude of the opposition effect caused by shadow hiding
+        float h_s,     ///< angular width of the opposition effect caused by shadow hiding
+        float phi,     ///< fillig factor
+        float theta_p  ///< effective value of the photometric roughness
+    );
 
     // Accessor functions
 
@@ -128,8 +130,7 @@ class ChApi ChVisualMaterial {
     float GetHapkePhi() const {return hapke_phi;}
     float GetHapkeRoughness() const {return hapke_theta_p;}
 
-    /// @brief Get the BSDF type of the material.
-    /// @return The BSDF type of the material. See ChVisualBSDFType.h for details.
+    /// Get the BSDF type of the material.
     BSDFType GetBSDF() const {return bsdf_type;}
 
     unsigned short int GetClassID() const { return class_id; }
@@ -184,14 +185,13 @@ class ChApi ChVisualMaterial {
 
 
     // Hapke material parameters
-    float hapke_w; // single scattering albedo
-    float hapke_b; // shape controlling parameter for the amplitude of backward and forward scatter of particles
-    float hapke_c; // weighting factor that controls the contribution of backward and forward scatter.
-    float hapke_B_s0;
-    float hapke_h_s;
-    float hapke_phi;
-    float hapke_theta_p;
-    
+    float hapke_w;        ///< single scattering albedo
+    float hapke_b;        ///< shape controlling parameter for the amplitude of particle scatter
+    float hapke_c;        ///< weighting factor that controls the contribution of backward and forward scatter
+    float hapke_B_s0;     ///< amplitude of the opposition effect caused by shadow hiding
+    float hapke_h_s;      ///< angular width of the opposition effect caused by shadow hiding
+    float hapke_phi;      ///< fillig factor
+    float hapke_theta_p;  ///< effective value of the photometric roughness
 };
 
 typedef std::shared_ptr<ChVisualMaterial> ChVisualMaterialSharedPtr;

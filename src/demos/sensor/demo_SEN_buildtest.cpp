@@ -298,7 +298,6 @@ int main(int argc, char* argv[]) {
     ChOptixLight p0 = manager->scene->GetLights()[p0_idx];
     unsigned int p1_idx = manager->scene->AddPointLight({10, 10, 10}, {0, 0, 1}, 1000);
     ChOptixLight p1 = manager->scene->GetLights()[p1_idx];
-    unsigned int p2_idx = manager->scene->AddPointLight({ 0, 0, 100}, {1, 1, 1}, 1000);
 
     // set the background
     Background b;

@@ -41,7 +41,7 @@ enum class LightType {
 	// ---- Register Your Customized Light Here (type definition) ---- //
 };
 
-struct __device__ LightSample {
+struct LightSample {
     float3 L;        // light luminance, [cd/m^2/sr/sec] or [W/m^2/sr]
     float3 dir;      // wi, direction from hit-point to light
     float3 wo;       // direction from hit-point to viewer
@@ -51,7 +51,6 @@ struct __device__ LightSample {
     float dist;      // distance from hit-point to light
     float pdf;       // PDF of the light sample. Ex: delta lights have PDF = 1, area lights have PDF = 1 / area.
 };
-
 
 // ---- Register Your Customized Light Here (define light data structs) ---- //
 

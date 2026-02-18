@@ -70,7 +70,7 @@ CH_SENSOR_API ChPhysCameraSensor::ChPhysCameraSensor(
     m_focus_dist(3.0f),
 	m_max_scene_light_amount(250.f),
 	m_sensor_width(0.013f),
-    m_pixel_size(5.86e-6),
+    m_pixel_size(5.86e-6f),
     m_rgb_QE_vec({1.0f, 1.0f, 1.0f}), // m_rgb_QE_vec({1.f, 1.f, 1.f})
     m_distortion_params({0.f, 0.f, 0.f}),
     m_lens_parameters({}),
