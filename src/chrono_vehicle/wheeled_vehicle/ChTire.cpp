@@ -240,6 +240,7 @@ bool ChTire::DiscTerrainCollision1pt(const ChTerrain& terrain,  // reference to 
 
     // Project reference point onto terrain plane
     ChVector3d Pp;
+    n.Normalize();
     PointPlaneProjection(A, P, n, Pp);
 
     // Calculate depth (along n)
@@ -254,7 +255,7 @@ bool ChTire::DiscTerrainCollision1pt(const ChTerrain& terrain,  // reference to 
 
     // Construct contact patch frame from P and n
     ChVector3d fwd = Vcross(dn, n);
-    fwd.Normalize();
+    // Note that both dn and n are normalized; therefore, fwd will be too
     ChVector3d lat = Vcross(n, fwd);
     ChMatrix33<> rot(fwd, lat, n);
     contact.pos = Pp;
