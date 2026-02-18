@@ -31,7 +31,7 @@ using namespace chrono::vehicle;
 using std::cout;
 using std::endl;
 
-constexpr double tol = 1e-2;
+constexpr double tol = 1e-5;
 
 // -----------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ constexpr double tol = 1e-2;
 class TestTerrain : public ChTerrain {
   public:
     TestTerrain(double angle) : sa(std::sin(angle)), ca(std::cos(angle)), ta(std::tan(angle)) {}
-    virtual ChVector3d GetPoint(const ChVector3d& loc) const override { return ChVector3d(loc.x(), 0, loc.x() * ta); }
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override { return ChVector3d(loc.x(), loc.y(), loc.x() * sa); }
     virtual double GetHeight(const ChVector3d& loc) const override { return loc.x() * sa; }
     virtual ChVector3d GetNormal(const ChVector3d& loc) const override { return ChVector3d(-sa, 0, ca); }
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override { return 1.0; }
@@ -117,7 +117,7 @@ class TireCollision {
         csys_normal = csys.rot.GetAxisZ();
 
         // Distance from csys origin to terrain surface
-        csys_dist = std::abs(sa * csys.pos.x() - ca * csys.pos.z());
+        csys_dist = std::abs(sa * csys.pos.x() - csys.pos.z());
 
         if (verbose) {
             cout << "  terrain normal at csys origin: " << terrain_normal << endl;
@@ -176,8 +176,9 @@ class TireCollisionTest : public TireCollision,
 
 TEST_P(TireCollisionTest, csys) {
     ASSERT_NEAR(csys.pos.y(), 0.0, tol);
-    ASSERT_NEAR(csys.pos.z(), csys.pos.x() * std::tan(angle), tol);
+    ASSERT_NEAR(csys.pos.z(), csys.pos.x() * std::sin(angle), tol);
     ASSERT_NEAR(csys_dist, 0.0, tol);
+    ASSERT_GT(depth, 0.0);
     Assert_near(csys_normal, terrain_normal, tol);
 }
 
