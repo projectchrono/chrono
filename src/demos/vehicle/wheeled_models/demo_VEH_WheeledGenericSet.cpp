@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetChaseCamera(VNULL, 8.0, 1.5);
             ////vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
             ////vis_vsg->SetChaseCameraPosition(ChVector3d(-6, terrain_y, 3.0));
-            vis_vsg->EnableSkyTexture(SkyMode::BOX);
+            vis_vsg->EnableSkyTexture(SkyMode::DOME);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

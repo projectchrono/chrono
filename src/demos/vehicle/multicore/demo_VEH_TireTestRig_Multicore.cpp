@@ -172,7 +172,7 @@ int main() {
     vis->AddCamera(ChVector3d(0, 3, 0), ChVector3d(0, 0, 0));
     vis->SetWindowSize(1280, 720);
     vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-    vis->EnableSkyTexture(SkyMode::BOX);
+    vis->EnableSkyTexture(SkyMode::DOME);
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
