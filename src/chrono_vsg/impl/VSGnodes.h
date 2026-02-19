@@ -27,9 +27,15 @@ vsg::ref_ptr<vsg::Node> createQuad(const vsg::vec3& origin,
                                    const vsg::vec3& vertical,
                                    vsg::ref_ptr<vsg::Data> sourceData = {});
 
-vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup);
+vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename,
+                                     vsg::ref_ptr<vsg::Options> options,
+                                     double azimuth_offset,
+                                     bool yup);
 
-vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup);
+vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename,
+                                        vsg::ref_ptr<vsg::Options> options,
+                                        double azimuth_offset,
+                                        bool yup);
 
 }  // namespace vsg3d
 }  // namespace chrono

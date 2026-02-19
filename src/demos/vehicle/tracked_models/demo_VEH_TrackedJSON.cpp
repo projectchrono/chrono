@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle(title);
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->EnableSkyBox();
+            vis_vsg->EnableSkyTexture(SkyMode::BOX);
             vis_vsg->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->AttachDriver(driver.get());

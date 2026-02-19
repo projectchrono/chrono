@@ -156,7 +156,7 @@ elif vis_type == chrono.ChVisualSystem.Type_VSG:
     vis = veh.ChWheeledVehicleVisualSystemVSG()
     vis.SetWindowTitle('UAZ bus')
     vis.SetWindowSize(1280, 1024)
-    vis.EnableSkyBox()
+    vis.EnableSkyTexture()
     vis.SetLightIntensity(1.0)
     vis.SetLightDirection(2.0, 0.75)
     vis.EnableShadows()

@@ -369,8 +369,7 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();
-    vis->EnableSkySphere();
-    vis->SetSkySphereTexture("vsg/textures/citrus_orchard_road_puresky.jpg");
+    vis->EnableSkyTexture(SkyMode::DOME);
     vis->AttachVehicle(&vehicle);
     vis->AttachTerrain(&terrain);
 

@@ -173,7 +173,7 @@ void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
                             vehicle_model->CameraHeight());
     vis_vsg->SetWindowSize(1280, 800);
-    vis_vsg->EnableSkyBox();
+    vis_vsg->EnableSkyTexture(SkyMode::BOX);
     vis_vsg->SetCameraAngleDeg(40);
     vis_vsg->SetLightIntensity(1.0f);
     vis_vsg->SetLightDirection(1.8 * CH_PI_2, CH_PI_4);
@@ -351,7 +351,7 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
     vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
     vis_vsg->SetChaseCameraPosition(pos_1 + ChVector3d(-35, 0, 2.0));
     vis_vsg->SetWindowSize(1280, 800);
-    vis_vsg->EnableSkyBox();
+    vis_vsg->EnableSkyTexture(SkyMode::BOX);
     vis_vsg->SetCameraAngleDeg(40);
     vis_vsg->SetLightIntensity(1.0f);
     vis_vsg->SetLightDirection(1.8 * CH_PI_2, CH_PI_4);

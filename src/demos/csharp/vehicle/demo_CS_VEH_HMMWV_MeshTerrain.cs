@@ -39,7 +39,7 @@ namespace ChronoDemo
             chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Mesh Terrain Demo");
             if (isYUp) { chrono_vsg.CastToChVisualSystemVSG(vis).SetCameraVertical(CameraVerticalDir.Y); }
             vis.SetChaseCamera(new ChVector3d(-5.0, 0.0, 2.0), 2.0, 0.5);
-            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyBox();
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
             chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

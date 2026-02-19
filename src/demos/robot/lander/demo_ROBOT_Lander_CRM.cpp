@@ -411,7 +411,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         visVSG->SetBackgroundColor(ChColor(0.1f, 0.1f, 0.15f));  // Dark blue-gray (space-like)
-        visVSG->EnableSkyBox();
+        visVSG->EnableSkyTexture(SkyMode::BOX);
         visVSG->Initialize();
         // Always enable active domain visualization after initialization
         if (USE_ACTIVE_DOMAIN) {

@@ -291,10 +291,10 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_camera_trackball(true),
       m_capture_image(false),
       //
-      m_use_skysphere(false),
-      m_skysphere_path("vsg/textures/citrus_orchard_road_puresky.jpg"),
-      //
-      m_use_skybox(false),
+      m_sky_mode(SkyMode::NONE),
+      m_skydome_sun_azimuth(1.15 * CH_PI),
+      m_skybox_sun_azimuth(0.5 * CH_PI_2),
+      m_skysphere_path("vsg/textures/vsg_skydome.jpg"),
       m_skybox_path("vsg/textures/vsg_skybox.ktx"),
       //
       m_use_shadows(false),
@@ -573,34 +573,22 @@ void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     m_windows_title = title;
 }
 
-void ChVisualSystemVSG::EnableSkyBox(bool val) {
-    if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::EnableSkyBox can only be called before initialization!" << std::endl;
-        return;
-    }
-    m_use_skybox = val;
-    if (m_use_skybox) {
-        m_use_skysphere = false;
-    }
-}
-
-void ChVisualSystemVSG::EnableSkySphere(bool val) {
-    if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::EnableSkyDome can only be called before initialization!" << std::endl;
-        return;
-    }
-    m_use_skysphere = val;
-    if (m_use_skysphere) {
-        m_use_skybox = false;
-    }
-}
-
-void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename) {
+void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename, double sun_azimuth) {
     m_skybox_path = filename;
+    m_skybox_sun_azimuth = sun_azimuth;
 }
 
-void ChVisualSystemVSG::SetSkySphereTexture(const std::string& filename) {
+void ChVisualSystemVSG::SetSkyDomeTexture(const std::string& filename, double sun_azimuth) {
     m_skysphere_path = filename;
+    m_skydome_sun_azimuth = sun_azimuth;
+}
+
+void ChVisualSystemVSG::EnableSkyTexture(SkyMode mode) {
+    if (m_initialized) {
+        std::cerr << "Function ChVisualSystemVSG::EnableSkyTexture can only be called before initialization!" << std::endl;
+        return;
+    }
+    m_sky_mode = mode;    
 }
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
@@ -692,7 +680,7 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
                   << std::endl;
         return;
     }
-    m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
+    m_azimuth = ChClamp(azimuth, 0.0, CH_2PI);
     m_elevation = ChClamp(elevation, -CH_PI_2, CH_PI_2);
 }
 
@@ -735,22 +723,16 @@ void ChVisualSystemVSG::Initialize() {
     double radius = 50.0;
     vsg::dbox bound;
 
-    if (m_use_skybox) {
-        vsg::Path fileName(m_skybox_path);
-        auto skyPtr = createSkybox(fileName, m_options, m_yup);
-        if (skyPtr)
-            m_scene->addChild(skyPtr);
-        else
-            m_use_skybox = false;
-    }
-
-    if (m_use_skysphere) {
+    if (m_sky_mode == SkyMode::DOME) {
         vsg::Path fileName(m_skysphere_path);
-        auto skyPtr = createSkysphere(fileName, m_options, m_yup);
+        auto skyPtr = createSkysphere(fileName, m_options, m_skydome_sun_azimuth - m_azimuth, m_yup);
         if (skyPtr)
             m_scene->addChild(skyPtr);
-        else
-            m_use_skysphere = false;
+    } else if (m_sky_mode == SkyMode::BOX) {
+        vsg::Path fileName(m_skybox_path);
+        auto skyPtr = createSkybox(fileName, m_options, m_skybox_sun_azimuth - m_azimuth, m_yup);
+        if (skyPtr)
+            m_scene->addChild(skyPtr);
     }
 
     auto ambientLight = vsg::AmbientLight::create();
@@ -774,7 +756,7 @@ void ChVisualSystemVSG::Initialize() {
     double sa = std::sin(m_azimuth);
     double ca = std::cos(m_azimuth);
     if (m_yup)
-        directionalLight->direction.set(-ce * ca, -se, -ce * sa);
+        directionalLight->direction.set(-ce * ca, -se, +ce * sa);
     else
         directionalLight->direction.set(-ce * ca, -ce * sa, -se);
 

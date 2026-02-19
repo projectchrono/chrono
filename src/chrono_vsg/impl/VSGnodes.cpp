@@ -188,7 +188,10 @@ vsg::ref_ptr<vsg::Node> createQuad(const vsg::vec3& origin,
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup) {
+vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename,
+                                        vsg::ref_ptr<vsg::Options> options,
+                                        double azimuth_offset,
+                                        bool yup) {
     auto root = vsg::StateGroup::create();
 
     auto textureData = vsg::read_cast<vsg::Data>(filename, options);
@@ -264,32 +267,31 @@ vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename, vsg::ref_ptr<
     // add transform to root of the scene graph
     scenegraph->addChild(transform);
 
-    // create sphere vertices, texcoods and indices
+    // create sphere vertices (radius = 1), texcoods, and indices
     int num_divs = 60;
-    int nTheta = num_divs / 2;
-    int nPhi = num_divs;
+    int num_theta = num_divs / 2;
+    int num_phi = num_divs;
 
-    double r = 1.0;
-    double dTheta = CH_PI / nTheta;
-    double dPhi = CH_2PI / nPhi;
+    double delta_theta = CH_PI / num_theta;
+    double delta_phi = CH_2PI / num_phi;
 
-    size_t nv = (nPhi + 1) * (nTheta + 1);
+    size_t nv = (num_phi + 1) * (num_theta + 1);
     auto vertices = vsg::vec3Array::create(nv);
     auto texcoords = vsg::vec2Array::create(nv);
 
-    size_t nf = 2 * nPhi * nTheta;
+    size_t nf = 2 * num_phi * num_theta;
     auto indices = vsg::ushortArray::create(3 * nf);
 
     int v = 0;  // current vertex counter
-    for (int iPhi = 0; iPhi <= nPhi; iPhi++) {
-        auto phi = iPhi * dPhi;
+    for (int iPhi = 0; iPhi <= num_phi; iPhi++) {
+        auto phi = iPhi * delta_phi;
 
-        for (int iTheta = 0; iTheta <= nTheta; iTheta++) {
-            auto theta = iTheta * dTheta;
+        for (int iTheta = 0; iTheta <= num_theta; iTheta++) {
+            auto theta = iTheta * delta_theta;
 
-            double x = r * sin(theta) * cos(phi);
-            double y = r * sin(theta) * sin(phi);
-            double z = r * cos(theta);
+            double x = sin(theta) * cos(phi - azimuth_offset);
+            double y = sin(theta) * sin(phi - azimuth_offset);
+            double z = cos(theta);
 
             vertices->set(v, vsg::vec3(x, y, z));
 
@@ -299,13 +301,13 @@ vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename, vsg::ref_ptr<
         }
     }
 
-    int i = 0;  // current index counter
-    for (int iPhi = 0; iPhi < nPhi; iPhi++) {
-        for (int iTheta = 0; iTheta < nTheta; iTheta++) {
-            int k1 = (nTheta + 1) * (iPhi + 0) + (iTheta + 0);
-            int k2 = (nTheta + 1) * (iPhi + 0) + (iTheta + 1);
-            int k3 = (nTheta + 1) * (iPhi + 1) + (iTheta + 1);
-            int k4 = (nTheta + 1) * (iPhi + 1) + (iTheta + 0);
+    size_t i = 0;  // current index counter
+    for (int iPhi = 0; iPhi < num_phi; iPhi++) {
+        for (int iTheta = 0; iTheta < num_theta; iTheta++) {
+            int k1 = (num_theta + 1) * (iPhi + 0) + (iTheta + 0);
+            int k2 = (num_theta + 1) * (iPhi + 0) + (iTheta + 1);
+            int k3 = (num_theta + 1) * (iPhi + 1) + (iTheta + 1);
+            int k4 = (num_theta + 1) * (iPhi + 1) + (iTheta + 0);
 
             indices->set(i + 0, k1);
             indices->set(i + 1, k3);
@@ -334,7 +336,10 @@ vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename, vsg::ref_ptr<
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup) {
+vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename,
+                                     vsg::ref_ptr<vsg::Options> options,
+                                     double azimuth,
+                                     bool yup) {
     auto data = vsg::read_cast<vsg::Data>(filename, options);
     if (!data) {
         std::cout << "Error: failed to load cubemap file : " << filename << std::endl;
