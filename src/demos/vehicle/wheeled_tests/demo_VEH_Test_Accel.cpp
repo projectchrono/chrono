@@ -67,6 +67,9 @@ TerrainType terrain_type = TerrainType::RIGID;
 // Terrain length (X direction)
 double terrainLength = 800.0;
 
+// Tire-terrain collision type (handling tire models)
+ChTire::CollisionType tire_collision_type = ChTire::CollisionType::SINGLE_POINT;
+
 // Include aerodynamic drag
 bool include_aero_drag = false;
 
@@ -109,6 +112,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle model
     vehicle_model->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    vehicle_model->SetTireCollisionType(tire_collision_type);
     vehicle_model->Create(ChContactMethod::SMC, ChCoordsys<>(init_loc, QUNIT), false);
     auto& vehicle = vehicle_model->GetVehicle();
 

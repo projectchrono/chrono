@@ -54,6 +54,7 @@ class CH_MODELS_API Kraz {
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
+    void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
 
     ChSystem* GetSystem() const { return m_tractor->GetSystem(); }
@@ -80,6 +81,7 @@ class CH_MODELS_API Kraz {
     bool m_fixed;
 
     double m_tire_step_size;
+    ChTire::CollisionType m_tire_collision_type;
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;

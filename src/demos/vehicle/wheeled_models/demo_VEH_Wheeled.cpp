@@ -63,6 +63,9 @@ double terrainWidth = 200.0;   // size in Y direction
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
 
+// Tire-terrain collision type (handling tire models)
+ChTire::CollisionType tire_collision_type = ChTire::CollisionType::SINGLE_POINT;
+
 // Render frequency
 double render_fps = 50;
 
@@ -102,6 +105,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle model
     vehicle_model->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    vehicle_model->SetTireCollisionType(tire_collision_type);
     vehicle_model->Create(contact_method, ChCoordsys<>(ChVector3d(0, 0, 0.5), QUNIT));
     auto& vehicle = vehicle_model->GetVehicle();
     auto sys = vehicle.GetSystem();

@@ -59,6 +59,7 @@ class CH_MODELS_API MTV {
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
+    void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
     void SetEngineType(EngineModelType val) { m_engineType = val; }
     void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
 
@@ -107,6 +108,7 @@ class CH_MODELS_API MTV {
 
     BrakeType m_brake_type;
     TireModelType m_tireType;
+    ChTire::CollisionType m_tire_collision_type;
     EngineModelType m_engineType;
     TransmissionModelType m_transmissionType;
 
