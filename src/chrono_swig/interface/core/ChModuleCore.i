@@ -358,6 +358,7 @@ inline const char* ChUtils_GetFilename() {
 // assets
 %include "ChColor.i"
 %include "ChColormap.i"
+%include "ChVisualBSDFType.i"
 %include "ChVisualMaterial.i"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"
