@@ -4,6 +4,7 @@ set(TESTS
 
 if(CH_USE_SENSOR_OPTIX)
   set(TESTS ${TESTS}
+    utest_SEN_data_access
     utest_SEN_interface
     utest_SEN_optixengine
     utest_SEN_optixgeometry
