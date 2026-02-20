@@ -129,9 +129,8 @@ int main(int argc, char* argv[]) {
 
     // Add regular wave
     RegularWaveParams reg_wave_params;
-    reg_wave_params.num_bodies_ = 2;
-    reg_wave_params.regular_wave_amplitude_ = wave_amplitude;
-    reg_wave_params.regular_wave_omega_ = CH_2PI / wave_period;
+    reg_wave_params.regular_wave_amplitude = wave_amplitude;
+    reg_wave_params.regular_wave_omega = CH_2PI / wave_period;
     sysTDPF.AddWaves(reg_wave_params);
 
     // ----- FSI system
