@@ -79,7 +79,7 @@ public:
             N[i] = N_vol[node_map[i]];
         }
     }
-    virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override { throw std::exception("Not implemented, not needed."); }
+    virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override { throw std::logic_error("Not implemented, not needed."); }
     virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J)  override { 
         ChVector3d eta_vol = ConvertFaceToVolumeCoords(m_face_id, eta);
         // Compute the volume Jacobian at the face point
@@ -99,9 +99,9 @@ public:
         J.col(2) = VNULL.eigen();               // Dummy direction
         return (Vcross(J.GetAxisX(), J.GetAxisY()).Length()); // shortcut, as J has null column at the rigth
     }
-    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv)  override { throw std::exception("Not implemented, not needed."); }
-    virtual int GetNumQuadraturePointsForOrder(const int order) const  override { throw std::exception("Not implemented, not needed."); }
-    virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const  override { throw std::exception("Not implemented, not needed."); }
+    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv)  override { throw std::logic_error("Not implemented, not needed."); }
+    virtual int GetNumQuadraturePointsForOrder(const int order) const  override { throw std::logic_error("Not implemented, not needed."); }
+    virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const  override { throw std::logic_error("Not implemented, not needed."); }
 
 
     virtual bool IsTriangleIntegrationCompatible() const override { return true; }
