@@ -634,7 +634,6 @@ if(CH_USE_SENSOR_OPTIX)
       PRE_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CH_BUILD_SENSOR_SHADERS}"
       COMMAND_EXPAND_LISTS
-      DEPENDS Chrono_sensor_ptx
       COMMENT "Copy Chrono::Sensor PTX files."
     )
     
