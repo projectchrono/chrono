@@ -1683,7 +1683,7 @@ void ChVisualSystemVSG::BindAll() {
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(ChFramed(), m_scale_multiplier * m_abs_frame_scale);
         vsg::Mask mask = m_show_abs_frame;
-        auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+        auto node = m_shapeBuilder->createFrameSymbol(transform, 2, false, 1.0f);
         node->setValue("Transform", transform);
         m_absFrameScene->addChild(mask, node);
     }
@@ -2193,7 +2193,7 @@ void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
     vsg::Mask mask = m_show_ref_frames;
-    auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+    auto node = m_shapeBuilder->createFrameSymbol(transform, 2, false, 1.0f);
     node->setValue("Object", obj);
     node->setValue("Transform", transform);
     m_refFrameScene->addChild(mask, node);
@@ -2203,7 +2203,7 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto com_transform = vsg::MatrixTransform::create();
     com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
-    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 1.0f, 2.0f, true);
+    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 2, true, 1.0f);
     com_node->setValue("Body", body);
     com_node->setValue("MobilizedBody", nullptr);
     com_node->setValue("Transform", com_transform);
@@ -2215,7 +2215,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto link_transform = vsg::MatrixTransform::create();
         link_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
-        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.75f, 1.0f, true);
+        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.75f);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 1);
         link_node->setValue("Transform", link_transform);
@@ -2224,7 +2224,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto link_transform = vsg::MatrixTransform::create();
         link_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
-        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.5f, 1.0f, true);
+        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.5f);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 2);
         link_node->setValue("Transform", link_transform);
