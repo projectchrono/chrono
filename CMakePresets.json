@@ -182,7 +182,7 @@
 				"MKL_DIR": "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/lib/cmake/mkl",
 				"Irrlicht_ROOT": "C:/Users/builder/Documents/irrlicht-1.8.5",
 				"blaze_INCLUDE_DIR": "C:/Users/builder/Documents/blaze-3.8.1",
-				"OptiX_INSTALL_DIR": "C:/ProgramData/NVIDIA Corporation/OptiX SDK 7.7.0",
+				"OptiX_INSTALL_DIR": "C:/ProgramData/NVIDIA Corporation/OptiX SDK 9.1.0",
 				"FastDDS_ROOT": "C:/Program Files/eProsima/fastrtps 2.4.0",
 				"GLEW_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/gl_build/lib/cmake/glew",
 				"glfw3_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/gl_build/lib/cmake/glfw3",
