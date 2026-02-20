@@ -270,7 +270,7 @@ double CRGTerrain::GetHeight(const ChVector3d& loc) const {
         return 0;
     }
 
-    // when leaving the road the vehicle should not fall into an abyss
+    // ensure point is within known limits
     ChClampValue(u, m_ubeg, m_uend);
     ChClampValue(v, m_vbeg, m_vend);
 
@@ -281,6 +281,35 @@ double CRGTerrain::GetHeight(const ChVector3d& loc) const {
     }
 
     return z;
+}
+
+ChVector3d CRGTerrain::GetPoint(const ChVector3d& loc) const {
+    ChVector3d loc_ISO = ChWorldFrame::ToISO(loc);
+    double u, v;
+    int uv_ok = crgEvalxy2uv(m_cpId, loc_ISO.x(), loc_ISO.y(), &u, &v);
+    if (uv_ok != 1) {
+        std::cerr << "CRGTerrain::GetPoint(): error during xy -> uv coordinate transformation" << std::endl;
+        return VNULL;
+    }
+
+    // ensure point is within known limits
+    ChClampValue(u, m_ubeg, m_uend);
+    ChClampValue(v, m_vbeg, m_vend);
+
+    double x, y, z;
+    int xy_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
+    if (xy_ok != 1) {
+        std::cerr << "CRGTerrain::GetPoint(): error during uv -> xy coordinate transformation" << std::endl;
+        return VNULL;
+    }
+
+    int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
+    if (z_ok != 1) {
+        std::cerr << "CRGTerrain::GetPoint(): error during uv -> z coordinate transformation" << std::endl;
+        return VNULL;
+    }
+
+    return ChWorldFrame::FromISO(ChVector3d(x, y, z));
 }
 
 ChVector3d CRGTerrain::GetNormal(const ChVector3d& loc) const {
