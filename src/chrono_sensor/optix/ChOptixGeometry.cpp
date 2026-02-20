@@ -157,10 +157,9 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building box GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -248,10 +247,9 @@ void ChOptixGeometry::AddNVDBVolume(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building box GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -326,10 +324,9 @@ void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building sphere GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -403,10 +400,9 @@ void ChOptixGeometry::AddCylinder(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building cylinder GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -520,7 +516,10 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChVisualShapeTri
                                                 unsigned int gas_id) {
     auto mesh = mesh_shape->GetMesh();
 
-    OptixAccelBuildOptions accel_options = {OPTIX_BUILD_FLAG_ALLOW_COMPACTION, OPTIX_BUILD_OPERATION_BUILD};
+    OptixAccelBuildOptions accel_options = {};
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+    accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
+    
     if (!compact_no_update) {
         accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
         // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;

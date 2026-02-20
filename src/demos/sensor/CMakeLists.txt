@@ -11,6 +11,8 @@ if(CH_USE_SENSOR_OPTIX)
       demo_SEN_buildtest
       demo_SEN_JSON
       demo_SEN_camera
+      demo_SEN_cornell_box
+      demo_SEN_phys_cam
       demo_SEN_lidar
       demo_SEN_radar
       demo_SEN_radar1

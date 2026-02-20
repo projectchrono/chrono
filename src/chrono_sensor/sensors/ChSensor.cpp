@@ -96,6 +96,24 @@ CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
 }
 
 // -----------------------------------------------------------------------------
+// retriever function for image data in RGBA 16-bit format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserRGBA16BufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserRGBA16BufferPtr, ChFilterRGBA16Access, ChFilterRGBA16AccessName>();
+}
+
+// -----------------------------------------------------------------------------
+// retriever function for image data in RGBD half4 format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserRGBDHalf4BufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserRGBDHalf4BufferPtr, ChFilterRGBDHalf4Access, ChFilterRGBDHalf4AccessName>();
+}
+
+// -----------------------------------------------------------------------------
 // retriever function for image semantic data in semantic format
 // -----------------------------------------------------------------------------
 template <>
@@ -111,6 +129,15 @@ template <>
 CH_SENSOR_API UserDepthBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
     return GetMostRecentBufferHelper<UserDepthBufferPtr, ChFilterDepthAccess, ChFilterDepthAccessName>();
+}
+
+// -----------------------------------------------------------------------------
+// retriever function for image normal data as float3 values
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserNormalBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserNormalBufferPtr, ChFilterNormalAccess, ChFilterNormalAccessName>();
 }
 
 // -----------------------------------------------------------------------------

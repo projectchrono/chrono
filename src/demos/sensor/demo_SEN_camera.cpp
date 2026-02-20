@@ -12,7 +12,7 @@
 // Authors: Asher Elmquist
 // =============================================================================
 //
-// Chrono demonstration of a camera sensor.
+// Chrono demonstration of a camera sensor with different types of lights.
 // Generates a mesh object and rotates camera sensor around the mesh.
 //
 // =============================================================================
@@ -30,6 +30,7 @@
 
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/sensors/ChDepthCamera.h"
+#include "chrono_sensor/sensors/ChNormalCamera.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -65,27 +66,30 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = (float)CH_PI_3;
+float fov = (float)CH_PI_3;  // [rad]
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = .05f;
 
-// Exposure (in seconds) of each image
+// Exposure (in seconds) of each image for generating motion blur effect
 float exposure_time = 0.02f;
 
 int alias_factor = 2;
 
-bool use_gi = true;  // whether cameras should use global illumination
+bool use_diffuse_1 = false;   // whether Camera 1 consinders diffuse reflection
+bool use_diffuse_2 = false;   // whether Camera 2 consinders diffuse reflection
+bool use_denoiser_1 = false;  // whether Camera 1 uses the OptiX denoiser
+bool use_denoiser_2 = false;  // whether Camera 2 uses the OptiX denoiser
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
 // -----------------------------------------------------------------------------
 
 // Simulation step size
-double step_size = 1e-2;
+double step_size = 1e-2;  // [sec]
 
 // Simulation end time
-float end_time = 200.0f;
+float end_time = 200.0f;  // [sec]
 
 // Save camera images
 bool save = false;
@@ -102,6 +106,38 @@ const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    // Address arguments
+    if (argc < 3) {
+        std::cout << "Please assign the number of samples per pixel (spp) and light type to illuminate the scene."
+                  << std::endl;
+        std::cout << "And optionally, you can decide whether Cameras 1 and 2 consider diffuse reflection and attach "
+                     "the OptiX denoisers,";
+        std::cout << "following the command line as:" << std::endl;
+        std::cout
+            << "demo_SEN_camera <number of samples per pixel> <light type: point, spot, directional, environment> ";
+        std::cout << "--use_diffuse_1 --use_diffuse_2 --use_denoiser_1 --use_denoiser_2" << std::endl;
+        exit(1);
+    }
+
+    alias_factor = (int)sqrt(std::atof(argv[1]));
+    std::string light_type_str = argv[2];
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--use_diffuse_1") == 0) {
+            use_diffuse_1 = true;
+            std::cout << "\nPath Camera considers diffuse reflection\n";
+        } else if (std::strcmp(argv[i], "--use_diffuse_2") == 0) {
+            use_diffuse_2 = true;
+            std::cout << "\nLegacy Camera considers diffuse reflection\n";
+        } else if (std::strcmp(argv[i], "--use_denoiser_1") == 0) {
+            use_denoiser_1 = true;
+            std::cout << "\nPath Camera uses OptiX denoiser\n";
+        } else if (std::strcmp(argv[i], "--use_denoiser_2") == 0) {
+            use_denoiser_2 = true;
+            std::cout << "\nLegacy Camera uses OptiX denoiser\n";
+        }
+    }
+
     // -----------------
     // Create the system
     // -----------------
@@ -112,31 +148,37 @@ int main(int argc, char* argv[]) {
     // add a mesh to be visualized by a camera
     // ---------------------------------------
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/audi/audi_chassis.obj"),
-                                                                  false, true);
+                                                                  true, true);
     mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Audi Chassis Mesh");
 
+    // Create a dielectric and diffuse visual material
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({-6, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, 0, 0)));
+    mesh_body->GetVisualShape(0)->GetMaterial(0)->SetRoughness(1.f);
+    mesh_body->GetVisualShape(0)->GetMaterial(0)->SetMetallic(0.f);
     mesh_body->SetFixed(true);
     sys.Add(mesh_body);
 
+    // Create a dielectric and diffuse visual material
     auto vis_mat3 = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat3->SetAmbientColor({0.f, 0.f, 0.f});
     vis_mat3->SetDiffuseColor({.5, .5, .5});
     vis_mat3->SetSpecularColor({.0f, .0f, .0f});
+    vis_mat3->SetOpacity(1.f);
+    vis_mat3->SetRoughness(1.f);
+    vis_mat3->SetMetallic(0.f);
     vis_mat3->SetUseSpecularWorkflow(true);
     vis_mat3->SetClassID(30000);
     vis_mat3->SetInstanceID(30000);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, .1, 1000, true, false);
-    floor->SetPos({0, 0, -1});
+    floor->SetPos({0, 0, -0.6});
     floor->SetFixed(true);
-    sys.Add(floor);
     {
         auto shape = floor->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
@@ -145,11 +187,13 @@ int main(int argc, char* argv[]) {
             shape->GetMaterials()[0] = vis_mat3;
         }
     }
+    sys.Add(floor);
 
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
     vis_mat->SetDiffuseColor({0.0, 1.0, 0.0});
     vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
+    vis_mat->SetOpacity(1.f);
     vis_mat->SetUseSpecularWorkflow(true);
     vis_mat->SetRoughness(.5f);
     vis_mat->SetClassID(30000);
@@ -168,12 +212,16 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Create a metallic and specular visual material
     auto vis_mat2 = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat2->SetBSDF(BSDFType::SPECULAR);
     vis_mat2->SetAmbientColor({0.f, 0.f, 0.f});
-    vis_mat2->SetDiffuseColor({1.0, 0.0, 0.0});
-    vis_mat2->SetSpecularColor({.0f, .0f, .0f});
+    vis_mat2->SetDiffuseColor({1.0, 1.0, 1.0});
+    vis_mat2->SetSpecularColor({1.0f, 1.0f, 1.0f});
+    vis_mat2->SetOpacity(1.f);
     vis_mat2->SetUseSpecularWorkflow(true);
-    vis_mat2->SetRoughness(0.5f);
+    vis_mat2->SetRoughness(0.f);
+    vis_mat2->SetMetallic(1.f);
     vis_mat2->SetClassID(30000);
     vis_mat2->SetInstanceID(20000);
 
@@ -194,6 +242,7 @@ int main(int argc, char* argv[]) {
     vis_mat4->SetAmbientColor({0.f, 0.f, 0.f});
     vis_mat4->SetDiffuseColor({0.0, 0.0, 1.0});
     vis_mat4->SetSpecularColor({.0f, .0f, .0f});
+    vis_mat4->SetOpacity(1.f);
     vis_mat4->SetUseSpecularWorkflow(true);
     vis_mat4->SetRoughness(0.5f);
     vis_mat4->SetClassID(30000);
@@ -221,33 +270,76 @@ int main(int argc, char* argv[]) {
     // Create a sensor manager
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    manager->SetRayRecursions(6);
     manager->SetVerbose(verbose);
-
-    float intensity = 1.0;
-    manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
-    manager->scene->SetAmbientLight({0.1f, 0.1f, 0.1f});
-
+    manager->scene->SetAmbientLight({0.f, 0.f, 0.f});
     Background b;
-    b.mode = BackgroundMode::ENVIRONMENT_MAP;
-    b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
-    manager->scene->SetBackground(b);
+
+    float intensity = 1.0f;
+    unsigned int light_idx = 0;
+    if (light_type_str.find("point") != std::string::npos) {
+        // (pos, color, max_range, const_color)
+        light_idx = manager->scene->AddPointLight({0, 0, 3}, {intensity, intensity, intensity}, 500, true);
+    } else if (light_type_str.find("directional") != std::string::npos) {
+        float light_elevation = 15;  // [deg]
+        float light_azimuth = 45;    // [deg]
+        // (color, elevation, azimuth)
+        light_idx = manager->scene->AddDirectionalLight({intensity, intensity, intensity},
+                                                        light_elevation * (float)CH_DEG_TO_RAD,
+                                                        light_azimuth * (float)CH_DEG_TO_RAD);
+    } else if (light_type_str.find("spot") != std::string::npos) {
+        intensity = 6.0f;
+        // (pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color)
+        light_idx =
+            manager->scene->AddSpotLight({-5.f, 5.f, 5.f}, {intensity, intensity, intensity}, 8.67f, {1.f, -1.f, -1.f},
+                                         60 * (float)CH_DEG_TO_RAD, 90 * (float)CH_DEG_TO_RAD, false);
+    } else if (light_type_str.find("environment") != std::string::npos) {
+        b.mode = BackgroundMode::ENVIRONMENT_MAP;
+        float env_light_scale = 0.f;
+
+        b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
+        // b.env_tex = GetChronoDataFile("sensor/textures/dreifaltigkeitsberg_2k.hdr");
+        // b.env_tex = GetChronoDataFile("sensor/textures/UVChecker_byValle_4K.png");
+        env_light_scale = 1.f;
+
+        // b.env_tex = GetChronoDataFile("sensor/textures/envmap_sun_at_270_045.hdr");
+        // env_light_scale = 1000.f;
+
+        manager->scene->SetBackground(b);
+        manager->Update();
+        light_idx = manager->scene->AddEnvironmentLight(b.env_tex, env_light_scale);
+    } else {
+        std::cout << "\nUnsupported type of light in this scene ...\n" << std::endl;
+        exit(1);
+    }
+
+    // Set up the background
+    if (light_type_str.find("environment") == std::string::npos) {
+        b.mode = BackgroundMode::SOLID_COLOR;
+        b.color_zenith = ChVector3f(0.f, 0.f, 0.f);
+        manager->scene->SetBackground(b);
+    }
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     chrono::ChFrame<double> offset_pose1({-8, 0, 2}, QuatFromAngleAxis(.2, {0, 1, 0}));
-    auto cam = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
-                                                         update_rate,   // update rate in Hz
-                                                         offset_pose1,  // offset pose
-                                                         image_width,   // image width
-                                                         image_height,  // image height
-                                                         fov,           // camera's horizontal field of view
-                                                         alias_factor,  // super sampling factor
-                                                         lens_model,    // lens model type
-                                                         use_gi, 2.2);
-    cam->SetName("Camera Sensor");
-    cam->SetLag(lag);
-    cam->SetCollectionWindow(exposure_time);
+    auto cam1 = chrono_types::make_shared<ChCameraSensor>(
+        ground_body,       // body camera is attached to
+        update_rate,       // update rate in Hz
+        offset_pose1,      // offset pose
+        image_width,       // image width
+        image_height,      // image height
+        fov,               // camera's horizontal field of view
+        alias_factor,      // super sampling factor
+        lens_model,        // lens model type
+        use_diffuse_1,     // whether consider diffuse reflection. If false, then only considers specular reflection
+        use_denoiser_1,    // whether use OptiX denoiser for diffuse reflection or area lights
+        Integrator::PATH,  // integrator algorithm for rendering
+        2.2);              // gamma correction
+    cam1->SetName("Camera Sensor");
+    cam1->SetLag(lag);
+    cam1->SetCollectionWindow(exposure_time);
 
     // --------------------------------------------------------------------
     // Create a filter graph for post-processing the images from the camera
@@ -256,10 +348,10 @@ int main(int argc, char* argv[]) {
     // Add a noise model filter to the camera sensor
     switch (noise_model) {
         case CONST_NORMAL:
-            cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoiseConstNormal>(0.f, .0004f));
+            cam1->PushFilter(chrono_types::make_shared<ChFilterCameraNoiseConstNormal>(0.f, .0004f));
             break;
         case PIXEL_DEPENDENT:
-            cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(.0004f, .0004f));
+            cam1->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(.0004f, .0004f));
             break;
         case NONE:
             // Don't add any noise models
@@ -268,55 +360,62 @@ int main(int argc, char* argv[]) {
 
     // Renders the image at current point in the filter graph
     if (vis)
-        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Global Illumination"));
+        cam1->PushFilter(chrono_types::make_shared<ChFilterVisualize>(
+            image_width, image_height, (use_denoiser_1) ? "Path Integrator Denoised" : "Path Integrator"));
 
     // Provides the host access to this RGBA8 buffer
-    cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
+    cam1->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 
     if (save)
         // Save the current image to a png file at the specified path
-        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "rgb/"));
+        cam1->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "rgb/"));
 
     // Filter the sensor to grayscale
-    cam->PushFilter(chrono_types::make_shared<ChFilterGrayscale>());
+    cam1->PushFilter(chrono_types::make_shared<ChFilterGrayscale>());
 
     // Render the buffer again to see the new grayscaled image
     if (vis)
-        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Final Visualization"));
+        cam1->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Final Visualization"));
 
     // Save the grayscaled image at the specified path
     if (save)
-        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "gray/"));
+        cam1->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "gray/"));
 
     // Resizes the image to the provided width and height
-    cam->PushFilter(chrono_types::make_shared<ChFilterImageResize>(image_width / 2, image_height / 2));
+    cam1->PushFilter(chrono_types::make_shared<ChFilterImageResize>(image_width / 2, image_height / 2));
 
     // Access the grayscaled buffer as R8 pixels
-    cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
+    cam1->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
 
     // add sensor to the manager
-    manager->AddSensor(cam);
+    manager->AddSensor(cam1);
 
     // -------------------------------------------------------
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
 
     chrono::ChFrame<double> offset_pose2({5, 0, 0}, QuatFromAngleAxis(CH_PI, {0, 0, 1}));
-    auto cam2 = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
-                                                          update_rate,   // update rate in Hz
-                                                          offset_pose2,  // offset pose
-                                                          image_width,   // image width
-                                                          image_height,  // image height
-                                                          fov,           // camera's horizontal field of view
-                                                          alias_factor,  // supersample factor for antialiasing
-                                                          lens_model, false, 2.2);  // FOV
+    auto cam2 = chrono_types::make_shared<ChCameraSensor>(
+        ground_body,         // body camera is attached to
+        update_rate,         // update rate in Hz
+        offset_pose2,        // offset pose
+        image_width,         // image width
+        image_height,        // image height
+        fov,                 // camera's horizontal field of view
+        alias_factor,        // supersample factor for antialiasing
+        lens_model,          // lens model type
+        use_diffuse_2,       // whether consider diffuse reflection. If false, then only considers specular reflection
+        use_denoiser_2,      // whether use OptiX denoiser for diffuse reflection or area lights
+        Integrator::LEGACY,  // integrator algorithm for rendering
+        2.2);                // gamma correction
     cam2->SetName("Antialiasing Camera Sensor");
     cam2->SetLag(lag);
     cam2->SetCollectionWindow(exposure_time);
 
     // Render the antialiased image
     if (vis)
-        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Whitted Ray Tracing"));
+        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(
+            image_width, image_height, (use_denoiser_2) ? "Legacy Integrator Denoised" : "Legacy Integrator"));
 
     // Save the antialiased image
     if (save)
@@ -343,15 +442,46 @@ int main(int argc, char* argv[]) {
     depth->SetLag(lag);
     depth->SetCollectionWindow(exposure_time);
 
-    // Render the semantic mask
+    // Render the depth map
     if (vis)
         depth->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Depth Camera"));
 
     // Set max depth of the depth camera
-    depth->SetMaxDepth(30.f); // meters
+    depth->SetMaxDepth(30.f);  // meters
+
     // Note: With Depth camera, an access filter is already added to the filter graph internally. DO NOT add another.
+
     // Add the depth camera to the sensor manager
     manager->AddSensor(depth);
+
+    // -------------------------------------------------------
+    // Create a normal camera that shadows camera2
+    // -------------------------------------------------------
+
+    auto normal = chrono_types::make_shared<ChNormalCamera>(ground_body,   // body camera is attached to
+                                                            update_rate,   // update rate in Hz
+                                                            offset_pose2,  // offset pose
+                                                            image_width,   // image width
+                                                            image_height,  // image height
+                                                            fov,           // camera's horizontal field of view
+                                                            lens_model     // FOV
+    );
+    normal->SetName("Normal Camera");
+    normal->SetLag(lag);
+    normal->SetCollectionWindow(exposure_time);
+
+    // Render the normal map
+    if (vis)
+        normal->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Normal Camera"));
+
+    // Save the normal map
+    if (save)
+        normal->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "normal/"));
+
+    // Note: Within Normal Camera, an access filter is already added to the filter graph internally. DO NOT add another.
+
+    // Add the depth camera to the sensor manager
+    manager->AddSensor(normal);
 
     // -------------------------------------------------------
     // Create a semantic segmentation camera that shadows camera2
@@ -379,7 +509,7 @@ int main(int argc, char* argv[]) {
     seg->PushFilter(chrono_types::make_shared<ChFilterSemanticAccess>());
 
     // Add the second camera to the sensor manager
-    // manager->AddSensor(seg);
+    manager->AddSensor(seg);
 
     manager->Update();
 
@@ -395,8 +525,9 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Demonstration shows cameras panning around a stationary mesh.
     // Each camera begins on opposite sides of the object, but rotate at the same speed
-    float orbit_radius = 10.f;
-    float orbit_rate = 0.1f;
+    float orbit_radius = 13.f;                // [m]
+    float orbit_rate = 0.1f;                  // [rad/sec]
+    float orbit_start = 0.f * CH_PI / 180.f;  // [rad]
     float ch_time = 0.0f;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -407,22 +538,26 @@ int main(int argc, char* argv[]) {
 
     while (ch_time < end_time) {
         // Rotate the cameras around the mesh at a fixed rate
-        cam->SetOffsetPose(chrono::ChFrame<double>(
-            {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
+        float orbit_angle = ch_time * orbit_rate + orbit_start;
+        cam1->SetOffsetPose(
+            chrono::ChFrame<double>({orbit_radius * cos(orbit_angle), orbit_radius * sin(orbit_angle), 2},
+                                    QuatFromAngleAxis(orbit_angle + CH_PI, {0, 0, 1})));
 
-        cam2->SetOffsetPose(chrono::ChFrame<double>(
-            {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
+        cam2->SetOffsetPose(
+            chrono::ChFrame<double>({orbit_radius * cos(orbit_angle), orbit_radius * sin(orbit_angle), 2},
+                                    QuatFromAngleAxis(orbit_angle + CH_PI, {0, 0, 1})));
 
-        seg->SetOffsetPose(chrono::ChFrame<double>(
-            {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
+        seg->SetOffsetPose(
+            chrono::ChFrame<double>({orbit_radius * cos(orbit_angle), orbit_radius * sin(orbit_angle), 2},
+                                    QuatFromAngleAxis(orbit_angle + CH_PI, {0, 0, 1})));
 
-        depth->SetOffsetPose(chrono::ChFrame<double>(
-            {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
-            
+        depth->SetOffsetPose(
+            chrono::ChFrame<double>({orbit_radius * cos(orbit_angle), orbit_radius * sin(orbit_angle), 2},
+                                    QuatFromAngleAxis(orbit_angle + CH_PI, {0, 0, 1})));
+
+        normal->SetOffsetPose(
+            chrono::ChFrame<double>({orbit_radius * cos(orbit_angle), orbit_radius * sin(orbit_angle), 2},
+                                    QuatFromAngleAxis(orbit_angle + CH_PI, {0, 0, 1})));
 
         // Access the depth buffer from depth camera
         depth_ptr = depth->GetMostRecentBuffer<UserDepthBufferPtr>();
@@ -440,47 +575,51 @@ int main(int argc, char* argv[]) {
         }
 
         // Access the RGBA8 buffer from the first camera
-        // rgba8_ptr = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        // if (rgba8_ptr->Buffer) {
-        //     std::cout << "RGBA8 buffer recieved from cam. Camera resolution: " << rgba8_ptr->Width << "x"
-        //               << rgba8_ptr->Height << ", frame= " << rgba8_ptr->LaunchedCount << ", t=" <<
-        //               rgba8_ptr->TimeStamp
-        //               << std::endl
-        //               << std::endl;
-        // }
-        //
-        // // Access the R8 buffer from the first camera
-        // r8_ptr = cam->GetMostRecentBuffer<UserR8BufferPtr>();
-        // if (r8_ptr->Buffer) {
-        //     // Calculate the average gray value in the buffer
-        //     unsigned int height = r8_ptr->Height;
-        //     unsigned int width = r8_ptr->Width;
-        //     uint8_t running_total = 0;
-        //     for (int i = 0; i < height; i++) {
-        //         for (int j = 0; j < width; j++) {
-        //             running_total += uint8_t(r8_ptr->Buffer[i * width + j]);
-        //         }
-        //     }
-        //     std::cout << "Average gray value: " << int(running_total) / double(height * width) << std::endl
-        //               << std::endl;
-        // }
-        //
-        // // Access the RGBA8 buffer from the second camera
-        // rgba8_ptr = cam2->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        // if (rgba8_ptr->Buffer) {
-        //     // Retreive and print the first RGBA pixel
-        //     PixelRGBA8 first_pixel = rgba8_ptr->Buffer[0];
-        //     std::cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
-        //               << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]\n"
-        //               << std::endl;
-        //
-        //     // Retreive and print the last RGBA pixel
-        //     int buffer_length = rgba8_ptr->Height * rgba8_ptr->Width;
-        //     PixelRGBA8 last_pixel = rgba8_ptr->Buffer[buffer_length - 1];
-        //     std::cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
-        //               << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]\n"
-        //               << std::endl;
-        // }
+        /*
+        rgba8_ptr = cam1->GetMostRecentBuffer<UserRGBA8BufferPtr>();
+        if (rgba8_ptr->Buffer) {
+            std::cout << "RGBA8 buffer recieved from cam1. Camera resolution: " << rgba8_ptr->Width << "x"
+                      << rgba8_ptr->Height << ", frame= " << rgba8_ptr->LaunchedCount << ", t=" <<
+                      rgba8_ptr->TimeStamp
+                      << std::endl
+                      << std::endl;
+        }
+
+        // Access the R8 buffer from the first camera
+        r8_ptr = cam1->GetMostRecentBuffer<UserR8BufferPtr>();
+        if (r8_ptr->Buffer) {
+            // Calculate the average gray value in the buffer
+            unsigned int height = r8_ptr->Height;
+            unsigned int width = r8_ptr->Width;
+            uint8_t running_total = 0;
+            for (int i = 0; i < height; i++) {
+                for (int j = 0; j < width; j++) {
+                    running_total += uint8_t(r8_ptr->Buffer[i * width + j]);
+                }
+            }
+            std::cout << "Average gray value: " << int(running_total) / double(height * width) << std::endl
+                      << std::endl;
+        }
+        */
+
+        // Access the RGBA8 buffer from the second camera
+        /*
+        rgba8_ptr = cam2->GetMostRecentBuffer<UserRGBA8BufferPtr>();
+        if (rgba8_ptr->Buffer) {
+            // Retreive and print the first RGBA pixel
+            PixelRGBA8 first_pixel = rgba8_ptr->Buffer[0];
+            std::cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
+                      << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]\n"
+                      << std::endl;
+
+            // Retreive and print the last RGBA pixel
+            int buffer_length = rgba8_ptr->Height * rgba8_ptr->Width;
+            PixelRGBA8 last_pixel = rgba8_ptr->Buffer[buffer_length - 1];
+            std::cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
+                      << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]\n"
+                      << std::endl;
+        }
+        */
 
         // Update sensor manager
         // Will render/save/filter automatically

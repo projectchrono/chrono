@@ -60,6 +60,7 @@ namespace sensor {
             std::string error_string = std::string(cudaGetErrorString(result));                      \
             std::string file = std::string(__FILE__);                                                \
             std::string line = std::to_string(__LINE__);                                             \
+            printf("Err: %s\n", error_string.c_str());                                                \
             throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
         }                                                                                            \
     }

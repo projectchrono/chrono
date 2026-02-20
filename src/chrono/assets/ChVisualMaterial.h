@@ -18,14 +18,15 @@
 //
 // =============================================================================
 
-#ifndef CHVISUALMATERIAL_H
-#define CHVISUALMATERIAL_H
+#ifndef CH_VISUAL_MATERIAL_H
+#define CH_VISUAL_MATERIAL_H
 
 #include <string>
 
 #include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColor.h"
+#include "chrono/assets/ChVisualBSDFType.h"
 
 namespace chrono {
 
@@ -70,21 +71,24 @@ class ChApi ChVisualMaterial {
     void SetMetallic(float m);
     void SetAnisotropy(float a);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
-    /// @brief Enable or disable the use of the Hapke material model. We implement the modern hapke model descried in  https://doi.org/10.1002/2013JE004580
-    void SetUseHapke(bool h) {use_hapke = h;}
+
+    /// Set the BSDF type of the material to be used for rendering.
+    void SetBSDF(BSDFType s) {bsdf_type = s;}
 
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
-    /// @brief  Set the Hapke material parameters. Note that in our implementation, we ignore the impact of coherent backscatter. 
-    /// @param w  single scattering albedo
-    /// @param b  shape controlling parameter for the amplitude of backward and forward scatter of particles
-    /// @param c  weighting factor that controls the contribution of backward and forward scatter.
-    /// @param B_s0 Amplitude of the opposition effect caused by shadow hiding
-    /// @param h_s  Angular width of the opposition effect caused by shadow hiding.
-    /// @param phi Fillig factor of the regolith
-    /// @param theta_p Effective value of the photometric roughness which controls the surface roughness
-    void SetHapkeParameters(float w, float b, float c, float B_s0, float h_s, float phi, float theta_p);
+    /// Set the Hapke material parameters.
+    /// Note that this implementation ignores the impact of coherent backscatter.
+    void SetHapkeParameters(
+        float w,       ///< single scattering albedo
+        float b,       ///< shape controlling parameter for the amplitude of backward and forward scatter of particles
+        float c,       ///< weighting factor that controls the contribution of backward and forward scatter
+        float B_s0,    ///< amplitude of the opposition effect caused by shadow hiding
+        float h_s,     ///< angular width of the opposition effect caused by shadow hiding
+        float phi,     ///< fillig factor
+        float theta_p  ///< effective value of the photometric roughness
+    );
 
     // Accessor functions
 
@@ -126,6 +130,9 @@ class ChApi ChVisualMaterial {
     float GetHapkePhi() const {return hapke_phi;}
     float GetHapkeRoughness() const {return hapke_theta_p;}
 
+    /// Get the BSDF type of the material.
+    BSDFType GetBSDF() const {return bsdf_type;}
+
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
 
@@ -160,6 +167,7 @@ class ChApi ChVisualMaterial {
 
     bool use_specular_workflow;
     bool use_hapke;
+    BSDFType bsdf_type;
 
     ChTexture kd_texture;         ///< diffuse texture map
     ChTexture ks_texture;         ///< specular texture map
@@ -177,14 +185,13 @@ class ChApi ChVisualMaterial {
 
 
     // Hapke material parameters
-    float hapke_w; // single scattering albedo
-    float hapke_b; // shape controlling parameter for the amplitude of backward and forward scatter of particles
-    float hapke_c; // weighting factor that controls the contribution of backward and forward scatter.
-    float hapke_B_s0;
-    float hapke_h_s;
-    float hapke_phi;
-    float hapke_theta_p;
-    
+    float hapke_w;        ///< single scattering albedo
+    float hapke_b;        ///< shape controlling parameter for the amplitude of particle scatter
+    float hapke_c;        ///< weighting factor that controls the contribution of backward and forward scatter
+    float hapke_B_s0;     ///< amplitude of the opposition effect caused by shadow hiding
+    float hapke_h_s;      ///< angular width of the opposition effect caused by shadow hiding
+    float hapke_phi;      ///< fillig factor
+    float hapke_theta_p;  ///< effective value of the photometric roughness
 };
 
 typedef std::shared_ptr<ChVisualMaterial> ChVisualMaterialSharedPtr;

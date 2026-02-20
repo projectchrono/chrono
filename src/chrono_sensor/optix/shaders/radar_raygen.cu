@@ -12,12 +12,25 @@
 // Authors: Han Wang, Asher Elmquist
 // =============================================================================
 //
-// RT kernels for tracing and measureing depth for a radar
+// RT kernels for tracing and measureing depth for a RADAR
 //
 // =============================================================================
 
+#ifndef RADAR_RAYGEN_CU
+#define RADAR_RAYGEN_CU
+
 #include "chrono_sensor/optix/shaders/device_utils.h"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
+
+/// Default of RADAR per ray data (PRD)
+__device__ __inline__ PerRayData_radar DefaultRadarPRD() {
+    PerRayData_radar prd = {
+        0.f,  // default range
+        0.f   // default rcs
+    };
+    return prd;
+};
+
 
 extern "C" __global__ void __raygen__radar() {
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
@@ -46,11 +59,11 @@ extern "C" __global__ void __raygen__radar() {
     basis_from_quaternion(ray_quat, forward, left, up);
     float3 ray_direction = normalize(forward * x + left * y + up * z);
 
-    PerRayData_radar prd_radar = default_radar_prd();
+    PerRayData_radar prd_radar = DefaultRadarPRD();
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd_radar, opt1, opt2);
-    unsigned int raytype = (unsigned int)RADAR_RAY_TYPE;
+    unsigned int raytype = (unsigned int)RayType::RADAR_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, radar.clip_near, 1.5f * radar.max_distance, t_traverse,
                OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0u, 1u, 0u, opt1, opt2,raytype);
     
@@ -82,3 +95,5 @@ extern "C" __global__ void __raygen__radar() {
 //    printf("%f %f\n", prd_radar.range, azimuth);
 
 }
+
+#endif // RADAR_RAYGEN_CU

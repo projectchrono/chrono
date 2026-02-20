@@ -145,6 +145,10 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
 using ChFilterR8Access = ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>;
 /// Access to RGBA8 data
 using ChFilterRGBA8Access = ChFilterAccess<SensorHostRGBA8Buffer, UserRGBA8BufferPtr>;
+/// Access to RGBA16 data
+using ChFilterRGBA16Access = ChFilterAccess<SensorHostRGBA16Buffer, UserRGBA16BufferPtr>;
+/// Access to RGBDHalf4 data
+using ChFilterRGBDHalf4Access = ChFilterAccess<SensorHostRGBDHalf4Buffer, UserRGBDHalf4BufferPtr>;
 /// Access to semantic image
 using ChFilterSemanticAccess = ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPtr>;
 /// Access to point cloud data
@@ -172,6 +176,10 @@ using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
 using ChFilterTachometerAccess = ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>;
 /// Access to Encoder data
 // using ChFilterEncoderAccess = ChFilterAccess<SensorHostEncoderBuffer, UserEncoderBufferPtr>;
+/// Access to normal camera data
+using ChFilterNormalAccess = ChFilterAccess<SensorHostNormalBuffer, UserNormalBufferPtr>;
+/// Access to depth camera data
+using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
 
 /// @}
 
