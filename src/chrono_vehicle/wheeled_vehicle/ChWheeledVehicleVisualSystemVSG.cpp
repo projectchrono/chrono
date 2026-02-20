@@ -22,6 +22,8 @@
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline8WD.h"
 
+#include "chrono_vsg/impl/VSGvisitors.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -32,16 +34,35 @@ ChWheeledVehicleVisualSystemVSG::ChWheeledVehicleVisualSystemVSG()
       m_suspension_visible(true),
       m_steering_visible(true),
       m_wheel_visible(true),
-      m_tire_visible(true) {
-    // Set a rendering target of 60 fps to avoid expensive recordAndSubmit() overhead (cpu to gpu data transfers too often)
-    // Can override with SetTargetRenderFPS(0) for unlimited or other values
+      m_tire_visible(true),
+      m_tire_terrain_visible(false),
+      m_tire_force_scale(5000),
+      m_tire_terrain_scale(ChVector3d(0.25, 0.25, 1)) {
+    // Set a rendering target of 60 fps to avoid expensive recordAndSubmit() overhead
     SetTargetRenderFPS(60);
+
+    // Create VSG scene for optional rendering of tire-terrain info
+    m_tire_terrain_scene = vsg::Switch::create();
 }
 
 void ChWheeledVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     ChVehicleVisualSystemVSG::AttachVehicle(vehicle);
     m_wvehicle = dynamic_cast<ChWheeledVehicle*>(m_vehicle);
     assert(m_wvehicle);
+
+    int num_tires = 0;
+    for (auto& axle : m_wvehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            num_tires++;
+            auto tire = wheel->GetTire();
+            if (auto handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire))
+                m_handling_tires.push_back(handling_tire);
+        }
+    }
+    m_tire_force_scale =
+        m_wvehicle->GetMass() * m_vehicle->GetSystem()->GetGravitationalAcceleration().Length() / num_tires;
+
+    std::cout << "FORCE SCALE = " << m_tire_force_scale << std::endl;
 }
 
 void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {
@@ -127,6 +148,75 @@ void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {
         ////}
 
         ImGui::EndTable();
+    }
+
+    if (m_handling_tires.empty())
+        return;
+
+    if (ImGui::BeginTable("TireTerrainInfo", 1, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        static bool tire_terrain = m_tire_terrain_visible;
+        if (ImGui::Checkbox("Tire terrain info", &tire_terrain)) {
+            m_tire_terrain_visible = !m_tire_terrain_visible;
+            SetTireTerrainInfoVisibility(m_tire_terrain_visible);
+        }
+
+        ImGui::EndTable();
+    }
+}
+
+void ChWheeledVehicleVisualSystemVSG::Initialize() {
+    if (m_initialized)
+        return;
+
+    ChVehicleVisualSystemVSG::Initialize();
+
+    // Create information for handling tires
+    if (m_handling_tires.empty())
+        return;
+
+    m_scene->addChild(m_tire_terrain_scene);
+
+    ChColor color(0.96f, 0.16f, 0.23f);
+    for (size_t i = 0; i < m_handling_tires.size(); i++) {
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(ChFramed(), GetModelScale() * m_tire_terrain_scale);
+        auto group = m_shapeBuilder->createFrameSymbol(transform, 1, true, 1.0f, color, color, color);
+        group->setValue("Transform", transform);
+        m_tire_terrain_scene->addChild(m_tire_terrain_visible, group);
+    }
+}
+
+void ChWheeledVehicleVisualSystemVSG::Update() {
+    ChVehicleVisualSystemVSG::Update();
+
+    // Update information for handling tires
+    if (!m_tire_terrain_visible)
+        return;
+
+    for (size_t i = 0; i < m_handling_tires.size(); i++) {
+        const auto& data = m_handling_tires[i]->ReportTireContactData();
+        m_tire_terrain_scale.z() = data.normal_force / m_tire_force_scale;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        auto& child = m_tire_terrain_scene->children[i];
+        if (!child.node->getValue("Transform", transform))
+            continue;
+        transform->matrix = vsg::dmat4CH(ChFramed(data.frame), GetModelScale() * m_tire_terrain_scale);
+        if (data.depth <= 0)
+            child.mask = false;
+        else
+            child.mask = m_tire_terrain_visible;
+    }
+}
+
+void ChWheeledVehicleVisualSystemVSG::SetTireTerrainInfoVisibility(bool vis) {
+    if (!IsInitialized())
+        return;
+
+    for (auto& child : m_tire_terrain_scene->children) {
+        child.mask = vis;
     }
 }
 

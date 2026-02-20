@@ -78,6 +78,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// here is used as a multiplier for all these graphical elements.
     void SetModelScale(double scale) { m_scale_multiplier = scale; }
 
+    /// Get model scale.
+    double GetModelScale() const { return m_scale_multiplier; }
+
     /// Attach a custom plugin.
     /// Plugins offer a mechanism for extending a base VSG visual system with custom functionality; e.g., for rendering,
     /// controlling, and displaying information for specific types of Chrono systems. An arbitrary number of plugins can
@@ -442,7 +445,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual void OnSetup(ChSystem* sys) override;
 
     /// Update all VSG scenes with the current state of the associated Chrono systems.
-    void Update();
+    virtual void Update();
 
     bool GetDesiredCloudVisibility(int tag) const;
 

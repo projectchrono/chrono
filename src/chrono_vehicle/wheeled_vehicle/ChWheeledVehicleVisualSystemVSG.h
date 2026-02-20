@@ -21,6 +21,7 @@
 
 #include "chrono_vehicle/visualization/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -39,7 +40,17 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSys
     /// Attach a vehicle to this VSG wheeled vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
+    /// Append GUI info specific to wheeled vehicles.
     virtual void AppendGUIStats() override;
+
+    /// Initialize the visualization system.
+    virtual void Initialize() override;
+
+    /// Update all VSG scenes with the current state of the associated Chrono systems.
+    virtual void Update() override;
+
+    /// Set the visibility for tire-terrain interaction info.
+    void SetTireTerrainInfoVisibility(bool vis);
 
   private:
     ChWheeledVehicle* m_wvehicle;
@@ -49,6 +60,13 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSys
     bool m_steering_visible;
     bool m_wheel_visible;
     bool m_tire_visible;
+
+    std::vector<std::shared_ptr<ChForceElementTire>> m_handling_tires;  ///< references to all handling tires
+
+    bool m_tire_terrain_visible;                     ///< render tire-terrain frames?
+    double m_tire_force_scale;                       ///< scaling factor for tire-terrain normal force
+    ChVector3d m_tire_terrain_scale;                 ///< scale for tire-terrain frames
+    vsg::ref_ptr<vsg::Switch> m_tire_terrain_scene;  ///< VSG scene for tire-terrain frames
 };
 
 /// @} vehicle_vis
