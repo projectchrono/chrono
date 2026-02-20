@@ -163,6 +163,7 @@ int main(int argc, char** argv) {
     init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
     // Create the vehicle model
+    vehicle_model->SetTireCollisionType(ChTire::CollisionType::SINGLE_POINT);
     vehicle_model->Create(&sys, init_csys, show_car_body);
     auto& vehicle = vehicle_model->GetVehicle();
 

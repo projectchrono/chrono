@@ -40,6 +40,7 @@ MTV::MTV()
       m_engineType(EngineModelType::SHAFTS),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_use_walking_beam(false),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -59,6 +60,7 @@ MTV::MTV(ChSystem* system)
       m_engineType(EngineModelType::SHAFTS),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_use_walking_beam(false),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -177,6 +179,7 @@ void MTV::Initialize() {
 
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetCollisionType(m_tire_collision_type);
             if (m_tire_step_size > 0)
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }

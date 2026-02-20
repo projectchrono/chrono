@@ -87,9 +87,9 @@ set(CE_VSG_IMPL_FILES
     impl/VSGnodes.cpp
     impl/VSGnodes.h
     impl/VSGvisitors.h
-    impl/pcShader_frag.h
-    impl/pcShader_vert.h
+    impl/pcShaders.h
     impl/cubemapShaders.h
+    impl/quadmapShaders.h
 )
 source_group("impl" FILES ${CE_VSG_IMPL_FILES})
 

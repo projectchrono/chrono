@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     vis_VSG->SetLightIntensity(1.0f);
     vis_VSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis_VSG->SetBackgroundColor(ChColor(0.1f, 0.1f, 0.15f));  // Dark blue-gray (space-like)
-    vis_VSG->EnableSkyBox();
+    vis_VSG->EnableSkyTexture(SkyMode::DOME);
     vis_VSG->EnableShadows();
     vis_VSG->Initialize();
 

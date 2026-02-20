@@ -59,6 +59,7 @@ class CH_MODELS_API ARTcar {
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetTireType(TireModelType val) { m_tireType = val; }
+    void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -105,6 +106,7 @@ class CH_MODELS_API ARTcar {
     bool m_fixed;
 
     TireModelType m_tireType;
+    ChTire::CollisionType m_tire_collision_type;
 
     double m_tire_step_size;
 

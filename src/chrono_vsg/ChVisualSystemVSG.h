@@ -78,6 +78,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// here is used as a multiplier for all these graphical elements.
     void SetModelScale(double scale) { m_scale_multiplier = scale; }
 
+    /// Get model scale.
+    double GetModelScale() const { return m_scale_multiplier; }
+
     /// Attach a custom plugin.
     /// Plugins offer a mechanism for extending a base VSG visual system with custom functionality; e.g., for rendering,
     /// controlling, and displaying information for specific types of Chrono systems. An arbitrary number of plugins can
@@ -240,12 +243,27 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// This function must be called before Initialize().
     void EnableFullscreen(bool val = true);
 
-    /// Enable/disable use of a sky box background (default: false).
-    /// This function must be called before Initialize().
-    void EnableSkyBox(bool val = true);
+    /// Set the sky box texture file which must be a cubemap file (ktx, ktx2, or dds).
+    /// The optional argument specifies the aximuth angle of the light source (if any), measured counter-clockwise from
+    /// the North (i.e., N->W->S->E->N). The sky box texture will be oriented to match the light direction and hence the
+    /// shadows (if enabled).
+    /// NOTE: azimuth setting currently not supported for skybox.
+    void SetSkyBoxTexture(const std::string& filename, double sun_azimuth);
 
-    /// Set the sky box texture.
-    void SetSkyBoxTexture(const std::string& filename);
+    /// Set the sky dome texture file which must be a 2d panorama image (png, jpg, bmp, etc.).
+    /// The optional argument specifies the aximuth angle of the light source (if any), measured counter-clockwise from
+    /// the North (i.e., N->W->S->E->N). This value can be computed from the x_pixel value of the light source location
+    /// in the texture image and the w_pixel width of the texture image as:
+    /// <pre>
+    ///    sun_azimuth = 2 * pi * (x_pixel / w_pixel)
+    /// </pre>
+    /// The sky dome texture will be oriented to match the light direction and hence the shadows (if enabled).
+    void SetSkyDomeTexture(const std::string& filename, double sun_azimuth);
+
+    /// Enable sky texture using the specified mode (DOME or BOX).
+    /// This function must be called before Initialize().
+    /// By default, no sky texture is used but rather the specified background color.
+    void EnableSkyTexture(SkyMode mode = SkyMode::DOME);
 
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
@@ -275,10 +293,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated rendering FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Set target render frame rate (default: 0 means render every frame)
-    /// When set to, for example, 60fps, it limits rendering to approximately that many FPS
-    /// even if physics is running faster. Dramatically improves performance for VSG since
-    /// recordAndSubmit() is expensive
+    /// Set target render frame rate (default: 0).
+    /// Rendering is limited to this frequency, regardless of the simulation time step.
+    /// A value of 0 indicates rendering at every simulation frame.
     void SetTargetRenderFPS(double fps) { m_target_render_fps = fps; }
 
     /// Enable/disable rendering of shadows (default: false).
@@ -286,17 +303,19 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void EnableShadows(bool val = true) { m_use_shadows = val; }
 
     /// Indicate whether or not shadows are enabled.
-    bool AreShadowsEnabled() const { return m_use_shadows; }
+    bool ShadowsEnabled() const { return m_use_shadows; }
 
     /// Set light intensity (default: 1).
-    /// The light intensity is clamped in [0,1].
-    /// Directional light intensity is set to 100% of this value, unless shadow are enabled, in which case it is set to
-    /// 80%. Ambient light intensity is set to 10% of this value.
+    /// Directional light intensity is set to 100% of this value (clamped in the interval [0,1]), unless shadow are
+    /// enabled, in which case it is set to 80%.
+    /// Ambient light intensity is set to 10% of this value.
     void SetLightIntensity(float intensity);
 
-    /// Set azimuth and elevation for directional light (default: 3pi/4 and pi/4) .
-    /// The azimuth is measured conter-clockwise from the x-axis and is clamped in [-pi, pi].
-    /// The elevation is measured from the (xy)-plane and is clamped in [-pi/2, pi/2].
+    /// Set azimuth and elevation angles for directional light (default: 3pi/4 and pi/4).
+    /// With the positive x-axis taken as North direction, the azimuth angle, clamped to the interval [0, 2*pi], is
+    /// measured counter-clockwise (i.e., N->W->S->E->N).
+    /// The elevation angle, clamped to [-pi/2, pi/2], is measured from the horizonta plane - (x,y) in a Z-up world
+    /// frame, or (x,z) in a Y-up worl frame.
     void SetLightDirection(double azimuth, double elevation);
 
     /// Set the camera field of view in degrees (default: 40).
@@ -316,9 +335,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Add a visual model not bound to a Chrono object.
     /// The return value is the index of the new visual model.
     virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
+
     /// Add a visual shape not bound to a Chrono object.
     /// The return value is the index of the new visual model.
     virtual int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
+
     /// Modify the position of the specified un-bound visual model.
     virtual void UpdateVisualModel(int id, const ChFrame<>& frame) override;
 
@@ -424,7 +445,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual void OnSetup(ChSystem* sys) override;
 
     /// Update all VSG scenes with the current state of the associated Chrono systems.
-    void Update();
+    virtual void Update();
 
     bool GetDesiredCloudVisibility(int tag) const;
 
@@ -648,16 +669,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
 
-    bool m_use_skybox;
+    SkyMode m_sky_mode;
+    double m_skybox_sun_azimuth;
+    double m_skydome_sun_azimuth;
     std::string m_skybox_path;
+    std::string m_skysphere_path;
 
     vsg::dvec3 m_camera_up_vector;
     bool m_yup;
     double m_camera_angle_deg;
 
-    double m_light_intensity;
-    double m_elevation;
-    double m_azimuth;
+    double m_light_intensity;  ///< directional light intensity
+    double m_elevation;        ///< directional light elevation (measured from
+    double m_azimuth;          ///< directional light azimuth (measured from 
+    
     float m_gui_font_size = 20.0f;
 
     // Component rendering
@@ -689,13 +714,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_forces_colors;
 
     // Frame rendering
-    bool m_show_abs_frame;      ///< flag to toggle absolute frame visibility
-    bool m_show_ref_frames;     ///< flag to toggle object reference frame visibility
-    bool m_show_com_frames;     ///< flag to toggle COM frame visibility
-    bool m_show_com_symbols;    ///< flag to toggle COM symbol visibility
-    bool m_show_link_frames;    ///< flag to toggle link frame visibility
+    bool m_show_abs_frame;    ///< flag to toggle absolute frame visibility
+    bool m_show_ref_frames;   ///< flag to toggle object reference frame visibility
+    bool m_show_com_frames;   ///< flag to toggle COM frame visibility
+    bool m_show_com_symbols;  ///< flag to toggle COM symbol visibility
+    bool m_show_link_frames;  ///< flag to toggle link frame visibility
 
-    double m_scale_multiplier;  ///< measure of the model scale 
+    double m_scale_multiplier;  ///< measure of the model scale
     double m_abs_frame_scale;   ///< current absolute frame scale
     double m_ref_frame_scale;   ///< current reference frame scale
     double m_com_frame_scale;   ///< current COM frame scale

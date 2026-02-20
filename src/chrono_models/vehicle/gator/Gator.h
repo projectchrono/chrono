@@ -54,7 +54,6 @@ class CH_MODELS_API Gator {
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetDrivelineType(DrivelineTypeWV driveline_type) { m_driveline_type = driveline_type; }
     void SetTireType(TireModelType tire_type) { m_tire_type = tire_type; }
-
     void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }

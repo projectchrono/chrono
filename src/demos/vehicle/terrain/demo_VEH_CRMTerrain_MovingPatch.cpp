@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     visVSG->AddCamera(ChVector3d(terrain_length / 2, -3, 2), ChVector3d(terrain_length / 2, 0, 0));
     visVSG->SetWindowSize(1280, 720);
     visVSG->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-    visVSG->EnableSkyBox();
+    visVSG->EnableSkyTexture(SkyMode::DOME);
     visVSG->SetCameraAngleDeg(40.0);
     visVSG->SetLightIntensity(1.0f);
     visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

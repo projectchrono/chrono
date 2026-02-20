@@ -36,7 +36,7 @@ namespace ChronoDemo
             vis.SetChaseCamera(new ChVector3d(-18, 0.0, 3.75), 5, 0.25);
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyBox();
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
             chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
             vis.AttachVehicle(vehicle);  // Must attach vehicle BEFORE Initialize()
             vis.Initialize();

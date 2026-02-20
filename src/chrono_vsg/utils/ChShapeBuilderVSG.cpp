@@ -545,28 +545,27 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                         float color_factor,
                                                          float line_width,
-                                                         bool skipZbuffer) {
+                                                         bool skip_Zbuffer,
+                                                         float color_factor,
+                                                         ChColor x_rgb,
+                                                         ChColor y_rgb,
+                                                         ChColor z_rgb) {
     auto scenegraph = vsg::Group::create();
     scenegraph->addChild(transform);
 
-    // Set red, green, and blue colors at specified darkness level
-    ChColor R(1, 0, 0);
-    ChColor G(0, 1, 0);
-    ChColor B(0, 0, 1);
+    // Set colors at specified darkness level
+    auto x_hsv = ChColor::RGB2HSV(x_rgb);
+    x_hsv[2] *= color_factor;
+    x_rgb = ChColor::HSV2RGB(x_hsv);
 
-    auto hsvR = ChColor::RGB2HSV(R);
-    hsvR[2] *= color_factor;
-    R = ChColor::HSV2RGB(hsvR);
+    auto y_hsv = ChColor::RGB2HSV(y_rgb);
+    y_hsv[2] *= color_factor;
+    y_rgb = ChColor::HSV2RGB(y_hsv);
 
-    auto hsvG = ChColor::RGB2HSV(G);
-    hsvG[2] *= color_factor;
-    G = ChColor::HSV2RGB(hsvG);
-
-    auto hsvB = ChColor::RGB2HSV(B);
-    hsvB[2] *= color_factor;
-    B = ChColor::HSV2RGB(hsvB);
+    auto z_hsv = ChColor::RGB2HSV(z_rgb);
+    z_hsv[2] *= color_factor;
+    z_rgb = ChColor::HSV2RGB(z_hsv);
 
     // calculate vertices
     const int num_points = 6;
@@ -580,14 +579,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     vertices->set(4, vsg::vec3(0, 0, 0));
     vertices->set(5, vsg::vec3(0, 0, 1));
 
-    colors->set(0, vsg::vec3CH(R));
-    colors->set(1, vsg::vec3CH(R));
-    colors->set(2, vsg::vec3CH(G));
-    colors->set(3, vsg::vec3CH(G));
-    colors->set(4, vsg::vec3CH(B));
-    colors->set(5, vsg::vec3CH(B));
+    colors->set(0, vsg::vec3CH(x_rgb));
+    colors->set(1, vsg::vec3CH(x_rgb));
+    colors->set(2, vsg::vec3CH(y_rgb));
+    colors->set(3, vsg::vec3CH(y_rgb));
+    colors->set(4, vsg::vec3CH(z_rgb));
+    colors->set(5, vsg::vec3CH(z_rgb));
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, line_width, skipZbuffer);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, line_width, skip_Zbuffer);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();

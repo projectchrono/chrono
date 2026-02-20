@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle("Custom contact demo");
             vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->EnableSkyBox();
+            vis_vsg->EnableSkyTexture(SkyMode::BOX);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector3d(8, 8, -6), ChVector3d(0, 0, 0));
             vis_vsg->SetCameraAngleDeg(40);

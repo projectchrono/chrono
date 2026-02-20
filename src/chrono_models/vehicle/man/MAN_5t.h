@@ -67,6 +67,7 @@ class CH_MODELS_API MAN_5t {
     void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
+    void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -108,6 +109,7 @@ class CH_MODELS_API MAN_5t {
     TransmissionModelType m_transmissionType;
     BrakeType m_brake_type;
     TireModelType m_tireType;
+    ChTire::CollisionType m_tire_collision_type;
 
     double m_tire_step_size;
 
