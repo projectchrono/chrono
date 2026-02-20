@@ -291,7 +291,10 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_camera_trackball(true),
       m_capture_image(false),
       //
-      m_use_skybox(false),
+      m_sky_mode(SkyMode::NONE),
+      m_skydome_sun_azimuth(1.15 * CH_PI),
+      m_skybox_sun_azimuth(0.5 * CH_PI_2),
+      m_skysphere_path("vsg/textures/vsg_skydome.jpg"),
       m_skybox_path("vsg/textures/vsg_skybox.ktx"),
       //
       m_use_shadows(false),
@@ -570,16 +573,22 @@ void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     m_windows_title = title;
 }
 
-void ChVisualSystemVSG::EnableSkyBox(bool val) {
-    if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::EnableSkyBox can only be called before initialization!" << std::endl;
-        return;
-    }
-    m_use_skybox = val;
+void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename, double sun_azimuth) {
+    m_skybox_path = filename;
+    m_skybox_sun_azimuth = sun_azimuth;
 }
 
-void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename) {
-    m_skybox_path = filename;
+void ChVisualSystemVSG::SetSkyDomeTexture(const std::string& filename, double sun_azimuth) {
+    m_skysphere_path = filename;
+    m_skydome_sun_azimuth = sun_azimuth;
+}
+
+void ChVisualSystemVSG::EnableSkyTexture(SkyMode mode) {
+    if (m_initialized) {
+        std::cerr << "Function ChVisualSystemVSG::EnableSkyTexture can only be called before initialization!" << std::endl;
+        return;
+    }
+    m_sky_mode = mode;    
 }
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
@@ -671,7 +680,7 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
                   << std::endl;
         return;
     }
-    m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
+    m_azimuth = ChClamp(azimuth, 0.0, CH_2PI);
     m_elevation = ChClamp(elevation, -CH_PI_2, CH_PI_2);
 }
 
@@ -714,13 +723,16 @@ void ChVisualSystemVSG::Initialize() {
     double radius = 50.0;
     vsg::dbox bound;
 
-    if (m_use_skybox) {
-        vsg::Path fileName(m_skybox_path);
-        auto skyPtr = createSkybox(fileName, m_options, m_yup);
+    if (m_sky_mode == SkyMode::DOME) {
+        vsg::Path fileName(m_skysphere_path);
+        auto skyPtr = createSkysphere(fileName, m_options, m_skydome_sun_azimuth - m_azimuth, m_yup);
         if (skyPtr)
             m_scene->addChild(skyPtr);
-        else
-            m_use_skybox = false;
+    } else if (m_sky_mode == SkyMode::BOX) {
+        vsg::Path fileName(m_skybox_path);
+        auto skyPtr = createSkybox(fileName, m_options, m_skybox_sun_azimuth - m_azimuth, m_yup);
+        if (skyPtr)
+            m_scene->addChild(skyPtr);
     }
 
     auto ambientLight = vsg::AmbientLight::create();
@@ -744,7 +756,7 @@ void ChVisualSystemVSG::Initialize() {
     double sa = std::sin(m_azimuth);
     double ca = std::cos(m_azimuth);
     if (m_yup)
-        directionalLight->direction.set(-ce * ca, -se, -ce * sa);
+        directionalLight->direction.set(-ce * ca, -se, +ce * sa);
     else
         directionalLight->direction.set(-ce * ca, -ce * sa, -se);
 
@@ -1671,7 +1683,7 @@ void ChVisualSystemVSG::BindAll() {
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(ChFramed(), m_scale_multiplier * m_abs_frame_scale);
         vsg::Mask mask = m_show_abs_frame;
-        auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+        auto node = m_shapeBuilder->createFrameSymbol(transform, 2, false, 1.0f);
         node->setValue("Transform", transform);
         m_absFrameScene->addChild(mask, node);
     }
@@ -2181,7 +2193,7 @@ void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
     vsg::Mask mask = m_show_ref_frames;
-    auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+    auto node = m_shapeBuilder->createFrameSymbol(transform, 2, false, 1.0f);
     node->setValue("Object", obj);
     node->setValue("Transform", transform);
     m_refFrameScene->addChild(mask, node);
@@ -2191,7 +2203,7 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto com_transform = vsg::MatrixTransform::create();
     com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
-    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 1.0f, 2.0f, true);
+    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 2, true, 1.0f);
     com_node->setValue("Body", body);
     com_node->setValue("MobilizedBody", nullptr);
     com_node->setValue("Transform", com_transform);
@@ -2203,7 +2215,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto link_transform = vsg::MatrixTransform::create();
         link_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
-        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.75f, 1.0f, true);
+        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.75f);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 1);
         link_node->setValue("Transform", link_transform);
@@ -2212,7 +2224,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto link_transform = vsg::MatrixTransform::create();
         link_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
-        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.5f, 1.0f, true);
+        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.5f);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 2);
         link_node->setValue("Transform", link_transform);
@@ -2463,7 +2475,8 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto trimesh_connected = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh->GetMesh());
             if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
                 continue;
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+            auto grp =
+                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
             group->addChild(grp);
         } else if (auto hull = std::dynamic_pointer_cast<ChCollisionShapeConvexHull>(shape)) {
             if (hull->IsMutable())  // already treated as deformable mesh
@@ -2473,7 +2486,8 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             lh.ComputeHull(hull->GetPoints(), *trimesh_connected);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+            auto grp =
+                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
             group->addChild(grp);
         }
     }

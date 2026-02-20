@@ -85,16 +85,18 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// Get the terrain height below the specified location.
     virtual double GetHeight(const ChVector3d& loc) const override;
 
+    /// Get the terrain point below the specified location.
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override;
+
     /// Get the terrain normal at the point below the specified location.
     virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
-    /// This coefficient of friction value may be used by certain tire models to modify
-    /// the tire characteristics, but it will have no effect on the interaction of the terrain
-    /// with other objects (including tire models that do not explicitly use it).
-    /// For CRGTerrain, this function defers to the user-provided functor object
-    /// of type ChTerrain::FrictionFunctor, if one was specified.
-    /// Otherwise, it returns the constant value specified at construction.
+    /// This coefficient of friction value may be used by certain tire models to modify the tire characteristics, but it
+    /// will have no effect on the interaction of the terrain with other objects (including tire models that do not
+    /// explicitly use it).
+    /// For CRGTerrain, this function defers to the user-provided functor object of type ChTerrain::FrictionFunctor, if
+    /// one was specified. Otherwise, it returns the constant value specified at construction.
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
     /// Get the road center line as a Bezier curve.
@@ -110,13 +112,13 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     std::shared_ptr<ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
     /// Is the road a round course (closed loop)?
-    bool IsPathClosed() { return m_isClosed; }
+    bool IsPathClosed() const { return m_isClosed; }
 
     /// Get length of the road.
-    double GetLength() { return m_uend - m_ubeg; }
+    double GetLength() const { return m_uend - m_ubeg; }
 
     /// Get width of the road.
-    double GetWidth() { return m_vend - m_vbeg; }
+    double GetWidth() const { return m_vend - m_vbeg; }
 
     /// Get start heading (in radians), can be different from zero for georeferenced roads.
     double GetStartHeading();
@@ -131,7 +133,7 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// Generate roadside posts left and right (optional)
     void SetRoadsidePostDistance(double dist) { m_post_distance = ChClamp(dist, 0.0, 100.0); };
 
-    /// Use a texture file, if mesh representation is desired (optional, should not be used with Irrlicht)
+    /// Use a texture file, if mesh representation is desired.
     void SetRoadDiffuseTextureFile(std::string diffTexFile);
     void SetRoadNormalTextureFile(std::string normTexFile);
     void SetRoadRoughnessTextureFile(std::string roughTexFile);

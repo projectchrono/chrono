@@ -75,12 +75,15 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                       bool wireframe);
 
     /// Create a symbol to represent a reference frame.
-    /// These are 3 mututally orthogonal line segments, colored red, green, and blue.
+    /// These are 3 mututally orthogonal line segments, colored by default red, green, and blue.
     /// The color factor controls simultaneous darkening of the 3 colors (a value of 1 indicates pure colors).
     vsg::ref_ptr<vsg::Group> createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                               float color_factor,
                                                float line_width,
-                                               bool skipZbuffer = false);
+                                               bool skip_Zbuffer,
+                                               float color_factor,
+                                               ChColor x_color = ChColor(1, 0, 0),
+                                               ChColor y_color = ChColor(0, 1, 0),
+                                               ChColor z_color = ChColor(0, 0, 1));
 
     vsg::ref_ptr<vsg::Group> CreateLineShape(std::shared_ptr<ChLine> geometry,
                                              std::shared_ptr<ChVisualMaterial> material,

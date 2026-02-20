@@ -28,8 +28,18 @@ namespace chrono {
 /// @addtogroup chrono_assets
 /// @{
 
-/// Vertical direction
-enum class CameraVerticalDir { Y, Z };
+/// Vertical camera direction.
+enum class CameraVerticalDir {
+    Y,  ///< Y-up camera
+    Z   ///< Z-up camera
+};
+
+/// Sky texture mode.
+enum SkyMode {
+    DOME,  ///< textured half-sphere
+    BOX,   ///< textured cube
+    NONE   ///< no sky texture
+};
 
 /// Base class for a Chrono run-time visualization system.
 class ChApi ChVisualSystem {

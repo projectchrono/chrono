@@ -50,6 +50,8 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_camber_angle(0),
       m_normal_load(1000),
       m_total_mass(0),
+      m_mode(Mode::SUSPEND),
+      m_output(false),
       m_time_delay(0),
       m_ls_actuated(false),
       m_rs_actuated(false),
@@ -263,45 +265,74 @@ class RotSpeedFunction : public BaseFunction, public ChFunction {
     double m_radius;
 };
 
-void ChTireTestRig::Initialize(Mode mode) {
-    CreateMechanism(mode);
+class DelayedFun : public ChFunction {
+  public:
+    DelayedFun() : m_fun(nullptr), m_delay(0) {}
+    DelayedFun(std::shared_ptr<ChFunction> fun, double delay) : m_fun(fun), m_delay(delay) {}
+    virtual DelayedFun* Clone() const override { return new DelayedFun(); }
+    virtual double GetVal(double x) const override {
+        if (x < m_delay)
+            return 0;
+        return m_fun->GetVal(x - m_delay);
+    }
+    std::shared_ptr<ChFunction> m_fun;
+    double m_delay;
+};
+
+void ChTireTestRig::Initialize(Mode mode, double drop_speed) {
+    m_mode = mode;
+
+    CreateMechanism();
     CreateTerrain();
 
-    if (mode != Mode::TEST)
+    if (m_mode != Mode::TEST)
         return;
 
+    // Set the drop speed
+    m_drop_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(drop_speed));
+
+    // Override motion functions to enforce specified constant longitudinal slip
     if (m_long_slip_constant) {
-        // Override motion functions to enforce specified constant longitudinal slip
         m_ls_fun = chrono_types::make_shared<LinSpeedFunction>(m_base_speed);
         m_rs_fun = chrono_types::make_shared<RotSpeedFunction>(m_long_slip, m_base_speed, m_tire->GetRadius());
     }
-
-    struct DelayedFun : public ChFunction {
-        DelayedFun() : m_fun(nullptr), m_delay(0) {}
-        DelayedFun(std::shared_ptr<ChFunction> fun, double delay) : m_fun(fun), m_delay(delay) {}
-        virtual DelayedFun* Clone() const override { return new DelayedFun(); }
-        virtual double GetVal(double x) const override {
-            if (x < m_delay)
-                return 0;
-            return m_fun->GetVal(x - m_delay);
-        }
-        std::shared_ptr<ChFunction> m_fun;
-        double m_delay;
-    };
-
-    if (m_ls_actuated)
-        m_lin_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_ls_fun, m_time_delay));
-
-    if (m_rs_actuated)
-        m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
-
-    m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
 }
-
-// -----------------------------------------------------------------------------
 
 void ChTireTestRig::Advance(double step) {
     double time = m_system->GetChTime();
+
+    // Check end of dropping phase
+    if (m_mode == Mode::TEST &&                                           // in TEST mode
+        !m_drop_motor->IsDisabled() &&                                    // dropping is ongoing
+        m_spindle->GetPos().z() < m_terrain_height + m_tire->GetRadius()  // wheel bottom reached terrain
+    ) {
+        std::cout << "\n  time : " << time << " - end drop phase" << std::endl;
+
+        // Disable the actuator for wheel drop
+        m_drop_motor->SetDisabled(true);
+
+        // Set motor functions with a delay measured from current time
+        m_time_delay += time;
+        std::cout << "  motor activation delayed until t = " << m_time_delay << std::endl;
+
+        if (m_ls_actuated)
+            m_lin_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_ls_fun, m_time_delay));
+
+        if (m_rs_actuated)
+            m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
+
+        m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
+    }
+
+    // Turn on calculation of measured quantities
+    if (m_mode == Mode::TEST &&        // in TEST mode
+        !m_output &&                   // measurements not yet enabled
+        m_drop_motor->IsDisabled() &&  // dropping phase done
+        time > m_time_delay            // past activation delay
+    ) {
+        std::cout << "\n  time : " << time << " - enable measurements" << std::endl;
+        m_output = true;
+    }
 
     if (m_terrain_type == TerrainType::CRM) {
 #ifdef CHRONO_FSI_SPH
@@ -323,7 +354,7 @@ void ChTireTestRig::Advance(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChTireTestRig::CreateMechanism(Mode mode) {
+void ChTireTestRig::CreateMechanism() {
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
     // Create bodies.
@@ -401,7 +432,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     }
 
     m_spindle = chrono_types::make_shared<ChSpindle>();
-    m_spindle->SetFixed(mode == Mode::SUSPEND);
+    m_spindle->SetFixed(m_mode == Mode::SUSPEND);
     ChQuaternion<> qc;
     qc.SetFromAngleX(-m_camber_angle);
     m_system->AddBody(m_spindle);
@@ -416,7 +447,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
                                                     dim / 2);
 
     // Create joints and motors
-    if (mode == Mode::TEST && m_ls_actuated) {
+    if (m_mode == Mode::TEST && m_ls_actuated) {
         m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
         m_system->AddLink(m_lin_motor);
         m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
@@ -432,6 +463,12 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_system->AddLink(prismatic);
     prismatic->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
 
+    if (m_mode == Mode::TEST) {
+        m_drop_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
+        m_system->AddLink(m_drop_motor);
+        m_drop_motor->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
+    }
+ 
     m_slip_lock = chrono_types::make_shared<ChLinkLockLock>();
     m_system->AddLink(m_slip_lock);
     m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(VNULL, QUNIT));
@@ -439,7 +476,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
 
     ChQuaternion<> z2y;
     z2y.SetFromAngleX(-CH_PI_2 - m_camber_angle);
-    if (mode == Mode::TEST && m_rs_actuated) {
+    if (m_mode == Mode::TEST && m_rs_actuated) {
         m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         m_system->AddLink(m_rot_motor);
         m_rot_motor->Initialize(m_spindle, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
@@ -636,7 +673,6 @@ void ChTireTestRig::CreateTerrainCRM() {
         terrain->GetFsiSystemSPH()->AddFsiBody(m_spindle, bce, ChFramed(), false);
     } else {
         if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
-            std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
             auto mesh = fea_tire->GetMesh();
             terrain->AddFeaMesh(mesh, false);
         } else {
@@ -682,15 +718,21 @@ void ChTireTestRig::GetSuggestedCollisionSettings(double& collision_envelope, Ch
 // -----------------------------------------------------------------------------
 
 TerrainForce ChTireTestRig::ReportTireForce() const {
+    if (!m_output)
+        return TerrainForce();
+
     return m_tire->ReportTireForce(m_terrain.get());
 }
 
 double ChTireTestRig::GetDBP() const {
+    if (!m_output)
+        return 0;
+
     return -m_lin_motor->GetMotorForce();
 }
 
 double ChTireTestRig::GetLongitudinalSlip() const {
-    if (m_system->GetChTime() < m_time_delay)
+    if (!m_output)
         return 0;
 
     double r = m_tire->GetRadius();                        // current tire effective radius
@@ -704,7 +746,7 @@ double ChTireTestRig::GetLongitudinalSlip() const {
 }
 
 double ChTireTestRig::GetSlipAngle() const {
-    if (m_system->GetChTime() < m_time_delay)
+    if (!m_output)
         return 0;
 
     auto dir = m_spindle->GetRotMat().GetAxisY();
@@ -713,7 +755,7 @@ double ChTireTestRig::GetSlipAngle() const {
 }
 
 double ChTireTestRig::GetCamberAngle() const {
-    if (m_system->GetChTime() < m_time_delay)
+    if (!m_output)
         return 0;
 
     auto dir = m_spindle->GetRotMat().GetAxisY();

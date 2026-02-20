@@ -75,6 +75,8 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/input_output/ChCheckpoint.h"
+#include "chrono/input_output/ChCheckpointASCII.h"
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/utils/ChConstants.h"
@@ -358,6 +360,7 @@ inline const char* ChUtils_GetFilename() {
 // assets
 %include "ChColor.i"
 %include "ChColormap.i"
+%include "ChVisualBSDFType.i"
 %include "ChVisualMaterial.i"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"
@@ -426,6 +429,8 @@ inline const char* ChUtils_GetFilename() {
 // for hulls and meshing
 %include "../../../chrono/collision/ChConvexDecomposition.h"
 
+%include "../../../chrono/input_output/ChCheckpoint.h"
+%include "../../../chrono/input_output/ChCheckpointASCII.h"
 %include "../../../chrono/input_output/ChWriterCSV.h"
 %include "../../../chrono/input_output/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChConstants.h"
@@ -438,6 +443,8 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/input_output/ChCheckpoint.h"
 
 %include "ChParticleFactory.i"
+%include "ChOpenMP.i"
+
 //
 // C- CASTING OF SHARED POINTERS
 // 

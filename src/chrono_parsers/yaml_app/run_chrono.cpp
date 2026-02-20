@@ -297,7 +297,7 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
         vis_vsg->SetChaseCamera(chassis_point, chase_distance, chase_height);
         vis_vsg->SetWindowSize(1280, 800);
         vis_vsg->SetWindowPosition(100, 100);
-        vis_vsg->EnableSkyBox();
+        vis_vsg->EnableSkyTexture(SkyMode::BOX);
         vis_vsg->SetCameraAngleDeg(40);
         vis_vsg->SetLightIntensity(1.0f);
         vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

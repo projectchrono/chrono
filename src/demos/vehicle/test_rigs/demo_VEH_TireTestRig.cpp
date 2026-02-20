@@ -228,10 +228,10 @@ int main() {
     double input_time_delay = 1.0;
     rig.SetTimeDelay(input_time_delay);
 
-    // Initialize the tire test rig
+    // Initialize the tire test rig; in TEST mode set a drop speed of 0.05
     ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
-    rig.Initialize(ChTireTestRig::Mode::TEST);
+    rig.Initialize(ChTireTestRig::Mode::TEST, 0.05);
 
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
@@ -369,13 +369,13 @@ int main() {
         auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
         auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
 
-        if (gnuplot_output && time > input_time_delay) {
+        if (gnuplot_output && rig.OutputEnabled()) {
             long_slip_fct.AddPoint(time, long_slip);
             slip_angle_fct.AddPoint(time, slip_angle);
             camber_angle_fct.AddPoint(time, camber_angle);
         }
 
-        if (debug_output) {
+        if (debug_output && rig.OutputEnabled()) {
             cout << time << endl;
             cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
             auto tforce = rig.ReportTireForce();
@@ -401,7 +401,7 @@ int main() {
     // Plot results
     // ------------
 
-    if (gnuplot_output && sys->GetChTime() > input_time_delay) {
+    if (gnuplot_output && rig.OutputEnabled()) {
         postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
         gplot_long_slip.SetGrid();
         gplot_long_slip.SetLabelX("time (s)");
