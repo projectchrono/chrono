@@ -55,7 +55,7 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCH_ENABLE_MODULE_CASCADE=ON \
  -DCH_ENABLE_MODULE_PARDISO_MKL=ON \
  -DIrrlicht_ROOT=$PREFIX/include/irrlicht \
- -DOptiX_INSTALL_DIR=$HOME/Packages/optix-7.7.0 \
+ -DOptiX_INSTALL_DIR=$HOME/Packages/optix-dev-9.1.0 \
  ./..
 
 #  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
