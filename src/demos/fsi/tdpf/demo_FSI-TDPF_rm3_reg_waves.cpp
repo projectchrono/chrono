@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Radu Serban
+// Author: Radu Serban, Dave Ogden
 // =============================================================================
 
 #include <iomanip>
@@ -44,22 +44,30 @@ using namespace chrono::fsi::tdpf;
 
 // -----------------------------------------------------------------------------
 
+double t_end = 100;
+double time_step = 1.0e-2;
+bool enforce_realtime = true;
+
+bool verbose = false;
+
+bool render_waves = true;
+double render_fps = 30;
+bool snapshots = false;
+
+////ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
+////ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
+ChSolver::Type solver_type = ChSolver::Type::GMRES;
+
+bool use_diag_precond = true;
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     auto float_meshfile = GetChronoDataFile("fsi-tdpf/rm3/float_cog.obj");
     auto plate_meshfile = GetChronoDataFile("fsi-tdpf/rm3/plate_cog.obj");
     auto rm3_hydrofile = GetChronoDataFile("fsi-tdpf/rm3/rm3.h5");
 
     ChVector3d g_acc(0.0, 0.0, -9.81);
-
-    double t_end = 100;
-    double time_step = 1.0e-2;
-    bool enforce_realtime = true;
-
-    bool verbose = false;
-
-    bool render_waves = true;
-    double render_fps = 30;
-    bool snapshots = false;
 
     double wave_amplitude = 1.0;
     double wave_period = 3.0;
@@ -69,9 +77,13 @@ int main(int argc, char* argv[]) {
     sysMBS.SetGravitationalAcceleration(g_acc);
 
     sysMBS.SetTimestepperType(ChTimestepper::Type::HHT);
-    sysMBS.SetSolverType(ChSolver::Type::GMRES);
-    sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
+    sysMBS.SetSolverType(solver_type);
+    if (sysMBS.GetSolver()->AsIterative()) {
+        sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
+        sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    }
 
+    // Ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
     sysMBS.AddBody(ground);
@@ -129,9 +141,8 @@ int main(int argc, char* argv[]) {
 
     // Add regular wave
     RegularWaveParams reg_wave_params;
-    reg_wave_params.num_bodies_ = 2;
-    reg_wave_params.regular_wave_amplitude_ = wave_amplitude;
-    reg_wave_params.regular_wave_omega_ = CH_2PI / wave_period;
+    reg_wave_params.regular_wave_amplitude = wave_amplitude;
+    reg_wave_params.regular_wave_omega = CH_2PI / wave_period;
     sysTDPF.AddWaves(reg_wave_params);
 
     // ----- FSI system

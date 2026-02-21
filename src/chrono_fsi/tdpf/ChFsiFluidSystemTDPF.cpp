@@ -88,11 +88,6 @@ void ChFsiFluidSystemTDPF::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, b
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemTDPF::AddWaves(const NoWaveParams& params) {
-    m_no_wave_params = params;
-    m_wave_type = WaveType::NONE;
-}
-
 void ChFsiFluidSystemTDPF::AddWaves(const RegularWaveParams& params) {
     m_reg_wave_params = params;
     m_wave_type = WaveType::REGULAR;
@@ -138,18 +133,16 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
     // Initialize and add waves
     switch (m_wave_type) {
         case WaveType::NONE:
-            m_no_wave_params.num_bodies_ = m_num_rigid_bodies;
-            m_impl->m_waves = chrono_types::make_shared<NoWave>(m_no_wave_params);
+            m_impl->m_waves = chrono_types::make_shared<NoWave>();
             break;
         case WaveType::REGULAR:
-            m_reg_wave_params.num_bodies_ = m_num_rigid_bodies;
             m_impl->m_waves = chrono_types::make_shared<RegularWave>(m_reg_wave_params);
             break;
         case WaveType::IRREGULAR:
-            m_irreg_wave_params.num_bodies_ = m_num_rigid_bodies;
             m_impl->m_waves = chrono_types::make_shared<IrregularWaves>(m_irreg_wave_params);
             break;
     }
+    m_impl->m_waves->SetNumBodies(m_num_rigid_bodies);
 
     // Initialize low-level implementation object
     m_impl->Initialize(m_hydro_filename, m_num_rigid_bodies);
