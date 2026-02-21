@@ -114,17 +114,18 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
 
 void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z,
                                                 unsigned int start_row,
-                                                unsigned int start_col) const {
+                                                unsigned int start_col,
+                                                double scale_factor) const {
     // Contribution of mass or rigid bodies and node-concentrated masses
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->PasteMassInto(Z, start_row, start_col, c_a);
+            var->PasteMassInto(Z, start_row, start_col, scale_factor * c_a);
         }
     }
 
     // Contribution of stiffness, damping, and mass matrices
     for (const auto& KRMBlock : m_KRMblocks) {
-        KRMBlock->PasteMatrixInto(Z, start_row, start_col, false);
+        KRMBlock->PasteMatrixInto(Z, start_row, start_col, scale_factor, false);
     }
 }
 
@@ -171,7 +172,7 @@ void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
     }
 }
 
-void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>* rhs) const {
+void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>* rhs, double scale_factor) const {
     n_q = CountActiveVariables();
 
     n_c = CountActiveConstraints();
@@ -181,7 +182,7 @@ void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>*
 
         Z->setZeroValues();
 
-        PasteMassKRMMatrixInto(*Z, 0, 0);
+        PasteMassKRMMatrixInto(*Z, 0, 0, scale_factor);
 
         PasteConstraintsJacobianMatrixInto(*Z, n_q, 0);
 
@@ -193,7 +194,7 @@ void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>*
     if (rhs) {
         rhs->setZero(n_q + n_c, 1);
 
-        BuildDiVector(*rhs);
+        BuildDiVector(*rhs, scale_factor);
     }
 }
 
@@ -224,7 +225,7 @@ unsigned int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& b, unsigned in
     return n_c;
 }
 
-unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& d) const {
+unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& d, double scale_factor) const {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
     d.setZero(n_q + n_c);
@@ -232,7 +233,7 @@ unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& d) const {
     // Fills the 'f' vector part
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            d.segment(var->GetOffset(), var->GetDOF()) = var->Force();
+            d.segment(var->GetOffset(), var->GetDOF()) = scale_factor * var->Force();
         }
     }
 
@@ -361,7 +362,7 @@ unsigned int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& vector,
     return n_q + n_c;
 }
 
-unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& vector) {
+unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& vector, double scale_factor) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
@@ -375,9 +376,10 @@ unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& v
     }
 
     // Fetch from the second part of vector (x.l = -l), with flipped sign!
+    double factor = -1 / scale_factor;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->SetLagrangeMultiplier(-vector(constr->GetOffset() + n_q));
+            constr->SetLagrangeMultiplier(factor * vector(constr->GetOffset() + n_q));
         }
     }
 

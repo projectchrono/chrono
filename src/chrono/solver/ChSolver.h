@@ -93,6 +93,11 @@ class ChApi ChSolver {
     /// The return value is specific to a derived solver class.
     virtual double Solve(ChSystemDescriptor& sysd) = 0;
 
+    /// Set the matrix conditioning factor (default: 1).
+    /// A concrete solver can use this scaling factor to improve conditioning of the system matrix by scaling the
+    /// generalized mass matrix block.
+    void SetConditioningFactor(double factor) { conditioning_factor = factor; }
+
     /// Set verbose output from solver.
     void SetVerbose(bool mv) { verbose = mv; }
 
@@ -109,10 +114,12 @@ class ChApi ChSolver {
     std::string GetTypeAsString() const { return GetTypeAsString(GetType()); }
 
     /// Return the provided solver type as a string.
-    static std::string GetTypeAsString(Type type); 
+    static std::string GetTypeAsString(Type type);
 
   protected:
-    ChSolver() : verbose(false) {}
+    ChSolver() : verbose(false), conditioning_factor(1) {}
+
+    double conditioning_factor;
 
     bool verbose;
     bool write_matrix;

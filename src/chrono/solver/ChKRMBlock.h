@@ -68,12 +68,17 @@ class ChApi ChKRMBlock {
     void DiagonalAdd(ChVectorRef result) const;
 
     /// Write the KRM matrix into the specified global matrix at the offsets of the referenced ChVariable objects.
-    /// Additional offsets can be specified to place the submatrix into a different position of the global matrix.
-    /// If the ovewrite parameters is set to true, the submatrix overwrites the existing values in the global matrix,
-    /// otherwise the values are summed.
-    /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
+    /// Additional offsets can be specified to place the submatrix into a different position of the global matrix. The
+    /// KRM matrix is multiplied by the specified scale factor before writing it into the output matrix. If the ovewrite
+    /// parameters is set to true, the submatrix overwrites the existing values in the global matrix, otherwise the
+    /// values are summed.
+    /// Note that assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
-    void PasteMatrixInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col, bool overwrite) const;
+    void PasteMatrixInto(ChSparseMatrix& mat,
+                         unsigned int start_row,
+                         unsigned int start_col,
+                         double scale_factor,
+                         bool overwrite) const;
 
   private:
     bool m_has_KR;                          ///< true if the KRM block includes stiffness or damping
