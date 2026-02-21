@@ -61,6 +61,7 @@ bool snapshots = false;
 
 ////ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
 ////ChSolver::Type solver_type = ChSolver::Type::SPARSE_LU;
+////ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
 ChSolver::Type solver_type = ChSolver::Type::GMRES;
 
 bool use_diag_precond = true;
@@ -87,17 +88,22 @@ int main(int argc, char* argv[]) {
         solver_type = ChSolver::Type::GMRES;
     }
 #endif
+
     if (solver_type == ChSolver::Type::PARDISO_MKL) {
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         sysMBS.SetSolver(mkl_solver);
     } else {
         sysMBS.SetSolverType(solver_type);
-        if (sysMBS.GetSolver()->AsIterative()) {
-            sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
-            sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
-        }
     }
+
+    if (sysMBS.GetSolver()->AsIterative()) {
+        sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
+        sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    }
+
+    // Set scaling factor (for generalized mass and force) to improve system matrix condition number
+    sysMBS.GetSolver()->SetConditioningFactor(1e-3);
 
     // Flap body
     auto flap_body = chrono_types::make_shared<ChBodyEasyMesh>(flap_meshfile,
@@ -106,11 +112,12 @@ int main(int argc, char* argv[]) {
                                                                true,   // create visualization asset
                                                                false   // no collisions
     );
+
     sysMBS.Add(flap_body);
     flap_body->SetName("body1");
     flap_body->SetPos(ChVector3d(0.0, 0.0, -3.9));
-    flap_body->SetMass(127000.0);
-    flap_body->SetInertiaXX(ChVector3d(1.85e6, 1.85e6, 1.85e6));
+    flap_body->SetMass(1.27e5);
+    flap_body->SetInertiaXX(ChVector3d(0.65e6, 1.85e6, 0.31e6));
 
     // Base body
     auto base_body = chrono_types::make_shared<ChBodyEasyMesh>(base_meshfile,
