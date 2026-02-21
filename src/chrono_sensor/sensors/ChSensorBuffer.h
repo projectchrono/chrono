@@ -62,6 +62,8 @@ struct SensorBufferT : public SensorBuffer {
     B Buffer;
 };
 
+#ifdef CHRONO_HAS_OPTIX
+
 template <class B>
 struct LidarBufferT : public SensorBufferT<B> {
     LidarBufferT() : Dual_return(false), Beam_return_count(0) {}
@@ -308,6 +310,8 @@ using DeviceXYZIBufferPtr = std::shared_ptr<PixelXYZI[]>;
 using SensorDeviceXYZIBuffer = LidarBufferT<DeviceXYZIBufferPtr>;
 /// pointer to a point cloud buffer on the host that has been moved for safety and can be given to the user
 using UserXYZIBufferPtr = std::shared_ptr<SensorHostXYZIBuffer>;
+
+#endif
 
 //=============================
 // IMU Data Format and Buffers

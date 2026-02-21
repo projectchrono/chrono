@@ -159,6 +159,8 @@ using ChFilterDIAccess = ChFilterAccess<SensorHostDIBuffer, UserDIBufferPtr>;
 using ChFilterRadarAccess = ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>;
 /// Access to Processed Radar data
 using ChFilterRadarXYZAccess = ChFilterAccess<SensorHostRadarXYZBuffer, UserRadarXYZBufferPtr>;
+/// Access to normal camera data
+using ChFilterNormalAccess = ChFilterAccess<SensorHostNormalBuffer, UserNormalBufferPtr>;
 /// Access to depth camera data
 using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
 
@@ -176,10 +178,6 @@ using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
 using ChFilterTachometerAccess = ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>;
 /// Access to Encoder data
 // using ChFilterEncoderAccess = ChFilterAccess<SensorHostEncoderBuffer, UserEncoderBufferPtr>;
-/// Access to normal camera data
-using ChFilterNormalAccess = ChFilterAccess<SensorHostNormalBuffer, UserNormalBufferPtr>;
-/// Access to depth camera data
-using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
 
 /// @}
 

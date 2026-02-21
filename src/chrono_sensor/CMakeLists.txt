@@ -321,12 +321,6 @@ set(Chrono_sensor_FILTERS_SOURCES
     filters/ChFilterIMUUpdate.cpp
     filters/ChFilterGPSUpdate.cpp
     filters/ChFilterTachometerUpdate.cpp
-    filters/ChFilterCameraExposure.cpp
-    filters/ChFilterPhysCameraDefocusBlur.cpp
-    filters/ChFilterPhysCameraVignetting.cpp
-    filters/ChFilterPhysCameraAggregator.cpp
-    filters/ChFilterPhysCameraNoise.cpp
-    filters/ChFilterPhysCameraExpsrToDV.cpp
 )
 
 set(Chrono_sensor_FILTERS_HEADERS
@@ -356,6 +350,11 @@ if(CH_USE_SENSOR_OPTIX)
       filters/ChFilterSave.cpp
       filters/ChFilterSavePtCloud.cpp
       filters/ChFilterVisualizePointCloud.cpp
+      filters/ChFilterPhysCameraDefocusBlur.cpp
+      filters/ChFilterPhysCameraVignetting.cpp
+      filters/ChFilterPhysCameraAggregator.cpp
+      filters/ChFilterPhysCameraNoise.cpp
+      filters/ChFilterPhysCameraExpsrToDV.cpp
   )
   set(Chrono_sensor_FILTERS_HEADERS ${Chrono_sensor_FILTERS_HEADERS}
       filters/ChFilterCameraExposure.h
