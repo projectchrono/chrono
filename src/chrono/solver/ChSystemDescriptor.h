@@ -351,6 +351,7 @@ class ChApi ChSystemDescriptor {
     void PasteComplianceMatrixInto(ChSparseMatrix& Z,
                                    unsigned int start_row = 0,
                                    unsigned int start_col = 0,
+                                   double scale_factor = 1,
                                    bool only_bilateral = false) const;
 
     /// Create and return the assembled system matrix and/or RHS vector at a given position.

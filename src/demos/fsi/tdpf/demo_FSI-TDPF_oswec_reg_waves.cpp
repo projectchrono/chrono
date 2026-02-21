@@ -61,8 +61,8 @@ bool snapshots = false;
 
 ////ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
 ////ChSolver::Type solver_type = ChSolver::Type::SPARSE_LU;
-////ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
-ChSolver::Type solver_type = ChSolver::Type::GMRES;
+ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
+////ChSolver::Type solver_type = ChSolver::Type::GMRES;
 
 bool use_diag_precond = true;
 
@@ -131,6 +131,7 @@ int main(int argc, char* argv[]) {
     base_body->SetPos(ChVector3d(0, 0, -10.15));
     base_body->SetMass(1e6);
     base_body->SetInertiaXX(ChVector3d(1e6, 1e6, 1e6));
+    base_body->GetVisualShape(0)->SetColor(ChColor(0.96f, 0.56f, 0.23f));
 
     // Ground body
     auto ground = chrono_types::make_shared<ChBody>();

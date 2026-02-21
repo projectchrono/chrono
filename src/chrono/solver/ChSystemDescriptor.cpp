@@ -162,11 +162,13 @@ unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixTransposedInto(Ch
 void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
                                                    unsigned int start_row,
                                                    unsigned int start_col,
+                                                   double scale_factor,
                                                    bool only_bilateral) const {
+    double factor = -1 / scale_factor;
     int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
-            Z.SetElement(start_row + s_c, start_col + s_c, -constr->GetComplianceTerm());
+            Z.SetElement(start_row + s_c, start_col + s_c, factor * constr->GetComplianceTerm());
             s_c++;
         }
     }
@@ -174,7 +176,6 @@ void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
 
 void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>* rhs, double scale_factor) const {
     n_q = CountActiveVariables();
-
     n_c = CountActiveConstraints();
 
     if (Z) {
@@ -188,7 +189,7 @@ void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>*
 
         PasteConstraintsJacobianMatrixTransposedInto(*Z, 0, n_q);
 
-        PasteComplianceMatrixInto(*Z, n_q, n_q);
+        PasteComplianceMatrixInto(*Z, n_q, n_q, scale_factor);
     }
 
     if (rhs) {
