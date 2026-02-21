@@ -85,6 +85,8 @@ linux:doxygen:deploy:
     - ldconfig
     # Check the NVIDIA Driver's version
     - nvidia-smi
+    # Check nvidia container is working correctly and has access to the GPU
+    - mount
     # ROS
     - source /opt/ros/humble/setup.sh
     - mkdir -p $CI_PROJECT_DIR/contrib/ros_ws/src
