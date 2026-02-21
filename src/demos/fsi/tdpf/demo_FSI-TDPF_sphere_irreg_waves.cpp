@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Radu Serban
+// Author: Radu Serban, Dave Ogden
 // =============================================================================
 
 #include <iomanip>
@@ -78,8 +78,10 @@ int main(int argc, char* argv[]) {
     // ----- Multibody system
     ChSystemNSC sysMBS;
     sysMBS.SetSolverType(solver_type);
-    sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
-    sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    if (sysMBS.GetSolver()->AsIterative()) {
+        sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
+        sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    }
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
