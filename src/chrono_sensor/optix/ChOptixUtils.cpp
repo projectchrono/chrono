@@ -67,7 +67,7 @@ void GetShaderFromFile(OptixDeviceContext context,
 
     // compile CUDA code with NVRTC
     nvrtcProgram nvrtc_program;
-    NVRTC_ERROR_CHECK(nvrtcCreateProgram(&nvrtc_program, str.c_str(), str.c_str(), 0, NULL, NULL));
+    NVRTC_ERROR_CHECK(nvrtcCreateProgram(&nvrtc_program, str.c_str(), cuda_file.c_str(), 0, NULL, NULL));
 
     // complete list of flags to be used for NVRTC
     std::vector<const char*> nvrtc_compiler_flag_list;
