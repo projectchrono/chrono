@@ -90,9 +90,11 @@ int main(int argc, char* argv[]) {
 #endif
 
     if (solver_type == ChSolver::Type::PARDISO_MKL) {
+#ifdef CHRONO_PARDISO_MKL
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         sysMBS.SetSolver(mkl_solver);
+#endif
     } else {
         sysMBS.SetSolverType(solver_type);
     }
