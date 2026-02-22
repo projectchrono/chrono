@@ -30,22 +30,23 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// Optix sensor class - the base class for all sensors that interface with OptiX to generate and render their data
+/// Optix sensor class - base class for all sensors that interface with OptiX to generate and render their data.
 class CH_SENSOR_API ChOptixSensor : public ChSensor {
   public:
-    /// Constructor for the base camera class that defaults to a pinhole lens model
+    /// Constructor for the base camera class that defaults to a pinhole lens model.
     /// @param parent Body to which the sensor is attached.
     /// @param updateRate Rate at which the sensor should update.
     /// @param offsetPose Relative position and orientation of the sensor with respect to its parent object.
     /// @param w Width of the data the sensor should generate
     /// @param h Height of the data the sensor should generate
-    ChOptixSensor(std::shared_ptr<chrono::ChBody> parent,
+    // @param lag Lag time between end of data collection and when data becomes available to the user.
+    // @param collection_window Collection time over which the sensor should collect data from the simulation.
+    ChOptixSensor(std::shared_ptr<ChBody> parent,
                   float updateRate,
-                  chrono::ChFrame<double> offsetPose,
+                  ChFrame<double> offsetPose,
                   unsigned int w,
                   unsigned int h);
 
-    /// camera class destructor
     virtual ~ChOptixSensor();
 
     PipelineType GetPipelineType() { return m_pipeline_type; }

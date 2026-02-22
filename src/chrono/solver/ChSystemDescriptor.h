@@ -138,7 +138,7 @@ class ChApi ChSystemDescriptor {
     /// Get the vector d = {f; -b} with all the 'fb' and 'bi' known terms, as in Z*y-d.
     /// This vector is the concatenation of BuildFbVector and BuildBiVector.
     /// It will be automatically reset and resized to the proper length if necessary.
-    virtual unsigned int BuildDiVector(ChVectorDynamic<>& d) const;
+    virtual unsigned int BuildDiVector(ChVectorDynamic<>& d, double scale_factor = 1) const;
 
     /// Get the D diagonal of the Z system matrix, as a single column vector.
     /// This includes all the diagonal masses of M, and all the diagonal E (-cfm) terms.
@@ -179,8 +179,9 @@ class ChApi ChSystemDescriptor {
 
     /// Scatter the given vector to the variables 'q' and constraint multipliers 'l'.
     /// Note that *no* check on the size and ordering of the provided vector is performed.
+    /// The scattered Lagrange multipliers are first multiplied by 1/scale_factor.
     /// \return  the number of scalar unknowns
-    virtual unsigned int FromVectorToUnknowns(const ChVectorDynamic<>& vector);
+    virtual unsigned int FromVectorToUnknowns(const ChVectorDynamic<>& vector, double scale_factor = 1);
 
     // ------------------------------------------
 
@@ -317,7 +318,10 @@ class ChApi ChSystemDescriptor {
     /// - resize Z (and potentially call SetZeroValues if the case)
     /// - call LoadKRMMatrices with the desired factors
     /// - call SetMassFactor() with the appropriate value
-    void PasteMassKRMMatrixInto(ChSparseMatrix& Z, unsigned int start_row = 0, unsigned int start_col = 0) const;
+    void PasteMassKRMMatrixInto(ChSparseMatrix& Z,
+                                unsigned int start_row = 0,
+                                unsigned int start_col = 0,
+                                double scale_factor = 1) const;
 
     /// Paste the constraints jacobian of the system into a sparse matrix at a given position.
     /// Before calling this function the user needs to:
@@ -347,11 +351,13 @@ class ChApi ChSystemDescriptor {
     void PasteComplianceMatrixInto(ChSparseMatrix& Z,
                                    unsigned int start_row = 0,
                                    unsigned int start_col = 0,
+                                   double scale_factor = 1,
                                    bool only_bilateral = false) const;
 
-    /// Create and return the assembled system matrix and RHS vector at a given position.
-    virtual void BuildSystemMatrix(ChSparseMatrix* Z,      ///< [out] assembled system matrix
-                                   ChVectorDynamic<>* rhs  ///< [out] assembled RHS vector
+    /// Create and return the assembled system matrix and/or RHS vector at a given position.
+    virtual void BuildSystemMatrix(ChSparseMatrix* Z,       ///< assembled system matrix
+                                   ChVectorDynamic<>* rhs,  ///< assembled RHS vector
+                                   double scale_factor = 1  ///< optional scaling factor for generalized mass matrix
     ) const;
 
     /// Write the current system matrix blocks and right-hand side components.

@@ -22,7 +22,6 @@
 
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 
-
 namespace chrono {
 namespace sensor {
 
@@ -61,7 +60,6 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
                    bool use_fog = false                       // whether to use fog 
                   );  
 
-    /// camera class destructor
     ~ChCameraSensor();
 
     /// returns the camera's horizontal field of view. Vertical field of view is determined by the image aspect
@@ -122,12 +120,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @return ChVector3f of the camera distortion coefficients k1, k2, k3
     ChVector3f GetCameraDistortionCoefficients() { return m_distortion_params; }
 
-
     /// calculate the parameters for the inverse polynomial model
     static LensParams CalcInvRadialModel(ChVector3f params);
-
-
-
 
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor

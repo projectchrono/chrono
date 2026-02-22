@@ -23,13 +23,10 @@
 namespace chrono {
 namespace sensor {
 
-// -----------------------------------------------------------------------------
-// Constructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChLidarSensor::ChLidarSensor(
-    std::shared_ptr<chrono::ChBody> parent,
+ChLidarSensor::ChLidarSensor(
+    std::shared_ptr<ChBody> parent,
     float updateRate,
-    chrono::ChFrame<double> offsetPose,
+    ChFrame<double> offsetPose,
     unsigned int w,               // image width
     unsigned int h,               // image height
     float hFOV,                   // horizontal field of view
@@ -64,10 +61,8 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
     SetCollectionWindow(0);
     SetLag(1 / updateRate);
 }
-// -----------------------------------------------------------------------------
-// Destructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChLidarSensor::~ChLidarSensor() {}
+
+ChLidarSensor::~ChLidarSensor() {}
 
 }  // namespace sensor
 }  // namespace chrono

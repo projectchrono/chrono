@@ -102,6 +102,7 @@ void ChKRMBlock::DiagonalAdd(ChVectorRef result) const {
 void ChKRMBlock::PasteMatrixInto(ChSparseMatrix& mat,
                                  unsigned int start_row,
                                  unsigned int start_col,
+                                 double scale_factor,
                                  bool overwrite) const {
     if (m_matrix.rows() == 0)
         return;
@@ -118,7 +119,8 @@ void ChKRMBlock::PasteMatrixInto(ChSparseMatrix& mat,
                 unsigned int jn = GetVariable(jv)->GetDOF();
 
                 if (GetVariable(jv)->IsActive()) {
-                    PasteMatrix(mat, m_matrix.block(kio, kjo, in, jn), io + start_row, jo + start_col, overwrite);
+                    PasteMatrix(mat, scale_factor * m_matrix.block(kio, kjo, in, jn), io + start_row, jo + start_col,
+                                overwrite);
                 }
 
                 kjo += jn;

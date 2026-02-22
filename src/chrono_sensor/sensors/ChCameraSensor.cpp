@@ -20,27 +20,23 @@
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
-
 namespace chrono {
 namespace sensor {
 
-// -----------------------------------------------------------------------------
-// Constructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,    // object to which the sensor is attached
-                                             float updateRate,                          // rate at which the sensor updates
-                                             chrono::ChFrame<double> offsetPose,        // position of sensor relative to parent object
-                                             unsigned int w,                            // image width
-                                             unsigned int h,                            // image height
-                                             float hFOV,                                // horizontal field of view
-                                             unsigned int supersample_factor,           // number of samples per pixel for antialiasing
-                                             CameraLensModelType lens_model,            // lens model to use
-                                             bool use_diffuse_reflect,                  // whether consider diffuse reflection or only consider specular reflection
-                                             bool use_denoiser,                         // whetheruse denoiser for diffuse reflection or area lights
-                                             Integrator integrator,                     // integrator algorithm to use for rendering
-                                             float gamma,                               // gamma correction value
-                                             bool use_fog                               // whether use fog 
-                                            )
+ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,    // object to which the sensor is attached
+                               float updateRate,                          // rate at which the sensor updates
+                               chrono::ChFrame<double> offsetPose,        // position of sensor relative to parent object
+                               unsigned int w,                            // image width
+                               unsigned int h,                            // image height
+                               float hFOV,                                // horizontal field of view
+                               unsigned int supersample_factor,           // number of samples per pixel for antialiasing
+                               CameraLensModelType lens_model,            // lens model to use
+                               bool use_diffuse_reflect,                  // whether consider diffuse reflection or only consider specular reflection
+                               bool use_denoiser,                         // whetheruse denoiser for diffuse reflection or area lights
+                               Integrator integrator,                     // integrator algorithm to use for rendering
+                               float gamma,                               // gamma correction value
+                               bool use_fog                               // whether use fog 
+                               )
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
@@ -70,17 +66,14 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
     SetLag(1.f / updateRate);
 }
 
-// -----------------------------------------------------------------------------
-// Destructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChCameraSensor::~ChCameraSensor() {}
+ChCameraSensor::~ChCameraSensor() {}
 
 void ChCameraSensor::SetRadialLensParameters(ChVector3f params) {
     m_distortion_params = params;
     m_lens_parameters = CalcInvRadialModel(params);
 }
 
- ChMatrix33<float> ChCameraSensor::GetCameraIntrinsicMatrix() {
+ChMatrix33<float> ChCameraSensor::GetCameraIntrinsicMatrix() {
     ChMatrix33<float> I;
     float focal_length = (m_width / 2) * tanf(m_hFOV / 2);
     I(0, 0) = focal_length;
@@ -95,6 +88,7 @@ void ChCameraSensor::SetRadialLensParameters(ChVector3f params) {
 
     return I;
 };
+
 LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params) {
     // coefficients directory without algorithm from
     // Drap, P., & Lefevre, J. (2016).
@@ -141,11 +135,6 @@ LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params) {
 
     return p;
 }
-
-
-/*ChMatrix33<float> GetCameraIntrinsciMatrix() {
-    
-}*/
 
 }  // namespace sensor
 }  // namespace chrono
