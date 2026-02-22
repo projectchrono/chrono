@@ -272,6 +272,23 @@ Practical tuning:
 Variable Time Step: What It Does and How It Is Computed
 -------------------------------------------------------
 
+CFL Link Between Initial Spacing and Time Step
+----------------------------------------------
+
+The SPH stability limit is tied to the smoothing length `h`, and `h` is tied to the initial spacing `d0`:
+
+- `h = d0_multiplier * d0`
+- `dt_CFL ~ C * h / (Cs + u_char)`
+
+where `Cs` is the numerical sound speed and `u_char` is a characteristic relative particle speed.
+
+In fixed-step mode (`use_variable_time_step = false`), you must enforce this manually through `SetStepSizeCFD(...)`:
+
+- if you reduce `d0`, you should reduce `dt` proportionally (first estimate).
+- example: if `d0` is halved and flow speeds are similar, start by halving `dt`.
+
+In variable-step mode (`use_variable_time_step = true`), Chrono applies this relationship automatically at runtime because the computed step uses `h` directly (see formulas below). So when `d0` is reduced, the internal CFD substep decreases accordingly, except for the first seed step which is still provided by `SetStepSizeCFD(...)`.
+
 Enable via:
 
 ~~~{.cpp}

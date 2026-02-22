@@ -32,6 +32,7 @@ Further details on the FSI-SPH module are provided in the following pages:
 * @subpage manual_fsi_sph_class_guide
 * @subpage manual_fsi_rigid_bce_markers
 * @subpage manual_fsi_sph_parameter_selection
+* @subpage manual_fsi_mu_i_rheology
 
 ## TDPF-based FSI module
 
@@ -40,4 +41,3 @@ The [Chrono::FSI-TDPF](group__fsitdpf.html) module provides support for FSI prob
 The resulting simulation framework is represented schematically in the image below which also illustrates the YAML parsers associated with such FSI problems.
 
 <img src="http://www.projectchrono.org/assets/manual/Chrono_FSI-TDPF.png" width="800">
-
