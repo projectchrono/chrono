@@ -19,7 +19,7 @@
 #ifndef PHYS_CAM_RAYGEN_CU
 #define PHYS_CAM_RAYGEN_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
 __device__ __inline__ PerRayData_phys_camera DefaultPhysCamPRD() {

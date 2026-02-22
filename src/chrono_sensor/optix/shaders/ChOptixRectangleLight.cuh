@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
-#ifndef CHRONO_SENSOR_OPTIX_RECTANGLE_LIGHT_CU
-#define CHRONO_SENSOR_OPTIX_RECTANGLE_LIGHT_CU
+#ifndef CHRONO_SENSOR_OPTIX_RECTANGLE_LIGHT_CUH
+#define CHRONO_SENSOR_OPTIX_RECTANGLE_LIGHT_CUH
 
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"	// for RectangleLightData, LightSample
 #include "chrono_sensor/optix/ChOptixDefinitions.h"				// for PerRayData_camera, ContextParameters
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"			// for SampleCosineHemisphereDir(...)
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"			// for SampleCosineHemisphereDir(...)
 
 /// @brief Analytically check whether a ray intersects with a rectangle. If it does, return the hit distance `t_hit` and hit point `p_hit`.
 /// @param ray_o origin of the ray
@@ -258,4 +258,4 @@ static __device__ __inline__ bool CheckVisualizeRectangleLight(
 	}
 }
 
-#endif  // CHRONO_SENSOR_OPTIX_RECTANGLE_LIGHT_CU
+#endif  // CHRONO_SENSOR_OPTIX_RECTANGLE_LIGHT_CUH

@@ -19,8 +19,8 @@
 #ifndef NORMAL_CAM_SHADER_CU
 #define NORMAL_CAM_SHADER_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"
 
 /// @brief Get the PerRayData of the normal camera
 /// @return Pointer to the PerRayData_normalCamera struct

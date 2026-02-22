@@ -23,10 +23,10 @@
 #ifndef CAMERA_PATH_SHADER_CU
 #define CAMERA_PATH_SHADER_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"
-#include "chrono_sensor/optix/shaders/ChOptixLightHubs.cu"
-#include "chrono_sensor/optix/shaders/camera_raygen.cu"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/camera_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"
+#include "chrono_sensor/optix/shaders/ChOptixLightHubs.cuh"
 
 static __device__ __inline__ void RussianRoulette(curandState_t& rng, float3& contrib_to_pixel) {
 	float p = fmaxf(0.05, fminf(fmaxf(contrib_to_pixel), 0.95));

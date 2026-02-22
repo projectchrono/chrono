@@ -20,7 +20,7 @@
 
 #include "chrono_sensor/cuda/curand_utils.cuh"
 #include "chrono_sensor/cuda/camera_noise.cuh"
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 namespace chrono {
 namespace sensor {

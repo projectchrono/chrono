@@ -14,8 +14,8 @@
 //
 // =============================================================================
 
-#ifndef CHSENSORDEVICEUTILS_H
-#define CHSENSORDEVICEUTILS_H
+#ifndef DEVICE_UTILS_CUH
+#define DEVICE_UTILS_CUH
 
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 

@@ -21,7 +21,7 @@
 
 #include "curand_utils.cuh"
 #include "phys_cam_ops.cuh"
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 #include <iostream>
 #include <math.h>
 

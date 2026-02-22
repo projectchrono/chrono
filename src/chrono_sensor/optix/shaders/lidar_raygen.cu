@@ -19,7 +19,7 @@
 #ifndef LIDAR_RAYGEN_CU
 #define LIDAR_RAYGEN_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 /// Default of LiDAR per ray data (PRD)
 __device__ __inline__ PerRayData_lidar DefaultLidarPRD() {

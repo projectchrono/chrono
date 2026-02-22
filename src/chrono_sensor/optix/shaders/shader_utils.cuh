@@ -19,7 +19,7 @@
 #ifndef SHADER_UTILS_H
 #define SHADER_UTILS_H
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 struct __device__ BSDFSample {
     float3 wo;

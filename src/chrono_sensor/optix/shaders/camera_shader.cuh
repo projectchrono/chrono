@@ -19,12 +19,12 @@
 #ifndef CAMERA_SHADER_CU
 #define CAMERA_SHADER_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"
-#include "chrono_sensor/optix/shaders/camera_hapke_shader.cu"
-#include "chrono_sensor/optix/shaders/camera_volumetric_shader.cu"
-#include "chrono_sensor/optix/shaders/camera_legacy_shader.cu"
-#include "chrono_sensor/optix/shaders/camera_path_shader.cu"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"
+#include "chrono_sensor/optix/shaders/camera_hapke_shader.cuh"
+#include "chrono_sensor/optix/shaders/camera_volumetric_shader.cuh"
+#include "chrono_sensor/optix/shaders/camera_legacy_shader.cuh"
+#include "chrono_sensor/optix/shaders/camera_path_shader.cuh"
 
 
 /// @brief Get the PerRayData of the physics-based camera

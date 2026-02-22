@@ -96,8 +96,9 @@ if(CH_USE_SENSOR_OPTIX)
       optix/shaders/sphere.cu
       optix/shaders/cylinder.cu
       optix/shaders/miss.cu
+
       optix/shaders/material_shaders.cu
-      optix/shaders/shader_utils.cu
+      
       optix/shaders/camera_raygen.cu
       optix/shaders/depth_cam_raygen.cu
       optix/shaders/lidar_raygen.cu
@@ -106,26 +107,6 @@ if(CH_USE_SENSOR_OPTIX)
       optix/shaders/radar_raygen.cu
       optix/shaders/segment_cam_raygen.cu
       # ---- Register Your Customized Sensor Raygen Here (Cmake compiling) ---- #
-      optix/shaders/camera_hapke_shader.cu
-      optix/shaders/camera_volumetric_shader.cu
-      optix/shaders/camera_legacy_shader.cu
-      optix/shaders/camera_path_shader.cu
-      optix/shaders/camera_shader.cu
-      optix/shaders/depth_cam_shader.cu
-      optix/shaders/lidar_shader.cu
-      optix/shaders/normal_cam_shader.cu
-      optix/shaders/radar_shader.cu
-      optix/shaders/segment_cam_shader.cu
-      optix/shaders/shadow_shader.cu
-      # ---- Register Your Customized Sensor Shader Here (Cmake compiling) ---- #
-      optix/shaders/ChOptixLightHubs.cu
-      optix/shaders/ChOptixPointLight.cu
-      optix/shaders/ChOptixSpotLight.cu
-      optix/shaders/ChOptixDirectionalLight.cu
-      optix/shaders/ChOptixRectangleLight.cu
-      optix/shaders/ChOptixDiskLight.cu
-      optix/shaders/ChOptixEnvironmentLight.cu
-      # ---- Register Your Customized Light Type Here (Cmake compiling) ---- #
   )
 
   if(CH_USE_SENSOR_NVDB)
@@ -135,8 +116,34 @@ if(CH_USE_SENSOR_OPTIX)
   endif()
 
   set(Chrono_sensor_RT_HEADERS
-      optix/shaders/device_utils.h
       optix/shaders/ChOptixLightStructs.h
+
+      optix/shaders/camera_utils.cuh
+      optix/shaders/device_utils.cuh
+      optix/shaders/shader_utils.cuh
+      
+      optix/shaders/camera_hapke_shader.cuh
+      optix/shaders/camera_volumetric_shader.cuh
+      optix/shaders/camera_legacy_shader.cuh
+      optix/shaders/camera_path_shader.cuh
+      optix/shaders/camera_shader.cuh
+      optix/shaders/depth_cam_shader.cuh
+      optix/shaders/lidar_shader.cuh
+      optix/shaders/normal_cam_shader.cuh
+      optix/shaders/radar_shader.cuh
+      optix/shaders/segment_cam_shader.cuh
+      optix/shaders/shadow_shader.cuh
+      # ---- Register Your Customized Sensor Shader Here (Cmake compiling) ---- #
+
+      optix/shaders/ChOptixLightHubs.cuh
+      optix/shaders/ChOptixPointLight.cuh
+      optix/shaders/ChOptixSpotLight.cuh
+      optix/shaders/ChOptixDirectionalLight.cuh
+      optix/shaders/ChOptixRectangleLight.cuh
+      optix/shaders/ChOptixDiskLight.cuh
+      optix/shaders/ChOptixEnvironmentLight.cuh
+      # ---- Register Your Customized Light Type Here (Cmake compiling) ---- #
+
   )
 
   source_group("RT Programs" FILES ${Chrono_sensor_RT_SOURCES} ${Chrono_sensor_RT_HEADERS})
@@ -458,8 +465,15 @@ source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
 if(CH_USE_SENSOR_OPTIX)
   message(STATUS "Shader directory in BUILD tree: ${CH_BUILD_SENSOR_SHADERS}")
-  file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
-  file(COPY ${Chrono_sensor_RT_HEADERS} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
+  if(CH_USE_SENSOR_NVRTC)
+    # We need *.cu and *.cuh at runtime to compile with NVRTC
+    file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
+    file(COPY ${Chrono_sensor_RT_HEADERS} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
+  else()
+    # Only PTX files are needed at runtime if we compile with NVCC at build time
+    # Just make sure the directory exists and *.ptx will be copied over
+    file(MAKE_DIRECTORY ${CH_BUILD_SENSOR_SHADERS})
+  endif()
 endif()
 
 # ----------------------------------------------------------------------------

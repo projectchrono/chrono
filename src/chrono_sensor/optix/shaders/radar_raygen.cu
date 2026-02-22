@@ -19,7 +19,7 @@
 #ifndef RADAR_RAYGEN_CU
 #define RADAR_RAYGEN_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 
 /// Default of RADAR per ray data (PRD)

@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"
 
 __device__ __inline__ PerRayData_lidar* GetLidarPRD() {
     unsigned int opt0 = optixGetPayload_0();

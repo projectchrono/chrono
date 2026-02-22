@@ -21,7 +21,7 @@
 
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h" // for DirectionalLightData, LightSample
 #include "chrono_sensor/optix/ChOptixDefinitions.h" // for PerRayData_camera, ContextParameters
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
 /// @brief Check visibility between the hit point along the directional light direction, and sample the light.

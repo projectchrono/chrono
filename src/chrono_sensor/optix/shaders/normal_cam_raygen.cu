@@ -19,7 +19,7 @@
 #ifndef NORMAL_CAM_RAYGEN_CU
 #define NORMAL_CAM_RAYGEN_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 /// Default of normal camera per ray data (PRD)
 __device__ __inline__ PerRayData_normalCamera DefaultNormalCameraPRD() {

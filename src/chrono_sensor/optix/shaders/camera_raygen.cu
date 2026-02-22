@@ -19,24 +19,8 @@
 #ifndef CAMERA_RAYGEN_CU
 #define CAMERA_RAYGEN_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-
-/// @brief Initialize a PerRayData_camera struct with default values for camera ray generation
-/// @return A PerRayData_camera struct with default values
-__device__ __inline__ PerRayData_camera DefaultCameraPRD() {
-    PerRayData_camera prd = {};
-    prd.color = make_float3(0.f, 0.f, 0.f);
-    prd.contrib_to_pixel = make_float3(1.f, 1.f, 1.f);
-    prd.rng = curandState_t();
-    prd.depth = 2;
-    prd.use_gi = false;
-    prd.albedo = make_float3(0.f, 0.f, 0.f);
-    prd.normal = make_float3(0.f, 0.f, 0.f);
-    prd.use_fog = false;
-    prd.transparency = 1.f;
-    prd.integrator = Integrator::LEGACY;
-    return prd;
-};
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/camera_utils.cuh"
 
 /// Camera ray generation program with using a lens distortion model
 extern "C" __global__ void __raygen__camera() {

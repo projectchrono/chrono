@@ -19,7 +19,7 @@
 #ifndef RADAR_SHADER_CU
 #define RADAR_SHADER_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 __device__ __inline__ PerRayData_radar* GetRadarPRD() {
     unsigned int opt0 = optixGetPayload_0();

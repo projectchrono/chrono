@@ -16,12 +16,11 @@
 //
 // =============================================================================
 
-#ifndef DEPTH_CAM_SHADER_CU
-#define DEPTH_CAM_SHADER_CU
+#ifndef DEPTH_CAM_SHADER_CUH
+#define DEPTH_CAM_SHADER_CUH
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"
-#include "chrono_sensor/optix/shaders/depth_cam_raygen.cu"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"
 
 __device__ __inline__ PerRayData_depthCamera* GetDepthCameraPRD() {
     unsigned int opt0 = optixGetPayload_0();
@@ -33,4 +32,4 @@ static __device__ __inline__ void DepthCamShader(PerRayData_depthCamera* prd, co
     prd->depth = fminf(prd->max_depth, ray_dist);
 }
 
-#endif  // DEPTH_CAM_SHADER_CU
+#endif  // DEPTH_CAM_SHADER_CUH

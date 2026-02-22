@@ -16,12 +16,12 @@
 //
 // =============================================================================
 
-#ifndef CHRONO_SENSOR_OPTIX_SPOT_LIGHT_CU
-#define CHRONO_SENSOR_OPTIX_SPOT_LIGHT_CU
+#ifndef CHRONO_SENSOR_OPTIX_SPOT_LIGHT_CUH
+#define CHRONO_SENSOR_OPTIX_SPOT_LIGHT_CUH
 
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"  // for SpotLightData, LightSample
 #include "chrono_sensor/optix/ChOptixDefinitions.h"           // for PerRayData_camera, ContextParameters
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 /// @brief Check visibility between the spot light and the hit point, and sample the light.
 /// @param cntxt_params context parameters
@@ -112,4 +112,4 @@ static __device__ __inline__ bool CheckVisibleAndSampleSpotLight(const ContextPa
     }
 }
 
-#endif  // CHRONO_SENSOR_OPTIX_SPOT_LIGHT_CU
+#endif  // CHRONO_SENSOR_OPTIX_SPOT_LIGHT_CUH

@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
 static __device__ __inline__ float SchlickPhase(float VdL, float k) {

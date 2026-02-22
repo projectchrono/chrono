@@ -21,7 +21,7 @@
 
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h" // for EnvironmentLightData, LightSample
 #include "chrono_sensor/optix/ChOptixDefinitions.h" // for PerRayData_camera, ContextParameters
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
 /// @brief Binary search: returns smallest idx in [`bias`, `bias` + `n` - 1] such that cdf[idx] >= threshold.

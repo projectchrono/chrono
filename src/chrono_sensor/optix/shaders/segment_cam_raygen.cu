@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
 /// Default of segmentation per ray data (PRD)

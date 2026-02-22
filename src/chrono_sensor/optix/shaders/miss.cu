@@ -16,15 +16,15 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"
-#include "chrono_sensor/optix/shaders/shadow_shader.cu"
-#include "chrono_sensor/optix/shaders/normal_cam_shader.cu"
-#include "chrono_sensor/optix/shaders/depth_cam_shader.cu"
-#include "chrono_sensor/optix/shaders/segment_cam_shader.cu"
-#include "chrono_sensor/optix/shaders/radar_shader.cu"
-#include "chrono_sensor/optix/shaders/lidar_shader.cu"
-#include "chrono_sensor/optix/shaders/camera_shader.cu"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"
+#include "chrono_sensor/optix/shaders/shadow_shader.cuh"
+#include "chrono_sensor/optix/shaders/normal_cam_shader.cuh"
+#include "chrono_sensor/optix/shaders/depth_cam_shader.cuh"
+#include "chrono_sensor/optix/shaders/segment_cam_shader.cuh"
+#include "chrono_sensor/optix/shaders/radar_shader.cuh"
+#include "chrono_sensor/optix/shaders/lidar_shader.cuh"
+#include "chrono_sensor/optix/shaders/camera_shader.cuh"
 
 extern "C" __global__ void __miss__shader() {
     const MissParameters* miss = (MissParameters*)optixGetSbtDataPointer();

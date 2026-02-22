@@ -21,7 +21,7 @@
 
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h" // for PointLightData, LightSample
 #include "chrono_sensor/optix/ChOptixDefinitions.h" // for PerRayData_camera, ContextParameters
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
 /// @brief Check visibility between the point light and the hit point, and sample the light.

@@ -21,8 +21,8 @@
 #ifndef CAMERA_HAPKE_SHADER_CU
 #define CAMERA_HAPKE_SHADER_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/shaders/shader_utils.cu"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
+#include "chrono_sensor/optix/shaders/shader_utils.cuh"
 
 
 /// @brief Camera shader based on Hapke's BRDF model for simulating light interaction with particulate surfaces such as planetary regoliths.

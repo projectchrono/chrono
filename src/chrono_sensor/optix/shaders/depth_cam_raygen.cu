@@ -19,7 +19,7 @@
 #ifndef DEPTH_CAM_RAYGEN_CU
 #define DEPTH_CAM_RAYGEN_CU
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 /// Default of depth camera per ray data (PRD)
 __device__ __inline__ PerRayData_depthCamera DefaultDepthCameraPRD(float maxDepth) {

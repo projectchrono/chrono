@@ -21,12 +21,12 @@
 
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
-#include "chrono_sensor/optix/shaders/ChOptixPointLight.cu"
-#include "chrono_sensor/optix/shaders/ChOptixDirectionalLight.cu"
-#include "chrono_sensor/optix/shaders/ChOptixSpotLight.cu"
-#include "chrono_sensor/optix/shaders/ChOptixRectangleLight.cu"
-#include "chrono_sensor/optix/shaders/ChOptixDiskLight.cu"
-#include "chrono_sensor/optix/shaders/ChOptixEnvironmentLight.cu"
+#include "chrono_sensor/optix/shaders/ChOptixPointLight.cuh"
+#include "chrono_sensor/optix/shaders/ChOptixDirectionalLight.cuh"
+#include "chrono_sensor/optix/shaders/ChOptixSpotLight.cuh"
+#include "chrono_sensor/optix/shaders/ChOptixRectangleLight.cuh"
+#include "chrono_sensor/optix/shaders/ChOptixDiskLight.cuh"
+#include "chrono_sensor/optix/shaders/ChOptixEnvironmentLight.cuh"
 
 //// ---- Register Your Customized Light Type Here (include the corresponding .cu file) ---- ////
 
