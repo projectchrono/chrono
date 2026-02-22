@@ -308,12 +308,15 @@ void ChParserTdpfYAML::SaveOutput(int frame) {
 
 ChParserTdpfYAML::VisParams::VisParams()
     : render(false),
+#ifdef CHRONO_VSG
       mode(fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE),
+#endif
       colormap(ChColormap::Type::FAST),
       range({-1, 1}),
       update_fps(30),
       write_images(false),
-      image_dir(".") {}
+      image_dir(".") {
+}
 
 void ChParserTdpfYAML::VisParams::PrintInfo() {
     if (!render) {
@@ -321,12 +324,14 @@ void ChParserTdpfYAML::VisParams::PrintInfo() {
         return;
     }
 
+#ifdef CHRONO_VSGF
     cout << "run-time visualization" << endl;
     cout << "  wave color mode:       " << fsi::tdpf::ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(mode)
          << endl;
     cout << "  colormap:              " << ChColormap::GetTypeAsString(colormap) << endl;
     cout << "  color data range:      " << range << endl;
     cout << "  mesh update frequency: " << update_fps << endl;
+#endif
 }
 
 // =============================================================================
@@ -367,6 +372,7 @@ ChParserTdpfYAML::WaveType ChParserTdpfYAML::ReadWaveType(const YAML::Node& a) {
     return WaveType::NONE;
 }
 
+#ifdef CHRONO_VSG
 fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ChParserTdpfYAML::ReadWaveColoringMode(const YAML::Node& a) {
     auto val = ToUpper(a.as<std::string>());
     if (val == "HEIGHT")
@@ -375,6 +381,7 @@ fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ChParserTdpfYAML::ReadWaveColoringM
         return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::VELOCITY_MAG;
     return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE;
 }
+#endif
 
 }  // namespace parsers
 }  // namespace chrono

@@ -19,26 +19,29 @@
 ////#include <float.h>
 ////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
+
 #ifdef CHRONO_VEHICLE
     #include "chrono_parsers/yaml/ChParserVehicleYAML.h"
     #include "chrono_vehicle/driver/ChInteractiveDriver.h"
+    #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #endif
+
 #ifdef CHRONO_FSI
     #include "chrono_parsers/yaml/ChParserFsiYAML.h"
 #endif
 
-#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
     #ifdef CHRONO_VEHICLE
         #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
         #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
     #endif
-using namespace chrono::vsg3d;
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -174,7 +177,7 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
     std::shared_ptr<ChVisualSystem> vis;
 #ifdef CHRONO_VSG
     if (render) {
-        auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+        auto vis_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vis_vsg->AttachSystem(sys.get());
         vis_vsg->SetWindowTitle("YAML model - " + model_name);
         vis_vsg->AddCamera(camera_location, camera_target);
