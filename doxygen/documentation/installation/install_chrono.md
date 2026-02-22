@@ -63,7 +63,7 @@ The Thrust library is used, with different back-ends, in various Chrono features
 
 The easiest way to obtain the Thrust (headers-only) library is as part of a recent CUDA distribution. This allows using the latest Thrust version (e.g., 2.8.2 in CUDA 12.9.0).
 
-It is possible to use Thrust stand-alone (e.g., for use on machines without an NVIDIA GPU to enable the Chrono::Multicore module). However, that requires using an older version of Thrust from its [GitHub repository](https://github.com/NVIDIA/thrust). Note that the latest version available there is 2.1.0.
+It is possible to use Thrust stand-alone (e.g., for use on machines without an NVIDIA GPU to enable the Chrono::Multicore module). However, that requires using an older version of Thrust from its [GitHub repository](https://github.com/NVIDIA/thrust). Note that the latest version available there is 2.1.0, but the latest version that works with Chrono without any modifications is **1.7.1**.
 
 #### MPI support {#mpi}
 
