@@ -32,10 +32,11 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// GPS class. This class uses the reference location of a simulation and spherically maps the cartesian space
-/// simulation onto a sphere, calculating the latitude, longitude, altitude relative to the Earth's surface.
-/// The reference location defines what GPS coordinates are associated with the origin of the simulation. The mapping is
-/// performed such that the +Z-axis points up, +X-axis points East, and the +Y-axis points North.
+/// GPS class.
+/// This class uses the reference location of a simulation and spherically maps the cartesian space simulation onto a
+/// sphere, calculating the latitude, longitude, altitude relative to the Earth's surface. The reference location
+/// defines what GPS coordinates are associated with the origin of the simulation. The mapping is performed such that
+/// the +Z-axis points up, +X-axis points East, and the +Y-axis points North.
 class CH_SENSOR_API ChGPSSensor : public ChDynamicSensor {
   public:
     /// Class constructor
@@ -46,26 +47,27 @@ class CH_SENSOR_API ChGPSSensor : public ChDynamicSensor {
     /// @param collection_window Collection time over which the sensor should collect data from the simulation.
     /// @param gps_reference Reference location in GPS coordinates (longitude, latitude, altitude) of simulation origin
     /// @param noise_model The noise model that should be used for augmenting the GPS data.
-    ChGPSSensor(std::shared_ptr<chrono::ChBody> parent,
+    ChGPSSensor(std::shared_ptr<ChBody> parent,
                 float updateRate,
-                chrono::ChFrame<double> offsetPose,
+                ChFrame<double> offsetPose,
                 ChVector3d gps_reference,
                 std::shared_ptr<ChNoiseModel> noise_model);
 
-    /// Class destructor
     ~ChGPSSensor();
-    virtual void PushKeyFrame();
-    virtual void ClearKeyFrames();
 
-    /// Get the GPS reference location
+    virtual void PushKeyFrame() override;
+    virtual void ClearKeyFrames() override;
+
+    /// Get the GPS reference location.
     const ChVector3d GetGPSReference() const { return m_gps_reference; }
 
   private:
-    /// Variable for communicating the sensor's keyframes from the ChSystem into the data generation filter
-    std::vector<std::tuple<float, ChVector3d>> m_keyframes;
-    friend class ChFilterGPSUpdate;
+    // m_keyframes is used to communicate the sensor keyframes from the ChSystem into the data generation filter
 
+    std::vector<std::tuple<float, ChVector3d>> m_keyframes;  ///< sensor keyframes
     const ChVector3d m_gps_reference;  ///< reference location in GPS coordinates (longitude, latitude, altitude)
+
+    friend class ChFilterGPSUpdate;
 };
 
 /// @} sensor_sensors

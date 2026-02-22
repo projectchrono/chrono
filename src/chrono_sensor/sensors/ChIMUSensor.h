@@ -29,9 +29,9 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// Accelerometer class. The data is collected from the physical quantities
-/// computed for the parent object accounting for the offset pose. This sensor operates in lock-step with the Chrono
-/// simulation.
+/// Accelerometer class.
+/// The data is collected from the physical quantities computed for the parent object accounting for the offset pose.
+/// This sensor operates in lock-step with the Chrono simulation.
 class CH_SENSOR_API ChAccelerometerSensor : public ChDynamicSensor {
   public:
     /// Class constructor for an accelerometer sensor
@@ -41,22 +41,24 @@ class CH_SENSOR_API ChAccelerometerSensor : public ChDynamicSensor {
     // @param lag Lag time between end of data collection and when data becomes available to the user.
     // @param collection_window Collection time over which the sensor should collect data from the simulation.
     /// @param noise_model Noise model for the sensor to use when augmentating data
-    ChAccelerometerSensor(std::shared_ptr<chrono::ChBody> parent,
+    ChAccelerometerSensor(std::shared_ptr<ChBody> parent,
                           float updateRate,
-                          chrono::ChFrame<double> offsetPose,
+                          ChFrame<double> offsetPose,
                           std::shared_ptr<ChNoiseModel> noise_model);
-    /// Class destructor
+
     ~ChAccelerometerSensor() {}
-    virtual void PushKeyFrame();
-    virtual void ClearKeyFrames();
+
+    virtual void PushKeyFrame() override;
+    virtual void ClearKeyFrames() override;
 
   private:
     std::vector<ChVector3d> m_keyframes;  ///< stores keyframes for sensor
     friend class ChFilterAccelerometerUpdate;
 };
-/// Gyroscope class. The data is collected from the physical quantities
-/// computed for the parent object accounting for the offset pose. This sensor operates in lock-step with the Chrono
-/// simulation.
+
+/// Gyroscope class.
+/// The data is collected from the physical quantities computed for the parent object accounting for the offset pose.
+/// This sensor operates in lock-step with the Chrono simulation.
 class CH_SENSOR_API ChGyroscopeSensor : public ChDynamicSensor {
   public:
     /// Class constructor for a gyroscope
@@ -66,24 +68,25 @@ class CH_SENSOR_API ChGyroscopeSensor : public ChDynamicSensor {
     // @param lag Lag time between end of data collection and when data becomes available to the user.
     // @param collection_window Collection time over which the sensor should collect data from the simulation.
     /// @param noise_model Noise model for the sensor to use when augmentating data
-    ChGyroscopeSensor(std::shared_ptr<chrono::ChBody> parent,
+    ChGyroscopeSensor(std::shared_ptr<ChBody> parent,
                       float updateRate,
-                      chrono::ChFrame<double> offsetPose,
+                      ChFrame<double> offsetPose,
                       std::shared_ptr<ChNoiseModel> noise_model);
-    /// Class destructor
+
     ~ChGyroscopeSensor() {}
 
-    virtual void PushKeyFrame();
-    virtual void ClearKeyFrames();
+    virtual void PushKeyFrame() override;
+    virtual void ClearKeyFrames() override;
 
   private:
     std::vector<ChVector3d> m_keyframes;  ///< stores keyframes for sensor
+
     friend class ChFilterGyroscopeUpdate;
 };
 
-/// Magnetometer class. The data is collected from the physical quantities
-/// computed for the parent object accounting for the offset pose. This sensor operates in lock-step with the Chrono
-/// simulation.
+/// Magnetometer class.
+/// The data is collected from the physical quantities computed for the parent object accounting for the offset pose.
+/// This sensor operates in lock-step with the Chrono simulation.
 class CH_SENSOR_API ChMagnetometerSensor : public ChDynamicSensor {
   public:
     /// Class constructor for a magnetometer
@@ -94,25 +97,27 @@ class CH_SENSOR_API ChMagnetometerSensor : public ChDynamicSensor {
     // @param collection_window Collection time over which the sensor should collect data from the simulation.
     /// @param noise_model Noise model for the sensor to use when augmentating data
     /// @param gps_reference the GPS reference location for the simulation origin
-    ChMagnetometerSensor(std::shared_ptr<chrono::ChBody> parent,
+    ChMagnetometerSensor(std::shared_ptr<ChBody> parent,
                          float updateRate,
-                         chrono::ChFrame<double> offsetPose,
+                         ChFrame<double> offsetPose,
                          std::shared_ptr<ChNoiseModel> noise_model,
                          ChVector3d gps_reference);
-    /// Class destructor
-    ~ChMagnetometerSensor() {}
-    virtual void PushKeyFrame();
-    virtual void ClearKeyFrames();
 
-    /// Get the GPS reference location
+    ~ChMagnetometerSensor() {}
+
+    virtual void PushKeyFrame() override;
+    virtual void ClearKeyFrames() override;
+
+    /// Get the GPS reference location.
     const ChVector3d GetGPSReference() const { return m_gps_reference; }
 
   private:
-    std::vector<ChFrame<double>> m_keyframes;
-    friend class ChFilterMagnetometerUpdate;
-
+    std::vector<ChFrame<double>> m_keyframes;  ///< sensor keyframes
     const ChVector3d m_gps_reference;  ///< reference location in GPS coordinates (longitude, latitude, altitude)
+
+    friend class ChFilterMagnetometerUpdate;
 };
+
 /// @} sensor_sensors
 
 }  // namespace sensor

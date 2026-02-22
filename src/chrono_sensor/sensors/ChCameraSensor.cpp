@@ -20,25 +20,21 @@
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
-
 namespace chrono {
 namespace sensor {
 
-// -----------------------------------------------------------------------------
-// Constructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,
-                                             float updateRate,
-                                             chrono::ChFrame<double> offsetPose,
-                                             unsigned int w,                   // image width
-                                             unsigned int h,                   // image height
-                                             float hFOV,                       // horizontal field of view
-                                             unsigned int supersample_factor,  // super sampling factor
-                                             CameraLensModelType lens_model,   // lens model to use
-                                             bool use_gi,                      // 1 to use Global Illumination
-                                             float gamma,                      // 1 for linear color space, 2.2 for sRGB
-                                             bool use_fog                      // whether to use fog on this camera
-                                             )
+ChCameraSensor::ChCameraSensor(std::shared_ptr<ChBody> parent,
+                               float updateRate,
+                               ChFrame<double> offsetPose,
+                               unsigned int w,                   // image width
+                               unsigned int h,                   // image height
+                               float hFOV,                       // horizontal field of view
+                               unsigned int supersample_factor,  // super sampling factor
+                               CameraLensModelType lens_model,   // lens model to use
+                               bool use_gi,                      // 1 to use Global Illumination
+                               float gamma,                      // 1 for linear color space, 2.2 for sRGB
+                               bool use_fog                      // whether to use fog on this camera
+                               )
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
@@ -71,17 +67,14 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
     SetLag(1.f / updateRate);
 }
 
-// -----------------------------------------------------------------------------
-// Destructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChCameraSensor::~ChCameraSensor() {}
+ChCameraSensor::~ChCameraSensor() {}
 
 void ChCameraSensor::SetRadialLensParameters(ChVector3f params) {
     m_distortion_params = params;
     m_lens_parameters = CalcInvRadialModel(params);
 }
 
- ChMatrix33<float> ChCameraSensor::GetCameraIntrinsicMatrix() {
+ChMatrix33<float> ChCameraSensor::GetCameraIntrinsicMatrix() {
     ChMatrix33<float> I;
     float focal_length = (m_width / 2) * tanf(m_hFOV / 2);
     I(0, 0) = focal_length;
@@ -96,6 +89,7 @@ void ChCameraSensor::SetRadialLensParameters(ChVector3f params) {
 
     return I;
 };
+
 LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params) {
     // coefficients directory without algorithm from
     // Drap, P., & Lefevre, J. (2016).
@@ -142,11 +136,6 @@ LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params) {
 
     return p;
 }
-
-
-/*ChMatrix33<float> GetCameraIntrinsciMatrix() {
-    
-}*/
 
 }  // namespace sensor
 }  // namespace chrono

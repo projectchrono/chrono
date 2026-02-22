@@ -24,14 +24,14 @@
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChDynamicsManager::ChDynamicsManager(ChSystem* chrono_system) {
+ChDynamicsManager::ChDynamicsManager(ChSystem* chrono_system) {
     // save the chrono system handle
     m_system = chrono_system;
 }
 
-CH_SENSOR_API ChDynamicsManager::~ChDynamicsManager() {}
+ChDynamicsManager::~ChDynamicsManager() {}
 
-CH_SENSOR_API void ChDynamicsManager::UpdateSensors() {
+void ChDynamicsManager::UpdateSensors() {
     for (int i = 0; i < m_sensor_list.size(); i++) {
         auto pSen = m_sensor_list[i];
 
@@ -51,7 +51,7 @@ CH_SENSOR_API void ChDynamicsManager::UpdateSensors() {
     }
 }
 
-CH_SENSOR_API void ChDynamicsManager::AssignSensor(std::shared_ptr<ChSensor> sensor) {
+void ChDynamicsManager::AssignSensor(std::shared_ptr<ChSensor> sensor) {
     if (auto sen = std::dynamic_pointer_cast<ChDynamicSensor>(sensor)) {
         // check if sensor is already in sensor list
         if (std::find(m_sensor_list.begin(), m_sensor_list.end(), sen) != m_sensor_list.end()) {

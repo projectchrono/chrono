@@ -77,8 +77,8 @@ CH_SENSOR_API ChFrame<> ReadFrameJSON(const rapidjson::Value& a);
 /// @param offsetPose The position and rotation of the Sensor
 /// @return A shared pointer to a ChSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
-                                                       std::shared_ptr<chrono::ChBody> parent,
-                                                       chrono::ChFrame<double> offsetPose);
+                                                       std::shared_ptr<ChBody> parent,
+                                                       ChFrame<double> offsetPose);
 
 #ifdef CHRONO_HAS_OPTIX
 
@@ -88,8 +88,8 @@ CH_SENSOR_API std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filena
 /// @param offsetPose The position and rotation of the Camera Sensor
 /// @return A shared pointer to a ChCameraSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename,
-                                                                   std::shared_ptr<chrono::ChBody> parent,
-                                                                   chrono::ChFrame<double> offsetPose);
+                                                                   std::shared_ptr<ChBody> parent,
+                                                                   ChFrame<double> offsetPose);
 
 /// Load and return a lidar sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the lidar sensor parameters
@@ -97,8 +97,8 @@ CH_SENSOR_API std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::st
 /// @param offsetPose The position and rotation of the Lidar Sensr
 /// @return A shared pointer to a ChLidarSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
-                                                                 std::shared_ptr<chrono::ChBody> parent,
-                                                                 chrono::ChFrame<double> offsetPose);
+                                                                 std::shared_ptr<ChBody> parent,
+                                                                 ChFrame<double> offsetPose);
 
 /// Load and return a radar sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the radar sensor parameters
@@ -106,8 +106,8 @@ CH_SENSOR_API std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::stri
 /// @param offsetPose The position and rotation of the radar Sensr
 /// @return A shared pointer to a ChRadarSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
-                                                                 std::shared_ptr<chrono::ChBody> parent,
-                                                                 chrono::ChFrame<double> offsetPose);
+                                                                 std::shared_ptr<ChBody> parent,
+                                                                 ChFrame<double> offsetPose);
 
 #endif
 
@@ -117,8 +117,8 @@ CH_SENSOR_API std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::stri
 /// @param offsetPose The position and rotation of the GPS Sensor
 /// @return A shared pointer to a ChGPSSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
-                                                             std::shared_ptr<chrono::ChBody> parent,
-                                                             chrono::ChFrame<double> offsetPose);
+                                                             std::shared_ptr<ChBody> parent,
+                                                             ChFrame<double> offsetPose);
 
 /// Load and return a accelerometer sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the accelerometer sensor parameters
@@ -126,8 +126,8 @@ CH_SENSOR_API std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& 
 /// @param offsetPose The position and rotation of the accelerometer Sensor
 /// @return A shared pointer to a ChAccelerometerSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON(const std::string& filename,
-                                                                                 std::shared_ptr<chrono::ChBody> parent,
-                                                                                 chrono::ChFrame<double> offsetPose);
+                                                                                 std::shared_ptr<ChBody> parent,
+                                                                                 ChFrame<double> offsetPose);
 
 /// Load and return a gyroscope sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the gyroscope sensor parameters
@@ -135,8 +135,8 @@ CH_SENSOR_API std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON
 /// @param offsetPose The position and rotation of the gyroscope Sensor
 /// @return A shared pointer to a ChGyroscopeSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const std::string& filename,
-                                                                         std::shared_ptr<chrono::ChBody> parent,
-                                                                         chrono::ChFrame<double> offsetPose);
+                                                                         std::shared_ptr<ChBody> parent,
+                                                                         ChFrame<double> offsetPose);
 
 /// Load and return a magnetometer sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the magnetometer sensor parameters
@@ -144,8 +144,8 @@ CH_SENSOR_API std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const s
 /// @param offsetPose The position and rotation of the magnetometer Sensor
 /// @return A shared pointer to a ChMagnetometerSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::string& filename,
-                                                                               std::shared_ptr<chrono::ChBody> parent,
-                                                                               chrono::ChFrame<double> offsetPose);
+                                                                               std::shared_ptr<ChBody> parent,
+                                                                               ChFrame<double> offsetPose);
 
 /// Load and return a sensor filter list from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the filters for a sensor

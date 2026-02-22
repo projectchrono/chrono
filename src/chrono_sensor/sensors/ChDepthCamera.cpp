@@ -23,17 +23,14 @@
 namespace chrono {
 namespace sensor {
 
-// -----------------------------------------------------------------------------
-// Constructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChDepthCamera::ChDepthCamera(std::shared_ptr<chrono::ChBody> parent,
-                                                         float updateRate,
-                                                         chrono::ChFrame<double> offsetPose,
-                                                         unsigned int w,                  // image width
-                                                         unsigned int h,                  // image height
-                                                         float hFOV,                      // horizontal field of view
-                                                         float maxDepth,                  // maximum depth value
-                                                         CameraLensModelType lens_model)  // lens model to use
+ChDepthCamera::ChDepthCamera(std::shared_ptr<ChBody> parent,
+                             float updateRate,
+                             ChFrame<double> offsetPose,
+                             unsigned int w,                  // image width
+                             unsigned int h,                  // image height
+                             float hFOV,                      // horizontal field of view
+                             float maxDepth,                  // maximum depth value
+                             CameraLensModelType lens_model)  // lens model to use
     : m_hFOV(hFOV),
       m_maxDepth(maxDepth),
       m_lens_model_type(lens_model),
@@ -44,21 +41,18 @@ CH_SENSOR_API ChDepthCamera::ChDepthCamera(std::shared_ptr<chrono::ChBody> paren
 
     // Push the access filters before converting to RGBA8 to visualize
     m_filters.push_back(chrono_types::make_shared<ChFilterDepthAccess>());
-    
+
     m_filters.push_back(chrono_types::make_shared<ChFilterDepthToRGBA8>());
 
     SetCollectionWindow(0.f);
     SetLag(1.f / updateRate);
 }
 
-// -----------------------------------------------------------------------------
-// Destructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChDepthCamera::~ChDepthCamera() {}
+ChDepthCamera::~ChDepthCamera() {}
 
 void ChDepthCamera::SetRadialLensParameters(ChVector3f params) {
-    // Drap, P., & Lefèvre, J. (2016). 
-    // An Exact Formula for Calculating Inverse Radial Lens Distortions. 
+    // Drap, P., & Lefèvre, J. (2016).
+    // An Exact Formula for Calculating Inverse Radial Lens Distortions.
     // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807
     // float a1_2 = params.x();
     // float b1 = -params.x();

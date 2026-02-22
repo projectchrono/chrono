@@ -43,27 +43,24 @@ namespace sensor {
 
 class CH_SENSOR_API ChSensorManager {
   public:
-    /// Class constructor
-    /// @param chrono_system The chrono system with which the sensor manager is associated. Used for time management.
-    /// created.
+    /// Class constructor.
+    /// The chrono system with which the sensor manager is associated is used for time management.
     ChSensorManager(ChSystem* chrono_system);
 
-    /// Class destructor
     ~ChSensorManager();
 
-    /// Update function that will prompt the manager to update its sensors if they need to be updated according to the
-    /// current time of the chrono simulation
-    void Update();  // update the sensor manager -> renders and updates as it needs
+    /// Update the sensors as needed according to the current time of the chrono simulation.
+    void Update();
 
-    /// Add a sensor to the manager
+    /// Add a sensor to the manager.
     /// @param sensor The sensor that should be added to the system
     void AddSensor(std::shared_ptr<ChSensor> sensor);
 
-    /// Get the list of sensors for which this manager is responsible
+    /// Get the list of sensors for which this manager is responsible.
     /// @return The list of sensors for which the manager is responsible and updates
     std::vector<std::shared_ptr<ChSensor>> GetSensorList() { return m_sensor_list; }
 
-    /// Set the list of devices (GPUs) that should be used for rendering
+    /// Set the list of devices (GPUs) that should be used for rendering.
     /// @param device_ids List of IDs corresponding to the devices (GPUs) that should be used.
     void SetDeviceList(std::vector<unsigned int> device_ids);
 
@@ -72,7 +69,7 @@ class CH_SENSOR_API ChSensorManager {
     std::vector<unsigned int> GetDeviceList();
 
 #ifdef CHRONO_HAS_OPTIX
-    /// Get the number of engines the manager is currently using
+    /// Get the number of engines the manager is currently using.
     /// @return An integer number of OptiX engines
     int GetNumEngines() { return (int)m_engines.size(); }
 
@@ -82,26 +79,27 @@ class CH_SENSOR_API ChSensorManager {
     std::shared_ptr<ChOptixEngine> GetEngine(int context_id);
 #endif
 
-    /// Calls on the sensor manager to rebuild the scene, translating all objects from the Chrono system into their
-    /// appropriate optix objects.
+    /// Calls on the sensor manager to rebuild the scene.
+    /// This translates all objects from the Chrono system into their appropriate OptiX objects.
     void ReconstructScenes();
 
     /// Get the maximum number of allowed OptiX Engines for the manager.
     /// @return An integer specifying the maximum number of engines the manager is allowed to create.
     int GetMaxEngines() { return m_allowable_groups; }
 
-    /// Set the maximum number of allowable optix engines. The manager will spawn up to this number of optix engines
-    /// (separate threads for rendering) based on the update rate of the sensors. Sensors with similar update rates will
-    /// be grouped on the same engine to reduce the number of scene updates that are required as this is a major
-    /// bottleneck in the multithreading paradigm of the render engine.
+    /// Set the maximum number of allowable optix engines.
+    /// The manager will spawn up to this number of optix engines (separate threads for rendering) based on the update
+    /// rate of the sensors. Sensors with similar update rates will be grouped on the same engine to reduce the number
+    /// of scene updates that are required as this is a major bottleneck in the multithreading paradigm of the render
+    /// engine.
     /// @param num_groups The maximum number of optix engines the manager is allowed to create.
     void SetMaxEngines(int num_groups);
 
-    /// Set the number of recursions for ray tracing
+    /// Set the number of recursions for ray tracing.
     /// @param rec The max number of recursions allowed in ray tracing
     void SetRayRecursions(int rec);
 
-    /// Get the number of recursions used in ray tracing
+    /// Get the number of recursions used in ray tracing.
     /// @return The max number of recursions used in ray tracing
     int GetRayRecursions() { return m_optix_reflections; }
 

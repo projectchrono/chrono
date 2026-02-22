@@ -19,7 +19,6 @@
 #ifndef CHDYNAMICSMANAGER_H
 #define CHDYNAMICSMANAGER_H
 
-// API include
 #include "chrono_sensor/ChApiSensor.h"
 
 #include "chrono/physics/ChSystem.h"
@@ -42,17 +41,16 @@ namespace sensor {
 class CH_SENSOR_API ChDynamicsManager {
   public:
     /// Constructor for the dynamic sensor manager.
-    /// @param chrono_system The Chrono system that is associated with the dynamic sensor manager. Used for time keeping
-    /// purposes.
+    /// The Chrono system that is associated with the dynamic sensor manager is used for time keeping purposes.
     ChDynamicsManager(ChSystem* chrono_system);
 
-    /// Class destructor
     ~ChDynamicsManager();
 
-    /// Function for updating the sensors for which the dynamic sensor manager is responsible
+    /// Function for updating the sensors for which the dynamic sensor manager is responsible..
     void UpdateSensors();
 
-    /// Add sensor to this manager. Must be sensor the class can handle. Currently only GPS or IMU
+    /// Add sensor to this manager.
+    /// Must be sensor the class can handle. Currently only GPS or IMU.
     /// @param sensor A shared pointer to a sensor that should be assigned to this manager.
     void AssignSensor(std::shared_ptr<ChSensor> sensor);
 

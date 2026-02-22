@@ -22,7 +22,6 @@
 
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 
-
 namespace chrono {
 namespace sensor {
 
@@ -44,19 +43,18 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @param use_gi Enable the global illumination, with significant decrease in performace
     /// @param gamma correction of the image, 1 for linear color space, 2.2 for sRGB
     /// @param use_fog whether to use fog on this camera
-    ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
-                   float updateRate,                        // rate at which the sensor updates
-                   chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent object
-                   unsigned int w,                          // image width
-                   unsigned int h,                          // image height
-                   float hFOV,                              // horizontal field of view
-                   unsigned int supersample_factor = 1,     // number of samples per pixel for antialiasing
-                   CameraLensModelType lens_model = CameraLensModelType::PINHOLE,
-                   bool use_gi = false,   // camera model to use for rendering
-                   float gamma = 2.2,     // gamma correction value
-                   bool use_fog = true);  // whether to use fog
+    ChCameraSensor(std::shared_ptr<ChBody> parent,       ///< object to which the sensor is attached
+                   float updateRate,                     ///< rate at which the sensor updates
+                   ChFrame<double> offsetPose,           ///< position of sensor relative to parent object
+                   unsigned int w,                       ///< image width
+                   unsigned int h,                       ///< image height
+                   float hFOV,                           ///< horizontal field of view
+                   unsigned int supersample_factor = 1,  ///< number of samples per pixel for antialiasing
+                   CameraLensModelType lens_model = CameraLensModelType::PINHOLE,  ///< lens model
+                   bool use_gi = false,                                            ///< camera model for rendering
+                   float gamma = 2.2,                                              ///< gamma correction value
+                   bool use_fog = true);                                           ///< whether to use fog
 
-    /// camera class destructor
     ~ChCameraSensor();
 
     /// returns the camera's horizontal field of view. Vertical field of view is determined by the image aspect
@@ -105,12 +103,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @return ChVector3f of the camera distortion coefficients k1, k2, k3
     ChVector3f GetCameraDistortionCoefficients() { return m_distortion_params; }
 
-
     /// calculate the parameters for the inverse polynomial model
     static LensParams CalcInvRadialModel(ChVector3f params);
-
-
-
 
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor
@@ -120,8 +114,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     float m_gamma;                          ///< holds the camera's gamma value
     bool m_use_fog;                         ///< holds whether the camera follows the scene fog model
     LensParams m_lens_parameters;           ///< lens parameters when applicable
-    float m_width; // width of the image formed
-    float m_height; // height of the image formed
+    float m_width;                          // width of the image formed
+    float m_height;                         // height of the image formed
     ChVector3f m_distortion_params = {0.f, 0.f, 0.f};
 };
 

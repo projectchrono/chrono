@@ -27,8 +27,10 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// Lidar return mode when multiple objects are seen. Currently supported: strongest return (default), and mean return
-/// which averages all returned intensity and distance measurement data
+/// Lidar return mode when multiple objects are seen.
+/// Currently supported:
+/// - strongest return (default)
+/// - mean return which averages all returned intensity and distance measurement data
 enum class LidarReturnMode {
     STRONGEST_RETURN,  ///< range at peak intensity
     MEAN_RETURN,       ///< average beam range
@@ -37,7 +39,8 @@ enum class LidarReturnMode {
     DUAL_RETURN        ///< first and strongest returns
 };
 
-/// Lidar class. This corresponds to a scanning lidar.
+/// Lidar class.
+/// This corresponds to a scanning lidar.
 class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
   public:
     /// Constructor for the base lidar class, defaulting to using a single ray per beam
@@ -58,9 +61,9 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
     /// (sensor housing)
 
-    ChLidarSensor(std::shared_ptr<chrono::ChBody> parent,
+    ChLidarSensor(std::shared_ptr<ChBody> parent,
                   float updateRate,
-                  chrono::ChFrame<double> offsetPose,
+                  ChFrame<double> offsetPose,
                   unsigned int w,
                   unsigned int h,
                   float hfov,
@@ -74,43 +77,42 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
                   LidarReturnMode return_mode = LidarReturnMode::MEAN_RETURN,
                   float clip_near = 1e-3f);
 
-    /// Class destructor
     ~ChLidarSensor();
 
     /// Gives the horizontal field of view of the lidar (angle between right-most and left-most ray for a "frame").
     /// Horizontal field of view should be 360-(angular resulution) in degrees for a full 360 degree scanning lidar.
     /// @return The horizontal field of view of the lidar sensor
-    float GetHFOV() const { return m_hFOV; }  /// returns the lidar's horizontal field of view
+    float GetHFOV() const { return m_hFOV; }
 
-    /// Returns the highest vertical angle of any ray in the lidar
+    /// Returns the highest vertical angle of any ray in the lidar.
     /// @return The angle of the highest ray
     float GetMaxVertAngle() const { return m_max_vert_angle; }
 
-    /// Returns the lowest vertical angle of any ray in the lidar
+    /// Returns the lowest vertical angle of any ray in the lidar.
     /// @return The angle of the lowest ray
     float GetMinVertAngle() const { return m_min_vert_angle; }
 
-    /// Returns the maximum range of the lidar
+    /// Returns the maximum range of the lidar.
     /// @return The maximum distance for the lidar
     float GetMaxDistance() const { return m_max_distance; }
 
-    /// Returns the near clipping distance
+    /// Returns the near clipping distance.
     /// @return the near clipping distance
     float GetClipNear() const { return m_clip_near; }
 
-    /// Returns the beam cross section shape
+    /// Returns the beam cross section shape.
     /// @return the beam cross section shape
     LidarBeamShape GetBeamShape() const { return m_beam_shape; }
 
-    /// Returns the beam sample radius
+    /// Returns the beam sample radius.
     /// @return the beam sample radius
     unsigned int GetSampleRadius() const { return m_sample_radius; }
 
-    /// Returns the horizontal beam divergence angle
+    /// Returns the horizontal beam divergence angle.
     /// @return the horizontal beam divergence angle
     float GetHorizDivAngle() const { return m_hori_divergence_angle; }
 
-    /// Returns the vertical beam divergence angle
+    /// Returns the vertical beam divergence angle.
     /// @return the vertical beam divergence angle
     float GetVertDivAngle() const { return m_vert_divergence_angle; }
 

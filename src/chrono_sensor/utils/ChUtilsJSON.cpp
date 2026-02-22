@@ -84,8 +84,8 @@ ChFrame<> ReadFrameJSON(const Value& a) {
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
-                                         std::shared_ptr<chrono::ChBody> parent,
-                                         chrono::ChFrame<double> offsetPose) {
+                                         std::shared_ptr<ChBody> parent,
+                                         ChFrame<double> offsetPose) {
     std::shared_ptr<ChSensor> sensor;
 
     Document d;
@@ -131,8 +131,8 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
 #ifdef CHRONO_HAS_OPTIX
 
 std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename,
-                                                     std::shared_ptr<chrono::ChBody> parent,
-                                                     chrono::ChFrame<double> offsetPose) {
+                                                     std::shared_ptr<ChBody> parent,
+                                                     ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -188,8 +188,8 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
 }
 
 std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
-                                                   std::shared_ptr<chrono::ChBody> parent,
-                                                   chrono::ChFrame<double> offsetPose) {
+                                                   std::shared_ptr<ChBody> parent,
+                                                   ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -270,8 +270,8 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
 }
 
 std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
-                                                   std::shared_ptr<chrono::ChBody> parent,
-                                                   chrono::ChFrame<double> offsetPose) {
+                                                   std::shared_ptr<ChBody> parent,
+                                                   ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -321,8 +321,8 @@ std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
 #endif
 
 std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
-                                               std::shared_ptr<chrono::ChBody> parent,
-                                               chrono::ChFrame<double> offsetPose) {
+                                               std::shared_ptr<ChBody> parent,
+                                               ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -364,8 +364,8 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
 }
 
 std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON(const std::string& filename,
-                                                                   std::shared_ptr<chrono::ChBody> parent,
-                                                                   chrono::ChFrame<double> offsetPose) {
+                                                                   std::shared_ptr<ChBody> parent,
+                                                                   ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -406,8 +406,8 @@ std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON(const std::st
 }
 
 std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const std::string& filename,
-                                                           std::shared_ptr<chrono::ChBody> parent,
-                                                           chrono::ChFrame<double> offsetPose) {
+                                                           std::shared_ptr<ChBody> parent,
+                                                           ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -448,8 +448,8 @@ std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const std::string& fi
 }
 
 std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::string& filename,
-                                                                 std::shared_ptr<chrono::ChBody> parent,
-                                                                 chrono::ChFrame<double> offsetPose) {
+                                                                 std::shared_ptr<ChBody> parent,
+                                                                 ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
