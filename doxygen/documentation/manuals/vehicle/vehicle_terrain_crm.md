@@ -6,6 +6,9 @@ CRM deformable terrain (SPH) for Chrono::Vehicle simulations {#vehicle_terrain_c
 This page is a compact user guide to [CRMTerrain](@ref chrono::vehicle::CRMTerrain), with direct comparison to
 [SCMTerrain](@ref chrono::vehicle::SCMTerrain).
 
+For performance-focused CRM guidance (active domains and reduced neighbor-search frequency), see
+[CRM Active Domains and Neighbor-Search Frequency](@ref vehicle_terrain_crm_performance).
+
 Quick choice
 ------------
 

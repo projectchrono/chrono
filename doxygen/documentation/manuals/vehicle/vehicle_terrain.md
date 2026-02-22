@@ -147,3 +147,4 @@ CRMTerrain provides a very attractive alternative to granular dynamics as it giv
 
 Further details on using a CRM terrain with Chrono::Vehicle is provided in:
 * @subpage vehicle_terrain_crm_api_
+* @subpage vehicle_terrain_crm_performance
