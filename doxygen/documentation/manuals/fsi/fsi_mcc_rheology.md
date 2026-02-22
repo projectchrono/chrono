@@ -29,11 +29,11 @@ Primary references:
 Model Sketch
 ------------
 
-<!-- <img src="http://www.projectchrono.org/assets/manual/fsi/MCC_NCL.png" width="800"> -->
+<img src="http://www.projectchrono.org/assets/manual/Chrono_FSI-MCC_NCL.png" width="800">
 
 Normal consolidation and swelling behavior in `v-ln(p)` space.
 
-<!-- <img src="http://www.projectchrono.org/assets/manual/fsi/MCC_yield.png" width="800"> -->
+<img src="http://www.projectchrono.org/assets/manual/Chrono_FSI-MCC_yield.png" width="800">
 
 MCC elliptical yield surface in `p-q` space with CSL slope `M` and cap size `p_c`.
 
