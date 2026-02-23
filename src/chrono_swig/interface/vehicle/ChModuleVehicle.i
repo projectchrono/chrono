@@ -537,3 +537,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, FlatTerrain)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, RigidTerrain)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, SCMTerrain)
+
+#ifdef CHRONO_FSI_SPH
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, CRMTerrain)
+#endif
