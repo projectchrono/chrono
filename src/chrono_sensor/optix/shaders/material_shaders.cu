@@ -89,7 +89,7 @@ extern "C" __global__ void __closesthit__material_shader() {
 
     // From here on out, things are specific to the ray type
     RayType raytype = (RayType)optixGetPayload_2();
-    if (Dot(world_normal, world_normal) > 0.f) {
+    if (Dot(world_normal, world_normal) > 1e-12f) {
         switch (raytype) {
             case RayType::OCCLUSION_RAY_TYPE: {
                 PerRayData_occlusion* prd_occlusion = GetOcclusionPRD();
