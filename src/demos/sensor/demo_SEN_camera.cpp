@@ -298,10 +298,11 @@ int main(int argc, char* argv[]) {
         float env_light_scale = 0.f;
 
         b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
-        // b.env_tex = GetChronoDataFile("sensor/textures/dreifaltigkeitsberg_2k.hdr");
-        // b.env_tex = GetChronoDataFile("sensor/textures/UVChecker_byValle_4K.png");
+        // b.env_tex = GetChronoDataFile("sensor/textures/dreifaltigkeitsberg_2k.hdr"); // Optional: another choice of background texture
+        // b.env_tex = GetChronoDataFile("sensor/textures/UVChecker_byValle_4K.png"); // Optional: another choice of background texture
         env_light_scale = 1.f;
 
+        // Optional: another choice of background texture
         // b.env_tex = GetChronoDataFile("sensor/textures/envmap_sun_at_270_045.hdr");
         // env_light_scale = 1000.f;
 
@@ -574,7 +575,7 @@ int main(int argc, char* argv[]) {
                       << ", depth [" << depth_ptr->Height * depth_ptr->Width / 2 << "] =" << d << "m" << std::endl;
         }
 
-        // Access the RGBA8 buffer from the first camera
+        // Optional: Access the RGBA8 buffer from the first camera
         /*
         rgba8_ptr = cam1->GetMostRecentBuffer<UserRGBA8BufferPtr>();
         if (rgba8_ptr->Buffer) {
@@ -584,8 +585,10 @@ int main(int argc, char* argv[]) {
                       << std::endl
                       << std::endl;
         }
+        */
 
-        // Access the R8 buffer from the first camera
+        // Optional: Access the R8 buffer from the first camera
+        /*
         r8_ptr = cam1->GetMostRecentBuffer<UserR8BufferPtr>();
         if (r8_ptr->Buffer) {
             // Calculate the average gray value in the buffer
@@ -602,7 +605,7 @@ int main(int argc, char* argv[]) {
         }
         */
 
-        // Access the RGBA8 buffer from the second camera
+        // Optional: Access the RGBA8 buffer from the second camera
         /*
         rgba8_ptr = cam2->GetMostRecentBuffer<UserRGBA8BufferPtr>();
         if (rgba8_ptr->Buffer) {

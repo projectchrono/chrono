@@ -91,8 +91,9 @@ __device__ __inline__ void GetTriangleData(float3& normal, unsigned int& mat_id,
                            make_float3(mesh_params.normal_buffer[normal_idx.x]) * (1.0f - bary_coord.x - bary_coord.y));
 
     }
-    else {  // else use face normals calculated from vertices
-        normal = normalize(Cross(v2 - v1, v3 - v1));
+    else {  // else use face normals calculated from vertices        
+        normal = Cross(v2 - v1, v3 - v1);
+        normal = (Dot(normal, normal) > 1e-12f) ? normalize(normal) : make_float3(0.f, 0.f, 0.f);
     }
 
     // calculate texcoords if they exist
@@ -107,11 +108,18 @@ __device__ __inline__ void GetTriangleData(float3& normal, unsigned int& mat_id,
         float3 e2 = v3 - v1;
         float2 delta_uv1 = uv2 - uv1;
         float2 delta_uv2 = uv3 - uv1;
-        float f = 1.f / (delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y);
-        tangent.x = f * (delta_uv2.y * e1.x - delta_uv1.y * e2.x);
-        tangent.y = f * (delta_uv2.y * e1.y - delta_uv1.y * e2.y);
-        tangent.z = f * (delta_uv2.y * e1.z - delta_uv1.y * e2.z);
-        tangent = normalize(tangent);
+        float determinant = delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y;
+        // If the determinant is close to zero, the triangle is degenerate in UV space, so the tangent is undefined. Set to 0.
+        if (fabsf(determinant) < 1e-12f) {
+            tangent = make_float3(0.f);
+        }
+        else {
+            float f = 1.f / determinant;
+            tangent.x = f * (delta_uv2.y * e1.x - delta_uv1.y * e2.x);
+            tangent.y = f * (delta_uv2.y * e1.y - delta_uv1.y * e2.y);
+            tangent.z = f * (delta_uv2.y * e1.z - delta_uv1.y * e2.z);
+            tangent = normalize(tangent);
+        }
     } else {
         uv = make_float2(0.f);
         tangent = make_float3(0.f);
