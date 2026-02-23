@@ -12,7 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code about collisions and contacts using the penalty method (SMC)
+// Illustration of using a custom callback object for collision detection in
+// Chrono::Multicore.
 //
 // =============================================================================
 
@@ -57,7 +58,7 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
           m_obst_radius(obstacle.radius),
           m_obst_center(obstacle.center) {}
 
-    virtual void OnCustomCollision(ChSystem* msys) override {
+    virtual void OnCustomCollision(ChSystem* sys) override {
         auto r_sum = m_ball_radius + m_obst_radius;
 
         // Get current ball position and project on horizontal plane.
@@ -88,7 +89,7 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
         contact.vpA = ChVector3d(pt_ball.x(), b_pos.y(), pt_ball.y());
         contact.vpB = ChVector3d(pt_obst.x(), b_pos.y(), pt_obst.y());
         contact.distance = dist - r_sum;
-        msys->GetContactContainer()->AddContact(contact, m_ball_mat, m_obst_mat);
+        sys->GetContactContainer()->AddContact(contact, m_ball_mat, m_obst_mat);
     }
 
     std::shared_ptr<ChBody> m_ball;

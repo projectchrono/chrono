@@ -457,22 +457,18 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This is mostly called automatically by time integration.
     unsigned int ComputeCollisions();
 
-    /// Class to be used as a callback interface for user defined actions performed
-    /// at each collision detection step.  For example, additional contact points can
-    /// be added to the underlying contact container.
+    /// Class to be used as a callback interface for user defined actions performed at each collision detection step.
+    /// The `OnCustomCollision()` method is called at each step, at the end of the collision detection step.
+    /// A custom callback object can add contacts to the system's contact container, directly apply resultant contact
+    /// forces to the contactable objects, etc.
     class ChApi CustomCollisionCallback {
       public:
         virtual ~CustomCollisionCallback() {}
-        virtual void OnCustomCollision(ChSystem* msys) {}
+        virtual void OnCustomCollision(ChSystem* sys) {}
     };
 
-    /// Specify a callback object to be invoked at each collision detection step.
-    /// Multiple such callback objects can be registered with a system. If present,
-    /// their OnCustomCollision() method is invoked.
-    /// Use this if you want that some specific callback function is executed at each
-    /// collision detection step (ex. all the times that ComputeCollisions() is automatically
-    /// called by the integration method). For example some other collision engine could
-    /// add further contacts using this callback.
+    /// Register a custom callback object.
+    /// Multiple such callback objects can be registered with a system.
     void RegisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback);
 
     /// Remove the given collision callback from this system.
@@ -700,7 +696,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
 
     /// From state Y={x,v} to system. This also triggers an update operation.
-    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
+    virtual void StateScatter(const ChState& x,
+                              const ChStateDelta& v,
+                              const double T,
+                              UpdateFlags update_flags) override;
 
     /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
     virtual void StateGatherAcceleration(ChStateDelta& a) override;
@@ -753,10 +752,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
         const ChStateDelta& v,        ///< current state, v part
         const double T,               ///< current time T
         bool force_state_scatter,     ///< if true, scatter x and v to the system
-        UpdateFlags update_flags,  ///< if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise switch off
-                                  ///< visual asset update, etc.
-        bool call_setup,          ///< if true, call the solver's Setup function
-        bool call_analyze         ///< if true, call the solver's Setup analyze phase
+        UpdateFlags update_flags,     ///< flags controlling operations performed during a system update
+        bool call_setup,              ///< if true, call the solver's Setup function
+        bool call_analyze             ///< if true, call the solver's Setup analyze phase
         ) override;
 
     /// Increment a vector R with the term c*F:
@@ -836,7 +834,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Performs a single dynamics simulation step, advancing the system state by the current step size.
     virtual bool AdvanceDynamics();
 
-    std::string m_name;                                       ///< system name
+    std::string m_name;                                     ///< system name
     ChAssembly assembly;                                    ///< underlying mechanical assembly
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 

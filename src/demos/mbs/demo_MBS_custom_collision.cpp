@@ -12,7 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code about collisions and contacts using the penalty method (SMC)
+// Illustration of using a custom callback object for collision detection with
+// the core Chrono engine.
 //
 // =============================================================================
 
@@ -67,7 +68,7 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
           m_obst_radius(obstacle.radius),
           m_obst_center(obstacle.center) {}
 
-    virtual void OnCustomCollision(ChSystem* msys) override {
+    virtual void OnCustomCollision(ChSystem* sys) override {
         auto r_sum = m_ball_radius + m_obst_radius;
 
         // Get current ball position and project on horizontal plane.
@@ -98,7 +99,7 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
         contact.vpA = ChVector3d(pt_ball.x(), b_pos.y(), pt_ball.y());
         contact.vpB = ChVector3d(pt_obst.x(), b_pos.y(), pt_obst.y());
         contact.distance = dist - r_sum;
-        msys->GetContactContainer()->AddContact(contact, m_ball_mat, m_obst_mat);
+        sys->GetContactContainer()->AddContact(contact, m_ball_mat, m_obst_mat);
     }
 
     std::shared_ptr<ChBody> m_ball;
@@ -116,8 +117,6 @@ int main(int argc, char* argv[]) {
     ChContactMethod contact_method = ChContactMethod::SMC;
 
     double ball_radius = 0.5;
-    MyObstacle obstacle;
-    ChVector3d obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
     ChSystem* sys = nullptr;
@@ -170,7 +169,6 @@ int main(int argc, char* argv[]) {
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the ground body with a plate and side walls (both collision and visualization).
-    // Add obstacle visualization (in a separate level with a different color).
     auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
     ground->EnableCollision(true);
@@ -190,6 +188,9 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector3d(10.2, 2, 0.2), ChVector3d(0, 0, +5), QUNIT, true,
                           ground_vmat);
 
+    // Create the obstacle object with visualization, but NO collision shapes.
+    // Add obstacle visualization (in a separate level with a different color).
+    MyObstacle obstacle;
     obstacle.AddVisualization(ground);
 
     // Create the falling ball

@@ -323,13 +323,13 @@ void ChCollisionSystemMulticore::Run() {
 
 // -----------------------------------------------------------------------------
 
-void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* container) {
+void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* contact_container) {
     const auto& blist = m_system->GetBodies();
 
     // Resize global arrays with composite material properties.
     // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
     // callback)
-    container->BeginAddContact();
+    contact_container->BeginAddContact();
 
     const auto& bids = cd_data->bids_rigid_rigid;          // global IDs of bodies in contact
     const auto& sids = cd_data->contact_shapeIDs;          // global IDs of shapes in contact
@@ -365,10 +365,10 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* container) {
             add_contact = this->narrow_callback->OnNarrowphase(cinfo);
 
         if (add_contact)
-            container->AddContact(cinfo);
+            contact_container->AddContact(cinfo);
     }
 
-    container->EndAddContact();
+    contact_container->EndAddContact();
 }
 
 // -----------------------------------------------------------------------------

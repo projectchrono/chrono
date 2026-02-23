@@ -138,7 +138,7 @@ class CH_VEHICLE_API ChTrackCollisionManager : public ChCollisionSystem::Narrowp
 
     /// Callback used to process collision pairs found by the narrow-phase collision step.
     /// Return true to generate a contact for this pair of overlapping bodies.
-    virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) override;
+    virtual bool OnNarrowphase(ChCollisionInfo& cinfo) override;
 
     bool m_idler_shoe;                                 ///< process collisions with idler bodies
     bool m_wheel_shoe;                                 ///< process collisions with road-wheel bodies

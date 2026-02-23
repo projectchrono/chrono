@@ -103,37 +103,22 @@ class ChApi ChCollisionSystem {
     /// The default implementation does nothing. Derived classes implement this function as applicable.
     virtual void SetNumThreads(int nthreads) {}
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all contact containers in the system,
-    /// Children classes _must_ implement this.
-    /// The basic behavior of the implementation should be the following: collision system
-    /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
-    /// EndAddContact() of the contact container.
-    /// In case a specialized implementation (ex. a GPU parallel collision engine)
-    /// finds that the contact container is a specialized one (ex with a GPU buffer)
-    /// it can call more performant methods to add directly the contacts in batches, for instance
-    /// by recognizing that he can call, say, some special AddAllContactsAsGpuBuffer() instead of many AddContact().
-    virtual void ReportContacts(ChContactContainer* mcontactcontainer) = 0;
+    /// Report contacts (fill the provided 'contact container').
+    /// This function, which should only be called after `Run()`, must add to the contact container contacts
+    /// corresponding to all detected pairwise collisions. The basic behavior of the implementation should call in
+    /// sequence the ChContactContainer functions `BeginAddContact()`, `AddContact()` (multiple times), and
+    /// EndAddContact().
+    virtual void ReportContacts(ChContactContainer* contact_container) = 0;
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all proximity containers in the system,
-    /// Children classes _must_ implement this.
-    /// The basic behavior of the implementation should be the following: collision system
-    /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
-    /// EndAddProximities() of the proximity container.
-    /// In case a specialized implementation (ex. a GPU parallel collision engine)
-    /// finds that the proximity container is a specialized one (ex with a GPU buffer)
-    /// it can call more performant methods to add directly the proximities in batches, for instance
-    /// by recognizing that he can call, say, some special AddAllProximitiesAsGpuBuffer() instead of many
-    /// AddProximity().
-    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) = 0;
+    /// Report proximities (fill in the provided 'proximity container').
+    /// This function, which should only be called after `Run()`, must add to the contact container contacts
+    /// corresponding to all detected pairwise collisions. The basic behavior of the implementation should call in
+    /// sequence the ChContactContainer functions `BeginAddProximities()`, `AddProximity()` (multiple times), and
+    /// `EndAddProximities()`.
+    virtual void ReportProximities(ChProximityContainer* proximity_container) = 0;
 
-    /// Class to be used as a callback interface for user-defined actions to be performed
-    /// for each 'near enough' pair of collision shapes found by the broad-phase collision step.
+    /// Class to be used as a callback interface for user-defined actions to be performed during broadphase.
+    /// The `OnBroadphase()` method will be called for each pair of 'near enough' shapes.
     class ChApi BroadphaseCallback {
       public:
         virtual ~BroadphaseCallback() {}
@@ -146,26 +131,21 @@ class ChApi ChCollisionSystem {
                                   ) = 0;
     };
 
-    /// Specify a callback object to be used each time a pair of 'near enough' collision shapes
-    /// is found by the broad-phase collision step. The OnBroadphase() method of the provided
-    /// callback object will be called for each pair of 'near enough' shapes.
+    /// Register a broadphase callback object.
     void RegisterBroadphaseCallback(std::shared_ptr<BroadphaseCallback> callback) { broad_callback = callback; }
 
-    /// Class to be used as a callback interface for user-defined actions to be performed
-    /// at each collision pair found during the narrow-phase collision step.
-    /// It can be used to override the geometric information.
+    /// Class to be used as a callback interface for user-defined actions to be performed during narrowphase.
+    /// The `OnNarrowphase()` method will be called for each collision pair found during narrow phase.
     class ChApi NarrowphaseCallback {
       public:
         virtual ~NarrowphaseCallback() {}
 
         /// Callback used to process collision pairs found by the narrow-phase collision step.
         /// Return true to generate a contact for this pair of overlapping bodies.
-        virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) = 0;
+        virtual bool OnNarrowphase(ChCollisionInfo& cinfo) = 0;
     };
 
-    /// Specify a callback object to be used each time a collision pair is found during
-    /// the narrow-phase collision detection step. The OnNarrowphase() method of the provided
-    /// callback object will be called for each collision pair found during narrow phase.
+    /// Register a narrowphase callback object.
     void RegisterNarrowphaseCallback(std::shared_ptr<NarrowphaseCallback> callback) { narrow_callback = callback; }
 
     /// Recover results from RayHit() raycasting.
