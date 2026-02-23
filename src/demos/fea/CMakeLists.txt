@@ -72,6 +72,7 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
         demo_FEA_hexaANCF_3813_9
         demo_FEA_beamsANCF
         demo_FEA_multiphysics
+        demo_FEA_multiphysics_custom
     )
     endif()
     
