@@ -466,9 +466,8 @@ source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 if(CH_USE_SENSOR_OPTIX)
   message(STATUS "Shader directory in BUILD tree: ${CH_BUILD_SENSOR_SHADERS}")
   if(CH_USE_SENSOR_NVRTC)
-    # We need *.cu and *.cuh at runtime to compile with NVRTC
+    # We need *.cu at runtime to compile with NVRTC
     file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
-    file(COPY ${Chrono_sensor_RT_HEADERS} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
   else()
     # Only PTX files are needed at runtime if we compile with NVCC at build time
     # Just make sure the directory exists and *.ptx will be copied over
@@ -602,7 +601,6 @@ if(CH_USE_SENSOR_OPTIX)
     set(CUDA_NVRTC_INCLUDE_DIRS
         ${OptiX_INCLUDE}
         ${CUDAToolkit_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders
         ${CMAKE_INSTALL_PREFIX}/include
         ${CMAKE_SOURCE_DIR}/src
         CACHE STRING "NVRTC include dirs as list." FORCE)
