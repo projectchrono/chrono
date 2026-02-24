@@ -74,7 +74,7 @@ extern "C" __global__ void __closesthit__material_shader() {
     }
 
     // Test 'object_normal' for degeneracy
-    if (Dot(object_normal, object_normal) < 1e-8f)
+    if (Dot(object_normal, object_normal) < 1e-12f)
         return;
 
     // Ensure 'object_normal' is normalized and express in world frame
