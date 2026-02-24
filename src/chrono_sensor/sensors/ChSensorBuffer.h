@@ -60,6 +60,8 @@ struct SensorBufferT : public SensorBuffer {
     B Buffer;
 };
 
+#ifdef CHRONO_HAS_OPTIX
+
 template <class B>
 struct LidarBufferT : public SensorBufferT<B> {
     LidarBufferT() : Dual_return(false), Beam_return_count(0) {}
@@ -101,9 +103,7 @@ using SensorDeviceFloat4Buffer = SensorBufferT<DeviceFloat4BufferPtr>;
 /// Pointer to an RGBA image on the host that has been moved for safety and can be given to the user.
 using UserFloat4BufferPtr = std::shared_ptr<SensorHostFloat4Buffer>;
 
-#ifdef CHRONO_HAS_OPTIX
-
-/// A pixel as defined by RGBA float4 format.
+/// A pixel as defined by RGBA half4 format
 struct PixelHalf4 {
     __half R;  ///< Red value
     __half G;  ///< Green value
@@ -123,7 +123,25 @@ using SensorDeviceHalf4Buffer = SensorBufferT<DeviceHalf4BufferPtr>;
 /// pointer to an RGBA image on the host that has been moved for safety and can be given to the user
 using UserHalf4BufferPtr = std::shared_ptr<SensorHostHalf4Buffer>;
 
-#endif
+//===============================
+// RGBD Camera Format and Buffers
+//===============================
+
+/// A pixel as defined by RGBD half4 format
+struct PixelRGBDHalf4 {
+    __half R;  ///< Red value
+    __half G;  ///< Green value
+    __half B;  ///< Blue value
+    __half D;  ///< Distance value
+};
+/// RGBD host buffer to be used for managing data on the host
+using SensorHostRGBDHalf4Buffer = SensorBufferT<std::shared_ptr<PixelRGBDHalf4[]>>;
+/// RGBD device buffer to be used by camera filters in the graph
+using DeviceRGBDHalf4BufferPtr = std::shared_ptr<PixelRGBDHalf4[]>;
+/// Sensor buffer wrapper of a DeviceRGBDBufferPtr
+using SensorDeviceRGBDHalf4Buffer = SensorBufferT<DeviceRGBDHalf4BufferPtr>;
+/// pointer to an RGBD image on the host that has been moved for safety and can be given to the user
+using UserRGBDHalf4BufferPtr = std::shared_ptr<SensorHostRGBDHalf4Buffer>;
 
 //================================
 // RGBA8 Camera Format and Buffers
@@ -148,6 +166,26 @@ using SensorDeviceRGBA8Buffer = SensorBufferT<DeviceRGBA8BufferPtr>;
 
 /// Pointer to an RGBA image on the host that has been moved for safety and can be given to the user.
 using UserRGBA8BufferPtr = std::shared_ptr<SensorHostRGBA8Buffer>;
+
+//================================
+// RGBA16 Camera Format and Buffers
+//================================
+
+/// A pixel as defined by RGBA 16bpp format
+struct PixelRGBA16 {
+    uint16_t R;  ///< Red value
+    uint16_t G;  ///< Green value
+    uint16_t B;  ///< Blue value
+    uint16_t A;  ///< Transparency value
+};
+/// RGBA host buffer to be used for managing data on the host
+using SensorHostRGBA16Buffer = SensorBufferT<std::shared_ptr<PixelRGBA16[]>>;
+/// RGBA device buffer to be used by camera filters in the graph
+using DeviceRGBA16BufferPtr = std::shared_ptr<PixelRGBA16[]>;
+/// Sensor buffer wrapper of a DeviceRGBA16BufferPtr
+using SensorDeviceRGBA16Buffer = SensorBufferT<DeviceRGBA16BufferPtr>;
+/// pointer to an RGBA image on the host that has been moved for safety and can be given to the user
+using UserRGBA16BufferPtr = std::shared_ptr<SensorHostRGBA16Buffer>;
 
 //===============================================
 // R8 (8-bit Grayscale) Camera Format and Buffers
@@ -194,6 +232,24 @@ using DeviceDepthBufferPtr = std::shared_ptr<PixelDepth[]>;
 using SensorDeviceDepthBuffer = SensorBufferT<DeviceDepthBufferPtr>;
 
 using UserDepthBufferPtr = std::shared_ptr<SensorHostDepthBuffer>;
+
+//=================================
+// Normal Camera Format and Buffers
+//=================================
+
+struct PixelNormal {
+    float normal_x; // x component of normal vector
+    float normal_y; // y component of normal vector
+    float normal_z; // z component of normal vector
+};
+
+using SensorHostNormalBuffer = SensorBufferT<std::shared_ptr<PixelNormal[]>>;
+
+using DeviceNormalBufferPtr = std::shared_ptr<PixelNormal[]>;
+
+using SensorDeviceNormalBuffer = SensorBufferT<DeviceNormalBufferPtr>;
+
+using UserNormalBufferPtr = std::shared_ptr<SensorHostNormalBuffer>;
 
 //=====================================
 // Range Radar Data Formats and Buffers
@@ -281,6 +337,8 @@ using SensorDeviceXYZIBuffer = LidarBufferT<DeviceXYZIBufferPtr>;
 
 /// Pointer to a point cloud buffer on the host that has been moved for safety and can be given to the user.
 using UserXYZIBufferPtr = std::shared_ptr<SensorHostXYZIBuffer>;
+
+#endif
 
 //=============================
 // IMU Data Format and Buffers

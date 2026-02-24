@@ -16,7 +16,7 @@
 
 #include <cuda.h>
 #include "image_ops.cuh"
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 #include <iostream>
 #include <thrust/device_vector.h>
 #include <thrust/extrema.h>
@@ -267,6 +267,19 @@ void cuda_image_half4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstrea
     image_half4_to_uchar4_kernel<<<nBlocks, nThreads, 0, stream>>>((__half*)bufIn, (unsigned char*)bufOut, w * h * 4);
 }
 
+__global__ void image_float4_to_uchar4_kernel(float* bufIn, unsigned char* bufOut, int N) {
+    int idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+    if (idx < N) {
+        bufOut[idx] = (unsigned char)(clamp(bufIn[idx], 0.f, 1.f) * 255.f);
+    }
+}
+
+void cuda_image_float4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream) {
+    const int nThreads = 512;
+    int nBlocks = (w * h * 4 + nThreads - 1) / nThreads;
+    image_float4_to_uchar4_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (unsigned char*)bufOut, w * h * 4);
+}
+
 void cuda_depth_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream) {
     // Set up kernel launch configuration
     // int blockSize = 256;
@@ -418,6 +431,166 @@ __host__ void cuda_camera_exposure_correct(unsigned char* bufPtr, size_t width, 
     
     cudaFree(dev_expsr_means);
     cudaFree(dev_pixel_counts);
+}
+
+
+////---- Functions for cuda_normal_to_uchar4 ----////
+// kernel function
+__global__ void normal_to_uchar4_kernel(float* bufIn, unsigned char* bufOut, int pixel_num) {
+    int pixel_idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+    if (pixel_idx < pixel_num) {
+        float nrmlz_normal_element = 0.f;
+        for (int element_idx = 0; element_idx < 3; ++element_idx) {
+            nrmlz_normal_element = clamp((bufIn[pixel_idx * 3 + element_idx] + 1.0) / 2.0, 0.f, 1.f);
+            bufOut[pixel_idx * 4 + element_idx] = (unsigned char)(nrmlz_normal_element * 255.999);;
+        }
+        bufOut[pixel_idx * 4 + 3] = (unsigned char)255;    
+    }
+}
+
+// host function
+__host__ void cuda_normal_to_uchar4(void* bufIn, void* bufOut, int width, int height, CUstream& stream) {
+    int pixel_num = width * height;
+    // Set up kernel launch configuration
+    const int threads_per_block = 512;
+    const int blocks_per_grid = (pixel_num + threads_per_block - 1) / threads_per_block;
+    
+    // Launch the kernel
+    normal_to_uchar4_kernel<<<blocks_per_grid, threads_per_block, 0, stream>>>((float*)bufIn, (unsigned char*)bufOut, pixel_num);
+}
+
+
+////---- Functions for cuda_image_RGBDhalf4_to_half4 ----////
+// kernel function
+__global__ void RGBDhalf4_to_Half4_kernel(__half* bufIn, __half* bufOut, int pixel_num) {
+    int pixel_idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+    if (pixel_idx < pixel_num) {
+        // iterate over R, G, and B channels
+        for (int element_idx = 0; element_idx < 3; ++element_idx) {
+            bufOut[pixel_idx * 4 + element_idx] = bufIn[pixel_idx * 4 + element_idx];
+        }
+        // set A channel to 1.0f
+        bufOut[pixel_idx * 4 + 3] = (__half)1.0;
+    }
+}
+
+// host function
+__host__ void cuda_image_RGBDhalf4_to_Half4(void* bufIn, void* bufOut, int width, int height, CUstream& stream) {
+    int pixel_num = width * height;
+    // Set up kernel launch configuration
+    const int threads_per_block = 512;
+    const int blocks_per_grid = (pixel_num + threads_per_block - 1) / threads_per_block;
+    
+    // Launch the kernel
+    RGBDhalf4_to_Half4_kernel<<<blocks_per_grid, threads_per_block, 0, stream>>>(
+        (__half*)bufIn, (__half*)bufOut, pixel_num
+    );
+}
+
+
+////---- Functions for cuda_RGBDhalf4_to_uchar ----////
+// kernel function
+__global__ void RGBDhalf4_to_uchar_kernel(__half* bufIn, unsigned char* bufOut, __half d_min, __half d_max, int N) {
+    int idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+    if (idx < N) {
+        // only output D-channel
+        bufOut[idx] = (unsigned char)(clamp((bufIn[4 * idx + 3] - d_min) / (d_max - d_min), 0., 1.) * 255.);
+        // bufOut[idx] = (unsigned char)128;
+    }
+}
+
+// host function
+void cuda_RGBDhalf4_to_uchar(void* bufIn, void* bufOut, int w, int h, CUstream& stream) {
+
+    thrust::device_vector<__half> buf_in_thrust((__half*)bufIn, (__half*)bufIn + 4 * w * h);
+    /*
+    // create a strided range to access only the D channel
+    auto start = thrust::make_transform_iterator(buf_in_thrust.begin() + 3, thrust::placeholders::_1 + 4);
+    auto end = thrust::make_transform_iterator(buf_in_thrust.end(), thrust::placeholders::_1 + 4);
+
+    // return the maximum value in the D channel
+    thrust::pair<thrust::device_vector<__half>::iterator, thrust::device_vector<__half>::iterator> result = 
+        thrust::minmax_element(
+            start, end, thrust::stride_iterator<thrust::device_vector<__half>::iterator>(buf_in_thrust.begin() + 3, 4)
+        );
+    */
+
+    thrust::pair<thrust::device_vector<__half>::iterator, thrust::device_vector<__half>::iterator> result =
+        thrust::minmax_element(buf_in_thrust.begin(), buf_in_thrust.end());
+
+    // Set up kernel launch configuration
+    const int nThreads = 512;
+    int nBlocks = (w * h + nThreads - 1) / nThreads;
+    RGBDhalf4_to_uchar_kernel<<<nBlocks, nThreads, 0, stream>>>(
+        (__half*)bufIn, (unsigned char*)bufOut, *(result.first), *(result.second), w * h
+    );
+
+}
+
+
+////---- Functions for cuda_image_half4_to_uint16_t4 ----////
+// kernel function
+__global__ void cuda_image_half4_to_uint16_t4_kernel(__half* bufIn, uint16_t* bufOut, int N) {
+    int idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+    if (idx < N) {
+        bufOut[idx] = (uint16_t)(clamp(__half2float(bufIn[idx]), 0.f, 1.f) * 65534.999f);
+        // if (idx % 4 == 0)
+        //     printf("%u\n", bufOut[idx]);
+    }
+}
+
+// host function
+void cuda_image_half4_to_uint16_t4(void* bufIn, void* bufOut, int w, int h, CUstream& stream) {
+    const int nThreads = 512;
+    int nBlocks = (w * h * 4 + nThreads - 1) / nThreads;
+    cuda_image_half4_to_uint16_t4_kernel<<<nBlocks, nThreads, 0, stream>>>(
+        (__half*)bufIn, (uint16_t*)bufOut, w * h * 4
+    );
+}
+
+
+////---- Functions for cuda_image_alias_rgba16 ----////
+// kernel function
+// merge pixels by the factor
+__global__ void image_alias_rgba16_kernel(uint16_t* bufIn, uint16_t* bufOut, int w_out, int h_out, int factor,
+                                           int channel_num) {
+    int out_idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index of output buffer entry
+
+    int w_in = w_out * factor;
+    //
+    // // only run for each output entry
+    if (out_idx < w_out * h_out * channel_num) {
+        int channel_out = out_idx % channel_num;
+        int x_out = (out_idx / channel_num) % w_out;
+        int y_out = (out_idx / channel_num) / w_out;
+
+        unsigned int mean = 0;
+
+        for (int i = 0; i < factor; i++) {
+            for (int j = 0; j < factor; j++) {
+                int channel_in = channel_out;
+                int x_in = x_out * factor + j;
+                int y_in = y_out * factor + i;
+
+                int in_idx = y_in * w_in * channel_num + x_in * channel_num + channel_in;
+                mean += (unsigned int)(bufIn[in_idx]);
+            }
+        }
+        bufOut[out_idx] = (uint16_t)(mean / (factor * factor));
+
+        // if (out_idx % 4 == 0)
+        //     printf("%u\n", bufOut[out_idx]);
+    }
+}
+
+// host function
+void cuda_image_alias_rgba16(void* bufIn, void* bufOut, int w_out, int h_out, int factor, int channel_num,
+                             CUstream& stream) {
+    const int nThreads = 512;
+    int nBlocks = (w_out * h_out * channel_num + nThreads - 1) / nThreads;
+
+    image_alias_rgba16_kernel<<<nBlocks, nThreads, 0, stream>>>((uint16_t*)bufIn, (uint16_t*)bufOut, w_out, h_out,
+                                                         factor, channel_num);
 }
 
 }  // namespace sensor

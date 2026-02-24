@@ -104,9 +104,11 @@ class CH_SENSOR_API ChSensorManager {
     int GetRayRecursions() { return m_optix_reflections; }
 
     /// Enable/disable verbose output mode (default: false).
+    /// @param verbose whether the framework should print info
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Get the verbose setting.
+    /// @return the verbose setting
     bool GetVerbose() { return m_verbose; }
 
     /// Enable/disable sensor debug mode (default: false).

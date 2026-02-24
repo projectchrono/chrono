@@ -4,7 +4,7 @@
     #endif
 #endif
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 #ifdef USE_SENSOR_NVDB
 

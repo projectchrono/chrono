@@ -22,7 +22,7 @@
 #endif
 #endif
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 extern "C" __global__ void __intersection__sphere_intersect() {
     const float3 ray_orig = optixGetObjectRayOrigin();

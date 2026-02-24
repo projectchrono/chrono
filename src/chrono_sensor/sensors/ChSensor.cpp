@@ -83,7 +83,27 @@ CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserRGBA8BufferPtr, ChFilterRGBA8Access, ChFilterRGBA8AccessName>();
 }
 
+// -----------------------------------------------------------------------------
+// retriever function for image data in RGBA 16-bit format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserRGBA16BufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserRGBA16BufferPtr, ChFilterRGBA16Access, ChFilterRGBA16AccessName>();
+}
+
+// -----------------------------------------------------------------------------
+// retriever function for image data in RGBD half4 format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserRGBDHalf4BufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserRGBDHalf4BufferPtr, ChFilterRGBDHalf4Access, ChFilterRGBDHalf4AccessName>();
+}
+
+// -----------------------------------------------------------------------------
 // retriever function for image semantic data in semantic format
+// -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserSemanticBufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserSemanticBufferPtr, ChFilterSemanticAccess, ChFilterSemanticAccessName>();
@@ -93,6 +113,15 @@ CH_SENSOR_API UserSemanticBufferPtr ChSensor::GetMostRecentBuffer() {
 template <>
 CH_SENSOR_API UserDepthBufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserDepthBufferPtr, ChFilterDepthAccess, ChFilterDepthAccessName>();
+}
+
+// -----------------------------------------------------------------------------
+// retriever function for image normal data as float3 values
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserNormalBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserNormalBufferPtr, ChFilterNormalAccess, ChFilterNormalAccessName>();
 }
 
 // retriever function for lidar data in range/depth,intensity format

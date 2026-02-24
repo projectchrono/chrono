@@ -246,7 +246,7 @@ TEST(ChOptixEngine, lights) {
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
-    ASSERT_EQ(manager->scene->GetPointLights().size(), 1);
+    ASSERT_EQ(manager->scene->GetLights().size(), 1);
 
     while ((float)sys.GetChTime() < end_time) {
         manager->Update();
@@ -262,5 +262,5 @@ TEST(ChOptixEngine, lights) {
         sys.DoStepDynamics(0.01);
     }
 
-    ASSERT_EQ(manager->scene->GetPointLights().size(), 11);
+    ASSERT_EQ(manager->scene->GetLights().size(), 11);
 }

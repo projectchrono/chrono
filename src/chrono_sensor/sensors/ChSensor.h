@@ -40,11 +40,17 @@ namespace sensor {
 
 // Global constants for use in template parameters
 #ifdef CHRONO_HAS_OPTIX
-const char ChFilterR8AccessName[] = "ChFilterR8Access";              ///< single channel 8 bit array
-const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";        ///< 4 channel 8 bit array
-const char ChFilterDIAccessName[] = "ChFilterDIAccess";              ///< 2 channel float array (depth+intenisty)
+const char ChFilterR8AccessName[] = "ChFilterR8Access";              /// single channel 8 bit array
+const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";        /// 4 channel 8 bit array
+const char ChFilterRGBA16AccessName[] = "ChFilterRGBA16Access";      /// 4 channels of u_int16_t (16 bit) arrays
+const char ChFilterRGBDHalf4AccessName[] = "ChFilterRGBDHalf4Access";/// 4 channels of half (16 bit) arrays
+const char ChFilterDIAccessName[] = "ChFilterDIAccess";              /// 2 channel float array (Depth+Intenisty)
 const char ChFilterRadarAccessName[] = "ChFilterRadarAccess";        ///<
 const char ChFilterRadarXYZAccessName[] = "ChFilterRadarXYZAccess";  ///<
+const char ChFilterSemanticAccessName[] = "ChFilterSemanticAccess";  // 2 channels of unsigned short int (16 bit) arrays (class label + instance label)
+const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";        // single channel of a float array
+const char ChFilterFloat4AccessName[] = "ChFilterFloat4Access";      // 4 channels of float arrays
+const char ChFilterNormalAccessName[] = "ChFilterNormalAccess";      /// 3 channels of float (32 bit) arrays
 #endif
 const char ChFilterXYZIAccessName[] = "ChFilterXYZIAccess";      ///< 4 channel float array (XYZ positions+intensity)
 const char ChFilterAccelAccessName[] = "ChFilterAccelAccess";    ///< Accelerometer data format (3 doubles total)
@@ -52,8 +58,6 @@ const char ChFilterGyroAccessName[] = "ChFilterGyroAccess";      ///< Gyroscope 
 const char ChFilterMagnetAccessName[] = "ChFilterMagnetAccess";  ///< Magnetometer data format (3 doubles total)
 const char ChFilterGPSAccessName[] = "ChFilterGPSAccess";        ///< GPS data format (4 doubles total)
 const char ChFilterTachometerAccessName[] = "ChFilterTachometerAccess";  ///<
-const char ChFilterSemanticAccessName[] = "ChFilterSemanticAccess";      ///<
-const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";            ///<
 
 /// Base class for a Chrono sensor.
 class CH_SENSOR_API ChSensor {

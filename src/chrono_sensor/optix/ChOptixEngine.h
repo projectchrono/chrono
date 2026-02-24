@@ -72,6 +72,7 @@ class CH_SENSOR_API ChOptixEngine {
     /// @param device_id The id of the GPU which this engine is running on
     /// @param max_scene_reflections The maximum number of ray recursions that should be allowed by this engine
     /// @param verbose Sets verbose level for the engine
+    /// @param debug Whether to run the engine in debug mode, which may have additional error checking and printing
     ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections = 9, bool verbose = false, bool debug = false);
 
     /// Class destructor
@@ -85,8 +86,7 @@ class CH_SENSOR_API ChOptixEngine {
     /// @param scene The scene that should be rendered with.
     void UpdateSensors(std::shared_ptr<ChScene> scene);
 
-    /// Tells the optix manager to construct the scene from scratch, translating all objects
-    /// from Chrono to Optix
+    /// Tells the optix manager to construct the scene from scratch, translating all objects from Chrono to OptiX
     void ConstructScene();
 
     /// Way to query the device ID on which the engine is running. CANNOT BE MODIFIED since the engine will have been
@@ -121,12 +121,17 @@ class CH_SENSOR_API ChOptixEngine {
     /// Scene processing function for building the scene in separate thread.
     void SceneProcess(RenderThread& tself);
 
-    /// Update all camera position and orientations.
-    void UpdateCameraTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);
+    /// Update all sensor positions and orientations.
+    /// @param to_be_updated the vector of Optix sensor IDs to be updated
+    /// @param scene the scene that these Optix sensors belong to
+    void UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);  
+    
+    /// Update all raygen_record and filter parameters of the Optix sensors 
+    /// @param to_be_updated the vector of Optix sensor IDs to be updated
+    /// @param scene the scene that these Optix sensors belong to
+    void UpdateSensorParameters(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);
 
-    /// Update the dynamic meshes in the scene.
-    void UpdateDeformableMeshes();
-
+    void UpdateDeformableMeshes();        ///< updates the dynamic meshes in the scene
     /// Update the scene characteristics such as lights, background, etc.
     void UpdateSceneDescription(std::shared_ptr<ChScene> scene);
 
@@ -155,9 +160,9 @@ class CH_SENSOR_API ChOptixEngine {
                                      std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                      ChFrame<> asset_frame);
 
-#ifdef USE_SENSOR_NVDB
-    void nvdbVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChNVDBShape> box_shape, ChFrame<> asset_frame);
-#endif
+    #ifdef USE_SENSOR_NVDB
+        void nvdbVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChNVDBShape> box_shape, ChFrame<> asset_frame);
+    #endif
 
     std::vector<unsigned int> m_renderQueue;  ///< list of sensor indices that need to be updated
 
