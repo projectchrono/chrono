@@ -28,13 +28,6 @@ if(CH_USE_SENSOR_OPTIX)
       )
   endif()
   
-  # Demos that require tensorrt
-  if(CH_USE_SENSOR_TENSORRT)
-      set(DEMOS ${DEMOS}
-        demo_SEN_NNCamera
-      )
-  endif()
-
 endif()
 
 #--------------------------------------------------------------
