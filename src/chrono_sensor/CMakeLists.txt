@@ -607,16 +607,15 @@ if(CH_USE_SENSOR_OPTIX)
     #   1. We cannot install the PTX files since these are "objects" not known at configuration time.
     #   2. By design, CMake does not allow redirecting output of object files. So we cannot set output properties on the Chrono_sensor_ptx target.
     #   3. A POST_BUILD command cannot be associated with an OBJECT library target. So we cannot do this after Chrono_sensor_ptx.
-    # The solution is to do the copy in a PRE_BUILD command of the Chrono_sensor target (which depends on Chrono_sensor_ptx).
-    add_custom_command(TARGET Chrono_sensor
-      PRE_BUILD
+    #  The solution is to create a custom target to copy the ptx files. 
+    add_custom_target(Chrono_sensor_ptx_copy ALL
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CH_BUILD_SENSOR_SHADERS}"
       COMMAND_EXPAND_LISTS
       COMMENT "Copy Chrono::Sensor PTX files."
     )
     
     # Link PTX helper library, use NVCC, and set macro with location of PTX files
-    add_dependencies(Chrono_sensor Chrono_sensor_ptx)
+    add_dependencies(Chrono_sensor_ptx_copy Chrono_sensor_ptx)
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVCC>)
   endif()
 
