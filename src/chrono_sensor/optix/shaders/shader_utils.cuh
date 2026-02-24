@@ -44,10 +44,11 @@ __device__ __inline__ float3 SampleCosineHemisphereDir(const float& z1, const fl
     float z = sqrtf(fmaxf(0.f, 1.f - x * x - y * y));
 
     // Address case of normal = (0, 0, 1)
-    float3 binormal = (fabs(normal.x) > fabs(normal.z)) ? make_float3(-normal.y, normal.x, 0) : make_float3(0, -normal.z, normal.y);
+    float3 binormal =
+        (fabs(normal.x) > fabs(normal.z)) ? make_float3(-normal.y, normal.x, 0) : make_float3(0, -normal.z, normal.y);
     binormal = normalize(binormal);
     float3 tangent = Cross(normal, binormal);
-    
+
     return x * tangent + y * binormal + z * normal;
 }
 
@@ -68,9 +69,12 @@ static __device__ __inline__ float HammonSmith(const float& NdV, const float& Nd
     return 0.5f / denominator;
 }
 
-// triangle mesh querie information
-__device__ __inline__ void GetTriangleData(float3& normal, unsigned int& mat_id, float2& uv, float3& tangent, const unsigned int& mesh_id) {
-    
+// triangle mesh query information
+__device__ __inline__ void GetTriangleData(float3& normal,
+                                           unsigned int& mat_id,
+                                           float2& uv,
+                                           float3& tangent,
+                                           const unsigned int& mesh_id) {
     const int tri_id = optixGetPrimitiveIndex();
     const float2 bary_coord = optixGetTriangleBarycentrics();
 
@@ -81,17 +85,15 @@ __device__ __inline__ void GetTriangleData(float3& normal, unsigned int& mat_id,
     const float3& v2 = make_float3(mesh_params.vertex_buffer[vertex_idx.y]);
     const float3& v3 = make_float3(mesh_params.vertex_buffer[vertex_idx.z]);
 
-    //// Calculate normales either from normal buffer or vertex positions ////
-    
-    if (mesh_params.normal_index_buffer && mesh_params.normal_buffer) {  // Use vertex normals if normal index buffer exists
-        const uint4& normal_idx = mesh_params.normal_index_buffer[tri_id];
+    // Calculate normals from either normal buffer or vertex positions
 
+    if (mesh_params.normal_index_buffer &&
+        mesh_params.normal_buffer) {  // Use vertex normals if normal index buffer exists
+        const uint4& normal_idx = mesh_params.normal_index_buffer[tri_id];
         normal = normalize(make_float3(mesh_params.normal_buffer[normal_idx.y]) * bary_coord.x +
                            make_float3(mesh_params.normal_buffer[normal_idx.z]) * bary_coord.y +
                            make_float3(mesh_params.normal_buffer[normal_idx.x]) * (1.0f - bary_coord.x - bary_coord.y));
-
-    }
-    else {  // else use face normals calculated from vertices        
+    } else {  // else use face normals calculated from vertices
         normal = Cross(v2 - v1, v3 - v1);
         normal = (Dot(normal, normal) > 1e-12f) ? normalize(normal) : make_float3(0.f, 0.f, 0.f);
     }
@@ -109,11 +111,11 @@ __device__ __inline__ void GetTriangleData(float3& normal, unsigned int& mat_id,
         float2 delta_uv1 = uv2 - uv1;
         float2 delta_uv2 = uv3 - uv1;
         float determinant = delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y;
-        // If the determinant is close to zero, the triangle is degenerate in UV space, so the tangent is undefined. Set to 0.
+        // If the determinant is close to zero, the triangle is degenerate in UV space, so the tangent is undefined. Set
+        // to 0.
         if (fabsf(determinant) < 1e-12f) {
             tangent = make_float3(0.f);
-        }
-        else {
+        } else {
             float f = 1.f / determinant;
             tangent.x = f * (delta_uv2.y * e1.x - delta_uv1.y * e2.x);
             tangent.y = f * (delta_uv2.y * e1.y - delta_uv1.y * e2.y);
@@ -137,48 +139,52 @@ __device__ __inline__ PerRayData_shadow DefaultShadowPRD() {
         make_float3(1.f, 1.f, 1.f),  // default opacity amount
         3,                           // default depth
         0.f                          // default distance remaining to light
-    };                        
+    };
     return prd;
 };
 
-static __device__ inline void SamplePointLight(const float3& light_pos, const PointLightData& light_data, LightSample* ls) {
+static __device__ inline void SamplePointLight(const float3& light_pos,
+                                               const PointLightData& light_data,
+                                               LightSample* ls) {
     ls->dir = normalize(light_pos - ls->hitpoint);  // How much slow down due to derefing hitpoint twice?
     float dist = Length(light_pos - ls->hitpoint);
     ls->dist = dist;
     ls->pdf = 1.f;
-    float point_light_falloff = (light_data.max_range * light_data.max_range / (dist * dist + light_data.max_range * light_data.max_range));
+    float point_light_falloff =
+        (light_data.max_range * light_data.max_range / (dist * dist + light_data.max_range * light_data.max_range));
     ls->L = light_data.color * point_light_falloff;
 }
 
-// static __device__ inline void SampleSpotLight(Light spot, LightSample* ls) {
-//     ls->dir = normalize(spot.pos - ls->hitpoint);  // How much slow down due to derefing hitpoint twice?
-//     float dist = Length(spot.pos - ls->hitpoint);
-//     ls->dist = dist;
-//     ls->pdf = 1.f;
+/*
+static __device__ inline void SampleSpotLight(Light spot, LightSample* ls) {
+    ls->dir = normalize(spot.pos - ls->hitpoint);  // How much slow down due to derefing hitpoint twice?
+    float dist = Length(spot.pos - ls->hitpoint);
+    ls->dist = dist;
+    ls->pdf = 1.f;
 
-//     float cos_theta = Dot(spot.spot_dir, -1 * ls->dir);
+    float cos_theta = Dot(spot.spot_dir, -1 * ls->dir);
 
-//     // Replace max range with a high intensity
-//     // float point_light_falloff = (spot.max_range * spot.max_range / (dist * dist + spot.max_range * spot.max_range));
-//     ls->L = spot.color / (dist * dist);
+    // Replace max range with a high intensity
+    // float point_light_falloff = (spot.max_range * spot.max_range / (dist * dist + spot.max_range * spot.max_range));
+    ls->L = spot.color / (dist * dist);
 
-//     float falloff;  // spot light falloff
-//     if (cos_theta >= spot.cos_falloff_start) {
-//         falloff = 1.f;
-//         return;
-//     }
-//     if (cos_theta < spot.cos_total_width) {
-//         falloff = 0.f;
-//         ls->L = make_float3(0.f);
-//         return;
-//     }
+    float falloff;  // spot light falloff
+    if (cos_theta >= spot.cos_falloff_start) {
+        falloff = 1.f;
+        return;
+    }
+    if (cos_theta < spot.cos_total_width) {
+        falloff = 0.f;
+        ls->L = make_float3(0.f);
+        return;
+    }
 
-//     float delta = (cos_theta - spot.cos_total_width) / (spot.cos_falloff_start - spot.cos_total_width);
-//     falloff = (delta * delta) * (delta * delta);
+    float delta = (cos_theta - spot.cos_total_width) / (spot.cos_falloff_start - spot.cos_total_width);
+    falloff = (delta * delta) * (delta * delta);
 
-//     ls->L = ls->L * falloff;
-//     // printf("falloff: %f | dist: %f | cosTheta: %f\n", falloff, dist, cos_theta*180/CUDART_PI);
-// }
+    ls->L = ls->L * falloff;
+}
+*/
 
 static __device__ inline void SampleLight(const ChOptixLight& light, LightSample* ls) {
     switch (light.light_type) {
@@ -188,7 +194,6 @@ static __device__ inline void SampleLight(const ChOptixLight& light, LightSample
         }
 
         case LightType::SPOT_LIGHT:
-            // printf("Sample Spot!\n");
             // SampleSpotLight(light, ls);
             break;
         default:
@@ -197,20 +202,29 @@ static __device__ inline void SampleLight(const ChOptixLight& light, LightSample
 }
 
 // Get texture value in float
-static __device__ __inline__ float GetTexValFloat(const cudaTextureObject_t& tex, const float2& text_scale, const float2& uv) {
+static __device__ __inline__ float GetTexValFloat(const cudaTextureObject_t& tex,
+                                                  const float2& text_scale,
+                                                  const float2& uv) {
     return tex2D<float>(tex, uv.x * text_scale.x, uv.y * text_scale.y);
 }
 
-static __device__ __inline__ float3 GetTexFloat4ValFloat3(const cudaTextureObject_t& tex, const float2& text_scale, const float2& uv) {
+static __device__ __inline__ float3 GetTexFloat4ValFloat3(const cudaTextureObject_t& tex,
+                                                          const float2& text_scale,
+                                                          const float2& uv) {
     float4 temp = tex2D<float4>(tex, uv.x * text_scale.x, uv.y * text_scale.y);
     return {temp.x, temp.y, temp.z};
 }
 
-
-static __device__ __inline__ float3 PrincipledBRDF(
-    const float3& albedo, const float& roughness, const float& metallic, const float3& specular, const float& contrib_weight,
-    const bool& use_specular_workflow, const float& NdV, const float& NdL, const float& NdH, const float& VdH
-) {
+static __device__ __inline__ float3 PrincipledBRDF(const float3& albedo,
+                                                   const float& roughness,
+                                                   const float& metallic,
+                                                   const float3& specular,
+                                                   const float& contrib_weight,
+                                                   const bool& use_specular_workflow,
+                                                   const float& NdV,
+                                                   const float& NdL,
+                                                   const float& NdH,
+                                                   const float& VdH) {
     // float3 subsurface_albedo_updated = subsurface_albedo;
 
     // ==== Specular portion of reflection ==== //
@@ -219,13 +233,12 @@ static __device__ __inline__ float3 PrincipledBRDF(
     if (use_specular_workflow) {
         float3 F0 = specular * 0.08f;
         F = fresnel_schlick(VdH, 5.f, F0, make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
-    }
-    else {
-        F = metallic * albedo + (1 - metallic) * make_float3(0.04f); // default dielectrics F0 = [0.04, 0.04, 0.04]
+    } else {
+        F = metallic * albedo + (1 - metallic) * make_float3(0.04f);  // default dielectrics F0 = [0.04, 0.04, 0.04]
     }
     // albedo * (1 - metallic): since metals do not do surface reflection
     float3 light_reflected_ratio = ((make_float3(1.f) - F) * albedo * (1 - metallic)) * contrib_weight * NdL;
-    
+
     // ==== Diffuse portion of reflection ==== //
     // D = NormalDist(NdH, roughness), 1/pi omitted; G = HammonSmith(NdV, NdL, roughness), 4 * NdV * NdL omitted
     float3 f_ct = F * NormalDist(NdH, roughness) * HammonSmith(NdV, NdL, roughness);
@@ -234,18 +247,15 @@ static __device__ __inline__ float3 PrincipledBRDF(
     return clamp(light_reflected_ratio, make_float3(0.f), make_float3(1.f));
 }
 
-
 // Account for Fog effect
-static __device__ __inline__ void AddFogEffect(
-    PerRayData_camera* prd_camera, const ContextParameters& cntxt_params, const float& ray_dist
-) {
+static __device__ __inline__ void AddFogEffect(PerRayData_camera* prd_camera,
+                                               const ContextParameters& cntxt_params,
+                                               const float& ray_dist) {
     if (prd_camera->use_fog && cntxt_params.fog_scattering > 0.f) {
         float blend_alpha = expf(-cntxt_params.fog_scattering * ray_dist);
         prd_camera->color = blend_alpha * prd_camera->color + (1 - blend_alpha) * cntxt_params.fog_color;
     }
 }
-
-
 
 static __device__ __inline__ float LambertianBSDFPdf(float3& wo, float3& wi, float3& n) {
     // float WodWi = Dot(wo,wi);
@@ -264,14 +274,13 @@ static __device__ __inline__ void LambertianBSDFSample(BSDFSample& sample,
         const float4 tex = tex2D<float4>(mat.kd_tex, uv.x * mat.tex_scale.x, uv.y * mat.tex_scale.y);
         // transfer sRGB texture into linear color space.
         Kd = Pow(make_float3(tex.x, tex.y, tex.z), 2.2);
-        // printf("Querying Texture map| Kd:(%f,%f,%f)\n", Kd.x, Kd.y, Kd.z);
     }
     sample.f = Kd * INV_PI;
     if (eval)
         return;
 
     sample.wi = SampleCosineHemisphereDir(z1, z2, sample.n);
-    
+
     // Probability density function (PDF) of the Labertian BSDF for the sampled direction
     sample.pdf = LambertianBSDFPdf(sample.wo, sample.wi, sample.n);
 }
@@ -356,7 +365,6 @@ static __device__ __inline__ float EvalBSDFPDF(BSDFType type, float3& wo, float3
     return pdf;
 }
 
-
 // Importance Sampling power heurustic method
 static __device__ __inline__ float ISPowerHeuristic(int nf, float fPdf, int ng, float gPdf) {
     float f = nf * fPdf, g = ng * gPdf;
@@ -397,7 +405,6 @@ static __device__ __inline__ float3 ComputeDirectLight(ChOptixLight& l,
 
             // light contribution
             float3 light_contrib = bsdf.f * NdL * (prd_shadow.attenuation);
-            // printf("L Contr: (%f,%f,%f)\n", light_contrib.x,light_contrib.y, light_contrib.z);
             if (l.delta) {
                 Ld += light_contrib * ls.L / ls.pdf;
             } else {
@@ -412,4 +419,4 @@ static __device__ __inline__ float3 ComputeDirectLight(ChOptixLight& l,
     return Ld;
 }
 
-#endif // SHADER_UTILS_H
+#endif  // SHADER_UTILS_H

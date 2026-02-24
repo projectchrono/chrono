@@ -543,7 +543,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.phys_camera.focus_dist = 3.0f;
             raygen_record->data.specific.phys_camera.max_scene_light_amount = 1000.f;
             raygen_record->data.specific.phys_camera.sensor_width = 0.013035f;
-            raygen_record->data.specific.phys_camera.pixel_size = 5.86e-6;
+            raygen_record->data.specific.phys_camera.pixel_size = 5.86e-6f;
             raygen_record->data.specific.phys_camera.gain_params = {};
             raygen_record->data.specific.phys_camera.noise_params = {};
             raygen_record->data.specific.phys_camera.hFOV = 2.f * atanf(0.5f * 0.013035f / 0.012f);
@@ -566,7 +566,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         //     raygen_record->data.specific.camera.frame_buffer = {};  // default value
         //     raygen_record->data.specific.camera.use_gi = false;     // default value
         //     raygen_record->data.specific.camera.use_fog = true;     // default value
-        //     raygen_record->data.specific.camera.gamma = 2.2f;        // default value
+        //     raygen_record->data.specific.camera.gamma = 2.2f;       // default value
         //     break;
         // }
 

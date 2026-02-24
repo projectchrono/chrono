@@ -419,7 +419,7 @@ __device__ __inline__ float4 nlerp(const float4& a, const float4& b, const float
     return normalize(lerp(a, b, t));
 }
 
-__device__ __inline__ float radial_function(const float& rd2, const LensParams& params){
+__device__ __inline__ float radial_function(const float& rd2, const LensParams& lens_params){
     // Drap, P., & Lefevre, J. (2016). 
     // An Exact Formula for Calculating Inverse Radial Lens Distortions. 
     // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807
@@ -432,22 +432,21 @@ __device__ __inline__ float radial_function(const float& rd2, const LensParams& 
     double rd16 = rd8 * rd8;
     double rd18 = rd10 * rd8;
 
-    float ru = (float)(1.0 + params.a0 * rd2 + 
-        params.a1 * rd4 +
-        params.a2 * rd6 + 
-        params.a3 * rd8 +
-        params.a4 * rd10 +
-        params.a5 * rd12 +
-        params.a6 * rd14 +
-        params.a7 * rd16 +
-        params.a8 * rd18);
+    float ru = (float)(1.0 + lens_params.a0 * rd2 + 
+        lens_params.a1 * rd4 +
+        lens_params.a2 * rd6 + 
+        lens_params.a3 * rd8 +
+        lens_params.a4 * rd10 +
+        lens_params.a5 * rd12 +
+        lens_params.a6 * rd14 +
+        lens_params.a7 * rd16 +
+        lens_params.a8 * rd18);
     return ru;
 }
 
 __device__ __inline__ float gaussian(int x, int y, float sigma) {
     return expf(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * CUDART_PI_F * sigma * sigma);
 }
-
 
 #ifdef USE_SENSOR_NVDB
     __device__ __inline__ float3 make_float3(const nanovdb::Vec3f& a) {
