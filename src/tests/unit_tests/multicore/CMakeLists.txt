@@ -23,4 +23,4 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 message(STATUS "Add unit test programs for MULTICORE module")
-build_utests(YES "${TESTS}" "${LIBS}" "multicore" "${UTILS}")
+build_utests(YES "${TESTS}" "multicore" "${LIBS}" "${UTILS}")

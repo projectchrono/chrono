@@ -6,4 +6,4 @@ set(TESTS
 set(LIBS Chrono_core Chrono_synchrono ${SYNCHRONO_LIBRARIES})
 
 message(STATUS "Add unit test programs for SYNCHRONO module")
-build_utests(NO "${TESTS}" "${LIBS}" "synchrono" "${UTILS}")
+build_utests(NO "${TESTS}" "synchrono" "${LIBS}" "${UTILS}")
