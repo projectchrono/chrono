@@ -13,5 +13,5 @@ set(UTILS
 set(LIBS Chrono_core Chrono_multicore)
 
 message(STATUS "Add unit test programs for SMC contact in MULTICORE module")
-build_utests(YES "${TESTS}" "${LIBS}" "${UTILS}")
+build_utests(YES "${TESTS}" "${LIBS}" "smc_m" "${UTILS}")
  

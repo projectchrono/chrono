@@ -8,4 +8,4 @@ SET(LIBS Chrono_core Chrono_ros)
 set(CMAKE_CXX_STANDARD 17)
 
 MESSAGE(STATUS "Add unit test programs for ROS module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "ros" "${LIBS}")

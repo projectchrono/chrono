@@ -40,11 +40,11 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googletest/googl
 #--------------------------------------------------------------
 
 # Convenience function to build and install unit tests from a list
-function(build_utests ADD_TESTS TESTS LIBS)
+function(build_utests ADD_TESTS TESTS LABEL LIBS)
 
     # Get optional list of additional files
-    if(${ARGC} GREATER 3)
-      set(EXTRA_FILES ${ARGV3})
+    if(${ARGC} GREATER 4)
+      set(EXTRA_FILES ${ARGV4})
     else()
       set(EXTRA_FILES "")
     endif()
@@ -77,7 +77,9 @@ function(build_utests ADD_TESTS TESTS LIBS)
         install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
         if(${ADD_TESTS})
            add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-           set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
+           set_tests_properties(${PROGRAM} PROPERTIES 
+                                WORKING_DIRECTORY ${MY_WORKING_DIR}
+                                LABELS "${LABEL}")
         endif()
     endforeach()
 

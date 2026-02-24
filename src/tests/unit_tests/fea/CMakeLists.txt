@@ -34,4 +34,4 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
 endif()
 
 MESSAGE(STATUS "Add unit test programs for FEA module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "fea" "${LIBS}")

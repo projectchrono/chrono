@@ -9,4 +9,4 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 message(STATUS "Add unit test programs for FSI module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "sph" "${LIBS}")

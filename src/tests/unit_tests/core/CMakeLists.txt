@@ -14,4 +14,4 @@ SET(TESTS
 SET(LIBS Chrono_core)
 
 MESSAGE(STATUS "Add unit test programs for CORE module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "core" "${LIBS}")
