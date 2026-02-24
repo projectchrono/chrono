@@ -79,8 +79,3 @@ foreach(PROGRAM ${DEMOS})
   install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 
 endforeach()
-
-#--------------------------------------------------------------
-# Demos that are self-determining
-
-add_subdirectory(demo_SEN_rl_infer)

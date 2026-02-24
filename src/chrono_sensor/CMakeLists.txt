@@ -10,7 +10,6 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
   mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
 
   mark_as_advanced(FORCE CH_USE_SENSOR_NVDB)
-  mark_as_advanced(FORCE CH_USE_SENSOR_TENSORRT)
   mark_as_advanced(FORCE CH_USE_SENSOR_NVRTC)
 
   mark_as_advanced(FORCE GLM_INCLUDE_DIR)
@@ -63,11 +62,9 @@ if(CH_USE_SENSOR_OPTIX)
 
   # Optional settings
   option(CH_USE_SENSOR_NVDB "Enable Chrono::FSI deformable terrain rendering in Chrono::Sensor" OFF)
-  option(CH_USE_SENSOR_TENSORRT "Enable TensorRT for the Chrono::Sensor module" OFF)
   option(CH_USE_SENSOR_NVRTC "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX" ON)
   
   mark_as_advanced(CLEAR CH_USE_SENSOR_NVDB)
-  mark_as_advanced(CLEAR CH_USE_SENSOR_TENSORRT)
   mark_as_advanced(CLEAR CH_USE_SENSOR_NVRTC)
 
   # Replacement variable for configuration header
@@ -78,7 +75,6 @@ else()
   message(STATUS "Building Chrono::Sensor with NO OptiX support")
 
   mark_as_advanced(FORCE CH_USE_SENSOR_NVDB)
-  mark_as_advanced(FORCE CH_USE_SENSOR_TENSORRT)
   mark_as_advanced(FORCE CH_USE_SENSOR_NVRTC)
 
   set(CHRONO_HAS_OPTIX "#undef CHRONO_HAS_OPTIX")
@@ -392,32 +388,6 @@ endif()
 source_group("filters" FILES ${Chrono_sensor_FILTERS_SOURCES} ${Chrono_sensor_FILTERS_HEADERS})
 
 #-----------------------------------------------------------------------------
-# LIST THE FILES FOR TENSORRT IN THE SENSOR LIBRARY
-#-----------------------------------------------------------------------------
-
-if(CH_USE_SENSOR_OPTIX AND CH_USE_SENSOR_TENSORRT)
-
-    set(Chrono_sensor_TENSORRT_SOURCES
-        tensorrt/ChFilterUFF.cpp
-        tensorrt/ChFilterONNX.cpp
-    )
-    set(Chrono_sensor_TENSORRT_HEADERS
-        tensorrt/ChFilterUFF.h
-        tensorrt/ChFilterONNX.h
-        tensorrt/ChTRTUtils.h
-    )
-
-    source_group("TensorRT" FILES ${Chrono_sensor_TENSORRT_SOURCES} ${Chrono_sensor_TENSORRT_HEADERS})
-
-else()
-
-  set(Chrono_sensor_TENSORRT_SOURCES "")
-  set(Chrono_sensor_TENSORRT_HEADERS "")
-
-endif()
-
-
-#-----------------------------------------------------------------------------
 # LIST THE UTILITY FILES THAT WILL BE EXPOSED TO THE USER
 #-----------------------------------------------------------------------------
 
@@ -502,9 +472,6 @@ list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_SCENE_HEADERS})
 
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_TINYOBJ_FILES})
-
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_TENSORRT_SOURCES})
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_TENSORRT_HEADERS})
 
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_CONFIG_FILE})
 
@@ -709,32 +676,6 @@ endif()
 target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_SENSOR>)
 
 target_link_libraries(Chrono_sensor PRIVATE Chrono_core ${LIBRARIES})
-
-# ------------------------------------------------------------------------------
-# Optionally find TensorRT version and set libaries and includes
-# ------------------------------------------------------------------------------
-
-if(CH_USE_SENSOR_OPTIX AND CH_USE_SENSOR_TENSORRT)
-
-    set(TENSOR_RT_INSTALL_DIR "" CACHE PATH "Path to TensorRT")
-
-    #TensorRT Libraries
-    find_library(TENSOR_RT_NVINFER nvinfer ${TENSOR_RT_INSTALL_DIR}/lib)
-    find_library(TENSOR_RT_PARSERS nvparsers ${TENSOR_RT_INSTALL_DIR}/lib)
-    find_library(TENSOR_RT_ONNXPARSER nvonnxparser ${TENSOR_RT_INSTALL_DIR}/lib)
-
-    find_path(TENSOR_RT_INCLUDE_PATH NAMES NvInfer.h PATHS ${TENSOR_RT_INSTALL_DIR}/include)
-
-    target_include_directories(Chrono_sensor PRIVATE ${TENSOR_RT_INCLUDE_PATH})
-    target_link_libraries(Chrono_sensor PRIVATE ${TENSOR_RT_NVINFER})
-    target_link_libraries(Chrono_sensor PRIVATE ${TENSOR_RT_PARSERS})
-    target_link_libraries(Chrono_sensor PRIVATE ${TENSOR_RT_ONNXPARSER})
-
-    mark_as_advanced(TENSOR_RT_NVINFER)
-    mark_as_advanced(TENSOR_RT_PARSERS)
-    mark_as_advanced(TENSOR_RT_ONNXPARSER)
-
-endif()
 
 install(TARGETS Chrono_sensor
         EXPORT ChronoTargets
