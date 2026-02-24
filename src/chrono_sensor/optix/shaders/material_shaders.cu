@@ -33,7 +33,6 @@
 #include "chrono_sensor/optix/shaders/lidar_shader.cuh"
 #include "chrono_sensor/optix/shaders/camera_shader.cuh"
 
-
 #ifdef USE_SENSOR_NVDB
     #include <nanovdb/NanoVDB.h>
     #include <nanovdb/util/Ray.h>
@@ -41,7 +40,6 @@
 #endif
 
 extern "C" __global__ void __closesthit__material_shader() {
-    // printf("Material Shader!\n");
     //  determine parameters that are shared across all ray types
     const MaterialRecordParameters* mat_record_params = (MaterialRecordParameters*)optixGetSbtDataPointer();
 
@@ -50,7 +48,6 @@ extern "C" __global__ void __closesthit__material_shader() {
     const float ray_dist = optixGetRayTmax();
     const float3 hit_point = ray_orig + ray_dir * ray_dist;
 
-    // printf("NVDBVolShader: orig: (%f,%f,%f), dir:(%f,%f,%f)\n", ray_orig.x, ray_orig.y, ray_orig.z, ray_dir.x, ray_dir.y, ray_dir.z);
     float3 object_normal;
     float2 uv;
     float3 tangent;
@@ -60,8 +57,7 @@ extern "C" __global__ void __closesthit__material_shader() {
     const MaterialParameters& mat = params.material_pool[material_id];
     if (optixIsTriangleHit()) {
         GetTriangleData(object_normal, material_id, uv, tangent, mat_record_params->mesh_pool_id);
-    }
-    else {
+    } else {
         object_normal = make_float3(__int_as_float(optixGetAttribute_0()), __int_as_float(optixGetAttribute_1()),
                                     __int_as_float(optixGetAttribute_2()));
         uv = make_float2(__int_as_float(optixGetAttribute_3()), __int_as_float(optixGetAttribute_4()));
@@ -77,75 +73,76 @@ extern "C" __global__ void __closesthit__material_shader() {
             normalize(normal_delta.x * tangent + normal_delta.y * bitangent + normal_delta.z * object_normal);
     }
 
+    // Test 'object_normal' for degeneracy
+    if (Dot(object_normal, object_normal) < 1e-8f)
+        return;
+
+    // Ensure 'object_normal' is normalized and express in world frame
     float3 world_normal;
     if (mat.bsdf_type == BSDFType::VDB || mat.bsdf_type == BSDFType::VDBHAPKE) {
-        world_normal = object_normal;
+        world_normal = normalize(object_normal);
+    } else {
+        world_normal = optixTransformNormalFromObjectToWorldSpace(normalize(object_normal));
     }
-    else {
-        world_normal = normalize(optixTransformNormalFromObjectToWorldSpace(object_normal));
-    }
-
-    // float3 hp = ray_orig + ray_dist * ray_dir; // debug
 
     // From here on out, things are specific to the ray type
     RayType raytype = (RayType)optixGetPayload_2();
-    if (Dot(world_normal, world_normal) > 1e-12f) {
-        switch (raytype) {
-            case RayType::OCCLUSION_RAY_TYPE: {
-                PerRayData_occlusion* prd_occlusion = GetOcclusionPRD();
-                prd_occlusion->occluded = true;
-                break;
-            }
-            
-            case RayType::CAMERA_RAY_TYPE: {
-                CameraShader(params, GetCameraPRD(), mat, mat_record_params, material_id, world_normal, uv, tangent, ray_dist, hit_point, ray_dir, ray_orig);
-                break;
-            }
+    switch (raytype) {
+        case RayType::OCCLUSION_RAY_TYPE: {
+            PerRayData_occlusion* prd_occlusion = GetOcclusionPRD();
+            prd_occlusion->occluded = true;
+            break;
+        }
 
-            case RayType::PHYS_CAMERA_RAY_TYPE: {
-                PerRayData_phys_camera* prd_phys_camera_ptr = GetPhysCameraPRD();
-                prd_phys_camera_ptr->distance = ray_dist;
-                CameraShader(params, GetCameraPRD(), mat, mat_record_params, material_id, world_normal, uv, tangent, ray_dist, hit_point, ray_dir, ray_orig);
-                break;
-            }
+        case RayType::CAMERA_RAY_TYPE: {
+            CameraShader(params, GetCameraPRD(), mat, mat_record_params, material_id, world_normal, uv, tangent,
+                         ray_dist, hit_point, ray_dir, ray_orig);
+            break;
+        }
 
-            case RayType::LIDAR_RAY_TYPE: {
-                LidarShader(GetLidarPRD(), mat, world_normal, ray_dist, ray_dir);
-                break;
-            }
+        case RayType::PHYS_CAMERA_RAY_TYPE: {
+            PerRayData_phys_camera* prd_phys_camera_ptr = GetPhysCameraPRD();
+            prd_phys_camera_ptr->distance = ray_dist;
+            CameraShader(params, GetCameraPRD(), mat, mat_record_params, material_id, world_normal, uv, tangent,
+                         ray_dist, hit_point, ray_dir, ray_orig);
+            break;
+        }
 
-            case RayType::RADAR_RAY_TYPE: {
-                RadarShader(GetRadarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir,
-                            mat_record_params->translational_velocity, mat_record_params->angular_velocity, mat_record_params->objectId);
-                break;
-            }
+        case RayType::LIDAR_RAY_TYPE: {
+            LidarShader(GetLidarPRD(), mat, world_normal, ray_dist, ray_dir);
+            break;
+        }
 
-            case RayType::SHADOW_RAY_TYPE: {
-                ShadowShader(GetShadowPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
-                break;
-            }
+        case RayType::RADAR_RAY_TYPE: {
+            RadarShader(GetRadarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir,
+                        mat_record_params->translational_velocity, mat_record_params->angular_velocity,
+                        mat_record_params->objectId);
+            break;
+        }
 
-            case RayType::SEGMENTATION_RAY_TYPE: {
-                SegmentCamShader(GetSegmentPRD(), mat);
-                break;
-            }
-            
-            case RayType::DEPTH_RAY_TYPE: {
-                DepthCamShader(GetDepthCameraPRD(), ray_dist);
-                break;
-            }
+        case RayType::SHADOW_RAY_TYPE: {
+            ShadowShader(GetShadowPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
+            break;
+        }
 
-            case RayType::NORMAL_RAY_TYPE: {
-                NormalCamShader(GetNormalCameraPRD(), world_normal);
-                break;
-            }
+        case RayType::SEGMENTATION_RAY_TYPE: {
+            SegmentCamShader(GetSegmentPRD(), mat);
+            break;
+        }
 
-            default: {
-                printf("Unsupported ray type in material shader ...... \n");
-                break;
-            }
-                
-            //// ---- Register Your Customized Sensor Here (case for your customized ray type) ---- ////
+        case RayType::DEPTH_RAY_TYPE: {
+            DepthCamShader(GetDepthCameraPRD(), ray_dist);
+            break;
+        }
+
+        case RayType::NORMAL_RAY_TYPE: {
+            NormalCamShader(GetNormalCameraPRD(), world_normal);
+            break;
+        }
+
+        default: {
+            printf("Unsupported ray type in material shader ...... \n");
+            break;
         }
     }
 }
