@@ -82,7 +82,7 @@ extern "C" __global__ void __closesthit__material_shader() {
     if (mat.bsdf_type == BSDFType::VDB || mat.bsdf_type == BSDFType::VDBHAPKE) {
         world_normal = normalize(object_normal);
     } else {
-        world_normal = optixTransformNormalFromObjectToWorldSpace(normalize(object_normal));
+        world_normal = normalize(optixTransformNormalFromObjectToWorldSpace(object_normal));
     }
 
     // From here on out, things are specific to the ray type
