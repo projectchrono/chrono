@@ -705,7 +705,9 @@ public:
         this->shrink_factor = factor;
     }
 
-protected:
+    ChElementDrawerDispatcher& GetElementDispatcher() { return elem_dispatcher; }
+
+  protected:
 
     /// This Update() is called automatically by the parent ChPhysicsItem all time that 
     /// the system needs to update the visual assets.
