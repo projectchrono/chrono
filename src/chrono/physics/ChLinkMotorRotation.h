@@ -81,6 +81,7 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     double mrot_dtdt;
 
     virtual void Update(double time, UpdateFlags update_flags) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotation, 0)
