@@ -650,6 +650,66 @@ void ChOptixEngine::ConstructScene() {
         }
     }
 
+    // Add sprites to the scene
+    for (auto sprite : m_system->GetSprites()) {
+        if (sprite->GetVisualModel()) {
+            for (auto& shape_instance : sprite->GetVisualModel()->GetShapeInstances()) {
+                const auto& shape = shape_instance.shape;
+                const auto& shape_frame = shape_instance.frame;
+                // check if the asset is a ChVisualShape
+
+                // if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+
+                // collect relative position and orientation of the asset
+                // ChVector3d asset_pos = visual_asset->Pos;
+                // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
+
+                // const ChFrame<float> asset_frame = ChFrame<float>(asset_pos,asset_rot_mat);
+
+                if (!shape->IsVisible()) {
+                    // std::cout << "Ignoring an asset that is set to invisible\n";
+                    printf("Body %s is invisible\n", sprite->GetName().c_str());
+                } else if (auto box_shape = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
+                    boxVisualization(sprite, box_shape, shape_frame);
+                } 
+                #ifdef USE_SENSOR_NVDB
+                else if (std::shared_ptr<ChNVDBShape> nvdb_shape = std::dynamic_pointer_cast<ChNVDBShape>(shape)) {
+                    nvdbVisualization(sprite, nvdb_shape, shape_frame);
+                    printf("Added NVDB Shape!");
+                }
+                #endif
+                else if (auto sphere_shape = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
+                    sphereVisualization(sprite, sphere_shape, shape_frame);
+
+                } else if (auto cylinder_shape = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
+                    cylinderVisualization(sprite, cylinder_shape, shape_frame);
+
+                } else if (auto trimesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
+                    if (!trimesh_shape->IsMutable()) {
+                        // printf("Trimesh Shape: %s, Pos: %f,%f,%f\n", sprite->GetName().c_str(), sprite->GetPos().x(),
+                        //        sprite->GetPos().y(), sprite->GetPos().z());
+                        rigidMeshVisualization(sprite, trimesh_shape, shape_frame);
+
+                        // added_asset_for_body = true;
+                    } else {
+                        deformableMeshVisualization(sprite, trimesh_shape, shape_frame);
+                    }
+
+                } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
+                } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
+                } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
+                } else if (auto capsule_shape = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
+                } else if (auto path_shape = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
+                } else if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
+                }
+
+                // TODO: Add NVDB Vis condition
+                // }
+                // }
+            }
+        }
+    }
+
     m_params.root = m_geometry->CreateRootStructure();
     m_pipeline->UpdateAllSBTs();
     m_pipeline->UpdateAllPipelines();
