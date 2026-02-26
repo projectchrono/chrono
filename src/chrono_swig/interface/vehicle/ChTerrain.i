@@ -123,6 +123,11 @@
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_FSI_SPH
+
+// Allow calling Advance from Python without holding the GIL
+// Check https://github.com/projectchrono/chrono/issues/688 for details
+%threadallow chrono::vehicle::CRMTerrain::Advance; 
+
 %include "../../../chrono_vehicle/terrain/CRMTerrain.h"
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
