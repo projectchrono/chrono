@@ -29,28 +29,17 @@ CH_FACTORY_REGISTER(ChColormap)
 
 // Initialize static members
 std::unordered_map<ChColormap::Type, ChColormap::Files> ChColormap::m_colormap_files{
-    {ChColormap::Type::BLACK_BODY,                                                                   //
-     {GetChronoDataFile("colormaps/black-body-table-float-0512.csv"), "colormaps/black-body.png"}},  //
-    {ChColormap::Type::BLUE,                                                                         //
-     {GetChronoDataFile("colormaps/blue-table-float-0512.csv"), "colormaps/blue.png"}},              //
-    {ChColormap::Type::BROWN,                                                                        //
-     {GetChronoDataFile("colormaps/brown-table-float-0512.csv"), "colormaps/brown.png"}},            //
-    {ChColormap::Type::COPPER,                                                                       //
-     {GetChronoDataFile("colormaps/copper-table-float-0512.csv"), "colormaps/copper.png"}},          //
-    {ChColormap::Type::FAST,                                                                         //
-     {GetChronoDataFile("colormaps/fast-table-float-0512.csv"), "colormaps/fast.png"}},              //
-    {ChColormap::Type::INFERNO,                                                                      //
-     {GetChronoDataFile("colormaps/inferno-table-float-0512.csv"), "colormaps/inferno.png"}},        //
-    {ChColormap::Type::JET,                                                                          //
-     {GetChronoDataFile("colormaps/jet-table-float-0512.csv"), "colormaps/jet.png"}},                //
-    {ChColormap::Type::KINDLMANN,                                                                    //
-     {GetChronoDataFile("colormaps/kindlmann-table-float-0512.csv"), "colormaps/kindlmann.png"}},    //
-    {ChColormap::Type::PLASMA,                                                                       //
-     {GetChronoDataFile("colormaps/plasma-table-float-0512.csv"), "colormaps/plasma.png"}},          //
-    {ChColormap::Type::RED_BLUE,                                                                     //
-     {GetChronoDataFile("colormaps/red-blue-table-float-0512.csv"), "colormaps/red-blue.png"}},      //
-    {ChColormap::Type::VIRIDIS,                                                                      //
-     {GetChronoDataFile("colormaps/viridis-table-float-0512.csv"), "colormaps/viridis.png"}}         //
+    {ChColormap::Type::BLACK_BODY, {"colormaps/black-body-table-float-0512.csv", "colormaps/black-body.png"}},  //
+    {ChColormap::Type::BLUE, {"colormaps/blue-table-float-0512.csv", "colormaps/blue.png"}},                    //
+    {ChColormap::Type::BROWN, {"colormaps/brown-table-float-0512.csv", "colormaps/brown.png"}},                 //
+    {ChColormap::Type::COPPER, {"colormaps/copper-table-float-0512.csv", "colormaps/copper.png"}},              //
+    {ChColormap::Type::FAST, {"colormaps/fast-table-float-0512.csv", "colormaps/fast.png"}},                    //
+    {ChColormap::Type::INFERNO, {"colormaps/inferno-table-float-0512.csv", "colormaps/inferno.png"}},           //
+    {ChColormap::Type::JET, {"colormaps/jet-table-float-0512.csv", "colormaps/jet.png"}},                       //
+    {ChColormap::Type::KINDLMANN, {"colormaps/kindlmann-table-float-0512.csv", "colormaps/kindlmann.png"}},     //
+    {ChColormap::Type::PLASMA, {"colormaps/plasma-table-float-0512.csv", "colormaps/plasma.png"}},              //
+    {ChColormap::Type::RED_BLUE, {"colormaps/red-blue-table-float-0512.csv", "colormaps/red-blue.png"}},        //
+    {ChColormap::Type::VIRIDIS, {"colormaps/viridis-table-float-0512.csv", "colormaps/viridis.png"}}            //
 };
 
 ChColormap::ChColormap(Type type) {
