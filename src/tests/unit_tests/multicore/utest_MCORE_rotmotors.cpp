@@ -12,17 +12,11 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Test for motors with Chrono::Multicore
-//
-// The mechanism consists of three bodies (ground, sled, and pendulum) with a
-// prismatic joint between ground and sled and a revolute joint between sled and
-// pendulum.
-// The system is simulated with different combinations of solver settings
-// (type of solver, solver mode, maximum number of iterations).  Constraint
-// violations are monitored and verified.
+// Test for motors with Chrono and Chrono::Multicore
 //
 // =============================================================================
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -34,27 +28,23 @@
 using namespace chrono;
 
 enum MotorType { ANGLE, SPEED };
+
 struct Options {
     MotorType mot_type;
     double speed;
 };
 
 class RotMotors : public ::testing::TestWithParam<Options> {
-  protected:
-    RotMotors() {
-        opts = GetParam();
+  public:
+    RotMotors() { opts = GetParam(); }
 
-        system = new ChSystemMulticoreNSC();
-        system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
-        system->GetSettings()->solver.tolerance = 1e-5;
-        system->ChangeSolverType(SolverType::BB);
-
+    void Populate(ChSystem& sys) {
         auto ground = chrono_types::make_shared<ChBody>();
         ground->SetFixed(true);
-        system->AddBody(ground);
+        sys.AddBody(ground);
 
         auto body = chrono_types::make_shared<ChBody>();
-        system->AddBody(body);
+        sys.AddBody(body);
 
         switch (opts.mot_type) {
             case MotorType::ANGLE: {
@@ -73,15 +63,60 @@ class RotMotors : public ::testing::TestWithParam<Options> {
             }
         }
         motor->Initialize(ground, body, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
-        system->AddLink(motor);
+        sys.AddLink(motor);
     }
 
     Options opts;
-    ChSystemMulticoreNSC* system;
     std::shared_ptr<ChLinkMotorRotation> motor;
 };
 
-TEST_P(RotMotors, simulate) {
+class RotMotors_SEQ : public RotMotors {
+  protected:
+    RotMotors_SEQ() {
+        std::cout << "SEQ system | motor: "                                   //
+                  << (opts.mot_type == MotorType::ANGLE ? "ANGLE" : "SPEED")  //
+                  << " | speed: " << opts.speed << std::endl;
+        system = new ChSystemNSC();
+        system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+        system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+        system->GetSolver()->AsIterative()->SetTolerance(1e-5);
+        Populate(*system);
+    }
+
+    ~RotMotors_SEQ() { delete system; }
+
+    ChSystemNSC* system;
+};
+
+TEST_P(RotMotors_SEQ, simulate) {
+    while (system->GetChTime() < 2) {
+        system->DoStepDynamics(1e-3);
+        if (system->GetChTime() > 0.1) {
+            ASSERT_NEAR(motor->GetMotorAngleDt(), opts.speed, 1e-6);
+        }
+    }
+}
+
+class RotMotors_MCORE : public RotMotors {
+  protected:
+    RotMotors_MCORE() {
+        std::cout << "MCORE system | motor: "                                 //
+                  << (opts.mot_type == MotorType::ANGLE ? "ANGLE" : "SPEED")  //
+                  << " | speed: " << opts.speed << std::endl;
+        system = new ChSystemMulticoreNSC();
+        system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+        system->GetSettings()->solver.tolerance = 1e-5;
+        system->ChangeSolverType(SolverType::BB);
+
+        Populate(*system);
+    }
+
+    ~RotMotors_MCORE() { delete system; }
+
+    ChSystemMulticoreNSC* system;
+};
+
+TEST_P(RotMotors_MCORE, simulate) {
     while (system->GetChTime() < 2) {
         system->DoStepDynamics(1e-3);
         if (system->GetChTime() > 0.1) {
@@ -97,4 +132,5 @@ std::vector<Options> options{
     {MotorType::SPEED, -0.5},
 };
 
-INSTANTIATE_TEST_SUITE_P(ChronoMulticore, RotMotors, ::testing::ValuesIn(options));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore, RotMotors_SEQ, ::testing::ValuesIn(options));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore, RotMotors_MCORE, ::testing::ValuesIn(options));

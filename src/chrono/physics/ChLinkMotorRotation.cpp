@@ -98,6 +98,9 @@ void ChLinkMotorRotation::Update(double time, UpdateFlags update_flags) {
         mrot = last_turns + new_rot + CH_2PI;
     if (fabs(new_rot - CH_2PI - last_rot) < fabs(new_rot - last_rot))
         mrot = last_turns + new_rot - CH_2PI;
+
+    mrot_dt = aframe12.GetAngVelLocal().z();
+    mrot_dtdt = aframe12.GetAngAccLocal().z();
 }
 
 void ChLinkMotorRotation::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
