@@ -11,6 +11,10 @@
 
 using namespace chrono;
 
+
+#ifdef CHRONO_PYTHON_NUMPY
+#include <numpy/arrayobject.h>
+#endif
 %}
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
@@ -325,6 +329,20 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
                 (*$self)(i,j) = 0;
             }
         }
+
+// NumPy integration: single-call conversion to numpy array
+#ifdef CHRONO_PYTHON_NUMPY
+		PyObject* to_numpy() {
+            int rows = $self->rows(), cols = $self->cols();
+			npy_intp dims[2] = {(npy_intp)rows, (npy_intp)cols};
+			PyObject* array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+			if (!array) return NULL;
+			double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
+			const double* src = $self->data();
+			for (int i = 0; i < rows * cols; i++) dst[i] = src[i];
+			return array;
+		}
+#endif
 };
 
 
@@ -379,6 +397,18 @@ namespace chrono {
             }
         }
 
+// NumPy integration: single-call conversion to numpy array
+#ifdef CHRONO_PYTHON_NUMPY
+		PyObject* to_numpy() {
+			npy_intp dims[2] = {6, 6};
+			PyObject* array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+			if (!array) return NULL;
+			double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
+			const double* src = $self->data();
+			for (int i = 0; i < 36; i++) dst[i] = src[i];
+			return array;
+		}
+#endif
 };
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
@@ -429,7 +459,30 @@ def __matr_getitem(self,index):
 setattr(ChMatrixDynamicd, "__getitem__", __matr_getitem)
 setattr(ChMatrixDynamicd, "__setitem__", __matr_setitem)
 
+def __matrdyn_array__(self, dtype=None):
+    import numpy as np
+    if hasattr(self, 'to_numpy'):
+        a = self.to_numpy()
+        return np.asarray(a, dtype=dtype) if dtype is not None else a
+    r, c = self.GetRows(), self.GetColumns()
+    return np.array([[self.GetItem(i, j) for j in range(c)] for i in range(r)], dtype=dtype)
+
+def __matr66_array__(self, dtype=None):
+    import numpy as np
+    if hasattr(self, 'to_numpy'):
+        a = self.to_numpy()
+        return np.asarray(a, dtype=dtype) if dtype is not None else a
+    return np.array([[self.GetItem(i, j) for j in range(6)] for i in range(6)], dtype=dtype)
+
+setattr(ChMatrixDynamicd, "__array__", __matrdyn_array__)
+setattr(ChMatrix66d, "__array__", __matr66_array__)
 %}
+
+#ifdef CHRONO_PYTHON_NUMPY
+%init %{
+	import_array();
+%}
+#endif
 
 #endif             // --------------------------------------------------------------------- PYTHON
 

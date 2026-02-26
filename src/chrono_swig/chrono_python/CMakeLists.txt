@@ -216,6 +216,13 @@ endif()
 swig_add_library(${CHPY_CORE} LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
 target_link_libraries(${CHPY_CORE} PRIVATE Python3::Python Chrono_core)
 
+# Numpy: enables to_numpy() and __array__ 
+if (Python3_NumPy_FOUND)
+  target_compile_definitions(${CHPY_CORE} PRIVATE CHRONO_PYTHON_NUMPY)
+  target_include_directories(${CHPY_CORE} PRIVATE ${Python3_NumPy_INCLUDE_DIRS})
+  target_link_libraries(${CHPY_CORE} PRIVATE Python3::NumPy)
+endif()
+
 # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif(MSVC)
