@@ -1,4 +1,5 @@
 set(TESTS
+    pyutest_FSI-SPH_Poiseuille_flow
     pyutest_FSI-SPH_multithread
 )
 

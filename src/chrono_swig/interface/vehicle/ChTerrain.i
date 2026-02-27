@@ -109,13 +109,14 @@
 %template(ChSCMTerrainNodeLevel) std::pair<chrono::ChVector2i, double>;
 %template(ChSCMTerrainNodeLevelList) std::vector<std::pair<chrono::ChVector2i, double>>; // To support SCMTerrain::Get/SetModifiedNodes
 
+%feature("director") chrono::vehicle::ChTerrain;
+%feature("director") chrono::vehicle::SCMTerrain::SoilParametersCallback;
+
 // Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/ChTerrain.h"    
 %include "../../../chrono_vehicle/terrain/FlatTerrain.h"
 %include "../../../chrono_vehicle/terrain/RigidTerrain.h"
 
-%feature("director") chrono::vehicle::ChTerrain;
-%feature("director") SoilParametersCallback;
 %include "cpointer.i"
 %pointer_functions(int, intp)
 %pointer_functions(double, doublep)

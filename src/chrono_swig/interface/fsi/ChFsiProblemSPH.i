@@ -18,6 +18,8 @@ using namespace chrono::fsi;
 %shared_ptr(chrono::fsi::sph::ChFsiProblemSPH::ParticlePropertiesCallback)
 %shared_ptr(chrono::fsi::sph::DepthPressurePropertiesCallback)
 
+%feature("director") chrono::fsi::sph::ChFsiProblemSPH::ParticlePropertiesCallback;
+
 #ifdef SWIGPYTHON
 %threadallow chrono::fsi::sph::ChFsiProblemSPH::DoStepDynamics;
 #endif

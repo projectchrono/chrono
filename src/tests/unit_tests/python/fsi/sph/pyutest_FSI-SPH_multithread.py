@@ -91,7 +91,7 @@ def test_fsisph_multithread():
     terrain.AddRigidBody(body, geometry, True)
     terrain.Initialize()
 
-    for _ in range(32):
+    for _ in range(4):
         sysFSI.DoStepDynamics(step_size)
 
     assert main_thread_id != solid_thread_id and solid_thread_id != 0

@@ -21,28 +21,9 @@ function(build_pyutests ADD_TESTS TESTS LIBS)
 
   	set(_pythonpath "${PYTHONPATH_BUILD}${_py_path_sep}$ENV{PYTHONPATH}")
 
-	# Set up runtime loader path so extension modules can find Chrono shared libraries.
-	set(_libdir "${PROJECT_BINARY_DIR}/lib")
-	if(WIN32)
-		set(_loader_var "PATH")
-		set(_loader_sep ";")
-	elseif(APPLE)
-		set(_loader_var "DYLD_LIBRARY_PATH")
-		set(_loader_sep ":")
-	else()
-		set(_loader_var "LD_LIBRARY_PATH")
-		set(_loader_sep ":")
-	endif()
-
-	set(_loader_path "${_libdir}")
-	if(DEFINED ENV{${_loader_var}} AND NOT "$ENV{${_loader_var}}" STREQUAL "")
-		set(_loader_path "${_loader_path}${_loader_sep}$ENV{${_loader_var}}")
-	endif()
-
 	if(WIN32)
 		# Escape semicolons for Windows environment variables
 		string(REPLACE ";" "\\;" _pythonpath "${_pythonpath}")
-		string(REPLACE ";" "\\;" _loader_path "${_loader_path}")
 	endif()
 
 	foreach(PROGRAM ${TESTS})
@@ -55,7 +36,7 @@ function(build_pyutests ADD_TESTS TESTS LIBS)
 			set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY "${MY_WORKING_DIR}")
 			set_tests_properties(${PROGRAM} PROPERTIES
 				WORKING_DIRECTORY "${MY_WORKING_DIR}"
-				ENVIRONMENT "PYTHONPATH=${_pythonpath};${_loader_var}=${_loader_path}"
+				ENVIRONMENT "PYTHONPATH=${_pythonpath}"
 			)
 		endif()
 	endforeach()
@@ -70,6 +51,14 @@ mark_as_advanced(FORCE BUILD_TESTING_BASE)
 if(BUILD_TESTING_BASE)
   ADD_SUBDIRECTORY(core)
   ADD_SUBDIRECTORY(physics)
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE)
+  option(BUILD_TESTING_VEHICLE "Build PyChrono unit tests for Vehicle module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_VEHICLE)
+  if(BUILD_TESTING_VEHICLE)
+    ADD_SUBDIRECTORY(vehicle)
+  endif()
 endif()
 
 if(CH_ENABLE_MODULE_SENSOR)
