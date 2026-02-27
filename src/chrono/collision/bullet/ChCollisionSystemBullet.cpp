@@ -212,13 +212,13 @@ double ChCollisionSystemBullet::GetTimerCollisionNarrow() const {
     return bt_collision_world->timer_collision_narrow();
 }
 
-void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontainer) {
+void ChCollisionSystemBullet::ReportContacts(ChContactContainer* contact_container) {
     // This should remove all old contacts (or at least rewind the index)
-    mcontactcontainer->BeginAddContact();
+    contact_container->BeginAddContact();
 
     // NOTE: Bullet does not provide information on radius of curvature at a contact point.
     // As such, for all Bullet-identified contacts, the default value will be used (SMC only).
-    ChCollisionInfo icontact;
+    ChCollisionInfo cinfo;
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
@@ -230,19 +230,19 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
         auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
         auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
 
-        icontact.modelA = bt_modelA->model;
-        icontact.modelB = bt_modelB->model;
+        cinfo.modelA = bt_modelA->model;
+        cinfo.modelB = bt_modelB->model;
 
-        double envelopeA = icontact.modelA->GetEnvelope();
-        double envelopeB = icontact.modelB->GetEnvelope();
+        double envelopeA = cinfo.modelA->GetEnvelope();
+        double envelopeB = cinfo.modelB->GetEnvelope();
 
-        double marginA = icontact.modelA->GetSafeMargin();
-        double marginB = icontact.modelB->GetSafeMargin();
+        double marginA = cinfo.modelA->GetSafeMargin();
+        double marginB = cinfo.modelB->GetSafeMargin();
 
         // Execute custom broadphase callback, if any
         bool do_narrow_contactgeneration = true;
         if (broad_callback)
-            do_narrow_contactgeneration = broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
+            do_narrow_contactgeneration = broad_callback->OnBroadphase(cinfo.modelA, cinfo.modelB);
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
@@ -255,20 +255,20 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     cbtVector3 ptA = pt.getPositionWorldOnA();
                     cbtVector3 ptB = pt.getPositionWorldOnB();
 
-                    icontact.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
-                    icontact.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
+                    cinfo.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
+                    cinfo.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
 
-                    icontact.vN.Set(-pt.m_normalWorldOnB.getX(), -pt.m_normalWorldOnB.getY(),
+                    cinfo.vN.Set(-pt.m_normalWorldOnB.getX(), -pt.m_normalWorldOnB.getY(),
                                     -pt.m_normalWorldOnB.getZ());
-                    icontact.vN.Normalize();
+                    cinfo.vN.Normalize();
 
                     double ptdist = pt.getDistance();
 
-                    icontact.vpA = icontact.vpA - icontact.vN * envelopeA;
-                    icontact.vpB = icontact.vpB + icontact.vN * envelopeB;
-                    icontact.distance = ptdist + envelopeA + envelopeB;
+                    cinfo.vpA = cinfo.vpA - cinfo.vN * envelopeA;
+                    cinfo.vpB = cinfo.vpB + cinfo.vN * envelopeB;
+                    cinfo.distance = ptdist + envelopeA + envelopeB;
 
-                    icontact.reaction_cache = pt.reactions_cache;
+                    cinfo.reaction_cache = pt.reactions_cache;
 
                     bool compoundA = (obA->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
                     bool compoundB = (obB->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
@@ -276,21 +276,21 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;
 
-                    icontact.shapeA = bt_modelA->m_shapes[indexA].get();
-                    icontact.shapeB = bt_modelB->m_shapes[indexB].get();
+                    cinfo.shapeA = bt_modelA->m_shapes[indexA].get();
+                    cinfo.shapeB = bt_modelB->m_shapes[indexB].get();
 
                     // Execute some user custom callback, if any
                     bool add_contact = true;
                     if (this->narrow_callback)
-                        add_contact = this->narrow_callback->OnNarrowphase(icontact);
+                        add_contact = this->narrow_callback->OnNarrowphase(cinfo);
 
                     // Add to contact container
                     if (add_contact) {
                         ////std::cout << " add indexA=" << indexA << " indexB=" << indexB << std::endl;
-                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" <<
-                        /// icontact.shapeB->m_type << std::endl;
+                        ////std::cout << "     typeA=" << cinfo.shapeA->m_type << " typeB=" <<
+                        /// cinfo.shapeB->m_type << std::endl;
 
-                        mcontactcontainer->AddContact(icontact);
+                        contact_container->AddContact(cinfo);
                     }
                 }
             }
@@ -299,11 +299,11 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
         // Uncomment this line to remove all points
         ////contactManifold->clearManifold();
     }
-    mcontactcontainer->EndAddContact();
+    contact_container->EndAddContact();
 }
 
-void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximitycontainer) {
-    mproximitycontainer->BeginAddProximities();
+void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* proximity_container) {
+    proximity_container->BeginAddProximities();
 
     int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();
     for (int i = 0; i < numPairs; i++) {
@@ -320,9 +320,9 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximity
         ChCollisionModel* modelB = bt_modelB->model;
 
         // Add to proximity container
-        mproximitycontainer->AddProximity(modelA, modelB);
+        proximity_container->AddProximity(modelA, modelB);
     }
-    mproximitycontainer->EndAddProximities();
+    proximity_container->EndAddProximities();
 }
 
 bool ChCollisionSystemBullet::RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const {

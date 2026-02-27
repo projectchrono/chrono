@@ -150,7 +150,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
                                  const double T,            ///< time
-                                 UpdateFlags update_flags    ///< perform complete update, or exclude visual assets, etc.
+                                 UpdateFlags update_flags   ///< flags controlling update operation
     ) {
         // Default behavior: even if no state is used, at least call Update()
         Update(T, update_flags);

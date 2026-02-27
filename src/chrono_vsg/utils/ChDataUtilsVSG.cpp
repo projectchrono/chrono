@@ -67,4 +67,4 @@ dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, double scale) : dmat4CH(frame, 
 
 }  // namespace vsg
 
-    ImVec4CH::ImVec4CH(const chrono::ChColor& color, float alpha) : ImVec4(color.R, color.G, color.B, alpha) {}
+ImVec4CH::ImVec4CH(const chrono::ChColor& color, float alpha) : ImVec4(color.R, color.G, color.B, alpha) {}

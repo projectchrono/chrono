@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->EnableSkyBox();
+        visVSG->EnableSkyTexture(SkyMode::DOME);
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         visVSG->SetCameraAngleDeg(40);

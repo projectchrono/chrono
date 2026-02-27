@@ -210,16 +210,16 @@ void ChParserTdpfYAML::LoadModelData(const YAML::Node& yaml) {
             case WaveType::REGULAR:
                 ChAssertAlways(waves["height"]);
                 ChAssertAlways(waves["period"]);
-                m_reg_wave_params.regular_wave_amplitude_ = 0.5 * waves["height"].as<double>();
-                m_reg_wave_params.regular_wave_omega_ = CH_2PI / waves["period"].as<double>();
+                m_reg_wave_params.regular_wave_amplitude = 0.5 * waves["height"].as<double>();
+                m_reg_wave_params.regular_wave_omega = CH_2PI / waves["period"].as<double>();
                 if (waves["phase"])
-                    m_reg_wave_params.regular_wave_phase_ = waves["phase"].as<double>();
+                    m_reg_wave_params.regular_wave_phase = waves["phase"].as<double>();
                 else
-                    m_reg_wave_params.regular_wave_phase_ = 0;
+                    m_reg_wave_params.regular_wave_phase = 0;
                 if (waves["stretching"])
-                    m_reg_wave_params.wave_stretching_ = waves["stretching"].as<bool>();
+                    m_reg_wave_params.wave_stretching = waves["stretching"].as<bool>();
                 else
-                    m_reg_wave_params.wave_stretching_ = true;
+                    m_reg_wave_params.wave_stretching = true;
                 break;
             case WaveType::IRREGULAR:
                 //// TODO
@@ -259,7 +259,6 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
     // Add waves (note that the number of bodies is set during initialization of the TDPF system)
     switch (m_wave_type) {
         case WaveType::NONE:
-            m_sysTDPF->AddWaves(NoWaveParams());
             break;
         case WaveType::REGULAR: {
             m_sysTDPF->AddWaves(m_reg_wave_params);
@@ -309,12 +308,15 @@ void ChParserTdpfYAML::SaveOutput(int frame) {
 
 ChParserTdpfYAML::VisParams::VisParams()
     : render(false),
+#ifdef CHRONO_VSG
       mode(fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE),
+#endif
       colormap(ChColormap::Type::FAST),
       range({-1, 1}),
       update_fps(30),
       write_images(false),
-      image_dir(".") {}
+      image_dir(".") {
+}
 
 void ChParserTdpfYAML::VisParams::PrintInfo() {
     if (!render) {
@@ -322,12 +324,14 @@ void ChParserTdpfYAML::VisParams::PrintInfo() {
         return;
     }
 
+#ifdef CHRONO_VSGF
     cout << "run-time visualization" << endl;
     cout << "  wave color mode:       " << fsi::tdpf::ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(mode)
          << endl;
     cout << "  colormap:              " << ChColormap::GetTypeAsString(colormap) << endl;
     cout << "  color data range:      " << range << endl;
     cout << "  mesh update frequency: " << update_fps << endl;
+#endif
 }
 
 // =============================================================================
@@ -368,6 +372,7 @@ ChParserTdpfYAML::WaveType ChParserTdpfYAML::ReadWaveType(const YAML::Node& a) {
     return WaveType::NONE;
 }
 
+#ifdef CHRONO_VSG
 fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ChParserTdpfYAML::ReadWaveColoringMode(const YAML::Node& a) {
     auto val = ToUpper(a.as<std::string>());
     if (val == "HEIGHT")
@@ -376,6 +381,7 @@ fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ChParserTdpfYAML::ReadWaveColoringM
         return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::VELOCITY_MAG;
     return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE;
 }
+#endif
 
 }  // namespace parsers
 }  // namespace chrono

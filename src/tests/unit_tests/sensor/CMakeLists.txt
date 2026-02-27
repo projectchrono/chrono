@@ -17,4 +17,4 @@ endif()
 set(LIBS Chrono_core Chrono_sensor)
 
 message(STATUS "Add unit test programs for SENSOR module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "sensor" "${LIBS}")

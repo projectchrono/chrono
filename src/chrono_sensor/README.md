@@ -2,27 +2,32 @@
 
 # Chrono Sensor Module
 Current Tested Systems:
- - Arch Linux:
- - Ubuntu 20.04: GCC 9.3, CUDA 10.2
- - Windows 10: VS 2019, CUDA 10.2
+ - Arch Linux: <font color="red">[Can be removed]</font>
+ - Ubuntu 20.04: GCC 9.3, CUDA 10.2 <font color="red">[Need to update]</font>
+ - Windows 10: VS 2019, CUDA 10.2 <font color="red">[Need to update]</font>
+ - MacOS? <font color="red">[Need to update]</font>
 
 ## Supported Sensors
- - RGB Mono Camera
+ - RGB monocular camera
+ - Physics-based RGB monocular camera
+ - Depth camera
+ - Segmentation camera
+ - Normal-map camera
  - Lidar
  - GPS
  - IMU
 
 ## Dependencies
  - NVIDIA GPU (required)
-	 - tested on Maxwell and later
+	 - tested on Maxwell and later <font color="red">[Need to update]</font>
  - OptiX (required)
-	 - 6.5.0
+	 - 9.0.0
  - CUDA (required)
-	 - tested with CUDA 10.2
- - GLFW >= 3.0 (required)
- - GLEW >= 1.0 (required)
- - openGL (required)
- - TensorRT (optional)
+	 - tested with CUDA 10.2 <font color="red">[Need to update]</font>
+ - GLFW >= 3.0 (required) <font color="red">[Need to update]</font>
+ - GLEW >= 1.0 (required) <font color="red">[Need to update]</font>
+ - openGL (required) <font color="red">[Need to update]</font>
+ - TensorRT (optional) <font color="red">[Can be removed]</font>
      - tested with TensorRT 7.0.0
      - need to explicitly enable TensorRT in cmake by setting CH_USE_SENSOR_TENSORRT=ON (default: OFF)
 
@@ -34,38 +39,38 @@ Current Tested Systems:
 
 ## Current Capabilities
  - Scene Rendering
-	 - lights
-		 - simple point light
-		 - shadows
+	 - Lights
+		 - Point light
+		 - Spot light
+		 - Directional light
+		 - Rectangle area light
+		 - Disk area light
+		 - Environment light
+		 - Shadows
 	 - Materials
-		 - reflection based on material reflectance
-		 - fresnel effect
-		 - mesh support based on Wavefront OBJ+MTL format
-		 - programmatic material creation
-		 - partial transparency without refractance
+		 - Reflection based on material reflectance
+		 - Fresnel effect
+		 - Mesh support based on Wavefront OBJ+MTL format
+		 - Programmatic material creation
+		 - Legacy integrator supports partial transparency without refractance
 	 - Objects
 		 - Box primitives
 		 - Sphere primitives
-		 - cylinder primitives
+		 - Cylinder primitives
 		 - Triangle Mesh
  - Camera sensor
-	 - ground-truth ray-traced camera rendering
-	 - filter-based sensor model for user defined sensor model
+	 - Ground-truth ray-traced camera rendering
+	 - Filter-based sensor model for user defined sensor model
  - Filters
   	 - Greyscale kernel
-  	 - visualization using GLFW
-  	 - copy-back filter for data access from CPU
-  	 - save images to file at a specific path
-  	 - convert lidar measurements to point cloud
-  	 - image augmentation with pretrained neural nets
+  	 - Visualization using GLFW
+  	 - Copy-back filter for data access from CPU
+  	 - Save images to file at a specific path
+  	 - Convert lidar measurements to point cloud
  - Lidar Sensor
-    - single ray and multiray data generation
+     - Single ray and multi-ray data generation
  - GPS Sensor
  - IMU Sensor
-  - Accelerometer and Gyroscope
+     - Accelerometer and Gyroscope
 
 ## Capabilities in Progress
- - expanded TensorRT model parsing
- - development of image augmentation networks
- - extending render support (lights, materials, objects, etc)
- - expanding mesh file support

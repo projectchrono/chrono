@@ -242,6 +242,7 @@ void ChLinkMotorRotationSpeed::IntStateGatherAcceleration(const unsigned int off
 
 void ChLinkMotorRotationSpeed::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     aux_dtdt = a(off_a);
+    ChLinkMotorRotation::IntStateScatterAcceleration(off_a, a);
 }
 
 void ChLinkMotorRotationSpeed::IntLoadResidual_F(const unsigned int off,  // offset in R residual

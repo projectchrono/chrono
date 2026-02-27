@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Radu Serban
+// Author: Radu Serban, Dave Ogden
 // =============================================================================
 
 #include <iomanip>
@@ -78,8 +78,10 @@ int main(int argc, char* argv[]) {
     // ----- Multibody system
     ChSystemNSC sysMBS;
     sysMBS.SetSolverType(solver_type);
-    sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
-    sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    if (sysMBS.GetSolver()->AsIterative()) {
+        sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
+        sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    }
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
@@ -125,15 +127,12 @@ int main(int argc, char* argv[]) {
 
     // Add irregular waves
     IrregularWaveParams irreg_wave_params;
-    irreg_wave_params.num_bodies_ = 1;
-    irreg_wave_params.simulation_dt_ = time_step;
-    irreg_wave_params.simulation_duration_ = t_end;
-    irreg_wave_params.ramp_duration_ = 60.0;
-    irreg_wave_params.wave_height_ = wave_height;
-    irreg_wave_params.wave_period_ = wave_period;
-    irreg_wave_params.frequency_min_ = 0.001;
-    irreg_wave_params.frequency_max_ = 1.0;
-    irreg_wave_params.nfrequencies_ = 1000;
+    irreg_wave_params.ramp_duration = 60.0;
+    irreg_wave_params.wave_height = wave_height;
+    irreg_wave_params.wave_period = wave_period;
+    irreg_wave_params.frequency_min = 0.001;
+    irreg_wave_params.frequency_max = 1.0;
+    irreg_wave_params.nfrequencies = 1000;
     sysTDPF.AddWaves(irreg_wave_params);
 
     // ----- FSI system

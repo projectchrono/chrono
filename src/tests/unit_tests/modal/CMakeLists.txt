@@ -10,4 +10,4 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
 endif()
 
 message(STATUS "Add unit test programs for MODAL module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "modal" "${LIBS}")

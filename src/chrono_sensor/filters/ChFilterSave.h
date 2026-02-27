@@ -50,6 +50,10 @@ class CH_SENSOR_API ChFilterSave : public ChFilter {
     /// @param bufferInOut A buffer that is passed into the filter.
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
+    /// @brief Change the path of where the Save filter saves data
+    /// @param data_path The new path string to save sensor data output files
+    void ChangeDataPath(std::string data_path);
+
   private:
     std::string m_path;               ///< path to where data should be saved
     unsigned int m_frame_number = 0;  ///< frame counter to prevent overwriting data
@@ -57,11 +61,17 @@ class CH_SENSOR_API ChFilterSave : public ChFilter {
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_rgba8_in;  ///< input buffer for rgba8 image
     std::shared_ptr<SensorHostRGBA8Buffer> m_host_rgba8;  ///< host buffer for rgba8 image
 
+    std::shared_ptr<SensorDeviceRGBA16Buffer> m_rgba16_in;  ///< input buffer for rgba16 image
+    std::shared_ptr<SensorHostRGBA16Buffer> m_host_rgba16;  ///< host buffer for rgba16 image
+
     std::shared_ptr<SensorDeviceR8Buffer> m_r8_in;  ///< input buffer for r8 image
     std::shared_ptr<SensorHostR8Buffer> m_host_r8;  ///< host buffer for r8 image
 
     std::shared_ptr<SensorHostSemanticBuffer> m_semantic_in;    ///< input buffer for semantic image
     std::shared_ptr<SensorHostSemanticBuffer> m_host_semantic;  ///< host buffer for semantic image
+
+    std::shared_ptr<SensorDeviceDepthBuffer> m_depth_in;    ///< input buffer for depth map (float)
+    std::shared_ptr<SensorDeviceDepthBuffer> m_host_depth;  ///< host buffer for depth map (float)
 
     CUstream m_cuda_stream;  ///< reference to the cuda stream
 };

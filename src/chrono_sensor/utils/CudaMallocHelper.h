@@ -26,6 +26,7 @@
 #include <cuda.h>
 #include <device_types.h>
 #include <cuda_runtime_api.h>
+#include "chrono_sensor/cuda/cuda_utils.cuh"
 
 namespace chrono {
 namespace sensor {

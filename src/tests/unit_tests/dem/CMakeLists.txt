@@ -13,4 +13,4 @@ SET(LIBS
 )
 
 MESSAGE(STATUS "Add unit test programs for DEM module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "dem" "${LIBS}")

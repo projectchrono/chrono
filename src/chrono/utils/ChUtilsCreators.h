@@ -150,7 +150,7 @@ ChApi bool AddTriangleMeshGeometry(
     ChBody* body,                                                         ///< associated body
     ChContactMaterialSharedPtr material,                                  ///< contact material
     const std::string& obj_filename,                                      ///< name of Wavefront OBJ file
-    const std::string& name,                                              ///< mesh name
+    const std::string& name = "",                                         ///< mesh name
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
     const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape

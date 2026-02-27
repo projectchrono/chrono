@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
     terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
-     
+
     // ------------------
     // Create the vehicle
     // ------------------
@@ -369,6 +369,7 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();
+    vis->EnableSkyTexture(SkyMode::DOME);
     vis->AttachVehicle(&vehicle);
     vis->AttachTerrain(&terrain);
 

@@ -39,6 +39,19 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChFrame.h"
+
+#include "chrono/functions/ChFunction.h"
+#include "chrono/functions/ChFunctionPosition.h"
+#include "chrono/functions/ChFunctionPositionLine.h"
+#include "chrono/functions/ChFunctionPositionSetpoint.h"
+#include "chrono/functions/ChFunctionPositionXYZFunctions.h"
+#include "chrono/functions/ChFunctionRotationABCFunctions.h"
+#include "chrono/functions/ChFunctionRotation.h"
+#include "chrono/functions/ChFunctionRotationAxis.h"
+#include "chrono/functions/ChFunctionRotationBSpline.h"
+#include "chrono/functions/ChFunctionRotationSetpoint.h"
+#include "chrono/functions/ChFunctionRotationSQUAD.h"
+
 #include "chrono/solver/ChSolver.h"
 
 #include "chrono/physics/ChSystem.h"
@@ -101,7 +114,7 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
 // Tracked vehicle
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
@@ -189,7 +202,6 @@ using namespace chrono::vehicle::m113;
 // tree must be promoted to %shared_ptr too).
 
 //from core module:
-%shared_ptr(chrono::ChFunction)
 %shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
 %shared_ptr(chrono::ChPhysicsItem)
@@ -197,7 +209,6 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChFunctionInterp)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChContactable)
@@ -239,11 +250,12 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChLinkRSDA.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChLoad.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualMaterial.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualShape.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualModel.i"
 %import(module = "pychrono.core") "../../../chrono/geometry/ChTriangleMeshConnected.h"
-%import(module = "pychrono.core") "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChContactContainer.i"
-%import(module = "pychrono.core") "../../../chrono/functions/ChFunction.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChFunction.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core") "../../../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../../../chrono/physics/ChPhysicsItem.h"
@@ -310,6 +322,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
+%shared_ptr(chrono::vehicle::ChTireTestRig)
 
 %shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChSprocket)
@@ -415,7 +428,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
 // Tracked vehicles
 %include "ChTrackAssembly.i"
@@ -525,3 +538,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, FlatTerrain)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, RigidTerrain)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, SCMTerrain)
+
+#ifdef CHRONO_FSI_SPH
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTerrain, CRMTerrain)
+#endif

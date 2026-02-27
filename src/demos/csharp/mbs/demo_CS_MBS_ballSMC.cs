@@ -36,7 +36,7 @@ namespace ChronoDemo
             vis.SetCameraVertical(CameraVerticalDir.Y);
             vis.SetLightIntensity(1.0f);
             vis.SetLightDirection(1.5 * chrono.CH_PI_2, chrono.CH_PI_4);
-            vis.EnableSkyBox();
+            vis.EnableSkyTexture(SkyMode.DOME);
             vis.Initialize();
             
             Console.WriteLine("Using VSG visualization");

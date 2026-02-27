@@ -28,9 +28,11 @@ def test_data_access():
                               chrono.CH_PI / 3,
                               1, 
                               sens.PINHOLE, # CameraLensModelType::PINHOLE
-                              False,
-                              2.2,
-                              False
+                              False, # use_diffuse_reflect
+                              False, # use_denoiser
+                              sens.Integrator_LEGACY, # integrator
+                              2.2, # gamma
+                              False # use_fog
                               )
 
     cam.SetLag(0)

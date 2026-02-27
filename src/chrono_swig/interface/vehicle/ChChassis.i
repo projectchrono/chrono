@@ -41,10 +41,6 @@
 %shared_ptr(chrono::vehicle::ChassisConnectorHitch)
 %shared_ptr(chrono::vehicle::ChassisConnectorTorsion)
 
-%import "../../../chrono/assets/ChVisualMaterial.h"
-%import "../../../chrono/assets/ChVisualShape.h"
-%import "../../../chrono/assets/ChVisualModel.h"
-
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_vehicle/ChChassis.h"
 %include "../../../chrono_vehicle/chassis/ChRigidChassis.h"

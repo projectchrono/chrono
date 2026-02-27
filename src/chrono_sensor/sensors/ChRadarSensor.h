@@ -27,7 +27,7 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// Radar Class/ This corresponds to a fmcw radar
+/// Radar class - corresponds to a FMCW radar.
 class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
   public:
     /// Constructor for the base radar class
@@ -41,9 +41,9 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// @param max_distance the farthest detectable distance for the radar
     /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
     /// (sensor housing)
-    ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
+    ChRadarSensor(std::shared_ptr<ChBody> parent,
                   const float updateRate,
-                  chrono::ChFrame<double> offsetPose,
+                  ChFrame<double> offsetPose,
                   const unsigned int w,
                   const unsigned int h,
                   const float hfov,
@@ -51,7 +51,6 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
                   const float max_distance,
                   const float clip_near = 1e-3f);
 
-    /// Class destructor
     ~ChRadarSensor();
 
     /// Gives the horizontal field of view of the radar (angle between right-most and left-most ray for a "frame").
@@ -59,23 +58,23 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// @return The horizontal field of view of the radar sensor
     float GetHFOV() const { return m_hFOV; }
 
-    /// Returns the vertical field of view the radar
+    /// Returns the vertical field of view the radar.
     /// @return The vertical field of view the radar sensor
     float GetVFOV() const { return m_vFOV; }
 
-    /// Returns the maximum range of the radar
+    /// Returns the maximum range of the radar.
     /// @return The maximum distance for the radar
     float GetMaxDistance() const { return m_max_distance; }
 
-    /// Returns the near clipping distance
+    /// Returns the near clipping distance.
     /// @return the near clipping distance
     float GetClipNear() const { return m_clip_near; }
 
-    /// Returns the translational velocity of the object the radar is attached to
+    /// Returns the translational velocity of the object the radar is attached to.
     /// @return Returns the translational velocity of the object the radar is attached to
     ChVector3d GetTranslationalVelocity() { return m_parent->GetPosDt(); }
 
-    /// Returns the angular velocity of the object the radar is attached to
+    /// Returns the angular velocity of the object the radar is attached to.
     /// @return Returns the angular velocity of the object the radar is attached to
     ChVector3d GetAngularVelocity() { return m_parent->GetAngVelLocal(); }
 

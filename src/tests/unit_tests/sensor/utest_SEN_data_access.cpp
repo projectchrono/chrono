@@ -55,7 +55,9 @@ TEST(ChOptixEngine, data_access) {
         (float)CH_PI / 3,                       // HFOV
         1,                                      // supersample_factor
         CameraLensModelType::PINHOLE,
-        false,                                  // use_gi
+        false,                                  // use_diffuse_reflect
+        false,                                  // use_denoiser
+        Integrator::LEGACY,                     // integrator
         2.2f,                                   // gamma
         false                                   // use_fog
     );

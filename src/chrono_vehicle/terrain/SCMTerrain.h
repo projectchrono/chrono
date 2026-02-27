@@ -211,6 +211,9 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Get the initial (undeformed) terrain normal at the point below the specified location.
     ChVector3d GetInitNormal(const ChVector3d& loc) const;
 
+    /// Get the point on the terrain below the specified location.
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override;
+
     /// Get the terrain height below the specified location.
     virtual double GetHeight(const ChVector3d& loc) const override;
 
@@ -470,17 +473,23 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Get the initial undeformed terrain normal (relative to the SCM plane) at the specified grid node.
     ChVector3d GetInitNormal(const ChVector2i& loc) const;
 
+    // Get the terrain point (relative to the SCM plane) at the specified grid node.
+    ChVector3d GetPoint(const ChVector2i& loc) const;
+
     // Get the terrain height (relative to the SCM plane) at the specified grid node.
     double GetHeight(const ChVector2i& loc) const;
 
-    // Get the terrain normal (relative to the SCM plane) at the specified grid vertex.
-    ChVector3d GetNormal(const ChVector2d& loc) const;
+    // Get the terrain normal (relative to the SCM plane) at the specified grid node.
+    ChVector3d GetNormal(const ChVector2i& loc) const;
 
     // Get the initial terrain height (expressed in World frame) below the specified location.
     double GetInitHeight(const ChVector3d& loc) const;
 
     // Get the initial terrain normal (expressed in World frame) at the point below the specified location.
     ChVector3d GetInitNormal(const ChVector3d& loc) const;
+
+    // Get the terrain point (expressed in World frame) below the specified location.
+    ChVector3d GetPoint(const ChVector3d& loc) const;
 
     // Get the terrain height (expressed in World frame) below the specified location.
     double GetHeight(const ChVector3d& loc) const;

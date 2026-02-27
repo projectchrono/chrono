@@ -28,12 +28,7 @@
 namespace chrono {
 namespace sensor {
 
-// -----------------------------------------------------------------------------
-// Constructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChSensor::ChSensor(std::shared_ptr<chrono::ChBody> parent,
-                                 float updateRate,
-                                 chrono::ChFrame<double> offsetPose)
+ChSensor::ChSensor(std::shared_ptr<ChBody> parent, float updateRate, ChFrame<double> offsetPose)
     : m_updateRate(updateRate),
       m_offsetPose(offsetPose),
       m_parent(parent),
@@ -44,20 +39,17 @@ CH_SENSOR_API ChSensor::ChSensor(std::shared_ptr<chrono::ChBody> parent,
     m_num_launches = (int)(parent->GetSystem()->GetChTime() * updateRate);
 }
 
-// -----------------------------------------------------------------------------
-// Destructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChSensor::~ChSensor() {}
+ChSensor::~ChSensor() {}
 
-CH_SENSOR_API void ChSensor::SetLag(float t) {
+void ChSensor::SetLag(float t) {
     m_lag = std::max(0.f, t);
 }
 
-CH_SENSOR_API void ChSensor::SetCollectionWindow(float t) {
+void ChSensor::SetCollectionWindow(float t) {
     m_collection_window = ChClamp(t, 0.f, 1 / m_updateRate);
 }
 
-CH_SENSOR_API void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
+void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
     if (!m_filter_list_locked) {
         m_filters.push_back(filter);
     } else {
@@ -66,7 +58,7 @@ CH_SENSOR_API void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
     }
 }
 
-CH_SENSOR_API void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
+void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
     if (!m_filter_list_locked) {
         m_filters.push_front(filter);
     } else {
@@ -75,24 +67,38 @@ CH_SENSOR_API void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
     }
 }
 
+// -----------------------------------------------------------------------------
+
 #ifdef CHRONO_HAS_OPTIX
 
-// -----------------------------------------------------------------------------
 // retriever function for image data in greyscale 8-bit format
-// -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserR8BufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserR8BufferPtr, ChFilterR8Access, ChFilterR8AccessName>();
 }
 
-// -----------------------------------------------------------------------------
 // retriever function for image data in RGBA 8-bit format
-// -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserRGBA8BufferPtr, ChFilterRGBA8Access, ChFilterRGBA8AccessName>();
+}
+
+// -----------------------------------------------------------------------------
+// retriever function for image data in RGBA 16-bit format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserRGBA16BufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserRGBA16BufferPtr, ChFilterRGBA16Access, ChFilterRGBA16AccessName>();
+}
+
+// -----------------------------------------------------------------------------
+// retriever function for image data in RGBD half4 format
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserRGBDHalf4BufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserRGBDHalf4BufferPtr, ChFilterRGBDHalf4Access, ChFilterRGBDHalf4AccessName>();
 }
 
 // -----------------------------------------------------------------------------
@@ -100,93 +106,85 @@ CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
 // -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserSemanticBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserSemanticBufferPtr, ChFilterSemanticAccess, ChFilterSemanticAccessName>();
 }
 
-// -----------------------------------------------------------------------------
 // retriever function for image depth data as float values
-// -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserDepthBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserDepthBufferPtr, ChFilterDepthAccess, ChFilterDepthAccessName>();
 }
 
 // -----------------------------------------------------------------------------
-// retriever function for lidar data in range/depth,intensity format
+// retriever function for image normal data as float3 values
 // -----------------------------------------------------------------------------
 template <>
-CH_SENSOR_API UserDIBufferPtr ChSensor::GetMostRecentBuffer() {
+CH_SENSOR_API UserNormalBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
+    return GetMostRecentBufferHelper<UserNormalBufferPtr, ChFilterNormalAccess, ChFilterNormalAccessName>();
+}
+
+// retriever function for lidar data in range/depth,intensity format
+template <>
+CH_SENSOR_API UserDIBufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserDIBufferPtr, ChFilterDIAccess, ChFilterDIAccessName>();
 }
 
-// -----------------------------------------------------------------------------
 // retriever function for point cloud data in XYZ-Intensity format
-// -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserXYZIBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserXYZIBufferPtr, ChFilterXYZIAccess, ChFilterXYZIAccessName>();
 }
 
-// --------------------------------------------------------------------------
 // retriever function for radar data
-// --------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserRadarBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserRadarBufferPtr, ChFilterRadarAccess, ChFilterRadarAccessName>();
 }
 
 template <>
 CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess, ChFilterRadarXYZAccessName>();
 }
 
 #endif
 
+// -----------------------------------------------------------------------------
+
+// retriever function for accelerometer data
 template <>
 CH_SENSOR_API UserAccelBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserAccelBufferPtr, ChFilterAccelAccess, ChFilterAccelAccessName>();
 }
 
+// retriever function for gro data
 template <>
 CH_SENSOR_API UserGyroBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserGyroBufferPtr, ChFilterGyroAccess, ChFilterGyroAccessName>();
 }
 
+// retriever function for magnetometer data
 template <>
 CH_SENSOR_API UserMagnetBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserMagnetBufferPtr, ChFilterMagnetAccess, ChFilterMagnetAccessName>();
 }
 
-// -----------------------------------------------------------------------------
 // retriever function for GPS data
-// -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserGPSBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserGPSBufferPtr, ChFilterGPSAccess, ChFilterGPSAccessName>();
 }
 
-// -----------------------------------------------------------------------------
 // retriever function for tachometer data
-// -----------------------------------------------------------------------------
 template <>
 CH_SENSOR_API UserTachometerBufferPtr ChSensor::GetMostRecentBuffer() {
-    // call the templated helper function
     return GetMostRecentBufferHelper<UserTachometerBufferPtr, ChFilterTachometerAccess, ChFilterTachometerAccessName>();
 }
 
 // -----------------------------------------------------------------------------
 // Helper function for retrieving the last buffer of given type
 // -----------------------------------------------------------------------------
+
 template <class UserBufferType, class FilterType, const char* FilterName>
 UserBufferType ChSensor::GetMostRecentBufferHelper() {
     // find the last filter in the filter list that is a 'FilterType'

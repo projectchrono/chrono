@@ -10,7 +10,6 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
   mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
 
   mark_as_advanced(FORCE CH_USE_SENSOR_NVDB)
-  mark_as_advanced(FORCE CH_USE_SENSOR_TENSORRT)
   mark_as_advanced(FORCE CH_USE_SENSOR_NVRTC)
 
   mark_as_advanced(FORCE GLM_INCLUDE_DIR)
@@ -63,11 +62,9 @@ if(CH_USE_SENSOR_OPTIX)
 
   # Optional settings
   option(CH_USE_SENSOR_NVDB "Enable Chrono::FSI deformable terrain rendering in Chrono::Sensor" OFF)
-  option(CH_USE_SENSOR_TENSORRT "Enable TensorRT for the Chrono::Sensor module" OFF)
   option(CH_USE_SENSOR_NVRTC "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX" ON)
   
   mark_as_advanced(CLEAR CH_USE_SENSOR_NVDB)
-  mark_as_advanced(CLEAR CH_USE_SENSOR_TENSORRT)
   mark_as_advanced(CLEAR CH_USE_SENSOR_NVRTC)
 
   # Replacement variable for configuration header
@@ -78,7 +75,6 @@ else()
   message(STATUS "Building Chrono::Sensor with NO OptiX support")
 
   mark_as_advanced(FORCE CH_USE_SENSOR_NVDB)
-  mark_as_advanced(FORCE CH_USE_SENSOR_TENSORRT)
   mark_as_advanced(FORCE CH_USE_SENSOR_NVRTC)
 
   set(CHRONO_HAS_OPTIX "#undef CHRONO_HAS_OPTIX")
@@ -95,11 +91,18 @@ if(CH_USE_SENSOR_OPTIX)
       optix/shaders/box.cu
       optix/shaders/sphere.cu
       optix/shaders/cylinder.cu
-      optix/shaders/camera.cu
-      optix/shaders/lidar.cu
       optix/shaders/miss.cu
+
       optix/shaders/material_shaders.cu
-      optix/shaders/radar.cu
+      
+      optix/shaders/camera_raygen.cu
+      optix/shaders/depth_cam_raygen.cu
+      optix/shaders/lidar_raygen.cu
+      optix/shaders/normal_cam_raygen.cu
+      optix/shaders/phys_cam_raygen.cu
+      optix/shaders/radar_raygen.cu
+      optix/shaders/segment_cam_raygen.cu
+      # ---- Register Your Customized Sensor Raygen Here (Cmake compiling) ---- #
   )
 
   if(CH_USE_SENSOR_NVDB)
@@ -109,7 +112,34 @@ if(CH_USE_SENSOR_OPTIX)
   endif()
 
   set(Chrono_sensor_RT_HEADERS
-      optix/shaders/device_utils.h
+      optix/shaders/ChOptixLightStructs.h
+
+      optix/shaders/camera_utils.cuh
+      optix/shaders/device_utils.cuh
+      optix/shaders/shader_utils.cuh
+      
+      optix/shaders/camera_hapke_shader.cuh
+      optix/shaders/camera_volumetric_shader.cuh
+      optix/shaders/camera_legacy_shader.cuh
+      optix/shaders/camera_path_shader.cuh
+      optix/shaders/camera_shader.cuh
+      optix/shaders/depth_cam_shader.cuh
+      optix/shaders/lidar_shader.cuh
+      optix/shaders/normal_cam_shader.cuh
+      optix/shaders/radar_shader.cuh
+      optix/shaders/segment_cam_shader.cuh
+      optix/shaders/shadow_shader.cuh
+      # ---- Register Your Customized Sensor Shader Here (Cmake compiling) ---- #
+
+      optix/shaders/ChOptixLightHubs.cuh
+      optix/shaders/ChOptixPointLight.cuh
+      optix/shaders/ChOptixSpotLight.cuh
+      optix/shaders/ChOptixDirectionalLight.cuh
+      optix/shaders/ChOptixRectangleLight.cuh
+      optix/shaders/ChOptixDiskLight.cuh
+      optix/shaders/ChOptixEnvironmentLight.cuh
+      # ---- Register Your Customized Light Type Here (Cmake compiling) ---- #
+
   )
 
   source_group("RT Programs" FILES ${Chrono_sensor_RT_SOURCES} ${Chrono_sensor_RT_HEADERS})
@@ -139,6 +169,7 @@ if(CH_USE_SENSOR_OPTIX)
       cuda/lidar_clip.cu
       cuda/radarprocess.cu
       cuda/cuda_utils.cu
+      cuda/phys_cam_ops.cu
   )
 
   set(Chrono_sensor_CUDA_HEADERS
@@ -153,6 +184,7 @@ if(CH_USE_SENSOR_OPTIX)
       cuda/lidar_clip.cuh
       cuda/radarprocess.cuh
       cuda/cuda_utils.cuh
+      cuda/phys_cam_ops.cuh
   )
 
   source_group("cuda" FILES ${Chrono_sensor_CUDA_SOURCES} ${Chrono_sensor_CUDA_HEADERS})
@@ -204,16 +236,20 @@ if(CH_USE_SENSOR_OPTIX)
   set(Chrono_sensor_SENSORS_SOURCES ${Chrono_sensor_SENSORS_SOURCES}
       sensors/ChOptixSensor.cpp
       sensors/ChCameraSensor.cpp
+      sensors/ChPhysCameraSensor.cpp
       sensors/ChSegmentationCamera.cpp
       sensors/ChDepthCamera.cpp
+      sensors/ChNormalCamera.cpp
       sensors/ChLidarSensor.cpp
       sensors/ChRadarSensor.cpp
   )
   set(Chrono_sensor_SENSORS_HEADERS ${Chrono_sensor_SENSORS_HEADERS}
       sensors/ChOptixSensor.h
       sensors/ChCameraSensor.h
+      sensors/ChPhysCameraSensor.h
       sensors/ChSegmentationCamera.h
       sensors/ChDepthCamera.h
+      sensors/ChNormalCamera.h
       sensors/ChLidarSensor.h
       sensors/ChRadarSensor.h
  )
@@ -317,6 +353,11 @@ if(CH_USE_SENSOR_OPTIX)
       filters/ChFilterSave.cpp
       filters/ChFilterSavePtCloud.cpp
       filters/ChFilterVisualizePointCloud.cpp
+      filters/ChFilterPhysCameraDefocusBlur.cpp
+      filters/ChFilterPhysCameraVignetting.cpp
+      filters/ChFilterPhysCameraAggregator.cpp
+      filters/ChFilterPhysCameraNoise.cpp
+      filters/ChFilterPhysCameraExpsrToDV.cpp
   )
   set(Chrono_sensor_FILTERS_HEADERS ${Chrono_sensor_FILTERS_HEADERS}
       filters/ChFilterCameraExposure.h
@@ -336,36 +377,15 @@ if(CH_USE_SENSOR_OPTIX)
       filters/ChFilterSave.h
       filters/ChFilterSavePtCloud.h
       filters/ChFilterVisualizePointCloud.h
+      filters/ChFilterPhysCameraDefocusBlur.h
+      filters/ChFilterPhysCameraVignetting.h
+      filters/ChFilterPhysCameraAggregator.h
+      filters/ChFilterPhysCameraNoise.h
+      filters/ChFilterPhysCameraExpsrToDV.h
   )
 endif()
 
 source_group("filters" FILES ${Chrono_sensor_FILTERS_SOURCES} ${Chrono_sensor_FILTERS_HEADERS})
-
-#-----------------------------------------------------------------------------
-# LIST THE FILES FOR TENSORRT IN THE SENSOR LIBRARY
-#-----------------------------------------------------------------------------
-
-if(CH_USE_SENSOR_OPTIX AND CH_USE_SENSOR_TENSORRT)
-
-    set(Chrono_sensor_TENSORRT_SOURCES
-        tensorrt/ChFilterUFF.cpp
-        tensorrt/ChFilterONNX.cpp
-    )
-    set(Chrono_sensor_TENSORRT_HEADERS
-        tensorrt/ChFilterUFF.h
-        tensorrt/ChFilterONNX.h
-        tensorrt/ChTRTUtils.h
-    )
-
-    source_group("TensorRT" FILES ${Chrono_sensor_TENSORRT_SOURCES} ${Chrono_sensor_TENSORRT_HEADERS})
-
-else()
-
-  set(Chrono_sensor_TENSORRT_SOURCES "")
-  set(Chrono_sensor_TENSORRT_HEADERS "")
-
-endif()
-
 
 #-----------------------------------------------------------------------------
 # LIST THE UTILITY FILES THAT WILL BE EXPOSED TO THE USER
@@ -415,8 +435,14 @@ source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
 if(CH_USE_SENSOR_OPTIX)
   message(STATUS "Shader directory in BUILD tree: ${CH_BUILD_SENSOR_SHADERS}")
-  file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
-  file(COPY ${Chrono_sensor_RT_HEADERS} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
+  if(CH_USE_SENSOR_NVRTC)
+    # We need *.cu at runtime to compile with NVRTC
+    file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
+  else()
+    # Only PTX files are needed at runtime if we compile with NVCC at build time
+    # Just make sure the directory exists and *.ptx will be copied over
+    file(MAKE_DIRECTORY ${CH_BUILD_SENSOR_SHADERS})
+  endif()
 endif()
 
 # ----------------------------------------------------------------------------
@@ -446,9 +472,6 @@ list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_SCENE_HEADERS})
 
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_TINYOBJ_FILES})
-
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_TENSORRT_SOURCES})
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_TENSORRT_HEADERS})
 
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_CONFIG_FILE})
 
@@ -545,7 +568,6 @@ if(CH_USE_SENSOR_OPTIX)
     set(CUDA_NVRTC_INCLUDE_DIRS
         ${OptiX_INCLUDE}
         ${CUDAToolkit_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders
         ${CMAKE_INSTALL_PREFIX}/include
         ${CMAKE_SOURCE_DIR}/src
         CACHE STRING "NVRTC include dirs as list." FORCE)
@@ -585,16 +607,15 @@ if(CH_USE_SENSOR_OPTIX)
     #   1. We cannot install the PTX files since these are "objects" not known at configuration time.
     #   2. By design, CMake does not allow redirecting output of object files. So we cannot set output properties on the Chrono_sensor_ptx target.
     #   3. A POST_BUILD command cannot be associated with an OBJECT library target. So we cannot do this after Chrono_sensor_ptx.
-    # The solution is to do the copy in a PRE_BUILD command of the Chrono_sensor target (which depends on Chrono_sensor_ptx).
-    add_custom_command(TARGET Chrono_sensor
-      PRE_BUILD
+    #  The solution is to create a custom target to copy the ptx files. 
+    add_custom_target(Chrono_sensor_ptx_copy ALL
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CH_BUILD_SENSOR_SHADERS}"
       COMMAND_EXPAND_LISTS
       COMMENT "Copy Chrono::Sensor PTX files."
     )
     
     # Link PTX helper library, use NVCC, and set macro with location of PTX files
-    target_link_libraries(Chrono_sensor PUBLIC ${Chrono_sensor_ptx})
+    add_dependencies(Chrono_sensor_ptx_copy Chrono_sensor_ptx)
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVCC>)
   endif()
 
@@ -654,32 +675,6 @@ endif()
 target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_SENSOR>)
 
 target_link_libraries(Chrono_sensor PRIVATE Chrono_core ${LIBRARIES})
-
-# ------------------------------------------------------------------------------
-# Optionally find TensorRT version and set libaries and includes
-# ------------------------------------------------------------------------------
-
-if(CH_USE_SENSOR_OPTIX AND CH_USE_SENSOR_TENSORRT)
-
-    set(TENSOR_RT_INSTALL_DIR "" CACHE PATH "Path to TensorRT")
-
-    #TensorRT Libraries
-    find_library(TENSOR_RT_NVINFER nvinfer ${TENSOR_RT_INSTALL_DIR}/lib)
-    find_library(TENSOR_RT_PARSERS nvparsers ${TENSOR_RT_INSTALL_DIR}/lib)
-    find_library(TENSOR_RT_ONNXPARSER nvonnxparser ${TENSOR_RT_INSTALL_DIR}/lib)
-
-    find_path(TENSOR_RT_INCLUDE_PATH NAMES NvInfer.h PATHS ${TENSOR_RT_INSTALL_DIR}/include)
-
-    target_include_directories(Chrono_sensor PRIVATE ${TENSOR_RT_INCLUDE_PATH})
-    target_link_libraries(Chrono_sensor PRIVATE ${TENSOR_RT_NVINFER})
-    target_link_libraries(Chrono_sensor PRIVATE ${TENSOR_RT_PARSERS})
-    target_link_libraries(Chrono_sensor PRIVATE ${TENSOR_RT_ONNXPARSER})
-
-    mark_as_advanced(TENSOR_RT_NVINFER)
-    mark_as_advanced(TENSOR_RT_PARSERS)
-    mark_as_advanced(TENSOR_RT_ONNXPARSER)
-
-endif()
 
 install(TARGETS Chrono_sensor
         EXPORT ChronoTargets

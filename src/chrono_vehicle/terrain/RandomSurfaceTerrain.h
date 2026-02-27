@@ -147,21 +147,21 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
 
     ~RandomSurfaceTerrain() {}
 
+    /// Get the point on the terrain below the specified location.
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override;
+
     /// Get the terrain height below the specified location.
-    /// Returns the constant value passed at construction.
     virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    /// Returns a constant unit vector along the vertical axis.
     virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
-    /// This coefficient of friction value may be used by certain tire models to modify
-    /// the tire characteristics, but it will have no effect on the interaction of the terrain
-    /// with other objects (including tire models that do not explicitly use it).
-    /// For RandomSurfaceTerrain, this function defers to the user-provided functor object
-    /// of type ChTerrain::FrictionFunctor, if one was specified.
-    /// Otherwise, it returns the constant value specified at construction.
+    /// This coefficient of friction value may be used by certain tire models to modify the tire characteristics, but it
+    /// will have no effect on the interaction of the terrain with other objects (including tire models that do not
+    /// explicitly use it). For RandomSurfaceTerrain, this function defers to the user-provided functor object of type
+    /// ChTerrain::FrictionFunctor, if one was specified. Otherwise, it returns the constant value specified at
+    /// construction.
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
     /// Get the (detrended) root mean square of the tracks, height offset is not considered [m]
@@ -171,26 +171,28 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     double GetIRI() { return m_iri; }
 
     /// Enable creation of a collision mesh and enable collision (default: no collision mesh).
-    /// Optionally (length > 0), create a flat lane of given length positioned before the uneven portion.
-    /// The specified radius (default 0) is used as a "mesh thickness" to improve robustness of the collision detection.
-    /// Note that this function must be called before Initialize().
+    /// Optionally (length > 0), create a flat lane of given length positioned before the uneven portion. The specified
+    /// radius (default 0) is used as a "mesh thickness" to improve robustness of the collision detection. Note that
+    /// this function must be called before Initialize().
     void EnableCollisionMesh(std::shared_ptr<ChContactMaterial> material,
                              double length = 0,
                              double sweep_sphere_radius = 0);
 
-    /// Select a road surface from presets, ISO 8608 and literature
+    /// Select a road surface from presets (ISO 8608 and literature).
     void Initialize(RandomSurfaceTerrain::SurfaceType surfType = RandomSurfaceTerrain::SurfaceType::FLAT,
                     double vehicleTrackWidth = 2.0,
                     RandomSurfaceTerrain::VisualisationType vType = RandomSurfaceTerrain::VisualisationType::MESH);
-    /// Directly generate a road surface from unevenness and waviness, optional consideration of
-    /// correlation, if unevenness fits between ISO classes A to E
+
+    /// Directly generate a road surface from unevenness and waviness.
+    /// Optionally consider correlation, if unevenness fits between ISO classes A to E.
     void Initialize(double unevenness,
                     double waviness = 2.0,
                     double vehicleTrackWidth = 2.0,
                     bool considerCorrelation = true,
                     RandomSurfaceTerrain::VisualisationType vType = RandomSurfaceTerrain::VisualisationType::MESH);
-    /// Directly generate a road surface from International Roughness Index [mm/m], optional consideration of
-    /// correlation, if unevenness fits between ISO classes A to E
+    
+    /// Directly generate a road surface from International Roughness Index [mm/m].
+    /// Optionally consider correlation, if unevenness fits between ISO classes A to E.
     void Initialize(double iri,
                     double vehicleTrackWidth = 2.0,
                     bool considerCorrelation = true,

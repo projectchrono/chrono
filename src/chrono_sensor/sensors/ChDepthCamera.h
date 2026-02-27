@@ -39,16 +39,15 @@ class CH_SENSOR_API ChDepthCamera : public ChOptixSensor {
     /// @param hFOV The horizontal field of view of the camera lens.
     /// @param maxDepth The maximum depth value for the depth camera (1000m default)
     /// @param lens_model A enum specifying the desired lens model.
-    ChDepthCamera(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
-                         float updateRate,                        // rate at which the sensor updates
-                         chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent object
-                         unsigned int w,                          // image width
-                         unsigned int h,                          // image height
-                         float hFOV,                              // horizontal field of view,
-                         float maxDepth = 1000.f,                          // maximum depth value
-                         CameraLensModelType lens_model = CameraLensModelType::PINHOLE);  // lens model type
+    ChDepthCamera(std::shared_ptr<ChBody> parent,  ///< object to which the sensor is attached
+                  float updateRate,                ///< rate at which the sensor updates
+                  ChFrame<double> offsetPose,      ///< position of sensor relative to parent object
+                  unsigned int w,                  ///< image width
+                  unsigned int h,                  ///< image height
+                  float hFOV,                      ///< horizontal field of view,
+                  float maxDepth = 1000.f,         ///< maximum depth value
+                  CameraLensModelType lens_model = CameraLensModelType::PINHOLE);  ///< lens model type
 
-    /// camera class destructor
     ~ChDepthCamera();
 
     /// returns the camera's horizontal field of view. Vertical field of view is determined by the image aspect
@@ -61,7 +60,8 @@ class CH_SENSOR_API ChDepthCamera : public ChOptixSensor {
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
     /// returns the lens model parameters
-    /// @return LensParams of lens parameters. Will default to zeros for any terms not used. These are coverted for the inverse model
+    /// @return LensParams of lens parameters. Will default to zeros for any terms not used. These are coverted for the
+    /// inverse model
     LensParams GetLensParameters() const { return m_lens_parameters; }
 
     /// Sets the parameters for a radial lens distortion model
@@ -78,12 +78,11 @@ class CH_SENSOR_API ChDepthCamera : public ChOptixSensor {
     /// @return The maximum depth value for the depth camera (meters)
     float GetMaxDepth() const { return m_maxDepth; }
 
-
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor
     CameraLensModelType m_lens_model_type;  ///< lens model used by the camera
-    LensParams m_lens_parameters;      ///< lens parameters when applicable
-    float m_maxDepth;                 ///< maximum depth value for the depth camera
+    LensParams m_lens_parameters;           ///< lens parameters when applicable
+    float m_maxDepth;                       ///< maximum depth value for the depth camera
 };
 
 /// @} sensor_sensors

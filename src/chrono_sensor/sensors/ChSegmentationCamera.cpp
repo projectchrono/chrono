@@ -21,16 +21,13 @@
 namespace chrono {
 namespace sensor {
 
-// -----------------------------------------------------------------------------
-// Constructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChSegmentationCamera::ChSegmentationCamera(std::shared_ptr<chrono::ChBody> parent,
-                                                         float updateRate,
-                                                         chrono::ChFrame<double> offsetPose,
-                                                         unsigned int w,                  // image width
-                                                         unsigned int h,                  // image height
-                                                         float hFOV,                      // horizontal field of view
-                                                         CameraLensModelType lens_model)  // lens model to use
+ChSegmentationCamera::ChSegmentationCamera(std::shared_ptr<ChBody> parent,
+                                           float updateRate,
+                                           ChFrame<double> offsetPose,
+                                           unsigned int w,                  // image width
+                                           unsigned int h,                  // image height
+                                           float hFOV,                      // horizontal field of view
+                                           CameraLensModelType lens_model)  // lens model to use
     : m_hFOV(hFOV),
       m_lens_model_type(lens_model),
       m_lens_parameters({}),
@@ -42,10 +39,7 @@ CH_SENSOR_API ChSegmentationCamera::ChSegmentationCamera(std::shared_ptr<chrono:
     SetLag(1.f / updateRate);
 }
 
-// -----------------------------------------------------------------------------
-// Destructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChSegmentationCamera::~ChSegmentationCamera() {}
+ChSegmentationCamera::~ChSegmentationCamera() {}
 
 void ChSegmentationCamera::SetRadialLensParameters(ChVector3f params) {
     // Drap, P., & Lefèvre, J. (2016).

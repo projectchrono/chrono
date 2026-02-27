@@ -4,7 +4,8 @@ set(DEMOS ${DEMOS}
    demo_FSI-TDPF_sphere_decay
    demo_FSI-TDPF_sphere_reg_waves
    demo_FSI-TDPF_sphere_irreg_waves
-   ##demo_FSI-TDPF_floating_platform
+   demo_FSI-TDPF_rm3_reg_waves
+   demo_FSI-TDPF_oswec_reg_waves
 )
 
 #--------------------------------------------------------------

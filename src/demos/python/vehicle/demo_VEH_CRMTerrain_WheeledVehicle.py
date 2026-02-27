@@ -291,7 +291,7 @@ if render:
     visVSG.SetWindowTitle("Wheeled vehicle on CRM deformable terrain")
     visVSG.SetWindowSize(1280, 800)
     visVSG.SetWindowPosition(100, 100)
-    visVSG.EnableSkyBox()
+    visVSG.EnableSkyTexture()
     visVSG.SetLightIntensity(1.0)
     visVSG.SetLightDirection(1.5 * chrono.CH_PI_2, chrono.CH_PI_4)
     visVSG.SetCameraAngleDeg(40)

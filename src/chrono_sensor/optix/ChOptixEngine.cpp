@@ -27,6 +27,7 @@
 #include <optix_function_table_definition.h>
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChPhysCameraSensor.h"
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
@@ -48,6 +49,10 @@
 #include <random>
 
 #include "chrono_sensor/cuda/cuda_utils.cuh"
+
+#ifdef USE_SENSOR_NVDB
+#include <openvdb/openvdb.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -95,8 +100,6 @@ void ChOptixEngine::Initialize() {
 
     // defaults to no lights
     m_params.lights = {};
-    m_params.arealights = {};
-    m_params.arealights = 0;
     m_params.num_lights = 0;
     m_params.ambient_light_color = make_float3(0.0f, 0.0f, 0.0f);  // make_float3(0.1f, 0.1f, 0.1f);  // default value
     m_params.max_depth = m_recursions;
@@ -105,8 +108,10 @@ void ChOptixEngine::Initialize() {
 
     #ifdef USE_SENSOR_NVDB
         m_params.handle_ptr = nullptr;
+        m_params.normal_handle_ptr = nullptr;
     #else
-    m_params.handle_ptr = 0;
+        m_params.handle_ptr = 0;
+        m_params.normal_handle_ptr = 0;
     #endif  // USE_SENSOR_NVDB
     
     CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&md_params), sizeof(ContextParameters)));
@@ -149,12 +154,21 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
 
         // add a denoiser to the optix render filter if its a camera and global illumination is enabled
         if (auto cam = std::dynamic_pointer_cast<ChCameraSensor>(sensor)) {
-            if (cam->GetUseGI()) {
-                std::cout << "Sensor: " << cam->GetName() << " requested global illumination\n";
+            if (cam->GetUseDenoiser()) {
+                std::cout << "Sensor: " << cam->GetName() << " requested OptiX denoiser\n";
+                opx_filter->m_denoiser = chrono_types::make_shared<ChOptixDenoiser>(m_context);
+                // opx_filter->m_denoiser = nullptr;
+            }
+            
+        }
+        else if (auto phys_cam = std::dynamic_pointer_cast<ChPhysCameraSensor>(sensor)) {
+            if (phys_cam->GetUseDenoiser()) {
+                std::cout << "Sensor: " << phys_cam->GetName() << " requested OptiX denoiser\n";
                 opx_filter->m_denoiser = chrono_types::make_shared<ChOptixDenoiser>(m_context);
                 //opx_filter->m_denoiser = nullptr;
-            }
+            } 
         }
+        //// ---- Register Your Customized Sensor Here (if amazing optixDenoiser needed to add) ---- ////
 
         m_assignedRenderers.push_back(opx_filter);
         sensor->PushFilterFront(opx_filter);
@@ -218,7 +232,8 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             cudaDeviceSynchronize();  // TODO: do we need to synchronize here?
 
             // update the scene for the optix context
-            UpdateCameraTransforms(to_be_updated, scene);
+            UpdateSensorParameters(to_be_updated, scene);
+            UpdateSensorTransforms(to_be_updated, scene);
 
             m_geometry->UpdateBodyTransformsEnd((float)m_system->GetChTime());
 
@@ -643,7 +658,27 @@ void ChOptixEngine::ConstructScene() {
     cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
 }
 
-void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene) {
+void ChOptixEngine::UpdateSensorParameters(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene) {
+    // go through all the sensors to be updated
+    for (unsigned int i = 0; i < to_be_updated.size(); i++) {
+        int id = to_be_updated[i];
+        auto p_sensor = m_assignedSensor[id];
+
+        // update parameters of physics-based cameras
+        if (auto p_phys_cam = std::dynamic_pointer_cast<ChPhysCameraSensor>(p_sensor)) {
+            // update filter parameters
+            p_phys_cam->UpdateFilterParameters();
+            
+            // update raygen_record parameters
+            m_assignedRenderers[id]->m_raygen_record->data.specific.phys_camera.hFOV = p_phys_cam->GetHFOV();
+        }
+
+        //// ---- Register Your Customized Sensor Here (if parameters associated with ray-gen data need to be updated after
+        //// ---- sensor initialization) ---- ////
+    }
+}
+
+void ChOptixEngine::UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene) {
     // go through the sensors to be updated and see if we need to move the scene origin
     for (unsigned int i = 0; i < to_be_updated.size(); i++) {
         int id = to_be_updated[i];
@@ -672,8 +707,8 @@ void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std:
         }
 
         ChFrame<double> f_offset = sensor->GetOffsetPose();
-        ChFrame<double> f_body_0 = m_cameraStartFrames[i];
-        m_cameraStartFrames_set[i] = false;  // reset this camera frame so that we know it should be packed again
+        ChFrame<double> f_body_0 = m_cameraStartFrames[id];
+        m_cameraStartFrames_set[id] = false;  // reset this camera frame so that we know it should be packed again
         ChFrame<double> f_body_1 = sensor->GetParent()->GetVisualModelFrame();
         ChFrame<double> global_loc_0 = f_body_0 * f_offset;
         ChFrame<double> global_loc_1 = f_body_1 * f_offset;
@@ -681,8 +716,7 @@ void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std:
         ChVector3f pos_0 = global_loc_0.GetPos() - scene->GetOriginOffset();
         ChVector3f pos_1 = global_loc_1.GetPos() - scene->GetOriginOffset();
 
-        m_assignedRenderers[id]->m_raygen_record->data.t0 =
-            (float)(m_system->GetChTime() - sensor->GetCollectionWindow());
+        m_assignedRenderers[id]->m_raygen_record->data.t0 = (float)(m_system->GetChTime() - sensor->GetCollectionWindow());
         m_assignedRenderers[id]->m_raygen_record->data.t1 = (float)(m_system->GetChTime());
         m_assignedRenderers[id]->m_raygen_record->data.pos0 = make_float3(pos_0.x(), pos_0.y(), pos_0.z());
         m_assignedRenderers[id]->m_raygen_record->data.rot0 =
@@ -715,49 +749,36 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         scene->ResetBackgroundChanged();
     }
 
-    if (scene->GetLightsChanged() || scene->GetOriginChanged() || scene->GetAreaLightsChanged()) {
+    std::vector<ChOptixLight> lights = scene->GetLights();
 
-        // Handling changes to area lights
+    if (scene->GetLightsChanged() || scene->GetOriginChanged()) {
 
-        std::vector<AreaLight> a = scene->GetAreaLights();
-        
-       
-        if (a.size() != m_params.num_arealights) {  // need new memory in this case
-            if (m_params.arealights)
-                CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(m_params.arealights)));
-
-            cudaMalloc(reinterpret_cast<void**>(&m_params.arealights), a.size() * sizeof(AreaLight));
-        }
-
-        
-        for (unsigned int i = 0; i < a.size(); i++) {
-            a[i].pos = make_float3(a[i].pos.x - scene->GetOriginOffset().x(), a[i].pos.y - scene->GetOriginOffset().y(),
-                                   a[i].pos.z - scene->GetOriginOffset().z());
-        }
-
-        cudaMemcpy(reinterpret_cast<void*>(m_params.arealights), a.data(), a.size() * sizeof(AreaLight),
-                   cudaMemcpyHostToDevice);
-
-        m_params.num_arealights = static_cast<int>(a.size());
-        
-        // Handling changes for point lights
-
-        std::vector<PointLight> l = scene->GetPointLights();
-        if (l.size() != m_params.num_lights) {  // need new memory in this case
-            if (m_params.lights)
+        // Handling changes to all lights
+        if (lights.size() != m_params.num_lights) {  // need new memory in this case
+            if (m_params.lights) {
                 CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(m_params.lights)));
-
-            cudaMalloc(reinterpret_cast<void**>(&m_params.lights), l.size() * sizeof(PointLight));
+            }
+            cudaMalloc(reinterpret_cast<void**>(&m_params.lights), lights.size() * sizeof(ChOptixLight));
         }
 
-        for (unsigned int i = 0; i < l.size(); i++) {
-            l[i].pos = make_float3(l[i].pos.x - scene->GetOriginOffset().x(), l[i].pos.y - scene->GetOriginOffset().y(),
-                                   l[i].pos.z - scene->GetOriginOffset().z());
+        for (unsigned int i = 0; i < lights.size(); i++) {
+            if (lights[i].light_type == LightType::ENVIRONMENT_LIGHT) {
+                // Reuse miss sampler
+                lights[i].specific.environment.env_map = m_pipeline->GetBackgroundTexSampler();
+            }
+
+            lights[i].pos = make_float3(
+                lights[i].pos.x - scene->GetOriginOffset().x(),
+                lights[i].pos.y - scene->GetOriginOffset().y(),
+                lights[i].pos.z - scene->GetOriginOffset().z()
+            );
         }
 
-        cudaMemcpy(reinterpret_cast<void*>(m_params.lights), l.data(), l.size() * sizeof(PointLight),
-                   cudaMemcpyHostToDevice);
-        m_params.num_lights = static_cast<int>(l.size());
+        cudaMemcpy(
+            reinterpret_cast<void*>(m_params.lights), lights.data(), lights.size() * sizeof(ChOptixLight),
+            cudaMemcpyHostToDevice
+        );
+        m_params.num_lights = static_cast<int>(lights.size());
         
         // Handling changes in origin
 
@@ -768,58 +789,57 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
 
         m_geometry->SetOriginOffset(scene->GetOriginOffset());
         scene->ResetLightsChanged();
-        scene->ResetAreaLightsChanged();
         scene->ResetOriginChanged();
     }
 
     #ifdef USE_SENSOR_NVDB
-    if (float* d_pts = scene->GetFSIParticles()) {
-        int n = scene->GetNumFSIParticles();
-        
-        printf("Creatinng NanoVDB Handle...\n");
-        using buildType = nanovdb::Point;
-        nanovdb::GridHandle<nanovdb::CudaDeviceBuffer> handle = createNanoVDBGridHandle(d_pts, n);
-        nanovdb::NanoGrid<buildType>* grid = handle.deviceGrid<buildType>();
-        handle.deviceDownload();
-        auto* grid_h = handle.grid<buildType>();
-        auto* tree = grid_h->treePtr();
+        if (float* d_pts = scene->GetFSIParticles()) {
+            int n = scene->GetNumFSIParticles();
+            
+            printf("Creatinng NanoVDB Handle...\n");
+            using buildType = nanovdb::Point;
+            nanovdb::GridHandle<nanovdb::CudaDeviceBuffer> handle = createNanoVDBGridHandle(d_pts, n);
+            nanovdb::NanoGrid<buildType>* grid = handle.deviceGrid<buildType>();
+            handle.deviceDownload();
+            auto* grid_h = handle.grid<buildType>();
+            auto* tree = grid_h->treePtr();
 
-        // printf("Grid Size: %d\n", grid_h->gridSize());
-        ////printf("Point Count: %d", (int)grid_h->pointCount());
-        // printf("Upper Internal Nodes: %d\n", grid_h->tree().nodeCount(2));
-        // printf("Lower Internal Nodes: %d\n", grid_h->tree().nodeCount(1));
-        // printf("Leaf Nodes: %d\n", grid_h->tree().nodeCount(0));
+            // printf("Grid Size: %d\n", grid_h->gridSize());
+            ////printf("Point Count: %d", (int)grid_h->pointCount());
+            // printf("Upper Internal Nodes: %d\n", grid_h->tree().nodeCount(2));
+            // printf("Lower Internal Nodes: %d\n", grid_h->tree().nodeCount(1));
+            // printf("Leaf Nodes: %d\n", grid_h->tree().nodeCount(0));
 
-        // float wBBoxDimZ = (float)grid_h->worldBBox().dim()[2] * 2;
-        // nanovdb::Vec3<float> wBBoxCenter = nanovdb::Vec3<float>(grid_h->worldBBox().min() + grid_h->worldBBox().dim()
-        // * 0.5f); nanovdb::CoordBBox treeIndexBbox = grid_h->tree().bbox(); std::cout << "Bounds: "
-        //          << "[" << treeIndexBbox.min()[0] << "," << treeIndexBbox.min()[1] << "," << treeIndexBbox.min()[2]
-        //          << "] -> [" << treeIndexBbox.max()[0] << "," << treeIndexBbox.max()[1] << "," <<
-        //          treeIndexBbox.max()[2]
-        //          << "]" << std::endl;
+            // float wBBoxDimZ = (float)grid_h->worldBBox().dim()[2] * 2;
+            // nanovdb::Vec3<float> wBBoxCenter = nanovdb::Vec3<float>(grid_h->worldBBox().min() + grid_h->worldBBox().dim()
+            // * 0.5f); nanovdb::CoordBBox treeIndexBbox = grid_h->tree().bbox(); std::cout << "Bounds: "
+            //          << "[" << treeIndexBbox.min()[0] << "," << treeIndexBbox.min()[1] << "," << treeIndexBbox.min()[2]
+            //          << "] -> [" << treeIndexBbox.max()[0] << "," << treeIndexBbox.max()[1] << "," <<
+            //          treeIndexBbox.max()[2]
+            //          << "]" << std::endl;
 
-        /* printf("size of handle_ptr: %d | size of grid*: %d\n", sizeof(m_params.handle_ptr), sizeof(grid));
-         printf("Grid ptr: %p | Grid Size: %d | Grid Type: %d | Grid Empty: %d\n ", grid, handle.gridSize(),
-         handle.gridType(), handle.empty()); printf("size of ContextParameters: %d\n", sizeof(ContextParameters));*/
+            /* printf("size of handle_ptr: %d | size of grid*: %d\n", sizeof(m_params.handle_ptr), sizeof(grid));
+            printf("Grid ptr: %p | Grid Size: %d | Grid Type: %d | Grid Empty: %d\n ", grid, handle.gridSize(),
+            handle.gridType(), handle.empty()); printf("size of ContextParameters: %d\n", sizeof(ContextParameters));*/
 
-        cudaMalloc((void**)&m_params.handle_ptr, handle.gridSize());
-        cudaMemcpy((void*)m_params.handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);
-        /* cudaError_t status = cudaMalloc((void**)&md_params->handle_ptr, handle.gridSize());
-         if (status != cudaSuccess) {
-            printf("cudaMalloc failed: %s\n",cudaGetErrorString(status));
-          }
-         printf("md grid ptr: %p\n", md_params->handle_ptr);
+            cudaMalloc((void**)&m_params.handle_ptr, handle.gridSize());
+            cudaMemcpy((void*)m_params.handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);
+            /* cudaError_t status = cudaMalloc((void**)&md_params->handle_ptr, handle.gridSize());
+            if (status != cudaSuccess) {
+                printf("cudaMalloc failed: %s\n",cudaGetErrorString(status));
+            }
+            printf("md grid ptr: %p\n", md_params->handle_ptr);
 
-         cudaMemcpy(md_params->handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);*/
-        /*printf("Done!\n");
-        size_t sz = handle.gridSize();
-        cudaMalloc(reinterpret_cast<void**>(&m_params.handle_ptr), sz);he
-        printf("handle: %p\n", &handle);
-        cudaMemcpy(reinterpret_cast<void*>(m_params.handle_ptr), &handle, sz, cudaMemcpyHostToDevice);*/
+            cudaMemcpy(md_params->handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);*/
+            /*printf("Done!\n");
+            size_t sz = handle.gridSize();
+            cudaMalloc(reinterpret_cast<void**>(&m_params.handle_ptr), sz);he
+            printf("handle: %p\n", &handle);
+            cudaMemcpy(reinterpret_cast<void*>(m_params.handle_ptr), &handle, sz, cudaMemcpyHostToDevice);*/
 
-        cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
-    }
-    #endif
+            cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
+        }
+    #endif // USE_SENSOR_NVDB
     }
 
 }  // namespace sensor

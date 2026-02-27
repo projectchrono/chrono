@@ -210,9 +210,8 @@ int main(int argc, char* argv[]) {
     rock_vis_mat->SetSpecularColor({1, 1, 1});
     rock_vis_mat->SetUseSpecularWorkflow(true);
     rock_vis_mat->SetRoughness(1.0f);
-    rock_vis_mat->SetUseHapke(true);
-    rock_vis_mat->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,
-                                     float(23.4 * CH_DEG_TO_RAD));
+    rock_vis_mat->SetBSDF(BSDFType::HAPKE);
+    rock_vis_mat->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f, float(23.4 * CH_DEG_TO_RAD));
 
     // Rock parameters
     std::vector<ChVector3d> rock_pos = {
@@ -328,9 +327,8 @@ int main(int argc, char* argv[]) {
     lunar_material->SetUseSpecularWorkflow(true);
     lunar_material->SetRoughness(0.8f);
     lunar_material->SetAnisotropy(1.f);
-    lunar_material->SetUseHapke(true);
-    lunar_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,
-                                       float(23.4 * CH_DEG_TO_RAD));
+    lunar_material->SetBSDF(BSDFType::HAPKE);
+    lunar_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f, float(23.4 * CH_DEG_TO_RAD));
     lunar_material->SetClassID(30000);
     lunar_material->SetInstanceID(20000);
     auto mesh = terrain.GetMesh();

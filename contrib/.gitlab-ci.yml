@@ -204,7 +204,7 @@ linux:ubuntu22.04:deploy-python3.12:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge --python=3.12
+    - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.12
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
@@ -214,7 +214,7 @@ linux:ubuntu22.04:deploy-python3.13:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge --python=3.13
+    - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.13
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
@@ -248,7 +248,7 @@ windows:vs2022:build:
   # Build urdf with buildURDF script (it looks like we have already using thre pre-built urdf as of April 27th, 2025, disabling the building for now)
   # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_win64" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_win64" --preset=windowsci-vs2022
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
@@ -265,10 +265,10 @@ windows:vs2022:test:
   script:
   # Build vsg with buildVSG script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\bin"
+  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\bin;$env:LocalAppData\Python\pythoncore-3.12-64"
   - cd build
   - cmake --install . --config Release
-  - ctest --output-on-failure -E "utest_PARSERS|utest_FSI" -C Release
+  - ctest --output-on-failure -C Release
   dependencies: ["windows:vs2022:build"]
 
 .windows-deploy-base:
@@ -315,7 +315,7 @@ windows:deploy-python3.12:
   extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.12
-    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge --python=3.12
+    - conda build .\contrib\packaging-python\conda -c conda-forge --python=3.12
     - conda install --yes conda-build "anaconda-client>=1.13.1"
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
@@ -338,7 +338,7 @@ windows:deploy-python3.13:
   extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.13
-    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge --python=3.13
+    - conda build .\contrib\packaging-python\conda -c conda-forge --python=3.13
     - conda install --yes conda-build "anaconda-client>=1.13.1"
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:

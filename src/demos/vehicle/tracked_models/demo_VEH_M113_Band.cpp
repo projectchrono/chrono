@@ -311,7 +311,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle(title);
             vis_vsg->SetWindowSize(1200, 800);
-            vis_vsg->EnableSkyBox();
+            vis_vsg->EnableSkyTexture(SkyMode::DOME);
             vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
             vis_vsg->AttachVehicle(&m113.GetVehicle());
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

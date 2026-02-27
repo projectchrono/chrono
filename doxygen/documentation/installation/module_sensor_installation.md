@@ -16,16 +16,19 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 ## Required Dependencies
 
 - To **run** applications based on this module, the following are required:
-  * NVIDIA GPU, Maxwell or later - capable of running OptiX
-  * NVIDIA Graphics driver 530.41 or newer
+  * NVIDIA GPU, Maxwell or newer - capable of running OptiX
+  * NVIDIA Graphics driver R580 or newer
 
 - To **build** applications based on this module, the following are required:
   * [CUDA](https://developer.nvidia.com/cuda-downloads)
-  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 7.7 only (will NOT work with 6.X or other 7.X versions)
-  * [GLFW](https://www.glfw.org/) - version 3.0 or later
-  * [GLEW](http://glew.sourceforge.net/) - version 1.0 or later
-  * OpenGL
-  * [TensoRT](https://developer.nvidia.com/tensorrt) (optional) - version 7.0.0
+  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 9.0 or newer (will **NOT** work with older versions)
+  * [GLFW](https://www.glfw.org/) - version 3.0 or newer
+  * [GLEW](http://glew.sourceforge.net/) - version 1.0 or newer
+  * [OpenGL](https://www.opengl.org/)
+
+<div class="ce-warning">
+OptiX support in Chrono::Sensor is optional. If OptiX is not available, sensor models that require ray-tracing (e.g., camera, lidar, radar) will not be included in the Chrono::Sensor library. Availability of OptiX support is indicated via the macro`CHRONO_HAS_OPTIX` in the configuration header `ChConfigSensor.h`.
+</div>
 
 ## Building instructions
 
@@ -39,23 +42,21 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 
 6. Optionally set `CH_USE_CUDA_NVRTC` to 'on' to enable runtime compilation of the Optix RT Kernels. Press 'Configure' to refresh the variable list. If set to 'off', the RT Kernels will be compiled at runtime. Depending on the system, you may need to set `CMAKE_CUDA_ARCHITECTURES` to the specific target architecture since this will result in RT Kernels being compiled to PTX.
 
-7. Optionally set `CH_USE_TENSOR_RT` to 'on' to enable use of TensorRT for augmenting sensor data. Press 'Configure' to refresh the variable list.
-    * Set the `TENSOR_RT_INSTALL_DIR` variable to the root of the TensorRT directory installed on the system (directory that includes `lib/`, `bin/`, `include/`) and press 'Configure to refresh the variable list'
-    * If a refresh does not correctly set the following variables: `TENSOR_RT_INCLUDE_PATH`,`TENSOR_RT_NVINFER`,`TENSOR_RT_ONNXPARSER`, and `TENSOR_RT_PARSER`, manually set them accordingly with the last three variable pointing directly to their corresponding library files.
+7. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
-8. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
+**NOTE**: if linking to Chrono::Sensor install from an external project, make sure to set the directory of the install location where the    shader code (compiled ptx code or shaders/*.cu files) is located. This should be set at the top of any external code that will use    Chrono::Sensor from an install location.
 
-9. **NOTE** if linking to Chrono::Sensor install from an external project, make sure to set the directory of the install location where the shader code (compiled ptx code or shaders/*.cu files) is located. This should be set at the top of any external code that will use chrono::sensor from an install location.
   ```cpp
-    //function to set the shader location (include ChOptixUtils.h)
-    chrono::sensor::SetSensorShaderDir("path/to/sensor/shaders");
+  //function to set the shader location (include ChOptixUtils.h)
+  chrono::sensor::SetSensorShaderDir("path/to/sensor/shaders");
+  
+  //if USE_CUDA_NVRTC is enabled, use
+  chrono::sensor::SetSensorShaderDir("path/to/install/include/chrono_sensor/optix/shaders/");
+  
+  //if USE_CUDA_NVRTC is disabled, use
+  chrono::sensor::SetSensorShaderDir("path/to/install/lib/sensor_ptx/");
+ ```
 
-    //if USE_CUDA_NVRTC is enabled, use
-    chrono::sensor::SetSensorShaderDir("path/to/install/include/chrono_sensor/optix/shaders/");
-
-    //if USE_CUDA_NVRTC is disabled, use
-    chrono::sensor::SetSensorShaderDir("path/to/install/lib/sensor_ptx/");
-  ```
 ## How to use it
 
 - Consult the [reference manual](@ref manual_sensor).
