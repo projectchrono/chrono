@@ -37,6 +37,15 @@ ChSystemDescriptor::~ChSystemDescriptor() {
     m_KRMblocks.clear();
 }
 
+void ChSystemDescriptor::BeginInsertion() {
+    m_constraints.clear();
+    m_variables.clear();
+    m_KRMblocks.clear();
+}
+
+void ChSystemDescriptor::EndInsertion() {
+    UpdateCountsAndOffsets();
+}
 bool ChSystemDescriptor::HasKRMBlocks() {
     return m_KRMblocks.size() > 0;
 }
@@ -56,7 +65,7 @@ bool ChSystemDescriptor::SupportsSchurComplement() {
     return m_use_Minv;
 }
 
-void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolation, double& resulting_feasability) {
+void ChSystemDescriptor::ComputeFeasibilityViolation(double& resulting_maxviolation, double& resulting_feasability) {
     resulting_maxviolation = 0;
     resulting_feasability = 0;
 
@@ -253,8 +262,8 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& diagonal
     n_c = CountActiveConstraints();
     diagonal_vect.setZero(n_q + n_c);
 
-    // Fill the diagonal values given by ChKRMBlock objects , if any
-    // (This cannot be easily parallelized because of possible write concurrency).
+    // Fill the diagonal values given by ChKRMBlock objects, if any
+    // NOTE: this cannot be easily parallelized because of possible write concurrency
     for (const auto& krm_block : m_KRMblocks) {
         krm_block->DiagonalAdd(diagonal_vect);
     }
@@ -266,7 +275,7 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& diagonal
         }
     }
 
-    // Get the 'E' diagonal terms (E_i = - cfm_i )
+    // Get the 'E' diagonal terms (E_i = - cfm_i)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             diagonal_vect(constr->GetOffset() + n_q) = -constr->GetComplianceTerm();
@@ -274,6 +283,40 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& diagonal
     }
 
     return n_q + n_c;
+}
+
+unsigned int ChSystemDescriptor::BuildDiagonalVectorUpper(ChVectorDynamic<>& diagonal_upper) const {
+    n_q = CountActiveVariables();
+    diagonal_upper.setZero(n_q);
+
+    // Fill the diagonal values given by ChKRMBlock objects, if any
+    // NOTE: this cannot be easily parallelized because of possible write concurrency
+    for (const auto& krm_block : m_KRMblocks) {
+        krm_block->DiagonalAdd(diagonal_upper);
+    }
+
+    // Get the 'M' diagonal terms given by ChVariables objects
+    for (const auto& var : m_variables) {
+        if (var->IsActive()) {
+            var->AddMassDiagonalInto(diagonal_upper, c_a);
+        }
+    }
+
+    return n_q;
+}
+
+unsigned int ChSystemDescriptor::BuildDiagonalVectorLower(ChVectorDynamic<>& diagonal_lower) const {
+    n_c = CountActiveConstraints();
+    diagonal_lower.setZero(n_c);
+
+    // Get the 'E' diagonal terms (E_i = cfm_i)
+    for (const auto& constr : m_constraints) {
+        if (constr->IsActive()) {
+            diagonal_lower(constr->GetOffset()) = constr->GetComplianceTerm();
+        }
+    }
+
+    return n_c;
 }
 
 unsigned int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& vector, bool resize_vector) const {

@@ -132,7 +132,7 @@ void test_1(const std::string& out_dir) {
 
     // Output results
     double max_res, max_LCPerr;
-    mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
+    mdescriptor.ComputeFeasibilityViolation(max_res, max_LCPerr);
 
     // If needed, dump the full system M and Cq matrices
     // on disk, in Matlab sparse format:
@@ -452,7 +452,7 @@ void test_4(const std::string& out_dir) {
 
     // Print results
     double max_res, max_LCPerr;
-    mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
+    mdescriptor.ComputeFeasibilityViolation(max_res, max_LCPerr);
 
     ChSparseMatrix matrM(mdescriptor.CountActiveVariables(), mdescriptor.CountActiveVariables());
     ChSparseMatrix matrCq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());

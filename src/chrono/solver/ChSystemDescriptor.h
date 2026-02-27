@@ -80,12 +80,8 @@ class ChApi ChSystemDescriptor {
     /// Access the vector of variables.
     std::vector<ChVariables*>& GetVariables() { return m_variables; }
 
-    /// Begin insertion of items
-    virtual void BeginInsertion() {
-        m_constraints.clear();
-        m_variables.clear();
-        m_KRMblocks.clear();
-    }
+    /// Begin insertion of items.
+    virtual void BeginInsertion();
 
     /// Insert reference to a ChConstraint object.
     virtual void InsertConstraint(ChConstraint* mc) { m_constraints.push_back(mc); }
@@ -98,7 +94,7 @@ class ChApi ChSystemDescriptor {
 
     /// End insertion of items.
     /// A derived class should always call UpdateCountsAndOffsets.
-    virtual void EndInsertion() { UpdateCountsAndOffsets(); }
+    virtual void EndInsertion();
 
     /// Count & returns the scalar variables in the system.
     /// This excludes ChVariable object that are set as inactive.
@@ -145,6 +141,14 @@ class ChApi ChSystemDescriptor {
     /// The diagonal_vect must already have size equal to the number of unknowns, otherwise it will be resized as
     /// necessary.
     virtual unsigned int BuildDiagonalVector(ChVectorDynamic<>& diagonal_vect) const;
+
+    /// Get the upper diagonal part of the Z system matrix (corresponding to H block), as a single column vector.
+    /// Note: result vector is automatically resized.
+    virtual unsigned int BuildDiagonalVectorUpper(ChVectorDynamic<>& diagonal_upper) const;
+
+    /// Get the lower diagonal part of the Z system matrix (corresponding to E block), as a single column vector.
+    /// Note: result vector is automatically resized.
+    virtual unsigned int BuildDiagonalVectorLower(ChVectorDynamic<>& diagonal_lower) const;
 
     /// Gather the 'q' tertms from all variables into a column vector.
     /// The column vector will be automatically reset and resized to the proper length if requested.
@@ -261,7 +265,10 @@ class ChApi ChSystemDescriptor {
                                const ChVectorDynamic<>& x  ///< vector to be multiplied
     );
 
-    /// Compute upper part of system descriptor product, as in `[Z]*y = d -> res = [H]*v + [CqT]*l`.
+    /// Compute the upper part of system descriptor product.
+    /// <pre>
+    ///    result = H * v + Cq' * l
+    /// </pre>
     /// Note:
     /// - 'result' is automatically resized
     /// - if negate_lambda = true, automatically flip sign to provided lambda.
@@ -271,7 +278,10 @@ class ChApi ChSystemDescriptor {
                             bool negate_lambda           ///< flip sign to dual variable
     );
 
-    /// Compute lower part of system descriptor product, as in `[Z]*y = d -> res = [Cq]*v + [E]*l`.
+    /// Compute lower part of system descriptor product.
+    /// <pre>
+    ///    result = Cq * v + E * l
+    /// </pre>
     /// Note:
     /// - 'result' is automatically resized
     /// - if negate_lambda = true, automatically flip sign to provided lambda.
@@ -302,11 +312,10 @@ class ChApi ChSystemDescriptor {
         ChVectorDynamic<>& mx  ///< system-level vector of unknowns x={q,-l} (only the l part is projected)
     );
 
-    /// The following (obsolete) function may be called after a solver's 'Solve()'
-    /// operation has been performed. This gives an estimate of 'how
-    /// good' the solver had been in finding the proper solution.
+    /// The following (obsolete) function may be called after a solver's 'Solve()' operation has been performed. 
+    /// This gives an estimate of 'how good' the solver had been in finding the proper solution.
     /// Resulting estimates are passed as references in member arguments.
-    virtual void ComputeFeasabilityViolation(
+    virtual void ComputeFeasibilityViolation(
         double& resulting_maxviolation,  ///< gets the max constraint violation (either bi- and unilateral.)
         double& resulting_feasability    ///< gets the max feasability as max |l*c| , for unilateral only
     );
