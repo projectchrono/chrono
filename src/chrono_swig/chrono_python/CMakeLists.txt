@@ -230,7 +230,7 @@ endif()
 
 if(APPLE)
   # See https://github.com/swig/swig/issues/3278
-  target_link_options(${CHPY_CORE} PRIVATE -flat_namespace -undefined suppress)
+  target_link_options(${CHPY_CORE} PRIVATE -flat_namespace -undefined dynamic_lookup)
 endif()
 
 
@@ -301,7 +301,7 @@ endif()
 
 if(APPLE)
   # See https://github.com/swig/swig/issues/3278
-  target_link_options(${CHPY_FEA} PRIVATE -flat_namespace -undefined suppress)
+  target_link_options(${CHPY_FEA} PRIVATE -flat_namespace -undefined dynamic_lookup)
 endif()
 
 # Ensure that the PYD library file is generated in the bin/ directory.
@@ -391,7 +391,7 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(${CHPY_POSTPROCESS} PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(${CHPY_POSTPROCESS} PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -466,7 +466,7 @@ if(CH_ENABLE_MODULE_VSG)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(${CHPY_VSG} PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(${CHPY_VSG} PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -547,7 +547,7 @@ if(CH_ENABLE_MODULE_FSI_SPH)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(${CHPY_FSI} PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(${CHPY_FSI} PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -629,7 +629,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(${CHPY_IRRLICHT} PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(${CHPY_IRRLICHT} PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -706,7 +706,7 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(${CHPY_MKL} PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(${CHPY_MKL} PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -785,7 +785,7 @@ if(CH_ENABLE_MODULE_CASCADE)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(cascade PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(cascade PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -882,7 +882,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(${CHPY_VEHICLE} PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(${CHPY_VEHICLE} PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
 
@@ -967,7 +967,7 @@ if(CH_ENABLE_MODULE_SENSOR)
 
     if(APPLE)
       # See https://github.com/swig/swig/issues/3278
-      target_link_options(sensor PRIVATE -flat_namespace -undefined suppress)
+      target_link_options(sensor PRIVATE -flat_namespace -undefined dynamic_lookup)
     endif()
 
     # Ensure that the PYD library file is generated in the bin/ directory.
@@ -1047,7 +1047,7 @@ endif()
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(${CHPY_RS} PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(${CHPY_RS} PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -1120,7 +1120,7 @@ if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(parsers PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(parsers PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -1206,7 +1206,7 @@ if(CH_ENABLE_MODULE_ROS)
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
-    target_link_options(ros PRIVATE -flat_namespace -undefined suppress)
+    target_link_options(ros PRIVATE -flat_namespace -undefined dynamic_lookup)
   endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
