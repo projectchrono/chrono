@@ -540,60 +540,6 @@ if(CH_ENABLE_MODULE_SENSOR)
 endif()
 
 #-----------------------------------------------------------------------------
-# MODULE for the fea csharp wrapper.
-#-----------------------------------------------------------------------------
-
-message(STATUS "Add C# FEA module")
-
-set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/fea")
-
-# Interface files
-set(INTERFACE_FILE_FEA ChModuleFea_csharp.i)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set_source_files_properties(${INTERFACE_FILE_FEA} PROPERTIES COMPILE_FLAGS "-D_WIN32")
-endif()
-set_source_files_properties(${INTERFACE_FILE_FEA} PROPERTIES CPLUSPLUS ON)
-if(MSVC)
-  set_source_files_properties(${INTERFACE_FILE_FEA} PROPERTIES COMPILE_OPTIONS "-w401,503")
-endif()
-
-# Create the SWIG module
-swig_add_library(Chrono_csharp_fea LANGUAGE csharp SOURCES ${INTERFACE_FILE_FEA})
-target_link_libraries(Chrono_csharp_fea PRIVATE Chrono_core)
-
-# Ensure that the library file is generated in the bin/ directory
-set_target_properties(Chrono_csharp_fea PROPERTIES
-                      PROJECT_LABEL "Chrono_csharp_fea"
-                      OUTPUT_NAME   "Chrono_csharp_fea"
-                      LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
-                      SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
-                      )
-
-target_compile_definitions(Chrono_csharp_fea PRIVATE "CH_IGNORE_DEPRECATED")
-target_compile_definitions(Chrono_csharp_fea PRIVATE "IGNORE_DEPRECATED_WARNING")
-
-add_dependencies(Chrono_csharp_fea Chrono_core)
-add_dependencies(Chrono_csharp_fea Chrono_csharp_core)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  install(TARGETS Chrono_csharp_fea
-          EXPORT ChronoTargets
-          RUNTIME DESTINATION bin
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib)
-else()
-  install(TARGETS Chrono_csharp_fea
-          EXPORT ChronoTargets
-          LIBRARY DESTINATION lib)
-endif()
-
-if (DBG_SCRIPT)
-  message("Module name:     Chrono_csharp_fea")
-  message("SWIG_REAL_NAME:  Chrono_csharp_fea")
-endif()
-
-#-----------------------------------------------------------------------------
 # Module for the robot models
 #-----------------------------------------------------------------------------
 
