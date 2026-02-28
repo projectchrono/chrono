@@ -273,6 +273,8 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 
 %extend chrono::ChMatrixDynamic<double> {
     public:
+    
+#ifdef CHRONO_PYTHON_NUMPY
         ChMatrixDynamic(double* a, int rows, int cols) {
             auto* m = new chrono::ChMatrixDynamic<double>(rows, cols);
 
@@ -283,6 +285,7 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
             }
             return m;
         }
+#endif
         // these functions are also argument-templated, so we need to specify the types
         // ***SWIG template mechanism does not work here for operator() ***
         //%template(operator+) operator+<double>;

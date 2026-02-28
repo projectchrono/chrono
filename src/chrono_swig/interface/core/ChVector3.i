@@ -53,45 +53,48 @@
 // %constant chrono::ChVector3<double> VECT_X= chrono::ChVector3<double>(1,0,0);
 // %constant chrono::ChVector3<double> VECT_Y= chrono::ChVector3<double>(0,1,0);
 // %constant chrono::ChVector3<double> VECT_Z= chrono::ChVector3<double>(0,0,1);
+
+
 %extend chrono::ChVector3<double>{
-	public:
-			// Add function to support python 'print(...)'
-		char *__str__() 
-			{
-				static char temp[256];
-				sprintf(temp,"[ %g, %g, %g ]", $self->x(),$self->y(),$self->z());
-				return &temp[0];
-			}
-			// operator  ^  as ^ in c++ 
-		double __xor__(const ChVector3<double>& other) const 
-			{ 
-				return $self->operator^(other);
-			}
+		public:
+					// Add function to support python 'print(...)'
+			char *__str__() 
+					{
+						static char temp[256];
+						sprintf(temp,"[ %g, %g, %g ]", $self->x(),$self->y(),$self->z());
+						return &temp[0];
+					}
+					// operator  ^  as ^ in c++ 
+			double __xor__(const ChVector3<double>& other) const 
+					{ 
+						return $self->operator^(other);
+					}
 
 // NumPy integration: single-call conversion to numpy array
 #ifdef CHRONO_PYTHON_NUMPY
-		PyObject* to_numpy() {
-			npy_intp dims[1] = {3};
-			PyObject* array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-			if (!array) return NULL;
-			double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
-			const double* src = $self->data();
-			std::memcpy(dst, src, 3 * sizeof(double));
-			return array;
-		}
+			PyObject* to_numpy() {
+				npy_intp dims[1] = {3};
+				PyObject* array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+				if (!array) return NULL;
+				double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
+				const double* src = $self->data();
+				std::memcpy(dst, src, 3 * sizeof(double));
+				return array;
+			}
 #endif
-};
+		};
 
 // This because constants do not work well, so implement them in script-side
 
-#ifdef CHRONO_PYTHON_NUMPY
 %pythoncode %{
+#ifdef CHRONO_PYTHON_NUMPY
 	def _chvector3_array(self, dtype=None):
 		import numpy as np
 		a = self.to_numpy()
 		return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 	ChVector3d.__array__ = _chvector3_array
+#endif
 
 	VNULL  = ChVector3d(0,0,0)
 	VECT_X = ChVector3d(1,0,0)
@@ -99,7 +102,7 @@
 	VECT_Z = ChVector3d(0,0,1)
 
 %}
-#endif
+
 
 #endif             // --------------------------------------------------------------------- PYTHON
 

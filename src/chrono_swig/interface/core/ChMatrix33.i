@@ -25,6 +25,7 @@ using namespace chrono;
 
 %template(ChMatrix33d) chrono::ChMatrix33<double>; 
 
+
 %extend chrono::ChMatrix33<double>{
 		public:
 			double getitem(int i, int j) {
