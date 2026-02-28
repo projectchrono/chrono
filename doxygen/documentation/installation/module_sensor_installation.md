@@ -16,7 +16,7 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 ## Required Dependencies
 
 - To **run** applications based on this module, the following are required:
-  * NVIDIA GPU, Maxwell or newer - capable of running OptiX
+  * NVIDIA GPU, Turing or newer - capable of running OptiX
   * NVIDIA Graphics driver R580 or newer
 
 - To **build** applications based on this module, the following are required:
@@ -27,7 +27,7 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
   * [OpenGL](https://www.opengl.org/)
 
 <div class="ce-warning">
-OptiX support in Chrono::Sensor is optional. If OptiX is not available, sensor models that require ray-tracing (e.g., camera, lidar, radar) will not be included in the Chrono::Sensor library. Availability of OptiX support is indicated via the macro`CHRONO_HAS_OPTIX` in the configuration header `ChConfigSensor.h`.
+OptiX support in Chrono::Sensor is optional. If OptiX is not available, sensor models that require ray-tracing (e.g., camera, lidar, radar) will not be included in the Chrono::Sensor library. Availability of OptiX support is indicated via the macro `CHRONO_HAS_OPTIX` in the configuration header `ChConfigSensor.h`.
 </div>
 
 ## Building instructions
@@ -40,7 +40,7 @@ OptiX support in Chrono::Sensor is optional. If OptiX is not available, sensor m
 
 5. Set all the values for `GLEW_...`, `GLFW_...` to proper directory or file values if not automatically found by cmake.
 
-6. Optionally set `CH_USE_CUDA_NVRTC` to 'on' to enable runtime compilation of the Optix RT Kernels. Press 'Configure' to refresh the variable list. If set to 'off', the RT Kernels will be compiled at runtime. Depending on the system, you may need to set `CMAKE_CUDA_ARCHITECTURES` to the specific target architecture since this will result in RT Kernels being compiled to PTX.
+6. Optionally set `CH_USE_SENSOR_NVRTC` to 'on' to enable runtime compilation of the Optix RT Kernels. Press 'Configure' to refresh the variable list. If set to 'off', the RT Kernels will be compiled at runtime. Depending on the system, you may need to set `CMAKE_CUDA_ARCHITECTURES` to the specific target architecture since this will result in RT Kernels being compiled to PTX.
 
 7. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
@@ -64,7 +64,3 @@ OptiX support in Chrono::Sensor is optional. If OptiX is not available, sensor m
 - Look at the [API section](@ref sensor) of this module for documentation about classes and functions.
 
 - Look at the C++ and Python source of [demos](@ref tutorial_table_of_content_chrono_sensor) to learn how to use the functions of this module.
-
-## MacOS support
-
-This module is not supported on the Mac.
