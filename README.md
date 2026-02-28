@@ -35,6 +35,14 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
   - [Core module](https://api.projectchrono.org/manual_root.html)
   - [Chrono::Vehicle module](https://api.projectchrono.org/manual_vehicle.html)
 
+### Agent Guidance
+
+If you are using a coding agent to work with this repository, see `AGENTS.md`. It describes the recommended workflow for both Chrono developers and external users, including build setup, template projects, module manuals, demos, and contribution expectations. If you use Claude locally, the recommended setup is to create a local symlink instead of a copy:
+
+```
+ln -s AGENTS.md CLAUDE.md
+```
+
 ### Support
 
 - [Google Groups user forum](https://groups.google.com/g/projectchrono)
