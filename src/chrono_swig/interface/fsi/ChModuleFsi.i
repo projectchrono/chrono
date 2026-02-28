@@ -45,6 +45,7 @@
 // Include C++ headers this way...
 
 %{
+#define SWIG_FILE_WITH_INIT
 
 #include "chrono/assets/ChVisualShapes.h"
 #include "chrono/utils/ChBodyGeometry.h"
@@ -110,6 +111,14 @@ using namespace chrono::fsi;
 #endif              // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
 %include "cpointer.i"
+
+#ifdef SWIGPYTHON
+#ifdef CHRONO_PYTHON_NUMPY
+%init %{
+    import_array();
+%}
+#endif
+#endif
 
 %shared_ptr(chrono::ChFrame<double>)
 %shared_ptr(chrono::fsi::ChFsiSystem)

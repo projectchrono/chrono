@@ -273,6 +273,16 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 
 %extend chrono::ChMatrixDynamic<double> {
     public:
+        ChMatrixDynamic(double* a, int rows, int cols) {
+            auto* m = new chrono::ChMatrixDynamic<double>(rows, cols);
+
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    (*m)(i, j) = a[i*cols + j];
+                }
+            }
+            return m;
+        }
         // these functions are also argument-templated, so we need to specify the types
         // ***SWIG template mechanism does not work here for operator() ***
         //%template(operator+) operator+<double>;
@@ -437,6 +447,19 @@ def GetVect(self):
     return rs_list
 
 setattr(ChVectorDynamicd, "GetVect", GetVect)
+
+def __vect_setitem(self,index,vals):
+    if index >= self.Size() or index < 0:
+        raise NameError('Bad index. Setting value at [{0}] in a vector of size {1}'.format(index,self.Size()))
+    self.SetItem(index, vals)
+
+def __vect_getitem(self,index):
+    if index >= self.Size() or index < 0:
+        raise NameError('Bad index. Getting value at [{0}] in a vector of size {1}'.format(index,self.Size()))
+    return self.GetItem(index)
+
+setattr(ChVectorDynamicd, "__getitem__", __vect_getitem)
+setattr(ChVectorDynamicd, "__setitem__", __vect_setitem)
 
 def __matr_setitem(self,index,vals):
     row = index[0];

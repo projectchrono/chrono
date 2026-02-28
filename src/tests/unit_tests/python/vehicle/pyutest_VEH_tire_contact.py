@@ -2,6 +2,7 @@ import pychrono as chrono
 import pychrono.vehicle as veh
 import pytest
 import math
+import numpy as np
 
 tol = 1e-5
 
@@ -86,6 +87,4 @@ def test_tire_collision(method, angle_deg):
     assert csys.pos.z == pytest.approx(csys.pos.x * math.sin(angle), abs=tol)
     assert csys_dist == pytest.approx(0, abs=tol)
     assert depth.value() > 0.0
-    assert csys_normal.x == pytest.approx(terrain_normal.x, abs=tol)
-    assert csys_normal.y == pytest.approx(terrain_normal.y, abs=tol)
-    assert csys_normal.z == pytest.approx(terrain_normal.z, abs=tol)
+    assert np.allclose(csys_normal, terrain_normal)

@@ -47,8 +47,19 @@ using namespace chrono;
 				return r;
 			}
 
-// NumPy integration: single-call conversion to numpy array
 #ifdef CHRONO_PYTHON_NUMPY
+			// Numpy integration: constructor from numpy array
+			ChMatrix33(double* a, int rows, int cols) {
+				auto* m = new chrono::ChMatrix33<double>();
+
+				for (int i = 0; i < rows; i++) {
+					for (int j = 0; j < cols; j++) {
+						(*m)(i, j) = a[i*cols + j];
+					}
+				}
+				return m;
+  			}
+  			// NumPy integration: single-call conversion to numpy array
 			PyObject* to_numpy() {
 				npy_intp dims[2] = {3, 3};
 				PyObject* array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);

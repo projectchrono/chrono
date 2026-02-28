@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import pychrono as chrono
 import pychrono.fsi as fsi
+import time
 
 render = True
 verbose = True
@@ -19,12 +20,12 @@ bzDim = 0.2
 t_start = 1.0
 dt = 2e-3
 # num_steps = 500
-num_steps = 10 # Setting to 10 temporarily until feature/numpy is merged. Otherwise the test takes too long to run with 500 steps.
+num_steps = 500
 force = 0.05
 initial_spacing = 0.01
 
 # Analytical solution for the unsteady plane Poiseuille flow (flow between two parallel plates).
-def PoiseuilleAnalytical(Z, H, time, sysSPH):
+def PoiseuilleAnalytical(Z, H, ctime, sysSPH):
     nu = sysSPH.GetViscosity() / sysSPH.GetDensity()
     F = sysSPH.GetBodyForce().x
     
@@ -40,7 +41,7 @@ def PoiseuilleAnalytical(Z, H, time, sysSPH):
         term_val = (2 * n + 1)
         v -= (4.0 * F * (H**2) / (nu * (np.pi**3) * (term_val**3)) *
               np.sin(np.pi * Z * term_val / H) *
-              np.exp(-(term_val**2) * (np.pi**2) * nu * time / (H**2)))
+              np.exp(-(term_val**2) * (np.pi**2) * nu * ctime / (H**2)))
     return v
 
 # Callback for setting initial SPH particle velocity
@@ -132,20 +133,17 @@ def test_fsi_poiseuille_flow():
     timer.start()
     for step in range(num_steps):
         fsiP.DoStepDynamics(dt)
-        print(step, num_steps)
         current_time += dt
 
-        # Copy data from device to host
-        pos = sysSPH.GetParticlePositions()
-        vel = sysSPH.GetParticleVelocities()
-        dpv = sysSPH.GetParticleFluidProperties()
+        pos = sysSPH.GetParticlePositionsNumpy()
+        vel = sysSPH.GetParticleVelocitiesNumpy()
+        dpv = sysSPH.GetParticleFluidPropertiesNumpy()
 
-        # Extract information in arrays
-        for i in range(num_particles):
-            v[i] = vel[i].x
-            va[i] = PoiseuilleAnalytical(pos[i].z, bzDim, current_time, sysSPH)
-            d[i] = dpv[i].x
-            p[i] = dpv[i].y
+        va[:num_particles] = PoiseuilleAnalytical(pos[:num_particles, 2], bzDim, current_time, sysSPH)
+        
+        v = vel[:num_particles, 0]
+        d = dpv[:num_particles, 0]
+        p = dpv[:num_particles, 1]
         
         v_max = np.max(v)
         v_min = np.min(v)

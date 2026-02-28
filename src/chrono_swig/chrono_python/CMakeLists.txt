@@ -93,6 +93,10 @@ endif()
 # Set SWIG flags for optional modules
 #-----------------------------------------------------------------------------
 
+if(Python3_NumPy_FOUND)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PYTHON_NUMPY")
+endif()
+
 if(CH_ENABLE_MODULE_VSG)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
 endif()
