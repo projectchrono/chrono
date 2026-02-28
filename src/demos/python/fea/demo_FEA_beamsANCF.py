@@ -131,7 +131,7 @@ integrator.SetAlpha(-0.2)
 integrator.SetMaxIters(100)
 integrator.SetAbsTolerances(1e-5)
 integrator.SetVerbose(False)
-integrator.SetModifiedNewton(True)
+integrator.SetJacobianUpdateMethod(chrono.ChTimestepperImplicit.JacobianUpdate_EVERY_STEP);
 sys.SetTimestepper(integrator)
 
 # Mesh properties

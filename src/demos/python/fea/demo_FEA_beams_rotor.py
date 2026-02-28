@@ -146,7 +146,7 @@ class StaticsIterationCallback (chrono.ChStaticNonLinearRheonomicAnalysis_Iterat
         self.nodes = nodes
         self.rad_s = rad_s
 
-    def OnIterationBegin(self, load_scaling, iteration_n, analysis):
+    def OnIterationBegin(self, iteration_n, analysis):
         for i in range(len(self.nodes)):
             pos = self.nodes[i].GetPos()
             self.nodes[i].SetPosDt(chrono.ChVector3d(-pos.y * self.rad_s, 0, 0))
