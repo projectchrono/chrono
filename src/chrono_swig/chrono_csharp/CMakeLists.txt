@@ -751,10 +751,6 @@ install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/sensor/
         FILES_MATCHING PATTERN "*.cs")
 endif()
 
-install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/fea/
-        DESTINATION include/chrono_csharp
-        FILES_MATCHING PATTERN "*.cs")
-
 install(DIRECTORY ${CHRONO_SWIG_OUTDIR}/robot/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")

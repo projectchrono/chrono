@@ -1,6 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
 using namespace chrono;
@@ -19,5 +20,6 @@ using namespace chrono;
 #endif             // --------------------------------------------------------------------- CSHARP
 
 /* Parse the header file to generate wrappers */
+%include "../../../chrono/core/ChFrame.h"
 %include "../../../chrono/physics/ChBodyAuxRef.h"    
 

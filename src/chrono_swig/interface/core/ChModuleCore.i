@@ -12,13 +12,6 @@
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
-
-#ifdef SWIGCSHARP
-
-%include <swiginterface.i>
-
-#endif
-
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"
 
@@ -390,7 +383,7 @@ inline const char* ChUtils_GetFilename() {
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "../../../chrono/physics/ChIndexedNodes.h"
-%include "ChNodeBase.i"
+%include "../../../chrono/physics/ChNodeBase.h"
 %include "ChNodeXYZ.i"
 %include "ChBodyFrame.i"
 %include "ChMarker.i"
