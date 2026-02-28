@@ -86,13 +86,12 @@
 
 // This because constants do not work well, so implement them in script-side
 
+#ifdef CHRONO_PYTHON_NUMPY
 %pythoncode %{
 	def _chvector3_array(self, dtype=None):
 		import numpy as np
-		if hasattr(self, 'to_numpy'):
-			a = self.to_numpy()
-			return np.asarray(a, dtype=dtype) if dtype is not None else a
-		return np.array([self.x(), self.y(), self.z()], dtype=dtype)
+		a = self.to_numpy()
+		return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 	ChVector3d.__array__ = _chvector3_array
 
@@ -102,6 +101,7 @@
 	VECT_Z = ChVector3d(0,0,1)
 
 %}
+#endif
 
 #endif             // --------------------------------------------------------------------- PYTHON
 

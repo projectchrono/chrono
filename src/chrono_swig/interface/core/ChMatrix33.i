@@ -150,15 +150,14 @@ def GetMatr(self, ):
 setattr(ChMatrix33d, "SetMatr", SetMatr)
 setattr(ChMatrix33d, "GetMatr", GetMatr)
 
+#ifdef CHRONO_PYTHON_NUMPY
 def _matr33_array(self, dtype=None):
 	import numpy as np
-	if hasattr(self, 'to_numpy'):
-		a = self.to_numpy()
-		return np.asarray(a, dtype=dtype) if dtype is not None else a
-	return np.array([[self[i, j] for j in range(3)] for i in range(3)], dtype=dtype)
+	a = self.to_numpy()
+	return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 setattr(ChMatrix33d, "__array__", _matr33_array)
-
+#endif
 %}
 
 #endif             // --------------------------------------------------------------------- PYTHON

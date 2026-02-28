@@ -98,6 +98,7 @@
 
 // This because constants do not work well, so implement them in script-side
 
+#ifdef CHRONO_PYTHON_NUMPY
 %pythoncode %{
 
 	QNULL  = ChQuaterniond(0,0,0,0)
@@ -105,13 +106,12 @@
 
 	def _chquat_array(self, dtype=None):
 		import numpy as np
-		if hasattr(self, 'to_numpy'):
-			a = self.to_numpy()
-			return np.asarray(a, dtype=dtype) if dtype is not None else a
-		return np.array([self.e0(), self.e1(), self.e2(), self.e3()], dtype=dtype)
+		a = self.to_numpy()
+		return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 	ChQuaterniond.__array__ = _chquat_array
 
 %}
+#endif
 
 #endif             // --------------------------------------------------------------------- PYTHON

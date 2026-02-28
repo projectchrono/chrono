@@ -482,23 +482,20 @@ def __matr_getitem(self,index):
 setattr(ChMatrixDynamicd, "__getitem__", __matr_getitem)
 setattr(ChMatrixDynamicd, "__setitem__", __matr_setitem)
 
+#ifdef CHRONO_PYTHON_NUMPY
 def __matrdyn_array__(self, dtype=None):
     import numpy as np
-    if hasattr(self, 'to_numpy'):
-        a = self.to_numpy()
-        return np.asarray(a, dtype=dtype) if dtype is not None else a
-    r, c = self.GetRows(), self.GetColumns()
-    return np.array([[self.GetItem(i, j) for j in range(c)] for i in range(r)], dtype=dtype)
+    a = self.to_numpy()
+    return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 def __matr66_array__(self, dtype=None):
     import numpy as np
-    if hasattr(self, 'to_numpy'):
-        a = self.to_numpy()
-        return np.asarray(a, dtype=dtype) if dtype is not None else a
-    return np.array([[self.GetItem(i, j) for j in range(6)] for i in range(6)], dtype=dtype)
+    a = self.to_numpy()
+    return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 setattr(ChMatrixDynamicd, "__array__", __matrdyn_array__)
 setattr(ChMatrix66d, "__array__", __matr66_array__)
+#endif
 %}
 
 #endif             // --------------------------------------------------------------------- PYTHON
