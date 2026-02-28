@@ -478,12 +478,6 @@ setattr(ChMatrixDynamicd, "__array__", __matrdyn_array__)
 setattr(ChMatrix66d, "__array__", __matr66_array__)
 %}
 
-#ifdef CHRONO_PYTHON_NUMPY
-%init %{
-	import_array();
-%}
-#endif
-
 #endif             // --------------------------------------------------------------------- PYTHON
 
 %ignore chrono::ChMatrixDynamic;

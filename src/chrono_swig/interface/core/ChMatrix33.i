@@ -150,10 +150,4 @@ setattr(ChMatrix33d, "__array__", _matr33_array)
 
 %}
 
-#ifdef CHRONO_PYTHON_NUMPY
-%init %{
-	import_array();
-%}
-#endif
-
 #endif             // --------------------------------------------------------------------- PYTHON

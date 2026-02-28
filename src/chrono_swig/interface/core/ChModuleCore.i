@@ -130,6 +130,14 @@ inline const char* ChUtils_GetFilename() {
 %include "typemaps.i"
 %include "cpointer.i"
 
+#ifdef SWIGPYTHON
+#ifdef CHRONO_PYTHON_NUMPY
+%init %{
+    import_array();
+%}
+#endif
+#endif
+
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);

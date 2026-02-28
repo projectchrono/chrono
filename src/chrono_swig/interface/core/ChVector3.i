@@ -103,12 +103,6 @@
 
 %}
 
-#ifdef CHRONO_PYTHON_NUMPY
-%init %{
-	import_array();
-%}
-#endif
-
 #endif             // --------------------------------------------------------------------- PYTHON
 
 // Include global functions not directly accessible because they're defined outside the ChVector3 Class
