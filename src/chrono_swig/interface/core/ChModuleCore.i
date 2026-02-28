@@ -132,7 +132,7 @@ inline const char* ChUtils_GetFilename() {
 %include "python/cwstring.i"
 %include "cstring.i"
 #ifdef CHRONO_PYTHON_NUMPY
-%include <numpy/numpy.i>
+%include "../numpy.i"
 #endif
 #endif              // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
