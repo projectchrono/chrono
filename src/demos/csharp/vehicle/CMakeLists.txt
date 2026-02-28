@@ -44,6 +44,7 @@ endif()
 
 set(MODULE_LIST)
 list(APPEND MODULE_LIST "core")
+list(APPEND MODULE_LIST "fea")
 list(APPEND MODULE_LIST "vehicle")
 if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND MODULE_LIST "irrlicht")

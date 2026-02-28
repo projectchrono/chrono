@@ -255,6 +255,7 @@ if(CH_ENABLE_MODULE_CSHARP)
                  -DCH_USE_CSHARP_WRAPPER:BOOL=${CH_USE_CSHARP_WRAPPER}
              COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/demos_csharp --config $<CONFIG>)
        add_dependencies(Csharp_demos Chrono_csharp_core)
+       add_dependencies(Csharp_demos Chrono_csharp_fea)
        add_dependencies(Csharp_demos Chrono_csharp_robot)
        if(CH_USE_CSHARP_WRAPPER)
           add_dependencies(Csharp_demos Chrono_csharp_wrapper)

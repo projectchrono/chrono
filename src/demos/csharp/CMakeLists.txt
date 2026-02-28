@@ -44,6 +44,24 @@ function(CollectCSharpFiles out_list module_list)
       list(APPEND tmp_list "${CS}")
     endforeach() 
   endif()
+
+  # FEA module
+  list (FIND module_list "fea" index)
+  if (${index} GREATER -1)
+    set(Chrono_CSHARP_FEA_DIR "${PROJECT_BINARY_DIR}/../chrono_csharp/fea")
+    file(GLOB Chrono_CSHARP_FEA_SOURCES
+         LIST_DIRECTORIES false
+         RELATIVE "${Chrono_CSHARP_FEA_DIR}"
+         CONFIGURE_DEPENDS
+         "${Chrono_CSHARP_FEA_DIR}/*.cs")
+    FindDuplicates(Chrono_CSHARP_FEA_DUPLICATES "${tmp_list}"
+                                               "${Chrono_CSHARP_FEA_SOURCES}")
+    list(REMOVE_ITEM Chrono_CSHARP_FEA_SOURCES ${Chrono_CSHARP_FEA_DUPLICATES})
+    foreach(CS ${Chrono_CSHARP_FEA_SOURCES})
+      list(APPEND file_list "${Chrono_CSHARP_FEA_DIR}/${CS}")
+      list(APPEND tmp_list "${CS}")
+    endforeach()
+  endif()
   
   # Irrlict module
   list (FIND module_list "irrlicht" index)

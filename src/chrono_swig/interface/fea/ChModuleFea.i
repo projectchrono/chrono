@@ -127,6 +127,7 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChContactTriangleXYZRot::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChElementShellBST::ComputeInternalJacobians;
 %ignore chrono::fea::ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix;
+%ignore chrono::fea::ChElementBeamTaperedTimoshenko::ShapeFunctionsTimoshenko; // SWIG do not support tuple
 %ignore chrono::fea::ChElementBeamTaperedTimoshenko::GetKRMmatricesLocal;
 
 // Include other .i configuration files for SWIG. 
@@ -464,7 +465,7 @@ using namespace chrono::fea;
 %template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
 %import "../../../chrono/fea/ChMeshSurface.h" // should be already provided by ChModuleCore
-%include "../../../chrono/fea/ChMesh.h"
+%include "ChMesh.i"
 %include "../../../chrono/fea/ChLinkNodeSlopeFrame.h"
 %include "../../../chrono/fea/ChLinkNodeFrame.h"
 %include "../../../chrono/fea/ChLinkNodeNode.h"
