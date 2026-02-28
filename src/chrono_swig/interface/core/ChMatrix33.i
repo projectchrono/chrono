@@ -66,7 +66,7 @@ using namespace chrono;
 				if (!array) return NULL;
 				double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
 				const double* src = $self->data();
-				for (int i = 0; i < 9; i++) dst[i] = src[i];
+				std::memcpy(dst, src, 9 * sizeof(double));
 				return array;
 			}
 #endif

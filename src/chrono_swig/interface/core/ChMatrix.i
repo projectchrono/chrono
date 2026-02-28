@@ -349,7 +349,7 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 			if (!array) return NULL;
 			double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
 			const double* src = $self->data();
-			for (int i = 0; i < rows * cols; i++) dst[i] = src[i];
+            std::memcpy(dst, src, (rows * cols) * sizeof(double));
 			return array;
 		}
 #endif
@@ -415,7 +415,7 @@ namespace chrono {
 			if (!array) return NULL;
 			double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
 			const double* src = $self->data();
-			for (int i = 0; i < 36; i++) dst[i] = src[i];
+            std::memcpy(dst, src, 36 * sizeof(double));
 			return array;
 		}
 #endif

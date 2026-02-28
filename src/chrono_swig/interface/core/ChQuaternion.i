@@ -86,10 +86,7 @@
 			if (!array) return NULL;
 			double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
 			const double* src = $self->data();
-			dst[0] = src[0];
-			dst[1] = src[1];
-			dst[2] = src[2];
-			dst[3] = src[3];
+			std::memcpy(dst, src, 4 * sizeof(double));
 			return array;
 		}
 #endif
