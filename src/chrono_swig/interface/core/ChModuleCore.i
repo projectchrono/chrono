@@ -60,8 +60,6 @@
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualSystem.h"
 
-#include "chrono/fea/ChMesh.h"
-
 
 #include "chrono/collision/ChCollisionShape.h"
 #include "chrono/collision/ChCollisionShapes.h"
@@ -243,8 +241,6 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
 
-%shared_ptr(chrono::fea::ChMesh)
-
 %shared_ptr(chrono::ChCollisionShape)
 %shared_ptr(chrono::ChCollisionModel)
 
@@ -369,9 +365,6 @@ inline const char* ChUtils_GetFilename() {
 
 // functions/   classes
 %include "ChFunction.i"
-
-%include "../../../chrono/fea/ChMesh.h"
-
 
 // assets
 %include "ChColor.i"
