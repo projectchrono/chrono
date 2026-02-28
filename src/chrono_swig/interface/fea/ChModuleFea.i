@@ -22,6 +22,12 @@
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
+#ifdef SWIGCSHARP
+
+%include <swiginterface.i>
+
+#endif
+
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"
 
@@ -173,7 +179,6 @@ using namespace chrono::fea;
 
 //from core module:
 %shared_ptr(chrono::ChFunction)
-%shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChPhysicsItem)
@@ -233,12 +238,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChInertiaCosseratAdvanced)
 %shared_ptr(chrono::fea::ChInertiaCosseratMassref)
 %shared_ptr(chrono::fea::ChMaterialBeamANCF)
-%shared_ptr(chrono::fea::ChElementBeam)
-%shared_ptr(chrono::fea::ChElementBeamEuler)
-%shared_ptr(chrono::fea::ChElementBeamANCF_3243)
-%shared_ptr(chrono::fea::ChElementBeamANCF_3333)
-%shared_ptr(chrono::fea::ChElementBeamIGA)
-%shared_ptr(chrono::fea::ChElementBeamTaperedTimoshenko)
 %shared_ptr(chrono::fea::ChContinuumMaterial)
 %shared_ptr(chrono::fea::ChContinuumElastic)
 //%shared_ptr(chrono::fea::ChContinuumElastoplastic)
@@ -251,10 +250,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChContinuumPoisson3D)
 %shared_ptr(chrono::fea::ChContinuumElectrostatics)
 %shared_ptr(chrono::fea::ChContinuumThermal)
-%shared_ptr(chrono::fea::ChElementBase)
-%shared_ptr(chrono::fea::ChElementGeneric)
-%shared_ptr(chrono::fea::ChElementSpring)
-%shared_ptr(chrono::fea::ChElementBar)
+
 %shared_ptr(chrono::fea::ChElementCorotational)
 %shared_ptr(chrono::fea::ChElementTetrahedron)
 %shared_ptr(chrono::fea::ChElementTetraCorot_4)
@@ -365,6 +361,7 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTensors.i"
@@ -379,9 +376,11 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoadable.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoader.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoad.i"
-%import(module = "pychrono.core")  "../../../chrono/physics/ChNodeBase.h"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChNodeBase.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChNodeXYZ.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactContainer.i"
+
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoadable.i"
 
 //  core/  classes
 %include "../../../chrono/physics/ChPhysicsItem.h"
@@ -392,22 +391,8 @@ using namespace chrono::fea;
 %include "../../../chrono/physics/ChContactable.h"  
 
 %include "../../../chrono/fea/ChContinuumMaterial.h"
-// TODO: if eigen::ref can be wrapped, unignore these,
-%ignore chrono::fea::ChNodeFEAbase::ComputeKRMmatricesGlobal;
-%include "../../../chrono/fea/ChNodeFEAbase.h"
-%include "../../../chrono/fea/ChNodeFEAxyz.h"
-%include "../../../chrono/fea/ChNodeFEAxyzP.h"
-%include "../../../chrono/fea/ChNodeFEAxyzD.h"
-%include "../../../chrono/fea/ChNodeFEAxyzDD.h"
-%include "../../../chrono/fea/ChNodeFEAxyzDDD.h"
-%include "../../../chrono/fea/ChNodeFEAxyzrot.h"
-// TODO: if eigen::ref can be wrapped, unignore these
-%ignore chrono::fea::ChElementBase::ComputeKRMmatricesGlobal;
-%ignore chrono::fea::ChElementBase::ComputeMmatrixGlobal;
-%include "../../../chrono/fea/ChElementBase.h"
-%include "../../../chrono/fea/ChElementGeneric.h"
-%include "../../../chrono/fea/ChElementBar.h"
-%include "../../../chrono/fea/ChElementSpring.h"
+%include "ChNodeFEAbase.i"
+%include "ChElementBase.i"
 %include "../../../chrono/fea/ChElementCorotational.h"
 %include "../../../chrono/fea/ChBeamSectionShape.h"
 %include "../../../chrono/fea/ChBeamSection.h"
@@ -416,13 +401,7 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChBeamSectionCable.h"
 %include "../../../chrono/fea/ChBeamSectionTaperedTimoshenko.h"
 %include "../../../chrono/fea/ChMaterialBeamANCF.h"
-%include "../../../chrono/fea/ChElementBeam.h"
-%include "../../../chrono/fea/ChElementBeamEuler.h"
-%include "../../../chrono/fea/ChElementBeamTaperedTimoshenko.h"
-%feature("notabstract") chrono::fea::ChElementBeamANCF_3243;
-%include "../../../chrono/fea/ChElementBeamANCF_3243.h"
-%include "../../../chrono/fea/ChElementBeamANCF_3333.h"
-%include "../../../chrono/fea/ChElementBeamIGA.h"
+%include "ChElementBeam.i"
 %include "../../../chrono/fea/ChContinuumPoisson3D.h"
 %include "../../../chrono/fea/ChContinuumElectrostatics.h"
 %include "../../../chrono/fea/ChContinuumThermal.h"
@@ -464,7 +443,6 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChContactSurfaceNodeCloud.h"
 %template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
-%import "../../../chrono/fea/ChMeshSurface.h" // should be already provided by ChModuleCore
 %include "ChMesh.i"
 %include "../../../chrono/fea/ChLinkNodeSlopeFrame.h"
 %include "../../../chrono/fea/ChLinkNodeFrame.h"

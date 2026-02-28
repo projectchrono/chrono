@@ -5,6 +5,16 @@
 
 %}
 
+#ifdef SWIGCSHARP
+
+// %interface_impl(chrono::ChLoadable);
+%ignore chrono::ChLoadable;
+%interface_impl(chrono::ChLoadableU);
+%interface_impl(chrono::ChLoadableUV);
+%interface_impl(chrono::ChLoadableUVW);
+
+#endif
+
 %feature("director") chrono::ChLoadable;
 %feature("director") chrono::ChLoadableU;
 %feature("director") chrono::ChLoadableUV;
