@@ -93,6 +93,10 @@ endif()
 # Set SWIG flags for optional modules
 #-----------------------------------------------------------------------------
 
+if(Python3_NumPy_FOUND)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PYTHON_NUMPY")
+endif()
+
 if(CH_ENABLE_MODULE_VSG)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
 endif()
@@ -215,6 +219,13 @@ endif()
 
 swig_add_library(${CHPY_CORE} LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
 target_link_libraries(${CHPY_CORE} PRIVATE Python3::Python Chrono_core)
+
+# Numpy: enables to_numpy() and __array__ 
+if (Python3_NumPy_FOUND)
+  target_compile_definitions(${CHPY_CORE} PRIVATE CHRONO_PYTHON_NUMPY)
+  target_include_directories(${CHPY_CORE} PRIVATE ${Python3_NumPy_INCLUDE_DIRS})
+  target_link_libraries(${CHPY_CORE} PRIVATE Python3::NumPy)
+endif()
 
 # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -527,6 +538,12 @@ if(CH_ENABLE_MODULE_FSI_SPH)
   
   swig_add_library(${CHPY_FSI} LANGUAGE python SOURCES ${CHPY_FSI_MODULE_FILE})
   target_link_libraries(${CHPY_FSI} PRIVATE Python3::Python Chrono_core  Chrono_fsi Chrono_fsisph)
+
+  if (Python3_NumPy_FOUND)
+    target_compile_definitions(${CHPY_FSI} PRIVATE CHRONO_PYTHON_NUMPY)
+    target_include_directories(${CHPY_FSI} PRIVATE ${Python3_NumPy_INCLUDE_DIRS})
+    target_link_libraries(${CHPY_FSI} PRIVATE Python3::NumPy)
+  endif()
   
   if (CH_ENABLE_MODULE_VSG)
     target_link_libraries(${CHPY_FSI} PRIVATE Chrono_vsg Chrono_fsisph_vsg)
@@ -932,77 +949,81 @@ endif()
 #-----------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_SENSOR)
-  if(Python3_NumPy_FOUND)
-    message(STATUS "Add python SENSOR module")
+  message(STATUS "Add python SENSOR module")
 
-    # Interface files
-    set(CHPY_SENSOR_MODULE_FILE ChModuleSensor_python.i)
+  set(CHPY_SENSOR sensor)
 
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
-    endif()
-    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
-    if(MSVC)
-      set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
-    endif()
+  # Interface files
+  set(CHPY_SENSOR_MODULE_FILE ChModuleSensor_python.i)
 
-    swig_add_library(sensor LANGUAGE python SOURCES ${CHPY_SENSOR_MODULE_FILE})
-    target_link_libraries(sensor PRIVATE Python3::Python Python3::NumPy Chrono_core Chrono_sensor)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
-    # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    elseif(MSVC)
-      target_compile_options(sensor PRIVATE "/wd4189")  # local variable is initialized but not referenced
-      target_compile_options(sensor PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
-      target_compile_options(sensor PRIVATE "/wd4456")  # declaration hides previous local declaration
-      target_compile_options(sensor PRIVATE "/wd4702")  # unreachable code
-      target_compile_options(sensor PRIVATE "/wd4706")  # assignment within conditional expression
-    else()
-      target_compile_options(sensor PRIVATE "-Wno-unused-variable")
-    endif()
+  swig_add_library(${CHPY_SENSOR} LANGUAGE python SOURCES ${CHPY_SENSOR_MODULE_FILE})
+  target_link_libraries(${CHPY_SENSOR} PRIVATE Python3::Python Chrono_core Chrono_sensor)
 
-    if (CH_USE_SENSOR_OPTIX)
-      target_compile_definitions(sensor PRIVATE "CHRONO_HAS_OPTIX")
-    endif()
+  if (Python3_NumPy_FOUND)
+    target_compile_definitions(${CHPY_SENSOR} PRIVATE CHRONO_PYTHON_NUMPY)
+    target_include_directories(${CHPY_SENSOR} PRIVATE ${Python3_NumPy_INCLUDE_DIRS})
+    target_link_libraries(${CHPY_SENSOR} PRIVATE Python3::NumPy)
+  endif()
 
-    if(APPLE)
-      # See https://github.com/swig/swig/issues/3278
-      target_link_options(sensor PRIVATE -flat_namespace -undefined dynamic_lookup)
-    endif()
 
-    # Ensure that the PYD library file is generated in the bin/ directory.
-    set_target_properties(sensor PROPERTIES
-            PROJECT_LABEL "Chrono_python_sensor"
-            LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
-            SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
-            )
-  
-    add_dependencies(sensor Chrono_core)
-    add_dependencies(sensor Chrono_sensor)
-    add_dependencies(sensor core)
-  
-    # Copy PY file in a package dir
-    set(CHPY_SENSOR_PY_FILE "${CMAKE_SWIG_OUTDIR}/sensor.py")
-    add_custom_command(TARGET sensor
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_SENSOR_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
-
-    # Install .pyd binary module (.so on linux)
-    install(TARGETS sensor
-            EXPORT ChronoTargets
-            RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
-            LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
-            ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
-    # Install .py module wrapper
-    install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
-
-    if (DBG_SCRIPT)
-      message("Module name:     sensor")
-      message("PY file:         ${CHPY_SENSOR_PY_FILE}")
-    endif()
-
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(${CHPY_SENSOR} PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(${CHPY_SENSOR} PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(${CHPY_SENSOR} PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(${CHPY_SENSOR} PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(${CHPY_SENSOR} PRIVATE "/wd4706")  # assignment within conditional expression
   else()
-    message(WARNING "NumPy cannot be found. PyChrono::Sensor module will not be built.")
+    target_compile_options(${CHPY_SENSOR} PRIVATE "-Wno-unused-variable")
+  endif()
+
+  if (CH_USE_SENSOR_OPTIX)
+    target_compile_definitions(${CHPY_SENSOR} PRIVATE "CHRONO_HAS_OPTIX")
+  endif()
+
+  if(APPLE)
+    # See https://github.com/swig/swig/issues/3278
+    target_link_options(${CHPY_SENSOR} PRIVATE -flat_namespace -undefined dynamic_lookup)
+  endif()
+
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(${CHPY_SENSOR} PROPERTIES
+          PROJECT_LABEL "Chrono_python_sensor"
+          LIBRARY_OUTPUT_DIRECTORY "${CHPY_LIBRARY_OUTPUT_DIRECTORY}"
+          SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
+          )
+
+  add_dependencies(${CHPY_SENSOR} Chrono_core)
+  add_dependencies(${CHPY_SENSOR} Chrono_sensor)
+  add_dependencies(${CHPY_SENSOR} core)
+
+  # Copy PY file in a package dir
+  set(CHPY_SENSOR_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_SENSOR}.py")
+  add_custom_command(TARGET ${CHPY_SENSOR}
+          POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_SENSOR_PY_FILE} ${CHPY_LIBRARY_OUTPUT_DIRECTORY})
+
+  # Install .pyd binary module (.so on linux)
+  install(TARGETS ${CHPY_SENSOR}
+          EXPORT ChronoTargets
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+  # Install .py module wrapper
+  install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CHPY_SENSOR}")
+    message("PY file:         ${CHPY_SENSOR_PY_FILE}")
   endif()
 endif()
 

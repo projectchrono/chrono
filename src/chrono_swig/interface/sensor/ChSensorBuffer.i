@@ -78,7 +78,45 @@ using namespace chrono::sensor;
               return !($self->Buffer==NULL);
           }
   };
+
+  %extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>{
+      public:
+      bool HasData(){
+          return !($self->Buffer==NULL);
+      }
+  }
+
+  %extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>{
+      public:
+      bool HasData(){
+          return !($self->Buffer==NULL);
+      }
+  }
+
+  %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>> {
+    public:
+    bool HasData() {
+      return !($self->Buffer==NULL);
+    }
+  };
+
+  %extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>> {
+  public:
+  bool HasData() {
+      return !($self->Buffer==NULL);
+  }
+  };
   
+  
+  %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDepth[]>> {
+  public:
+  bool HasData() {
+      return !($self->Buffer==NULL);
+  }
+  };
+
+
+#ifdef CHRONO_PYTHON_NUMPY
   %extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>> {
   public:
   void GetDIData(float** vec, int* h, int* w, int* c) {
@@ -88,27 +126,13 @@ using namespace chrono::sensor;
       *vec = reinterpret_cast<float*>($self->Buffer.get());
   }
   };
-  
-  %extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>{
-      public:
-      bool HasData(){
-          return !($self->Buffer==NULL);
-      }
-  }
-  
+
   %extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>{
       void GetRadarData(float** vec, int* h, int* w, int* c){
           *h = $self->Height;
           *w = $self->Width;
           *c = sizeof(RadarReturn)/sizeof(float);
           *vec = reinterpret_cast<float*>($self->Buffer.get());
-      }
-  }
-  
-  %extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>{
-      public:
-      bool HasData(){
-          return !($self->Buffer==NULL);
       }
   }
   
@@ -120,14 +144,7 @@ using namespace chrono::sensor;
           *vec = reinterpret_cast<float*>($self->Buffer.get());
       }
   }
-  
-  %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>> {
-  public:
-  bool HasData() {
-      return !($self->Buffer==NULL);
-  }
-  };
-  
+
   %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>> {
   public:
   void GetRGBA8Data(uint8_t** vec, int* h, int* w, int* c) {
@@ -137,14 +154,7 @@ using namespace chrono::sensor;
       *vec = reinterpret_cast<uint8_t*>($self->Buffer.get());
   }
   };
-  
-  %extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>> {
-  public:
-  bool HasData() {
-      return !($self->Buffer==NULL);
-  }
-  };
-  
+
   %extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>> {
   public:
   void GetXYZIData(float** vec, int* h, int* w, int* c) {
@@ -154,14 +164,7 @@ using namespace chrono::sensor;
       *vec = reinterpret_cast<float*>($self->Buffer.get());
   }
   };
-  
-  %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDepth[]>> {
-  public:
-  bool HasData() {
-      return !($self->Buffer==NULL);
-  }
-  };
-  
+
   %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDepth[]>> {
   public:
   void GetDepthData(float** vec, int* h, int* w, int* c) {
@@ -171,6 +174,8 @@ using namespace chrono::sensor;
       *vec = reinterpret_cast<float*>($self->Buffer.get());
   }
   };
+
+#endif  
 
 #endif
 
@@ -198,6 +203,24 @@ bool HasData() {
 }
 };
 
+////    GPSData Extension
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>> {
+public:
+bool HasData() {
+    return !($self->Buffer==NULL);
+}
+};
+
+////    char8 Extension
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<char[]>> {
+        public:
+        bool HasData() {
+            return !($self->Buffer==NULL);
+        }
+};
+
+#ifdef CHRONO_PYTHON_NUMPY
+
 %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>> {
 public:
 void GetAccelData(double** vec, int* n) {
@@ -222,13 +245,6 @@ void GetMagnetData(double** vec, int* n) {
 }
 };
 
-////    GPSData Extension
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>> {
-public:
-bool HasData() {
-    return !($self->Buffer==NULL);
-}
-};
 
 %extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>> {
 public:
@@ -236,14 +252,6 @@ void GetGPSData(double** vec, int* n) {
     *n = sizeof(GPSData)/sizeof(double);
     *vec = reinterpret_cast<double*>($self->Buffer.get());
 }
-};
-
-////    char8 Extension
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<char[]>> {
-        public:
-        bool HasData() {
-            return !($self->Buffer==NULL);
-        }
 };
 
 %extend chrono::sensor::SensorBufferT<std::shared_ptr<char[]>> {
@@ -255,3 +263,5 @@ void GetGPSData(double** vec, int* n) {
             *vec = reinterpret_cast<uint8_t*>($self->Buffer.get());
         }
 };
+
+#endif

@@ -4,6 +4,10 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChRotation.h"
 #include <Eigen/Core>
+
+#ifdef CHRONO_PYTHON_NUMPY
+#include <numpy/arrayobject.h>
+#endif
 %}
  
  %import "ChMatrix.i"
@@ -73,7 +77,20 @@
 					{ 
 						return $self->operator^(other);
 					}
-		};
+
+// NumPy integration: single-call conversion to numpy array
+#ifdef CHRONO_PYTHON_NUMPY
+		PyObject* to_numpy() {
+			npy_intp dims[1] = {4};
+			PyObject* array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+			if (!array) return NULL;
+			double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
+			const double* src = $self->data();
+			std::memcpy(dst, src, 4 * sizeof(double));
+			return array;
+		}
+#endif
+};
 
 
 // This because constants do not work well, so implement them in script-side
@@ -82,6 +99,16 @@
 
 	QNULL  = ChQuaterniond(0,0,0,0)
 	QUNIT  = ChQuaterniond(1,0,0,0)
+	
+#ifdef CHRONO_PYTHON_NUMPY
+	def _chquat_array(self, dtype=None):
+		import numpy as np
+		a = self.to_numpy()
+		return np.asarray(a, dtype=dtype) if dtype is not None else a
+
+	ChQuaterniond.__array__ = _chquat_array
+#endif
 %}
+
 
 #endif             // --------------------------------------------------------------------- PYTHON

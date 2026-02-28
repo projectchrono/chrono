@@ -119,15 +119,24 @@ using namespace chrono::sensor;
 #ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 %include "python/cwstring.i"
 %include "cstring.i"
-%include "numpy.i"
+#ifdef CHRONO_PYTHON_NUMPY
+%include "../numpy.i"
+#endif
 #endif              // --------------------------------------------------------------------- PYTHON
 %include "stdint.i"
 %include "cpointer.i"
 
 #ifdef SWIGPYTHON
+#ifdef CHRONO_PYTHON_NUMPY
 %init %{
     import_array();
 %}
+
+%apply (double** ARGOUTVIEW_ARRAY1, int *DIM1) {(double** vec, int* n)};
+%apply ( float** ARGOUTVIEW_ARRAY3, int* DIM1, int* DIM2, int* DIM3) {(float** vec, int* h, int* w, int* c)};
+%apply ( uint8_t** ARGOUTVIEW_ARRAY3, int* DIM1, int* DIM2, int* DIM3) {(uint8_t** vec, int* h, int* w, int* c)};
+
+#endif
 #endif
 
 // This is to enable references to double,int,etc. types in function parameters
@@ -136,9 +145,6 @@ using namespace chrono::sensor;
 %pointer_class(float,float_ptr);
 %pointer_class(char,char_ptr);
 
-%apply (double** ARGOUTVIEW_ARRAY1, int *DIM1) {(double** vec, int* n)};
-%apply ( float** ARGOUTVIEW_ARRAY3, int* DIM1, int* DIM2, int* DIM3) {(float** vec, int* h, int* w, int* c)};
-%apply ( uint8_t** ARGOUTVIEW_ARRAY3, int* DIM1, int* DIM2, int* DIM3) {(uint8_t** vec, int* h, int* w, int* c)};
 
 //
 // For each class, keep updated the  A, B, C sections:

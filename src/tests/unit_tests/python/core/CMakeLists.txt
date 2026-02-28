@@ -1,5 +1,7 @@
 SET(TESTS
     pyutest_CH_ChVector
+    pyutest_CH_linalg
+    pyutest_CH_numpy
 )
 
 SET(LIBS Chrono_core)
