@@ -616,17 +616,18 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   public:
-    /// Counts the number of bodies and links.
-    /// Computes the offsets of object states in the global state. Assumes that offset_x, offset_w, and offset_L are
-    /// already set as starting point for offsetting all the contained sub objects.
+    /// Count the number of bodies and links.
+    /// Compute the offsets of object states in the global state. This function assumes that offset_x, offset_w, and
+    /// offset_L are already set as starting point for offsetting all the contained sub objects.
     virtual void Setup();
 
-    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(double time, UpdateFlags update_flags);
+    /// Perform a system update (at the specified level) at the specified time.
+    void Update(double time, UpdateFlags update_flags = UpdateFlags::UPDATE_ALL);
 
-    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(UpdateFlags update_flags);
+    /// Perform a system update (at the specified level) at the current time.
+    void Update(UpdateFlags update_flags = UpdateFlags::UPDATE_ALL);
 
+    /// Force a system update.
     /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
     /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
     /// such changes are discovered automatically (addition/removal of items, input of mesh loads). For special cases,
