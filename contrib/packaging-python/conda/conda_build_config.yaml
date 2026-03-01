@@ -13,4 +13,4 @@ cuda_compiler_version: # [not osx]
   - 12.8      # [not osx]
 
 numpy:
-  - 1.26
+  - 2.4.2
