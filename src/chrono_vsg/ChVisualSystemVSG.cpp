@@ -422,7 +422,11 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 #endif
 }
 
-ChVisualSystemVSG::~ChVisualSystemVSG() {}
+ChVisualSystemVSG::~ChVisualSystemVSG() {
+    for (auto& plugin : m_plugins)
+        plugin->m_vsys = nullptr;
+    m_plugins.clear();
+}
 
 void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
     if (m_initialized) {
