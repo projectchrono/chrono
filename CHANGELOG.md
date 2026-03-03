@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] PyChrono-Numpy integration](#added-pychrono-numpy-integration)
+  - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [\[Added\] Support for output and checkpointing](#added-support-for-output-and-checkpointing)
   - [\[Added\] New Python and CSharp wrappers](#added-new-python-and-csharp-wrappers)
   - [\[Changed\] Refactor Jacobian update strategy for implicit integrators](#changed-refactor-jacobian-update-strategy-for-implicit-integrators)
@@ -124,6 +126,14 @@ Change Log
 
 # Unreleased (development branch)
 
+## [Added] PyChrono-Numpy integration
+
+**TODO**
+
+## [Added] Chrono::Sensor features and updates
+
+**TODO**
+
 ## [Added] Support for output and checkpointing
 
 A set of new classes were added to the core Chrono module to support simulation output and checkpointing. Output databases can be created in ASCII text or HDF-5 format. Currently, only the ASCII text format is supported for checkpint database files.
@@ -139,6 +149,8 @@ Additional Chrono modules were wrapped for use in Python (through PyChrono) or i
 
 - new PyChrono wrapped modules: Chrono::VSG.
 - new C# wrapped modules: Chrono::Sensor, Chrono::VSG, Chrono robot models library.
+
+**TODO**
 
 ## [Changed] Refactor Jacobian update strategy for implicit integrators
 
@@ -178,6 +190,7 @@ In particular, a so-called `analyze` phase (including a call to Chrono's sparsit
 - Chrono::VSG now requires newer versions of the VSG libraries.
   <br>
   See the Chrono::VSG [installation instructions](https://api.projectchrono.org/module_vsg_installation.html).
+- Ray-tracing sensor models in Chrono::Sensor now require OptiX 9.0 or newer (and corresponding NVIDIA driver versions).
 - Chrono::Cascade was updated to use OCCT version 7.9.2
   <br>
   Older versions are **not** supported anymore.
@@ -206,11 +219,10 @@ The Chrono::FSI module was redesigned in order to:
 
 Enabling the Chrono::FSI module, now creates the generic FSI interface library, which allows coupling Chrono rigid and flexible multibody systems to an arbitrary hydrodynamics solver.
 Two separate FSI-aware fluid solver libraries can be built:
-1. Chrono::SPH, which provides SPH capabilities for modeling incompressible Navier-Stokes fluid systems, as well as homogeneized granular systems (CRM for deformable soil);
-2. Chrono::TDPF, which provides a Time-Dependent Potential Flow fluid solver.
+1. Chrono::FSI-SPH, which provides SPH capabilities for modeling incompressible Navier-Stokes fluid systems, as well as homogeneized granular systems (CRM for deformable soil);
+2. Chrono::FSI-TDPF, which provides a Time-Dependent Potential Flow fluid solver.
 
-
-**TODO**
+For details on the new code structure and the two fluid solvers, see the [documentation](https://api.projectchrono.org/manual_fsi.html) page.
 
 ## [Added] Chrono::Peridynamics module
 
@@ -226,14 +238,46 @@ This initial release of the peridyamics module offers the following types of mat
 In the future more material models might be added, for instance the implicit version of ChMatterPeriLinearElastic, the correspondence material class, fluids, plasticity etc.  
 
 
-
 ## [Added] Chrono::VSG plugins for FSI and granular dynamics visualization
 
-**TODO**
+The Chrono::VSG run-time visualization system now supports "plugins" which can be used to add domain- or simulation-specific information to the visualization and/or the GUI. 
+
+A custom visualization plugin must derive from `vsg3d::ChVisualSystemVSGPlugin` and implement any or all of the following virtual methods:
+1. `OnAttach()` which allows the plugin to perform any operations when it is attached to a VSG visual system.
+2. `OnInitialize()` which allows the plugin to perform any pre-initialization operations. This function is called before the initialization of the associated VSG visual system.
+3. `OnBindAssets()` which allows the plugin to perform any pre-binding operations. This function is called during initialization of the associated VSG visual system, after the scene was created and before binding assets for the associated VSG visual system. A plugin can create and populate its own children in the VSG scene.
+4. `OnRender()` which allows the plugin to perform any pre-rendering operations. This function is called before updating and rendering the associated VSG 
+
+The Chrono::VSG plugin mechanism is used internally for Chrono::FSI-SPH particle and marker rendering, Chrono::FSI-TDPF wave surface rendering, and for Chrono::DEM granular material rendering.
+
+For Chrono::FSI-SPH simulations, the custom VSG plugin:
+
+- renders SPH particles, boundary BCE markers, and solid BCE markers.
+- allows enabling/disabling rendering of any of the above.
+- optionally renders the computational domain boundary and (for CRM only) any user-defined active boxes.
+- displays the colormap used for color-coding SPH particles (if used). 
+
+For Chrono::FSI-TDPF simulations, the custom VSG plugin:
+
+- renders the water surface as a transparent mesh with user-specified color-coding.
+- allows enabling/disabling rendering of the water surface.
+- displays the colormap used for color-coding water surface (if used).
 
 ## [Added] New Chrono::VSG features and capabilities
 
-**TODO**
+New features in the Chrono::VSG run-time visualization system now allow to:
+
+- enable/disable rendering of physics items based on their type (bodies, links, FEA meshes, or spring-dampers).
+- display labels with the name of bodies and links
+- render the global frame, body reference and centroidal frames, as well as link frames; additionally the body center of mass can be marked with a camera-facing symbol.
+- render collision and contact information, including the collision shapes (rendered with wireframe), as well as contact normals and forces.
+
+New features in the Chrono::Vehicle custom VSG visualization allow to:
+
+- enable/disable rendering of vehicle components at the sub-system level (e.g., chassis, suspension, steering, wheels for a wheeled vehicle).
+- display tire-terrain information for handling tire models, including the conact patch frame and the normal tire-terrain force.
+
+Chrono::VSG can now use a sky box or a sky dome. When using a sky dome, if the information is provided for the current sky texture, the texture is rotated so that the position of the light source (sun) in the sky texture matches the direction of the light and hence shados (if enabled).
 
 ## [Changed] Refactoring of Chrono CMake build system
 
