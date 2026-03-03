@@ -1169,7 +1169,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
     marked_tris = new_marked_tris;
 }
 
-const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
+const std::vector<ChVector3d>& ChTriangleMeshConnected::GetFaceVertices() {
     unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
@@ -1184,7 +1184,7 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
     return m_tmp_vectors;
 }
 
-const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceNormals() {
+const std::vector<ChVector3d>& ChTriangleMeshConnected::GetFaceNormals() {
     unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
@@ -1204,7 +1204,7 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceNormals() {
     return m_tmp_vectors;
 }
 
-const std::vector<ChColor>& ChTriangleMeshConnected::getFaceColors() {
+const std::vector<ChColor>& ChTriangleMeshConnected::GetFaceColors() {
     ChColor default_color(0.4f, 0.4f, 0.4f);
     auto n_faces = m_face_v_indices.size();
 
@@ -1234,7 +1234,7 @@ const std::vector<ChColor>& ChTriangleMeshConnected::getFaceColors() {
     return m_tmp_colors;
 }
 
-const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
+const std::vector<ChVector3d>& ChTriangleMeshConnected::GetAverageNormals() {
     unsigned int n_verts = GetNumVertices();
     unsigned int n_faces = GetNumTriangles();
 

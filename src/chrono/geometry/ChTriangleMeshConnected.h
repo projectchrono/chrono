@@ -237,10 +237,10 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         std::vector<std::vector<ChVector3d>*>& aux_data_vect  ///< auxiliary buffer
     );
 
-    const std::vector<ChVector3d>& getFaceVertices();
-    const std::vector<ChVector3d>& getFaceNormals();
-    const std::vector<ChColor>& getFaceColors();
-    const std::vector<ChVector3d>& getAverageNormals();
+    const std::vector<ChVector3d>& GetFaceVertices();
+    const std::vector<ChVector3d>& GetFaceNormals();
+    const std::vector<ChColor>& GetFaceColors();
+    const std::vector<ChVector3d>& GetAverageNormals();
 
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::TRIANGLEMESH_CONNECTED; }

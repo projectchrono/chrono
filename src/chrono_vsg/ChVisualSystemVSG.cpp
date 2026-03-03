@@ -1155,7 +1155,7 @@ void ChVisualSystemVSG::Render() {
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
             const auto& new_vertices =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
+                def_mesh.mesh_soup ? def_mesh.trimesh->GetFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
             assert(def_mesh.vertices->size() == new_vertices.size());
 
             const size_t count = new_vertices.size();
@@ -1176,7 +1176,7 @@ void ChVisualSystemVSG::Render() {
 
         if (def_mesh.dynamic_normals) {
             const auto& new_normals =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceNormals() : def_mesh.trimesh->getAverageNormals();
+                def_mesh.mesh_soup ? def_mesh.trimesh->GetFaceNormals() : def_mesh.trimesh->GetAverageNormals();
             assert(def_mesh.normals->size() == new_normals.size());
 
             const size_t count = new_normals.size();
@@ -1197,7 +1197,7 @@ void ChVisualSystemVSG::Render() {
         // large vertice mesh when this loop is significant compared to the rest of the frame time
         if (def_mesh.dynamic_colors) {
             const auto& new_colors =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->GetCoordsColors();
+                def_mesh.mesh_soup ? def_mesh.trimesh->GetFaceColors() : def_mesh.trimesh->GetCoordsColors();
             assert(def_mesh.colors->size() == new_colors.size());
 
             const size_t count = new_colors.size();

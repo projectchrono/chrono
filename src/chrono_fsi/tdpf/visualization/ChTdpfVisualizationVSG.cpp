@@ -386,7 +386,7 @@ void ChTdpfVisualizationVSG::OnRender() {
     // Dynamic data transfer CPU->GPU for wave mesh
     if (m_wave_mesh.dynamic_vertices) {
         const auto& new_vertices =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceVertices() : m_wave_mesh.trimesh->GetCoordsVertices();
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceVertices() : m_wave_mesh.trimesh->GetCoordsVertices();
         assert(m_wave_mesh.vertices->size() == new_vertices.size());
 
         const size_t count = new_vertices.size();
@@ -407,7 +407,7 @@ void ChTdpfVisualizationVSG::OnRender() {
 
     if (m_wave_mesh.dynamic_normals) {
         const auto& new_normals =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceNormals() : m_wave_mesh.trimesh->getAverageNormals();
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceNormals() : m_wave_mesh.trimesh->GetAverageNormals();
         assert(m_wave_mesh.normals->size() == new_normals.size());
 
         const size_t count = new_normals.size();
@@ -426,7 +426,7 @@ void ChTdpfVisualizationVSG::OnRender() {
 
     if (m_wave_mesh.dynamic_colors) {
         const auto& new_colors =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
         assert(m_wave_mesh.colors->size() == new_colors.size());
 
         const size_t count = new_colors.size();

@@ -363,7 +363,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
     bool normals_ok = true;
     std::vector<ChVector3d> avg_normals;
     if (nvertices != normals.size()) {
-        avg_normals = mesh->getAverageNormals();
+        avg_normals = mesh->GetAverageNormals();
         normals_ok = false;
     }
     bool texcoords_ok = true;
