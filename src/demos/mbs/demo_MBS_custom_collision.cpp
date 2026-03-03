@@ -235,8 +235,6 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector3d(8, 8, -6));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(0.0, 24.0, 2.0), ChVector3d(0, 0, 0), 35, 2.2, 25.0, 40, 1024,
-                                    ChColor(0.8f, 0.8f, 1.0f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;

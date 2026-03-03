@@ -72,8 +72,6 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(0.5 * cam_pos, cam_target);
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(1.0, 25.0, -5.0), ChVector3d(0, 0, 0), 35, 0.2, 35, 35, 512,
-                                        ChColor(0.6f, 0.8f, 1.0f));
             vis_irr->EnableShadows();
 
             if (create_colorbar) {
