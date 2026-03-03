@@ -48,7 +48,6 @@ void IndustrialRobot::SetMotorsDisabled(bool disable) {
 void IndustrialRobot::SetBaseFrame(const ChFramed& base_frame) {
     for (auto& body : m_bodylist)
         body->ConcatenatePreTransformation(ChFrameMoving<>(base_frame));
-    m_sys->Update(UpdateFlags::UPDATE_ALL);
 }
 
 AssemblyAnalysis::ExitFlag IndustrialRobot::SetPoseTCP(const ChFramed& target_frame, unsigned int max_iters) {
