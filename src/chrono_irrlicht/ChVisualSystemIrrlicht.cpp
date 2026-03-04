@@ -1010,6 +1010,11 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
 
             SetVisualMaterial(mchildnode, shape);
 
+            mchildnode->setAutomaticCulling(scene::EAC_OFF);
+            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, true);
+            mchildnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
+            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
+
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
         } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
