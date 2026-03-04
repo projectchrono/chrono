@@ -159,13 +159,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Set the gravitational acceleration vector (default: [0, 0, 0]).
     void SetGravitationalAcceleration(const ChVector3d& gacc) { G_acc = gacc; }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative X direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative X direction.
     void SetGravityX() { G_acc = ChVector3d(-9.8, 0, 0); }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative Y direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative Y direction.
     void SetGravityY() { G_acc = ChVector3d(0, -9.8, 0); }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative Z direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative Z direction.
     void SetGravityZ() { G_acc = ChVector3d(0, 0, -9.8); }
 
     /// Get the gravitatoinal acceleration vector.
