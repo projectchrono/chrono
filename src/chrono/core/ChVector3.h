@@ -942,7 +942,7 @@ inline void ChVector3<Real>::GetDirectionAxesAsY(ChVector3<Real>& Vx,
         }
     }
 
-    Vy.Cross(Vz, Vx);
+    Vz.Cross(Vx, Vy);
 }
 
 template <class Real>
