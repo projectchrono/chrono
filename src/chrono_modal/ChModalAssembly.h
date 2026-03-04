@@ -114,7 +114,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         ATTACHED  ///< move follow attached frames
     };
 
-    /// Set the type of FFR(floating frame reference) to be used and
+    /// Set the type of FFR(floating frame reference) to be used, COG by default.
     void SetFFRtype(FloatingFrameType type) { m_FFR_type = type; }
 
     /// Get the type of FFR(floating frame reference) to be used.
@@ -173,7 +173,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// change modal matrix which will have better convergency rate. You can only call this function before
     /// getting internal force of elements, and set m_internal_nodes_update to be false, instead of calling
     /// UpdateInternalState in every step or NR-iteration, which will improve the simulation performance. Since the
-    /// linear assumption of the modal conflicts with corotation, it is recommended to call UpdateRotationWithModal
+    /// linear assumption of the modal conflicts with corotation, it is recommended to call UpdateRotation(q_modal)
     /// before obtaining the beam internal forces, it will improve axial load's accuracy significantly.
     void UpdateInternalStateWithStaticEquilibrium(UpdateFlags update_flags = UpdateFlags::UPDATE_ALL);
 
@@ -648,8 +648,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Psi_Cor_LambdaI;  ///< static correction mode - corresponding to internal Lagrange multipliers.
 
     std::shared_ptr<ChDirectSolverLS> m_solver_invKIIc;  /// linear solver for K_IIc^{-1}
-
-    ChVectorDynamic<> m_static_lambda_I;  ///< lambda form static equilibrium
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped():
     ChMatrixDynamic<std::complex<double>> m_modal_eigvect;  // eigenvectors
