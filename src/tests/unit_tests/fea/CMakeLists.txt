@@ -33,5 +33,5 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS Chrono_pardisomkl)
 endif()
 
-MESSAGE(STATUS "Add unit test programs for FEA module")
+message(STATUS "Add unit test programs for FEA module")
 build_utests(YES "${TESTS}" "fea" "${LIBS}")
