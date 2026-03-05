@@ -18,6 +18,7 @@
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/utils/ChBodyGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
