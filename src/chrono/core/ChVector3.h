@@ -224,7 +224,7 @@ class ChVector3 {
     void SetLength(Real s);
 
     /// Output three orthonormal vectors considering this vector along X axis.
-    /// Optionally, the \a z_sugg vector can be used to suggest the Z axis.
+    /// Optionally, the \a y_sugg vector can be used to suggest the Y axis.
     /// It is recommended to set \a y_sugg to be not parallel to this vector.
     /// The Z axis will be orthogonal to X and \a y_sugg.
     /// Rely on Gram-Schmidt orthonormalization.
@@ -242,7 +242,7 @@ class ChVector3 {
                              ChVector3<Real>& Vz,
                              ChVector3<Real> z_sugg = ChVector3<Real>(0, 0, 1)) const;
 
-    /// Output three orthonormal vectors considering this vector along Y axis.
+    /// Output three orthonormal vectors considering this vector along Z axis.
     /// Optionally, the \a x_sugg vector can be used to suggest the X axis.
     /// It is recommended to set \a x_sugg to be not parallel to this vector.
     /// Rely on Gram-Schmidt orthonormalization.
