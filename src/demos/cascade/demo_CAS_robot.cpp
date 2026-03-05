@@ -387,21 +387,18 @@ int main(int argc, char* argv[]) {
     sys.Add(mfloor);
 
     // Create a stack of boxes to be impacted
-    if (true) {
-        double brick_h = 0.3;
-        for (int ix = 0; ix < 3; ++ix)
-            for (int ib = 0; ib < 6; ++ib) {
-                std::shared_ptr<ChBodyEasyBox> cube(
-                    new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
-                cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
-                cube->SetRot(QuatFromAngleY(ib * 0.1));
-                cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom::Get()),  //
-                                                          0.5f + float(0.5 * ChRandom::Get()),  //
-                                                          0.5f + float(0.5 * ChRandom::Get())   //
-                                                          ));
-                sys.Add(cube);
-            }
-    }
+    double brick_h = 0.3;
+    for (int ix = 0; ix < 3; ++ix)
+        for (int ib = 0; ib < 6; ++ib) {
+            std::shared_ptr<ChBodyEasyBox> cube(new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
+            cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
+            cube->SetRot(QuatFromAngleY(ib * 0.1));
+            cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom::Get()),  //
+                                                      0.5f + float(0.5 * ChRandom::Get()),  //
+                                                      0.5f + float(0.5 * ChRandom::Get())   //
+                                                      ));
+            sys.Add(cube);
+        }
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;

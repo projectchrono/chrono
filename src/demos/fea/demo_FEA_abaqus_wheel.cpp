@@ -103,16 +103,14 @@ int main(int argc, char* argv[]) {
     }
 
     // Create some stones / obstacles on the ground
-    if (true) {
-        for (int i = 0; i < 150; ++i) {
-            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true, true, mysurfmaterial2);
-            ChQuaternion<> vrot;
-            vrot.SetFromAngleY(ChRandom::Get() * CH_2PI);
-            mcube->Move(ChCoordsys<>(VNULL, vrot));
-            mcube->SetPos(
-                ChVector3d((ChRandom::Get() - 0.5) * 1.4, ChRandom::Get() * 0.2 + 0.05, -ChRandom::Get() * 2.6 + 0.2));
-            sys.Add(mcube);
-        }
+    for (int i = 0; i < 150; ++i) {
+        auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true, true, mysurfmaterial2);
+        ChQuaternion<> vrot;
+        vrot.SetFromAngleY(ChRandom::Get() * CH_2PI);
+        mcube->Move(ChCoordsys<>(VNULL, vrot));
+        mcube->SetPos(
+            ChVector3d((ChRandom::Get() - 0.5) * 1.4, ChRandom::Get() * 0.2 + 0.05, -ChRandom::Get() * 2.6 + 0.2));
+        sys.Add(mcube);
     }
 
     // FINITE ELEMENT MESH
