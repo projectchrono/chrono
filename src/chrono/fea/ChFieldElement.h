@@ -82,7 +82,7 @@ public:
 
     // Compute shape function spatial derivatives dN/dX at eta parametric coordinates.
     // Write shape functions dN_j(eta)/dX_i in dNdX, a matrix with GetNumNodes() columns, and n_rows = GetSpatialDimensions().
-    // dNde will be resized if not of proper size.
+    // dNdX will be resized if not of proper size.
     // FALLBACK default implementation is dNdX = J^{-T} * dNde;  but if possible implement a more efficient ad hoc computation.
     virtual void ComputedNdX(const ChVector3d eta, ChMatrixDynamic<>& dNdX) {
         ChMatrix33d temp_Jinv;
@@ -93,11 +93,21 @@ public:
         dNdX = temp_Jinv.transpose() * temp_dNde;
     }
 
-    // Compute Jacobian J, and returns its determinant. J is square with size = GetManifoldDimensions()
+    // Compute Jacobian J = dX/dη, and returns its determinant. 
+    // J must be 3x3, for performance reason, even if it should be  GetSpatialDimensions() x GetManifoldDimensions(),
+    // so for volumes is ok, but for surfaces/lines the unused columns must be padded with auxiliary orthogonal columns.
     virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) = 0;
 
     // Compute Jacobian Jinv, and returns its determinant. Jinv is square with size = GetManifoldDimensions()
-    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) = 0;
+    // FALLBACK default implementation with numerical inverse; but if possible implement a more efficient ad hoc computation.
+    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) {
+        ChMatrix33<double> J;
+        this->ComputeJ(eta, J);
+        double mdet;
+        bool isinvertible;
+        J.computeInverseAndDetWithCheck(Jinv, mdet, isinvertible, 1e-9);
+        return mdet;
+    }
 
     // Tell the minimum required quadrature order when integrating over the element
     virtual int GetQuadratureOrder() const {  return quadrature_order; }
@@ -105,14 +115,14 @@ public:
     // Sets the quadrature order when integrating over the element
     virtual void SetQuadratureOrder(const int morder) {  quadrature_order = morder;  }
 
-    // Tell actual number of quadrature points
-    virtual int GetNumQuadraturePoints() const { return GetNumQuadraturePointsForOrder(this->quadrature_order); };
-
-    // Tell how many Gauss points are needed for quadrature of some order
+    // Tell how many Gauss quadrature points are needed for quadrature of some order
     virtual int GetNumQuadraturePointsForOrder(const int order) const = 0;
 
-    // Get i-th Gauss point weight and parametric coordinates
-    virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const = 0;
+    // Tell actual number of material points needed by element - typically, the quadrature points
+    virtual int GetNumMaterialPoints() const { return GetNumQuadraturePointsForOrder(this->quadrature_order); };
+
+    // Get i-th material point weight and parametric coords - typically, i-th Gauss point weight and parametric coords. 
+    virtual void GetMaterialPointWeight(const int order, const int i, double& weight, ChVector3d& coords) const = 0;
 
     // *************************************
 
@@ -143,6 +153,23 @@ class ChApi ChFieldElementLine : public ChFieldElement {
 public:
     virtual int GetManifoldDimensions() const override { return 1; }
 
+    /// Compute Jacobian J = dX/dη, and returns its determinant.
+    /// It should be GetSpatialDimensions() x 1 = 3x1, but return as 3x3 by
+    /// padding 2nd and 3rd columns with auxiliary orthogonal columns.
+    /// FALLBACK default implementation; but if possible implement a faster ad hoc computation.
+    virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) override {
+        ChMatrixDynamic<double> Xhat(3, this->GetNumNodes());
+        for (int i = 0; i < this->GetNumNodes(); ++i)
+            Xhat.block<3, 1>(0, i) = std::static_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(i))->eigen();
+        // J = Xhat * dNde^T
+        ChMatrixDynamic<double> dNde(1, this->GetNumNodes());
+        ComputedNde(eta, dNde);
+        J.col(0) = Xhat * dNde.transpose();
+        J.col(1) = Vcross(ChVector3d((Xhat * dNde.transpose()).col(0)), VECT_X).eigen();
+        J.col(2) = Vcross(ChVector3d(J.col(0)), ChVector3d(J.col(1))).eigen();
+        return J.col(0).norm();
+    }
+
 };
 
 
@@ -154,6 +181,23 @@ public:
 class ChApi ChFieldElementSurface : public ChFieldElement {
 public:
     virtual int GetManifoldDimensions() const override { return 2; }
+
+    /// Compute Jacobian J = dX/dη, and returns its determinant.
+    /// It should be GetSpatialDimensions() x 2 = 3x2, but return as 3x3 by 
+    /// padding 3rd columns with auxiliary orthogonal column.
+    /// FALLBACK default implementation; but if possible implement a faster ad hoc computation.
+    virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) override {
+        ChMatrixDynamic<double> Xhat(3, this->GetNumNodes());
+        for (int i = 0; i < this->GetNumNodes(); ++i)
+            Xhat.block<3, 1>(0, i) = std::static_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(i))->eigen();
+        // J = Xhat * dNde^T
+        ChMatrixDynamic<double> dNde(1, this->GetNumNodes());
+        ComputedNde(eta, dNde);
+        J.col(0) = Xhat * dNde.row(0).transpose();
+        J.col(1) = Xhat * dNde.row(1).transpose();
+        J.col(2) = Vcross(ChVector3d(J.col(0)), ChVector3d(J.col(1))).eigen();  
+        return J.col(0).norm();
+    }
 
     // The following needed only if element is wrapped as a component of a ChLoaderUV.
     virtual bool IsTriangleIntegrationCompatible() const = 0;
@@ -172,6 +216,19 @@ public:
 class ChApi ChFieldElementVolume : public ChFieldElement {
 public:
     virtual int GetManifoldDimensions() const override { return 3; }
+
+    /// Compute Jacobian J = dX/dη, and returns its determinant.
+    /// FALLBACK default implementation; but if possible implement a faster ad hoc computation.
+    virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) override {
+        ChMatrixDynamic<double> Xhat(3, this->GetNumNodes());
+        for (int i = 0; i < this->GetNumNodes(); ++i)
+            Xhat.block<3, 1>(0, i) = std::static_pointer_cast<ChNodeFEAfieldXYZ>(this->GetNode(i))->eigen();
+        // J = Xhat * dNde^T
+        ChMatrixDynamic<double> dNde(3, this->GetNumNodes());
+        ComputedNde(eta, dNde);
+        J = Xhat * dNde.transpose();
+        return J.determinant();
+    }
 
     virtual int GetNumFaces() { return 0; }
     virtual std::shared_ptr<ChFieldElementSurface> BuildFace(int i_face, std::shared_ptr<ChFieldElementVolume> shared_this) { return nullptr; }
