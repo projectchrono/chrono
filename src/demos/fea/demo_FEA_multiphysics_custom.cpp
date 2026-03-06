@@ -35,6 +35,7 @@
 #include "chrono/fea/ChLoaderHeatRadiation.h"
 #include "chrono/fea/ChLoaderHeatVolumetricSource.h"
 #include "chrono/fea/ChLoaderHeatConvection.h"
+#include "chrono/fea/ChLinkFieldNode.h"
 #include "chrono/fea/ChBuilderVolume.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -65,7 +66,7 @@ int main(int argc, char* argv[]) {
         // other field, ex. elasticity.
         
 
-        // 1) Let's implement a new data type for some field.
+        // 1) Let's implement a new FIELD DATA for some field.
         //
         // We define data for a scalar field defining the concentration of some substance.
         // This is expressed as concentration c [mol/m^3], i.e. moles per volume.
@@ -83,7 +84,7 @@ int main(int argc, char* argv[]) {
 
 
 
-        // 2) Let's implement a new field class.
+        // 2) Let's implement a new FIELD class.
         //
         // The field is based on the ChFieldDataChemicalConcentration, i.e. per each node in the
         // discretization, we attach a ChFieldDataChemicalConcentration.
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
 
 
 
-        // 3) Let's implement a new element class.
+        // 3) Let's implement a new ELEMENT class.
         //
         // Suppose that the chemical field is like a network of capillary pipes, each 
         // edge of the network being an element. In the default Chrono API there's no such
@@ -134,25 +135,19 @@ int main(int argc, char* argv[]) {
             virtual int GetSpatialDimensions() const override { return 3; };
 
             // Compute the shape function N at eta.x parametric coordinate.
-            virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) override { N(0) = 1. - eta.x(); N(1) = eta.x();};
+            virtual void ComputeN(const ChVector3d eta, ChRowVectorDynamic<>& N) override { N.resize(GetNumNodes()); N(0) = 1. - eta.x(); N(1) = eta.x(); };
 
             // Compute shape function material derivatives dN/d\eta 
-            virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override { dNde(0,0) = -1; dNde(1,0) = 1;};
+            virtual void ComputedNde(const ChVector3d eta, ChMatrixDynamic<>& dNde) override { dNde.setZero(GetManifoldDimensions(), GetNumNodes()); dNde(0,0) = -1; dNde(1,0) = 1;};
 
-            // Compute Jacobian J, and returns its determinant. - NO NEED: THIS EXAMPLE DEMONSTRATES ELEMENTS WITHOUT QUADRATURE
-            virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) override { return 1; };
+            // Tell how many material points are needed - NOTE: THIS EXAMPLE DEMONSTRATES ELEMENTS WITHOUT QUADRATURE
+            virtual int GetNumQuadraturePointsForOrder(const int order) const { return 1; }
 
-            // Compute Jacobian Jinv, and returns its determinant.  - NO NEED: THIS EXAMPLE DEMONSTRATES ELEMENTS WITHOUT QUADRATURE
-            virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) override { return 1; };
-
-            // Tell how many Gauss points are needed for integration - NO NEED: THIS EXAMPLE DEMONSTRATES ELEMENTS WITHOUT QUADRATURE
-            virtual int GetNumQuadraturePointsForOrder(const int order) const override { return 0; };
-
-            // Get i-th Gauss point weight and parametric coordinates  - NO NEED: THIS EXAMPLE DEMONSTRATES ELEMENTS WITHOUT QUADRATURE
-            virtual void GetQuadraturePointWeight(const int order,
+            // Get i-th material point weight and parametric coords  - NOTE: THIS EXAMPLE DEMONSTRATES ELEMENTS WITHOUT QUADRATURE
+            virtual void GetMaterialPointWeight(const int order,
                                                   const int i,
                                                   double& weight,
-                                                  ChVector3d& coords) const override {};
+                                                  ChVector3d& coords) const override { weight = 1.0; coords={0.5,0,0};};
 
             /// Update, called at least at each time step.
             /// If the element has to keep updated some auxiliary data, maybe implement this.
@@ -167,7 +162,7 @@ int main(int argc, char* argv[]) {
             std::array<std::shared_ptr<ChNodeFEAfieldXYZ>, 2> nodes;
         };
 
-        /// Drawing function to draw a ChFieldElementChemicalEdge finite element, for
+        /// Optional: Drawing function to draw a ChFieldElementChemicalEdge finite element, for
         /// the 3D visualization of the finite element in real time rendering, postprocessing, etc.
         class ChDrawerChemicalEdge : public ChDrawer {
           public:
@@ -184,20 +179,18 @@ int main(int argc, char* argv[]) {
                                        size_t& vert_offset,
                                        size_t& tri_offset,
                                        size_t& norm_offset) const {
-                // ChFieldElementHexahedron_8& element = static_cast<ChFieldElementHexahedron_8&>(melement);
-
-                // Setup triangles: vertex indexes per each triangle
+                // Setup triangles: vertex indexes per each triangle. Here 1 triangle collapsed to a segment.
                 ChVector3i ivert_offset((int)vert_offset, (int)vert_offset, (int)vert_offset);
-                mmesh.GetIndicesVertexes()[tri_offset + 0] = ChVector3i(0, 1, 2) + ivert_offset;
+                mmesh.GetIndicesVertexes()[tri_offset] = ChVector3i(0, 1, 1) + ivert_offset;
                 ChVector3i inorm_offset = ChVector3i((int)norm_offset, (int)norm_offset, (int)norm_offset);
-                mmesh.GetIndicesNormals()[tri_offset + 0] = ChVector3i(0, 0, 0) + inorm_offset;
+                mmesh.GetIndicesNormals()[tri_offset] = ChVector3i(0, 0, 0) + inorm_offset;
                 vert_offset += 2;
                 tri_offset += 1;
                 norm_offset += 1;
             }
         };
 
-        // 3) Let's implement a "material", 
+        // 3) Let's implement a MATERIAL for our domain 
         // 
         // Here: properties, constitutive equations, optional per-sample data. Assumed at each "sample" of the model. 
         // In a ChDomainIntegrating, that perform Gauss quadrature over a continuum, samples are made at each Gauss point. 
@@ -221,7 +214,7 @@ int main(int argc, char* argv[]) {
         };
         
 
-        // 4) Let's implement a new domain class
+        // 4) Let's implement a new DOMAIN class
         //
         // Domains reference one or more field, and computes the physical laws that connect their variables.
         // In this case, we'll define a domain that connects the chemical field with the mechanical field, by saying
@@ -275,7 +268,7 @@ int main(int argc, char* argv[]) {
                     double J = material->ComputeMolarFlux1D(dc_dx);
                     Fi(0) = -J;  // flux at node A
                     Fi(1) = J;   // flux at node B
-                    //data.matpoints_data_aux[0].molar_flux = J; // store scratch data it so that it can be plotted
+                    data.matpoints_data_aux[0].molar_flux = J; // store scratch data it so that it can be plotted
                 }
             }
 
@@ -355,7 +348,7 @@ int main(int argc, char* argv[]) {
 
         auto chemical_material = chrono_types::make_shared<ChMaterialChemicalDiffusion>();
         chemical_domain->material = chemical_material;  // set the material in domain
-        chemical_material->diffusion_coefficient = 0.04;
+        chemical_material->diffusion_coefficient = 0.8;
 
 
         // CREATE SOME FINITE ELEMENTS AND NODES
@@ -389,8 +382,14 @@ int main(int argc, char* argv[]) {
         // Set some fixed node:
         //chemical_field->NodeData(node2).SetFixed(true);  // fixed concentration (the initial zero) at node 2
 
- 
-  
+        // Set some fixed node with a time-varying concentration:
+        auto sine_concentr = chrono_types::make_shared<ChFunctionSine>(1.5, 0.008, 0.0, 1.5);  // sinusoidal concentration  
+        auto constraint_c2 = chrono_types::make_shared<ChLinkField>();
+        constraint_c2->Initialize(node2, chemical_field);
+        constraint_c2->SetOffset(sine_concentr);
+        sys.Add(constraint_c2);
+
+
         // POSTPROCESSING & VISUALIZATION (optional)
 
         class ExtractConcentration : public ChVisualDataExtractorScalar<
@@ -409,15 +408,16 @@ int main(int argc, char* argv[]) {
         visual_nodes->AddPropertyExtractor(ExtractConcentration(), 0.0, 3.0, "Concentration");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
         chemical_domain->AddVisualShape(visual_nodes);
-        /*
+        
         auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(chemical_domain);
         visual_mesh->GetElementDispatcher().RegisterDrawer<ChFieldElementChemicalEdge>(std::make_unique<ChDrawerChemicalEdge>());
         visual_mesh->AddPositionExtractor(ExtractPos());
-        visual_mesh->AddPropertyExtractor(ExtractConcentration(), 0.0, 2.0, "Concentration");
+        //visual_mesh->AddPropertyExtractor(ExtractConcentration(), 0.0, 3.0, "Concentration");
+        visual_mesh->AddPropertyExtractor(ChDomainChemicalNetwork::ExtractMolarFlux(), -4.0, 4.0, "Molar flux");
         visual_mesh->SetColormap(ChColormap(ChColormap::Type::JET)); //ChColor(0, 1, 0));
         visual_mesh->SetWireframe(true);
         chemical_domain->AddVisualShape(visual_mesh);
-        */
+        
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
         vis->AttachSystem(&sys);
