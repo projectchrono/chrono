@@ -236,6 +236,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntStateOnEndStep(double T) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,

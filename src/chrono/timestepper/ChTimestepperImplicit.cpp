@@ -434,6 +434,7 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
 
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);     // -> system auxiliary data
+    integrable->StateOnEndStep(T);            // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperEulerImplicit::ArchiveOut(ChArchiveOut& archive) {
@@ -519,6 +520,7 @@ void ChTimestepperEulerImplicitLinearized::OnAdvance(double dt) {
 
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);     // -> system auxiliary data
+    integrable->StateOnEndStep(T);            // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperEulerImplicitLinearized::ArchiveOut(ChArchiveOut& archive) {
@@ -628,6 +630,7 @@ void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
     X += Vold;  // here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
 
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+    integrable->StateOnEndStep(T);                               // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperEulerImplicitProjected::ArchiveOut(ChArchiveOut& archive) {
@@ -741,6 +744,7 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L *=
                                       0.5);  // -> system auxiliary data   (*=0.5 cause we used the hack of l_old = 0)
+    integrable->StateOnEndStep(T);           // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperTrapezoidal::ArchiveOut(ChArchiveOut& archive) {
@@ -840,6 +844,7 @@ void ChTimestepperTrapezoidalLinearized::OnAdvance(double dt) {
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(Ds);  // -> system auxiliary data (accelerations)
     integrable->StateScatterReactions(L);      // -> system auxiliary data (Lagrange multipliers)
+    integrable->StateOnEndStep(T);             // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperTrapezoidalLinearized::ArchiveOut(ChArchiveOut& archive) {
@@ -977,6 +982,7 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(A);  // -> system auxiliary data
     integrable->StateScatterReactions(L);     // -> system auxiliary data
+    integrable->StateOnEndStep(T);            // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperNewmark::ArchiveOut(ChArchiveOut& archive) {

@@ -1006,6 +1006,15 @@ void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L) {
     contact_container->IntStateScatterReactions(displ_L + contact_container->GetOffset_L(), L);
 }
 
+void ChSystem::StateOnEndStep(double T) {
+    
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateOnEndStep(T);
+
+    // Use also on contact container:
+    contact_container->IntStateOnEndStep(T);
+}
+
 // Perform x_new = x + dx    for x in    Y = {x, dx/dt}
 // It takes care of the fact that x has quaternions, dx has angular vel etc.
 // NOTE: the system is not updated automatically after the state increment, so one might

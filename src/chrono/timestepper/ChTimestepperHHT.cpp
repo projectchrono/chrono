@@ -81,6 +81,8 @@ void ChTimestepperHHT::FinalizeStep() {
     // Scatter auxiliary data (A and L) -> system
     integrable->StateScatterAcceleration(A);
     integrable->StateScatterReactions(L);
+
+    integrable->StateOnEndStep(T);
 }
 
 // Prepare attempting a step of size h (assuming a converged state at the current time t):

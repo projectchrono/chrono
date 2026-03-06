@@ -866,6 +866,29 @@ void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVect
     }
 }
 
+void ChAssembly::IntStateOnEndStep(double T) {
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntStateOnEndStep(T);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateOnEndStep(T);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntStateOnEndStep(T);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntStateOnEndStep(T);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntStateOnEndStep(T);
+    }
+}
+
 void ChAssembly::IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,

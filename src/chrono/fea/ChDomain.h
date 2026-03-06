@@ -172,8 +172,6 @@ public:
     /// then GetFieldStateBlockDt(myelement, dSdt, 1)  will give [dT/dt_1; dT/dt_2; ....]
     virtual void GetFieldStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt, unsigned int i_field) = 0;
 
-    /// Invoke the ComputeUpdateEndStep() per each material point, if some plasticity etc must be done
-    virtual void UpdateEndStep(double t) = 0;
 
 protected:
     unsigned int n_dofs;    ///< total degrees of freedom of element materialpoint states (ex plasticity)
@@ -492,7 +490,8 @@ public:
 
 
 
-    /// Compute updates (ex. plastic flow, increments, etc.) at the end of a time step. 
+    /// Compute updates (ex. plastic flow, increments, etc.) at the end of a time step.
+    /// This is called per each material point per each element.
     /// This may happen less frequently than a full Update. 
     virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
         DataPerElement& data,
@@ -547,14 +546,6 @@ public:
         }
     }
 
-    // TODO: maybe this could be part of the ChPhysicsItem interface? 
-    // Better, unify into a single ChPhysicsItem::Update(SOME_FLAGS) for all ChPhysicsItem where the flag could be END_STEP etc.
-    virtual void UpdateEndStep(double time) {
-
-        for (auto& mel : this->element_datamap) {
-            ElementUpdateEndStep(mel.first, mel.second, time);
-        }
-    }
 
 
 
@@ -675,6 +666,12 @@ public:
                     }
                 });
             }
+        }
+    }
+
+    virtual void IntStateOnEndStep(double T) override {
+        for (auto& mel : this->element_datamap) {
+            ElementUpdateEndStep(mel.first, mel.second, T);
         }
     }
 

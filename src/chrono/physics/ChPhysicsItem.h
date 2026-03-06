@@ -176,6 +176,12 @@ class ChApi ChPhysicsItem : public ChObj {
                                           const ChVectorDynamic<>& L  ///< L vector of reaction forces
     ) {}
 
+    /// Called at the end of a step, after the state has been updated. This can be used to perform any clean up or
+    /// finalization after a step is completed, or to update state variables that are not part of the state vector but
+    /// need to be updated only at the end of a step, like in plasticity.
+    virtual void IntStateOnEndStep(double T   ///< time
+    ) {}
+
     /// Computes x_new = x + Dt , using vectors at specified offsets.
     /// By default, when DOF = DOF_w, it does just the sum, but in some cases (ex when using quaternions
     /// for rotations) it could do more complex stuff, and children classes might overload it.

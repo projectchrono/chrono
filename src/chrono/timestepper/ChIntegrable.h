@@ -101,6 +101,11 @@ class ChApi ChIntegrable {
     /// Optional: the integrable object might contain Lagrange multipliers (reaction in constraints)
     virtual void StateScatterReactions(const ChVectorDynamic<>& L) {}
 
+    /// Called at the end of a step, after the state has been updated. This can be used to perform any clean up or
+    /// finalization after a step is completed, or to update state variables that are not part of the state vector but
+    /// need to be updated only at the end of a step, like in plasticity.
+    virtual void StateOnEndStep(double T) {}
+
     /// Solve for state derivatives: dy/dt = f(y,t).
     /// Given current state y , computes the state derivative dy/dt and Lagrange multipliers L (if any).
     /// NOTE: some solvers (ex in DVI) cannot compute a classical derivative dy/dt when v is a function of

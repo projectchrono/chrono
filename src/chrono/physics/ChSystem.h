@@ -714,6 +714,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
     virtual void StateScatterReactions(const ChVectorDynamic<>& L) override;
 
+    /// Called at the end of a step, after the state has been updated. This can be used to perform any clean up or
+    /// finalization after a step is completed, or to update state variables that are not part of the state vector but
+    /// need to be updated only at the end of a step, like in plasticity.
+    virtual void StateOnEndStep(double T) override;
+
     /// Perform x_new = x + dx, for x in Y = {x, dx/dt}.\n
     /// It takes care of the fact that x has quaternions, dx has angular vel etc.
     /// NOTE: the system is not updated automatically after the state increment, so one might
