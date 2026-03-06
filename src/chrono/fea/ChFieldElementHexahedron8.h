@@ -74,14 +74,11 @@ public:
     // Compute Jacobian J, and returns its determinant. J is square 3x3
     virtual double ComputeJ(const ChVector3d eta, ChMatrix33d& J) override;
 
-    // Compute Jacobian Jinv, and returns its determinant. Jinv is square 3x3
-    virtual double ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) override;
-
     // Tell how many Gauss points are needed for integration
     virtual int GetNumQuadraturePointsForOrder(const int order) const override;
 
     // Get i-th Gauss point weight and parametric coordinates
-    virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords)  const override;
+    virtual void GetMaterialPointWeight(const int order, const int i, double& weight, ChVector3d& coords)  const override;
 
 
     /// Update, called at least at each time step.

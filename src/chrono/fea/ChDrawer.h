@@ -428,7 +428,7 @@ protected:
         if (this->draw_materialpoints) {
             auto ele_iter = mdomain->CreateIteratorOnElements();
             while (!ele_iter->is_end()) {
-                tot_glyphs += ele_iter->get_element()->GetNumQuadraturePoints();
+                tot_glyphs += ele_iter->get_element()->GetNumMaterialPoints();
                 ele_iter->next();
             }
         }
@@ -528,11 +528,11 @@ protected:
                     }
                 }
 
-                for (int imatpoint = 0; imatpoint < element->GetNumQuadraturePoints(); ++imatpoint) {
+                for (int imatpoint = 0; imatpoint < element->GetNumMaterialPoints(); ++imatpoint) {
                     ChVector3d eta;
                     double weight;
                     //ele_iter->get_data_per_matpoint(imatpoint);
-                    element->GetQuadraturePointWeight(element->GetQuadratureOrder(), imatpoint, weight, eta);
+                    element->GetMaterialPointWeight(element->GetQuadratureOrder(), imatpoint, weight, eta);
 
                     element->ComputeN(eta, N);
 
@@ -802,10 +802,10 @@ public:
                         ChRowVectorDynamic<> V_num(ele_iter->get_element()->GetNumNodes()); V_num.setZero();
                         ChRowVectorDynamic<> V_den(ele_iter->get_element()->GetNumNodes()); V_den.setZero();
                         bool extrapolate_gp = true;
-                        for (int imatpoint = 0; imatpoint < ele_iter->get_element()->GetNumQuadraturePoints(); ++imatpoint) {
+                        for (int imatpoint = 0; imatpoint < ele_iter->get_element()->GetNumMaterialPoints(); ++imatpoint) {
                             ChVector3d eta;
                             double weight;
-                            ele_iter->get_element()->GetQuadraturePointWeight(ele_iter->get_element()->GetQuadratureOrder(), imatpoint, weight, eta);
+                            ele_iter->get_element()->GetMaterialPointWeight(ele_iter->get_element()->GetQuadratureOrder(), imatpoint, weight, eta);
                             ChRowVectorDynamic<> N;
                             ele_iter->get_element()->ComputeN(eta, N);
                             if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_matpoint_aux(imatpoint))) {

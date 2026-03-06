@@ -93,17 +93,6 @@ namespace fea {
         return J.determinant();
     }
 
-    // Compute Jacobian Jinv, and returns its determinant. Jinv is square 3x3
-
-    double ChFieldElementHexahedron8::ComputeJinv(const ChVector3d eta, ChMatrix33d& Jinv) {
-        ChMatrix33<double> J;
-        this->ComputeJ(eta, J);
-        double mdet;
-        bool isinvertible;
-        J.computeInverseAndDetWithCheck(Jinv, mdet, isinvertible, 1e-9);
-        return mdet;
-    }
-
 
     // Tell how many Gauss points are needed for integration
 
@@ -117,7 +106,7 @@ namespace fea {
 
     // Get i-th Gauss point weight and parametric coordinates
 
-    void ChFieldElementHexahedron8::GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const {
+    void ChFieldElementHexahedron8::GetMaterialPointWeight(const int order, const int i, double& weight, ChVector3d& coords) const {
         ChQuadratureTables* mtables = ChQuadrature::GetStaticTables();
         int points_on_abscissa = (int)mtables->Weight[order - 1].size();
         int j = i / (points_on_abscissa * points_on_abscissa);

@@ -259,7 +259,7 @@ public:
 
 
     virtual void AddElement(std::shared_ptr<ChFieldElement> melement) override {
-        auto data_el = DataPerElement(melement->GetNumQuadraturePoints(), melement->GetNumNodes());
+        auto data_el = DataPerElement(melement->GetNumMaterialPoints(), melement->GetNumNodes());
         //...TO DO as done in InitialSetup
         element_datamap.insert(std::make_pair(melement, std::move(data_el)));
     }
@@ -289,9 +289,9 @@ public:
                 mel.second.matpoints_data.resize(0); // optimization to avoid wasting memory if NO material-specific data at point 
             }
             else {
-                mel.second.matpoints_data.resize(mel.first->GetNumQuadraturePoints());
+                mel.second.matpoints_data.resize(mel.first->GetNumMaterialPoints());
 
-                size_t numQuadPoints = mel.first->GetNumQuadraturePoints();
+                size_t numQuadPoints = mel.first->GetNumMaterialPoints();
                 for (size_t i = 0; i < numQuadPoints; ++i) {
                     auto mp_data = this->GetMaterial()->CreateMaterialPointData();
                     mel.second.matpoints_data[i] = (std::move(mp_data));
@@ -302,7 +302,7 @@ public:
                 mel.second.matpoints_data_aux.resize(0); // optimization to avoid wasting memory if NO domain-specific data at point
             }
             else {
-                mel.second.matpoints_data_aux.resize(mel.first->GetNumQuadraturePoints());
+                mel.second.matpoints_data_aux.resize(mel.first->GetNumMaterialPoints());
             }
 
             // setup array of pointers to node field data 
@@ -481,7 +481,7 @@ public:
     /// It falls back to calling PointUpdateEndStep per each material point.
     virtual void ElementUpdateEndStep(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, double time
     ) {
-        int numpoints = melement->GetNumQuadraturePoints();
+        int numpoints = melement->GetNumMaterialPoints();
         for (int i_point = 0; i_point < numpoints; ++i_point) {
             PointUpdateEndStep(melement,
                 data, i_point, time);
@@ -981,14 +981,14 @@ class ChDomainIntegrating : public ChDomainImpl<T_per_node, T_per_matpoint_aux, 
                                              DataPerElement& data,
                                              ChVectorDynamic<>& Fi) {
         int quadorder = melement->GetQuadratureOrder();
-        int numpoints = melement->GetNumQuadraturePoints();
+        int numpoints = melement->GetNumMaterialPoints();
         int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
         Fi.setZero(numelcoords);
         ChMatrix33<> J;
         ChVector3d eta;
         double weight;
         for (int i_point = 0; i_point < numpoints; ++i_point) {
-            melement->GetQuadraturePointWeight(quadorder, i_point, weight,
+            melement->GetMaterialPointWeight(quadorder, i_point, weight,
                                                eta);  // get eta coords and weight at this i-th point
             double det_J = melement->ComputeJ(eta, J);
             double s = weight * det_J;
@@ -1007,13 +1007,13 @@ class ChDomainIntegrating : public ChDomainImpl<T_per_node, T_per_matpoint_aux, 
                                            double Rfactor = 0,
                                            double Mfactor = 0) {
         int quadorder = melement->GetQuadratureOrder();
-        int numpoints = melement->GetNumQuadraturePoints();
+        int numpoints = melement->GetNumMaterialPoints();
         H.setZero();  // should be already of proper size
         ChMatrix33<> J;
         ChVector3d eta;
         double weight;
         for (int i_point = 0; i_point < numpoints; ++i_point) {
-            melement->GetQuadraturePointWeight(quadorder, i_point, weight,
+            melement->GetMaterialPointWeight(quadorder, i_point, weight,
                                                eta);  // get eta coords and weight at this i-th point
             double det_J = melement->ComputeJ(eta, J);
             double s = weight * det_J;
@@ -1078,7 +1078,7 @@ class ChDomainGeneric : public ChDomainImpl<T_per_node, T_per_matpoint_aux, T_pe
         : ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
 
     // SPECIFIC DOMAINS (THERMAL, ELASTIC etc.) LAWS MUST IMPLEMENT THE TWO PURE VIRTUAL
-    // FUNCTIONS PointComputeInternalLoads PointComputeKRMmatrices ACCORDING TO SOME
+    // FUNCTIONS ElementComputeInternalLoads  ElementComputeKRMmatrices ACCORDING TO SOME
     // CONSTITUTIVE LAWS
 
 };

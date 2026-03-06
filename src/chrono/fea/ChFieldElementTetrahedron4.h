@@ -88,7 +88,7 @@ public:
     virtual int GetNumQuadraturePointsForOrder(const int order) const override;
 
     // Get i-th Gauss point weight and parametric coordinates
-    virtual void GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords)  const override;
+    virtual void GetMaterialPointWeight(const int order, const int i, double& weight, ChVector3d& coords)  const override;
 
 
     /// Update, called at least at each time step.

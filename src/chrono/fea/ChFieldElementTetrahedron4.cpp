@@ -123,7 +123,7 @@ namespace fea {
         return (int)(mtables->Weight[order - 1].size());
     }
 
-    inline void ChFieldElementTetrahedron4::GetQuadraturePointWeight(const int order, const int i, double& weight, ChVector3d& coords) const {
+    inline void ChFieldElementTetrahedron4::GetMaterialPointWeight(const int order, const int i, double& weight, ChVector3d& coords) const {
         if (order == 1) {
             coords.Set(0.25);
             weight = CH_1_6;
