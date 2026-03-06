@@ -70,13 +70,49 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // DPCapPress(out_dir);
-    // ShellBrickContact(out_dir);
-    // SimpleBoxContact(out_dir);
-    // SoilBin(out_dir);
-    // AxialDynamics(out_dir);
-    // BendingQuasiStatic(out_dir);
-    SwingingShell(out_dir);
+    std::string input;
+    int which_test = 1;
+    std::cout << "Select test model:\n";
+    std::cout << "  1. AxialDynamics" << std::endl;
+    std::cout << "  2. BendingQuasiStatic" << std::endl;
+    std::cout << "  3. SwingingShell [DEFAULT]" << std::endl;
+    std::cout << "  4. SoilBin" << std::endl;
+    std::cout << "  5. SimpleBoxContact" << std::endl;
+    std::cout << "  6. ShellBrickContact" << std::endl;
+    std::cout << "  7. DPCapPress" << std::endl;
+    std::getline(std::cin, input);
+    if (!input.empty()) {
+        std::istringstream stream(input);
+        stream >> which_test;
+        which_test = std::min(std::max(1, which_test), 7);
+    }
+
+    switch (which_test) {
+        case 1:
+            AxialDynamics(out_dir);
+            break;
+        case 2:
+            BendingQuasiStatic(out_dir);
+            break;
+        case 3:
+            SwingingShell(out_dir);
+            break;
+        case 4:
+            SoilBin(out_dir);
+            break;
+        case 5:
+            SimpleBoxContact(out_dir);
+            break;
+        case 6:
+            ShellBrickContact(out_dir);
+            break;
+        case 7:
+            DPCapPress(out_dir);
+            break;
+        default:
+            SwingingShell(out_dir);
+            break;
+    }
 
     return 0;
 }
