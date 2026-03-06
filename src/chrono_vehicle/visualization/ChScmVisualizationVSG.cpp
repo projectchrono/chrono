@@ -96,10 +96,12 @@ ChScmVisualizationVSG::ChScmVisualizationVSG(SCMTerrain* scm)
 }
 
 ChScmVisualizationVSG::~ChScmVisualizationVSG() {
-    auto& systems = m_vsys->GetSystems();
-    auto index = std::find(systems.begin(), systems.end(), m_sys);
-    if (index != systems.end())
-        systems.erase(index);
+    if (m_vsys) {
+        auto& systems = m_vsys->GetSystems();
+        auto index = std::find(systems.begin(), systems.end(), m_sys);
+        if (index != systems.end())
+            systems.erase(index);
+    }
 
     delete m_sys;
 }
