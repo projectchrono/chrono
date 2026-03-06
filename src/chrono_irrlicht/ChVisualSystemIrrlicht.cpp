@@ -173,6 +173,9 @@ void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
+    //// RADU TODO
+    //// Allow attaching more than one ChSystem to the same Irrlicht visualization
+
     ChVisualSystem::AttachSystem(sys);
 
     // If the visualization system is already initialized
