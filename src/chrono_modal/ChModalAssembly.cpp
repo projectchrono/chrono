@@ -88,6 +88,16 @@ std::shared_ptr<ChDirectSolverLS> ChModalAssembly::GetModalSolver() const {
     return m_solver_invKIIc;
 }
 
+void ChModalAssembly::AddAttachedFrame(std::shared_ptr<ChFrameMoving<>> frame, double weight) {
+    assert(weight <= 1.0 && weight > 0.0);
+    if (m_FFR_type == FloatingFrameType::COG) {
+        m_FFR_type = FloatingFrameType::ATTACHED;
+    }
+    attached_F.push_back(frame);
+    attached_F_rot0.push_back(frame->GetRot());
+    attached_F_weight.push_back(weight);
+}
+
 void ChModalAssembly::SetUseStaticCorrection(bool flag) {
     if (m_internal_nodes_update)
         m_num_coords_static_correction = flag ? 1 : 0;
@@ -267,87 +277,121 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
     if (!m_is_model_reduced)
         return;
 
-    // when it is in the modal reduced state,
-    // update the configuration of the floating frame F using Newton-Raphson iteration
-    // to satisfy the constraint equation: C_F = U_loc^T * M * e_loc = 0.
+    switch (m_FFR_type) {
+        case FloatingFrameType::COG: {
+            // when it is in the modal reduced state,
+            // update the configuration of the floating frame F using Newton-Raphson iteration
+            // to satisfy the constraint equation: C_F = U_loc^T * M * e_loc = 0.
 
-    unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
+            unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
 
-    auto ComputeConstraintResidualF = [&](ChVectorDynamic<>& mConstr_F) {
-        this->UpdateTransformationMatrix();
-        this->ComputeProjectionMatrix();
+            auto ComputeConstraintResidualF = [&](ChVectorDynamic<>& mConstr_F) {
+                this->UpdateTransformationMatrix();
+                this->ComputeProjectionMatrix();
 
-        ChVectorDynamic<> u_locred(num_coords_vel_bou_mod);
-        ChVectorDynamic<> e_locred(num_coords_vel_bou_mod);
-        ChVectorDynamic<> edt_locred(num_coords_vel_bou_mod);
-        this->GetLocalDeformations(u_locred, e_locred, edt_locred);
+                ChVectorDynamic<> u_locred(num_coords_vel_bou_mod);
+                ChVectorDynamic<> e_locred(num_coords_vel_bou_mod);
+                ChVectorDynamic<> edt_locred(num_coords_vel_bou_mod);
+                this->GetLocalDeformations(u_locred, e_locred, edt_locred);
 
-        // the constraint vector C_F to eliminate the redundant DOFs of the floating frame F
-        mConstr_F = this->U_locred_0.transpose() * this->M_red * e_locred;  // of size 6*1, expected to be zero
-    };
+                // the constraint vector C_F to eliminate the redundant DOFs of the floating frame F
+                mConstr_F = this->U_locred_0.transpose() * this->M_red * e_locred;  // of size 6*1, expected to be zero
+            };
 
-    if (!m_tol_CF)
-        m_tol_CF = 1.e-8 * this->M_red.norm();  // compute only once
+            if (!m_tol_CF)
+                m_tol_CF = 1.e-8 * this->M_red.norm();  // compute only once
 
-    unsigned int ite_count = 0;
-    unsigned int NR_limit = 10;
-    bool converged_flag_F = false;
+            unsigned int ite_count = 0;
+            unsigned int NR_limit = 10;
+            bool converged_flag_F = false;
 
-    while (!converged_flag_F && ite_count < NR_limit) {
-        ChVectorDynamic<> constr_F(6);
-        ComputeConstraintResidualF(constr_F);
+            while (!converged_flag_F && ite_count < NR_limit) {
+                ChVectorDynamic<> constr_F(6);
+                ComputeConstraintResidualF(constr_F);
 
-        // Jacobian of the constraint vector C_F w.r.t. the floating frame F
-        ChMatrixDynamic<> jac_F(6, 6);
-        jac_F.setZero();
-        jac_F = -this->U_locred_0.transpose() * this->M_red * this->U_locred * this->P_F.transpose();
+                // Jacobian of the constraint vector C_F w.r.t. the floating frame F
+                ChMatrixDynamic<> jac_F(6, 6);
+                jac_F.setZero();
+                jac_F = -this->U_locred_0.transpose() * this->M_red * this->U_locred * this->P_F.transpose();
 
-        ChVectorDynamic<> delta_F(6);
-        delta_F = jac_F.colPivHouseholderQr().solve(-constr_F);
+                ChVectorDynamic<> delta_F(6);
+                delta_F = jac_F.colPivHouseholderQr().solve(-constr_F);
 
-        ChVector3d pos_F = this->floating_frame_F.GetPos() + delta_F.head(3);
+                ChVector3d pos_F = this->floating_frame_F.GetPos() + delta_F.head(3);
 
-        ChQuaternion<> incr_rotF(QNULL);
-        incr_rotF.SetFromRotVec(ChVector3d(delta_F.tail(3)));  // rot.in local basis - as in system wise vectors
-        ChQuaternion<> rot_F = this->floating_frame_F.GetRot() * incr_rotF;
+                ChQuaternion<> incr_rotF(QNULL);
+                incr_rotF.SetFromRotVec(ChVector3d(delta_F.tail(3)));  // rot.in local basis - as in system wise vectors
+                ChQuaternion<> rot_F = this->floating_frame_F.GetRot() * incr_rotF;
 
-        this->floating_frame_F.SetPos(pos_F);
-        this->floating_frame_F.SetRot(rot_F);
+                this->floating_frame_F.SetPos(pos_F);
+                this->floating_frame_F.SetRot(rot_F);
 
-        if (constr_F.norm() < m_tol_CF)
-            converged_flag_F = true;
+                if (constr_F.norm() < m_tol_CF)
+                    converged_flag_F = true;
 
-        ite_count++;
+                ite_count++;
 
-        if (!converged_flag_F && ite_count == NR_limit)
-            std::cout << "--->>> Warning: NR iterations to search for F might be divergent..." << std::endl;
+                if (!converged_flag_F && ite_count == NR_limit)
+                    std::cout << "--->>> Warning: NR iterations to search for F might be divergent..." << std::endl;
+            }
+
+            double fooT;
+            ChState x_mod;
+            ChStateDelta v_mod;
+            x_mod.setZero(m_num_coords_pos, nullptr);
+            v_mod.setZero(m_num_coords_vel, nullptr);
+            this->IntStateGather(0, x_mod, 0, v_mod, fooT);
+
+            ChVectorDynamic<> v_mod_loc(m_num_coords_vel);
+            v_mod_loc.tail(m_num_coords_modal) = v_mod.tail(m_num_coords_modal);
+            for (unsigned int i_node = 0; i_node < m_num_coords_vel_boundary / 6; ++i_node) {
+                v_mod_loc.segment(6 * i_node, 3) =
+                    floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_node, 3)).eigen();
+                v_mod_loc.segment(6 * i_node + 3, 3) = v_mod.segment(6 * i_node + 3, 3);
+            }
+
+            // update the velocity of the floating frame F
+            ChVectorDynamic<> vel_F(6);  // qdt_F
+            vel_F = this->P_F * (this->Q_0 * v_mod_loc);
+            this->floating_frame_F.SetPosDt(vel_F.head(3));
+            this->floating_frame_F.SetAngVelLocal(vel_F.tail(3));
+
+            // update again for safe
+            this->UpdateTransformationMatrix();
+            this->ComputeProjectionMatrix();
+
+            ComputeConstraintResidualF(m_res_CF);
+            break;
+        }
+        case FloatingFrameType::ATTACHED: {
+            ChVector3<> ave_position = {0.0, 0.0, 0.0};
+            ChVector3<> ave_rotv = {0.0, 0.0, 0.0};
+            ChVector3<> ave_vel = {0.0, 0.0, 0.0};
+            ChVector3<> ave_angel_vel = {0.0, 0.0, 0.0};
+
+            int index = 0;
+            for (const auto& frame : attached_F) {
+                ave_position += frame->GetPos() * attached_F_weight[index];
+                auto rot = frame->GetRot();
+                auto rot0 = attached_F_rot0[index];
+                // todo: optimize quaternion average, use slerp? use mean axis?
+                ave_rotv += (rot * rot0.GetConjugate()).GetRotVec() * attached_F_weight[index];
+                ave_vel += frame->GetPosDt() * attached_F_weight[index];
+                ave_angel_vel += frame->GetAngVelLocal() * attached_F_weight[index];
+                index++;
+            }
+
+            this->floating_frame_F.SetPos(ave_position);
+            this->floating_frame_F.SetRot(QuatFromRotVec(ave_rotv));
+            this->floating_frame_F.SetPosDt(ave_vel);
+            this->floating_frame_F.SetAngVelLocal(ave_angel_vel);
+
+            // update again for safe
+            this->UpdateTransformationMatrix();
+            this->ComputeProjectionMatrix();
+            break;
+        }
     }
-
-    double fooT;
-    ChState x_mod;
-    ChStateDelta v_mod;
-    x_mod.setZero(m_num_coords_pos, nullptr);
-    v_mod.setZero(m_num_coords_vel, nullptr);
-    this->IntStateGather(0, x_mod, 0, v_mod, fooT);
-
-    ChVectorDynamic<> v_mod_loc(m_num_coords_vel);
-    v_mod_loc.tail(m_num_coords_modal) = v_mod.tail(m_num_coords_modal);
-    for (unsigned int i_node = 0; i_node < m_num_coords_vel_boundary / 6; ++i_node) {
-        v_mod_loc.segment(6 * i_node, 3) = floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_node, 3)).eigen();
-        v_mod_loc.segment(6 * i_node + 3, 3) = v_mod.segment(6 * i_node + 3, 3);
-    }
-
-    // update the velocity of the floating frame F
-    ChVectorDynamic<> vel_F(6);  // qdt_F
-    vel_F = this->P_F * (this->Q_0 * v_mod_loc);
-    this->floating_frame_F.SetPosDt(vel_F.head(3));
-    this->floating_frame_F.SetAngVelLocal(vel_F.tail(3));
-
-    // update again for safe
-    this->UpdateTransformationMatrix();
-    this->ComputeProjectionMatrix();
-
-    ComputeConstraintResidualF(m_res_CF);
 
     if (this->m_verbose) {
         ChVector3d pos_F = this->floating_frame_F.GetPos();
@@ -1385,6 +1429,246 @@ void ChModalAssembly::UpdateInternalState(UpdateFlags update_flags) {
     this->m_full_state_x = assembly_x_new;
 }
 
+void ChModalAssembly::UpdateInternalStateWithStaticEquilibrium(UpdateFlags update_flags) {
+    unsigned int num_coords_pos_bou_int = m_num_coords_pos_boundary + m_num_coords_pos_internal;
+    unsigned int num_coords_vel_bou_int = m_num_coords_vel_boundary + m_num_coords_vel_internal;
+    unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
+    unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
+
+    ChVectorDynamic<> u_locred(num_coords_vel_bou_mod);
+    ChVectorDynamic<> e_locred(num_coords_vel_bou_mod);
+    ChVectorDynamic<> edt_locred(num_coords_vel_bou_mod);
+    this->GetLocalDeformations(u_locred, e_locred, edt_locred);
+
+    double fooT;
+    ChState x_mod;       // =[qB; eta]
+    ChStateDelta v_mod;  // =[qB_dt; eta_dt]
+    x_mod.setZero(num_coords_pos_bou_mod, nullptr);
+    v_mod.setZero(num_coords_vel_bou_mod, nullptr);
+    this->IntStateGather(0, x_mod, 0, v_mod, fooT);
+
+    // modal acceleration
+    ChStateDelta a_mod;  // =[qB_dtdt; eta_dtdt]
+    a_mod.setZero(num_coords_vel_bou_mod, nullptr);
+    this->IntStateGatherAcceleration(0, a_mod);
+
+    // the new configuration of both boundary and internal containers
+    ChState assembly_x_new;  // =[qB_new; qI_new]
+    assembly_x_new.setZero(num_coords_pos_bou_int, nullptr);
+    assembly_x_new.head(m_num_coords_pos_boundary) = x_mod.head(m_num_coords_pos_boundary);
+
+    // total inertia and external load
+    ChVectorDynamic<> total_F;  // [F_boundary; F_internal]
+    total_F.setZero(num_coords_vel_bou_int);
+
+    // deformation, internal part need solver static equilibrium to improver percision
+    ChVectorDynamic<> u_full_loc(num_coords_vel_bou_int);
+    u_full_loc.head(m_num_coords_vel_boundary) = e_locred.head(m_num_coords_vel_boundary);
+
+    // recover full velocity and acceleation vector
+    ChVectorDynamic<> vloc_bou(m_num_coords_vel_boundary);
+    ChVectorDynamic<> aloc_bou(m_num_coords_vel_boundary);
+    for (unsigned int i_node = 0; i_node < m_num_coords_vel_boundary / 6; ++i_node) {
+        vloc_bou.segment(6 * i_node, 3) = floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_node, 3)).eigen();
+        vloc_bou.segment(6 * i_node + 3, 3) = v_mod.segment(6 * i_node + 3, 3);
+
+        aloc_bou.segment(6 * i_node, 3) = floating_frame_F.GetRot().RotateBack(a_mod.segment(6 * i_node, 3)).eigen();
+        aloc_bou.segment(6 * i_node + 3, 3) = a_mod.segment(6 * i_node + 3, 3);
+    }
+    ChVectorDynamic<> vloc_int =
+        Psi_S * vloc_bou +
+        Psi_D * v_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction);
+    ChVectorDynamic<> aloc_int =
+        Psi_S * aloc_bou +
+        Psi_D * a_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction);
+    ChVectorDynamic<> v_full_loc(num_coords_vel_bou_int);
+    ChVectorDynamic<> a_full_loc(num_coords_vel_bou_int);
+    v_full_loc.head(m_num_coords_vel_boundary) = vloc_bou;
+    v_full_loc.tail(m_num_coords_vel_internal) = vloc_int;
+    a_full_loc.head(m_num_coords_vel_boundary) = aloc_bou;
+    a_full_loc.tail(m_num_coords_vel_internal) = aloc_int;
+
+    // F_inertia = -M * a
+    ChVectorDynamic<> F_inertia = -full_M_loc * a_full_loc;
+
+    // F_damping = -R * v, exclude?
+
+    // F_elasctic = -K * x, must exclude!
+
+    // todo: gyroscopic torques
+
+    // F_applied, include internal part gravity and SetForce()
+    // infact is [0; F_applied_internal]
+    // use m_full_forces_internal directly
+    ChVectorDynamic<> F_applied(num_coords_vel_bou_int);
+    F_applied.setZero();
+    F_applied.tail(m_num_coords_vel_internal) = m_full_forces_internal;
+
+    // sum F
+    total_F = F_inertia + F_applied;
+
+    ChVectorDynamic<> m_static_lambda_I;  ///< lambda form static equilibrium
+
+    if (m_num_constr_internal > 0) {
+        // Cq_I * u_I + Cq_IB * u_B = 0
+
+        // [K_II   Cq_II'] [u_I] = [F_I - K_IB * u_B] <--rhs_force
+        // [Cq_II     0  ] [λ  ]   [-Cq_IB     * u_B] <--rhs_constraint
+
+        ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
+
+        // F_I - K_IB * u_B
+        ChVectorDynamic<> F_I = total_F.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal);
+        ChVectorDynamic<> u_B = e_locred.head(m_num_coords_vel_boundary);
+        ChVectorDynamic<> rhs_force = F_I - K_IB_loc * u_B;
+
+        // -Cq_IB * u_B
+        ChVectorDynamic<> rhs_constraint = -Cq_IB_loc * u_B;
+
+        rhs << rhs_force, rhs_constraint;
+
+        // use m_solver_invKIIc
+        m_solver_invKIIc->b() = rhs;
+        m_solver_invKIIc->SolveCurrent();
+        ChVectorDynamic<>& solution = m_solver_invKIIc->x();
+
+        // get deformation and l
+        ChVectorDynamic<> u_I_static = solution.head(m_num_coords_vel_internal);
+        ChVectorDynamic<> lambda_I = solution.tail(m_num_constr_internal);
+
+        // update internal deformation and Lagrange multiplier of static equilibrium
+        u_full_loc.tail(m_num_coords_vel_internal) = u_I_static;
+
+        // use it to get internal link reaction
+        m_static_lambda_I = lambda_I;
+        m_static_lambda_I *= -m_scaling_factor_CqI;
+
+    } else {
+        // no internal constraint
+        // solver K_II * u_I = F_I - K_IB * u_B
+        ChVectorDynamic<> F_I = total_F.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal);
+        ChVectorDynamic<> u_B = u_full_loc.head(m_num_coords_vel_boundary);
+        ChVectorDynamic<> rhs = F_I - K_IB_loc * u_B;
+
+        m_solver_invKIIc->b() = rhs;
+        m_solver_invKIIc->SolveCurrent();
+        ChVectorDynamic<>& u_I_static = m_solver_invKIIc->x();
+
+        u_full_loc.tail(m_num_coords_vel_internal) = u_I_static;
+    }
+
+    // scatter deformation result to compenent
+    for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
+        unsigned int offset = m_num_coords_pos_boundary + 7 * i_int;
+
+        ChVector3d r_IF0 = floating_frame_F0.GetRotMat().transpose() *
+                           (m_full_state_x0.segment(offset, 3) - floating_frame_F0.GetPos().eigen());
+
+        ChVector3d delta_u(u_full_loc.segment(m_num_coords_vel_boundary + 6 * i_int, 3));
+        ChVector3d r_I = floating_frame_F.GetPos() + floating_frame_F.GetRotMat() * (r_IF0 + delta_u);
+
+        assembly_x_new.segment(offset, 3) = r_I.eigen();
+
+        // rotation
+        ChQuaternion<> q_delta;
+        q_delta.SetFromRotVec(u_full_loc.segment(m_num_coords_vel_boundary + 6 * i_int + 3, 3));
+
+        ChQuaternion<> quat_int0 = m_full_state_x0.segment(offset + 3, 4);
+        ChQuaternion<> quat_int =
+            floating_frame_F.GetRot() * floating_frame_F0.GetRot().GetConjugate() * quat_int0 * q_delta;
+
+        assembly_x_new.segment(offset + 3, 4) = quat_int.eigen();
+    }
+
+    ChStateDelta assembly_v_new;  // =[qB_dt; qI_dt]
+    assembly_v_new.setZero(num_coords_vel_bou_int, nullptr);
+    assembly_v_new.segment(0, m_num_coords_vel_boundary) = v_mod.segment(0, m_num_coords_vel_boundary);
+
+    ChStateDelta assembly_a_new;  // =[qB_dt; qI_dt]
+    assembly_a_new.setZero(num_coords_vel_bou_int, nullptr);
+    assembly_a_new.segment(0, m_num_coords_vel_boundary) = a_mod.segment(0, m_num_coords_vel_boundary);
+
+    // recover the velocity of internal nodes
+    ChVectorDynamic<> vpar_int(m_num_coords_vel_internal);
+    for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; ++i_node) {
+        vpar_int.segment(6 * i_node, 3) = floating_frame_F.GetRot().Rotate(vloc_int.segment(6 * i_node, 3)).eigen();
+        vpar_int.segment(6 * i_node + 3, 3) = vloc_int.segment(6 * i_node + 3, 3);
+    }
+    assembly_v_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) = vpar_int;
+    // add the contribution of the static correction mode
+    if (m_num_coords_static_correction) {
+        ChVectorDynamic<> vloc_int_static = Psi_Cor * v_mod.tail(m_num_coords_static_correction);
+        ChVectorDynamic<> vpar_int_static(m_num_coords_vel_internal);
+        for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; ++i_node) {
+            vpar_int_static.segment(6 * i_node, 3) =
+                floating_frame_F.GetRot().Rotate(vloc_int_static.segment(6 * i_node, 3)).eigen();
+            vpar_int_static.segment(6 * i_node + 3, 3) = vloc_int_static.segment(6 * i_node + 3, 3);
+        }
+        assembly_v_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) += vpar_int_static;
+    }
+
+    // recover the acceleration of internal nodes
+    ChVectorDynamic<> apar_int(m_num_coords_vel_internal);
+    for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; ++i_node) {
+        apar_int.segment(6 * i_node, 3) = floating_frame_F.GetRot().Rotate(aloc_int.segment(6 * i_node, 3)).eigen();
+        apar_int.segment(6 * i_node + 3, 3) = aloc_int.segment(6 * i_node + 3, 3);
+    }
+    assembly_a_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) = apar_int;
+    // add the contribution of the static correction mode
+    if (m_num_coords_static_correction) {
+        ChVectorDynamic<> aloc_int_static = Psi_Cor * a_mod.tail(m_num_coords_static_correction);
+        ChVectorDynamic<> apar_int_static(m_num_coords_vel_internal);
+        for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; ++i_node) {
+            apar_int_static.segment(6 * i_node, 3) =
+                floating_frame_F.GetRot().Rotate(aloc_int_static.segment(6 * i_node, 3)).eigen();
+            apar_int_static.segment(6 * i_node + 3, 3) = aloc_int_static.segment(6 * i_node + 3, 3);
+        }
+        assembly_a_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) += apar_int_static;
+    }
+
+    // the new Lagrange multipliers of internal constraints
+    ChVectorDynamic<> Lambda_internal(m_num_constr_internal);
+    Lambda_internal = m_static_lambda_I;
+
+    // scatter to internal nodes only and update them
+    double T = this->GetChTime();
+    for (auto& body : internal_bodylist) {
+        if (body->IsActive()) {
+            body->IntStateScatter(body->GetOffset_x() - this->offset_x, assembly_x_new,
+                                  body->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+            body->IntStateScatterAcceleration(body->GetOffset_w() - this->offset_w, assembly_a_new);
+            body->IntStateScatterReactions(body->GetOffset_L() - this->offset_L - m_num_constr_boundary,
+                                           Lambda_internal);
+        } else
+            body->Update(T, update_flags);
+    }
+    for (auto& mesh : internal_meshlist) {
+        mesh->IntStateScatter(mesh->GetOffset_x() - this->offset_x, assembly_x_new,
+                              mesh->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+        mesh->IntStateScatterAcceleration(mesh->GetOffset_w() - this->offset_w, assembly_a_new);
+        mesh->IntStateScatterReactions(mesh->GetOffset_L() - this->offset_L - m_num_constr_boundary, Lambda_internal);
+    }
+    for (auto& link : internal_linklist) {
+        if (link->IsActive()) {
+            link->IntStateScatter(link->GetOffset_x() - this->offset_x, assembly_x_new,
+                                  link->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+            link->IntStateScatterAcceleration(link->GetOffset_w() - this->offset_w, assembly_a_new);
+            link->IntStateScatterReactions(link->GetOffset_L() - this->offset_L - m_num_constr_boundary,
+                                           Lambda_internal);
+        } else
+            link->Update(T, update_flags);
+    }
+    for (auto& item : internal_otherphysicslist) {
+        if (item->IsActive()) {
+            item->IntStateScatter(item->GetOffset_x() - this->offset_x, assembly_x_new,
+                                  item->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+            item->IntStateScatterAcceleration(item->GetOffset_w() - this->offset_w, assembly_a_new);
+            item->IntStateScatterReactions(item->GetOffset_L() - this->offset_L - m_num_constr_boundary,
+                                           Lambda_internal);
+        }
+    }
+}
+
 void ChModalAssembly::SetFullStateReset() {
     if (m_full_state_x0.rows() != m_num_coords_pos)
         return;
@@ -1929,17 +2213,34 @@ void ChModalAssembly::Initialize() {
     // also initialize m_full_state_x
     this->m_full_state_x = m_full_state_x0;
 
-    // the floating frame F is initialized at COG in the initial configuration
-    this->ComputeMassCenterFrame();
-
-    this->floating_frame_F = this->cog_frame;
+    switch (m_FFR_type) {
+        case FloatingFrameType::COG: {
+            // the floating frame F is initialized at COG in the initial configuration
+            this->ComputeMassCenterFrame();
+            this->floating_frame_F = this->cog_frame;
+            this->m_res_CF.setZero(6);
+            break;
+        }
+        case FloatingFrameType::ATTACHED: {
+            // sumary of weights must be 1.
+            assert(std::fabs(std::reduce(attached_F_weight.begin(), attached_F_weight.end()) - 1.0) < 1e-6);
+            ChVector3<> ave_position = {0.0, 0.0, 0.0};
+            int index = 0;
+            for (const auto& frame : attached_F) {
+                ave_position += frame->GetPos() * attached_F_weight[index];
+                attached_F_rot0.push_back(frame->GetRot());
+                index++;
+            }
+            this->floating_frame_F.SetPos(ave_position);
+            this->floating_frame_F.SetRot(QUNIT);
+            break;
+        }
+    }
 
     // this->floating_frame_F_old = this->floating_frame_F;
 
     // store the initial floating frame of reference F0 in the initial configuration
     this->floating_frame_F0 = this->floating_frame_F;
-
-    this->m_res_CF.setZero(6);
 
     this->is_initialized = true;
 }

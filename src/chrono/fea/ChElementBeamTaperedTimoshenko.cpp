@@ -267,6 +267,13 @@ void ChElementBeamTaperedTimoshenko::UpdateRotation() {
     this->A = A0.transpose() * Aabs;
 }
 
+void ChElementBeamTaperedTimoshenko::UpdateRotation(const ChQuaternion<>& q_modal) {
+    ChMatrix33<> A0(this->q_element_ref_rot);
+    ChMatrix33<> Amodal(q_modal);
+    ChMatrix33<> Aabs = Amodal * A0;
+    this->q_element_abs_rot = Aabs.GetQuaternion();
+}
+
 void ChElementBeamTaperedTimoshenko::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
