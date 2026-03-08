@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
                                                               true, true, contact_mat, mesh_thickness);               //
     platform->SetFixed(true);
     platform->SetPos(ChVector3d(0, 0, -3));
-    platform->GetVisualShape(0)->SetColor(ChColor(182 / 255.0f, 142 / 255.0f, 101 / 255.0f));
+    platform->GetVisualShape(0)->SetColor(ChColor(18 / 255.0f, 14 / 255.0f, 10 / 255.0f));
     sys.Add(platform);
 
     // Create the run-time visualization system
@@ -118,6 +118,7 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(&sys);
             vis_irr->SetWindowTitle("Spinning tops");
+            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->SetWindowSize(1280, 800);
             vis_irr->Initialize();
             vis_irr->AddLogo();
@@ -136,7 +137,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("Spinning tops");
             vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->AddCamera(ChVector3d(0, -15, 3), ChVector3d(0, 0, 0));
             vis_vsg->SetLightIntensity(1.0f);

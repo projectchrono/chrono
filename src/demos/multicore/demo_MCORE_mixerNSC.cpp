@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Mixer NSC");
-    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->AddCamera(ChVector3d(0.6, -2, 3), ChVector3d(0, 0, 0));
     vis->SetWindowSize(1280, 720);
     vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));

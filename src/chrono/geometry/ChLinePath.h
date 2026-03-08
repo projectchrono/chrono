@@ -113,7 +113,8 @@ class ChApi ChLinePath : public ChLine {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    std::vector<std::shared_ptr<ChLine> > lines;
+  private:
+    std::vector<std::shared_ptr<ChLine>> lines;
     std::vector<double> end_times;
     std::vector<double> durations;
 };

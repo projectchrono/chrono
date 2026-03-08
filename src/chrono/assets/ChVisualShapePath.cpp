@@ -21,8 +21,11 @@ ChVisualShapePath::ChVisualShapePath() : npoints(200), thickness(10.0) {
     gpath = chrono_types::make_shared<ChLinePath>();
 }
 
-ChVisualShapePath::ChVisualShapePath(std::shared_ptr<ChLinePath>& mpath)
-    : npoints(200), thickness(10.0), gpath(mpath) {}
+ChVisualShapePath::ChVisualShapePath(std::shared_ptr<ChLinePath>& path) : npoints(200), thickness(10.0), gpath(path) {}
+
+void ChVisualShapePath::SetPathGeometry(std::shared_ptr<ChLinePath> path) {
+    gpath = path;
+}
 
 void ChVisualShapePath::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
