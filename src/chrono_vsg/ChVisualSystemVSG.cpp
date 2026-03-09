@@ -424,6 +424,8 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
 ChVisualSystemVSG::~ChVisualSystemVSG() {
     m_plugins.clear();
+    if (m_viewer->active())
+        m_viewer->close();
 }
 
 void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
@@ -515,10 +517,6 @@ void ChVisualSystemVSG::AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> pl
     m_plugins.push_back(plugin);
 }
 
-void ChVisualSystemVSG::Quit() {
-    m_viewer->close();
-}
-
 void ChVisualSystemVSG::SetGuiFontSize(float size) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
@@ -587,10 +585,11 @@ void ChVisualSystemVSG::SetSkyDomeTexture(const std::string& filename, double su
 
 void ChVisualSystemVSG::EnableSkyTexture(SkyMode mode) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::EnableSkyTexture can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::EnableSkyTexture can only be called before initialization!"
+                  << std::endl;
         return;
     }
-    m_sky_mode = mode;    
+    m_sky_mode = mode;
 }
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
@@ -951,7 +950,7 @@ void ChVisualSystemVSG::Initialize() {
     }
 
     // Add event handler for window close events
-    m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
+    ////m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
     // Add event handler for mouse camera view manipulation
     if (m_camera_trackball)
@@ -988,10 +987,15 @@ void ChVisualSystemVSG::Initialize() {
         gui->Initialize();
 
     m_initialized = true;
+    m_running = true;
 }
 
-bool ChVisualSystemVSG::Run() {
-    return m_viewer->active();
+bool ChVisualSystemVSG::Restart() {
+    if (m_viewer->active()) {
+        m_running = true;
+        return true;
+    }
+    return false;
 }
 
 void ChVisualSystemVSG::Render() {
@@ -1721,6 +1725,67 @@ void ChVisualSystemVSG::BindAll() {
     }
 
     BindLabels();
+}
+
+void ChVisualSystemVSG::OnClear(ChSystem* sys) {
+    {
+        auto& children = m_pointpointScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_particleScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_visFixedScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_visMutableScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_collFixedScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_collMutableScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_absFrameScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_refFrameScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_linkFrameScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_comFrameScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_comSymbolScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_bodyLabelScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_linkLabelScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    {
+        auto& children = m_decoScene->children;
+        children.erase(children.begin(), children.end());
+    }
+    m_body_labels.clear();
+    m_link_labels.clear();
 }
 
 // -----------------------------------------------------------------------------

@@ -287,13 +287,6 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Update the position of the specified visualization-only model.
     virtual void UpdateVisualModel(int id, const ChFrame<>& frame) override;
 
-    /// Run the Irrlicht device.
-    /// Returns `false` if the device wants to be deleted.
-    virtual bool Run() override;
-
-    // Terminate the Irrlicht visualization.
-    virtual void Quit() override;
-
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override;
 
@@ -306,6 +299,15 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     ///    while(vis->Run()) {...}
     /// </pre>
     virtual void Render() override;
+
+    /// Run the visualization system.
+    /// Return `true` if the system is running.
+    virtual bool Run() override;
+
+    /// Restart rendering.
+    /// Return `true` if successful, indicating that the visualization system can continue to be used.
+    /// If the system is now in a disabled state (e.g., because it was shut down), return `false`.
+    virtual bool Restart() override;
 
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) override;

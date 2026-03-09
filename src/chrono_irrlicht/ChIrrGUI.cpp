@@ -103,8 +103,8 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                     m_gui->camera_auto_rotate_speed *= 1.5;
                 return true;
             case irr::KEY_ESCAPE:
-                m_gui->GetDevice()->closeDevice();
-                return true;
+                m_gui->m_vis->Quit();
+              return true;
             default:
                 break;
         }

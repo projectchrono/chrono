@@ -135,11 +135,17 @@ class ChApi ChVisualSystem {
     virtual void UpdateVisualModel(int id, const ChFrame<>& frame) {}
 
     /// Run the visualization system.
-    /// Returns `false` if the system must shut down.
-    virtual bool Run() { return false; }
+    /// Return `true` if the system is running.
+    virtual bool Run() { return m_running; }
 
-    /// Terminate the visualization system.
-    virtual void Quit() {}
+    /// Stop rendering.
+    /// This should not shut down the visualizatino system, but only flag that rendering is to be stopped.
+    virtual void Quit() { m_running = false; }
+
+    /// Restart rendering.
+    /// Return `true` if successful, indicating that the visualization system can continue to be used.
+    /// If the system is now in a disabled state (e.g., because it was shut down), return `false`.
+    virtual bool Restart() { return false; }
 
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() {}
@@ -238,6 +244,7 @@ class ChApi ChVisualSystem {
 
     bool m_verbose;              ///< terminal output
     bool m_initialized;          ///< visual system initialized
+    bool m_running;              ///< visual system is running
     ChColor m_background_color;  ///< window background color
     ChTimer m_timer;             ///< timer for evaluating RTF
     double m_rtf;                ///< overall real time factor

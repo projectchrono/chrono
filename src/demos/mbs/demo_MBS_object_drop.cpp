@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChBodyGeometry.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
@@ -35,23 +36,14 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChContactMethod contact_method = ChContactMethod::SMC;
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 ChCollisionSystem::Type coll_type = ChCollisionSystem::Type::BULLET;
 
-enum class ObjectType {SPHERE, CYLINDER, CONE};
-ObjectType object_type = ObjectType::SPHERE;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // -----------------------------------------------------------------------------
 
-int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
-
-    // Simulation parameters
-    double gravity = -9.81;
-    double time_step = contact_method == ChContactMethod::NSC ? 1e-3 : 1e-5;
-    double render_fps = 100;
-
-    // Parameters for the falling object
+void PopulateSystem(std::shared_ptr<ChSystem> sys, int object_type) {
+  // Parameters for the falling object
     double radius = 1;
     double height = 1;
     double mass = 100;
@@ -63,15 +55,6 @@ int main(int argc, char* argv[]) {
     // Parameters for the plate
     double side = 4;
     double thickness = 0.2;
-
-    // Create the system
-    auto sys = ChSystem::Create(contact_method);
-
-    sys->SetGravitationalAcceleration(ChVector3d(0, gravity, 0));
-    sys->SetCollisionSystemType(coll_type);
-
-    // Change the default collision effective radius of curvature (SMC only)
-    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // Create a material (will be used by both collision shapes)
     ChContactMaterialData mat_data;
@@ -85,21 +68,21 @@ int main(int argc, char* argv[]) {
         geometry.materials.push_back(mat_data);
 
         switch (object_type) {
-            case ObjectType::SPHERE: {
+            case 1: {
                 auto sphere = utils::ChBodyGeometry::SphereShape(VNULL, radius, 0);
                 sphere.color = ChColor(0.1f, 0.5f, 0.9f);
                 geometry.coll_spheres.push_back(sphere);
                 inertia = mass * ChSphere::CalcGyration(radius);
                 break;
             }
-            case ObjectType::CYLINDER: {
+            case 2: {
                 auto cylinder = utils::ChBodyGeometry::CylinderShape(VNULL, VECT_Y, radius, height, 0);
                 cylinder.color = ChColor(0.1f, 0.5f, 0.9f);
                 geometry.coll_cylinders.push_back(cylinder);
                 inertia = mass * ChCylinder::CalcGyration(radius, height);
                 break;
             }
-            case ObjectType::CONE: {
+            case 3: {
                 auto cone = utils::ChBodyGeometry::ConeShape(ChVector3d(0, 0, 0), VECT_Y, radius, height, 0);
                 cone.color = ChColor(0.1f, 0.5f, 0.9f);
                 geometry.coll_cones.push_back(cone);
@@ -142,8 +125,9 @@ int main(int argc, char* argv[]) {
 
         sys->AddBody(body);
     }
+}
 
-    // Create the run-time visualization system
+std::shared_ptr<ChVisualSystem> CreateVisSystem(std::shared_ptr<ChSystem> sys) {
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -197,11 +181,51 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    return vis;
+}
+
+int main(int argc, char* argv[]) {
+    std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    // Select object shape
+    std::string input;
+    int object_type = 1;
+    std::cout << "Options:\n";
+    std::cout << "  1. Sphere [DEFAULT]" << std::endl;
+    std::cout << "  2. Cylinder" << std::endl;
+    std::cout << "  3. Cone" << std::endl;
+    std::cout << "\nSelect method: ";
+    std::getline(std::cin, input);
+    if (!input.empty()) {
+        std::istringstream stream(input);
+        stream >> object_type;
+        ChClampValue(object_type, 1, 3);
+    }
+
+    // Simulation parameters
+    double gravity = -9.81;
+    double time_step = contact_method == ChContactMethod::NSC ? 1e-3 : 1e-5;
+    double render_fps = 100;
+
+    // Create the system
+    auto sys = ChSystem::Create(contact_method);
+
+    sys->SetGravitationalAcceleration(ChVector3d(0, gravity, 0));
+    sys->SetCollisionSystemType(coll_type);
+
+    // Change the default collision effective radius of curvature (SMC only)
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+
+    // Create bodies and add to system
+    PopulateSystem(sys, object_type);
+
+    // Create the run-time visualization system
+    auto vis = CreateVisSystem(sys);
+
     // Simulation loop
     ChRealtimeStepTimer rt_timer;
     double time = 0.0;
     int render_frame = 0;
-
     while (vis->Run()) {
         if (time > render_frame / render_fps) {
             vis->BeginScene();
@@ -209,11 +233,44 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
             render_frame++;
         }
-
         sys->DoStepDynamics(time_step);
         rt_timer.Spin(time_step);
         time += time_step;
     }
+
+    // Illustrate ChSystem::Clear
+    bool restart = false;
+    std::cout << "\n\nClear and restart (yN)? ";
+    std::getline(std::cin, input);
+    if (!input.empty() && (input[0] == 'y' || input[0] == 'Y')) {
+        restart = true;
+    }
+
+    if (!restart)
+        return 0;
+
+    sys->Clear();
+
+    object_type = (object_type % 2) + 1;
+    PopulateSystem(sys, object_type);
+    sys->GetCollisionSystem()->BindAll();
+    sys->GetVisualSystem()->BindAll();
+    sys->GetVisualSystem()->Restart();
+
+    time = 0.0;
+    render_frame = 0;
+    while (vis->Run()) {
+        if (time > render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
+        sys->DoStepDynamics(time_step);
+        rt_timer.Spin(time_step);
+        time += time_step;
+    }
+
 
     return 0;
 }

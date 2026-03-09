@@ -119,8 +119,10 @@ ChVisualSystemIrrlicht::~ChVisualSystemIrrlicht() {
     if (coneMesh)
         coneMesh->drop();
 
-    if (m_device)
+    if (m_device) {
+        m_device->closeDevice();
         m_device->drop();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -249,18 +251,24 @@ void ChVisualSystemIrrlicht::Initialize() {
     }
 
     m_initialized = true;
+    m_running = true;
+}
+
+bool ChVisualSystemIrrlicht::Run() {
+    bool device_run = m_device && m_device->run();
+    m_running = m_running && device_run;
+    return m_running;
+}
+
+bool ChVisualSystemIrrlicht::Restart() {
+    if (m_device->run()) {
+        m_running = true;
+        return true;
+    }
+    return false;
 }
 
 // -----------------------------------------------------------------------------
-
-bool ChVisualSystemIrrlicht::Run() {
-    assert(!m_systems.empty());
-    return m_device->run();
-}
-
-void ChVisualSystemIrrlicht::Quit() {
-    m_device->closeDevice();
-}
 
 void ChVisualSystemIrrlicht::OnSetup(ChSystem* sys) {
     PurgeIrrNodes();

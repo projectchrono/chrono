@@ -100,13 +100,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
-    /// Check if rendering is running.
-    /// Returns `false` if the viewer was closed.
-    virtual bool Run() override;
-
-    // Terminate the VSG visualization.
-    virtual void Quit() override;
-
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override {}
 
@@ -119,6 +112,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene() override {}
+
+    /// Restart rendering.
+    /// Return `true` if successful, indicating that the visualization system can continue to be used.
+    /// If the system is now in a disabled state (e.g., because it was shut down), return `false`.
+    virtual bool Restart() override;
 
     // --- Model components
 
@@ -446,6 +444,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Update all VSG scenes with the current state of the associated Chrono systems.
     virtual void Update();
+
+    /// Remove all visualization objects from this visualization system.
+    /// Called by an associated ChSystem.
+    virtual void OnClear(ChSystem* sys) override;
 
     bool GetDesiredCloudVisibility(int tag) const;
 
