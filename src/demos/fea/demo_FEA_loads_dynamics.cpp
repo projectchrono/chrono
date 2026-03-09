@@ -20,6 +20,7 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/utils/ChUtils.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 
@@ -28,7 +29,9 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChLoadsBeam.h"
 
+#ifdef CHRONO_POSTPROCESS
 #include "chrono_postprocess/ChGnuPlot.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -46,8 +49,11 @@ int main(int argc, char* argv[]) {
     // Select load type
     // -----------------------------------------------------------------
 
+    int load_option = 1;
+    std::string input;
+
     std::cout << "Options:" << std::endl;
-    std::cout << "1  : Vertical load on end node" << std::endl;
+    std::cout << "1  : Vertical load on end node [DEFAULT]" << std::endl;
     std::cout << "2  : Distributed load along beam element" << std::endl;
     std::cout << "3  : Distributed volumetric load (gravity)" << std::endl;
     std::cout << "4  : Custom distributed load along beam element" << std::endl;
@@ -56,10 +62,12 @@ int main(int argc, char* argv[]) {
     std::cout << "7  : Custom load with stiff force, acting on multiple nodes" << std::endl;
     std::cout << "\nSelect option (1-7): ";
 
-    int load_option = 1;
-    std::cin >> load_option;
-    std::cout << std::endl;
-    ChClampValue(load_option, 1, 7);
+    std::getline(std::cin, input);
+    if (!input.empty()) {
+        std::istringstream stream(input);
+        stream >> load_option;
+        ChClampValue(load_option, 1, 7);
+    }
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "FEA_LOADS";
@@ -479,8 +487,8 @@ int main(int argc, char* argv[]) {
     ////}
 
     // Simulation loop
-    ChFunctionInterp rec;
-
+    ChWriterCSV csv(" ");
+    
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
@@ -488,36 +496,22 @@ int main(int argc, char* argv[]) {
 
         sys.DoStepDynamics(1e-3);
 
-        // double time = sys.GetChTime();
         auto& posB = nodeB->GetPos();
-        rec.AddPoint(posB.x(), posB.y());
-
-        /*
-        std::cout << "TIME=" << time << "  " << posB.x() << "  " << posB.y() << "  ";
-#ifdef LOAD_5
-        auto& posC = nodeC->GetPos();
-        std::cout << posC.x() << "  " << posC.y() << "  ";
-#endif
-#ifdef LOAD_6
-        auto& posD = nodeD->GetPos();
-        std::cout << posD.x() << "  " << posD.y() << "  ";
-#endif
-#ifdef LOAD_7
-        auto& posE = nodeE->GetPos();
-        auto& posF = nodeF->GetPos();
-        std::cout << posE.x() << "  " << posE.y() << "  " << posF.x() << "  " << posF.y() << "  ";
-#endif
-        std::cout << std::endl;
-        */
+        csv << posB << std::endl;
     }
 
-    std::string gplfilename = out_dir + "/beam_loads.gpl";
-    postprocess::ChGnuPlot gnu_plot(gplfilename);
+#ifdef CHRONO_POSTPROCESS
+    std::string out_filename = out_dir + "/beam_loads.txt";
+    std::string gpl_filename = out_dir + "/beam_loads.gpl";
+    
+    csv.WriteToFile(out_filename);
+    postprocess::ChGnuPlot gnu_plot(gpl_filename);
     gnu_plot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     gnu_plot.SetLabelX("X");
     gnu_plot.SetLabelY("Y");
     gnu_plot.SetCommand("set title 'Free node trajectory'");
-    gnu_plot.Plot(rec, "", " with lines lt -1 lc rgb'#00AAEE' ");
+    gnu_plot.Plot(out_filename, 1, 2, " with lines lt -1 lc rgb'#00AAEE' ");
+#endif
 
     return 0;
 }
