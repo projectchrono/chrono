@@ -425,14 +425,14 @@ int main(int argc, char* argv[]) {
 
     // Run the sub-demos
     while (vis.Run()) {
-        my_gui_info->setText((std::wstring(L"Reduced model (button 1): ") + (DO_MODAL_REDUCTION ? L"ON" : L"OFF") +
-                              std::wstring(L"\nInternal body (button 2): ") + (ADD_INTERNAL_BODY ? L"ON" : L"OFF") +
-                              std::wstring(L"\nBoundary body (button 3): ") + (ADD_BOUNDARY_BODY ? L"ON" : L"OFF") +
-                              std::wstring(L"\nForces (button 4): ") + (ADD_FORCE ? L"ON" : L"OFF") +
-                              std::wstring(L"\nOther subassembly (button 5): ") +
-                              (ADD_OTHER_ASSEMBLY ? L"ON" : L"OFF") + std::wstring(L"\nFixed assembly (button 6): ") +
-                              (FIX_SUBASSEMBLY ? L"ON" : L"OFF"))
-                                 .c_str());
+        my_gui_info->setText(                                                                          //
+            (std::wstring(L"[Key 1] Reduced model: ") + (DO_MODAL_REDUCTION ? L"ON" : L"OFF") +        //
+             std::wstring(L"\n[Key 2] Internal body: ") + (ADD_INTERNAL_BODY ? L"ON" : L"OFF") +       //
+             std::wstring(L"\n[Key 3] Boundary body: ") + (ADD_BOUNDARY_BODY ? L"ON" : L"OFF") +       //
+             std::wstring(L"\n[Key 4] Forces: ") + (ADD_FORCE ? L"ON" : L"OFF") +                      //
+             std::wstring(L"\n[Key 5] Other subassembly: ") + (ADD_OTHER_ASSEMBLY ? L"ON" : L"OFF") +  //
+             std::wstring(L"\n[Key 6] Fixed assembly: ") + (FIX_SUBASSEMBLY ? L"ON" : L"OFF"))         //
+                .c_str());                                                                             //
 
         if (UPDATE_EXAMPLE) {
             CreateCantilever(sys, vis, DO_MODAL_REDUCTION, ADD_INTERNAL_BODY, ADD_BOUNDARY_BODY, ADD_FORCE,
