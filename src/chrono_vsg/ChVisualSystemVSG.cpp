@@ -423,8 +423,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 }
 
 ChVisualSystemVSG::~ChVisualSystemVSG() {
-    for (auto& plugin : m_plugins)
-        plugin->m_vsys = nullptr;
     m_plugins.clear();
 }
 

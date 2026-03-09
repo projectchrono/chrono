@@ -28,7 +28,8 @@ ChVisualSystem ::ChVisualSystem()
 
 ChVisualSystem ::~ChVisualSystem() {
     for (auto s : m_systems)
-        s->visual_system = nullptr;
+        if (s->visual_system)
+            s->visual_system = nullptr;
 }
 
 void ChVisualSystem::AttachSystem(ChSystem* sys) {
