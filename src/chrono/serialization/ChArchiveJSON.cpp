@@ -66,8 +66,8 @@ void ChArchiveOutJSON::out(ChNameValue<int> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\"";
-    m_ostream << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\""
+                  << "\t: ";
     m_ostream << bVal.value();
     ++nitems.top();
 }
