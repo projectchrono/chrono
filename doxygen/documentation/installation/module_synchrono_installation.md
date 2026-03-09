@@ -32,8 +32,8 @@ The **SynChrono module** allows users to parallelize the dynamics computations f
 
 3. Set the `CH_ENABLE_MODULE_SYNCHRONO` as 'on', then press 'Configure' (to refresh the variable list).
 
-4. (Optional) If using Fast_DDS set `CH_USE_FAST_DDS` to 'on', then press 'Configure'. 
-    - If you used the installed binaries they should be picked up automatically by CMake
+4. (Optional) If using Fast_DDS set `CH_USE_SYNCHRONO_FASTDDS` to 'on', then press 'Configure'. 
+    - If you used the installed binaries they should be picked up automatically by CMake.
     - If you built from source or installed in a non-standard location, you'll have to manually specify `FastDDS_ROOT`.
 
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.

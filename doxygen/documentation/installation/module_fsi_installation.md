@@ -4,33 +4,37 @@ Install the FSI module {#module_fsi_installation}
 [TOC]
 
 Chrono::FSI is a module for modeling and simulation of fluid-solid interaction problem. 
+It provides the framework for coupling a Chrono multibody system (for rigid and/or flexible dynamics) with an arbitrary FSI-aware fluid solver.
+Two related Chrono submodules are available: 
+- Chrono::FSI-SPH which implements a fluid solver based on the Smoothed Particle Hydrodynamics method
+- Chrono::FSI-TDPF which implements a fluid solver based on the Time Domain Potential Flow method
 
 ## Features
 
-The **FSI module** allows users to:
+The **FSI-SPH module** allows users to:
 
 - Use the module as a CFD solver for fluid mechanics problems via the following Lagrangian methods:
    - Implicit incompressible SPH (ISPH)
    - Explicit weakly compressible SPH (WCSPH)
-- Use the module as a solver for granular material dynamics via the following Lagrangian method:
+- Use the module as a solver for granular material dynamics (CRM) via the following Lagrangian method:
    - Explicit weakly compressible SPH (WCSPH)
 - Use the module for solving fluid-solid interaction problems that feature:
    - Rigid bodies
-   - 1D and 2D flexible bodies simulated via ANCF cable and ANCF shell elements, respectively.
-- Use the module for solving rigid multi-body dynamics and its interaction with deformable terrain
+   - Flexible bodies (FEA models)
+- Use the module for solving rigid multi-body dynamics and its interaction with CRM deformable terrain
    - Rover/vehicle mobility simulation on granular material terrain
-- Use GPU-based sparse linear solvers such as BICGSTAB
-- Use JSON input files for easy specification of simulation parameters
+
+The **FSI-TDPF module** allows users to:
+
+- Use the module for solving fluid-solid interaction problems that feature rigid multibody systems
 
 ## Requirements
 
-- To **run** applications based on this module an NVIDIA GPU card is required.
-- To **build** this module and applications based on it, a CUDA installation and appropriate compiler are required
-- This module has been build/tested on the following:
-   - Windows, MS Visual Studio 2022, CUDA 12.8.93 (Ampere GPU architecture)
-   - Ubuntu 22.04 Linux, GCC 11.4, CUDA 12.8.93 (Turing GPU architecture)
-   - Ubuntu 22.04 Linux, GCC 11.3, CUDA 12.3.0 (Hopper GPU architecture)
-   - Ubuntu 24.04 Linux, GCC 13.3, CUDA 13.0.0 (Blackwell GPU architecture)
+- To **build** the FSI-SPH module and related applications, a CUDA installation and appropriate compiler are required.<br>
+  The FSI-SPH module requires CUDA version 12.9 (**NOTE**: CUDA 13 is not yet supported).
+- To **build** the FSI-TDPF module and related applications, HDF5 support is required and must be enabled (`CH_ENABLE_HDF5`).
+- To **run** applications based on the FSI-SPH module an NVIDIA GPU card is required.
+
 
 ## Building instructions
 
@@ -38,15 +42,20 @@ The **FSI module** allows users to:
 
 2. Set `CH_ENABLE_MODULE_FSI` to 'on'.
 
-3. Optionally, set `CH_USE_FSI_DOUBLE` to 'on', otherwise a single precision FSI solver will be built. The single precision FSI solver has been tested to have similar level of accuracy as the double precision solver with close to a 2X performance improvement.
+3. If all dependencies are satisfied, both the FSI-SPH and FSI-TDPF modules are enabled. 
+   Optionally disable the FSI-SPH module (via `CH_ENABLE_MODULE_FSI_SPH`) or the FSI-TDPF module (via `CH_ENABLE_MODULE_FSI_TDPF`)
 
-4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
+4. If the FSI-SPH module is enabled, optionally set `CH_USE_SPH_DOUBLE` to `ON` to use double precision in the SPH solver.<br>
+   The single precision FSI solver has been tested to have similar level of accuracy as the double precision solver with close to a 2X performance improvement.
+
+5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 ## How to use it
 
-- Look at the [API section](group__fsi.html) of this module for documentation about classes and functions.
-
-- Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_fsi) to learn how to use the functions of this module.
+- Look at the [API section](group__fsi__base.html) of the Chrono::FSI module for documentation about the base classes and functions.
+- Look at the [API section](group__fsisph.html) for documentation of the classes and functions for the FSI-SPH solver.
+- Look at the [API section](group__fsitdpf.html) for documentation of the classes and functions for the FSI-TDPF solver.
+- Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_fsi) to learn how to use the functions of these modules.
 
 ## MacOS support
 
