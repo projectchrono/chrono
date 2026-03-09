@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     // compute aux data:
     double beta = (CH_2PI / (double)nstations);  // angle width of station
     double gamma = 2 * (CH_PI_2 - beta / 2);
-    double B = R * tan(beta / 2);
+    double B = R * std::tan(beta / 2);
     ChVector3d crank_center = ChVector3d(B, R, 0) + geneva_center;
 
     // Create a ChLinePath geometry that represents the 2D shape of the Geneva wheel.
@@ -143,6 +143,7 @@ int main(int argc, char* argv[]) {
         true,                                                               // enable 2D collision
         material                                                            // contact material
     );
+    genevawheel->GetVisualShape(0)->SetColor(ChColor(0.57f, 0.4f, 0.57f));
     for (auto& shape : genevawheel->GetVisualModel()->GetShapeInstances())
         shape.shape->SetColor(ChColor(0.57f, 0.4f, 0.57f));
 
@@ -166,6 +167,9 @@ int main(int argc, char* argv[]) {
                             true,                                               // enable 2D collision on the profile
                             material                                            // contact material
     );
+
+    for (auto& shape : genevawheel->GetVisualModel()->GetShapeInstances())
+        shape.shape->SetColor(ChColor(0.57f, 0.4f, 0.57f));
 
     // Revolute constraint
     auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -200,8 +204,6 @@ int main(int argc, char* argv[]) {
         true,                                                               // enable 2D collision
         material                                                            // contact material
     );
-    for (auto& shape : crank->GetVisualModel()->GetShapeInstances())
-        shape.shape->SetColor(ChColor(0.57f, 0.57f, 0.4f));
 
     // Do you need an additional profile at a different Z depht?
     // If so, use the AddProfile() function. It also updates the mass, COG position, collision shapes, etc.
@@ -220,6 +222,9 @@ int main(int argc, char* argv[]) {
     crank->SetFrameRefToAbs(
         ChFrame<>(crank_center));  // the REF is the coordinate where the path has been defined, the COG maybe elsewhere
     sys.Add(crank);
+
+    for (auto& shape : crank->GetVisualModel()->GetShapeInstances())
+        shape.shape->SetColor(ChColor(0.57f, 0.57f, 0.4f));
 
     // Should you later change some geometry, do something like this:
     // mbackplate->radius = Ri * 2;
@@ -286,6 +291,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AttachSystem(&sys);
             vis_irr->SetWindowSize(1024, 768);
             vis_irr->SetWindowTitle("Use 2D profiles with OpenCASCADE for mass, inertia, meshing");
+            vis_irr->SetCameraVertical(CameraVerticalDir::Y);
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
@@ -301,8 +307,9 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowSize(1024, 768);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetWindowTitle("Use 2D profiles with OpenCASCADE for mass, inertia, meshing");
-            vis_vsg->AddCamera(ChVector3d(2.0, -3.0, -2.3));
+            vis_vsg->AddCamera(ChVector3d(0.2, 0.2, -4.3));
             vis_vsg->SetLightIntensity(0.8f);
             vis_vsg->SetLightDirection(-CH_PI_2, -CH_PI_4);
             vis_vsg->EnableShadows();
@@ -315,12 +322,16 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
+    ChRealtimeStepTimer realtime_timer;
+    double timestep = 0.01;
+
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
 
-        sys.DoStepDynamics(0.01);
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;
