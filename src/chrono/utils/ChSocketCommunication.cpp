@@ -33,11 +33,9 @@ ChSocketCommunication::ChSocketCommunication(ChSocketFramework& framework,  // s
 }
 
 ChSocketCommunication::~ChSocketCommunication() {
-    if (this->myServer)
-        delete this->myServer;
+    delete this->myServer;
     this->myServer = 0;
-    if (this->myClient)
-        delete this->myClient;
+    delete this->myClient;
     this->myClient = 0;
 }
 

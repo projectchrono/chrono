@@ -55,12 +55,9 @@ ChConveyor::ChConveyor(const ChConveyor& other) : ChPhysicsItem(other) {
 }
 
 ChConveyor::~ChConveyor() {
-    if (internal_link)
-        delete internal_link;
-    if (conveyor_plate)
-        delete conveyor_plate;
-    if (conveyor_truss)
-        delete conveyor_truss;
+    delete internal_link;
+    delete conveyor_plate;
+    delete conveyor_truss;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
