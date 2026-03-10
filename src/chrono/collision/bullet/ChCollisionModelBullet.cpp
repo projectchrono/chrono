@@ -414,8 +414,7 @@ class cbtBvhTriangleMeshShape_handlemesh : public cbtBvhTriangleMeshShape {
         : cbtBvhTriangleMeshShape(meshInterface, true), minterface(meshInterface){};
 
     ~cbtBvhTriangleMeshShape_handlemesh() {
-        if (minterface)
-            delete minterface;
+        delete minterface;
         minterface = 0;  // also delete the mesh interface
     }
 };
@@ -428,8 +427,7 @@ class cbtConvexTriangleMeshShape_handlemesh : public cbtConvexTriangleMeshShape 
         : cbtConvexTriangleMeshShape(meshInterface), minterface(meshInterface){};
 
     ~cbtConvexTriangleMeshShape_handlemesh() {
-        if (minterface)
-            delete minterface;
+        delete minterface;
         minterface = 0;  // also delete the mesh interface
     }
 };
@@ -445,8 +443,7 @@ class cbtGImpactMeshShape_handlemesh : public cbtGImpactMeshShape {
           };
 
     virtual ~cbtGImpactMeshShape_handlemesh() {
-        if (minterface)
-            delete minterface;
+        delete minterface;
         minterface = 0;  // also delete the mesh interface
     }
 };
