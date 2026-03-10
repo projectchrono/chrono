@@ -59,7 +59,6 @@ class ChApi ChSocketCommunication {
     chrono::utils::ChSocketTCP* myServer;
     chrono::utils::ChSocketTCP* myClient;
     int nport;
-
     int in_n;
     int out_n;
 };
