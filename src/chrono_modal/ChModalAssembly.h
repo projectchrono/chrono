@@ -519,6 +519,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
+    /// Load reduced model from file
+    virtual bool LoadReducedModel(ChArchiveIn& archive_in);
+
+    /// Save reduced model to file
+    virtual bool SaveReducedModel(ChArchiveOut& archive_out) const;
+
     // SWAP FUNCTION
 
     /// Swap the contents of the two provided ChAssembly objects.
