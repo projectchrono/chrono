@@ -30,7 +30,7 @@ project(my_project)
 # (see the CMake documentation for find_package).
 # 
 # Note that you will have to set the variable Chrono_DIR to 
-# specify the location of the chrono-config.cmake script, if
+# specify the location of the ChronoConfig.cmake script, if
 # it is not in a default install location. Chrono_DIR can point
 # to either a Chrono build tree or a Chrono install tree.
 # 
