@@ -287,8 +287,6 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-
     bool verbose = false;
     double tol = 1.0;
 
