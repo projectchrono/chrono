@@ -347,6 +347,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_link_labels_scale(1),
       //
       m_frame_number(0),
+      m_wait_frames(-1),
       m_start_time(0),
       m_time_total(0),
       m_old_time(0),
@@ -1222,6 +1223,91 @@ void ChVisualSystemVSG::Render() {
         }
     }
 
+    //----------------------------------- Start delete sequence when demanded -------------------------------------
+    if (m_wait_frames >= 0) {
+        std::cout << "Wait sequence frames = " << m_wait_frames << std::endl;
+        if (m_wait_frames == 4) {
+            // Hide grahics objects
+            m_pointpointScene->setAllChildren(false);
+            m_particleScene->setAllChildren(false);
+            m_visFixedScene->setAllChildren(false);
+            m_visMutableScene->setAllChildren(false);
+            m_collFixedScene->setAllChildren(false);
+            m_collMutableScene->setAllChildren(false);
+            m_absFrameScene->setAllChildren(false);
+            m_refFrameScene->setAllChildren(false);
+            m_linkFrameScene->setAllChildren(false);
+            m_comFrameScene->setAllChildren(false);
+            m_comSymbolScene->setAllChildren(false);
+            m_bodyLabelScene->setAllChildren(false);
+            m_linkLabelScene->setAllChildren(false);
+            {
+                //                auto& children = m_decoScene->children;
+                //                ???
+            }
+        }
+        if (m_wait_frames == 0) {
+            {
+                auto& children = m_pointpointScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_particleScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_visFixedScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_visMutableScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_collFixedScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_collMutableScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_absFrameScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_refFrameScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_linkFrameScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_comFrameScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_comSymbolScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_bodyLabelScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_linkLabelScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            {
+                auto& children = m_decoScene->children;
+                children.erase(children.begin(), children.end());
+            }
+            m_body_labels.clear();
+            m_link_labels.clear();
+        }
+        m_wait_frames--;
+    }
     m_viewer->recordAndSubmit();
 
     if (m_capture_image) {
@@ -1728,64 +1814,65 @@ void ChVisualSystemVSG::BindAll() {
 }
 
 void ChVisualSystemVSG::OnClear(ChSystem* sys) {
-    {
-        auto& children = m_pointpointScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_particleScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_visFixedScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_visMutableScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_collFixedScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_collMutableScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_absFrameScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_refFrameScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_linkFrameScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_comFrameScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_comSymbolScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_bodyLabelScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_linkLabelScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    {
-        auto& children = m_decoScene->children;
-        children.erase(children.begin(), children.end());
-    }
-    m_body_labels.clear();
-    m_link_labels.clear();
+    m_wait_frames = 4;
+    //    {
+    //        auto& children = m_pointpointScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_particleScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_visFixedScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_visMutableScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_collFixedScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_collMutableScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_absFrameScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_refFrameScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_linkFrameScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_comFrameScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_comSymbolScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_bodyLabelScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_linkLabelScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    {
+    //        auto& children = m_decoScene->children;
+    //        children.erase(children.begin(), children.end());
+    //    }
+    //    m_body_labels.clear();
+    //    m_link_labels.clear();
 }
 
 // -----------------------------------------------------------------------------

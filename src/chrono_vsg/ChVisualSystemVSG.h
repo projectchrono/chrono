@@ -448,6 +448,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Remove all visualization objects from this visualization system.
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) override;
+    int m_wait_frames = 0;
 
     bool GetDesiredCloudVisibility(int tag) const;
 
@@ -683,8 +684,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     double m_light_intensity;  ///< directional light intensity
     double m_elevation;        ///< directional light elevation (measured from
-    double m_azimuth;          ///< directional light azimuth (measured from 
-    
+    double m_azimuth;          ///< directional light azimuth (measured from
+
     float m_gui_font_size = 20.0f;
 
     // Component rendering
