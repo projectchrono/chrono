@@ -265,26 +265,31 @@ int main(int argc, char* argv[]) {
     auto mat = mat_data.CreateMaterial(ChContactMethod::SMC);
 
     // Custom body tags
-    int tag_ball = 1;
+    int tag_dumbbell = 1;
     int tag_plate = 2;
 
     // Create the mesh object
-    double radius = 1;
+    double radius = 0.5;
     double mass = 300;
     ChMatrix33d inertia;
     auto sphere = utils::ChBodyGeometry::SphereShape(VNULL, radius, 0);
-    inertia = mass * ChSphere::CalcGyration(radius);
+    inertia = mass * ChSphere::CalcGyration(radius) * 2;
 
-    auto ball = chrono_types::make_shared<ChBody>();
-    ball->SetTag(tag_ball);
-    ball->SetMass(mass);
-    ball->SetInertia(inertia);
-    ball->SetPos(ChVector3d(0, 0, 2));
-    ball->SetFixed(false);
-    ball->EnableCollision(true);
-    sys.AddBody(ball);
-    utils::AddTriangleMeshGeometry(ball.get(), mat, GetChronoDataFile("models/sphere.obj"));
-    ball->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.5f, 0.9f));
+    auto dumbbell = chrono_types::make_shared<ChBody>();
+    dumbbell->SetTag(tag_dumbbell);
+    dumbbell->SetMass(mass);
+    dumbbell->SetInertia(inertia);
+    dumbbell->SetPos(ChVector3d(0, 0, 2));
+    dumbbell->SetFixed(false);
+    dumbbell->EnableCollision(true);
+    sys.AddBody(dumbbell);
+    utils::AddTriangleMeshGeometry(dumbbell.get(), mat, GetChronoDataFile("models/sphere.obj"),
+                                   "LEFT_SPHERE", ChVector3d(-1, 0, 0));
+    utils::AddTriangleMeshGeometry(dumbbell.get(), mat, GetChronoDataFile("models/sphere.obj"), "RIGHT_SPHERE",
+                                   ChVector3d(1, 0, 0));
+    dumbbell->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.5f, 0.9f));
+    dumbbell->GetVisualShape(1)->SetColor(ChColor(0.1f, 0.5f, 0.9f));
+
 
     // Create the bottom plate body (fixed to ground)
     auto plate = chrono_types::make_shared<ChBody>();
@@ -310,7 +315,7 @@ int main(int argc, char* argv[]) {
     // Add callback object to system (as a ChLoadContainer).
     // This will be used to override Chrono only for the ball-plate interaction.
     auto custom_contact =
-        chrono_types::make_shared<CustomContact>(ball, plate, CustomContact::Method::ADD_CONTACT_LOADS);
+        chrono_types::make_shared<CustomContact>(dumbbell, plate, CustomContact::Method::ADD_CONTACT_LOADS);
     sys.GetCollisionSystem()->RegisterNarrowphaseCallback(custom_contact);
     sys.RegisterCustomCollisionCallback(custom_contact);
     sys.Add(custom_contact);
