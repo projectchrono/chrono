@@ -29,6 +29,13 @@ namespace sensor {
 /// @addtogroup sensor_filters
 /// @{
 
+/// Camera noise model types.
+enum class CameraNoiseModelType {
+    NONE,            ///< No noise model
+    CONST_NORMAL,    ///< Gaussian noise with constant mean and standard deviation
+    PIXEL_DEPENDENT  ///< Pixel-dependent Gaussian noise
+};
+
 /// A filter that adds Gaussian noise across an image with constant mean and standard deviation
 class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
   public:
@@ -37,6 +44,9 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
     /// @param stdev The standard deviation of the Gaussian distribution
     /// @param name The string name of the filter.
     ChFilterCameraNoiseConstNormal(float mean, float stdev, std::string name = "ChFilterCameraNoiseConstNormal");
+
+    /// Return filter noise model type.
+    CameraNoiseModelType GetModel() const { return CameraNoiseModelType::CONST_NORMAL; }
 
     /// Apply function. Adds uniform Gaussian noise to an image.
     virtual void Apply();
@@ -67,6 +77,9 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
     ChFilterCameraNoisePixDep(float variance_slope,
                               float variance_intercept,
                               std::string name = "ChFilterCameraNoisePixDep");
+
+    /// Return filter noise model type.
+    CameraNoiseModelType GetModel() const { return CameraNoiseModelType::PIXEL_DEPENDENT; }
 
     /// Apply function. Adds uniform Gaussian noise to an image.
     virtual void Apply();

@@ -29,6 +29,12 @@ namespace sensor {
 /// @addtogroup sensor_filters
 /// @{
 
+/// Lidar noise model types.
+enum class LidarNoiseModelType {
+    NONE,          ///< No noise model
+    CONST_NORMAL,  ///< Gaussian noise with constant mean and standard deviation
+};
+
 /// A filter that adds noise based on depth and intensity given data in point cloud format
 class CH_SENSOR_API ChFilterLidarNoiseXYZI : public ChFilter {
   public:
@@ -43,6 +49,9 @@ class CH_SENSOR_API ChFilterLidarNoiseXYZI : public ChFilter {
                            float stdev_h_angle,
                            float stdev_intensity,
                            std::string name = "ChFilterLidarNoiseXYZI");
+
+    /// Return filter noise model type.
+    LidarNoiseModelType GetModel() const { return LidarNoiseModelType::CONST_NORMAL; }
 
     /// Apply function. Applies noise to lidar data.
     virtual void Apply();

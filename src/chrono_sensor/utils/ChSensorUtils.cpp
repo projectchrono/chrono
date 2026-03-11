@@ -20,16 +20,56 @@
 namespace chrono {
 namespace sensor {
 
+#ifdef CHRONO_HAS_OPTIX
+
 std::string CameraLensModelTypeAsString(CameraLensModelType type) {
     switch (type) {
-        case PINHOLE:
+        case CameraLensModelType::PINHOLE:
             return "Pinhole";
-        case FOV_LENS:
+        case CameraLensModelType::FOV_LENS:
             return "Spherical";
-        case RADIAL:
+        case CameraLensModelType::RADIAL:
             return "Radial";
     }
     return "Unknown camera lens model";
+}
+
+std::string CameraNoiseModelTypeAsString(CameraNoiseModelType type) {
+    switch (type) {
+        case CameraNoiseModelType::NONE:
+            return "None";
+        case CameraNoiseModelType::CONST_NORMAL:
+            return "Const_normal";
+        case CameraNoiseModelType::PIXEL_DEPENDENT:
+            return "Pixel_dependent";
+    }
+    return "Unknown noise model";
+}
+
+std::string LidarReturnModeAsString(LidarReturnMode mode) {
+    switch (mode) {
+        case LidarReturnMode::STRONGEST_RETURN:
+            return "Strongest_return";
+        case LidarReturnMode::MEAN_RETURN:
+            return "Mean_return";
+        case LidarReturnMode::FIRST_RETURN:
+            return "First_return";
+        case LidarReturnMode::LAST_RETURN:
+            return "Last_return";
+        case LidarReturnMode::DUAL_RETURN:
+            return "Dual_return";
+    }
+    return "Unknown lidar return mode";
+}
+
+std::string LidarNoiseModelTypeAsString(LidarNoiseModelType type) {
+    switch (type) {
+        case LidarNoiseModelType::NONE:
+            return "None";
+        case LidarNoiseModelType::CONST_NORMAL:
+            return "Const_normal";
+    }
+    return "Unknown noise model";
 }
 
 std::string LightTypeAsString(LightType type) {
@@ -51,6 +91,8 @@ std::string LightTypeAsString(LightType type) {
     }
     return "Unknown light type";
 }
+
+#endif
 
 }  // namespace sensor
 }  // namespace chrono

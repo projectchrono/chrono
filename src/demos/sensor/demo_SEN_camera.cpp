@@ -45,6 +45,9 @@
 using namespace chrono;
 using namespace chrono::sensor;
 
+using std::cout;
+using std::endl;
+
 // -----------------------------------------------------------------------------
 // Simulation parameters
 // -----------------------------------------------------------------------------
@@ -67,31 +70,12 @@ bool verbose = false;
 // Output directory
 const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
 
-// Noise model attached to the sensor
-enum class NoiseModel {
-    CONST_NORMAL,     // Gaussian noise with constant mean and standard deviation
-    PIXEL_DEPENDENT,  // Pixel dependent gaussian noise
-    NONE              // No noise model
-};
-
-static std::string NoiseModelAsString(NoiseModel model) {
-    switch (model) {
-        case NoiseModel::CONST_NORMAL:
-            return "Const_normal";
-        case NoiseModel::PIXEL_DEPENDENT:
-            return "Pixel_dependent";
-        case NoiseModel::NONE:
-            return "None";
-    }
-    return "Unknown noise model";
-}
-
 // -----------------------------------------------------------------------------
 
 bool GetProblemSpecs(int argc,
                      char** argv,
                      CameraLensModelType& lens_model,
-                     NoiseModel& noise_model,
+                     CameraNoiseModelType& noise_model,
                      int& spp,
                      bool& use_diffuse_1,
                      bool use_denoiser_1,
@@ -100,8 +84,9 @@ bool GetProblemSpecs(int argc,
                      LightType& light_type);
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
+    // ---------------
     // Camera settings
     // ---------------
 
@@ -114,7 +99,7 @@ int main(int argc, char* argv[]) {
     bool use_denoiser_2 = false;  // use the OptiX denoiser for Camera 2
 
     // Sensor noise model
-    NoiseModel noise_model = NoiseModel::NONE;
+    CameraNoiseModelType noise_model = CameraNoiseModelType::NONE;
 
     // Lens model (PINHOLE or FOV_LENS)
     CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
@@ -144,17 +129,22 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    cout << "Light type:         " << LightTypeAsString(light_type) << endl;
+    cout << "Camera lens model:  " << CameraLensModelTypeAsString(lens_model) << endl;
+    cout << "Camera noise model: " << CameraNoiseModelTypeAsString(noise_model) << endl;
+    cout << "Samples per pixel:  " << spp << endl;
+    cout << "Field of view:      " << fov_deg << " deg" << endl;
+    cout << "Update rate:        " << update_rate << " Hz" << endl;
+    cout << "Exposure time:      " << exposure_time << " s" << endl;
+    cout << "Lag:                " << lag << " s" << endl;
+    cout << "Image size:         " << image_width << " x " << image_height << endl;
+    cout << "Camera 1 use diffuse reflextion? " << (use_diffuse_1 ? "yes" : "no") << endl;
+    cout << "Camera 1 use OptiX denoiser?     " << (use_denoiser_1 ? "yes" : "no") << endl;
+    cout << "Camera 2 use diffuse reflextion? " << (use_diffuse_2 ? "yes" : "no") << endl;
+    cout << "Camera 2 use OptiX denoiser?     " << (use_denoiser_2 ? "yes" : "no") << endl;
+
     int alias_factor = (int)std::sqrt(spp);
     float fov = fov_deg * (float)CH_DEG_TO_RAD;
-
-    if (use_diffuse_1)
-        std::cout << "\nPath Camera considers diffuse reflection\n";
-    if (use_diffuse_2)
-        std::cout << "\nLegacy Camera considers diffuse reflection\n";
-    if (use_denoiser_1)
-        std::cout << "\nPath Camera uses OptiX denoiser\n";
-    if (use_denoiser_2)
-        std::cout << "\nLegacy Camera uses OptiX denoiser\n";
 
     // -----------------
     // Create the system
@@ -343,7 +333,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         default: {
-            std::cout << "\nUnsupported type of light in this scene ...\n" << std::endl;
+            cout << "\nUnsupported type of light in this scene ...\n" << endl;
             exit(1);
         }
     }
@@ -383,13 +373,13 @@ int main(int argc, char* argv[]) {
 
     // Add a noise model filter to the camera sensor
     switch (noise_model) {
-        case NoiseModel::CONST_NORMAL:
+        case CameraNoiseModelType::CONST_NORMAL:
             cam1->PushFilter(chrono_types::make_shared<ChFilterCameraNoiseConstNormal>(0.f, .0004f));
             break;
-        case NoiseModel::PIXEL_DEPENDENT:
+        case CameraNoiseModelType::PIXEL_DEPENDENT:
             cam1->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(.0004f, .0004f));
             break;
-        case NoiseModel::NONE:
+        case CameraNoiseModelType::NONE:
             break;
     }
 
@@ -607,20 +597,20 @@ int main(int argc, char* argv[]) {
             //     max_depth = std::max(max_depth, depth_ptr->Buffer[i].depth);
             // }
             float d = depth_ptr->Buffer[depth_ptr->Height * depth_ptr->Width / 2].depth;
-            std::cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
-                      << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
-                      << ", depth [" << depth_ptr->Height * depth_ptr->Width / 2 << "] =" << d << "m" << std::endl;
+            cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
+                 << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
+                 << ", depth [" << depth_ptr->Height * depth_ptr->Width / 2 << "] =" << d << "m" << endl;
         }
 
         // Optional: Access the RGBA8 buffer from the first camera
         /*
         rgba8_ptr = cam1->GetMostRecentBuffer<UserRGBA8BufferPtr>();
         if (rgba8_ptr->Buffer) {
-            std::cout << "RGBA8 buffer recieved from cam1. Camera resolution: " << rgba8_ptr->Width << "x"
+            cout << "RGBA8 buffer recieved from cam1. Camera resolution: " << rgba8_ptr->Width << "x"
                       << rgba8_ptr->Height << ", frame= " << rgba8_ptr->LaunchedCount << ", t=" <<
                       rgba8_ptr->TimeStamp
-                      << std::endl
-                      << std::endl;
+                      << endl
+                      << endl;
         }
         */
 
@@ -637,8 +627,8 @@ int main(int argc, char* argv[]) {
                     running_total += uint8_t(r8_ptr->Buffer[i * width + j]);
                 }
             }
-            std::cout << "Average gray value: " << int(running_total) / double(height * width) << std::endl
-                      << std::endl;
+            cout << "Average gray value: " << int(running_total) / double(height * width) << endl
+                      << endl;
         }
         */
 
@@ -648,16 +638,16 @@ int main(int argc, char* argv[]) {
         if (rgba8_ptr->Buffer) {
             // Retreive and print the first RGBA pixel
             PixelRGBA8 first_pixel = rgba8_ptr->Buffer[0];
-            std::cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
+            cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
                       << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]\n"
-                      << std::endl;
+                      << endl;
 
             // Retreive and print the last RGBA pixel
             int buffer_length = rgba8_ptr->Height * rgba8_ptr->Width;
             PixelRGBA8 last_pixel = rgba8_ptr->Buffer[buffer_length - 1];
-            std::cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
+            cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
                       << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]\n"
-                      << std::endl;
+                      << endl;
         }
         */
 
@@ -674,7 +664,7 @@ int main(int argc, char* argv[]) {
 
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    std::cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
+    cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
 
     return 0;
 }
@@ -684,7 +674,7 @@ int main(int argc, char* argv[]) {
 bool GetProblemSpecs(int argc,
                      char** argv,
                      CameraLensModelType& lens_model,
-                     NoiseModel& noise_model,
+                     CameraNoiseModelType& noise_model,
                      int& spp,
                      bool& use_diffuse_1,
                      bool use_denoiser_1,
@@ -692,7 +682,7 @@ bool GetProblemSpecs(int argc,
                      bool use_denoiser_2,
                      LightType& light_type) {
     std::string description =
-        "\nCamera sensor demo\n\n"                                            //
+        "\nCamera sensor demo\n\n"                                           //
         "Lens models:  'Pinhole' or 'Spheric'\n"                             //
         "Noise models: 'Const_normal', 'Pixel_dependent', or 'None'\n"       //
         "Light type:   'Point', 'Spot', 'Directional', or 'Environment'\n";  //
@@ -700,7 +690,7 @@ bool GetProblemSpecs(int argc,
     ChCLI cli(argv[0], description);
 
     std::string light_type_str = LightTypeAsString(light_type);
-    std::string noise_model_str = NoiseModelAsString(noise_model);
+    std::string noise_model_str = CameraNoiseModelTypeAsString(noise_model);
     std::string lens_model_str = CameraLensModelTypeAsString(lens_model);
 
     cli.AddOption<std::string>("Camera", "lens_model", "Camera lens model", lens_model_str);
@@ -729,19 +719,19 @@ bool GetProblemSpecs(int argc,
     else if (lens_model_str == "Spheric")
         lens_model = CameraLensModelType::FOV_LENS;
     else {
-        std::cout << "Incorrect lens model. Use one of: Pinhole or Spheric" << std::endl;
+        cout << "Incorrect lens model. Use one of: Pinhole or Spheric" << endl;
         cli.Help();
         return false;
     }
 
     if (noise_model_str == "Const_normal")
-        noise_model = NoiseModel::CONST_NORMAL;
+        noise_model = CameraNoiseModelType::CONST_NORMAL;
     else if (noise_model_str == "Pixel_dependent")
-        noise_model = NoiseModel::PIXEL_DEPENDENT;
+        noise_model = CameraNoiseModelType::PIXEL_DEPENDENT;
     else if (noise_model_str == "None")
-        noise_model = NoiseModel::NONE;
+        noise_model = CameraNoiseModelType::NONE;
     else {
-        std::cout << "Incorrect noise model. Use one of: Const_normal, Pixel_dependent, or None" << std::endl;
+        cout << "Incorrect noise model. Use one of: Const_normal, Pixel_dependent, or None" << endl;
         cli.Help();
         return false;
     }
@@ -755,7 +745,7 @@ bool GetProblemSpecs(int argc,
     else if (light_type_str == "Environment")
         light_type = LightType::ENVIRONMENT_LIGHT;
     else {
-        std::cout << "Incorrect light type. Use one of: Point, Spot, Directional, Environment" << std::endl;
+        cout << "Incorrect light type. Use one of: Point, Spot, Directional, Environment" << endl;
         cli.Help();
         return false;
     }
