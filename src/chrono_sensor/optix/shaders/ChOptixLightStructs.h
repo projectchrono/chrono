@@ -25,11 +25,6 @@
 #include <curand_kernel.h>
 #include <cuda_fp16.h>
 
-// #include "chrono/core/ChVector3.h"
-// #include "chrono/assets/ChColor.h"
-
-// using namespace chrono;
-
 enum class LightType {
 	POINT_LIGHT,
 	SPOT_LIGHT,
