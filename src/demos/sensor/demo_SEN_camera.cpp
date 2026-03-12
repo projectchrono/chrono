@@ -28,10 +28,11 @@
 
 #include "chrono/assets/ChVisualShapeModelFile.h"
 
+#include "chrono_sensor/ChSensorManager.h"
+#include "chrono_sensor/utils/ChSensorUtils.h"
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/sensors/ChDepthCamera.h"
 #include "chrono_sensor/sensors/ChNormalCamera.h"
-#include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
 #include "chrono_sensor/filters/ChFilterSave.h"
@@ -39,57 +40,23 @@
 #include "chrono_sensor/filters/ChFilterCameraNoise.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+
 using namespace chrono;
 using namespace chrono::sensor;
 
-// -----------------------------------------------------------------------------
-// Camera parameters
-// -----------------------------------------------------------------------------
-
-// Noise model attached to the sensor
-enum NoiseModel {
-    CONST_NORMAL,     // Gaussian noise with constant mean and standard deviation
-    PIXEL_DEPENDENT,  // Pixel dependent gaussian noise
-    NONE              // No noise model
-};
-NoiseModel noise_model = NONE;
-
-// Camera lens model
-// Either PINHOLE or FOV_LENS
-CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
-
-// Update rate in Hz
-float update_rate = 30.f;
-
-// Image width and height
-unsigned int image_width = 1280;
-unsigned int image_height = 720;
-
-// Camera's horizontal field of view
-float fov = (float)CH_PI_3;  // [rad]
-
-// Lag (in seconds) between sensing and when data becomes accessible
-float lag = .05f;
-
-// Exposure (in seconds) of each image for generating motion blur effect
-float exposure_time = 0.02f;
-
-int alias_factor = 2;
-
-bool use_diffuse_1 = false;   // whether Camera 1 consinders diffuse reflection
-bool use_diffuse_2 = false;   // whether Camera 2 consinders diffuse reflection
-bool use_denoiser_1 = false;  // whether Camera 1 uses the OptiX denoiser
-bool use_denoiser_2 = false;  // whether Camera 2 uses the OptiX denoiser
+using std::cout;
+using std::endl;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
 // -----------------------------------------------------------------------------
 
-// Simulation step size
-double step_size = 1e-2;  // [sec]
+// Simulation step size (seconds)
+double step_size = 1e-2;
 
-// Simulation end time
-float end_time = 200.0f;  // [sec]
+// Simulation end time (seconds)
+float end_time = 200.0f;
 
 // Save camera images
 bool save = false;
@@ -103,56 +70,99 @@ bool verbose = false;
 // Output directory
 const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
 
+// -----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     CameraLensModelType& lens_model,
+                     CameraNoiseModelType& noise_model,
+                     int& spp,
+                     bool& use_diffuse_1,
+                     bool use_denoiser_1,
+                     bool& use_diffuse_2,
+                     bool use_denoiser_2,
+                     LightType& light_type);
+
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
-    // Address arguments
-    if (argc < 3) {
-        std::cout << "Please assign the number of samples per pixel (spp) and light type to illuminate the scene."
-                  << std::endl;
-        std::cout << "And optionally, you can decide whether Cameras 1 and 2 consider diffuse reflection and attach "
-                     "the OptiX denoisers,";
-        std::cout << "following the command line as:" << std::endl;
-        std::cout
-            << "demo_SEN_camera <number of samples per pixel> <light type: point, spot, directional, environment> ";
-        std::cout << "--use_diffuse_1 --use_diffuse_2 --use_denoiser_1 --use_denoiser_2" << std::endl;
-        exit(1);
+    // ---------------
+    // Camera settings
+    // ---------------
+
+    // Number of samples per pixel
+    int spp = 4;
+
+    bool use_diffuse_1 = false;   // consider diffuse reflection for Camera 1
+    bool use_diffuse_2 = false;   // consider diffuse reflection for Camera 2
+    bool use_denoiser_1 = false;  // use the OptiX denoiser for Camera 1
+    bool use_denoiser_2 = false;  // use the OptiX denoiser for Camera 2
+
+    // Sensor noise model
+    CameraNoiseModelType noise_model = CameraNoiseModelType::NONE;
+
+    // Lens model (PINHOLE or FOV_LENS)
+    CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
+
+    // Update rate in Hz
+    float update_rate = 30.0f;
+
+    // Image width and height
+    unsigned int image_width = 1280;
+    unsigned int image_height = 720;
+
+    // Camera's horizontal field of view (deg)
+    float fov_deg = 60;
+
+    // Lag (in seconds) between sensing and when data becomes accessible
+    float lag = 0.05f;
+
+    // Exposure (in seconds) of each image for generating motion blur effect
+    float exposure_time = 0.02f;
+
+    // Light type (POINT, SPOT, DIRECTIONAL, or ENVIRONMENT)
+    LightType light_type = LightType::POINT_LIGHT;
+
+    // Parse command line arguments
+    if (!GetProblemSpecs(argc, argv, lens_model, noise_model, spp, use_diffuse_1, use_denoiser_1, use_diffuse_2,
+                         use_denoiser_2, light_type)) {
+        return 1;
     }
 
-    alias_factor = (int)sqrt(std::atof(argv[1]));
-    std::string light_type_str = argv[2];
+    cout << "Light type:         " << LightTypeAsString(light_type) << endl;
+    cout << "Camera lens model:  " << CameraLensModelTypeAsString(lens_model) << endl;
+    cout << "Camera noise model: " << CameraNoiseModelTypeAsString(noise_model) << endl;
+    cout << "Samples per pixel:  " << spp << endl;
+    cout << "Field of view:      " << fov_deg << " deg" << endl;
+    cout << "Update rate:        " << update_rate << " Hz" << endl;
+    cout << "Exposure time:      " << exposure_time << " s" << endl;
+    cout << "Lag:                " << lag << " s" << endl;
+    cout << "Image size:         " << image_width << " x " << image_height << endl;
+    cout << "Camera 1 use diffuse reflextion? " << (use_diffuse_1 ? "yes" : "no") << endl;
+    cout << "Camera 1 use OptiX denoiser?     " << (use_denoiser_1 ? "yes" : "no") << endl;
+    cout << "Camera 2 use diffuse reflextion? " << (use_diffuse_2 ? "yes" : "no") << endl;
+    cout << "Camera 2 use OptiX denoiser?     " << (use_denoiser_2 ? "yes" : "no") << endl;
 
-    for (int i = 1; i < argc; ++i) {
-        if (std::strcmp(argv[i], "--use_diffuse_1") == 0) {
-            use_diffuse_1 = true;
-            std::cout << "\nPath Camera considers diffuse reflection\n";
-        } else if (std::strcmp(argv[i], "--use_diffuse_2") == 0) {
-            use_diffuse_2 = true;
-            std::cout << "\nLegacy Camera considers diffuse reflection\n";
-        } else if (std::strcmp(argv[i], "--use_denoiser_1") == 0) {
-            use_denoiser_1 = true;
-            std::cout << "\nPath Camera uses OptiX denoiser\n";
-        } else if (std::strcmp(argv[i], "--use_denoiser_2") == 0) {
-            use_denoiser_2 = true;
-            std::cout << "\nLegacy Camera uses OptiX denoiser\n";
-        }
-    }
+    int alias_factor = (int)std::sqrt(spp);
+    float fov = fov_deg * (float)CH_DEG_TO_RAD;
 
     // -----------------
     // Create the system
     // -----------------
+
     ChSystemNSC sys;
     sys.SetGravityY();
 
     // ---------------------------------------
-    // add a mesh to be visualized by a camera
+    // Add a mesh to be visualized by a camera
     // ---------------------------------------
-    auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/audi/audi_chassis.obj"),
-                                                                  true, true);
-    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/audi/audi_chassis.obj"),
+                                                                 true, true);
+    mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-    trimesh_shape->SetMesh(mmesh);
+    trimesh_shape->SetMesh(mesh);
     trimesh_shape->SetName("Audi Chassis Mesh");
 
     // Create a dielectric and diffuse visual material
@@ -269,6 +279,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create a sensor manager
     // -----------------------
+
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->SetRayRecursions(6);
     manager->SetVerbose(verbose);
@@ -277,45 +288,58 @@ int main(int argc, char* argv[]) {
 
     float intensity = 1.0f;
     unsigned int light_idx = 0;
-    if (light_type_str.find("point") != std::string::npos) {
-        // (pos, color, max_range, const_color)
-        light_idx = manager->scene->AddPointLight({0, 0, 3}, {intensity, intensity, intensity}, 500, true);
-    } else if (light_type_str.find("directional") != std::string::npos) {
-        float light_elevation = 15;  // [deg]
-        float light_azimuth = 45;    // [deg]
-        // (color, elevation, azimuth)
-        light_idx = manager->scene->AddDirectionalLight({intensity, intensity, intensity},
-                                                        light_elevation * (float)CH_DEG_TO_RAD,
-                                                        light_azimuth * (float)CH_DEG_TO_RAD);
-    } else if (light_type_str.find("spot") != std::string::npos) {
-        intensity = 6.0f;
-        // (pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color)
-        light_idx =
-            manager->scene->AddSpotLight({-5.f, 5.f, 5.f}, {intensity, intensity, intensity}, 8.67f, {1.f, -1.f, -1.f},
-                                         60 * (float)CH_DEG_TO_RAD, 90 * (float)CH_DEG_TO_RAD, false);
-    } else if (light_type_str.find("environment") != std::string::npos) {
-        b.mode = BackgroundMode::ENVIRONMENT_MAP;
-        float env_light_scale = 0.f;
+    switch (light_type) {
+        case LightType::POINT_LIGHT: {
+            // (pos, color, max_range, const_color)
+            light_idx = manager->scene->AddPointLight({0, 0, 3}, {intensity, intensity, intensity}, 500, true);
 
-        b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
-        // b.env_tex = GetChronoDataFile("sensor/textures/dreifaltigkeitsberg_2k.hdr"); // Optional: another choice of background texture
-        // b.env_tex = GetChronoDataFile("sensor/textures/UVChecker_byValle_4K.png"); // Optional: another choice of background texture
-        env_light_scale = 1.f;
+            break;
+        }
+        case LightType::DIRECTIONAL_LIGHT: {
+            float light_elevation = 15;  // [deg]
+            float light_azimuth = 45;    // [deg]
+            // (color, elevation, azimuth)
+            light_idx = manager->scene->AddDirectionalLight({intensity, intensity, intensity},
+                                                            light_elevation * (float)CH_DEG_TO_RAD,
+                                                            light_azimuth * (float)CH_DEG_TO_RAD);
+            break;
+        }
+        case LightType::SPOT_LIGHT: {
+            intensity = 6.0f;
+            // (pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color)
+            light_idx = manager->scene->AddSpotLight({-5.f, 5.f, 5.f}, {intensity, intensity, intensity}, 8.67f,
+                                                     {1.f, -1.f, -1.f}, 60 * (float)CH_DEG_TO_RAD,
+                                                     90 * (float)CH_DEG_TO_RAD, false);
+            break;
+        }
+        case LightType::ENVIRONMENT_LIGHT: {
+            b.mode = BackgroundMode::ENVIRONMENT_MAP;
+            float env_light_scale = 0.f;
 
-        // Optional: another choice of background texture
-        // b.env_tex = GetChronoDataFile("sensor/textures/envmap_sun_at_270_045.hdr");
-        // env_light_scale = 1000.f;
+            b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
+            // b.env_tex = GetChronoDataFile("sensor/textures/dreifaltigkeitsberg_2k.hdr"); // Optional: another choice
+            // of background texture b.env_tex = GetChronoDataFile("sensor/textures/UVChecker_byValle_4K.png"); //
+            // Optional: another choice of background texture
+            env_light_scale = 1.f;
 
-        manager->scene->SetBackground(b);
-        manager->Update();
-        light_idx = manager->scene->AddEnvironmentLight(b.env_tex, env_light_scale);
-    } else {
-        std::cout << "\nUnsupported type of light in this scene ...\n" << std::endl;
-        exit(1);
+            // Optional: another choice of background texture
+            // b.env_tex = GetChronoDataFile("sensor/textures/envmap_sun_at_270_045.hdr");
+            // env_light_scale = 1000.f;
+
+            manager->scene->SetBackground(b);
+            manager->Update();
+            light_idx = manager->scene->AddEnvironmentLight(b.env_tex, env_light_scale);
+
+            break;
+        }
+        default: {
+            cout << "\nUnsupported type of light in this scene ...\n" << endl;
+            exit(1);
+        }
     }
 
     // Set up the background
-    if (light_type_str.find("environment") == std::string::npos) {
+    if (light_type == LightType::ENVIRONMENT_LIGHT) {
         b.mode = BackgroundMode::SOLID_COLOR;
         b.color_zenith = ChVector3f(0.f, 0.f, 0.f);
         manager->scene->SetBackground(b);
@@ -324,6 +348,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
+
     chrono::ChFrame<double> offset_pose1({-8, 0, 2}, QuatFromAngleAxis(.2, {0, 1, 0}));
     auto cam1 = chrono_types::make_shared<ChCameraSensor>(
         ground_body,       // body camera is attached to
@@ -348,14 +373,13 @@ int main(int argc, char* argv[]) {
 
     // Add a noise model filter to the camera sensor
     switch (noise_model) {
-        case CONST_NORMAL:
+        case CameraNoiseModelType::CONST_NORMAL:
             cam1->PushFilter(chrono_types::make_shared<ChFilterCameraNoiseConstNormal>(0.f, .0004f));
             break;
-        case PIXEL_DEPENDENT:
+        case CameraNoiseModelType::PIXEL_DEPENDENT:
             cam1->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(.0004f, .0004f));
             break;
-        case NONE:
-            // Don't add any noise models
+        case CameraNoiseModelType::NONE:
             break;
     }
 
@@ -431,6 +455,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------------------
     // Create a depth camera that shadows camera2
     // -------------------------------------------------------
+
     auto depth = chrono_types::make_shared<ChDepthCamera>(ground_body,   // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
@@ -487,6 +512,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------------------
     // Create a semantic segmentation camera that shadows camera2
     // -------------------------------------------------------
+
     auto seg = chrono_types::make_shared<ChSegmentationCamera>(ground_body,   // body camera is attached to
                                                                update_rate,   // update rate in Hz
                                                                offset_pose2,  // offset pose
@@ -524,6 +550,7 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulate system
     // ---------------
+
     // Demonstration shows cameras panning around a stationary mesh.
     // Each camera begins on opposite sides of the object, but rotate at the same speed
     float orbit_radius = 13.f;                // [m]
@@ -570,20 +597,20 @@ int main(int argc, char* argv[]) {
             //     max_depth = std::max(max_depth, depth_ptr->Buffer[i].depth);
             // }
             float d = depth_ptr->Buffer[depth_ptr->Height * depth_ptr->Width / 2].depth;
-            std::cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
-                      << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
-                      << ", depth [" << depth_ptr->Height * depth_ptr->Width / 2 << "] =" << d << "m" << std::endl;
+            cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
+                 << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
+                 << ", depth [" << depth_ptr->Height * depth_ptr->Width / 2 << "] =" << d << "m" << endl;
         }
 
         // Optional: Access the RGBA8 buffer from the first camera
         /*
         rgba8_ptr = cam1->GetMostRecentBuffer<UserRGBA8BufferPtr>();
         if (rgba8_ptr->Buffer) {
-            std::cout << "RGBA8 buffer recieved from cam1. Camera resolution: " << rgba8_ptr->Width << "x"
+            cout << "RGBA8 buffer recieved from cam1. Camera resolution: " << rgba8_ptr->Width << "x"
                       << rgba8_ptr->Height << ", frame= " << rgba8_ptr->LaunchedCount << ", t=" <<
                       rgba8_ptr->TimeStamp
-                      << std::endl
-                      << std::endl;
+                      << endl
+                      << endl;
         }
         */
 
@@ -600,8 +627,8 @@ int main(int argc, char* argv[]) {
                     running_total += uint8_t(r8_ptr->Buffer[i * width + j]);
                 }
             }
-            std::cout << "Average gray value: " << int(running_total) / double(height * width) << std::endl
-                      << std::endl;
+            cout << "Average gray value: " << int(running_total) / double(height * width) << endl
+                      << endl;
         }
         */
 
@@ -611,16 +638,16 @@ int main(int argc, char* argv[]) {
         if (rgba8_ptr->Buffer) {
             // Retreive and print the first RGBA pixel
             PixelRGBA8 first_pixel = rgba8_ptr->Buffer[0];
-            std::cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
+            cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
                       << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]\n"
-                      << std::endl;
+                      << endl;
 
             // Retreive and print the last RGBA pixel
             int buffer_length = rgba8_ptr->Height * rgba8_ptr->Width;
             PixelRGBA8 last_pixel = rgba8_ptr->Buffer[buffer_length - 1];
-            std::cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
+            cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
                       << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]\n"
-                      << std::endl;
+                      << endl;
         }
         */
 
@@ -634,9 +661,100 @@ int main(int argc, char* argv[]) {
         // Get the current time of the simulation
         ch_time = (float)sys.GetChTime();
     }
+
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    std::cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
+    cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     CameraLensModelType& lens_model,
+                     CameraNoiseModelType& noise_model,
+                     int& spp,
+                     bool& use_diffuse_1,
+                     bool use_denoiser_1,
+                     bool& use_diffuse_2,
+                     bool use_denoiser_2,
+                     LightType& light_type) {
+    std::string description =
+        "\nCamera sensor demo\n\n"                                           //
+        "Lens models:  'Pinhole' or 'Spheric'\n"                             //
+        "Noise models: 'Const_normal', 'Pixel_dependent', or 'None'\n"       //
+        "Light type:   'Point', 'Spot', 'Directional', or 'Environment'\n";  //
+
+    ChCLI cli(argv[0], description);
+
+    std::string light_type_str = LightTypeAsString(light_type);
+    std::string noise_model_str = CameraNoiseModelTypeAsString(noise_model);
+    std::string lens_model_str = CameraLensModelTypeAsString(lens_model);
+
+    cli.AddOption<std::string>("Camera", "lens_model", "Camera lens model", lens_model_str);
+    cli.AddOption<std::string>("Camera", "noise_model", "Camera noise model", noise_model_str);
+    cli.AddOption<int>("Camera", "spp", "Samples per pixel", std::to_string(spp));
+
+    cli.AddOption<bool>("Camera", "diffuse1", "Enable diffuse reflection for camera 1");
+    cli.AddOption<bool>("Camera", "denoiser1", "Enable OptiX denoiser for camera 1");
+
+    cli.AddOption<bool>("Camera", "diffuse2", "Enable diffuse reflection for camera 2");
+    cli.AddOption<bool>("Camera", "denoiser2", "Enable OptiX denoiser for camera 2");
+
+    cli.AddOption<std::string>("Light", "light_type", "Light type", light_type_str);
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    lens_model_str = cli.GetAsType<std::string>("lens_model");
+    noise_model_str = cli.GetAsType<std::string>("noise_model");
+    light_type_str = cli.GetAsType<std::string>("light_type");
+
+    if (lens_model_str == "Pinhole")
+        lens_model = CameraLensModelType::PINHOLE;
+    else if (lens_model_str == "Spheric")
+        lens_model = CameraLensModelType::FOV_LENS;
+    else {
+        cout << "Incorrect lens model. Use one of: Pinhole or Spheric" << endl;
+        cli.Help();
+        return false;
+    }
+
+    if (noise_model_str == "Const_normal")
+        noise_model = CameraNoiseModelType::CONST_NORMAL;
+    else if (noise_model_str == "Pixel_dependent")
+        noise_model = CameraNoiseModelType::PIXEL_DEPENDENT;
+    else if (noise_model_str == "None")
+        noise_model = CameraNoiseModelType::NONE;
+    else {
+        cout << "Incorrect noise model. Use one of: Const_normal, Pixel_dependent, or None" << endl;
+        cli.Help();
+        return false;
+    }
+
+    if (light_type_str == "Point")
+        light_type = LightType::POINT_LIGHT;
+    else if (light_type_str == "Spot")
+        light_type = LightType::SPOT_LIGHT;
+    else if (light_type_str == "Directional")
+        light_type = LightType::DIRECTIONAL_LIGHT;
+    else if (light_type_str == "Environment")
+        light_type = LightType::ENVIRONMENT_LIGHT;
+    else {
+        cout << "Incorrect light type. Use one of: Point, Spot, Directional, Environment" << endl;
+        cli.Help();
+        return false;
+    }
+
+    spp = cli.GetAsType<int>("spp");
+    use_diffuse_1 = cli.GetAsType<bool>("diffuse1");
+    use_denoiser_1 = cli.GetAsType<bool>("denoiser1");
+    use_diffuse_2 = cli.GetAsType<bool>("diffuse2");
+    use_denoiser_2 = cli.GetAsType<bool>("denoiser2");
+
+    return true;
 }

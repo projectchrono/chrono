@@ -23,14 +23,13 @@
 #include <cuda_runtime_api.h>
 #include <nvrtc.h>
 #include <chrono>
+#include <string>
 
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/core/ChMatrix33.h"
 
 #include "chrono_thirdparty/stb/stb_image.h"
-
-#include <string>
 
 #include "chrono_sensor/ChApiSensor.h"
 
@@ -79,13 +78,13 @@ namespace sensor {
         }
 #endif
 
-/// holds string values for ptx file and ray generation program
+/// Holds string values for ptx file and ray generation program.
 struct ProgramString {
     std::string file_name;
     std::string program_name;
 };
 
-/// stores image data
+/// Stores image data.
 struct ByteImageData {
     /// image width
     int w;
@@ -97,7 +96,7 @@ struct ByteImageData {
     std::vector<unsigned char> data;
 };
 
-/// launches ray generation program
+/// Launches ray generation program.
 /// @param context optix device context
 /// @param module optix module that will be created
 /// @param file_name the file where the shader program is implemented
@@ -111,26 +110,28 @@ CH_SENSOR_API void GetShaderFromFile(OptixDeviceContext context,
 
 CH_SENSOR_API void optix_log_callback(unsigned int level, const char* tag, const char* message, void*);
 
-// #ifdef USE_CUDA_NVRTC
-// launches ray generation program
-// - context optix device context
-// - module optix module that will be created
-// - file_name the file where the shader program is implemented
-// - module_compile_options compile options for the module
-// - pipeline_compile_options compile options for the pipeline
-// CH_SENSOR_API void GetShaderFromPtx(OptixDeviceContext context,
-//                                     OptixModule& module,
-//                                     std::string file_name,
-//                                     OptixModuleCompileOptions& module_compile_options,
-//                                     OptixPipelineCompileOptions& pipeline_compile_options);
-// #endif
+/*
+#ifdef USE_CUDA_NVRTC
+///Launches ray generation program.
+///- context optix device context
+///- module optix module that will be created
+///- file_name the file where the shader program is implemented
+///- module_compile_options compile options for the module
+///- pipeline_compile_options compile options for the pipeline
+CH_SENSOR_API void GetShaderFromPtx(OptixDeviceContext context,
+                                    OptixModule& module,
+                                    std::string file_name,
+                                    OptixModuleCompileOptions& module_compile_options,
+                                    OptixPipelineCompileOptions& pipeline_compile_options);
+#endif
+*/
 
-/// loads image to struct ByteImageData, returns an empty struct with 0 values if loading failed
+/// Loads image to struct ByteImageData, returns an empty struct with 0 values if loading failed.
 /// @param filename
 CH_SENSOR_API ByteImageData LoadByteImage(const std::string& filename);
 
 /*
-/// creates an empty optix transform::node
+/// Creates an empty optix transform::node
 /// @param context the optix context
 optix::Transform CreateEmptyTransform(optix::Context context);
 

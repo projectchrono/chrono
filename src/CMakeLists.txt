@@ -756,32 +756,33 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
 
-# Create Chrono project configuration script in install and build trees
+# Create Chrono project configuration script for the install tree
 set(CH_INSTALL_TREE TRUE)
 set(CH_BUILD_TREE_DIR "")
 set(CHRONO_SWIG_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_swig")
 configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
+  "${CMAKE_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake-install"
   INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
+# Create Chrono project configuration script for the build tree
 set(CH_INSTALL_TREE FALSE)
 set(CH_BUILD_TREE_DIR "${PROJECT_BINARY_DIR}")
 set(CHRONO_SWIG_DIR "${CMAKE_BINARY_DIR}/chrono_swig")
 configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+  "${CMAKE_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake"
   INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
 unset(CH_INSTALL_TREE)
 unset(CH_BUILD_TREE_DIR)
 
-# install config files
+# install config file
 install(FILES
-        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
-        RENAME "chrono-config.cmake"
+        "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake-install"
+        RENAME "ChronoConfig.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
@@ -805,32 +806,23 @@ if(CH_ENABLE_MODULE_CSHARP)
 endif()
 
 #-----------------------------------------------------------------------------
+# Create the ChronoConfigVersion.cmake file
+#-----------------------------------------------------------------------------
 
+write_basic_package_version_file(
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfigVersion.cmake"
+  VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}"
+  COMPATIBILITY SameMajorVersion
+)
 
-## TODO DARIOM: do version
-# # set version
-# set(version 3.4.1)
-
-# set_property(TARGET MathFunctions PROPERTY VERSION ${version})
-# set_property(TARGET MathFunctions PROPERTY SOVERSION 3)
-# set_property(TARGET MathFunctions PROPERTY
-#   INTERFACE_MathFunctions_MAJOR_VERSION 3)
-# set_property(TARGET MathFunctions APPEND PROPERTY
-#   COMPATIBLE_INTERFACE_STRING MathFunctions_MAJOR_VERSION
-# )
-
-# # generate the version file for the config file
-# write_basic_package_version_file(
-#   "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
-#   VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}"
-#   COMPATIBILITY AnyNewerVersion
-# )
-
+install(FILES
+        "${CMAKE_BINARY_DIR}/cmake/ChronoConfigVersion.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
 
 #-----------------------------------------------------------------------------
 # Export generated ChronoTargets.cmake
 #-----------------------------------------------------------------------------
-
 
 export(EXPORT ChronoTargets
        FILE "${CMAKE_BINARY_DIR}/cmake/ChronoTargets.cmake"

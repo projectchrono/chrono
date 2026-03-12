@@ -66,7 +66,8 @@ int main(int argc, char* argv[]) {
     cam1->PushFilter(chrono_types::make_shared<ChFilterVisualize>(400, 400, "World Ray Tracing"));
     manager->AddSensor(cam1);
 
-    auto tachometer = chrono_types::make_shared<ChTachometerSensor>(body, 5.f, cam_offset_pose, Y);
+    auto tachometer =
+        chrono_types::make_shared<ChTachometerSensor>(body, 5.f, cam_offset_pose, ChTachometerSensor::Axis::Y);
     tachometer->SetName("Tachometer");
     tachometer->SetLag(0);
     tachometer->SetCollectionWindow(0.02f);

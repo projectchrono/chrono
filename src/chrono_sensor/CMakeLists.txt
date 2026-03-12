@@ -392,6 +392,7 @@ source_group("filters" FILES ${Chrono_sensor_FILTERS_SOURCES} ${Chrono_sensor_FI
 #-----------------------------------------------------------------------------
 
 set(Chrono_sensor_UTILS_SOURCES
+    utils/ChSensorUtils.cpp
     utils/ChUtilsJSON.cpp
     utils/ChGPSUtils.cpp
     utils/Kdtree.cpp
@@ -399,6 +400,7 @@ set(Chrono_sensor_UTILS_SOURCES
 )
 
 set(Chrono_sensor_UTILS_HEADERS
+    utils/ChSensorUtils.h
     utils/ChUtilsJSON.h
     utils/ChGPSUtils.h
     utils/Kdtree.h

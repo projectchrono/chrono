@@ -40,7 +40,7 @@ class ChSensor;
 class CH_SENSOR_API ChFilter {
   public:
     /// Virtual class desctructor
-    virtual ~ChFilter(){};
+    virtual ~ChFilter() {}
 
     /// Virtual apply function. This will be called sequentially for all filters in a filter list. This should contain
     /// the necessary processing during the simulation. This must be threadsafe when applied to a ChOptixSensor.
