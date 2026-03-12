@@ -87,7 +87,7 @@ struct ChJoystickButtonIRR {
 
     int id;                  // controller ID
     int button;              // controller button
-    std::string name;        // buttoin name
+    std::string name;        // button name
     int buttonPressedCount;  // counter to identify continuous press
     bool buttonPressed;      // current output value
 };

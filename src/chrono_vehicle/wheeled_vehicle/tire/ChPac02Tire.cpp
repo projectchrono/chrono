@@ -22,12 +22,12 @@
 //  - only steady state force/torque calculations
 //  - uncombined (use_mode = 3)
 //  - combined (use_mode = 4) via Friction Ellipsis (default) or Pacejka method
-//  - parametration is given by a TIR file (Tiem Orbit Format,
+//  - parametrization is given by a TIR file (Tiem Orbit Format,
 //    ADAMS/Car compatible)
 //  - unit conversion is implemented but only tested for SI units
 //  - optional inflation pressure dependency is implemented, but not tested
 //  - this implementation could be validated for the FED-Alpha vehicle and rsp.
-//    tire data sets against KRC test results from a Nato CDT
+//    tire data sets against KRC test results from a NATO CDT
 // =============================================================================
 
 #include <cstdio>

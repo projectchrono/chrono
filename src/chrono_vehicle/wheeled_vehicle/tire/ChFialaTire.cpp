@@ -149,7 +149,7 @@ void ChFialaTire::Advance(double step) {
 
     FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
 
-    // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
+    // Smoothing factor dependent on m_state.abs_vx, allows soft switching of My
     double myStartUp = ChFunctionSineStep::Eval(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
     // Rolling Resistance
     My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);

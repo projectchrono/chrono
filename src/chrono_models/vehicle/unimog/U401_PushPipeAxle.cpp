@@ -176,7 +176,7 @@ U401_PushPipeAxle::U401_PushPipeAxle(const std::string& name) : ChPushPipeAxle(n
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 U401_PushPipeAxle::~U401_PushPipeAxle() {}
 

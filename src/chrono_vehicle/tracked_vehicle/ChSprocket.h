@@ -166,7 +166,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
 
     std::shared_ptr<ChSystem::CustomCollisionCallback> m_callback;  ///< cached collision callback
 
-    bool m_lateral_contact;  ///< if 'true', enable lateral conatact to prevent detracking
+    bool m_lateral_contact;  ///< if 'true', enable lateral contact to prevent detracking
 
     friend class ChTrackAssembly;
 };

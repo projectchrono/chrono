@@ -179,7 +179,7 @@ CityBus_ToeBarLeafspringAxle::CityBus_ToeBarLeafspringAxle(const std::string& na
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 CityBus_ToeBarLeafspringAxle::~CityBus_ToeBarLeafspringAxle() {}
 

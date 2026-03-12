@@ -2947,7 +2947,7 @@ void ChVisualSystemVSG::ExportScreenImage() {
     auto physicalDevice = m_window->getPhysicalDevice();
     auto swapchain = m_window->getSwapchain();
 
-    // get the colour buffer image of the previous rendered frame as the current frame hasn't been rendered yet.  The 1
+    // get the color buffer image of the previous rendered frame as the current frame hasn't been rendered yet.  The 1
     // in window->imageIndex(1) means image from 1 frame ago.
     auto sourceImage = m_window->imageView(m_window->imageIndex(1))->image;
 

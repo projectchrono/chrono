@@ -48,8 +48,8 @@ namespace turtlebot {
 namespace CollisionFamily {
 enum Enum {
     CHASSIS = 1,        ///< chassis
-    ACTIVE_WHEEL = 2,   ///< active cylinderical drive wheel
-    PASSIVE_WHEEL = 3,  ///< passive cylinderical wheel
+    ACTIVE_WHEEL = 2,   ///< active cylindrical drive wheel
+    PASSIVE_WHEEL = 3,  ///< passive cylindrical wheel
     ROD = 4,            ///< short and long supporting rods
     BOTTOM_PLATE = 5,   ///< bottom plate
     MIDDLE_PLATE = 6,   ///< middle plate
@@ -96,7 +96,7 @@ class CH_MODELS_API Turtlebot_Part {
     const ChQuaternion<>& GetRot() const { return m_body->GetFrameRefToAbs().GetRot(); }
 
   protected:
-    /// Initialize the visulization mesh of the Turtlebot part.
+    /// Initialize the visualization mesh of the Turtlebot part.
     void AddVisualizationAssets();
 
     /// Initialize the collision mesh of the Turtlebot part.

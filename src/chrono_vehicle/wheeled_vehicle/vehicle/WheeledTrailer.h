@@ -30,7 +30,7 @@ namespace vehicle {
 /// Wheeled trailer model constructed from a JSON specification file.
 class CH_VEHICLE_API WheeledTrailer : public ChWheeledTrailer {
   public:
-    /// Create a wheeld trailer system from the provided JSON specification file.
+    /// Create a wheeled trailer system from the provided JSON specification file.
     /// If indicated, the associated tires are also created (if specified in the JSON file).
     WheeledTrailer(ChSystem* system, const std::string& filename, bool create_tires = true);
 

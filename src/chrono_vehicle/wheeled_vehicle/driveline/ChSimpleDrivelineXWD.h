@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
     virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft_speed; }
 
   protected:
-    /// Return the torque bias ratio every axlewise differential.
+    /// Return the torque bias ratio every axle-wise differential.
     /// This is a simple model of a Torsen limited-slip differential.
     virtual double GetDifferentialMaxBias() const = 0;
 

@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Asher Elmquist, Rainer Gericke
 // =============================================================================
 //
-// Brake classe for Jeep Cherokee 1997
+// Brake class for Jeep Cherokee 1997
 // Vehicle Parameters taken from SAE Paper 1999-01-0121
 // (including the vehicle itself, the powertrain, and the tires).
 //

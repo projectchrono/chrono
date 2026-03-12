@@ -407,7 +407,7 @@ void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
         ++i_verts;
     }
 
-    // colours and colours indexes
+    // colors and colors indexes
     for (int in = 0; in < 8; ++in) {
         trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(nodes[in], element));
         ++i_vcols;

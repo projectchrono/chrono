@@ -311,7 +311,7 @@ double ChPathSteeringControllerXT::CalcHeadingError(ChVector3d& a, ChVector3d& b
 
 int ChPathSteeringControllerXT::CalcCurvatureCode(ChVector3d& a, ChVector3d& b) {
     // a[] is a unit vector pointing to the left vehicle side
-    // b[] is a unit vector pointing to the instantanous curve center
+    // b[] is a unit vector pointing to the instantaneous curve center
     ChWorldFrame::Project(a);
     ChWorldFrame::Project(b);
     a.Normalize();
@@ -368,7 +368,7 @@ double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, dou
         *m_csv << time << m_target << m_sentinel << std::endl;
     }
 
-    // The "error" vector is the projection onto the horizontal planeof
+    // The "error" vector is the projection onto the horizontal plane of
     // the vector between sentinel and target.
     ChVector3d err_vec = m_target - m_sentinel;
     ChWorldFrame::Project(err_vec);
@@ -618,7 +618,7 @@ double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, dou
 // The Stanley driver should find 'always' back to the path, despite of great heading or lateral error.
 // If an integral term is used, its state is getting reset every 30 secs to avoid controller wind-up.
 //
-// The algorithm comes from from :
+// The algorithm comes from:
 //
 // Gabriel M. Hoffmann, Claire J. Tomlin, Michael Montemerlo, Sebastian Thrun:
 // "Autonomous Automobile Trajectory Tracking for Off-Road Driving", 2005

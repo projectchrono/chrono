@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Implementation of a suspension testing mechanism for a wheeld vehicle.
+// Implementation of a suspension testing mechanism for a wheeled vehicle.
 //
 // The reference frame follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -562,7 +562,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
             postprocess::ChGnuPlot gplot(out_dir + "/plot_tsdas.gpl");
 
             gplot.SetCommand("set terminal wxt size 1200, 1200");
-            gplot.SetCommand("set multiplot layout 3," + std::to_string(num_tsda) + " columnsfirst ");
+            gplot.SetCommand("set multiplot layout 3," + std::to_string(num_tsda) + " columns first ");
 
             gplot.SetCommand("set format y '%4.1f'");
             gplot.SetCommand(lsL);
@@ -601,7 +601,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
             postprocess::ChGnuPlot gplot(out_dir + "/plot_rsdas.gpl");
 
             gplot.SetCommand("set terminal wxt size 1200, 1200");
-            gplot.SetCommand("set multiplot layout 3," + std::to_string(num_rsda) + " columnsfirst ");
+            gplot.SetCommand("set multiplot layout 3," + std::to_string(num_rsda) + " columns first ");
 
             gplot.SetCommand("set format y '%4.1f'");
             gplot.SetCommand(lsL);

@@ -17,7 +17,7 @@
 // developed by Prof. Dr. Georg Rill.
 //
 //
-// Ref: Georg Rill, "Road Vehicle Dynamics - Fundamentals and Modelling",
+// Ref: Georg Rill, "Road Vehicle Dynamics - Fundamentals and Modeling",
 //          https://www.routledge.com/Road-Vehicle-Dynamics-Fundamentals-and-Modeling-with-MATLAB/Rill-Castro/p/book/9780367199739
 //      Georg Rill, "An Engineer's Guess On Tyre Model Parameter Made Possible With TMeasy",
 //          https://www.researchgate.net/publication/317036908_An_Engineer's_Guess_on_Tyre_Parameter_made_possible_with_TMeasy
@@ -37,7 +37,7 @@
 //  - FED-Alpha vehicle model
 //  - Tire data sets gained by conversion of Pac02 TIR parameter files
 //  - Steady state cornering test and test results from Keweenah Research Center (KRC)
-//  - unvalidateble functionality has been removed
+//  - non-validated functionality has been removed
 // ===================================================================================
 
 #include <algorithm>

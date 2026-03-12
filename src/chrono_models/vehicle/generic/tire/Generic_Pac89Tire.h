@@ -30,7 +30,7 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// PAC89 tire model for the Generic vehicle vehicle.
+/// PAC89 tire model for the Generic vehicle.
 class CH_MODELS_API Generic_Pac89Tire : public ChPac89Tire {
   public:
     Generic_Pac89Tire(const std::string& name);

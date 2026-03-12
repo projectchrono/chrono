@@ -34,8 +34,8 @@
 // joints of the clamp bodies.
 //
 // For the stiffness parameters the user can take the desired translatoric vertical
-// stiffness dividedby two (we have two leaves). The preload can be set as a
-// vertical force dividedby two. The conversion to the rotary setup is made
+// stiffness divided by two (we have two leaves). The preload can be set as a
+// vertical force divided by two. The conversion to the rotary setup is made
 // automatically.
 //
 // The SAE model allows to consider the correct axle movement due to wheel travel.
@@ -467,27 +467,27 @@ void ChSAELeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
 
     double rs = getAxleTubeRadius() / 10.0;
 
-    // frontleaf visualisation
+    // frontleaf visualization
     AddVisualizationLink(m_frontleaf[LEFT], m_pointsL[FRONT_HANGER], m_pointsL[CLAMP_A], rs, ChColor(0.5f, 0.5f, 0.7f));
     AddVisualizationLink(m_frontleaf[RIGHT], m_pointsR[FRONT_HANGER], m_pointsR[CLAMP_A], rs,
                          ChColor(0.5f, 0.5f, 0.7f));
 
-    // clampA visualisation
+    // clampA visualization
     AddVisualizationLink(m_clampA[LEFT], m_pointsL[CLAMP_A], (m_pointsL[CLAMP_A] + m_pointsL[CLAMP_B]) / 2.0, rs,
                          ChColor(0.5f, 0.7f, 0.5f));
     AddVisualizationLink(m_clampA[RIGHT], m_pointsR[CLAMP_A], (m_pointsR[CLAMP_A] + m_pointsR[CLAMP_B]) / 2.0, rs,
                          ChColor(0.5f, 0.7f, 0.5f));
-    // clampB visualisation
+    // clampB visualization
     AddVisualizationLink(m_clampB[LEFT], m_pointsL[CLAMP_B], (m_pointsL[CLAMP_A] + m_pointsL[CLAMP_B]) / 2.0, rs,
                          ChColor(0.5f, 0.5f, 0.7f));
     AddVisualizationLink(m_clampB[RIGHT], m_pointsR[CLAMP_B], (m_pointsR[CLAMP_A] + m_pointsR[CLAMP_B]) / 2.0, rs,
                          ChColor(0.5f, 0.5f, 0.7f));
 
-    // rearleaf visualisation
+    // rearleaf visualization
     AddVisualizationLink(m_rearleaf[LEFT], m_pointsL[SHACKLE], m_pointsL[CLAMP_B], rs, ChColor(0.5f, 0.5f, 0.7f));
     AddVisualizationLink(m_rearleaf[RIGHT], m_pointsR[SHACKLE], m_pointsR[CLAMP_B], rs, ChColor(0.5f, 0.5f, 0.7f));
 
-    // Shackle visualisation
+    // Shackle visualization
     AddVisualizationLink(m_shackle[LEFT], m_pointsL[SHACKLE], m_pointsL[REAR_HANGER], rs, ChColor(0.7f, 0.5f, 0.5f));
     AddVisualizationLink(m_shackle[RIGHT], m_pointsR[SHACKLE], m_pointsR[REAR_HANGER], rs, ChColor(0.7f, 0.5f, 0.5f));
 }

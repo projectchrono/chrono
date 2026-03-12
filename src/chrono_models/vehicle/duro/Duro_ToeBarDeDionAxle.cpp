@@ -186,7 +186,7 @@ Duro_ToeBarDeDionAxle::Duro_ToeBarDeDionAxle(const std::string& name) : ChToeBar
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 Duro_ToeBarDeDionAxle::~Duro_ToeBarDeDionAxle() {}
 

@@ -140,7 +140,7 @@ MAN_5t_BellcrankSolid3LinkAxle::MAN_5t_BellcrankSolid3LinkAxle(const std::string
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 MAN_5t_BellcrankSolid3LinkAxle::~MAN_5t_BellcrankSolid3LinkAxle() {}
 

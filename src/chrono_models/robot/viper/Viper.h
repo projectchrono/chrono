@@ -105,8 +105,8 @@ class CH_MODELS_API ViperPart {
     /// This is the absolute linear acceleration of the part reference frame.
     const ChVector3d& GetLinAcc() const { return m_body->GetFrameRefToAbs().GetPosDt2(); }
 
-    /// Return the angular acceleratino of the Viper part.
-    /// This is the absolute angular acceleratin of the part reference frame.
+    /// Return the angular acceleration of the Viper part.
+    /// This is the absolute angular acceleration of the part reference frame.
     const ChVector3d GetAngAcc() const { return m_body->GetFrameRefToAbs().GetAngAccParent(); }
 
   protected:

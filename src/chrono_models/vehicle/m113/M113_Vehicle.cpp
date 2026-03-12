@@ -90,8 +90,8 @@ M113_Vehicle_SinglePin::M113_Vehicle_SinglePin(bool fixed,
                                                CollisionType chassis_collision_type)
     : M113_Vehicle(fixed,
                    TrackShoeType::SINGLE_PIN,
-                   DoublePinTrackShoeType::ONE_CONNECTOR,     // unused
-                   ChTrackShoeBandANCF::ElementType::ANCF_4,  // unusued
+                   DoublePinTrackShoeType::ONE_CONNECTOR,     // not used
+                   ChTrackShoeBandANCF::ElementType::ANCF_4,  // not used
                    false,                                     // not used
                    0,                                         // not used
                    0,                                         // not used

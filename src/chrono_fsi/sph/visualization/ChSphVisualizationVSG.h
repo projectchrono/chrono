@@ -149,7 +149,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     ChSystem* GetSystem() const { return m_sysMBS; }
 
   private:
-    /// GPU shader modes supported by the SPH particle colour compute path.
+    /// GPU shader modes supported by the SPH particle color compute path.
     enum class ColorMode {
         NONE = 0,
         HEIGHT = 1,
@@ -177,7 +177,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         vsg::ref_ptr<vsg::DescriptorBuffer> positionDescriptor;        ///< descriptor binding for positions
         vsg::ref_ptr<vsg::DescriptorBuffer> velocityDescriptor;        ///< descriptor binding for velocities
         vsg::ref_ptr<vsg::DescriptorBuffer> propertyDescriptor;        ///< descriptor binding for properties
-        vsg::ref_ptr<vsg::DescriptorBuffer> colorDescriptor;           ///< descriptor binding for output colours
+        vsg::ref_ptr<vsg::DescriptorBuffer> colorDescriptor;           ///< descriptor binding for output colors
         vsg::ref_ptr<vsg::DescriptorBuffer> uniformDescriptor;         ///< descriptor binding for uniforms
         vsg::ref_ptr<vsg::DescriptorBuffer> colormapDescriptor;        ///< descriptor binding for LUT data
         vsg::ref_ptr<vsg::DescriptorSetLayout> descriptorSetLayout;    ///< layout describing binding slots

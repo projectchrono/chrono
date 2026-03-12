@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChTrackAssemblyBand : public ChTrackAssembly {
                       ///< the current circle belt feature
         ChVector2d& Point,  ///< Intersection Point, if it exists between the circle formed by StartingPoint and Radius
                             ///< with the current circle belt feature
-        ChMatrixDynamic<>& Features,  ///< Table with the tagent or arc information for the entire belt wrap
+        ChMatrixDynamic<>& Features,  ///< Table with the tangent or arc information for the entire belt wrap
         int FeatureIdx,               ///< Current belt feature to check the intersection of
         ChVector2d& StartingPoint,    ///< Current Point on the belt wrap
         double Radius                 ///< Length of the current belt segment that needs to be placed on the belt wrap
@@ -87,7 +87,7 @@ class CH_VEHICLE_API ChTrackAssemblyBand : public ChTrackAssembly {
                       ///< the current circle belt feature
         ChVector2d& Point,  ///< Intersection Point, if it exists between the circle formed by StartingPoint and Radius
                             ///< with the current circle belt feature
-        ChMatrixDynamic<>& Features,  ///< Table with the tagent or arc information for the entire belt wrap
+        ChMatrixDynamic<>& Features,  ///< Table with the tangent or arc information for the entire belt wrap
         int FeatureIdx,               ///< Current belt feature to check the intersection of
         ChVector2d& StartingPoint,    ///< Current Point on the belt wrap
         double Radius                 ///< Length of the current belt segment that needs to be placed on the belt wrap

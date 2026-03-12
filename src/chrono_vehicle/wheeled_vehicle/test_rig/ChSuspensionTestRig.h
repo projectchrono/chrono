@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of a suspension testing mechanism for a wheeld vehicle.
+// Definition of a suspension testing mechanism for a wheeled vehicle.
 //
 // The reference frame follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -165,7 +165,7 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     void PlotOutput(const std::string& out_dir, const std::string& out_name);
 
   protected:
-    /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
+    /// Construct a test rig for specified sets of axles and steering mechanisms of a given vehicle.
     ChSuspensionTestRig(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
                         std::vector<int> axle_index,                ///< list of tested vehicle axles
                         double displ_limit                          ///< displacement limits
@@ -241,7 +241,7 @@ class CH_VEHICLE_API ChSuspensionTestRig {
 /// Definition of a suspension test rig using platforms to actuate the tires.
 class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
   public:
-    /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
+    /// Construct a test rig for specified sets of axles and steering mechanisms of a given vehicle.
     ChSuspensionTestRigPlatform(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
                                 std::vector<int> axle_index,                ///< list of tested vehicle axles
                                 double displ_limit                          ///< displacement limits
@@ -290,7 +290,7 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
 /// Definition of a suspension test rig with direct actuation on the spindle bodies.
 class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
   public:
-    /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
+    /// Construct a test rig for specified sets of axles and steering mechanisms of a given vehicle.
     ChSuspensionTestRigPushrod(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
                                std::vector<int> axle_index,                ///< list of tested vehicle axles
                                double displ_limit                          ///< displacement limits

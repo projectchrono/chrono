@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
-    // coordinates and vertex colours as in the FEM elements.
+    // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a coloured ChTriangleMeshShape).
 

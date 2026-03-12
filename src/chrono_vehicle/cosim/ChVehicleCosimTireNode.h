@@ -39,7 +39,7 @@ namespace vehicle {
  * communication interface.
  * - ChVehicleCosimTireNodeFlexible wraps a flexible FEA-based tire model and implements the
  * ChVehicleCosimBaseNode::InterfaceType::MESH communication interface.
- * - ChVehicleCosimTireNodeBypass is a simple counduit between the MBS and Terrain node and implements the
+ * - ChVehicleCosimTireNodeBypass is a simple conduit between the MBS and Terrain node and implements the
  * ChVehicleCosimBaseNode::InterfaceType::BODY communication interface.
  */
 

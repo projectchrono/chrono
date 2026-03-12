@@ -216,7 +216,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
 }
 
 void ChVehicleCosimTireNodeFlexible::LoadMeshState(MeshState& mesh_state) {
-    // Extract tire mesh vertex locations and velocites
+    // Extract tire mesh vertex locations and velocities
     std::vector<ChVector3i> triangles;
     m_contact_load->OutputSimpleMesh(mesh_state.vpos, mesh_state.vvel, triangles);
 

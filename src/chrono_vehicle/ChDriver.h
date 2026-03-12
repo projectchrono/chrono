@@ -86,7 +86,7 @@ class CH_VEHICLE_API ChDriver {
     /// Overwrite the value for the clutch braking input (input is clamped in [0,+1]).
     void SetClutch(double clutch);
 
-    /// Checkpoint the state of this driver to the given checkpint file.
+    /// Checkpoint the state of this driver to the given checkpoint file.
     /// The default implementation saves the driver inputs.
     virtual void ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const;
 

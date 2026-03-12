@@ -179,7 +179,7 @@ UAZBUS_ToeBarLeafspringAxle::UAZBUS_ToeBarLeafspringAxle(const std::string& name
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 UAZBUS_ToeBarLeafspringAxle::~UAZBUS_ToeBarLeafspringAxle() {}
 

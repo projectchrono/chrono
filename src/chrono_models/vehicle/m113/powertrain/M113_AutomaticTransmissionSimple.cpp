@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Automatic transmssion model for the M113 vehicle.
+// Automatic transmission model for the M113 vehicle.
 // - both power and torque limited
 // - no torque converter
 // - simple gear-shifting model (in automatic mode)

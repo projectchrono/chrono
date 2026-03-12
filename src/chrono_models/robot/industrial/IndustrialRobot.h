@@ -76,7 +76,7 @@ class CH_MODELS_API IndustrialRobot {
     /// Get motors torques/forces, depending on specific robot architecture.
     virtual ChVectorDynamic<> GetMotorsForce() const = 0;
 
-    /// Get motors travelled distance.
+    /// Get motors traveled distance.
     /// NB: needs runtime call to UpdateEncoder() function to be kept updated.
     ChVectorDynamic<> GetEncoderReading() const { return m_encoder; }
 
@@ -115,7 +115,7 @@ class CH_MODELS_API IndustrialRobot {
     /// Check if external body has been kinematically attached by robot (eg. gripped by end-effector).
     bool IsBodyAttached() const { return m_body_attached; }
 
-    /// Update internal encoder to keep track of distance travelled by motors.
+    /// Update internal encoder to keep track of distance traveled by motors.
     /// NB: call this function at runtime and get reading with GetEncoderReading() function.
     virtual void UpdateEncoder();
 

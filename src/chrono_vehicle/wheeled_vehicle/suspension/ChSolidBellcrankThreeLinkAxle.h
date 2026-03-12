@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Base class for a coil-spring or air-sprin solid axle suspension, typically
+// Base class for a coil-spring or air-spring solid axle suspension, typically
 // combined with the rotary arm steering.
 //
 // Derived from ChSuspension, but still an abstract base class.
@@ -138,7 +138,7 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
         SPRING_C,     ///< spring, chassis
         SPINDLE,      ///< spindle location
         TRIANGLE_A,   ///< triangle link location on the axle (single point y = 0)
-        TRIANGLE_C,   ///< triangle link locationon the chassis (two points)
+        TRIANGLE_C,   ///< triangle link location on the chassis (two points)
         LINK_A,       ///< longitudinal link location on the axle (two points)
         LINK_C,       ///< longitudinal link location on the chassis (two points)
         BELLCRANK_A,  ///< location of revolute joint of bellcrank/axle

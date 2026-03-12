@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Automatic transmssion model for the Jeep Cherokee vehicle.
+// Automatic transmission model for the Jeep Cherokee vehicle.
 // - both power and torque limited
 // - no torque converter
 // - simple gear-shifting model (in automatic mode)

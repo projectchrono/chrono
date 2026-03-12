@@ -89,7 +89,7 @@ HMMWV_DoubleWishboneReducedRear::HMMWV_DoubleWishboneReducedRear(const std::stri
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 HMMWV_DoubleWishboneReducedFront::~HMMWV_DoubleWishboneReducedFront() {}
 

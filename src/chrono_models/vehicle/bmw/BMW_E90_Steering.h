@@ -14,7 +14,7 @@
 //
 // BMW E90 rack-pinion steering model.
 // Vehicle Parameters taken from SAE Paper 2007-01-0818
-// Steering trapez behind origin (original in front of origin)
+// Steering trapezoid behind origin (original in front of origin)
 //
 // =============================================================================
 
