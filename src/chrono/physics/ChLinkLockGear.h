@@ -32,6 +32,7 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     double phase;     ///< mounting phase angle
     bool checkphase;  ///< keep gear always on phase
     bool epicyclic;   ///< epiciclyc (gear 1 is internal to gear2)  if true.
+    bool phase_setup_needed;
 
     double a1;  ///< auxiliary
     double a2;  ///< auxiliary
@@ -87,6 +88,11 @@ class ChApi ChLinkLockGear : public ChLinkLock {
 
     /// Set the initial phase of rotation of gear A respect to gear B
     void SetPhase(double mset) { phase = mset; }
+
+    /// If SetEnforcePhase(true) but you do not know the correct initial phase to
+    /// be used in SetPhase(), call this function once at setup, and later this object 
+    /// will automatically compute the correct phase at first time that an Update() is done.
+    void SetPhaseAutomatically() { this->phase_setup_needed = true; }
 
     /// If true, the bigger wheel has inner (internal) teeth
     bool GetEpicyclic() const { return epicyclic; }
