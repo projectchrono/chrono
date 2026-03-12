@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demosntration of the Chrono::VSG run-time visualization system
+// Demonstration of the Chrono::VSG run-time visualization system
 //
 // =============================================================================
 
