@@ -69,7 +69,7 @@ class ChApi ChKRMBlock {
 
     /// Write the KRM matrix into the specified global matrix at the offsets of the referenced ChVariable objects.
     /// Additional offsets can be specified to place the submatrix into a different position of the global matrix. The
-    /// KRM matrix is multiplied by the specified scale factor before writing it into the output matrix. If the ovewrite
+    /// KRM matrix is multiplied by the specified scale factor before writing it into the output matrix. If the overwrite
     /// parameters is set to true, the submatrix overwrites the existing values in the global matrix, otherwise the
     /// values are summed.
     /// Note that assembling the system-level sparse matrix is required only if using a direct sparse solver or for

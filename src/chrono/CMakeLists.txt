@@ -1537,7 +1537,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
 endif()
 
-# Compiler warning level and disbaled warnings
+# Compiler warning level and disabled warnings
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Warning level set to default")

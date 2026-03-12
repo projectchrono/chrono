@@ -164,7 +164,7 @@ class ChApi ChLinkMarkers : public ChLink {
 
     double relAngle;        ///< relative angle of rotation
     ChVector3d relAxis;     ///< relative axis of rotation
-    ChVector3d relRotaxis;  ///< relative rotaion vector =angle*axis
+    ChVector3d relRotaxis;  ///< relative rotation vector =angle*axis
     ChVector3d relWvel;     ///< relative angular speed
     ChVector3d relWacc;     ///< relative angular acceleration
     double dist;            ///< the distance between the two origins of markers,

@@ -54,18 +54,18 @@ struct AverageSectionParameters {
     double My;     ///< mass center y displacement respect to centerline
     double Mz;     ///< mass center z displacement respect to centerline
 
-    double Jyy;  ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
-    double Jzz;  ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
-    double Jyz;  ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes
-    double Jxx;  ///< inertia Jxx per unit lenght, in centerline reference, measured along centerline main axes
+    double Jyy;  ///< inertia Jyy per unit length, in centerline reference, measured along centerline main axes
+    double Jzz;  ///< inertia Jzz per unit length, in centerline reference, measured along centerline main axes
+    double Jyz;  ///< inertia Jyz per unit length, in centerline reference, measured along centerline main axes
+    double Jxx;  ///< inertia Jxx per unit length, in centerline reference, measured along centerline main axes
     double Qy;   ///< mass moment of area along yy, in centerline reference, measured along centerline main axes
     double Qz;   ///< mass moment of area along zz, in centerline reference, measured along centerline main axes
 
     double mass_phi;  ///< rotation angle of mass principal axis about elastic center[rad]
-    double Jmyy;      ///< inertia Jyy per unit lenght, in mass center reference, measured along mass principal axes
-    double Jmzz;      ///< inertia Jzz per unit lenght, in mass center reference, measured along mass principal axes
-    double Jmyz;      ///< inertia Jyz per unit lenght, in mass center reference, measured along mass principal axes
-    double Jmxx;      ///< inertia Jxx per unit lenght, in mass center reference, measured along mass principal axes
+    double Jmyy;      ///< inertia Jyy per unit length, in mass center reference, measured along mass principal axes
+    double Jmzz;      ///< inertia Jzz per unit length, in mass center reference, measured along mass principal axes
+    double Jmyz;      ///< inertia Jyz per unit length, in mass center reference, measured along mass principal axes
+    double Jmxx;      ///< inertia Jxx per unit length, in mass center reference, measured along mass principal axes
     double Qmy;  ///< mass moment of area along yy, in mass center reference, measured along mass principal axes, which
                  ///< is exactly zero in theory.
     double Qmz;  ///< mass moment of area along zz, in mass center reference, measured along mass principal axes, which
@@ -115,7 +115,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
 
     /// An artificial correction factor for the structural damping model in the shear deformation,
     /// as default it's 1.0 and don't have any correction effect.
-    /// But when the numerical divergence occured, you could try to set this value be larger than 1.0
+    /// But when the numerical divergence occurred, you could try to set this value be larger than 1.0
     /// to improve the numerical stability in long-time simulation.
     double artificial_factor_for_shear_damping = 1.0;
 
@@ -144,15 +144,15 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
         const double mSz,                          ///< shear center z displacement respect to centerline
         const double mmu,                          ///< mass per unit length
         const double
-            mJyy,  ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
+            mJyy,  ///< inertia Jyy per unit length, in centerline reference, measured along centerline main axes
         const double
-            mJzz,  ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
+            mJzz,  ///< inertia Jzz per unit length, in centerline reference, measured along centerline main axes
         const double mJyz =
-            0,  ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes const
+            0,  ///< inertia Jyz per unit length, in centerline reference, measured along centerline main axes const
         const double mQy =
-            0,  ///< inertia Qy per unit lenght, in centerline reference, measured along centerline main axes
+            0,  ///< inertia Qy per unit length, in centerline reference, measured along centerline main axes
         const double mQz =
-            0,  ///< inertia Qz per unit lenght, in centerline reference, measured along centerline main axes
+            0,  ///< inertia Qz per unit length, in centerline reference, measured along centerline main axes
         const double mMy = 0,  ///< mass center y displacement respect to centerline
         const double mMz = 0   ///< mass center z displacement respect to centerline
         )
@@ -271,7 +271,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
 
     /// Set the artificial correction factor for the structural damping model in the shear deformation,
     /// as default it's 1.0 and don't have any correction effect.
-    /// But when the numerical divergence occured, you could try to set this value be larger than 1.0
+    /// But when the numerical divergence occurred, you could try to set this value be larger than 1.0
     /// to improve the numerical stability in long-time simulation.
     virtual void SetArtificialFactorForShearDamping(double mv) { this->artificial_factor_for_shear_damping = mv; };
 
@@ -361,7 +361,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool compute_inertia_stiffness_matrix = true;
 
     /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
-    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    /// an analytical expression is provided. Children classes must take care of this. Default: false.
     bool compute_Ri_Ki_by_num_diff = false;
 
     /// A lock to avoid computing avg_sec_par several times, initialized as false by default.

@@ -231,7 +231,7 @@ class ChApi ChLoadNodeXYZRotNodeXYZRotBushingSpherical : public ChLoadNodeXYZRot
 /// Load for a visco-elasto-plastic bushing acting between two ChNodeFEAxyzrot.
 /// It uses three values for stiffness along the X Y Z axes of a coordinate system attached
 /// to the second node. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
-/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yelds.
+/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yields.
 class ChApi ChLoadNodeXYZRotNodeXYZRotBushingPlastic : public ChLoadNodeXYZRotNodeXYZRotBushingSpherical {
   public:
     ChLoadNodeXYZRotNodeXYZRotBushingPlastic(
@@ -485,7 +485,7 @@ class ChApi ChLoadNodeXYZRotBodyBushingSpherical : public ChLoadNodeXYZRotBody {
 /// Load for a visco-elasto-plastic bushing acting between a ChNodeFEAxyzrot and a ChBody.
 /// It uses three values for stiffness along the X Y Z axes of a coordinate system attached
 /// to the second body. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
-/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yelds.
+/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yields.
 class ChApi ChLoadNodeXYZRotBodyBushingPlastic : public ChLoadNodeXYZRotBodyBushingSpherical {
   public:
     ChLoadNodeXYZRotBodyBushingPlastic(

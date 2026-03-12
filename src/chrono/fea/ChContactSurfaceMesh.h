@@ -51,7 +51,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable, public ChLoadableUV {
     /// Set edge ownership.
     void SetEdgeOwnership(const ChVector3b& owns_edge) { m_owns_edge = owns_edge; }
 
-    /// Acccess the specified FEA node for which this is a proxy.
+    /// Access the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
 
     /// Get the current position of first node.
@@ -251,7 +251,7 @@ class ChApi ChContactTriangleXYZRot : public ChContactable, public ChLoadableUV 
     /// Set edge ownership.
     void SetEdgeOwnership(const ChVector3b& owns_edge) { m_owns_edge = owns_edge; }
 
-    /// Acccess the specified FEA node for which this is a proxy.
+    /// Access the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyzrot> GetNode(int i) const { return m_nodes[i]; }
 
     /// Get the current position of first node.

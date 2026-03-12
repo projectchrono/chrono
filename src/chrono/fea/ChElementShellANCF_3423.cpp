@@ -18,7 +18,7 @@
 //// A lot more to do here...
 //// - reconsider the use of large static matrices
 //// - more use of Eigen expressions
-//// - remove unecessary initializations to zero
+//// - remove unnecessary initializations to zero
 
 #include <cmath>
 

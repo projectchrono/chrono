@@ -155,7 +155,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     void SetShowContactsOff();
 
     /// Turn on the display of contacts, using arrows to show vectors.
-    /// The lenght of the arrow can be: constant, or force strength multiplied by 'scale_length', or property multiplied
+    /// The length of the arrow can be: constant, or force strength multiplied by 'scale_length', or property multiplied
     /// by 'scale_length'. The width of the arrow can be: constant, or force strength multiplied by 'scale_length', or
     /// property multiplied by 'scale_length'.
     void SetShowContactsVectors(

@@ -69,7 +69,7 @@ class ChApiPardisoMKL ChSolverPardisoMKL : public ChDirectSolverLS {
     virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem() override;
 
     /// Display an error message corresponding to the last failure.
@@ -93,7 +93,7 @@ class ChApiPardisoMKL ChSolverComplexPardisoMKL : public ChDirectSolverLScomplex
     virtual bool FactorizeMatrix() override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem(const ChVectorDynamic<std::complex<double>>& b) override;
 
     /// Display an error message corresponding to the last failure.

@@ -141,7 +141,7 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2d>& points, size_t
         m_perimeter += (points[next] - points[crt]).Length();
         m_area += SignedArea(points[next], points[crt], ChVector2d(0, 0));
 
-        // Safety check to prevent inifinite loop.
+        // Safety check to prevent infinite loop.
         //// TODO: are there still some corner cases not properly treated?
         if (m_hull.size() > n + 1) {
             std::cout << "\n\nERROR in ChConvexHull2D::ComputeJarvis: infinite loop\n\n" << std::endl;

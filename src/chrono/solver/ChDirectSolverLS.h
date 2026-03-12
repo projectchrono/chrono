@@ -193,7 +193,7 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     virtual bool FactorizeMatrix(bool analze) = 0;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem() = 0;
 
     /// Display an error message corresponding to the last failure.
@@ -249,7 +249,7 @@ class ChApi ChSolverSparseLU : public ChDirectSolverLS {
     virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem() override;
 
     /// Display an error message corresponding to the last failure.
@@ -274,7 +274,7 @@ class ChApi ChSolverSparseQR : public ChDirectSolverLS {
     virtual bool FactorizeMatrix(bool analyze) override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem() override;
 
     /// Display an error message corresponding to the last failure.

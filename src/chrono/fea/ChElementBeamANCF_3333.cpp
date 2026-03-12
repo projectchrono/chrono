@@ -1118,7 +1118,7 @@ void ChElementBeamANCF_3333::ComputeInternalForcesContIntDamping(ChVectorDynamic
     // the 2nd Piola-Kirchoff stresses more efficient.  The combined result is then scaled by minus the Gauss
     // quadrature weight times the element Jacobian at the corresponding Gauss point (m_kGQ) again for efficiency.
     // Since only the diagonal terms in the 6x6 stiffness matrix are used, the 2nd Piola-Kirchoff can be calculated by
-    // simply scaling the vector of scaled Green-Lagrange strains in Voight notation by the corresponding diagonal entry
+    // simply scaling the vector of scaled Green-Lagrange strains in Voigt notation by the corresponding diagonal entry
     // in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -1466,7 +1466,7 @@ void ChElementBeamANCF_3333::ComputeInternalForcesContIntNoDamping(ChVectorDynam
     // The result is then scaled by minus the Gauss quadrature weight times the element Jacobian at the
     // corresponding Gauss point (m_kGQ) for efficiency. Since only the diagonal terms in the 6x6 stiffness matrix are
     // used, the 2nd Piola-Kirchoff stress can be calculated by simply scaling the vector of scaled Green-Lagrange
-    // strains in Voight notation by the corresponding diagonal entry in the stiffness matrix.
+    // strains in Voigt notation by the corresponding diagonal entry in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
     // =============================================================================
@@ -2114,7 +2114,7 @@ void ChElementBeamANCF_3333::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     // =============================================================================
     // For the D0 Gauss quadrature points:
     // Since only the diagonal terms in the 6x6 stiffness matrix are used, the 2nd Piola-Kirchoff stress can be
-    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voight notation by the corresponding
+    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voigt notation by the corresponding
     // diagonal entry in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -2326,7 +2326,7 @@ void ChElementBeamANCF_3333::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     }
 
     // =============================================================================
-    // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+    // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
     // matrix, combine this with the scaled mass matrix, and then expand them out to full size by summing the
     // contribution into the correct locations of the full sized Jacobian matrix
     // =============================================================================
@@ -2716,7 +2716,7 @@ void ChElementBeamANCF_3333::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     // =============================================================================
     // For the D0 Gauss quadrature points:
     // Since only the diagonal terms in the 6x6 stiffness matrix are used, the 2nd Piola-Kirchoff stress can be
-    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voight notation by the corresponding
+    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voigt notation by the corresponding
     // diagonal entry in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -2849,7 +2849,7 @@ void ChElementBeamANCF_3333::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     }
 
     // =============================================================================
-    // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+    // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
     // matrix, combine this with the scaled mass matrix, and then expand them out to full size by summing the
     // contribution into the correct locations of the full sized Jacobian matrix
     // =============================================================================

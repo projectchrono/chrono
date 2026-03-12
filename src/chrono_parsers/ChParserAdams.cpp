@@ -105,7 +105,7 @@ std::vector<std::vector<std::pair<int, std::string>>> graphics_token_list;
 
 // Easy check for file syntax errors
 void tokenParseError(int expected, std::pair<int, std::string>& got) {
-    std::cout << "Unexpected token occured, token should have been: " << expected << ", got " << got.first << ","
+    std::cout << "Unexpected token occurred, token should have been: " << expected << ", got " << got.first << ","
               << got.second << std::endl;
 }
 

@@ -461,7 +461,7 @@ class ChApi ChLinkMateDistanceZ : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateDistanceZ* Clone() const override { return new ChLinkMateDistanceZ(*this); }
 
-    /// Set the distance of the two constrainted frames along the Z axis of frame 2.
+    /// Set the distance of the two constrained frames along the Z axis of frame 2.
     void SetDistance(double distance) { m_distance = distance; }
 
     /// Get the imposed distance on Z of frame 2.

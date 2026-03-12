@@ -52,12 +52,12 @@ class ChApi ChBeamSection {
     virtual ~ChBeamSection() {}
 
     /// Set the graphical representation for this section. Might be used for collision too.
-    /// This is a 2D profile used for 3D tesselation and visualization of the beam, but NOT used for physical
+    /// This is a 2D profile used for 3D tessellation and visualization of the beam, but NOT used for physical
     /// properties, that you should rather define with other components of more specialized ChBeamSection,
     /// such as for example adding ChBeamSectionCosseratElasticity to a ChBeamSectionCosserat, etc.
     void SetDrawShape(std::shared_ptr<ChBeamSectionShape> mshape) { this->draw_shape = mshape; }
 
-    /// Get the drawing shape of this section (i.e.a 2D profile used for drawing 3D tesselation and visualization)
+    /// Get the drawing shape of this section (i.e.a 2D profile used for drawing 3D tessellation and visualization)
     /// By default a thin square section, use SetDrawShape() to change it.
     std::shared_ptr<ChBeamSectionShape> GetDrawShape() const { return this->draw_shape; }
 
@@ -77,7 +77,7 @@ class ChApi ChBeamSection {
         this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeCircular>(draw_rad);
     }
 
-    /// OBSOLETE only for backward compability
+    /// OBSOLETE only for backward compatibility
     void SetCircular(bool ic) {}
 
   private:

@@ -128,7 +128,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const override;
 
-    /// Return the time (in seconds) for runnning the collision detection step, within the time step.
+    /// Return the time (in seconds) for running the collision detection step, within the time step.
     virtual double GetTimerCollision() const override;
 
     /// Return the time (in seconds) for system setup, within the time step.

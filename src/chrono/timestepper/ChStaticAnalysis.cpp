@@ -459,7 +459,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         X = Xnew;
     }
 
-    // Compute speed at the end. ***WARNING*** this is ok only for sligtly stretched elements at the moment!
+    // Compute speed at the end. ***WARNING*** this is ok only for slightly stretched elements at the moment!
 
     if (m_automatic_deriv_computation) {
         for (int i = 0; i < m_maxiters; ++i) {
@@ -616,7 +616,7 @@ void ChStaticNonLinearAnalysisIncremental::StaticAnalysis() {
         double cfactor = ((double)j + 1.0) / m_incremental_steps;
 
         // SCALE THE EXTERNAL LOADS!
-        // This MUST be implemented by the user via a callback, becauses it is the only way we have to
+        // This MUST be implemented by the user via a callback, because it is the only way we have to
         // scale the external forces F_ext. The user must know the final F_ext, then updating data such as scale*F_ext
         // is set in objects. Then, after the callback is executed, as soon as we call
         // integrable->LoadResidual_F(R, 1.0); we'll get that    R = F_in + scaled_F_ext.

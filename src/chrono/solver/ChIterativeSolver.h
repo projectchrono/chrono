@@ -68,7 +68,7 @@ class ChApi ChIterativeSolver {
     double CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x);
 
     bool m_use_precond;    ///< use diagonal preconditioning?
-    bool m_warm_start;     ///< use initial guesss?
+    bool m_warm_start;     ///< use initial guess?
     int m_max_iterations;  ///< maximum number of iterations
     double m_tolerance;    ///< tolerance threshold in stopping criteria
 

@@ -152,7 +152,7 @@ class ChParticleEmitter {
             }
 
             msystem.AddBatch(
-                mbody);  // the Add() alone woud not be thread safe if called from items inserted in system's lists
+                mbody);  // the Add() alone would not be thread safe if called from items inserted in system's lists
 
             if (this->creation_callback)
                 this->creation_callback->OnAddBody(mbody, mcoords_abs, *particle_creator.get());

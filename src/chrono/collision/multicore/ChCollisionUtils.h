@@ -697,7 +697,7 @@ ChApi bool point_vs_face(const real3& hdims,
 
 /// This utility function calculates the closest points between the box edge identified by 'pt_on_edge' and 'code' and a
 /// line segment between 'pt1' and 'pt2'. It returns true if the closest points are within the extent of the edge and
-/// the segment, respecively, and false otherwise. The closest points are returned in 'locE' and 'locS', respectively.
+/// the segment, respectively, and false otherwise. The closest points are returned in 'locE' and 'locS', respectively.
 /// This function uses the parametric solution of the two support lines to solve for the closest points, simplified as
 /// we work in the local frame of the box.
 /// See box_closest_feature for definition of 'code.

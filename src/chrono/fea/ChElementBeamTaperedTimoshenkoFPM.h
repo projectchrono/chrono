@@ -91,7 +91,7 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
     // should be very limited.
     // void ComputeGeometricStiffnessMatrix();
 
-    /// Computes the local element damping matrix via Guass Quadrature:
+    /// Computes the local element damping matrix via Gauss Quadrature:
     /// R = beta * integral( [B]' * [D] * [B] ),
     /// Note: the sectional properties at Gauss integration point are linearly interpolated from two
     /// ends of tapered beam. Only the stiffness term(beta) is used for this implemented Rayleigh
@@ -99,7 +99,7 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
     /// for performance reasons; if you later change some material property, call this or InitialSetup().
     void ComputeDampingMatrix();
 
-    /// Computes the local element consistent mass matrix via Guass Quadrature:
+    /// Computes the local element consistent mass matrix via Gauss Quadrature:
     /// M = integral( [N]' * [D] * [N] ),
     /// Note: the sectional properties at Gauss integration point are linearly interpolated from two
     /// ends of tapered beam. Also, this local element consistent mass matrix is constant, computed only

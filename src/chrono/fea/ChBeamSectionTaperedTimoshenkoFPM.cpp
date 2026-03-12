@@ -99,7 +99,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::ComputeInertiaMatrix(ChMa
     // Inherit from base class
     ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaMatrix(M);
 
-    // FPM doesnot influence the Inertia(/Mass) matrix of beam element,
+    // FPM does not influence the Inertia(/Mass) matrix of beam element,
     // so it can be evaluated after calculating the inertia matrix
     ComputeAverageFPM();
 }

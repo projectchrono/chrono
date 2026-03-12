@@ -1451,7 +1451,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     ChSparseMatrix CqT = Cq.transpose();
     CqT.makeCompressed();
 
-    // Perform QR decomposition on Cq to identify linearly-dependant rows (ie. redundant scalar constraint equations)
+    // Perform QR decomposition on Cq to identify linearly-dependent rows (ie. redundant scalar constraint equations)
     Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> QR_dec;
     QR_dec.compute(CqT);
 
@@ -1539,7 +1539,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
         }
     }
 
-    // Modify ChLinkMate constaints based on new mask
+    // Modify ChLinkMate constraints based on new mask
     for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end();
          ++constrnewmask_it) {
         std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_map[constrnewmask_it->first])
@@ -2075,7 +2075,7 @@ void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
     /*int version =*/archive_in.VersionRead<ChSystem>();
 
-    // deserialize unerlying assembly
+    // deserialize underlying assembly
     archive_in >> CHNVP(assembly);
 
     // stream in all member data:

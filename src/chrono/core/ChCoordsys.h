@@ -46,7 +46,7 @@ class ChCoordsys {
     /// Copy constructor.
     ChCoordsys(const ChCoordsys<Real>& other) : pos(other.pos), rot(other.rot){};
 
-    // EIGEN INTER-OPERABILITY
+    // EIGEN INTEROPERABILITY
 
     /// Construct a coordinate system from an Eigen vector expression.
     template <typename Derived>
@@ -156,7 +156,7 @@ class ChCoordsys {
     /// Return true if this coordinate system is identical to other coordsys.
     bool Equals(const ChCoordsys<Real>& other) const { return rot.Equals(other.rot) && pos.Equals(other.pos); }
 
-    /// Return true if thsi coordinate system is equal to other coordsys, within a tolerance 'tol'.
+    /// Return true if this coordinate system is equal to other coordsys, within a tolerance 'tol'.
     bool Equals(const ChCoordsys<Real>& other, Real tol) const {
         return rot.Equals(other.rot, tol) && pos.Equals(other.pos, tol);
     }

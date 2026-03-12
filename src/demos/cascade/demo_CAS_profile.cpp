@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     genevawheel->AddProfile({mpathcam},                                         // wire(s) containing the face
                             {},                                                 // wire(s) telling holes (empty here)
                             0.09, 1000,                                         // thickness, density
-                            chrono_types::make_shared<ChCascadeTriangulate>(),  // tdefault tesselation parameters
+                            chrono_types::make_shared<ChCascadeTriangulate>(),  // tdefault tessellation parameters
                             true,                                               // enable 2D collision on the profile
                             material                                            // contact material
     );

@@ -25,13 +25,13 @@ namespace chrono {
 //
 
 int GetIndex(ChVector3d vertex, std::vector<ChVector3d>& vertexOUT, double tol) {
-    // Suboptimal: search vertexes with same position and reuse, (in future: adopt hash map..)
+    // Suboptimal: search vertices with same position and reuse, (in future: adopt hash map..)
     for (unsigned int iv = 0; iv < vertexOUT.size(); iv++) {
         if (vertex.Equals(vertexOUT[iv], tol)) {
             return iv;
         }
     }
-    // not found, so add it to new vertexes
+    // not found, so add it to new vertices
     vertexOUT.push_back(vertex);
     return ((int)vertexOUT.size() - 1);
 }
@@ -77,7 +77,7 @@ bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm) {
 bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(std::ostream& mstream) {
     mstream << std::setprecision(9) << std::defaultfloat;
     mstream << "# Convex hulls obtained with Chrono\n"
-            << "# convex decomposition (.chulls format: only vertexes)\n";
+            << "# convex decomposition (.chulls format: only vertices)\n";
 
     for (unsigned int ih = 0; ih < this->GetHullCount(); ih++) {
         std::vector<ChVector3d> aconvexhull;

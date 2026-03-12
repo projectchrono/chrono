@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 60, 45);
     sys.Add(ground);
 
-    // Construct a Viper rover and the asociated driver
+    // Construct a Viper rover and the associated driver
     ////auto driver = chrono_types::make_shared<ViperSpeedDriver>(1.0, 5.0);
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
 

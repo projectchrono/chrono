@@ -51,7 +51,7 @@ void PerformExternalCosimulation(const std::vector<ChVector3d>& input_vert_pos,
     vert_output_indexes.clear();
     double ky = 10000;  // upward stiffness
     double ry = 20;     // upward damping
-    // simple example: scan through all vertexes in the mesh, see if they sink below zero,
+    // simple example: scan through all vertices in the mesh, see if they sink below zero,
     // apply a penalty upward spring force if so.
     for (int iv = 0; iv < input_vert_pos.size(); ++iv) {
         if (input_vert_pos[iv].y() < 0) {

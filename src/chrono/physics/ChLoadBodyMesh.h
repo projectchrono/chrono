@@ -23,7 +23,7 @@ namespace chrono {
 /// Loads applied to a triangle mesh associated with a ChBody, as a cluster of forces operating on the rigid body.
 /// This is useful for data exchange during co-simulation in a force-displacement setting. The states (positions and
 /// velocities) of the mesh vertices are extracted from the Chrono simulation (consistent with the kinematics of the
-/// asociated body). Forces on the mesh vertices, computed externally, are then applied to the associated rigid body
+/// associated body). Forces on the mesh vertices, computed externally, are then applied to the associated rigid body
 /// using this object. Note that this class is based on a cluster of std::vector<std::shared_ptr<ChLoadBodyForce>>, but
 /// the class itself could bypass all methods of ChLoadBodyForce and directly implement a more efficient
 /// LoadIntLoadResidual_F.
@@ -39,7 +39,7 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
     // Functions that can be used for cosimulation  A <----> B
 
     /// Get the collision mesh where vertex are given in a vector of xyz points, expressed in absolute coordinates, and
-    /// triangles are given as indexes to the three vertexes in that vector (similar to Wavefront OBJ meshes). Note that
+    /// triangles are given as indexes to the three vertices in that vector (similar to Wavefront OBJ meshes). Note that
     /// indexes are 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on
     /// the mesh.
     void OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,  ///< array of vertex aabsolute xyz positions

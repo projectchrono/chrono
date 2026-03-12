@@ -67,7 +67,7 @@ class ChVisualSystemVSGPlugin;
 class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   public:
     /// Create the Chrono::VSG run-time visualization system.
-    /// Optionally, specify the resolution used for tesselation of primitive shapes, by providing the number of
+    /// Optionally, specify the resolution used for tessellation of primitive shapes, by providing the number of
     /// divisions used to discretize a full circle. The default value of 24 corresponds to 15-degree divisions.
     ChVisualSystemVSG(int num_divs = 24);
     ~ChVisualSystemVSG();

@@ -45,7 +45,7 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
                                           ShapeFunction5Blocks,   // restore blocks of shape function
                                           ShapeFunction5Blocks,   // restore blocks of first derivatives
                                           ShapeFunction2Blocks,   // restore blocks of second derivatives
-                                          ShapeFunction2Blocks>;  // restore blocks of thrid derivatives
+                                          ShapeFunction2Blocks>;  // restore blocks of third derivatives
 
     ChElementBeamTaperedTimoshenko();
 

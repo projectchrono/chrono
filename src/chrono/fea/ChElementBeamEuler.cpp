@@ -876,7 +876,7 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector3d
 
     // The shear center offset is respect to the centerline.
     // In case the section has a shear center displacement:
-    // Sy = Sy - Cy;   // Unnecessary to do this substraction
+    // Sy = Sy - Cy;   // Unnecessary to do this subtraction
     // Sz = Sz - Cz;
 
     ChMatrix33<> Rotsect0;
@@ -1029,7 +1029,7 @@ void ChElementBeamEuler::ComputeNF(const double U,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
     ShapeVector N;
-    ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependant on state
+    ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependent on state
 
     detJ = GetRestLength() / 2.0;
 

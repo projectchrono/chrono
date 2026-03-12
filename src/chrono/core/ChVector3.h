@@ -58,7 +58,7 @@ class ChVector3 {
     Real* data() { return m_data; }
     const Real* data() const { return m_data; }
 
-    // EIGEN INTER-OPERABILITY
+    // EIGEN INTEROPERABILITY
 
     /// Construct a 3d vector from an Eigen vector expression.
     template <typename Derived>

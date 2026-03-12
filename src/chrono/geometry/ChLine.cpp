@@ -164,7 +164,7 @@ double ChLine::CurveCurveDist(ChLine* compline, int samples) const {
         ChVector3d ptA = this->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
-    // ..and viceversa
+    // ..and vice-versa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
         ChVector3d ptB = this->Evaluate(par);
@@ -190,7 +190,7 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
         if (mres < mdis)
             mres = mdis;
     }
-    // ..and viceversa
+    // ..and vice-versa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
         ChVector3d ptB = this->Evaluate(par);

@@ -38,12 +38,12 @@ class ChApi ChConvexDecomposition {
     /// Reset the input mesh data
     virtual void Reset(void) = 0;
 
-    /// Add a triangle, by passing three points for vertexes.
-    /// Note: the vertexes must be properly ordered (oriented triangle, normal pointing outside)
+    /// Add a triangle, by passing three points for vertices.
+    /// Note: the vertices must be properly ordered (oriented triangle, normal pointing outside)
     virtual bool AddTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3) = 0;
 
     /// Add a triangle, by passing a  ChTriangle object (that will be copied, not referenced).
-    /// Note: the vertexes must be properly ordered (oriented triangle, normal pointing outside)
+    /// Note: the vertices must be properly ordered (oriented triangle, normal pointing outside)
     virtual bool AddTriangle(const ChTriangle& t1);
 
     /// Add a triangle mesh, by passing an entire ChTriangleMesh object.
@@ -60,7 +60,7 @@ class ChApi ChConvexDecomposition {
     /// that is passed as a parameter.
     virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) = 0;
 
-    /// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
+    /// Get the n-th computed convex hull, by filling a vector of points of the vertices of the n-th hull
     /// that is passed as a parameter.
     virtual bool GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull) = 0;
 
@@ -86,17 +86,17 @@ class ChApi ChConvexDecompositionHACD : public ChConvexDecomposition {
     /// Reset the input mesh data
     virtual void Reset(void);
 
-    /// Add a triangle, by passing three points for vertexes.
-    /// Note: the vertexes must be properly ordered (oriented triangle, normal pointing outside)
+    /// Add a triangle, by passing three points for vertices.
+    /// Note: the vertices must be properly ordered (oriented triangle, normal pointing outside)
     virtual bool AddTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3);
 
     /// Add a triangle, by passing a  ChTriangle object (that will be copied, not referenced).
-    /// Note: the vertexes must be properly ordered (oriented triangle, normal pointing outside)
+    /// Note: the vertices must be properly ordered (oriented triangle, normal pointing outside)
     // virtual bool AddTriangle(const ChTriangle& t1);
 
     /// Add a triangle mesh soup, by passing an entire ChTriangleMesh object.
     /// Note 1: the triangle mesh does not need connectivity information (a basic 'triangle soup' is enough)
-    /// Note 2: all vertexes must be properly ordered (oriented triangles, normals pointing outside).
+    /// Note 2: all vertices must be properly ordered (oriented triangles, normals pointing outside).
     /// Note 3: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition)
     virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
 
@@ -104,14 +104,14 @@ class ChApi ChConvexDecompositionHACD : public ChConvexDecomposition {
     /// Use this function before calling ComputeConvexDecomposition().
     void SetParameters(
         unsigned int nClusters = 2,           ///< Minimum number of clusters
-        unsigned int targetDecimation = 0,    ///< If 0 no decimation, otherwise n.of vertexes in decimated mesh
+        unsigned int targetDecimation = 0,    ///< If 0 no decimation, otherwise n.of vertices in decimated mesh
         double smallClusterThreshold = 0.25,  ///< Threshold for small cluster grouping
         bool addFacesPoints = false,          ///< Add points in faces in concavity
         bool addExtraDistPoints = false,      ///< Add extra points in concavity
         double concavity = 100.0,             ///< Max allowed concavity
         double ccConnectDist = 30,            ///< Max allowed distance for cc to be connected
         double volumeWeight = 0.0,            ///< 'beta' parameter, ie. volume weight
-        double compacityAlpha = 0.1,          ///< 'alpha' paramater
+        double compacityAlpha = 0.1,          ///< 'alpha' parameter
         unsigned int nVerticesPerCH = 50      ///< Max vertices for cc.
     );
 
@@ -129,12 +129,12 @@ class ChApi ChConvexDecompositionHACD : public ChConvexDecomposition {
     /// that is passed as a parameter.
     virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh);
 
-    /// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
+    /// Get the n-th computed convex hull, by filling a vector of points of the vertices of the n-th hull
     /// that is passed as a parameter.
     virtual bool GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull);
 
     /// Save the computed convex hulls as a Wavefront file using the
-    /// '.obj' fileformat, with each hull as a separate group.
+    /// '.obj' file format, with each hull as a separate group.
     /// May throw exceptions if file locked etc.
     virtual void WriteConvexHullsAsWavefrontObj(std::ostream& mstream);
 
@@ -156,13 +156,13 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
     /// Reset the input mesh data
     virtual void Reset(void);
 
-    /// Add a triangle, by passing three points for vertexes.
-    /// Note: the vertexes must be properly ordered (oriented triangle, normal pointing outside)
+    /// Add a triangle, by passing three points for vertices.
+    /// Note: the vertices must be properly ordered (oriented triangle, normal pointing outside)
     virtual bool AddTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3);
 
     /// Add a triangle mesh soup, by passing an entire ChTriangleMesh object.
     /// Note 1: the triangle mesh does not need connectivity information (a basic 'triangle soup' is enough)
-    /// Note 2: all vertexes must be properly ordered (oriented triangles, normals pointing outside).
+    /// Note 2: all vertices must be properly ordered (oriented triangles, normals pointing outside).
     /// Note 3: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition)
     virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
 
@@ -190,7 +190,7 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
     /// that is passed as a parameter.
     virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh);
 
-    /// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
+    /// Get the n-th computed convex hull, by filling a vector of points of the vertices of the n-th hull
     /// that is passed as a parameter.
     virtual bool GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull);
 

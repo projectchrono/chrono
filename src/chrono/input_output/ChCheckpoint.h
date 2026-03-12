@@ -43,7 +43,7 @@ namespace chrono {
 
 /// Base class for a Chrono checkpoint database.
 /// A Chrono checkpoint DB can be of SYSTEM type (in which case it contains all states associated with a given system)
-/// or of COMPONENT tpe (in which case it contains states for specific subsets of Chrono phsics items). The latter
+/// or of COMPONENT tpe (in which case it contains states for specific subsets of Chrono physics items). The latter
 /// option is useful in checkpointing and initializing from a checkpoint sub-assemblies, for example vehicle systems.
 /// When importing a checkpoint to initialize a give system (SYSTEM-type checkpoint) or a subset of physics items
 /// (COMPONENT-type checkpoint), it is the caller's responsibility to ensure that the target objects (system or

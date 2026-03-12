@@ -89,7 +89,7 @@ ChApi void ReadBodyShapesCheckpoint(ChSystem* system, const std::string& filenam
 /// - the type of visual asset (0 for segment or 1 for coil)
 /// - start point position
 /// - end point position
-ChApi void WriteVisualizationAssets(ChSystem* system,               ///< containg system
+ChApi void WriteVisualizationAssets(ChSystem* system,               ///< containing system
                                     const std::string& filename,    ///< output file name
                                     bool body_info = true,          ///< include body state information
                                     const std::string& delim = ","  ///< CSV delimitator
@@ -99,7 +99,7 @@ ChApi void WriteVisualizationAssets(ChSystem* system,               ///< contain
 /// This version uses a discriminator function to select which bodies and assets are included in the output.
 /// The function selector receives as argument a body reference and must return 'true' if the body and its assets should
 /// be included in the output file and 'false' otherwise.
-ChApi void WriteVisualizationAssets(ChSystem* system,                             ///< containg system
+ChApi void WriteVisualizationAssets(ChSystem* system,                             ///< containing system
                                     const std::string& filename,                  ///< output file name
                                     std::function<bool(const ChBody&)> selector,  ///< select bodies
                                     bool body_info = true,                        ///< include body state information
