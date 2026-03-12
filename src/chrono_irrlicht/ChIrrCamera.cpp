@@ -81,7 +81,9 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
     smgr->setActiveCamera(this);
 }
 
-RTSCamera::~RTSCamera() {}
+RTSCamera::~RTSCamera() {
+    device->drop();
+}
 
 bool RTSCamera::OnEvent(const SEvent& event) {
     if (!InputReceiverEnabled)
