@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Note that a tire is associated with a wheel only during initialization.
     std::shared_ptr<ChWheel> GetWheel() const { return m_wheel; }
 
-    /// Checkpoint the state of this tire to the given checkpint file.
+    /// Checkpoint the state of this tire to the given checkpoint file.
     virtual void ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {}
 
     /// Initialize this tire from the given checkpoint file.
@@ -207,7 +207,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
                                         float& mu                  ///< coefficient of friction
     );
 
-    /// Collsion algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
+    /// Collision algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
     /// "A New Analytical Tire Model for Vehicle Dynamic Analysis" presented at 2001 MSC User Meeting
     static bool DiscTerrainCollisionEnvelope(const ChTerrain& terrain,            ///< reference to terrain system
                                              const ChVector3d& C,                 ///< disc center (in global frame)

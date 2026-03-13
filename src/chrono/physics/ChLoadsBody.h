@@ -396,7 +396,7 @@ class ChApi ChLoadBodyBodyBushingSpherical : public ChLoadBodyBody {
 /// Load for a visco-elasto-plastic bushing acting between two bodies.
 /// It uses three values for stiffness along the X Y Z axes of a coordinate system attached
 /// to the second body. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
-/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yelds.
+/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yields.
 class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical {
   public:
     ChLoadBodyBodyBushingPlastic(

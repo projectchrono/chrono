@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChTrackTestRigVisualSystemIRR : public irrlicht::ChVisualSy
     /// Enable/disable rendering of idler body frame.
     void RenderIdlerFrame(bool state, double axis_length = 1);
 
-    /// Initialize the visualizatin system.
+    /// Initialize the visualization system.
     virtual void Initialize() override;
 
     /// Render the Irrlicht scene and additional visual elements.

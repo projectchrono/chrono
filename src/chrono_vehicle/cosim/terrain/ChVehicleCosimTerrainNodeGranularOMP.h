@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     /// Obtain settled terrain configuration.
     /// This is an optional operation that can be performed for granular terrain before initiating
-    /// communictation with the rig node. For granular terrain, a settled configuration can
+    /// communication with the rig node. For granular terrain, a settled configuration can
     /// be obtained either through simulation or by initializing particles from a previously
     /// generated checkpointing file.
     void Settle();
@@ -146,7 +146,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     double m_radius_p;  ///< radius for a proxy body
 
     utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
-    double m_init_depth;                  ///< height of granular maerial initialization volume
+    double m_init_depth;                  ///< height of granular material initialization volume
     double m_separation_factor;           ///< radius inflation factor for initial particle separation
     bool m_in_layers;                     ///< initialize material layer-by-layer (true) or all at once (false)
 

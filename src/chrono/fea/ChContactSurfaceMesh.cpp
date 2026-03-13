@@ -909,8 +909,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                 }
 
                 AddFace(nA, nB, nB,                 // vertices
-                        nullptr, nullptr, nullptr,  // no wing vertexes
-                        false, false, false,        // are vertexes owned by this triangle?
+                        nullptr, nullptr, nullptr,  // no wing vertices
+                        false, false, false,        // are vertices owned by this triangle?
                         true, false, true,          // are edges owned by this triangle?
                         capsule_radius);
             }
@@ -926,8 +926,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                     0.5 * std::sqrt(std::pow(beam3243->GetThicknessY(), 2) + std::pow(beam3243->GetThicknessZ(), 2));
 
                 AddFace(nA, nB, nB,                 // vertices
-                        nullptr, nullptr, nullptr,  // no wing vertexes
-                        false, false, false,        // are vertexes owned by this triangle?
+                        nullptr, nullptr, nullptr,  // no wing vertices
+                        false, false, false,        // are vertices owned by this triangle?
                         true, false, true,          // are edges owned by this triangle?
                         capsule_radius);
             } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mesh.GetElement(ie))) {
@@ -938,8 +938,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                     0.5 * std::sqrt(std::pow(beam3333->GetThicknessY(), 2) + std::pow(beam3333->GetThicknessZ(), 2));
 
                 AddFace(nA, nB, nB,                 // vertices
-                        nullptr, nullptr, nullptr,  // no wing vertexes
-                        false, false, false,        // are vertexes owned by this triangle?
+                        nullptr, nullptr, nullptr,  // no wing vertices
+                        false, false, false,        // are vertices owned by this triangle?
                         true, false, true,          // are edges owned by this triangle?
                         capsule_radius);
             }
@@ -961,8 +961,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                 }
 
                 AddFace(nA, nB, nB,                 // vertices
-                        nullptr, nullptr, nullptr,  // no wing vertexes
-                        false, false, false,        // are vertexes owned by this triangle?
+                        nullptr, nullptr, nullptr,  // no wing vertices
+                        false, false, false,        // are vertices owned by this triangle?
                         true, false, true,          // are edges owned by this triangle?
                         capsule_radius);
             }
@@ -985,7 +985,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZ(const std::vector<NodeTriplet
     std::multimap<std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*>, int> edge_map;
 
     for (int it = 0; it < triangles.size(); ++it) {
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeA(triangles[it][0], triangles[it][1]);
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeB(triangles[it][1], triangles[it][2]);
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeC(triangles[it][2], triangles[it][0]);
@@ -1011,7 +1011,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZ(const std::vector<NodeTriplet
         tri_map[it][1] = -1;  // default no neighbor
         tri_map[it][2] = -1;  // default no neighbor
         tri_map[it][3] = -1;  // default no neighbor
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeA(triangles[it][0], triangles[it][1]);
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeB(triangles[it][1], triangles[it][2]);
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeC(triangles[it][2], triangles[it][0]);
@@ -1080,7 +1080,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZ(const std::vector<NodeTriplet
 
     // iterate on triangles
     for (int it = 0; it < triangles.size(); ++it) {
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeA(triangles[it][0], triangles[it][1]);
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeB(triangles[it][1], triangles[it][2]);
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeC(triangles[it][2], triangles[it][0]);
@@ -1149,7 +1149,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZ(const std::vector<NodeTriplet
                 // triangle thickness
                 sphere_swept);
 
-        // Mark added vertexes
+        // Mark added vertices
         added_vertexes.insert(triangles[it][0]);
         added_vertexes.insert(triangles[it][1]);
         added_vertexes.insert(triangles[it][2]);
@@ -1172,7 +1172,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZrot(const std::vector<NodeTrip
     std::multimap<std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>, int> edge_map_rot;
 
     for (int it = 0; it < triangles.size(); ++it) {
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeA(triangles[it][0], triangles[it][1]);
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeB(triangles[it][1], triangles[it][2]);
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeC(triangles[it][2], triangles[it][0]);
@@ -1198,7 +1198,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZrot(const std::vector<NodeTrip
         tri_map_rot[it][1] = -1;  // default no neighbor
         tri_map_rot[it][2] = -1;  // default no neighbor
         tri_map_rot[it][3] = -1;  // default no neighbor
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeA(triangles[it][0], triangles[it][1]);
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeB(triangles[it][1], triangles[it][2]);
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeC(triangles[it][2], triangles[it][0]);
@@ -1267,7 +1267,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZrot(const std::vector<NodeTrip
 
     // iterate on triangles
     for (int it = 0; it < triangles.size(); ++it) {
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeA(triangles[it][0], triangles[it][1]);
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeB(triangles[it][1], triangles[it][2]);
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeC(triangles[it][2], triangles[it][0]);
@@ -1336,7 +1336,7 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZrot(const std::vector<NodeTrip
                 // triangle thickness
                 sphere_swept);
 
-        // Mark added vertexes
+        // Mark added vertices
         added_vertexes_rot.insert(triangles[it][0]);
         added_vertexes_rot.insert(triangles[it][1]);
         added_vertexes_rot.insert(triangles[it][2]);

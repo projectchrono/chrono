@@ -130,7 +130,7 @@ class ChApi ChTetrahedronFace : public ChLoadableUV {
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override {
-        // evaluate shape functions (in compressed vector), btw. not dependant on state
+        // evaluate shape functions (in compressed vector), btw. not dependent on state
         // note: U,V in 0..1 range, thanks to IsTriangleIntegrationNeeded() {return true;}
         ChVectorN<double, 3> N;
         this->ShapeFunctions(N, U, V);

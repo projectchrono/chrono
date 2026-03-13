@@ -238,7 +238,7 @@ class MyEventReceiver : public IEventReceiver {
         // ..add a GUI
         edit_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw((int)hacd_maxhullvertexes).c_str(), core::rect<s32>(510, 110, 650, 125), true, 0, 123);
-        text_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addStaticText(L"Max. vertexes per hull",
+        text_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addStaticText(L"Max. vertices per hull",
                                                                             core::rect<s32>(650, 110, 750, 125), false);
 
         // ..add a GUI

@@ -170,7 +170,7 @@ UAZBUS_LeafspringAxle::UAZBUS_LeafspringAxle(const std::string& name) : ChLeafsp
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 UAZBUS_LeafspringAxle::~UAZBUS_LeafspringAxle() {}
 

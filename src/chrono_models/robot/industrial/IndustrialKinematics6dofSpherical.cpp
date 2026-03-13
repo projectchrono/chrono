@@ -115,7 +115,7 @@ ChVectorDynamic<> IndustrialKinematics6dofSpherical::GetIK(const ChCoordsysd& ta
     ChQuaternion<> q36 = q03.GetConjugate() * q06;       // rotation of TCP wrt forearm frame (3)
 
     // theta 4, theta 5, theta 6 (see Slabaugh, "Computing Euler angles from a rotation matrix")
-    // note: compute components of R36 rotm from quaternion (see Chrono Rotations whitepaper)
+    // note: compute components of R36 rotation matrix from quaternion (see Chrono Rotations whitepaper)
     tmp = std::pow(q36.e0(), 2) - std::pow(q36.e1(), 2) - std::pow(q36.e2(), 2) + std::pow(q36.e3(), 2);
     double R36_22 = ChClamp(tmp, -1.0, 1.0);
     double theta4 = 0.0, theta5 = 0.0, theta6 = 0.0;

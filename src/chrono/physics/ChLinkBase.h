@@ -58,7 +58,7 @@ class ChApi ChLinkBase : public ChPhysicsItem {
 
     /// Tells if this link requires that the connected ChBody objects
     /// must be waken if they are sleeping. By default =true, i.e. always keep awaken, but
-    /// child classes might return false for optimizing sleeping, in case no time-dependant.
+    /// child classes might return false for optimizing sleeping, in case no time-dependent.
     virtual bool IsRequiringWaking() { return true; }
 
     /// Get the link frame 1, on the 1st connected object, expressed in the absolute frame.

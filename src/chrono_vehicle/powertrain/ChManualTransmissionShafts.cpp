@@ -59,7 +59,7 @@ void ChManualTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassis) 
     ChVector3d dir_transmissionblock(1, 0, 0);
 
     // Create the motor block.
-    // ChShaftsThermalEngine connects this motor block to the motorshaft and applies the engine torque between them.
+    // ChShaftsThermalEngine connects this motor block to the motor shaft and applies the engine torque between them.
     m_transmissionblock = chrono_types::make_shared<ChShaft>();
     m_transmissionblock->SetInertia(GetTransmissionBlockInertia());
     sys->AddShaft(m_transmissionblock);
@@ -69,10 +69,9 @@ void ChManualTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassis) 
     m_transmissionblock_to_body->Initialize(m_transmissionblock, chassis->GetBody(), dir_transmissionblock);
     sys->Add(m_transmissionblock_to_body);
 
-    // Create the clutch, replacing the torque converter above. The clutch connects the crankshaft with what,
-    // for lack of a better word, I call clutchshaft now.
+    // Create the clutch, replacing the torque converter above. The clutch connects the crankshaft with the clutch shaft.
     m_clutchShaft = chrono_types::make_shared<ChShaft>();  // TODO what's the name of this shaft?
-    m_clutchShaft->SetInertia(GetIngearShaftInertia());    // TODO for now re-use this one, naming?
+    m_clutchShaft->SetInertia(GetIngearShaftInertia());    // TODO for now reuse this one, naming?
     sys->AddShaft(m_clutchShaft);
     m_clutch = chrono_types::make_shared<ChShaftsClutch>();
     m_clutch->Initialize(m_motorshaft, m_clutchShaft);

@@ -59,7 +59,7 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
     ChParticleEventTriggerBox() { invert_volume = false; }
 
     /// This function triggers the a particle event according to the fact the the particle is inside a box.
-    /// If SetTriggerOutside(true), viceversa triggers event outside the box.
+    /// If SetTriggerOutside(true), vice-versa triggers event outside the box.
     virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
         ChVector3d particle_pos = mbody->GetPos();
 

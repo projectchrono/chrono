@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape2;
         if (mydoc.GetNamedShape(shape2, "Assem1/body2")) {
-            // Create the ChBody using the ChCascadeBodyEasy helper (with more detailed visualization tesselation):
+            // Create the ChBody using the ChCascadeBodyEasy helper (with more detailed visualization tessellation):
             auto vis_params = chrono_types::make_shared<ChCascadeTriangulate>(  //
                 0.02,                                                           // chordal deflection for triangulation
                 false,                                                          // chordal deflection is relative

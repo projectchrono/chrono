@@ -166,7 +166,7 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     bool compute_inertia_stiffness_matrix = true;
 
     /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
-    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    /// an analytical expression is provided. Children classes must take care of this. Default: false.
     bool compute_Ri_Ki_by_num_diff = false;
 
   protected:
@@ -451,7 +451,7 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
         const double mSy,      ///< shear center y displacement respect to centerline
         const double mSz,      ///< shear center z displacement respect to centerline
         const double mmu,      ///< mass per unit length
-        const double mJxx,     ///< polar inertia Jxx per unit lenght, measured respect to centerline
+        const double mJxx,     ///< polar inertia Jxx per unit length, measured respect to centerline
         const double mMy = 0,  ///< mass center y displacement respect to centerline
         const double mMz = 0   ///< mass center z displacement respect to centerline
         )
@@ -490,7 +490,7 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
     /// here you can put a value ad-hoc from a preprocessor
     virtual void SetBendingRigidityZ(const double mv) { Bzz = mv; }
 
-    /// Set the rotation in [rad], abour elastic center, of the Y Z axes for which the
+    /// Set the rotation in [rad], about elastic center, of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
     virtual void SetSectionRotation(const double mv) { alpha = mv; }
 
@@ -591,7 +591,7 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
 
 /// A simple specialization of ChBeamSectionEuler if you just need the simplest model
 /// for a rectangular centered beam, with uniform elasticity and uniform density.
-/// This section automatically itializes at construction:
+/// This section automatically initializes at construction:
 /// - elasticity  as rectangular section
 /// - inertia     as rectangular section
 /// - damping:    none   - you can set it later
@@ -607,7 +607,7 @@ class ChApi ChBeamSectionEulerEasyRectangular : public ChBeamSectionEulerSimple 
 
 /// A simple specialization of ChBeamSectionEuler if you just need the simplest model
 /// for a beam with circular centered section, with uniform elasticity and uniform density.
-/// This section automatically itializes at construction:
+/// This section automatically initializes at construction:
 /// - elasticity  as circular section
 /// - inertia     as circular section
 /// - damping:    none   - you can set it later
@@ -708,9 +708,9 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
         const double mSy,      ///< shear center y displacement respect to centerline
         const double mSz,      ///< shear center z displacement respect to centerline
         const double mmu,      ///< mass per unit length
-        const double mJyy,     ///< inertia Jyy per unit lenght, in centerline reference, along centerline main axes
-        const double mJzz,     ///< inertia Jzz per unit lenght, in centerline reference, along centerline main axes
-        const double mJyz,     ///< inertia Jyz per unit lenght, in centerline reference, along centerline main axes
+        const double mJyy,     ///< inertia Jyy per unit length, in centerline reference, along centerline main axes
+        const double mJzz,     ///< inertia Jzz per unit length, in centerline reference, along centerline main axes
+        const double mJyz,     ///< inertia Jyz per unit length, in centerline reference, along centerline main axes
         const double mMy = 0,  ///< mass center y displacement respect to centerline
         const double mMz = 0   ///< mass center z displacement respect to centerline
         )

@@ -231,7 +231,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// If engaged and supported by the concrete brake type on this vehicle, this locks all vehicle brakes.
     void ApplyParkingBrake(bool lock);
 
-    /// Returns the state of the parking brake (true if enagaged, false otherwise).
+    /// Returns the state of the parking brake (true if engaged, false otherwise).
     bool ParkingBrake() const { return m_parking_on; }
 
     /// Disconnect driveline.

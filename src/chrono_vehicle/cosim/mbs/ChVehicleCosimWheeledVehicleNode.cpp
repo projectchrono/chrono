@@ -211,7 +211,7 @@ void ChVehicleCosimWheeledVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunc
     // Disconnect the driveline
     m_vehicle->DisconnectDriveline();
     // Overwrite any driver attached to the vehicle with a custom driver which imposes zero steering and braking and
-    // directly sets the angular speed of the vehicle axleshafts as returned by the provided motor function.
+    // directly sets the angular speed of the vehicle axle shafts as returned by the provided motor function.
     SetDriver(chrono_types::make_shared<WheeledVehicleDBPDriver>(m_vehicle, func));
 }
 

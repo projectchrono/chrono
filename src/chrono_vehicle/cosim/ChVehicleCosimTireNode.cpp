@@ -215,7 +215,7 @@ void ChVehicleCosimTireNode::Synchronize(int step_number, double time) {
 }
 
 void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
-    // Act as a simple counduit between the MBS and TERRAIN nodes
+    // Act as a simple conduit between the MBS and TERRAIN nodes
     MPI_Status status;
 
     // Receive spindle state data from MBS node

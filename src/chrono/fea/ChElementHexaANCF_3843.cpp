@@ -1835,7 +1835,7 @@ void ChElementHexaANCF_3843::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     }
 
     // =============================================================================
-    // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+    // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
     // matrix, combine this with the scaled mass matrix, and then expand them out to full size by summing the
     // contribution into the correct locations of the full sized Jacobian matrix
     // =============================================================================
@@ -2196,7 +2196,7 @@ void ChElementHexaANCF_3843::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     }
 
     // =============================================================================
-    // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+    // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
     // matrix, combine this with the scaled mass matrix, and then expand them out to full size by summing the
     // contribution into the correct locations of the full sized Jacobian matrix
     // =============================================================================

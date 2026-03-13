@@ -108,10 +108,10 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     };
 
     /// Set antialiasing - will write this in the output .ini file.
-    void SetAntialiasing(bool active, unsigned int depth, double treshold) {
+    void SetAntialiasing(bool active, unsigned int depth, double threshold) {
         antialias = active;
         antialias_depth = depth;
-        antialias_treshold = treshold;
+        antialias_treshold = threshold;
     };
 
     /// Set the default camera position and aim point - will write this in the output .pov file.

@@ -439,7 +439,7 @@ class ChApi ChDampingReissnerRayleigh : public ChDampingReissner {
     /// Construct the Rayleigh damping model from the stiffness model used by the shell layer.
     /// This is important because the Rayleigh damping is proportional to the stiffness,
     /// so the model must know which is the stiffness matrix of the material.
-    /// Note: melasticity must be alreay set with proper values: its [E] stiffness matrix will be
+    /// Note: melasticity must be already set with proper values: its [E] stiffness matrix will be
     /// fetched just once for all.
     ChDampingReissnerRayleigh(std::shared_ptr<ChElasticityReissner> melasticity, const double& mbeta = 0);
 

@@ -30,15 +30,15 @@ namespace industrial {
 class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
   public:
     /// Default constructor.
-    IndustrialRobotSCARA_CAD(){};
+    IndustrialRobotSCARA_CAD() {};
 
-    /// Build SCARA R-R-R-P robot model from CAD bodies already imported in sys.
-    IndustrialRobotSCARA_CAD(ChSystem* sys,                            ///< containing sys
-                     const ChFramed& base_frame = ChFramed(),  ///< place robot base in these coordinatesv
-                     unsigned int id = 0,  ///< give robot a unique identifier (useful to import multiple instances of
-                                           ///< same CAD robot without name clashes)
-                     const std::vector<std::string>& bodynames = {"base", "biceps", "forearm", "screw", "end_effector"}
-                     ///< name of bodies to search in sys for building robot model (fallback)
+    /// Build SCARA R-R-R-P robot model from CAD bodies already imported in system.
+    IndustrialRobotSCARA_CAD(ChSystem* sys,                            ///< containing system
+                             const ChFramed& base_frame = ChFramed(),  ///< robot placement
+                             unsigned int id = 0,                      ///< robot unique identifier
+                             const std::vector<std::string>& bodynames = {"base", "biceps", "forearm", "screw",
+                                                                          "end_effector"}
+                             ///< name of bodies to search in sys for building robot model (fallback)
     );
 
     /// Get robot 'ground' body.
@@ -48,8 +48,8 @@ class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
 
     /// Suppress parent class functions to add schematic visual shapes, since actual
     /// 3D body meshes are already imported.
-    virtual void Add1dShapes(const ChColor& col = ChColor(0.0f, 0.0f, 0.0f)) override{};
-    virtual void Add3dShapes(double rad, const ChColor& col = ChColor(0.2f, 0.2f, 0.2f)) override{};
+    virtual void Add1dShapes(const ChColor& col = ChColor(0.0f, 0.0f, 0.0f)) override {};
+    virtual void Add3dShapes(double rad, const ChColor& col = ChColor(0.2f, 0.2f, 0.2f)) override {};
 
   private:
     /// Setup robot internal bodies, markers and motors.
@@ -57,9 +57,9 @@ class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
     virtual void SetupMarkers() override;
     virtual void SetupLinks() override;
 
-    unsigned int m_id = 0;                   ///< robot model unique identifier
-    std::vector<std::string> m_bodynames;    ///< name of bodies to search in sys for building robot model
-    std::shared_ptr<ChBody> m_ground;  ///< robot 'ground' virtual body
+    unsigned int m_id = 0;                 ///< robot model unique identifier
+    std::vector<std::string> m_bodynames;  ///< name of bodies to search in system for building robot model
+    std::shared_ptr<ChBody> m_ground;      ///< robot 'ground' virtual body
 };
 
 /// @} robot_models_industrial

@@ -259,7 +259,7 @@ bool disk_ray(int cap,
     if (Dot(ray, normal) > 0)
         return false;
 
-    // Intersect infinte ray with cap plane
+    // Intersect infinite ray with cap plane
     real t = (cap * hlen - start.y) / ray.y;
     real dist2 = t * t * Length2(ray);
 

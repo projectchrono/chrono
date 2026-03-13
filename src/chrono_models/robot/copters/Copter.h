@@ -37,7 +37,7 @@ namespace copter {
 /// @{
 
 /// Base class for any copter, template parameter nop is the number of propellers.
-/// Propellers position, data, rotation verse, vertical axis and all mass porperties are settable.
+/// Propellers position, data, rotation verse, vertical axis and all mass properties are settable.
 template <int nop>
 class Copter {
   public:

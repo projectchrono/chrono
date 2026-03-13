@@ -118,7 +118,7 @@ ChApiIrr int drawAllContactPoints(ChVisualSystemIrrlicht* vis,
                                   double mlen = 1.0,
                                   ContactsDrawMode drawtype = ContactsDrawMode::CONTACT_NORMALS);
 
-/// Draw contact informations as labels at the contact point.
+/// Draw contact information as labels at the contact point.
 ChApiIrr int drawAllContactLabels(ChVisualSystemIrrlicht* vis,
                                   ContactsLabelMode labeltype = ContactsLabelMode::CONTACT_FORCES_N_VAL,
                                   ChColor col = ChColor(1.f, 1.f, 1.f));
@@ -128,7 +128,7 @@ ChApiIrr int drawAllLinks(ChVisualSystemIrrlicht* vis,
                           double mlen = 1.0,
                           LinkDrawMode drawtype = LinkDrawMode::LINK_REACT_FORCE);
 
-/// Draw contact informations as labels at the contact point.
+/// Draw contact information as labels at the contact point.
 ChApiIrr int drawAllLinkLabels(ChVisualSystemIrrlicht* vis,
                                LinkLabelMode labeltype = LinkLabelMode::LINK_REACT_FORCE_X,
                                ChColor col = ChColor(1.f, 1.f, 1.f));

@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     std::cout << mvect3 << " ..triple trsf. using linear algebra" << std::endl;
 
     // ...with ChFrame '>>' operator or "*" operator
-    // is by far much simplier!
+    // is by far much simpler!
 
     ChFrame<> f10(v10, q10);
     ChFrame<> f21(v21, q21);

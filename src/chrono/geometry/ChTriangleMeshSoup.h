@@ -37,7 +37,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual ChTriangleMeshSoup* Clone() const override { return new ChTriangleMeshSoup(*this); }
 
     /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
-    /// If an error occurrs during loading, an empty shared pointer is returned.
+    /// If an error occurs during loading, an empty shared pointer is returned.
     static std::shared_ptr<ChTriangleMeshSoup> CreateFromWavefrontFile(const std::string& filename);
 
     /// Load from the given Wavefront .obj file
@@ -64,7 +64,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// Clear all data
     virtual void Clear() override { this->m_triangles.clear(); }
 
-    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    /// Transform all vertices, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
 
     /// Get the class type as an enum.

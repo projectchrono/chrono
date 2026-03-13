@@ -262,7 +262,7 @@ struct rotmotor_info {
 
 ChOutputHDF5_frames::ChOutputHDF5_frames(H5::H5File* fileHDF5)
     : ChOutputHDF5_impl(fileHDF5), m_frame_group(nullptr), m_section_group(nullptr) {
-    // Initialize the compund data types
+    // Initialize the compound data types
     m_body_type = new H5::CompType(sizeof(body_info));
     m_body_type->insertMember("id", HOFFSET(body_info, id), H5::PredType::NATIVE_INT);
     m_body_type->insertMember("x", HOFFSET(body_info, x), H5::PredType::NATIVE_DOUBLE);

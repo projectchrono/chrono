@@ -120,7 +120,7 @@ Sedan_DoubleWishbone::Sedan_DoubleWishbone(const std::string& name) : ChDoubleWi
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 Sedan_DoubleWishbone::~Sedan_DoubleWishbone() {}
 

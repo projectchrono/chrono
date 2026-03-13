@@ -43,7 +43,7 @@ ChApiIrr irr::scene::IMesh* createCubeMesh(const irr::core::vector3df& size);
 /// Create an Irrlicht mesh representing a cylinder.
 /// Cylinder axis is in Y direction, centered in origin.
 /// Cylinder tot length is 2*height, ranging from y=-height to y=+height.
-ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 height, irr::u32 tesselation);
+ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 height, irr::u32 tessellation);
 
 /// Create an Irrlicht mesh representing a capsule.
 /// Capsule axis is in Y direction, centered at origin.
@@ -58,12 +58,12 @@ ChApiIrr irr::scene::IMesh* createCapsuleMesh(irr::f32 radius, irr::f32 hlen, ir
 ChApiIrr irr::scene::IMesh* createTruncatedConeMesh(irr::f32 radius_top,
                                                     irr::f32 radius_low,
                                                     irr::f32 height,
-                                                    irr::u32 tesselation);
+                                                    irr::u32 tessellation);
 
 /// Create an Irrlicht mesh representing a cone.
 /// Truncated cone axis is in Y direction, centered in origin.
 /// Truncated cone tot length is 2*height, ranging from y=-height to y=+height.
-ChApiIrr irr::scene::IMesh* createConeMesh(irr::f32 radius_low, irr::f32 height, irr::u32 tesselation);
+ChApiIrr irr::scene::IMesh* createConeMesh(irr::f32 radius_low, irr::f32 height, irr::u32 tessellation);
 
 /// This function is based on a modified version of the irrlicht_bullet demo,
 /// see  http://www.continuousphysics.com

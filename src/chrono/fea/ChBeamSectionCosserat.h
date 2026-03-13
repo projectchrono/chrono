@@ -531,7 +531,7 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
     /// This should be called by end user.
     void UpdateStiffnessMatrix();
 
-    /// Get the tranformation matrix of seciton, may be useful for debug
+    /// Get the transformation matrix of section, may be useful for debug
     virtual ChMatrix66d& GetTransformMatrix() { return this->T; }
 
     // Interface to base:
@@ -574,8 +574,8 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
 /// This model saves you from the need of knowing I_z, I_y, A, etc.,
 /// because the generalized n and m are automatically computed by integrating stresses
 /// on the triangulated section. Note that stresses are linearly interpolated
-/// between the vertexes of the triangle sections.
-/// Triangles can share vertexes.
+/// between the vertices of the triangle sections.
+/// Triangles can share vertices.
 /// Each vertex has its own material.
 /// Section is assumed always flat, even if the section mesh is not connected, ex.
 /// if one models a section like a "8" shape where the two "o" are not connected.
@@ -613,17 +613,17 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
 
     virtual ~ChElasticityCosseratMesh() {}
 
-    /// Access the list of vertexes, to get/change/add mesh section vertexes.
-    virtual std::vector<ChVector2d>& Vertexes() { return vertexes; }
+    /// Access the list of vertices, to get/change/add mesh section vertices.
+    virtual std::vector<ChVector2d>& Vertices() { return vertices; }
 
     /// Access the list of material(s), to get/change/add mesh section materials.
     /// Each material correspond to an equivalent vertex.
-    /// If there is only one material, it will be used for all vertexes.
+    /// If there is only one material, it will be used for all vertices.
     std::vector<std::shared_ptr<ChSectionMaterial>>& Materials() { return materials; }
 
     /// Access the list of triangles, to get/change/add mesh section triangles.
-    /// Each triangle has three integer indexes pointing to the three connected vertexes
-    /// in the Vertexes() array, where 0 is the 1st vertex etc.
+    /// Each triangle has three integer indexes pointing to the three connected vertices
+    /// in the Vertices() array, where 0 is the 1st vertex etc.
     std::vector<ChVector3i>& Triangles() { return triangles; }
 
     /// Set rectangular centered section, using two triangles.
@@ -657,7 +657,7 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
     */
 
   protected:
-    std::vector<ChVector2d> vertexes;
+    std::vector<ChVector2d> vertices;
     std::vector<std::shared_ptr<ChSectionMaterial>> materials;
     std::vector<ChVector3i> triangles;
 };
@@ -745,7 +745,7 @@ class ChApi ChInternalDataLumpedCosserat : public ChBeamMaterialInternalData {
 };
 
 /// Lumped plasticity of Cosserat-type beams.
-/// This defines 6 independent yelds for the six generalized forces/moments in the beam.
+/// This defines 6 independent yields for the six generalized forces/moments in the beam.
 /// Note that this is a rough approximation of plasticity in beams for at least two
 /// main reasons: it cannot capture how plastic zones are made inside a section (which
 /// is mostly important when cycling with back and forth bending), and it does not
@@ -908,7 +908,7 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
     /// Construct the Rayleigh damping model from the stiffness model used by the section.
     /// This is important because the Rayleigh damping is proportional to the stiffness,
     /// so the model must know which is the stiffness matrix of the material.
-    /// Note: melasticity must be alreay set with proper values: its [E] stiffness matrix will be
+    /// Note: melasticity must be already set with proper values: its [E] stiffness matrix will be
     /// fetched just once for all.
     ChDampingCosseratRayleigh(std::shared_ptr<ChElasticityCosserat> melasticity, const double& mbeta = 0);
 
@@ -1032,7 +1032,7 @@ class ChApi ChInertiaCosserat {
     bool compute_inertia_stiffness_matrix = true;
 
     /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
-    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    /// an analytical expression is provided. Children classes must take care of this. Default: false.
     bool compute_Ri_Ki_by_num_diff = false;
 };
 
@@ -1383,7 +1383,7 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
 /// A beam section contains the models for elasticity, inertia, plasticity, damping, etc.
 /// This base model expect that you provide at least the elasticity and inertia models,
 /// and optionally you can also add a damping model and a plasticity model.
-/// This accomodates most of the constitutive models because there are many
+/// This accommodates most of the constitutive models because there are many
 /// combinations of the different types of damping models, elasticity models, etc.,
 /// but if you need some extreme customization, you might also inherit your C++ class from this.
 /// On the other side, if you need a more immediate way to create sections, look at

@@ -665,7 +665,7 @@ void ChElementTetraCorot_10::ComputeNF(const double U,
                                        const ChVectorDynamic<>& F,
                                        ChVectorDynamic<>* state_x,
                                        ChVectorDynamic<>* state_w) {
-    // evaluate shape functions (in compressed vector), btw. not dependant on state
+    // evaluate shape functions (in compressed vector), btw. not dependent on state
     // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
     ShapeVector N;
     ShapeFunctions(N, U, V, W);

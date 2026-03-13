@@ -470,17 +470,17 @@ ChSphVisualizationVSG::ColorMode ChSphVisualizationVSG::DetermineColorMode() con
 }
 
 bool ChSphVisualizationVSG::ShouldUseGpuColoring(size_t num_particles) const {
-    // Only enable the compute path when we have data and a supported colouring callback, else dont
+    // Only enable the compute path when we have data and a supported coloring callback, else dont
     if (!m_color_fun) {
-        // GPU colouring disabled: no colour callback function set
+        // GPU coloring disabled: no color callback function set
         return false;
     }
     if (num_particles == 0) {
-        // GPU colouring disabled: no particles to render
+        // GPU coloring disabled: no particles to render
         return false;
     }
     if (DetermineColorMode() == ColorMode::NONE) {
-        // GPU colouring disabled: unsupported colour mode
+        // GPU coloring disabled: unsupported color mode
         return false;
     }
     return true;
@@ -612,7 +612,7 @@ void ChSphVisualizationVSG::EnsureGpuColoringReady(size_t num_particles) {
 
     const bool enable = ShouldUseGpuColoring(num_particles);
     if (!enable) {
-        // Fall back to the old CPU path when the colour callback is disabled or unsupported
+        // Fall back to the old CPU path when the color callback is disabled or unsupported
         // .. could probably delete this handling and associated once confident the gpu path is good
         ConfigureGpuCommands(false);
         cloud->use_compute_colors = false;

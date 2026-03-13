@@ -153,8 +153,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     ChMacPhersonStrut(const std::string& name  ///< [in] name of the subsystem
     );
 
-    /// Indicate whether or not tirod bodies are modelled (default: false).
-    /// If false, tierods are modelled using distance constraints.
+    /// Indicate whether or not tirod bodies are modeled (default: false).
+    /// If false, tierods are modeled using distance constraints.
     /// If true, rigid tierod bodies are created (in which case a derived class must provide the mass and inertia) and
     /// connected either with kinematic joints or bushings (depending on whether or not bushing data is defined).
     virtual bool UseTierodBodies() const { return false; }

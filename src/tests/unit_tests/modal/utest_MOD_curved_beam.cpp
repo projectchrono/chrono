@@ -191,7 +191,7 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
         }
     };
 
-    // Mesh the curved beam with several seperate modal assemblies to deal with the significant geometrical nonliearity
+    // Mesh the curved beam with several separate modal assemblies to deal with the significant geometrical nonliearity
     std::vector<std::shared_ptr<ChModalAssembly>> modal_assembly_list;
     double delta_angle = rotangle / n_parts;
     for (int i_part = 0; i_part < n_parts; i_part++) {

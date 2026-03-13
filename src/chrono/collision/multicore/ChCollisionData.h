@@ -28,7 +28,7 @@ namespace chrono {
 /// @addtogroup collision_mc
 /// @{
 
-/// Readibility type definition.
+/// Readability type definition.
 typedef int shape_type;
 
 /// Structure of arrays containing rigid collision shape information.

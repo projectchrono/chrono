@@ -21,7 +21,7 @@
 // structure.
 //
 // If normal road surface conditions are preferred, correlated tracks are the
-// better choice. From test we know that the measured cohereny is a function of
+// better choice. From test we know that the measured coherency is a function of
 //  - vehicle track width
 //  - signal wavelength
 //  - unevenness

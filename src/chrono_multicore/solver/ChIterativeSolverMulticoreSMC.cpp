@@ -72,7 +72,7 @@ void function_CalcContactForces(
     real* vel,                                            // body linear and angular velocities
     real3* friction,                                      // eff. coefficients of friction (per contact)
     real2* modulus,                                       // eff. elasticity and shear modulus (per contact)
-    real3* adhesion,                                      // eff. adhesion paramters (per contact)
+    real3* adhesion,                                      // eff. adhesion parameters (per contact)
     real* cr,                                             // eff. coefficient of restitution (per contact)
     real4* smc_params,                                    // eff. SMC parameters k and g (per contact)
     real3* pt1,                                           // point on shape 1 (per contact)
@@ -581,7 +581,7 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
             data_manager->host_data.v.data(),                       // body linear and angular velocities
             data_manager->host_data.fric_rigid_rigid.data(),        // eff. coefficients of friction (per contact)
             data_manager->host_data.modulus_rigid_rigid.data(),     // eff. elasticity and shear modulus (per contact)
-            data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion paramters (per contact)
+            data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion parameters (per contact)
             data_manager->host_data.cr_rigid_rigid.data(),          // eff. coefficient of restitution (per contact)
             data_manager->host_data.smc_rigid_rigid.data(),         // eff. SMC parameters k and g (per contact)
             data_manager->cd_data->cpta_rigid_rigid.data(),         // point on shape 1 (per contact)

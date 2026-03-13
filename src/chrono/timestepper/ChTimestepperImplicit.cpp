@@ -102,7 +102,7 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
     // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
 
     // If the integrable object was modified, force a call to setup (including the analyze phase).
-    // Otherwise, a potantial call to setup need not include the analyze phase.
+    // Otherwise, a potential call to setup need not include the analyze phase.
     if (GetIntegrable()->StateModified()) {
         call_setup = true;
         call_analyze = true;
@@ -112,7 +112,7 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
         call_analyze = false;
     }
 
-    // Let the concrete integrator initialze step
+    // Let the concrete integrator initialize step
     InitializeStep();
 
     // Set time at step end

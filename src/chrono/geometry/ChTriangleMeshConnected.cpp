@@ -536,7 +536,7 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
     std::multimap<std::pair<int, int>, int> edge_map;
 
     for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<int, int> medgeA(this->m_face_v_indices[it].x(), this->m_face_v_indices[it].y());
         std::pair<int, int> medgeB(this->m_face_v_indices[it].y(), this->m_face_v_indices[it].z());
         std::pair<int, int> medgeC(this->m_face_v_indices[it].z(), this->m_face_v_indices[it].x());
@@ -560,7 +560,7 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
         tri_map[it][1] = -1;  // default no neighbour
         tri_map[it][2] = -1;  // default no neighbour
         tri_map[it][3] = -1;  // default no neighbour
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<int, int> medgeA(this->m_face_v_indices[it].x(), this->m_face_v_indices[it].y());
         std::pair<int, int> medgeB(this->m_face_v_indices[it].y(), this->m_face_v_indices[it].z());
         std::pair<int, int> medgeC(this->m_face_v_indices[it].z(), this->m_face_v_indices[it].x());
@@ -609,7 +609,7 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
     std::multimap<std::pair<int, int>, int> edge_map;
 
     for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
-        // edges = pairs of vertexes indexes
+        // edges = pairs of vertices indexes
         std::pair<int, int> medgeA(this->m_face_v_indices[it].x(), this->m_face_v_indices[it].y());
         std::pair<int, int> medgeB(this->m_face_v_indices[it].y(), this->m_face_v_indices[it].z());
         std::pair<int, int> medgeC(this->m_face_v_indices[it].z(), this->m_face_v_indices[it].x());
@@ -666,7 +666,7 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(double tolerance) {
     std::vector<ChVector3d> processed_verts;
     std::vector<int> new_indexes(m_vertices.size());
 
-    // merge vertexes
+    // merge vertices
     for (int i = 0; i < m_vertices.size(); ++i) {
         bool tomerge = false;
         for (int j = 0; j < processed_verts.size(); ++j) {
@@ -685,7 +685,7 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(double tolerance) {
 
     m_vertices = processed_verts;
 
-    // Update the merged vertexes also in face indexes to vertexes
+    // Update the merged vertices also in face indexes to vertices
     // Note: we DO NOT update the normal, color, UV, or material indices!
     for (int i = 0; i < this->m_face_v_indices.size(); ++i) {
         m_face_v_indices[i].x() = new_indexes[m_face_v_indices[i].x()];
@@ -711,7 +711,7 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
         map_vertex_triangles[m_face_v_indices[i].z()].push_back(i);
     }
 
-    // scan through vertexes and offset them
+    // scan through vertices and offset them
     for (int i = 0; i < this->m_vertices.size(); ++i) {
         auto mpair = map_vertex_triangles.find(i);
         if (mpair != map_vertex_triangles.end()) {
@@ -763,7 +763,7 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
     return true;
 }
 
-// Return the indexes of the two vertexes of the specified triangle edge.
+// Return the indexes of the two vertices of the specified triangle edge.
 // If unique = true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
 std::pair<int, int> ChTriangleMeshConnected::GetTriangleEdgeIndexes(
     const ChVector3i& face_indices,  // indices of a triangular face
@@ -1023,18 +1023,18 @@ void ChTriangleMeshConnected::RefineMeshEdges(
     std::vector<int>&
         marked_tris,     ///< triangles to refine (aso surrounding triangles might be affected by refinements)
     double edge_maxlen,  ///< maximum length of edge (small values give higher resolution)
-    ChRefineEdgeCriterion* criterion,  ///< criterion for computing lenght (or other merit function) of edge, if =0 uses
+    ChRefineEdgeCriterion* criterion,  ///< criterion for computing length (or other merit function) of edge, if =0 uses
                                        ///< default (euclidean length)
     std::vector<std::array<int, 4>>* atri_map,  ///< triangle connectivity map: use and modify it. Optional. If =0,
                                                 ///< creates a temporary one just for life span of function.
-    std::vector<std::vector<double>*>& aux_data_double,  ///< auxiliary buffers to refine (assuming indexed as vertexes:
+    std::vector<std::vector<double>*>& aux_data_double,  ///< auxiliary buffers to refine (assuming indexed as vertices:
                                                          ///< each with same size as vertex buffer)
-    std::vector<std::vector<int>*>& aux_data_int,  ///< auxiliary buffers to refine (assuming indexed as vertexes: each
+    std::vector<std::vector<int>*>& aux_data_int,  ///< auxiliary buffers to refine (assuming indexed as vertices: each
                                                    ///< with same size as vertex buffer)
-    std::vector<std::vector<bool>*>& aux_data_bool,  ///< auxiliary buffers to refine (assuming indexed as vertexes:
+    std::vector<std::vector<bool>*>& aux_data_bool,  ///< auxiliary buffers to refine (assuming indexed as vertices:
                                                      ///< each with same size as vertex buffer)
     std::vector<std::vector<ChVector3d>*>& aux_data_vect  ///< auxiliary buffers to refine (assuming indexed as
-                                                          ///< vertexes: each with same size as vertex buffer)
+                                                          ///< vertices: each with same size as vertex buffer)
 ) {
     // initialize the list of triangles to refine, copying from marked triangles:
     std::list<int> S(marked_tris.begin(), marked_tris.end());

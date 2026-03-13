@@ -89,7 +89,7 @@ mrole_DoubleWishboneReducedRear::mrole_DoubleWishboneReducedRear(const std::stri
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 mrole_DoubleWishboneReducedFront::~mrole_DoubleWishboneReducedFront() {}
 

@@ -281,7 +281,7 @@ void ChLinkLock::BuildLink() {
     C_dtdt.setZero();
     react.setZero();
 
-    // Need to zero out the first 3 entries in rows corrsponding to rotation constraints
+    // Need to zero out the first 3 entries in rows corresponding to rotation constraints
     Cq1.setZero();
     Cq2.setZero();
 }

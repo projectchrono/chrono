@@ -22,7 +22,7 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Function returnin a constant value.
+/// Function returning a constant value.
 class ChApi ChFunctionConst : public ChFunction {
   public:
     ChFunctionConst();

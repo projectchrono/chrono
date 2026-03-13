@@ -90,7 +90,7 @@ class ChApi Mat33 {
         array[11] = 0;
     }
 
-    // Constructor that takes individial elements
+    // Constructor that takes individual elements
     Mat33(const real& v11,
           const real& v21,
           const real& v31,

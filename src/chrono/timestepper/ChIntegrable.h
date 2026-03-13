@@ -435,7 +435,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     // using a default bookkeeping that allows you to use timesteppers for 1st
     // order integration with this II order system. The trick is that
     // the x and v state parts are assembled into y={x,y} as this is needed,
-    // and viceversa. Same for dy/dt={v,a}.
+    // and vice-versa. Same for dy/dt={v,a}.
     // NOTE: PERFORMANCE WARNING: this default bookkeeping requires temporary allocation
     //  and deallocation of temporary vectors and some copies.
     // NOTE: performance penalty is not a big issue since one should try to use

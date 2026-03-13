@@ -55,7 +55,7 @@ enum CuriosityWheelID {
 /// Curiosity chassis type.
 enum class CuriosityChassisType { FullRover, Scarecrow };
 
-/// Curiostiy wheel type.
+/// Curiosity wheel type.
 enum class CuriosityWheelType { RealWheel, SimpleWheel, CylWheel };
 
 // -----------------------------------------------------------------------------
@@ -93,7 +93,7 @@ class CH_MODELS_API CuriosityPart {
     /// This is the orientation wrt the global frame of the part reference frame.
     const ChQuaternion<>& GetRot() const { return m_body->GetFrameRefToAbs().GetRot(); }
 
-    /// Return the linear velocity of the Curiopsity part.
+    /// Return the linear velocity of the Curiosity part.
     /// This is the absolute linear velocity of the part reference frame.
     const ChVector3d& GetLinVel() const { return m_body->GetFrameRefToAbs().GetPosDt(); }
 
@@ -105,8 +105,8 @@ class CH_MODELS_API CuriosityPart {
     /// This is the absolute linear acceleration of the part reference frame.
     const ChVector3d& GetLinAcc() const { return m_body->GetFrameRefToAbs().GetPosDt2(); }
 
-    /// Return the angular acceleratino of the Curiosity part.
-    /// This is the absolute angular acceleratin of the part reference frame.
+    /// Return the angular acceleration of the Curiosity part.
+    /// This is the absolute angular acceleration of the part reference frame.
     const ChVector3d GetAngAcc() const { return m_body->GetFrameRefToAbs().GetAngAccParent(); }
 
     /// Initialize the rover part by attaching it to the specified chassis body.

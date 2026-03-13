@@ -307,7 +307,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// </pre>
     unsigned int AddAccumulator();
 
-    /// Clear the accumulator with specififed index.
+    /// Clear the accumulator with specified index.
     void EmptyAccumulator(unsigned int idx);
 
     /// Include a concentrated body force in the specified accumulator.

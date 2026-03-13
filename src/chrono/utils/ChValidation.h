@@ -66,7 +66,7 @@ class ChApi ChValidation {
     /// Process the data in the two specified structures.
     /// Ignoring the first column (which must contain identical values in the two input structures), subtract the data
     /// in corresponding columns in the two structures are and calculate the norms of the difference vectors.
-    bool Process(const Data& sim_data,  ///< simulation data strcture
+    bool Process(const Data& sim_data,  ///< simulation data structure
                  const Data& ref_data   ///< reference data structure
     );
 

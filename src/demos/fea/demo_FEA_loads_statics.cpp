@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     // There are some stubs in the ChLoaderU.h ChLoaderUV.h ChLoaderUVW.h  headers,
     // from which you can inherit. Here we inherit from
     // For example, let's make a distributed triangular load. A load on the beam is a
-    // wrench, i.e. force+load per unit lenght applied at a certain abscissa U, that is a six-dimensional load.
+    // wrench, i.e. force+load per unit length applied at a certain abscissa U, that is a six-dimensional load.
     // By the way, a triangular load will work as a constant one because a single Euler beam
     // cannot feel more than this.
 

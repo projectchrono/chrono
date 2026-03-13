@@ -153,7 +153,7 @@ class SYN_API SynChronoManager {
 
     double m_time_update;         ///< cumulative time for agent updates
     double m_time_msg_gather;     ///< cumulative time for generating outgoing messages
-    double m_time_communication;  ///< cummulative time for communication
+    double m_time_communication;  ///< cumulative time for communication
     double m_time_msg_process;    ///< cumulative time for processing received messages
 
     int m_num_managed_agents = 0;                                    ///< Number of agents managed by this node

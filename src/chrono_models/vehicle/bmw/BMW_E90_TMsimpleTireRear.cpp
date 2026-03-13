@@ -49,8 +49,8 @@ void BMW_E90_TMsimpleTireRear::SetTMsimpleParams() {
     double Cz = 357859.232809;  // linear tire stiffness N/m
     SetVerticalStiffness(Cz);
 
-    m_unloaded_radius = 0.3186;  //$Free tyre radius
-    m_width = 0.255000;          //$Nominal section width of the tyre
+    m_unloaded_radius = 0.3186;  //$Free tire radius
+    m_width = 0.255000;          //$Nominal section width of the tire
     m_rim_radius = 0.2286;       //$Nominal rim radius
     m_rolling_resistance = 0.01;
     m_bottom_radius = 0.240030;

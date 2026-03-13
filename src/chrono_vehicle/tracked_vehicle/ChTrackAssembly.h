@@ -64,7 +64,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Get a handle to the idler subsystem.
     std::shared_ptr<ChIdler> GetIdler() const { return m_idler; }
 
-    /// Get a handle to the idelr wheel subsystem.
+    /// Get a handle to the idler wheel subsystem.
     std::shared_ptr<ChTrackWheel> GetIdlerWheel() const { return m_idler->GetIdlerWheel(); }
 
     /// Get a handle to the brake subsystem.

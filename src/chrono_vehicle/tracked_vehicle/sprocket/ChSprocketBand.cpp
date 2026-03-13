@@ -154,7 +154,7 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
         m_material = minfo.CreateMaterial(m_sprocket->GetGearBody()->GetSystem()->GetContactMethod());
 
         // Since the shoe has not been initialized yet, set a flag to cache all of the parameters that depend on the shoe
-        // being initalized
+        // being initialized
         m_update_tread = true;
     }
 
@@ -234,7 +234,7 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
     if (m_track->GetNumTrackShoes() == 0)
         return;
 
-    // Temporary workaround since the shoe has not been intialized by the time the collision constructor is called.
+    // Temporary workaround since the shoe has not been initialized by the time the collision constructor is called.
     if (m_update_tread) {
         m_update_tread = false;
 
@@ -261,7 +261,7 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
             shoe->GetTreadThickness() / 2;  // height of the belt tooth profile from the tip to its base line
     }
 
-    // Return now if collision disabled on sproket.
+    // Return now if collision disabled on sprocket.
     if (!m_sprocket->GetGearBody()->IsCollisionEnabled())
         return;
 

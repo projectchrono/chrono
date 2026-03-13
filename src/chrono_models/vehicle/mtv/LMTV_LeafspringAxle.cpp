@@ -170,7 +170,7 @@ LMTV_LeafspringAxle::LMTV_LeafspringAxle(const std::string& name) : ChLeafspring
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 LMTV_LeafspringAxle::~LMTV_LeafspringAxle() {}
 

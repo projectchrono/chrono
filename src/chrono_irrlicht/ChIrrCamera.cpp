@@ -81,7 +81,9 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
     smgr->setActiveCamera(this);
 }
 
-RTSCamera::~RTSCamera() {}
+RTSCamera::~RTSCamera() {
+    device->drop();
+}
 
 bool RTSCamera::OnEvent(const SEvent& event) {
     if (!InputReceiverEnabled)
@@ -309,12 +311,12 @@ bool RTSCamera::isMouseKeyDown(s32 key) {
 }
 
 void RTSCamera::animate() {
-    // Rotation Vals
+    // Rotation values
     f32 nRotX = rotX;
     f32 nRotY = rotY;
     f32 nZoom = currentZoom;
 
-    // Translation Vals
+    // Translation values
     core::vector3df translate(oldTarget);
     core::vector3df tvectX = Target - Pos;
     tvectX = tvectX.crossProduct(UpVector);

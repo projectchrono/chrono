@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChAxle {
     /// Get the specified wheel of this axle.
     std::shared_ptr<ChWheel> GetWheel(VehicleSide side, WheelLocation location = SINGLE) const;
 
-    ///  Get the sdpecified brake of this axle.
+    ///  Get the specified brake of this axle.
     std::shared_ptr<ChBrake> GetBrake(VehicleSide side) const;
 
     std::shared_ptr<ChSuspension> m_suspension;

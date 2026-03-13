@@ -76,7 +76,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepper
 
     /// Reset step data for re-attempting step (with new Jacobian or reduced step size).
     /// - Scatter state
-    /// - Reset auxiliary data (acceleratrion and residual)
+    /// - Reset auxiliary data (acceleration and residual)
     virtual void ResetStep() override;
 
     /// Accept attempted step (if Newton converged or was terminated).

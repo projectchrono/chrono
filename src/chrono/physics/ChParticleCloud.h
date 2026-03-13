@@ -211,7 +211,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     /// Add a collision shape for particles in this cloud.
     /// If a collision model does not already exist, it is first created.
-    /// The resulting model witll be the "template" collision model that is used by all particles.
+    /// The resulting model will be the "template" collision model that is used by all particles.
     void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame = ChFrame<>());
 
     /// Resize the particle cluster.

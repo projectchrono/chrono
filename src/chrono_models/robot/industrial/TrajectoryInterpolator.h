@@ -55,7 +55,7 @@ class CH_MODELS_API TrajectoryInterpolator {
     /// Get individual times to travel each part of the trajectory.
     virtual std::vector<double> GetDurations() const { return m_durations; }
 
-    /// Get cumulative times of trajectory travelling.
+    /// Get cumulative times of trajectory traveling.
     virtual std::vector<double> GetMotionTimesCumulative() const { return m_cumul_times; }
 
   protected:

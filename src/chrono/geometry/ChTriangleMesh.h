@@ -43,10 +43,10 @@ class ChApi ChTriangleMesh : public ChGeometry {
     /// Clear all data
     virtual void Clear() = 0;
 
-    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    /// Transform all vertices, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) = 0;
 
-    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    /// Transform all vertices, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector3d displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0));
 
     /// Get the class type as an enum.

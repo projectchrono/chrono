@@ -79,7 +79,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     void AddPropertyPerFace(ChProperty& mprop) { m_properties_per_face.push_back(mprop.clone()); }
 
     /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
-    /// If an error occurrs during loading, an empty shared pointer is returned.
+    /// If an error occurs during loading, an empty shared pointer is returned.
     static std::shared_ptr<ChTriangleMeshConnected> CreateFromWavefrontFile(const std::string& filename,
                                                                             bool load_normals = true,
                                                                             bool load_uv = false);
@@ -88,7 +88,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     bool LoadWavefrontMesh(const std::string& filename, bool load_normals = true, bool load_uv = false);
 
     /// Create and return a ChTriangleMeshConnected from an STL file.
-    /// If an error occurrs during loading, an empty shared pointer is returned.
+    /// If an error occurs during loading, an empty shared pointer is returned.
     static std::shared_ptr<ChTriangleMeshConnected> CreateFromSTLFile(const std::string& filename,
                                                                       bool load_normals = true);
 
@@ -150,7 +150,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Get the filename of the triangle mesh.
     const std::string& GetFileName() const { return m_filename; }
 
-    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed).
+    /// Transform all vertices, by displacing and rotating (rotation  via matrix, so also scaling if needed).
     virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
 
     /// Create a map of neighboring triangles, vector [Ti TieA TieB TieC]
@@ -165,13 +165,13 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     bool ComputeWingedEdges(std::map<std::pair<int, int>, std::pair<int, int>>& winged_edges,
                             bool allow_single_wing = true) const;
 
-    /// Connect overlapping vertexes.
+    /// Connect overlapping vertices.
     /// This can beused to attempt to repair a mesh with 'open edges' to transform it into a watertight mesh.
-    /// Say, if a cube is modeled with 6 faces with 4 distinct vertexes each, it might display properly, but for
+    /// Say, if a cube is modeled with 6 faces with 4 distinct vertices each, it might display properly, but for
     /// some algorithms, ex. collision detection, topological information might be needed, hence adjacent faces must
     /// be connected.
-    /// Return the number of merged vertexes.
-    int RepairDuplicateVertexes(double tolerance = 1e-18  ///< ignore vertexes closer than this value
+    /// Return the number of merged vertices.
+    int RepairDuplicateVertexes(double tolerance = 1e-18  ///< ignore vertices closer than this value
     );
 
     /// Offset the mesh, by a specified value, orthogonally to the faces.
@@ -180,7 +180,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     ///       so this is mostly meant to be a fast tool for making small offsets.
     bool MakeOffset(double offset);
 
-    /// Return the indexes of the two vertexes of the i-th edge of the triangle.
+    /// Return the indexes of the two vertices of the i-th edge of the triangle.
     /// If unique=true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
     std::pair<int, int> GetTriangleEdgeIndexes(const ChVector3i& face_indices,  ///< indices of a triangular face
                                                int nedge,                       ///< number of edge: 0, 1, 2
@@ -228,7 +228,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         std::vector<int>& marked_tris,     ///< indexes of triangles to refine (also surrounding triangles might be
                                            ///< affected by refinements)
         double edge_maxlen,                ///< maximum length of edge (small values give higher resolution)
-        ChRefineEdgeCriterion* criterion,  ///< criterion for computing lenght (or other merit function) of edge, if
+        ChRefineEdgeCriterion* criterion,  ///< criterion for computing length (or other merit function) of edge, if
                                            ///< null uses default (euclidean length)
         std::vector<std::array<int, 4>>* atri_map,            ///< optional triangle connectivity map
         std::vector<std::vector<double>*>& aux_data_double,   ///< auxiliary buffer

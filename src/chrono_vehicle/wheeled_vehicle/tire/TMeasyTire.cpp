@@ -60,7 +60,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     double p_use = 1.0;
 
     if (d.HasMember("Parameters")) {
-        // Full parameterization
+        // Full parametrization
         m_par.pn = d["Parameters"]["Vertical"]["Nominal Vertical Force [N]"].GetDouble();
         if (d["Parameters"]["Vertical"].HasMember("Maximum Vertical Force [N]"))
             m_par.pn_max = d["Parameters"]["Vertical"]["Maximum Vertical Force [N]"].GetDouble();

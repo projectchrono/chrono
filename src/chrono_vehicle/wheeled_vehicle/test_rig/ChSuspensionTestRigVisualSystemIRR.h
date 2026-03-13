@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChSuspensionTestRigVisualSystemIRR : public irrlicht::ChVis
     /// Attach a suspension test rig to this VSG visualization system.
     void AttachSTR(ChSuspensionTestRig* rig);
 
-    /// Initialize the visualizatin system.
+    /// Initialize the visualization system.
     virtual void Initialize() override;
 
   private:

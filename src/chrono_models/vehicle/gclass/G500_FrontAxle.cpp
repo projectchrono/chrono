@@ -188,7 +188,7 @@ G500_FrontAxle::G500_FrontAxle(const std::string& name) : ChToeBarRigidPanhardAx
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 G500_FrontAxle::~G500_FrontAxle() {}
 

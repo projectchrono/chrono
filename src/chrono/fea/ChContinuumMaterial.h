@@ -108,11 +108,11 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     ChMatrixDynamic<>& GetStressStrainMatrix() { return StressStrainMatrix; }
 
     /// Compute elastic stress from elastic strain
-    /// (using column tensors, in Voight notation)
+    /// (using column tensors, in Voigt notation)
     void ComputeElasticStress(ChStressTensor<>& stress, const ChStrainTensor<>& strain) const;
 
     /// Compute elastic strain from elastic stress
-    /// (using column tensors, in Voight notation)
+    /// (using column tensors, in Voigt notation)
     void ComputeElasticStrain(ChStrainTensor<>& strain, const ChStressTensor<>& stress) const;
 
     /// Set the Rayleigh mass-proportional damping factor alpha, to

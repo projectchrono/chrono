@@ -185,7 +185,7 @@ U401_ToeBarPushPipeAxle::U401_ToeBarPushPipeAxle(const std::string& name) : ChTo
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 U401_ToeBarPushPipeAxle::~U401_ToeBarPushPipeAxle() {}
 

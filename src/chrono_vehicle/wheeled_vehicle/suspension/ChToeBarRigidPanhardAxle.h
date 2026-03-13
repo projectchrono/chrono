@@ -14,8 +14,8 @@
 //
 // Base class for a steerable solid Panhard axle suspension.
 //
-// This class is meant for modelling a very simple steerable solid Panhard
-// axle. The guiding function is modelled by a ChLinkLockRevolutePrismatic joint
+// This class is meant for modeling a very simple steerable solid Panhard
+// axle. The guiding function is modeled by a ChLinkLockRevolutePrismatic joint
 // which allows vertical movement and tilting of the axle tube but no elasticity.
 //
 // This axle subsystem works with the ChRotaryArm steering subsystem.
@@ -208,10 +208,10 @@ class CH_VEHICLE_API ChToeBarRigidPanhardAxle : public ChSuspension {
     /// Return the moments of inertia of the ARB body.
     virtual const ChVector3d& getARBInertia() const = 0;
 
-    /// Return the striffness of the ARB system.
+    /// Return the stiffness of the ARB system.
     virtual double getARBStiffness() const = 0;
 
-    /// Return the striffness of the ARB system.
+    /// Return the stiffness of the ARB system.
     virtual double getARBDamping() const = 0;
 
     /// Return the mass of the Panhard tube body.
@@ -235,7 +235,7 @@ class CH_VEHICLE_API ChToeBarRigidPanhardAxle : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    /// Returns toplology flag for knuckle/draglink connection
+    /// Returns topology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
 
     std::shared_ptr<ChBody> m_axleTubeBody;    ///< handles to the axle tube body

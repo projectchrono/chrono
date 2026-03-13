@@ -203,7 +203,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
                               !trianglemesh->IsWireframe());  // avoid shading for wireframes
     meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
 
-    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertices  color
 }
 
 void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
@@ -342,7 +342,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
     ////meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
     ////meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
     ////meshnode->setMaterialFlag(video::EMF_ANTI_ALIASING, true);
-    ////meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+    ////meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertices  color
 }
 
 // Update a trimesh by keeping fixed the connectivity and only touching the specified modified vertices.
@@ -436,7 +436,7 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisua
     }
 
     irrmesh->setDirty();                                         // to force update of hardware buffers
-    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertexes  color
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertices  color
 }
 
 void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
@@ -642,7 +642,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     else
         meshnode->setMaterialFlag(video::EMF_ZBUFFER, false);
 
-    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertices  color
 }
 
 void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface) {
@@ -864,7 +864,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<ChLine> line, unsigned int nvert
     meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
     meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
 
-    // meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
+    // meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertices  color
 }
 
 }  // end namespace irrlicht

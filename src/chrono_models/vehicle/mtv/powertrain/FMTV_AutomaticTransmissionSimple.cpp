@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Automatic transmssion model for the FMTV vehicle.
+// Automatic transmission model for the FMTV vehicle.
 // - both power and torque limited
 // - no torque converter
 // - simple gear-shifting model (in automatic mode)
@@ -31,7 +31,7 @@ FMTV_AutomaticTransmissionSimple::FMTV_AutomaticTransmissionSimple(const std::st
     : ChAutomaticTransmissionSimpleMap(name) {}
 
 void FMTV_AutomaticTransmissionSimple::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    // gear ratios from the original Steyr 12m18 ZF gearbox (handshifted, same as in the MAN 7t?)
+    // gear ratios from the original Steyr 12m18 ZF gearbox (hand-shifted, same as in the MAN 7t?)
     rev = -0.089525515;
 
     fwd.push_back(0.077160494);

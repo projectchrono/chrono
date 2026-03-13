@@ -189,7 +189,7 @@ class ChApi ChStaticNonLinearAnalysisIncremental : public ChStaticAnalysis {
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Set the max number of inner iterations for the Newton Raphson procedure (default: 5),
-    /// where these iterations are preformed at each external load scaling step.
+    /// where these iterations are performed at each external load scaling step.
     void SetMaxIterationsNewton(int max_newton_iters);
 
     /// Set the number of outer iterations that will increment the external load in stepwise manner. (default: 6)

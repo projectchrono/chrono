@@ -101,7 +101,7 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     }
 
     /// Set the parametric surface used for this outlet.
-    /// The surface will be sampled uniformly over its U,V parametric coordinates. In cas of lines, oly U is used, in
+    /// The surface will be sampled uniformly over its U,V parametric coordinates. In cas of lines, only U is used, in
     /// case of parametric volumes, U,V,W.
     void SetGeometry(std::shared_ptr<ChGeometry> geometry, const ChFrame<>& frame) {
         m_geometry = geometry;

@@ -64,7 +64,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual bool IsCollisionEnabled() const { return false; }
 
     /// Add to the provided collision system any collision models managed by this physics item.
-    /// A derived calss should invoke ChCollisionSystem::Add for each of its collision models.
+    /// A derived class should invoke ChCollisionSystem::Add for each of its collision models.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {}
 
     /// Remove from the provided collision system any collision models managed by this physics item.

@@ -22,12 +22,12 @@
 //  - only steady state force/torque calculations
 //  - uncombined (use_mode = 3)
 //  - combined (use_mode = 4) via Friction Ellipsis (default) or Pacejka method
-//  - parametration is given by a TIR file (Tiem Orbit Format,
+//  - parametrization is given by a TIR file (Tiem Orbit Format,
 //    ADAMS/Car compatible)
 //  - unit conversion is implemented but only tested for SI units
 //  - optional inflation pressure dependency is implemented, but not tested
 //  - this implementation could be validated for the FED-Alpha vehicle and rsp.
-//    tire data sets against KRC test results from a Nato CDT
+//    tire data sets against KRC test results from a NATO CDT
 // =============================================================================
 
 #ifndef CH_PAC02_TIRE_H
@@ -165,8 +165,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double LONGVL = 16.6;  // Measurement speed
 
         // [DIMENSION]
-        double UNLOADED_RADIUS = 0;  // Free tyre radius
-        double WIDTH = 0;            // Nominal section width of the tyre
+        double UNLOADED_RADIUS = 0;  // Free tire radius
+        double WIDTH = 0;            // Nominal section width of the tire
         double ASPECT_RATIO = 0;     // Nominal aspect ratio
         double RIM_RADIUS = 0;       // Nominal rim radius
         double RIM_WIDTH = 0;        // Rim width

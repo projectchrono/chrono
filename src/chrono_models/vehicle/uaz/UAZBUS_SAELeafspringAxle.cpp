@@ -219,7 +219,7 @@ UAZBUS_SAELeafspringAxle::UAZBUS_SAELeafspringAxle(const std::string& name) : Ch
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 UAZBUS_SAELeafspringAxle::~UAZBUS_SAELeafspringAxle() {}
 

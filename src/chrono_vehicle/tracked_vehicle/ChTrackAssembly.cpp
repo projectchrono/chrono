@@ -76,7 +76,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVec
         m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(static_cast<int>(i)), this);
     }
 
-    // Initialize the idler subsystem (after supspension, for idler templates that attach to a suspension arm)
+    // Initialize the idler subsystem (after suspension, for idler templates that attach to a suspension arm)
     m_idler->Initialize(chassis, location + GetIdlerLocation(), this);
 
     // Initialize the roller subsystems (always attached to chassis body)
