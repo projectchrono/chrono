@@ -173,7 +173,7 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
 CH_SENSOR_API void ChFilterMagnetometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
                                                           std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (bufferInOut) {
-        throw std::runtime_error("Magenetometer update filter must be applied first in filter graph");
+        throw std::runtime_error("Magnetometer update filter must be applied first in filter graph");
     }
 
     m_magSensor = std::dynamic_pointer_cast<ChMagnetometerSensor>(pSensor);

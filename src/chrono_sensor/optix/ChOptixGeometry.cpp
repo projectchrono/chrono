@@ -37,7 +37,7 @@ ChOptixGeometry::~ChOptixGeometry() {
 }
 
 void ChOptixGeometry::Cleanup() {
-    // intance and root buffer cleanup
+    // instance and root buffer cleanup
     if (md_instances) {
         CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(md_instances)));
         md_instances = {};
@@ -52,7 +52,7 @@ void ChOptixGeometry::Cleanup() {
     }
     m_instances.clear();
 
-    // GAS buffers, handles, and tranform cleanup
+    // GAS buffers, handles, and transform cleanup
     if (md_motion_transforms) {
         CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(md_motion_transforms)));
         md_motion_transforms = {};
@@ -140,7 +140,7 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
         uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
         // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
-        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
+        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of objects
         // CUdeviceptr d_sbt_index;
         // CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_sbt_index), sizeof(sbt_index)));
         // CUDA_ERROR_CHECK(
@@ -230,7 +230,7 @@ void ChOptixGeometry::AddNVDBVolume(std::shared_ptr<ChBody> body,
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
         uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
         // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
-        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
+        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of objects
         // CUdeviceptr d_sbt_index;
         // CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_sbt_index), sizeof(sbt_index)));
         // CUDA_ERROR_CHECK(
@@ -503,7 +503,7 @@ void ChOptixGeometry::UpdateDeformableMeshes() {
         CUdeviceptr d_indices = std::get<2>(m_deformable_meshes[i]);
         unsigned int gas_id = std::get<3>(m_deformable_meshes[i]);
 
-        // perform a rebuild of the triange acceleration structure
+        // perform a rebuild of the triage acceleration structure
         BuildTrianglesGAS(mesh_shape, d_vertices, d_indices, false, true, gas_id);
     }
 }

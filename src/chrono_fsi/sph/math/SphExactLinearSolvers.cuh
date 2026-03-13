@@ -12,7 +12,7 @@
 // Author: Milad Rakhsha
 // =============================================================================
 //
-// Utilities to symbollically compute the inverse of a few small matrices
+// Utilities to symbolically compute the inverse of a few small matrices
 //
 //===============================================================================
 
@@ -174,7 +174,7 @@ static __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4, Real2 p
 }
 */
 
-/// Note that this is function calculates L=[L11 L12 L13 L22 L23 L33]' in B*L=[-1 0 0 -1 0 -1]' for a given B 6x6 matirx
+/// Note that this is function calculates L=[L11 L12 L13 L22 L23 L33]' in B*L=[-1 0 0 -1 0 -1]' for a given B 6x6 matrix
 /// This is is the core function for higher-order accurate schemes
 static __device__ void inv6xdelta_mn(Real* B, Real* L) {
     Real DET = B[0] * B[7] * B[14] * B[21] * B[28] * B[35] - B[0] * B[7] * B[14] * B[21] * B[29] * B[34] -

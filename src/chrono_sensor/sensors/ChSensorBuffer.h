@@ -37,7 +37,7 @@ namespace sensor {
 
 /// Base buffer class that contains sensor data (contains meta data of the buffer and pointer to raw data).
 struct SensorBuffer {
-    /// Default constructor that intializes all zero values
+    /// Default constructor that initializes all zero values
     SensorBuffer() : TimeStamp(0), Width(0), Height(0), LaunchedCount(0) {}
     /// Constructor based on height, width, and time
     SensorBuffer(unsigned int w, unsigned int h, float t) : TimeStamp(t), Width(w), Height(h), LaunchedCount(0) {}
@@ -191,16 +191,16 @@ using UserRGBA16BufferPtr = std::shared_ptr<SensorHostRGBA16Buffer>;
 // R8 (8-bit Grayscale) Camera Format and Buffers
 //===============================================
 
-/// Greyscale host buffer to be used by camera filters in the graph.
+/// Grayscale host buffer to be used by camera filters in the graph.
 using SensorHostR8Buffer = SensorBufferT<std::shared_ptr<char[]>>;
 
-/// Greyscale device buffer to be used by camera filters in the graph.
+/// Grayscale device buffer to be used by camera filters in the graph.
 using DeviceR8BufferPtr = std::shared_ptr<char[]>;
 
 /// Sensor buffer wrapper of a DeviceR8BufferPtr.
 using SensorDeviceR8Buffer = SensorBufferT<DeviceR8BufferPtr>;
 
-/// Pointer to a greyscale image on the host that has been moved for safety and can be given to the user.
+/// Pointer to a grayscale image on the host that has been moved for safety and can be given to the user.
 using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 
 /// A pixel as defined for semantic segmentation.
@@ -212,7 +212,7 @@ struct PixelSemantic {
 /// Semantic host buffer to be used for managing data on the host.
 using SensorHostSemanticBuffer = SensorBufferT<std::shared_ptr<PixelSemantic[]>>;
 
-/// Semantic device buffer to be used by segmenation camera.
+/// Semantic device buffer to be used by segmentation camera.
 using DeviceSemanticBufferPtr = std::shared_ptr<PixelSemantic[]>;
 
 /// Sensor buffer wrapper of a DeviceSemanticBufferPtr.
@@ -351,10 +351,10 @@ struct AccelData {
     double Z;  ///< translational acceleration in local z-direction
 };
 
-/// Acclerometer host buffer to be used by acclerometer filters in the graph.
+/// Accelerometer host buffer to be used by accelerometer filters in the graph.
 using SensorHostAccelBuffer = SensorBufferT<std::shared_ptr<AccelData[]>>;
 
-/// Pointer to an acclerometer buffer on the host that has been moved for safety and can be given to the user.
+/// Pointer to an accelerometer buffer on the host that has been moved for safety and can be given to the user.
 using UserAccelBufferPtr = std::shared_ptr<SensorHostAccelBuffer>;
 
 /// Gyroscope data.
@@ -364,10 +364,10 @@ struct GyroData {
     double Yaw;    ///< angular velocity in local z-direction
 };
 
-/// Acclerometer host buffer to be used by acclerometer filters in the graph.
+/// Accelerometer host buffer to be used by accelerometer filters in the graph.
 using SensorHostGyroBuffer = SensorBufferT<std::shared_ptr<GyroData[]>>;
 
-/// Pointer to an acclerometer buffer on the host that has been moved for safety and can be given to the user.
+/// Pointer to an accelerometer buffer on the host that has been moved for safety and can be given to the user.
 using UserGyroBufferPtr = std::shared_ptr<SensorHostGyroBuffer>;
 
 /// Magnetometer data.
@@ -377,10 +377,10 @@ struct MagnetData {
     double Z;  ///< z component of magnetic field
 };
 
-/// acclerometer host buffer to be used by acclerometer filters in the graph.
+/// accelerometer host buffer to be used by accelerometer filters in the graph.
 using SensorHostMagnetBuffer = SensorBufferT<std::shared_ptr<MagnetData[]>>;
 
-/// Pointer to an acclerometer buffer on the host that has been moved for safety and can be given to the user.
+/// Pointer to an accelerometer buffer on the host that has been moved for safety and can be given to the user.
 using UserMagnetBufferPtr = std::shared_ptr<SensorHostMagnetBuffer>;
 
 //===================================

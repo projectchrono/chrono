@@ -66,8 +66,8 @@ class SynDDSParticipantListener : public eprosima::fastdds::dds::DomainParticipa
     std::vector<std::string> GetParticipantNames() const { return m_participant_names; }
 
   private:
-	///@brief Function used interally to check if the discovered 
-    ///partecipant's name matches the communicator prefix
+	///@brief Function used internally to check if the discovered 
+    ///participant's name matches the communicator prefix
     bool CheckParticipantName(const std::string& name);
 
 	const std::string& comm_prefix;

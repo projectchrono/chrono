@@ -102,7 +102,7 @@ void cbtCapsuleBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectW
     // For a capsule, projects these points back onto the capsule axis and check intersection between spheres centered
     // at the points on the axis and the box.  In this case, the projection is done orthogonal to the capsule axis.
 
-    const cbtScalar parallel_tol = cbtScalar(1e-5);           // tolearance for parallelism tests
+    const cbtScalar parallel_tol = cbtScalar(1e-5);           // tolerance for parallelism tests
     const cbtScalar near_tol = cbtScalar(1e-4) * (2 * hlen);  // tolerance for line parameters of near duplicate points
 
     std::vector<cbtScalar> t_points = {-hlen, +hlen};  // initialize list of candidates with segment ends
@@ -349,7 +349,7 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
     cbtScalar radius = cyl->getRadius();    // cylinder radius
     cbtScalar hlen = cyl->getHalfLength();  // cylinder half-length
 
-    const cbtScalar parallel_tol = cbtScalar(1e-5);  // tolearance for parallelism tests
+    const cbtScalar parallel_tol = cbtScalar(1e-5);  // tolerance for parallelism tests
 
     int num_contacts = 0;
 
@@ -409,7 +409,7 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
     // - If an edge intersects the cylinder, consider 3 candidate contact points: the 2 intersection points
     //   and their midpoint.
     for (int idir = 0; idir < 3; idir++) {
-        // current box edge direction and halflength
+        // current box edge direction and half-length
         cbtVector3 eD(0, 0, 0);
         eD[idir] = 1;
         cbtScalar eH = hdims[idir];

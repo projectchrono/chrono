@@ -39,7 +39,7 @@ class ChApiPeridynamics ChMatterPeriSprings : public ChMatterPeri<> {
 
     ChMatterPeriSprings() {}
 
-    /// Add the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    /// Add the peridynamics force to each node, as a summation of all the effects of neighboring nodes.
     virtual void ComputeForces() override;
 };
 
@@ -60,7 +60,7 @@ class ChApiPeridynamics ChMatterPeriSpringsBreakable
 
     ChMatterPeriSpringsBreakable() {}
 
-    /// Add the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    /// Add the peridynamics force to each node, as a summation of all the effects of neighboring nodes.
     virtual void ComputeForces() override;
 };
 

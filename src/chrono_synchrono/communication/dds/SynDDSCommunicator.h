@@ -13,7 +13,7 @@
 //
 // Class that handles communication across ranks or external entities. A
 // communicator is something that passes messages over some protocol and
-// interfaecs either a rank with another rank, a rank with an external process
+// interfaces either a rank with another rank, a rank with an external process
 // or really anything that relies on communication over some network interface.
 //
 // This class is implemented as a very generic abstract handler that holds and
@@ -201,12 +201,12 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
   private:
     void InitQoS(const std::string& name);
 
-    ///@brief Creates the underyling participant
+    ///@brief Creates the underlying participant
     ///
     ///@param qos the Quality of Service to set to the participant
     void CreateParticipant(eprosima::fastdds::dds::DomainParticipantQos& qos);
 
-    ///@brief Publish the outgoing messagse
+    ///@brief Publish the outgoing messages
     ///
     void Publish();
 

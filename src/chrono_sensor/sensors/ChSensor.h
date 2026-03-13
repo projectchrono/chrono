@@ -152,7 +152,7 @@ class CH_SENSOR_API ChSensor {
     /// Get the last filter in the list that matches the template type
     /// @return A shared pointer to a ChSensorBuffer of the templated type.
     template <class UserBufferType>
-    UserBufferType GetMostRecentBuffer();  // explicit specializations exist for each buffer type avaiable
+    UserBufferType GetMostRecentBuffer();  // explicit specializations exist for each buffer type available
 
   protected:
     float m_updateRate;  ///< sensor update rate
@@ -169,7 +169,7 @@ class CH_SENSOR_API ChSensor {
 
   private:
     template <class UserBufferType, class FilterType, const char* FilterName>
-    UserBufferType GetMostRecentBufferHelper();  ///< explicit specializations exist for each buffer type avaiable
+    UserBufferType GetMostRecentBufferHelper();  ///< explicit specializations exist for each buffer type available
     std::mutex m_dataAccess;                     ///< data access mutex to prevent data race in the sensor class
 
 };  // class ChSensor

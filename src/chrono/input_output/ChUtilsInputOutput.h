@@ -17,7 +17,7 @@
 // WriteCheckpoint and ReadCheckpoint
 //  these functions write and read, respectively, a checkpoint file.
 //  Limitations:
-//    - it is assumed that the visualization asset geometry exctly matches the
+//    - it is assumed that the visualization asset geometry exactly matches the
 //      contact geometry.
 //    - only a subset of contact shapes are currently supported
 //

@@ -148,7 +148,7 @@ class ChApi ChCollisionSystem {
     /// Register a narrowphase callback object.
     void RegisterNarrowphaseCallback(std::shared_ptr<NarrowphaseCallback> callback) { narrow_callback = callback; }
 
-    /// Recover results from RayHit() raycasting.
+    /// Recover results from RayHit() ray-casting.
     struct ChRayhitResult {
         bool hit;                    ///< if true, there was an hit
         ChVector3d abs_hitPoint;     ///< hit point in absolute space coordinates

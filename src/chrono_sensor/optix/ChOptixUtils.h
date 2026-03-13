@@ -92,7 +92,7 @@ struct ByteImageData {
     int h;
     ///
     int c;
-    /// image pixel valules
+    /// image pixel values
     std::vector<unsigned char> data;
 };
 
@@ -135,7 +135,7 @@ CH_SENSOR_API ByteImageData LoadByteImage(const std::string& filename);
 /// @param context the optix context
 optix::Transform CreateEmptyTransform(optix::Context context);
 
-/// creates an opti::transform node
+/// creates an optix::transform node
 /// @param context optix context
 /// @param a projection matrix
 /// @param b
@@ -149,7 +149,7 @@ optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, C
 /// @return an optix::transform
 optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector3d b, ChVector3d s);
 
-/// creatse an optix::transform node based on end points
+/// creates an optix::transform node based on end points
 /// @param context optix context
 /// @param a projection matrix
 /// @param b
@@ -177,7 +177,7 @@ optix::Transform CreateTransformFromEndPoints(optix::Context context,
 void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector3d b);
 
 /// updates the projection matrix in the optix::transform object
-/// @param t optix tranform object
+/// @param t optix transform object
 /// @param a projection matrix
 /// @param b
 /// @param s

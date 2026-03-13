@@ -31,7 +31,7 @@ namespace modal {
 /// Inherit from this class to define how to compute A*x
 class ChApiModal callback_Ax {
   public:
-    // Inherit this. It must compute A*x. How A is stored (full, sparse, factorised, etc. ) is up to you.
+    // Inherit this. It must compute A*x. How A is stored (full, sparse, factorized, etc. ) is up to you.
     virtual void compute(ChVectorDynamic<std::complex<double>>& A_x,  ///< output: result of A*x. Assume already sized.
                          const ChVectorDynamic<std::complex<double>>& x  ///< input:  x in A*x
     ){};
@@ -40,10 +40,10 @@ class ChApiModal callback_Ax {
 };
 
 //
-// Ready-to-use callbacks for the most relevant cases: sparse matrices, generalized, shift&invert:
+// Ready-to-use callbacks for the most relevant cases: sparse matrices, generalized, shift and invert:
 //
 
-/// The callback to be used for "A*x"  where for shift&invert is: A = (As - sigma Bs)/Bs ,
+/// The callback to be used for "A*x"  where for shift and invert is: A = (As - sigma Bs)/Bs ,
 /// so A*x = (As - sigma Bs)/(Bs*x), just like a linear system with coefficient matrix (As - sigma Bs) and known rhs
 /// Bs*x
 ///

@@ -33,7 +33,7 @@
     @defgroup matlab_module MATLAB module
     @brief Interoperation with Matlab(TM)
 
-    Using this module, you can provide interoperation between
+    Using this module, you can provide interoperability between
     Chrono and the Matlab(TM) software.
 
     For additional information, see:

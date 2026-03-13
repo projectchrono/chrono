@@ -69,7 +69,7 @@ class ChApi ChConvexDecomposition {
     virtual bool WriteConvexHullsAsChullsFile(std::ostream& mstream);
 
     /// Save the computed convex hulls as a Wavefront file using the
-    /// '.obj' fileformat, with each hull as a separate group.
+    /// '.obj' file format, with each hull as a separate group.
     /// May throw exceptions if file locked etc.
     virtual void WriteConvexHullsAsWavefrontObj(std::ostream& mstream) = 0;
 };
@@ -195,7 +195,7 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
     virtual bool GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull);
 
     /// Save the computed convex hulls as a Wavefront file using the
-    /// '.obj' fileformat, with each hull as a separate group.
+    /// '.obj' file format, with each hull as a separate group.
     /// May throw exceptions if file locked etc.
     virtual void WriteConvexHullsAsWavefrontObj(std::ostream& mstream);
 

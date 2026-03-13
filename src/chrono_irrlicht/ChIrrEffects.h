@@ -141,7 +141,7 @@ inline irr::core::array<SDefineExp> grabDefineExpressions(irr::core::stringc& sh
 
     irr::core::array<SDefineExp> DefineArray;
 
-    // Dont bother stripping comments if theres no defines.
+    // Do not bother stripping comments if there are no defines.
     CurrentSearchPos = shaderProgram.find("##ifdef");
     if (CurrentSearchPos == -1)
         return DefineArray;
@@ -288,7 +288,7 @@ inline void CShaderPreprocessor::initDefineMap() {
 }
 
 inline void CShaderPreprocessor::addShaderDefine(const irr::core::stringc name, const irr::core::stringc value) {
-    // No need for this as its already inited at startup.
+    // No need for this as its already initialized at startup.
     //// If DefineMap is empty then initialize it.
     // if(DefineMap.isEmpty())
     //	initDefineMap();
@@ -304,7 +304,7 @@ inline void CShaderPreprocessor::removeShaderDefine(const irr::core::stringc nam
 inline irr::core::stringc CShaderPreprocessor::ppShader(irr::core::stringc shaderProgram) {
     irr::core::array<SDefineExp> DefineArray = grabDefineExpressions(shaderProgram);
 
-    // No need for this as its already inited at startup.
+    // No need for this as its already initialized at startup.
     //// If DefineMap is empty then initialize it.
     // if(DefineMap.isEmpty())
     //	initDefineMap();
@@ -313,7 +313,7 @@ inline irr::core::stringc CShaderPreprocessor::ppShader(irr::core::stringc shade
         if (DefineArray[i].IfPos == -1)
             break;
 
-        // Either it is true and not inversed, or it is false, but inversed.
+        // Either it is true and not inverted, or it is false, but inverted.
         // (Wish C++ had a built-in (logical) XOR operator sometimes. :P)
         if ((DefineMap.find(DefineArray[i].IfExp) && !DefineArray[i].Inverse) ||
             (!DefineMap.find(DefineArray[i].IfExp) && DefineArray[i].Inverse)) {

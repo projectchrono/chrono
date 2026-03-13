@@ -94,7 +94,7 @@ class ChCoordsys {
 
     /// Transform  another coordinate system through this coordinate system.
     /// If A is this coordinate system and F another coordinate system expressed in A, then G = F >> A is the coordinate
-    /// system F expresssed in the parent coordinate system of A. For a sequence of transformations, i.e. a chain of
+    /// system F expressed in the parent coordinate system of A. For a sequence of transformations, i.e. a chain of
     /// coordinate systems, one can also write:
     ///   G = F >> F_3to2 >> F_2to1 >> F_1to0;
     /// i.e., just like done with a sequence of Denavitt-Hartemberg matrix multiplications (but reverting order).
@@ -103,7 +103,7 @@ class ChCoordsys {
 
     /// Transform another coordinate system through this coordinate system.
     /// If A is this coordinate system and F another coordinate system expressed in A, then G = A * F is the coordinate
-    /// system F expresssed in the parent coordinate system of A. For a sequence of transformations, i.e. a chain of
+    /// system F expressed in the parent coordinate system of A. For a sequence of transformations, i.e. a chain of
     /// coordinate systems, one can also write:
     ///   G = F_1to0 * F_2to1 * F_3to2 * F;
     /// i.e., just like done with a sequence of Denavitt-Hartemberg matrix multiplications.

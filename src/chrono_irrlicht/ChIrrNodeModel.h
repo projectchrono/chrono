@@ -50,7 +50,7 @@ class ChApiIrr ChIrrNodeModel : public irr::scene::ISceneNode {
     /// Get the physics item associated with this scene node.
     std::weak_ptr<ChPhysicsItem> GetPhysicsItem() { return m_physicsitem; }
 
-    /// Update the chidlren Irrlicht nodes associated with individual visual shapes.
+    /// Update the children Irrlicht nodes associated with individual visual shapes.
     void UpdateChildren();
 
     /// Setup use of clones for visual models that use multiple instances of the same visual shape.

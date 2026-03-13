@@ -13,7 +13,7 @@
 // Authors: Nevindu Batagoda
 // =============================================================================
 //
-// A class to contain a volumetric object renderd using NVDB Voxels
+// A class to contain a volumetric object rendered using NVDB Voxels
 //
 // =============================================================================
 

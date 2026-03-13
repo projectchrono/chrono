@@ -40,7 +40,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @param hFOV The horizontal field of view of the camera lens.
     /// @param supersample_factor The number of rays that should be sampled per pixel for antialiasing.
     /// @param lens_model A enum specifying the desired lens model.
-    /// @param use_diffuse_reflect Enable the diffuse reflection, may significant decrease in performace. If false, then only considers specular reflection.
+    /// @param use_diffuse_reflect Enable the diffuse reflection, may significant decrease in performance. If false, then only considers specular reflection.
     /// @param use_denoiser Whether to use the OptiX denoiser for diffuse reflection or area lights.
     /// @param integrator The type of integrator algorithm to use for rendering.
     /// @param gamma correction of the image, 1 for linear color space, 2.2 for sRGB
@@ -73,7 +73,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     void SetLensModelType(CameraLensModelType lens_model)  {m_lens_model_type = lens_model;}
 
     /// returns the lens model parameters
-    /// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are coverted
+    /// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are converted
     /// for the inverse model
     LensParams GetLensParameters() const { return m_lens_parameters; }
 
@@ -107,7 +107,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     unsigned int GetSampleFactor() { return m_supersample_factor; }
     void SetSampleFactor(unsigned int sample_factor) {m_supersample_factor = sample_factor;}
 
-    /// returns if the cemera should use fog as dictated by the scene
+    /// returns if the camera should use fog as dictated by the scene
     /// @return True if it does request
     bool GetUseFog() { return m_use_fog; }
     void SetUseFog(bool use_fog) {m_use_fog = use_fog;}

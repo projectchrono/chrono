@@ -65,7 +65,7 @@ class ChApi ChLinkRSDA : public ChLink {
     /// Meaningful only if no torque functor is provided.
     double GetDampingCoefficient() const { return m_r; }
 
-    /// Get the constant acutation torque.
+    /// Get the constant actuation torque.
     /// Meaningful only if no torque functor is provided.
     double GetActuatorTorque() const { return m_t; }
 

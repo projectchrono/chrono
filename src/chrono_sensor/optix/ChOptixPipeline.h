@@ -158,12 +158,12 @@ class CH_SENSOR_API ChOptixPipeline {
     std::shared_ptr<OptixShaderBindingTable> GetSBT(unsigned int id);
 
     /// Raygen record accessor
-    /// @param id the id of the pipline whose raygen record should be returned
+    /// @param id the id of the pipeline whose raygen record should be returned
     /// @returns a shared pointer to the specified raygen record
     std::shared_ptr<Record<RaygenParameters>> GetRayGenRecord(unsigned int id);
 
     /// Explicit cleanup function for freeing memory associated with this pipeline
-    /// which should be freed before reconstructing the pipeline. Any reusable varaibles
+    /// which should be freed before reconstructing the pipeline. Any reusable variables
     /// will not be cleaned up here
     void Cleanup();
 

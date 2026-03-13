@@ -282,7 +282,7 @@ void SynChronoManager::ProcessReceivedMessages() {
 
 void SynChronoManager::DistributeMessages() {
     for (auto& message_agent_pair : m_messages) {
-        // For readibility
+        // For readability
         auto to_agent = message_agent_pair.first;
         auto messages = message_agent_pair.second;
 
@@ -305,7 +305,7 @@ void SynChronoManager::DistributeMessages() {
 
 void SynChronoManager::CreateAgentsFromDescriptions() {
     for (auto& message_agent_pair : m_messages) {
-        // For readibility
+        // For readability
         auto to_agent = message_agent_pair.first;
         auto messages = message_agent_pair.second;
 

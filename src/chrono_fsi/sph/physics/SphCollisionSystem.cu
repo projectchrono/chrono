@@ -28,9 +28,9 @@ namespace sph {
 // =============================================================================
 
 // Create the active list
-// Writes only if active - thus active list has all active partices at the front
+// Writes only if active - thus active list has all active particles at the front
 // The index's are the index of the original particle arrangement
-// After the active particles, random values that weere initialized are stored
+// After the active particles, random values that were initialized are stored
 __global__ void fillActiveListD(const uint* __restrict__ prefixSum,
                                 const int32_t* __restrict__ extendedActivityIdD,
                                 uint* __restrict__ activeListD,

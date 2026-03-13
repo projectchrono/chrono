@@ -117,7 +117,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
 
     // ChModalSolverUndamped eigsolver(
     //     6,      // n of lower modes (***TODO*** make parametric)
-    //     0.01,   // lower freq, for shift&invert. (***TODO*** lower value of sigma working in Debug but not in
+    //     0.01,   // lower freq, for shift and invert. (***TODO*** lower value of sigma working in Debug but not in
     //     Release!?) 500,    // upper limit for the number of iterations, if iterative solver 1e-10,  // tolerance for
     //     the iterative solver. false,  // turn to true to see some diagnostic. ChGeneralizedEigenvalueSolverLanczos()
     //     // solver to use (default Lanczos)
@@ -128,13 +128,13 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     // this is a modal assembly that already went through modal reduction) we can just use a direct solver for finding
     eigs: ChUnsymGenEigenvalueSolverNullspaceDirect eigsolver; ChSparseMatrix R_null; R_null.resize(M_reduced.rows(),
     M_reduced.rows()); R_null.setZero(); ChVectorDynamic<> damp_factors(M_reduced.rows());
-    // Note that we might enforce symmetry of M_reduced and K_reduced via 0.5*(M+M.transpose()) bacause even small
-    unsymmetry causes modes_V_reduced to have some imaginary part. eigsolver.Solve(M_reduced, R_null, K_reduced,
+    // Note that we might enforce symmetry of M_reduced and K_reduced via 0.5*(M+M.transpose()) because even small
+    non-symmetry causes modes_V_reduced to have some imaginary part. eigsolver.Solve(M_reduced, R_null, K_reduced,
     Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, damp_factors, n_bou_mod_coords-Cq_reduced.rows());
 */
 
     // TODO: implement an eigensolver using Eigen::Dense matrix directly, without Nullspace transformation,
-    // because the null space transforamtion is not safe in general.
+    // because the null space transformation is not safe in general.
 
     ChUnsymGenEigenvalueSolverKrylovSchur eigsolver;
     ChSparseMatrix R_null;

@@ -455,7 +455,7 @@ void ChParserMbsYAML::LoadModelData(const YAML::Node& yaml) {
         }
     }
 
-    // Read TSDA force elements elements
+    // Read TSDA force elements
     if (model["tsdas"]) {
         auto tsdas = model["tsdas"];
         ChAssertAlways(tsdas.IsSequence());
@@ -627,7 +627,7 @@ void ChParserMbsYAML::LoadModelData(const YAML::Node& yaml) {
                     break;
             }
 
-            // A ChFunctionSetpoint actuatin function indicates an external controller
+            // A ChFunctionSetpoint actuation function indicates an external controller
             if (std::dynamic_pointer_cast<ChFunctionSetpoint>(motor.actuation_function))
                 motor.has_controller = true;
 
@@ -761,7 +761,7 @@ std::shared_ptr<ChSystem> ChParserMbsYAML::CreateSystem() {
     m_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
 
-    // Set solver and intergrator parameters
+    // Set solver and integrator parameters
     SetSimulationParameters(*m_sys);
 
     return m_sys;

@@ -415,7 +415,7 @@ int Solve(EigSolverType& eig_solver,
         eig_solver.m_timer_eigen_solver.stop();
 
         eig_solver.m_timer_solution_postprocessing.start();
-        // these cases must not be handled by ternary if (the NoChange will be wrongly casted to a normal number = 0)
+        // these cases must not be handled by ternary if (the NoChange will be wrongly cast to a normal number = 0)
         if (eigvects_clipping) {
             if (found_eigs == num_modes_total)
                 eigvects.conservativeResize(eigvects_clipping_length, Eigen::NoChange_t::NoChange);
@@ -477,7 +477,7 @@ int Solve(EigSolverType& eig_solver,
     if (found_eigs != num_modes_total)
         eigvals.conservativeResize(found_eigs);
 
-    // re-enable original ritz pairs sorting
+    // re-enable original Ritz pairs sorting
     eig_solver.sort_ritz_pairs = sort_ritz_pairs_bkp;
 
     if (eig_solver.sort_ritz_pairs)

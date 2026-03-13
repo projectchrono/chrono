@@ -202,7 +202,7 @@ struct LidarParameters {
     float max_vert_angle;          ///< angle of the top-most lidar channel
     float min_vert_angle;          ///< angle of the bottom-most lidar channel
     float hFOV;                    ///< horizontal field of view of the lidar
-    float max_distance;            ///< maximum distance measureable by the lidar
+    float max_distance;            ///< maximum distance measurable by the lidar
     float clip_near;               ///< near clipping distance to geometric considerations
     unsigned short sample_radius;  ///< radius of samples for discretizing the lidar beams
     LidarBeamShape beam_shape;     ///< the beam shape
@@ -240,7 +240,7 @@ struct RaygenParameters {
     union {
         CameraParameters camera;                ///< the specific data when modeling a camera
         PhysCameraParameters phys_camera;       ///< the specific data when modeling a physics-based camera
-        SemanticCameraParameters segmentation;  ///< the specific data when modeling a semantic segementation camera
+        SemanticCameraParameters segmentation;  ///< the specific data when modeling a semantic segmentation camera
         LidarParameters lidar;                  ///< the specific data when modeling a lidar
         RadarParameters radar;                  ///< the specific data when modeling a radar
         DepthCameraParameters depthCamera;      /// < the specific data when modeling a depth camera
@@ -277,10 +277,10 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
     float radar_backscatter;     ///< reflectivity in a radar's wavelength (0-1) // size 4
     int use_specular_workflow;   ///< toggle between a specular workflow or a metallic/roughness PBR workflow // size 4
     cudaTextureObject_t kd_tex;  ///< a diffuse color texture // size 8
-    cudaTextureObject_t kn_tex;  ///< a normal perterbation texture // size 8
+    cudaTextureObject_t kn_tex;  ///< a normal perturbation texture // size 8
     cudaTextureObject_t ks_tex;  ///< a specular color texture // size 8
     cudaTextureObject_t ke_tex;  /// <an emissive color texture // size 8
-    cudaTextureObject_t metallic_tex;   ///< a metalic color texture // size 8
+    cudaTextureObject_t metallic_tex;   ///< a metallic color texture // size 8
     cudaTextureObject_t roughness_tex;  ///< a roughness texture // size 8
     cudaTextureObject_t opacity_tex;    ///< an opacity texture // size 8
     cudaTextureObject_t weight_tex;     ///< a weight texture for blended textures // size 8
@@ -311,8 +311,8 @@ struct ContextParameters {
     float3 fog_color;                   ///< color of fog in the scene
     float fog_scattering;               ///< scattering coefficient of fog in the scene (larger value means denser fog)
     int max_depth;                      ///< maximum traversable depth
-    float scene_epsilon;                ///< an epsilon value used for detecting self intersections (“shadow acne”)
-    float importance_cutoff;            ///< mimumum value before killing rays
+    float scene_epsilon;                ///< an epsilon value used for detecting self intersections ("shadow acne")
+    float importance_cutoff;            ///< minimum value before killing rays
     OptixTraversableHandle root;        ///< a handle to the root node in the scene
     MaterialParameters* material_pool;  ///< device pointer to list of materials to use for shading
     MeshParameters* mesh_pool;          ///< device pointer to list of meshes for instancing
@@ -349,11 +349,11 @@ struct PerRayData_camera {
     curandState_t rng;        ///< a random number generator. Only valid if use_gi is true
     int depth;                ///< the current depth of the ray
     bool use_gi;              ///< whether global illumination is on
-    float3 albedo;            ///< the albed of the first hit
+    float3 albedo;            ///< the albedo of the first hit
     float3 normal;            ///< the global normal of the first hit
     bool use_fog;             ///< whether to use fog on this prd
     float transparency;       ///< the transparency of the pixel
-    Integrator integrator;    ///< tthe integrator algorithm to use for rendering
+    Integrator integrator;    ///< the integrator algorithm to use for rendering
 };
 
 /// Data associated with a single physics-based camera ray.

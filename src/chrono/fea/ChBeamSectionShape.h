@@ -156,7 +156,7 @@ class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
 
 /// A class for drawing properties of beams whose section is a set of M polylines, each with N points.
 /// The shading will show the longitudinal edges extruded at each Nth point as a smooth edge,
-/// so if you need sharp edges, just create multiple polylines (ex a quadrialteral=4 polylines).
+/// so if you need sharp edges, just create multiple polylines (ex a quadrilateral=4 polylines).
 /// Used as a component of ChBeamSection.
 
 class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {

@@ -83,7 +83,7 @@ class ChApi ChBox : public ChVolume {
     /// Return the radius of a bounding sphere.
     static double CalcBoundingSphereRadius(const ChVector3d& lengths);
 
-    ChVector3d hlen;  ///< box halflengths
+    ChVector3d hlen;  ///< box half-lengths
 };
 
 /// @} chrono_geometry

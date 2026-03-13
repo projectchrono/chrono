@@ -57,7 +57,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
                                       (int)m_buffer_in->Height, m_hFOV, m_vFOV, m_cuda_stream);
 
-    // Transfer pointcloud to host
+    // Transfer point cloud to host
     auto buf = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
     cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(),
                     m_buffer_out->Width * m_buffer_out->Height * sizeof(RadarXYZReturn), cudaMemcpyDeviceToHost,
@@ -69,7 +69,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     for (RadarXYZReturn point : buf) {
         // remove rays with no returns
         if (point.amplitude > 0) {
-            // tries to add the return to the bin, if bin doesnt exist, add the bin
+            // tries to add the return to the bin, if bin doesn't exist, add the bin
             while (bins.size() <= point.objectId) {
                 bins.push_back(std::vector<RadarXYZReturn>());
             }
@@ -147,7 +147,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
         m_buffer_out->amplitudes.push_back(0);
     }
 
-    // summing positions, velocities, intensities to caculate average
+    // summing positions, velocities, intensities to calculate average
     std::vector<RadarXYZReturn> valid_returns;
     for (int i = 0; i < clusters.size(); i++) {
         for (int j = 0; j < clusters[i].size(); j++) {

@@ -40,7 +40,7 @@ enum class CameraNoiseModelType {
 class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
   public:
     /// Class constructor
-    /// @param mean The mean value of the Guassian distribution
+    /// @param mean The mean value of the Gaussian distribution
     /// @param stdev The standard deviation of the Gaussian distribution
     /// @param name The string name of the filter.
     ChFilterCameraNoiseConstNormal(float mean, float stdev, std::string name = "ChFilterCameraNoiseConstNormal");
@@ -58,7 +58,7 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    float m_mean;                                           ///< mean value of the Guassian distribution
+    float m_mean;                                           ///< mean value of the Gaussian distribution
     float m_stdev;                                          ///< standard deviation of the Gaussian distribution
     std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
     bool m_noise_init = true;                               ///< initialize noise only once

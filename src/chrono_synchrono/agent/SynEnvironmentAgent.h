@@ -94,7 +94,7 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
     /// @param approach particular approach to add to
     /// @param lane particular lane to add to
     /// @param color current color of the lane
-    /// @param behaviour Indicates when the traffic light's color will change. If currently is RED and behaviour is
+    /// @param behavior Indicates when the traffic light's color will change. If currently is RED and behavior is
     /// {a,b,c}, it will stay RED for a seconds, switch to GREEN for b seconds, and Yellow for c seconds. Then it will
     /// switch back to RED and do the cycle again.
     /// @return The lane's position in that Approach
@@ -102,7 +102,7 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
 
     /// @brief Change the current color of a light at an intersection. Does not alter cycles
     ///
-    /// @param intersection which intersection has the light we want to chane the color of
+    /// @param intersection which intersection has the light we want to change the color of
     /// @param approach which approach has the light we want to change the color of
     /// @param lane the lane's position in that approach, returned in AddLane
     /// @param color which color to change to

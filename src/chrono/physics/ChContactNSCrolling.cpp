@@ -70,7 +70,7 @@ void ChContactNSCrolling::Reset(ChContactable* obj_A,                      // co
 }
 
 void ChContactNSCrolling::ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ContIntStateGatherReactions(off_L, L);
 
     L(off_L + 3) = react_torque.x();
@@ -79,7 +79,7 @@ void ChContactNSCrolling::ContIntStateGatherReactions(const unsigned int off_L, 
 }
 
 void ChContactNSCrolling::ContIntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ContIntStateScatterReactions(off_L, L);
 
     react_torque.x() = L(off_L + 3);
@@ -91,7 +91,7 @@ void ChContactNSCrolling::ContIntLoadResidual_CqL(const unsigned int off_L,
                                                   ChVectorDynamic<>& R,
                                                   const ChVectorDynamic<>& L,
                                                   const double c) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ContIntLoadResidual_CqL(off_L, R, L, c);
 
     Rx.AddJacobianTransposedTimesScalarInto(R, L(off_L + 3) * c);
@@ -104,7 +104,7 @@ void ChContactNSCrolling::ContIntLoadConstraint_C(const unsigned int off_L,
                                                   const double c,
                                                   bool do_clamp,
                                                   double recovery_clamp) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ContIntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
     // If rolling and spinning compliance, set the cfm terms
@@ -122,7 +122,7 @@ void ChContactNSCrolling::ContIntLoadConstraint_C(const unsigned int off_L,
 void ChContactNSCrolling::ContIntToDescriptor(const unsigned int off_L,
                                               const ChVectorDynamic<>& L,
                                               const ChVectorDynamic<>& Qc) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ContIntToDescriptor(off_L, L, Qc);
 
     Rx.SetLagrangeMultiplier(L(off_L + 3));
@@ -135,7 +135,7 @@ void ChContactNSCrolling::ContIntToDescriptor(const unsigned int off_L,
 }
 
 void ChContactNSCrolling::ContIntFromDescriptor(const unsigned int off_L, ChVectorDynamic<>& L) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ContIntFromDescriptor(off_L, L);
 
     L(off_L + 3) = Rx.GetLagrangeMultiplier();
@@ -144,7 +144,7 @@ void ChContactNSCrolling::ContIntFromDescriptor(const unsigned int off_L, ChVect
 }
 
 void ChContactNSCrolling::InjectConstraints(ChSystemDescriptor& descriptor) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::InjectConstraints(descriptor);
 
     descriptor.InsertConstraint(&Rx);
@@ -153,7 +153,7 @@ void ChContactNSCrolling::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChContactNSCrolling::ConstraintsBiReset() {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ConstraintsBiReset();
 
     Rx.SetRightHandSide(0.);
@@ -162,7 +162,7 @@ void ChContactNSCrolling::ConstraintsBiReset() {
 }
 
 void ChContactNSCrolling::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
 
     // If rolling and spinning compliance, set the cfm terms
@@ -180,7 +180,7 @@ void ChContactNSCrolling::ConstraintsBiLoad_C(double factor, double recovery_cla
 }
 
 void ChContactNSCrolling::ConstraintsFetch_react(double factor) {
-    // base behaviour too
+    // base behavior too
     ChContactNSC::ConstraintsFetch_react(factor);
 
     // From constraints to react torque:

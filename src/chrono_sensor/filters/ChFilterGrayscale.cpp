@@ -56,7 +56,7 @@ CH_SENSOR_API void ChFilterGrayscale::Apply() {
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
     m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;
 
-    // perform greyscale operation
+    // perform grayscale operation
     cuda_grayscale(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_out->Width,
                    (int)m_buffer_out->Height, m_cuda_stream);
 }

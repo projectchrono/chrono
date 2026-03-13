@@ -43,7 +43,7 @@ struct DampingCoefficients {
     double alpha = 0.0;  ///< mass-proportional damping coefficient, be zero as default
 };
 
-/// The aeverage section properties of tapered section could be stored in this struct.
+/// The average section properties of tapered section could be stored in this struct.
 struct AverageSectionParameters {
     double mu;     ///< mass per unit length
     double alpha;  ///< section rotation about elastic center[rad]
@@ -73,14 +73,14 @@ struct AverageSectionParameters {
 
     double EA;    ///< axial rigidity
     double GJ;    ///< torsion rigidity
-    double GAyy;  ///< shear regidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
-    double GAzz;  ///< shear regidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
-    double EIyy;  ///< bending regidity about yy, evaluated in the elastic center and elastic principal axis
+    double GAyy;  ///< shear rigidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
+    double GAzz;  ///< shear rigidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
+    double EIyy;  ///< bending rigidity about yy, evaluated in the elastic center and elastic principal axis
     double EIzz;  ///< bending rigidity about zz, evaluated in the elastic center and elastic principal axis
 
-    double GAmyy;  ///< shear regidity along yy, evaluated in the mass center and mass principal axis
-    double GAmzz;  ///< shear regidity along zz, evaluated in the mass center and mass principal axis
-    double EImyy;  ///< bending regidity about yy, evaluated in the mass center and mass principal axis
+    double GAmyy;  ///< shear rigidity along yy, evaluated in the mass center and mass principal axis
+    double GAmzz;  ///< shear rigidity along zz, evaluated in the mass center and mass principal axis
+    double EImyy;  ///< bending rigidity about yy, evaluated in the mass center and mass principal axis
     double EImzz;  ///< bending rigidity about zz, evaluated in the mass center and mass principal axis
 
     double phimy;  ///< shear-deformation parameter, phimy = 12*EImzz/(GAmyy*L*L)
@@ -100,8 +100,8 @@ struct AverageSectionParameters {
 /// To be used with ChElementBeamTaperedTimoshenko.
 class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleighAdvancedGeneric {
   protected:
-    double GAyy;  ///< shear regidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
-    double GAzz;  ///< shear regidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
+    double GAyy;  ///< shear rigidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
+    double GAzz;  ///< shear rigidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
 
     ///   Mass moment of area, defined as :
     /// \f$ Q_{y} =  \int_\Omega \rho z d\Omega \f$,
@@ -132,7 +132,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     ChBeamSectionTimoshenkoAdvancedGeneric(
         const double mAx,                          ///< axial rigidity
         const double mTxx,                         ///< torsion rigidity
-        const double mByy,                         ///< bending regidity about yy
+        const double mByy,                         ///< bending rigidity about yy
         const double mBzz,                         ///< bending rigidity about zz
         const double mGAyy,                        ///< shear rigidity along yy
         const double mGAzz,                        ///< shear rigidity along zz
@@ -392,7 +392,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     );
 
     // A quick algorithm to derive the mass matrix via a simple transformation in case of mass axis orientation and mass
-    // cetner offset. But, it has been validated to be WRONG. It is kept here only to remind you not to try this simple
+    // center offset. But, it has been validated to be WRONG. It is kept here only to remind you not to try this simple
     // method again.
     virtual void ComputeSimpleConsistentInertiaMatrix(
         ChMatrixNM<double, 12, 12>& M  ///< 12x12 sectional mass matrix values here

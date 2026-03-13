@@ -112,7 +112,7 @@ void tokenParseError(int expected, std::pair<int, std::string>& got) {
 // Read a set of tokens into a struct representing a part in adams
 // These will later be read into ChBodyAuxRefs
 void parseADMPart(std::string ID, std::vector<std::pair<int, std::string>>& tokens, ChSystem& sys) {
-    adams_part_struct& part = parts_map[ID];  // uses default contructor
+    adams_part_struct& part = parts_map[ID];  // uses default constructor
     auto iter = tokens.begin();
     while (iter != tokens.end()) {
         // std::cout << "token is " << iter->first << ", " << iter->second <<std::endl;
@@ -151,7 +151,7 @@ void parseADMPart(std::string ID, std::vector<std::pair<int, std::string>>& toke
     }
 }
 void parseADMJoint(std::string ID, std::vector<std::pair<int, std::string>>& tokens, ChSystem& sys) {
-    adams_joint_struct& joint = joints_map[ID];  // uses default contructor
+    adams_joint_struct& joint = joints_map[ID];  // uses default constructor
     auto iter = tokens.begin();
     while (iter != tokens.end()) {
         // std::cout << "token is " << iter->first << ", " << iter->second <<std::endl;
@@ -174,7 +174,7 @@ void parseADMJoint(std::string ID, std::vector<std::pair<int, std::string>>& tok
 }
 
 void parseADMMarker(std::string ID, std::vector<std::pair<int, std::string>>& tokens, ChSystem& sys) {
-    adams_marker_struct& marker = markers_map[ID];  // uses default contructor
+    adams_marker_struct& marker = markers_map[ID];  // uses default constructor
     auto iter = tokens.begin();
     while (iter != tokens.end()) {
         // std::cout << "token is " << iter->first << ", " << iter->second <<std::endl;

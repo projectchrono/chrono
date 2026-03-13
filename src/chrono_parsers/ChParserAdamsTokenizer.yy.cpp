@@ -522,7 +522,7 @@ char *yytext;
 // Used to generate tokenizer for ChParserAdams. The lex file is used to
 // generate ChParserAdamsTokenizer.yy.cpp via the command
 //		`flex -o ChParserAdamsTokenizer.yy.cpp ParserParserAdamsTokenizer.lex`
-// This file provides the funciton
+// This file provides the function
 // =============================================================================
 */
 #define YY_NO_UNISTD_H 1

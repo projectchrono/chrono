@@ -33,7 +33,7 @@ namespace sensor {
 /// @{
 
 /// GPS class.
-/// This class uses the reference location of a simulation and spherically maps the cartesian space simulation onto a
+/// This class uses the reference location of a simulation and spherically maps the Cartesian space simulation onto a
 /// sphere, calculating the latitude, longitude, altitude relative to the Earth's surface. The reference location
 /// defines what GPS coordinates are associated with the origin of the simulation. The mapping is performed such that
 /// the +Z-axis points up, +X-axis points East, and the +Y-axis points North.

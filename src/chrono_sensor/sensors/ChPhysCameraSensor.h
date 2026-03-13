@@ -116,14 +116,14 @@ class CH_SENSOR_API ChPhysCameraSensor : public ChOptixSensor {
 		CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
 		/// returns the lens model parameters
-		/// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are coverted for the inverse model
+		/// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are converted for the inverse model
 		LensParams GetLensParameters() const { return m_lens_parameters; }
 
-		/// returns if the cemera considers diffuse reflection
+		/// returns if the camera considers diffuse reflection
 		/// @return True if it does consider
 		bool GetUseGI() { return m_use_gi; }
 
-		/// returns if the cemera should use a denoiser
+		/// returns if the camera should use a denoiser
 		/// @return True if it does use a denoiser
 		bool GetUseDenoiser() { return m_use_denoiser; }
 
@@ -141,7 +141,7 @@ class CH_SENSOR_API ChPhysCameraSensor : public ChOptixSensor {
 		/// @return the number of samples per pixel
 		unsigned int GetSampleFactor() { return m_supersample_factor; }
 
-		/// returns if the cemera should use fog as dictated by the scene
+		/// returns if the camera should use fog as dictated by the scene
 		/// @return True if it does request
 		bool GetUseFog() { return m_use_fog; }
 

@@ -109,11 +109,11 @@ class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
     void GetParameterForNodeID(const int nodeID, double& z1, double& z2, double& z3, double& z4);
 
     /// Returns the strain tensor at given parameters.
-    /// The tensor is in the original undeformed unrotated reference.
+    /// The tensor is in the original undeformed non-rotated reference.
     ChStrainTensor<> GetStrain(double z1, double z2, double z3, double z4);
 
     /// Returns the stress tensor at given parameters.
-    /// The tensor is in the original undeformed unrotated reference.
+    /// The tensor is in the original undeformed non-rotated reference.
     ChStressTensor<> GetStress(double z1, double z2, double z3, double z4);
 
     // compute large rotation of element for corotational approach

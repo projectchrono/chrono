@@ -48,7 +48,7 @@ class ChApi ChCollisionShape {
         TETRAHEDRON,  // Not implemented in Bullet collision system
         PATH2D,       // 2D path (compound object)
         SEGMENT2D,    // line segment (part of a 2D path)
-        ARC2D,        // circlular arc (part of a 2D path)
+        ARC2D,        // circular arc (part of a 2D path)
         UNKNOWN_SHAPE
     };
 

@@ -122,7 +122,7 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
         std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );
 
-    /// If multiple profiles on different Z dephts are needed, after the ChCascadeBodyEasyProfile constructor is
+    /// If multiple profiles on different Z depths are needed, after the ChCascadeBodyEasyProfile constructor is
     /// executed with the first profile, you can use this function to add further profiles. Note that the additional
     /// profiles should be at different Z depths, and not intersecting along Z distance, because no boolean 'join'
     /// operation is done and in case they overlap by some amount, the computation of inertia and mass would be

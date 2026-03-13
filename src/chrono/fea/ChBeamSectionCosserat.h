@@ -51,7 +51,7 @@ class ChApi ChElasticityCosserat {
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;,
     /// given actual deformation and curvature (if needed).
     /// This must be overridden by subclasses if an analytical solution is
-    /// known (preferred for high performance), otherwise the base behaviour here is to compute
+    /// known (preferred for high performance), otherwise the base behavior here is to compute
     /// [Km] by numerical differentiation calling ComputeStress() multiple times.
     virtual void ComputeStiffnessMatrix(
         ChMatrix66d& K,              ///< 6x6 material stiffness matrix values here
@@ -365,7 +365,7 @@ class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
     ChElasticityCosseratAdvancedGeneric(
         const double mAx,     ///< axial rigidity
         const double mTxx,    ///< torsion rigidity
-        const double mByy,    ///< bending regidity on Y of reference at elastic center
+        const double mByy,    ///< bending rigidity on Y of reference at elastic center
         const double mBzz,    ///< bending rigidity on Z of reference at elastic center
         const double mHyy,    ///< shear rigidity on Y of reference at shear center
         const double mHzz,    ///< shear rigidity on Y of reference at shear center
@@ -699,7 +699,7 @@ class ChApi ChPlasticityCosserat {
     /// given actual internal data and deformation and curvature (if needed). If in
     /// plastic regime, uses elastoplastic matrix, otherwise uses elastic.
     /// This must be overridden by subclasses if an analytical solution is
-    /// known (preferred for high performance), otherwise the base behaviour here is to compute
+    /// known (preferred for high performance), otherwise the base behavior here is to compute
     /// [Km] by numerical differentiation calling ComputeStressWithReturnMapping() multiple times.
     virtual void ComputeStiffnessMatrixElastoplastic(
         ChMatrix66d& K,              ///< 6x6 material stiffness matrix values here
@@ -836,7 +836,7 @@ class ChApi ChDampingCosserat {
 
     /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
     /// This must be overridden by subclasses if an analytical solution is
-    /// known (preferred for high performance), otherwise the base behaviour here is to compute
+    /// known (preferred for high performance), otherwise the base behavior here is to compute
     /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
     virtual void ComputeDampingMatrix(ChMatrix66d& R,               ///< 6x6 material stiffness matrix values here
                                       const ChVector3d& dstrain_e,  ///< current strain speed (deformation part)
@@ -1247,7 +1247,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
     double GetCenterOfMassY() { return this->cm_y; }
     double GetCenterOfMassZ() { return this->cm_z; }
 
-    /// Set inertia moments, assumed computed in the Y Z unrotated reference
+    /// Set inertia moments, assumed computed in the Y Z non-rotated reference
     /// frame of the section at centerline, and defined as:
     /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4)
     /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5)
@@ -1259,19 +1259,19 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
     /// via \f$ J_{xx} = J_{yy} +J_{zz} \f$ for the polar theorem.
     virtual void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment);
 
-    /// Get the Jxx component of the inertia per unit length (polar inertia), in the Y Z unrotated reference
+    /// Get the Jxx component of the inertia per unit length (polar inertia), in the Y Z non-rotated reference
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem.
     virtual double GetInertiaJxxPerUnitLength() { return this->Jyy + this->Jzz; }
 
-    /// Get the Jyy component of the inertia per unit length, in the Y Z unrotated reference
+    /// Get the Jyy component of the inertia per unit length, in the Y Z non-rotated reference
     /// frame of the section at centerline, also Jyy = Mm(4,4)
     virtual double GetInertiaJyyPerUnitLength() { return this->Jyy; }
 
-    /// Get the Jzz component of the inertia per unit length, in the Y Z unrotated reference
+    /// Get the Jzz component of the inertia per unit length, in the Y Z non-rotated reference
     /// frame of the section at centerline, also Jzz = Mm(5,5)
     virtual double GetInertiaJzzPerUnitLength() { return this->Jzz; }
 
-    /// Get the Jyz off-diagonal component of the inertia per unit length, in the Y Z unrotated reference
+    /// Get the Jyz off-diagonal component of the inertia per unit length, in the Y Z non-rotated reference
     /// frame of the section at centerline. Also Jyz = -Mm(4,5) = -Mm(5,4)
     virtual double GetInertiaJyzPerUnitLength() { return this->Jyz; }
 
@@ -1329,7 +1329,7 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
 
     virtual ~ChInertiaCosseratMassref() {}
 
-    /// Set inertia moments, assumed computed in the Y Z unrotated reference
+    /// Set inertia moments, assumed computed in the Y Z non-rotated reference
     /// frame of the section at centerline, and defined as:
     /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4)
     /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5)
@@ -1424,7 +1424,7 @@ class ChApi ChBeamSectionCosserat : public ChBeamSection {
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     /// at a given strain state, and at given internal data state (if mdata=nullptr,
-    /// computes only the elastic tangent stiffenss, regardless of plasticity).
+    /// computes only the elastic tangent stiffness, regardless of plasticity).
     virtual void ComputeStiffnessMatrix(
         ChMatrix66d& K,              ///< 6x6 stiffness matrix
         const ChVector3d& strain_e,  ///< strain (deformation part): x= elongation, y and z are shear

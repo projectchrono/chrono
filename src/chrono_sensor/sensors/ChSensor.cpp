@@ -71,7 +71,7 @@ void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
 
 #ifdef CHRONO_HAS_OPTIX
 
-// retriever function for image data in greyscale 8-bit format
+// retriever function for image data in grayscale 8-bit format
 template <>
 CH_SENSOR_API UserR8BufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserR8BufferPtr, ChFilterR8Access, ChFilterR8AccessName>();

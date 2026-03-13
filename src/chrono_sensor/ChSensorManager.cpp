@@ -62,8 +62,8 @@ CH_SENSOR_API void ChSensorManager::Update() {
         pEngine->UpdateSensors(scene);
     }
 #endif
-    // have the sensormanager update all of the non-optix sensor (IMU and GPS).
-    // TODO: perhaps create a thread that takes care of this? Tradeoff since IMU should require some data from EVERY
+    // have the sensor manager update all of the non-optix sensor (IMU and GPS).
+    // TODO: perhaps create a thread that takes care of this? Trade-off since IMU should require some data from EVERY
     // step
     if (m_dynamics_manager)
         m_dynamics_manager->UpdateSensors();
@@ -147,7 +147,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                         cout << "Number of OptiX engines: " << m_engines.size() << endl;
 
                 } else {
-                    // if we are not allowed to create additional groups, warn the user and polute the first group
+                    // if we are not allowed to create additional groups, warn the user and pollute the first group
                     m_engines[0]->AssignSensor(pOptixSensor);
 
                     if (m_verbose)

@@ -437,6 +437,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetWindowTitle("Load a robot model from STEP file");
             vis_vsg->AddCamera(ChVector3d(2.2, 1.6, 2.5), ChVector3d(0, 1, 0));
+            vis_vsg->SetLightDirection(-CH_PI_2, CH_PI_4);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

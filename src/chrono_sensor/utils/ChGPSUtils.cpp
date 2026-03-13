@@ -25,7 +25,7 @@ namespace chrono {
 namespace sensor {
 
 void Cartesian2GPS(ChVector3d& coords, ChVector3d& ref) {
-    // convert from cartesian to gps coordinates assuming a sphere
+    // convert from Cartesian to gps coordinates assuming a sphere
     double lat = (coords.y() / EARTH_RADIUS) * 180.0 / CH_PI + ref.y();
     double lon = (coords.x() / (EARTH_RADIUS * cos(lat * CH_PI / 180.0))) * 180.0 / CH_PI + ref.x();
     double alt = coords.z() + ref.z();
@@ -51,7 +51,7 @@ void GPS2Cartesian(ChVector3d& coords, ChVector3d& ref) {
 }
 
 void Cartesian2ENU(ChVector3d& coords, ChVector3d& ref) {
-    // convert from cartesian to gps coordinates assuming a sphere
+    // convert from Cartesian to gps coordinates assuming a sphere
     double lat = ref.y();
     double lon = ref.x();
     ////double alt = ref.z();
@@ -75,7 +75,7 @@ void Cartesian2ENU(ChVector3d& coords, ChVector3d& ref) {
 }
 
 void ENU2Cartesian(ChVector3d& coords, ChVector3d& ref) {
-    // convert from cartesian to gps coordinates assuming a sphere
+    // convert from Cartesian to gps coordinates assuming a sphere
     double lat = ref.y();
     double lon = ref.x();
     ////double alt = ref.z();

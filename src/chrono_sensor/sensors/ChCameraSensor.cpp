@@ -32,7 +32,7 @@ ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,    // obj
                                unsigned int supersample_factor,           // number of samples per pixel for antialiasing
                                CameraLensModelType lens_model,            // lens model to use
                                bool use_diffuse_reflect,                  // whether consider diffuse reflection or only consider specular reflection
-                               bool use_denoiser,                         // whetheruse denoiser for diffuse reflection or area lights
+                               bool use_denoiser,                         // whether to use denoiser for diffuse reflection or area lights
                                Integrator integrator,                     // integrator algorithm to use for rendering
                                float gamma,                               // gamma correction value
                                bool use_fog                               // whether use fog 

@@ -35,8 +35,8 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// class for managing dynamic sensors. This class is not built for mutlithreading as it is lockstep with the
-/// Chrono system. Will hold and update all sensors that don't need access to rendering or the environmnet. That
+/// class for managing dynamic sensors. This class is not built for multi-threading as it is lockstep with the
+/// Chrono system. Will hold and update all sensors that don't need access to rendering or the environment. That
 /// currently includes GPS and IMU
 class CH_SENSOR_API ChDynamicsManager {
   public:

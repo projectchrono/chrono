@@ -87,7 +87,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// full ("boundary"+"internal") modes.
     /// - with an external FEA software, the full assembly is modeled with "boundary"+"internal" nodes.
     /// - with an external FEA software, the M mass matrix and the K stiffness matrix are saved to disk.
-    /// - in Chrono, M and K and Cq constraint jacobians (if any) are load from disk and stored in ChSparseMatrix
+    /// - in Chrono, M and K and Cq constraint Jacobians (if any) are load from disk and stored in ChSparseMatrix
     /// objects.
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly.
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
@@ -96,7 +96,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void DoModalReduction(
         ChSparseMatrix& full_M,   ///< mass matrix of the full assembly (boundary+internal)
         ChSparseMatrix& full_K,   ///< stiffness matrix of the full assembly (boundary+internal)
-        ChSparseMatrix& full_Cq,  ///< constraint jacobian matrix of the full assembly (boundary+internal)
+        ChSparseMatrix& full_Cq,  ///< constraint Jacobian matrix of the full assembly (boundary+internal)
         const ChModalSolverUndamped<EigensolverType>&
             modal_solver,  ///< settings for the modal analysis, such as the number of modes to extract
         const ChModalDamping& damping_model = ChModalDampingNone()  ///< damping model
@@ -121,8 +121,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Set whether the static correction is used. By default, it is false.
     /// When some external forces are imposed on the internal bodies and nodes, the static correction is important to
-    /// obtain a reasonable accurary of the elastic deformation and internal forces of finite elements, and
-    /// reaction forces of constriants in the modal assembly. In this case, it is strongly recommended to set true.
+    /// obtain a reasonable accuracy of the elastic deformation and internal forces of finite elements, and
+    /// reaction forces of constraints in the modal assembly. In this case, it is strongly recommended to set true.
     /// Note: only available to SetUseStaticCorrection(true) when m_internal_nodes_update = true.
     void SetUseStaticCorrection(bool flag);
 
@@ -379,7 +379,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Retrieves the stiffness, damping, mass and constraint Jacobian matrices of the modal assembly.
     /// All the matrices are consistent with the ordering of objects in the modal assembly; first the "boundary"
     /// variables, followed by either the internal variables (if in full state) or the modal variables (if in modal
-    /// reduced state). Please not that not all loads provide a "stiffness" jacobian, as this is optional in their
+    /// reduced state). Please not that not all loads provide a "stiffness" Jacobian, as this is optional in their
     /// implementation i.e. -dF/dq is not available in the stiffness matrix for such objects
     void GetSubassemblyMatrices(ChSparseMatrix* K, ChSparseMatrix* R, ChSparseMatrix* M, ChSparseMatrix* Cq);
 
@@ -553,7 +553,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Update the transformation matrices used in the modal method.
     void UpdateTransformationMatrix();
 
-    /// Recover the local M,K,Cq matrices, which are requried in the modal analysis.
+    /// Recover the local M,K,Cq matrices, which are required in the modal analysis.
     void ComputeLocalFullKMCqMatrices(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq);
 
     /// Prepare sub-block matrices of M K R Cq in local frame of F
@@ -595,7 +595,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     std::vector<std::shared_ptr<fea::ChMesh>> internal_meshlist;            ///< list of meshes
     std::vector<std::shared_ptr<ChPhysicsItem>> internal_otherphysicslist;  ///< list of other physics objects
 
-    // dummy vectors to provide seamless behaviour in either full or reduced state
+    // dummy vectors to provide seamless behavior in either full or reduced state
     mutable std::vector<std::shared_ptr<ChBody>> bodylist_total;                 ///< list of rigid bodies
     mutable std::vector<std::shared_ptr<ChLinkBase>> linklist_total;             ///< list of joints (links)
     mutable std::vector<std::shared_ptr<fea::ChMesh>> meshlist_total;            ///< list of meshes
@@ -605,7 +605,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChVariablesGenericDiagonalMass* modal_variables;
     ChKRMBlock modal_Hblock;
     ChVectorDynamic<> modal_q;       ///< modal coordinates
-    ChVectorDynamic<> modal_q_dt;    ///< modal velocites
+    ChVectorDynamic<> modal_q_dt;    ///< modal velocities
     ChVectorDynamic<> modal_q_dtdt;  ///< modal accelerations
 
     ChMatrixDynamic<> modal_M;  // tangent mass matrix in the modal reduced state
@@ -715,7 +715,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     // Statistics:
 
     // INTERNAL bodies, meshes etc. are NOT considered in equations of motion. These are
-    // used anyway when computing modal analysis for component mode sysnthesis.
+    // used anyway when computing modal analysis for component mode synthesis.
     unsigned int m_num_bodies_internal;             ///< number of internal bodies
     unsigned int m_num_links_internal;              ///< number of internal links
     unsigned int m_num_meshes_internal;             ///< number of internal meshes
@@ -853,7 +853,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         if (m_modal_reduction_type == ReductionType::HERTING)
             std::cout << "*** Herting reduction is used." << std::endl;
         else
-            std::cout << "*** Craig-Bamption reduction is used." << std::endl;
+            std::cout << "*** Craig-Bampton reduction is used." << std::endl;
 
         for (unsigned int i = 0; i < m_modal_eigvals.size(); ++i)
             std::cout << " Undamped mode n." << i + 1 << "  Frequency [Hz]: " << m_modal_freq(i) << std::endl;
@@ -863,7 +863,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
     FlagModelAsReduced();
     SetupModalData(m_modal_eigvect.cols());
 
-    // 3) compute the transforamtion matrices, also the local rigid-body modes
+    // 3) compute the transformation matrices, also the local rigid-body modes
     UpdateTransformationMatrix();
 
     // 4) do the Mode Acceleration reduction as in Sonneville2021

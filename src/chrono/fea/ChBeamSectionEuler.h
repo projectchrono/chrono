@@ -69,7 +69,7 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     /// Get mass per unit length, ex.SI units [kg/m]
     virtual double GetMassPerUnitLength() const = 0;
 
-    /// Get the Jxx component of the inertia per unit length (polar inertia) in the Y Z unrotated reference
+    /// Get the Jxx component of the inertia per unit length (polar inertia) in the Y Z non-rotated reference
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem. Also,
     /// Jxx=density*Ixx if constant density.
     virtual double GetInertiaJxxPerUnitLength() const = 0;
@@ -129,7 +129,7 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     /// The Euler beam model has no rotational inertia per each section, assuming mass is concentrated on
     /// the centerline. However this creates a singular mass matrix, that might end in problems when doing modal
-    /// analysis etc. A solution is to force Jyy and Jzz inertials per unit lengths to be a percent of the mass per unit
+    /// analysis etc. A solution is to force Jyy and Jzz inertias per unit lengths to be a percent of the mass per unit
     /// length. By default it is 1/500. Use this function to set such factor. You can also turn it to zero. Note that
     /// the effect becomes negligible anyway for finer meshing.
     void SetArtificialJyyJzzFactor(double mf) { JzzJyy_factor = mf; }
@@ -341,7 +341,7 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     /// Get mass per unit length, ex.SI units [kg/m]
     virtual double GetMassPerUnitLength() const override { return this->Area * this->density; }
 
-    /// Get the Jxx component of the inertia per unit length (polar inertia) in the Y Z unrotated reference
+    /// Get the Jxx component of the inertia per unit length (polar inertia) in the Y Z non-rotated reference
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem. Also,
     /// Jxx=density*Ixx if constant density.
     virtual double GetInertiaJxxPerUnitLength() const override { return (this->Iyy + this->Izz) * this->density; }
@@ -443,7 +443,7 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
     ChBeamSectionEulerAdvancedGeneric(
         const double mAx,      ///< axial rigidity
         const double mTxx,     ///< torsion rigidity
-        const double mByy,     ///< bending regidity about yy
+        const double mByy,     ///< bending rigidity about yy
         const double mBzz,     ///< bending rigidity about zz
         const double malpha,   ///< section rotation about elastic center [rad]
         const double mCy,      ///< elastic center y displacement respect to centerline
@@ -700,7 +700,7 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
     ChBeamSectionRayleighAdvancedGeneric(
         const double mAx,      ///< axial rigidity
         const double mTxx,     ///< torsion rigidity
-        const double mByy,     ///< bending regidity about yy
+        const double mByy,     ///< bending rigidity about yy
         const double mBzz,     ///< bending rigidity about zz
         const double malpha,   ///< section rotation about elastic center [rad]
         const double mCy,      ///< elastic center y displacement respect to centerline

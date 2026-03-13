@@ -395,7 +395,7 @@ void ChFsiProblemSPH::ProcessBody(ChFsiFluidSystemSPH::FsiSphBody& b) {
         }
     }
 
-    // Treat mesh shapes spearately
+    // Treat mesh shapes separately
     for (const auto& mesh : b.fsi_body->geometry->coll_meshes) {
         auto num_removed_mesh = ProcessBodyMesh(b, *mesh.trimesh, mesh.int_point);
         num_removed += num_removed_mesh;

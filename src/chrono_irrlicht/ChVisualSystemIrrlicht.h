@@ -67,7 +67,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Currently only the first associated Chrono system is rendered.
     virtual void AttachSystem(ChSystem* sys) override;
 
-    /// Enable/disable antialias (default true).
+    /// Enable/disable anti-alias (default true).
     /// Must be called before Initialize().
     void SetAntialias(bool val);
 
@@ -87,7 +87,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetWindowSize(unsigned int width, unsigned int height);
 
-    /// Set the windoiw title (default "").
+    /// Set the window title (default "").
     /// Must be called before Initialize().
     void SetWindowTitle(const std::string& win_title);
 
@@ -114,14 +114,14 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual void Initialize() override;
 
     /// Add a logo in a 3D scene.
-    /// Has no effect, unles called after Initialize().
+    /// Has no effect, unless called after Initialize().
     void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chrono_alpha.png"));
 
     /// Add a camera in an Irrlicht 3D scene.
     /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
     /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
     /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
-    /// Has no effect, unles called after Initialize().
+    /// Has no effect, unless called after Initialize().
     virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) override;
 
     /// Add a grid with specified parameters in the x-y plane of the given frame.
@@ -175,7 +175,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     );
 
     /// Add a point light to the scene.
-    /// Has no effect, unles called after Initialize().
+    /// Has no effect, unless called after Initialize().
     irr::scene::ILightSceneNode* AddLight(const ChVector3d& pos,
                                           double radius,
                                           ChColor color = ChColor(0.7f, 0.7f, 0.7f));
@@ -267,7 +267,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// visualization assets occur.
     virtual void BindAll() override;
 
-    /// Process the visual assets for the spcified physics item.
+    /// Process the visual assets for the specified physics item.
     /// This function must be called if a new physics item is added to the system or if changes to its visual model
     /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
@@ -394,7 +394,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models
 
     // WARNING: by moving the declaration of these two vectors (m_cameras, m_grids) on top of m_nodes it triggers a very
-    // awkward behaviour for which the Children of CEmptySceneNode gets invalidated, thus triggering an exception when
+    // awkward behavior for which the Children of CEmptySceneNode gets invalidated, thus triggering an exception when
     // the destructor of CEmptySceneNode is later called during deletion of the m_device, usually triggered by m_cameras
     // (if this order is preserved).
     std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene

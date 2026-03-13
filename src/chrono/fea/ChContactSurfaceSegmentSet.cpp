@@ -377,7 +377,7 @@ void ChContactSurfaceSegmentSet::AddSegment(std::shared_ptr<ChNodeFEAxyzrot> nod
 
 void ChContactSurfaceSegmentSet::AddAllSegments(const ChMesh& mesh, double sphere_swept) {
     // Traverse all elements in the provided mesh
-    // - extract the 1-D elements elements that use XYZ nodes
+    // - extract the 1-D elements that use XYZ nodes
     // - extract the 1-D elements that use XYZRot nodes
 
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyz>, 2>> seg_ptrs;

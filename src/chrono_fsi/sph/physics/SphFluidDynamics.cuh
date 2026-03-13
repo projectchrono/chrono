@@ -80,10 +80,10 @@ class SphFluidDynamics {
     /// Function to perform Shepard filtering.
     /// It calculates the densities directly, not based on the derivative of the density. This function is used in
     /// addition to the density update in UpdateFluid.
-    //// TODO RADU: where is this used?!?  Obsololete?
+    //// TODO RADU: where is this used?!?  Obsolete?
     void DensityReinitialization();
 
-    /// Initialize the force and colision systems.
+    /// Initialize the force and collision systems.
     /// Synchronize data between device and host (parameters and counters).
     void Initialize();
 

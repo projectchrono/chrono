@@ -35,14 +35,14 @@ double SignedArea(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& 
 }
 
 // Utility function to decide relative orientation of 3 points.
-// Returns 0 for colinear points, +1 for clock-wise, -1 for counterclock-wise.
+// Returns 0 for collinear points, +1 for clock-wise, -1 for counterclockwise.
 int Orientation(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     static double eps = 1e-10;
     double val = SignedArea(p1, p2, p3);
 
     if (std::abs(val) < eps)
-        return 0;               // (nearly) colinear
-    return (val > 0) ? 1 : -1;  // clock- or counterclock-wise
+        return 0;               // (nearly) collinear
+    return (val > 0) ? 1 : -1;  // clock- or counterclockwise
 }
 
 // Return true if point p2 is between points p1 and p3 (the 3 points are assumed collinear).
@@ -124,7 +124,7 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2d>& points, size_t
             }
         }
 
-        // Before adding next to the convex hull, include any other points on the line from crt to next.
+        // Before adding next to the convex hull, include any other points on the line from current to next.
         for (size_t i = 0; i < n; i++) {
             if (i != crt && i != next && !added[i] && Orientation(points[crt], points[i], points[next]) == 0 &&
                 InBetween(points[crt], points[i], points[next])) {

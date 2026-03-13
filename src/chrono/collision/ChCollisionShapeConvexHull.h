@@ -37,7 +37,7 @@ class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
 
     ~ChCollisionShapeConvexHull() {}
 
-    /// Access the list of vertices of thje convex hull.
+    /// Access the list of vertices of the convex hull.
     const std::vector<ChVector3d>& GetPoints() { return points; }
 
     /// Get the shape bounding box.

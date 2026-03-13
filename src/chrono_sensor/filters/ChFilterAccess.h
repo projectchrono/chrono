@@ -141,7 +141,7 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
 
 #ifdef CHRONO_HAS_OPTIX
 
-/// Access to greyscale data
+/// Access to grayscale data
 using ChFilterR8Access = ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>;
 /// Access to RGBA8 data
 using ChFilterRGBA8Access = ChFilterAccess<SensorHostRGBA8Buffer, UserRGBA8BufferPtr>;
@@ -174,7 +174,7 @@ using ChFilterGyroAccess = ChFilterAccess<SensorHostGyroBuffer, UserGyroBufferPt
 using ChFilterMagnetAccess = ChFilterAccess<SensorHostMagnetBuffer, UserMagnetBufferPtr>;
 /// Access to GPS data
 using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
-/// Access to Tachoemter data
+/// Access to Tachometer data
 using ChFilterTachometerAccess = ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>;
 /// Access to Encoder data
 // using ChFilterEncoderAccess = ChFilterAccess<SensorHostEncoderBuffer, UserEncoderBufferPtr>;

@@ -78,7 +78,7 @@ class CH_SENSOR_API ChFilterPhysCameraExpsrToDV : public ChFilter {
 		float m_expsr2dv_gamma;									// (gamma) gamma of the gamma correction function if used
 		int m_crf_type;											// type of camera response function (CRF). 0: "gamma_correct", 1: "sigmoid"
 		std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_in;	// input buffer for RGBA(Half4)
-		std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_out;	// output bufffer for RGBA16
+		std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_out;	// output buffer for RGBA16
 		CUstream m_cuda_stream;									// reference to the cuda stream
 };
 

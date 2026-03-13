@@ -30,7 +30,7 @@ namespace sensor {
 #define EARTH_RADIUS 6371000.0
 
 /// Utility function for calculating Cartesian coordinates from GPS coordinates given the simulation's reference point
-/// @param coords The Cartisian coordinates to be modified. This vector is modified and used as output
+/// @param coords The Cartesian coordinates to be modified. This vector is modified and used as output
 /// @param ref The simulation's reference location
 CH_SENSOR_API void Cartesian2GPS(ChVector3d& coords, ChVector3d& ref);
 

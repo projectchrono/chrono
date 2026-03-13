@@ -91,7 +91,7 @@ class ChSystemDemMesh_impl : public ChSystemDem_impl {
         unsigned int nTrianglesInSoup;
         /// Indicates how many meshes are squashed together in this soup
         unsigned int numTriangleFamilies;
-        /// Each entry says what family that triagnle belongs to; size: nTrianglesInSoup
+        /// Each entry says what family that triangle belongs to; size: nTrianglesInSoup
         unsigned int* triangleFamily_ID;
 
         /// Entry i is the SU mass of family i
@@ -212,7 +212,7 @@ class ChSystemDemMesh_impl : public ChSystemDem_impl {
     std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
 
     /// for each triangle, lists the collection of SDs that triangle touches; e.g., triangle 0 touches SDs 23, 32, 9,
-    /// 199; triangle 0 touchs SDs 23, 33, 109; triangle 2 touches SDs 991; triangle 3 touches 43, 23, etc.
+    /// 199; triangle 0 touches SDs 23, 33, 109; triangle 2 touches SDs 991; triangle 3 touches 43, 23, etc.
     /// Nonessential array, only needed to carry out broadphase for mesh
     std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite_out;
 

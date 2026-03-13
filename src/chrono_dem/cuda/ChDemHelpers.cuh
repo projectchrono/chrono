@@ -202,8 +202,7 @@ inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
     // Here we need to check if the contact point is in this SD.
 
     // Take spatial average of positions to get position of contact point
-    // NOTE that we *do* want integer division since the SD-checking code uses ints anyways. Computing
-    // this as an int is *much* faster than float, much less double, on Conlain's machine
+    // NOTE that we *do* want integer division since the SD-checking code uses ints anyways.
     int3 contact_pos = (sphereA_pos + sphereB_pos) / 2;
 
     // NOTE this point is now local to the current SD
@@ -369,7 +368,7 @@ inline __device__ float3 computeFrictionForces(ChSystemDem_impl::GranParamsPtr g
 }
 
 /// compute material based friction forces for a contact
-/// tangential displacement is hisotry based
+/// tangential displacement is history based
 /// returns tangent force including hertz factor, clamped and all
 inline __device__ float3 computeFrictionForces_matBased(ChSystemDem_impl::GranParamsPtr gran_params,
                                                         ChSystemDem_impl::GranSphereDataPtr sphere_data,

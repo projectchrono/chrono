@@ -27,7 +27,7 @@ namespace irrlicht {
 /// Some functions to allow easy creation of meshes for Irrlicht visualization
 
 /// Create an Irrlicht mesh representing an ellipsoid.
-/// Ellispoid is centered in the origin.
+/// Ellipsoid is centered in the origin.
 ChApiIrr irr::scene::IAnimatedMesh* createEllipticalMesh(irr::f32 radiusH,
                                                          irr::f32 radiusV,
                                                          irr::f32 Ylow,
@@ -48,7 +48,7 @@ ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 height,
 /// Create an Irrlicht mesh representing a capsule.
 /// Capsule axis is in Y direction, centered at origin.
 /// Capsule total length is radius + 2*hlen + radius.
-/// The hemispherical caps and cylindrical segment are all tesselated using numSegR radial segments.
+/// The hemispherical caps and cylindrical segment are all tessellated using numSegR radial segments.
 /// The hemispherical caps use numSegV vertical segments each.
 ChApiIrr irr::scene::IMesh* createCapsuleMesh(irr::f32 radius, irr::f32 hlen, irr::u32 numSegV, irr::u32 numSegR);
 

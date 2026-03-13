@@ -398,7 +398,7 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
                             m_material_shaders_module, "__closesthit__material_shader");
 
     #ifdef USE_SENSOR_NVDB
-        // NanoVDB Voulume intersection and shading
+        // NanoVDB Volume intersection and shading
         CreateOptixProgramGroup(m_nvdb_vol_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_nvdb_vol_intersection_module,
                                 "__intersection__nvdb_vol_intersect", m_material_shaders_module,
                                 "__closesthit__material_shader");
@@ -845,7 +845,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             CreateDeviceTexture(material.ks_tex, d_img_array, mat->GetKsTexture());
         }
         
-        // metalic texture
+        // metallic texture
         if (mat->GetMetallicTexture() != "") {
             cudaArray_t d_img_array;
             CreateDeviceTexture(material.metallic_tex, d_img_array, mat->GetMetallicTexture());

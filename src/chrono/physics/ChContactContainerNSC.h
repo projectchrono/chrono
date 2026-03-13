@@ -48,7 +48,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void BeginAddContact() override;
 
     /// Add a contact between two collision shapes, storing it into this container.
-    /// A compositecontact material is created from the two given materials.
+    /// A composite contact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
     virtual void AddContact(const ChCollisionInfo& cinfo,
                             std::shared_ptr<ChContactMaterial> mat1,
@@ -68,7 +68,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) override;
 
     /// Report the number of scalar unilateral constraints.
-    /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
+    /// Note: friction constraints are not exactly unilateral, but they are still counted.
     virtual unsigned int GetNumConstraintsUnilateral() override { return 3 * n_added + 6 * n_added_rolling; }
 
     /// Objects will rebounce only if their relative colliding speed is above this threshold.

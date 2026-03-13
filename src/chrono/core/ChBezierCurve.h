@@ -195,7 +195,7 @@ class ChApi ChBezierCurveTracker {
     ~ChBezierCurveTracker() {}
 
     /// Reset the tracker at the specified location.
-    /// This function reinitializes the pathTracker at the specified location. It
+    /// This function re-initializes the pathTracker at the specified location. It
     /// calculates an appropriate initial guess for the curve segment and sets the
     /// curve parameter to 0.5.
     void Reset(const ChVector3d& loc);

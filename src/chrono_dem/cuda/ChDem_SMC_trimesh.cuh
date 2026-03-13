@@ -335,7 +335,7 @@ __global__ void storeSDsTouchedByEachTriangle(const ChSystemDemMesh_impl::Triang
 /// <param name="d_SDs_touched">- list of SDs that happen to be touched by at least one triangle</param>
 /// <param name="d_howManyTrianglesTouchTheTouchedSDs">- if SD is in the list above, it says how many triangles touch
 /// it</param> <param name="nSDs_touchedByTriangles">- how many SDs are actually touched by at least one
-/// triangle</param> <param name="pSD_numTrianglesTouching">- [in/out] array of size SDs, populated with numbre of
+/// triangle</param> <param name="pSD_numTrianglesTouching">- [in/out] array of size SDs, populated with number of
 /// triangles touched by each SD</param>
 __global__ void finalizeSD_numTrianglesTouching(const unsigned int* d_SDs_touched,
                                                 const unsigned int* d_howManyTrianglesTouchTheTouchedSDs,

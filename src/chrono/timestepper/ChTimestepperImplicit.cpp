@@ -89,7 +89,7 @@ void ChTimestepperImplicit::Advance(double dt) {
 //   - at every iteration
 // If using JacobianUpdate::EVERY_STEP, a matrix update occurs:
 //   - at the beginning of a step
-//   - on a stepsize decrease
+//   - on a step size decrease
 //   - if the Newton iteration does not converge with an out-of-date matrix
 // If using JacobianUpdate::NEVER, a matrix update occurs:
 //   - only at the beginning of the very first step

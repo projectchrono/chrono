@@ -92,7 +92,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
 
     virtual ~ChBeamSectionTimoshenkoAdvancedGenericFPM() {}
 
-    /// Set the material stiffness matrix of cross-section in fully-polulated format(FPM),
+    /// Set the material stiffness matrix of cross-section in fully-populated format(FPM),
     /// and assign the traditional axial, torsional, shear and bending stiffnesses automatically.
     virtual void SetStiffnessMatrixFPM(const ChMatrix66d& mKlaw) {
         this->Klaw = mKlaw;
@@ -104,10 +104,10 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
         this->Bzz = mKlaw(5, 5);
     }
 
-    /// Get the material stiffness matrix of cross-section in fully-polulated format(FPM)
+    /// Get the material stiffness matrix of cross-section in fully-populated format(FPM)
     virtual ChMatrix66d& GetStiffnessMatrixFPM() { return this->Klaw; }
 
-    /// Set the material mass matrix of cross-section in fully-polulated format(FPM) directly.
+    /// Set the material mass matrix of cross-section in fully-populated format(FPM) directly.
     /// This cross-sectional mass matrix should be given in the centerline reference.
     virtual void SetMassMatrixFPM(const ChMatrix66d& mMlaw) {
         this->Mlaw = mMlaw;
@@ -121,7 +121,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
         this->Qz = -mMlaw(0, 5);
     }
 
-    /// Set the material mass matrix of cross-section in fully-polulated format(FPM).
+    /// Set the material mass matrix of cross-section in fully-populated format(FPM).
     /// Assign the mass properties at mass center, then calculate Mlaw automatically.
     virtual void SetMassMatrixFPM(double mmu,
                                   double Jmyy,
@@ -149,7 +149,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
         this->Mlaw.row(5) << -Qz, 0, 0, 0, -Jyz, Jzz;
     }
 
-    /// Set the material mass matrix of cross-section in fully-polulated format(FPM).
+    /// Set the material mass matrix of cross-section in fully-populated format(FPM).
     /// Assign the mass properties at centerline reference, then calculate Mlaw automatically
     virtual void SetMassMatrixFPM(double mmu, double mJyy, double mJzz, double mJyz, double mQy, double mQz) {
         this->mu = mmu;
@@ -170,7 +170,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
         this->Mlaw.row(5) << -Qz, 0, 0, 0, -Jyz, Jzz;
     }
 
-    /// Get the material mass matrix of cross-section in fully-polulated format(FPM).
+    /// Get the material mass matrix of cross-section in fully-populated format(FPM).
     virtual ChMatrix66d& GetMassMatrixFPM() { return this->Mlaw; }
 
   public:

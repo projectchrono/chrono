@@ -488,7 +488,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     /// Utility function for exporting the contact mesh in a pointer-less manner.
     /// The mesh is specified as a set of 3D vertex points (with associated velocities) and a set of faces (indices into
-    /// the vertex array). In addition, ownership of nodes and edges among the consitutent triangles is returned in
+    /// the vertex array). In addition, ownership of nodes and edges among the constituent triangles is returned in
     /// 'owns_node' and 'owns_edge'.
     void OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,   ///< mesh vertices (absolute xyz positions)
                           std::vector<ChVector3d>& vert_vel,   ///< vertex velocities (absolute xyz velocities)

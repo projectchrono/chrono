@@ -90,7 +90,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_diffusion_AFSM;   ///< shifting coefficient used in diffusion (default: 3.0)
         double shifting_diffusion_AFST;   ///< shifting coefficient used in diffusion (default: 2.0)
         double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
-        int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
+        int density_reinit_steps;         ///< number of steps between density re-initializations (default: 2e8)
         bool use_density_based_projection;             ///< (ISPH only, default: false)
         bool use_consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool use_consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
@@ -189,7 +189,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set prescribed initial pressure for gravity field.
     void SetInitPressure(const double fzDim);
 
-    /// Set gravity for the FSI syatem.
+    /// Set gravity for the FSI system.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Set a constant force applied to the fluid.
@@ -374,8 +374,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Add boundary BCE markers at the specified points.
     /// The points are assumed to be provided relative to the specified frame.
     /// These BCE markers are not associated with a particular FSI body and, as such, cannot be used to extract fluid
-    /// forces and moments. If fluid reaction forces are needed, create an FSI body with the desirted geometry or list
-    /// of BCE points and add it through the contianing FSI system.
+    /// forces and moments. If fluid reaction forces are needed, create an FSI body with the desired geometry or list
+    /// of BCE points and add it through the containing FSI system.
     void AddBCEBoundary(const std::vector<ChVector3d>& points, const ChFramed& frame);
 
     // ----------- Utility functions for extracting information at specific SPH particles
@@ -410,7 +410,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
     std::vector<Real3> GetAccelerations(const std::vector<int>& indices) const;
 
-    /// Extract forces applied to allmarkers (SPH and BCE) with indices in the provided array.
+    /// Extract forces applied to all markers (SPH and BCE) with indices in the provided array.
     std::vector<Real3> GetForces(const std::vector<int>& indices) const;
 
     // ----------- Utility functions for creating points in various volumes
@@ -440,7 +440,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsSphereInterior(double radius, bool polar) const;
 
-    /// Create exterior marker pointss for a sphere of specified radius, assumed centered at the origin.
+    /// Create exterior marker points for a sphere of specified radius, assumed centered at the origin.
     /// Markers are created outside the sphere, in a number of layers corresponding to system parameters.
     /// Markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsSphereExterior(double radius, bool polar) const;
@@ -460,13 +460,13 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Create interior marker points for a cone of specified radius and height.
     /// The cone is assumed centered at the origin and aligned with the Z axis.
     /// Markers are created inside the cone, in a number of layers corresponding to system parameters.
-    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeInterior(double rad, double height, bool polar) const;
 
     /// Create interior marker points for a truncated cone of specified radius and height.
     /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
     /// Markers are created inside the truncated cone, in a number of layers corresponding to system parameters.
-    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
     std::vector<ChVector3d> CreatePointsTruncatedConeInterior(double rad,
                                                               double rad_tip,
@@ -476,13 +476,13 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Create exterior marker points for a cone of specified radius and height.
     /// The cone is assumed centered at the origin and aligned with the Z axis.
     /// Markers are created outside the cone, in a number of layers corresponding to system parameters.
-    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeExterior(double rad, double height, bool polar) const;
 
     /// Create exterior marker points for a truncated cone of specified radius and height.
     /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
     /// Markers are created outside the truncated cone, in a number of layers corresponding to system parameters.
-    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
     std::vector<ChVector3d> CreatePointsTruncatedConeExterior(double rad,
                                                               double rad_tip,
@@ -567,14 +567,14 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                          bool remove_center         ///< eliminate markers on surface
     );
 
-    /// Create the the local BCE coordinates, their body associations, and the initial global BCE positions for the
+    /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the
     /// given FSI rigid body.
     void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
                           std::vector<int>& bce_ids,
                           std::vector<ChVector3d>& bce_coords,
                           std::vector<ChVector3d>& bce);
 
-    /// Create the the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
+    /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
     /// given FSI 1D mesh.
     void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
                             BcePatternMesh1D pattern,
@@ -583,7 +583,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                             std::vector<ChVector3d>& bce_coords,
                             std::vector<ChVector3d>& bce);
 
-    /// Create the the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
+    /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
     /// given FSI 2D mesh.
     void CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
                             BcePatternMesh2D pattern,

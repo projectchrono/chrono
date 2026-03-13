@@ -71,7 +71,7 @@ class ChApi ChContactMaterial {
     /// Usually around 1E-3.
     void SetSpinningFriction(float val) { spinning_friction = val; }
 
-    /// Get the roliung friction coefficient.
+    /// Get the rolling friction coefficient.
     float GetSpinningFriction() const { return spinning_friction; }
 
     /// Set the normal coefficient of restitution (default: 0.4).

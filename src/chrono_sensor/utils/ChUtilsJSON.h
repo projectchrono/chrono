@@ -94,7 +94,7 @@ CH_SENSOR_API std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::st
 /// Load and return a lidar sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the lidar sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
-/// @param offsetPose The position and rotation of the Lidar Sensr
+/// @param offsetPose The position and rotation of the Lidar Sensor
 /// @return A shared pointer to a ChLidarSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
                                                                  std::shared_ptr<ChBody> parent,
@@ -103,7 +103,7 @@ CH_SENSOR_API std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::stri
 /// Load and return a radar sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the radar sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
-/// @param offsetPose The position and rotation of the radar Sensr
+/// @param offsetPose The position and rotation of the radar Sensor
 /// @return A shared pointer to a ChRadarSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
                                                                  std::shared_ptr<ChBody> parent,

@@ -280,7 +280,7 @@ void ChContactTriangleXYZ::ComputeNF(
     N(1) = U;
     N(2) = V;
 
-    // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
+    // Jacobian determinant = 2 * area_of_triangle, also length of cross product of sides
     ChVector3d p0 = GetNode(0)->GetPos();
     ChVector3d p1 = GetNode(1)->GetPos();
     ChVector3d p2 = GetNode(2)->GetPos();
@@ -586,7 +586,7 @@ void ChContactTriangleXYZRot::ComputeNF(
     N(1) = U;
     N(2) = V;
 
-    // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
+    // JAcobian determinant = 2 * area_of_triangle, also length of cross product of sides
     ChVector3d p0 = GetNode(0)->GetPos();
     ChVector3d p1 = GetNode(1)->GetPos();
     ChVector3d p2 = GetNode(2)->GetPos();

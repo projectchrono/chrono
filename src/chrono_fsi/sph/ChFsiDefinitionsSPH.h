@@ -58,7 +58,7 @@ enum class EosType { TAIT, ISOTHERMAL };
 /// SPH kernel type.
 enum class KernelType { QUADRATIC, CUBIC_SPLINE, QUINTIC_SPLINE, WENDLAND };
 
-/// Visosity method type.
+/// Viscosity method type.
 enum class ViscosityMethod { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
 
 /// Boundary method type.

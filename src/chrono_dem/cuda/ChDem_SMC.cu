@@ -547,7 +547,7 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
         TRACK_VECTOR_RESIZE(rolling_friction_torque, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres,
                             "rolling friction torque", null_force);
         TRACK_VECTOR_RESIZE(char_collision_time, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres,
-                            "characterisitc collision time", 0);
+                            "characteristic collision time", 0);
         TRACK_VECTOR_RESIZE(v_rot_array, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "v rot", null_force);
     }
 
@@ -560,7 +560,7 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
 /// Then, there is a prefix scan done (which requires two CUB function calls) to figure out offsets into the big fat
 /// array that contains, for SD after SD, which spheres touch the SD. This last thing is accomplished by a kernel call.
 ///
-/// CAVEAT: in this approach, the outcome of the prefix scan operation will be canibalized during the kernel call that
+/// CAVEAT: in this approach, the outcome of the prefix scan operation will be cannibalized during the kernel call that
 /// updates the big fat composite array. As such, there is a "scratch-pad" version that is used along the way
 /// </summary>
 /// <returns></returns>
@@ -570,7 +570,7 @@ __host__ void ChSystemDem_impl::runSphereBroadphase() {
     // reset the number of spheres per SD, the offsets in the big composite array, and the big fat composite array
     resetBroadphaseInformation();
 
-    // Frist stage of the computation in this function: Figure out the how many spheres touch each SD.
+    // First stage of the computation in this function: Figure out the how many spheres touch each SD.
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     getNumberOfSpheresTouchingEachSD<CUDA_THREADS_PER_BLOCK>
         <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
@@ -601,7 +601,7 @@ __host__ void ChSystemDem_impl::runSphereBroadphase() {
     spheres_in_SD_composite.resize(num_entries, NULL_CHDEM_ID);
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
-    // Copy the offesets in the scratch pad; the subsequent kernel call would step on the outcome of the prefix scan
+    // Copy the offsets in the scratch pad; the subsequent kernel call would step on the outcome of the prefix scan
     demErrchk(cudaMemcpy(SD_SphereCompositeOffsets_ScratchPad.data(), SD_SphereCompositeOffsets.data(),
                          nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
     // Populate the composite array; in the process, the content of the scratch pad will be modified

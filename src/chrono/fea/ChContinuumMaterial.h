@@ -49,7 +49,7 @@ class ChApi ChContinuumMaterial {
 };
 
 /// Class for the basic properties of materials in an elastic continuum.
-/// This is a base material with isotropic hookean elasticity.
+/// This is a base material with isotropic Hookean elasticity.
 
 class ChApi ChContinuumElastic : public ChContinuumMaterial {
   private:

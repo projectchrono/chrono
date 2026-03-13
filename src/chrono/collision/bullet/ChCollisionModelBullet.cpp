@@ -606,7 +606,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
         decomposition->AddTriangleMesh(*trimesh);
         decomposition->SetParameters(512,   // max hull count
                                      256,   // max hull merge
-                                     64,    // max hull vettices
+                                     64,    // max hull vertices
                                      0.2f,  // concavity
                                      0.0f,  // small cluster threshold
                                      1e-9f  // fuse tolerance

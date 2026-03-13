@@ -41,7 +41,7 @@ class CH_FSI_API ChFsiFluidSystem {
     /// Enable/disable verbose terminal output (default: true).
     void SetVerbose(bool verbose);
 
-    /// Set gravity for the fluid syatem.
+    /// Set gravity for the fluid system.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) = 0;
 
     /// Set integration step size.

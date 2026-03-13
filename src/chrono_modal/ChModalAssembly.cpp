@@ -376,7 +376,7 @@ void ChModalAssembly::UpdateTransformationMatrix() {
     v_mod.setZero(num_coords_vel_bou_mod, nullptr);
     this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-    //  rigid-body modes of boudnary bodies and nodes
+    //  rigid-body modes of boundary bodies and nodes
     Uloc_B.resize(m_num_coords_vel_boundary, 6);
     Uloc_B.reserve(m_num_coords_vel_boundary * 3);  // n_B/6 nodes, 18 nonzeros for one node
     Uloc_B.setZero();
@@ -890,7 +890,7 @@ void ChModalAssembly::UpdateStaticCorrectionMode() {
     // else {
     //    // todo:
     //    // When the external forces imposed on the internal nodes disappear suddenly, or change too fast,
-    //    // there is an impusle in the system response due to the change of the static correction modal basis.
+    //    // there is an impulse in the system response due to the change of the static correction modal basis.
     //    // How to optimize further?
     // }
     ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
