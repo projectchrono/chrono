@@ -295,7 +295,7 @@ int main(int argc, char* argv[]) {
         mbody_truss->SetFixed(true);
         mbody_truss->SetPos(ChVector3d(0, 0, 3));
         // optional, for aesthetics: attach a circular line to the truss, to represent the inner teeth wheel
-        auto shape_circ = chrono_types::make_shared<ChLineArc>(ChCoordsysd({0, 0, -4}), radC);
+        auto shape_circ = chrono_types::make_shared<ChLineArc>(ChCoordsysd(ChVector3d(0, 0, -4)), radC);
         auto shape_asset = chrono_types::make_shared<ChVisualShapeLine>();
         shape_asset->SetLineGeometry(shape_circ);
         mbody_truss->AddVisualShape(shape_asset);
