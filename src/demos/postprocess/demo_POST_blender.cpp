@@ -184,7 +184,10 @@ int main(int argc, char* argv[]) {
     my_vectors.data = std::vector<ChVector3d>{{0, 1, 2}, {3, 0, 0}, {0, 0, 2}, {0, 0, 0}};
     trimesh->GetMesh()->AddPropertyPerVertex(my_vectors);
 
+    trimesh->SetMutable(true);
+
     body->AddVisualShape(trimesh, ChFrame<>(ChVector3d(1, 1, 0)));
+
 
     // ==Asset== Attach a set of 'point glyphs', in this case: n dots rendered as small spheres.
 
@@ -194,6 +197,7 @@ int main(int argc, char* argv[]) {
                                      ChVector3d(1 + i * 0.2, 2, 0.2),  // the position
                                      ChColor(0.3f, i * 0.1f, 0)        // the vector color
         );
+    glyphs_points->SetMutable(true);
     body->AddVisualShape(glyphs_points);
 
     glyphs_points->glyph_scalewidth = 0.08;  // set larger 3D item
@@ -206,6 +210,7 @@ int main(int argc, char* argv[]) {
                                         ChCoordsys<>(ChVector3d(1 + i * 0.2, 2, 0.5),         // the position
                                                      QuatFromAngleX(i * 20 * CH_DEG_TO_RAD))  // the rotation
         );
+    glyphs_coords->SetMutable(true);
     body->AddVisualShape(glyphs_coords);
 
     glyphs_coords->glyph_scalewidth = 0.16;  // set larger 3D item
@@ -230,6 +235,7 @@ int main(int argc, char* argv[]) {
     my_temperature_for_glyps.max = 70;
     glyphs_vectors->AddProperty(my_temperature_for_glyps);
 
+    glyphs_vectors->SetMutable(true);
     body->AddVisualShape(glyphs_vectors);
 
     // some settings that will be used by Blender for appearance of the glyps, to override default rendering properties
@@ -252,6 +258,8 @@ int main(int argc, char* argv[]) {
     glyphs_vectors->glyph_eigenvalues_type = ChGlyphs::eCh_GlyphEigenvalues::PROPERTY;
     glyphs_vectors->glyph_eigenvalues_prop = "eigenvalues";
     glyphs_tensors->glyph_scalewidth = 0.8;  // scale for all ellipsoids
+
+    glyphs_tensors->SetMutable(true);
     body->AddVisualShape(glyphs_tensors);
 
     // ==Asset== Attach a line or a path (will be drawn as a line in 3D)
