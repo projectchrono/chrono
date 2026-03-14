@@ -42,10 +42,21 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionModelBullet)
 CH_UPCASTING(ChCollisionModelBullet, ChCollisionModelImpl)
 
+/// Utility function to populate a Bullet triangle mesh from a Chrono one
+static void PopulateBulletMesh(cbtTriangleMesh* bullet_mesh, std::shared_ptr<ChTriangleMesh> trimesh) {
+    for (auto i = 0; i < trimesh->GetNumTriangles(); i++) {
+        bullet_mesh->addTriangle(cbtVector3CH(trimesh->GetTriangle(i).p1),  //
+                                 cbtVector3CH(trimesh->GetTriangle(i).p2),  //
+                                 cbtVector3CH(trimesh->GetTriangle(i).p3),  //
+                                 true                                       // try to remove duplicate vertices
+        );
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model)
-    : ChCollisionModelImpl(collision_model) {
+    : ChCollisionModelImpl(collision_model), m_bullet_mesh(nullptr) {
     bt_collision_object = std::unique_ptr<cbtCollisionObject>(new cbtCollisionObject);
     bt_collision_object->setCollisionShape(nullptr);
     bt_collision_object->setUserPointer((void*)this);
@@ -54,6 +65,7 @@ ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model
 ChCollisionModelBullet::~ChCollisionModelBullet() {
     m_shapes.clear();
     m_bt_shapes.clear();
+    delete m_bullet_mesh;
 }
 
 // -----------------------------------------------------------------------------
@@ -411,7 +423,7 @@ class cbtBvhTriangleMeshShape_handlemesh : public cbtBvhTriangleMeshShape {
 
   public:
     cbtBvhTriangleMeshShape_handlemesh(cbtStridingMeshInterface* meshInterface)
-        : cbtBvhTriangleMeshShape(meshInterface, true), minterface(meshInterface){};
+        : cbtBvhTriangleMeshShape(meshInterface, true), minterface(meshInterface) {};
 
     ~cbtBvhTriangleMeshShape_handlemesh() {
         delete minterface;
@@ -424,7 +436,7 @@ class cbtConvexTriangleMeshShape_handlemesh : public cbtConvexTriangleMeshShape 
 
   public:
     cbtConvexTriangleMeshShape_handlemesh(cbtStridingMeshInterface* meshInterface)
-        : cbtConvexTriangleMeshShape(meshInterface), minterface(meshInterface){};
+        : cbtConvexTriangleMeshShape(meshInterface), minterface(meshInterface) {};
 
     ~cbtConvexTriangleMeshShape_handlemesh() {
         delete minterface;
@@ -437,8 +449,7 @@ class cbtGImpactMeshShape_handlemesh : public cbtGImpactMeshShape {
 
   public:
     cbtGImpactMeshShape_handlemesh(cbtStridingMeshInterface* meshInterface)
-        : cbtGImpactMeshShape(meshInterface),
-          minterface(meshInterface){
+        : cbtGImpactMeshShape(meshInterface), minterface(meshInterface) {
               // setLocalScaling(cbtVector3(1.f,1.f,1.f));
           };
 
@@ -450,17 +461,17 @@ class cbtGImpactMeshShape_handlemesh : public cbtGImpactMeshShape {
 
 void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShapeTriangleMesh> shape_trimesh,
                                                 const ChFrame<>& frame) {
-    auto envelope = GetEnvelope();
-    auto safe_margin = GetSafeMargin();
-
+    float envelope = GetEnvelope();
+    float safe_margin = GetSafeMargin();
     auto trimesh = shape_trimesh->GetMesh();
-    auto is_static = shape_trimesh->IsStatic();
-    auto is_convex = shape_trimesh->IsConvex();
-    auto radius = shape_trimesh->GetRadius();
+    bool is_static = shape_trimesh->IsStatic();
+    bool is_convex = shape_trimesh->IsConvex();
+    double radius = shape_trimesh->GetRadius();
 
     if (!trimesh->GetNumTriangles())
         return;
 
+    // Triangle mesh with connectivity ------------------------
     if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh)) {
         std::vector<std::array<int, 4>> trimap;
         mesh->ComputeNeighbouringTriangleMap(trimap);
@@ -468,24 +479,27 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
         std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
         mesh->ComputeWingedEdges(winged_edges, true);
 
-        std::vector<bool> added_vertexes(mesh->m_vertices.size());
+        std::vector<bool> added_vertices(mesh->m_vertices.size());
 
-        // iterate on triangles
+        // Iterate on triangles
         for (int it = 0; it < mesh->m_face_v_indices.size(); ++it) {
-            // edges = pairs of vertexes indexes
-            std::pair<int, int> medgeA(mesh->m_face_v_indices[it].x(), mesh->m_face_v_indices[it].y());
-            std::pair<int, int> medgeB(mesh->m_face_v_indices[it].y(), mesh->m_face_v_indices[it].z());
-            std::pair<int, int> medgeC(mesh->m_face_v_indices[it].z(), mesh->m_face_v_indices[it].x());
-            // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
-            if (medgeA.first > medgeA.second)
-                medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
-            if (medgeB.first > medgeB.second)
-                medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
-            if (medgeC.first > medgeC.second)
-                medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
-            auto wingedgeA = winged_edges.find(medgeA);
-            auto wingedgeB = winged_edges.find(medgeB);
-            auto wingedgeC = winged_edges.find(medgeC);
+            // Edges = pairs of vertices indices
+            std::pair<int, int> edgeA(mesh->m_face_v_indices[it].x(), mesh->m_face_v_indices[it].y());
+            std::pair<int, int> edgeB(mesh->m_face_v_indices[it].y(), mesh->m_face_v_indices[it].z());
+            std::pair<int, int> edgeC(mesh->m_face_v_indices[it].z(), mesh->m_face_v_indices[it].x());
+            
+            // Vertex indices in edges: always in increasing order to avoid ambiguous duplicated edges
+            if (edgeA.first > edgeA.second)
+                edgeA = std::pair<int, int>(edgeA.second, edgeA.first);
+            if (edgeB.first > edgeB.second)
+                edgeB = std::pair<int, int>(edgeB.second, edgeB.first);
+            if (edgeC.first > edgeC.second)
+                edgeC = std::pair<int, int>(edgeC.second, edgeC.first);
+            
+            // Collect wing vertices
+            auto wingedgeA = winged_edges.find(edgeA);
+            auto wingedgeB = winged_edges.find(edgeB);
+            auto wingedgeC = winged_edges.find(edgeC);
 
             int i_wingvertex_A = -1;
             int i_wingvertex_B = -1;
@@ -536,93 +550,94 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
                                                : &mesh->m_vertices[mesh->m_face_v_indices[it].x()],  //
                 wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C]                   // edge node 3
                                                : &mesh->m_vertices[mesh->m_face_v_indices[it].y()],  //
-                !added_vertexes[mesh->m_face_v_indices[it].x()],                                     // face owns nodes?
-                !added_vertexes[mesh->m_face_v_indices[it].y()],                                     //
-                !added_vertexes[mesh->m_face_v_indices[it].z()],                                     //
+                !added_vertices[mesh->m_face_v_indices[it].x()],                                     // face owns nodes?
+                !added_vertices[mesh->m_face_v_indices[it].y()],                                     //
+                !added_vertices[mesh->m_face_v_indices[it].z()],                                     //
                 wingedgeA->second.first != -1,                                                       // face owns edges?
                 wingedgeB->second.first != -1,                                                       //
                 wingedgeC->second.first != -1,                                                       //
                 radius                                                                               // thickness
             );
 
+            // Inject connected triangle
             injectTriangleProxy(shape_triangle);
 
-            // Mark added vertexes
-            added_vertexes[mesh->m_face_v_indices[it].x()] = true;
-            added_vertexes[mesh->m_face_v_indices[it].y()] = true;
-            added_vertexes[mesh->m_face_v_indices[it].z()] = true;
+            // Mark added vertices
+            added_vertices[mesh->m_face_v_indices[it].x()] = true;
+            added_vertices[mesh->m_face_v_indices[it].y()] = true;
+            added_vertices[mesh->m_face_v_indices[it].z()] = true;
+
             // Mark added edges, setting to -1 the 'ti' id of 1st triangle in winged edge {{vi,vj}{ti,tj}}
             wingedgeA->second.first = -1;
             wingedgeB->second.first = -1;
             wingedgeC->second.first = -1;
         }
+
         return;
     }
 
-    cbtTriangleMesh* bulletMesh = new cbtTriangleMesh;
-    for (auto i = 0; i < trimesh->GetNumTriangles(); i++) {
-        bulletMesh->addTriangle(cbtVector3CH(trimesh->GetTriangle(i).p1),  //
-                                cbtVector3CH(trimesh->GetTriangle(i).p2),  //
-                                cbtVector3CH(trimesh->GetTriangle(i).p3),  //
-                                true                                       // try to remove duplicate vertices
-        );
-    }
+    // Triangle mesh without connectivity ---------------------
+    m_bullet_mesh = new cbtTriangleMesh;
 
     if (is_static) {
         // Here a static cbtBvhTriangleMeshShape suffices, but cbtGImpactMeshShape might work better?
-        auto bt_shape = chrono_types::make_shared<cbtBvhTriangleMeshShape_handlemesh>(bulletMesh);
-        bt_shape->setMargin((cbtScalar)safe_margin);
+        PopulateBulletMesh(m_bullet_mesh, trimesh);
+        auto bt_shape = chrono_types::make_shared<cbtBvhTriangleMeshShape_handlemesh>(m_bullet_mesh);
+        bt_shape->setMargin(static_cast<cbtScalar>(safe_margin));
         injectShape(shape_trimesh, bt_shape, frame);
         return;
     }
 
     if (is_convex) {
-        auto bt_shape = chrono_types::make_shared<cbtConvexTriangleMeshShape_handlemesh>(bulletMesh);
-        bt_shape->setMargin((cbtScalar)envelope);
+        PopulateBulletMesh(m_bullet_mesh, trimesh);
+        auto bt_shape = chrono_types::make_shared<cbtConvexTriangleMeshShape_handlemesh>(m_bullet_mesh);
+        bt_shape->setMargin(static_cast<cbtScalar>(envelope));
         injectShape(shape_trimesh, bt_shape, frame);
-    } else {
-        // Note: currently there's no 'perfect' convex decomposition method, so code here is a bit experimental...
+        return;
+    }
 
-        /*
-        // using the HACD convex decomposition
-        auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACD>();
-        decomposition->AddTriangleMesh(*trimesh);
-        decomposition->SetParameters(2,      // clusters
-                                     0,      // no decimation
-                                     0.0,    // small cluster threshold
-                                     false,  // add faces points
-                                     false,  // add extra dist points
-                                     100.0,  // max concavity
-                                     30,     // cc connect dist
-                                     0.0,    // volume weight beta
-                                     0.0,    // compacity alpha
-                                     50      // vertices per cc
-        );
-        */
+    // Fallback -----------------------------------------------
+    // If none of the above conditions are met, resort to algorithmic convex decomposition
 
-        // using HACDv2 convex decomposition
-        auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACDv2>();
-        decomposition->Reset();
-        decomposition->AddTriangleMesh(*trimesh);
-        decomposition->SetParameters(512,   // max hull count
-                                     256,   // max hull merge
-                                     64,    // max hull vertices
-                                     0.2f,  // concavity
-                                     0.0f,  // small cluster threshold
-                                     1e-9f  // fuse tolerance
-        );
+    /*
+    // Use HACD convex decomposition
+    auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACD>();
+    decomposition->AddTriangleMesh(*trimesh);
+    decomposition->SetParameters(2,      // clusters
+                                    0,      // no decimation
+                                    0.0,    // small cluster threshold
+                                    false,  // add faces points
+                                    false,  // add extra dist points
+                                    100.0,  // max concavity
+                                    30,     // cc connect dist
+                                    0.0,    // volume weight beta
+                                    0.0,    // compacity alpha
+                                    50      // vertices per cc
+    );
+    */
 
-        decomposition->ComputeConvexDecomposition();
+    // Use HACDv2 convex decomposition
+    auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACDv2>();
+    decomposition->Reset();
+    decomposition->AddTriangleMesh(*trimesh);
+    decomposition->SetParameters(512,   // max hull count
+                                 256,   // max hull merge
+                                 64,    // max hull vertices
+                                 0.2f,  // concavity
+                                 0.0f,  // small cluster threshold
+                                 1e-9f  // fuse tolerance
+    );
 
-        model->SetSafeMargin(0);
-        for (unsigned int j = 0; j < decomposition->GetHullCount(); j++) {
-            std::vector<ChVector3d> ptlist;
-            decomposition->GetConvexHullResult(j, ptlist);
-            if (ptlist.size() > 0) {
-                auto shape_hull =
-                    chrono_types::make_shared<ChCollisionShapeConvexHull>(shape_trimesh->GetMaterial(), ptlist);
-                injectConvexHull(shape_hull, frame);
-            }
+    decomposition->ComputeConvexDecomposition();
+
+    model->SetSafeMargin(0);
+    for (unsigned int j = 0; j < decomposition->GetHullCount(); j++) {
+        std::vector<ChVector3d> ptlist;
+        decomposition->GetConvexHullResult(j, ptlist);
+        if (ptlist.size() > 0) {
+            auto shape_hull =
+                chrono_types::make_shared<ChCollisionShapeConvexHull>(shape_trimesh->GetMaterial(), ptlist);
+            injectConvexHull(shape_hull, frame);
         }
     }
 }
