@@ -83,10 +83,10 @@ ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
     m_collision_arc_arc = new cbtArcArcCollisionAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(ARC2D_SHAPE_PROXYTYPE, ARC2D_SHAPE_PROXYTYPE, m_collision_arc_arc);
 
-    // custom collision for CE triangles
-    m_collision_cetri_cetri = new cbtCEtriangleShapeCollisionAlgorithm::CreateFunc;
-    bt_dispatcher->registerCollisionCreateFunc(CE_TRIANGLE_SHAPE_PROXYTYPE, CE_TRIANGLE_SHAPE_PROXYTYPE,
-                                               m_collision_cetri_cetri);
+    // custom collision for Chrono triangles
+    m_collision_chtri_chtri = new cbtChTriangleShapeCollisionAlgorithm::CreateFunc;
+    bt_dispatcher->registerCollisionCreateFunc(CH_TRIANGLE_SHAPE_PROXYTYPE, CH_TRIANGLE_SHAPE_PROXYTYPE,
+                                               m_collision_chtri_chtri);
 
     // custom collision for segment-segment
     m_collision_seg_seg = new cbtSegmentSegmentCollisionAlgorithm::CreateFunc;
@@ -123,7 +123,7 @@ ChCollisionSystemBullet::~ChCollisionSystemBullet() {
     delete m_collision_arc_seg;
     delete m_collision_seg_arc;
     delete m_collision_arc_arc;
-    delete m_collision_cetri_cetri;
+    delete m_collision_chtri_chtri;
     m_emptyCreateFunc->~cbtCollisionAlgorithmCreateFunc();
     cbtAlignedFree(m_tmp_mem);
 }

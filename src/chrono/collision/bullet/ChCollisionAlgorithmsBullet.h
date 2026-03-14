@@ -207,15 +207,15 @@ class cbtArcArcCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
 // ================================================================================================
 
 /// Custom override of the default Bullet algorithm for triangle-triangle collision.
-class cbtCEtriangleShapeCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
+class cbtChTriangleShapeCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
   public:
-    cbtCEtriangleShapeCollisionAlgorithm(cbtPersistentManifold* mf,
+    cbtChTriangleShapeCollisionAlgorithm(cbtPersistentManifold* mf,
                                          const cbtCollisionAlgorithmConstructionInfo& ci,
                                          const cbtCollisionObjectWrapper* col0,
                                          const cbtCollisionObjectWrapper* col1,
                                          bool isSwapped);
-    cbtCEtriangleShapeCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
-    ~cbtCEtriangleShapeCollisionAlgorithm();
+    cbtChTriangleShapeCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
+    ~cbtChTriangleShapeCollisionAlgorithm();
 
     virtual void processCollision(const cbtCollisionObjectWrapper* body0,
                                   const cbtCollisionObjectWrapper* body1,

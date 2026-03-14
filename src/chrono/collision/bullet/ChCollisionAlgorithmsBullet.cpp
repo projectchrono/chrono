@@ -1021,7 +1021,7 @@ cbtCollisionAlgorithm* cbtArcArcCollisionAlgorithm::CreateFunc::CreateCollisionA
 
 // ================================================================================================
 
-cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(
     cbtPersistentManifold* mf,
     const cbtCollisionAlgorithmConstructionInfo& ci,
     const cbtCollisionObjectWrapper* col0,
@@ -1039,18 +1039,18 @@ cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
     }
 }
 
-cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(
     const cbtCollisionAlgorithmConstructionInfo& ci)
     : cbtActivatingCollisionAlgorithm(ci) {}
 
-cbtCEtriangleShapeCollisionAlgorithm ::~cbtCEtriangleShapeCollisionAlgorithm() {
+cbtChTriangleShapeCollisionAlgorithm ::~cbtChTriangleShapeCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
     }
 }
 
-void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
                                                             const cbtCollisionObjectWrapper* body1,
                                                             const cbtDispatcherInfo& dispatchInfo,
                                                             cbtManifoldResult* resultOut) {
