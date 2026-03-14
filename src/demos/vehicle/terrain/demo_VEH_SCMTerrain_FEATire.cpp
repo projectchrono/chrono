@@ -20,7 +20,8 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_vsg/ChVisualSystemVSG.h"
+#include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -30,7 +31,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
@@ -85,73 +85,70 @@ int main(int argc, char* argv[]) {
     // THE DEFORMABLE TERRAIN
 
     // Create the 'deformable terrain' object
-    vehicle::SCMTerrain mterrain(&sys);
+    vehicle::SCMTerrain terrain(&sys);
 
     // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
-    mterrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0.2, 0.3), QuatFromAngleX(-CH_PI_2)));
+    terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0.2, 0.3), QuatFromAngleX(-CH_PI_2)));
 
     // Initialize the geometry of the soil: use either a regular grid:
-    mterrain.Initialize(1.5, 6, 0.075);
+    terrain.Initialize(1.5, 6, 0.075);
 
     // Set the soil terramechanical parameters:
-    mterrain.SetSoilParameters(1.2e6,  // Bekker Kphi
-                               0,      // Bekker Kc
-                               1.1,    // Bekker n exponent
-                               0,      // Mohr cohesive limit (Pa)
-                               30,     // Mohr friction limit (degrees)
-                               0.01,   // Janosi shear coefficient (m)
-                               5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                               2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    terrain.SetSoilParameters(1.2e6,  // Bekker Kphi
+                              0,      // Bekker Kc
+                              1.1,    // Bekker n exponent
+                              0,      // Mohr cohesive limit (Pa)
+                              30,     // Mohr friction limit (degrees)
+                              0.01,   // Janosi shear coefficient (m)
+                              5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                              2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
-    mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-    mterrain.SetBulldozingParameters(
-        55,   // angle of friction for erosion of displaced material at the border of the rut
-        0.8,  // displaced material vs downward pressed material.
-        5,    // number of erosion refinements per timestep
-        10);  // number of concentric vertex selections subject to erosion
+    terrain.EnableBulldozing(true);       // inflate soil at the border of the rut
+    terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material
+                                    0.8,  // displaced material vs downward pressed material.
+                                    5,    // number of erosion refinements per timestep
+                                    10);  // number of concentric vertex selections subject to erosion
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    
+
     ChColormap::Type colormap_type = ChColormap::Type::JET;
 
-    // mterrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
-    // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
-    mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
-    mterrain.SetColormap(colormap_type);
-    // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
-    // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
-    // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
-    // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
-    // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_ISLAND_ID, 0, 8);
-    // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_IS_TOUCHED, 0, 8);
-    mterrain.GetMesh()->SetWireframe(true);
+    // terrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
+    // terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
+    terrain.SetColormap(colormap_type);
+    // terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
+    // terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    // terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
+    // terrain.SetPlotType(vehicle::SCMTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
+    // terrain.SetPlotType(vehicle::SCMTerrain::PLOT_ISLAND_ID, 0, 8);
+    // terrain.SetPlotType(vehicle::SCMTerrain::PLOT_IS_TOUCHED, 0, 8);
+    terrain.GetMesh()->SetWireframe(true);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    // Create the run-time visualization system
+    auto visSCM = chrono_types::make_shared<vehicle::ChScmVisualizationVSG>(&terrain);
+    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Deformable soil and deformable tire");
+    vis->AttachPlugin(visSCM);
+    vis->SetWindowTitle("SCM deformable terrain");
+    vis->AddCamera(ChVector3d(3.0, 2.0, 0.0), ChVector3d(0, tire_rad, 0));
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowPosition(100, 100);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0));
-    vis->AddLightDirectional();
-    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                            ChColor(0.8f, 0.8f, 1.0f));
-    vis->EnableShadows();
-    vis->AddGuiColorbar("Pressure yield [Pa]", {0, 30000}, colormap_type, false);
 
-    // THE SOFT-REAL-TIME CYCLE
-
-    // change the solver to PardisoMKL:
+    // Change the solver to PardisoMKL
     std::cout << "Using PardisoMKL solver\n";
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);
 
-    // Change the timestepper to HHT:
+    // Change the timestepper to HHT
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     integrator->SetAlpha(-0.2);
@@ -160,6 +157,7 @@ int main(int argc, char* argv[]) {
     integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     integrator->SetVerbose(true);
 
+    // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();

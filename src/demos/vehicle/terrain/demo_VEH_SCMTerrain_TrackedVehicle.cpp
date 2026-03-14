@@ -29,16 +29,8 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -49,9 +41,6 @@ using namespace chrono::vehicle::m113;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
 ChVector3d initLoc(-5, 0, 1.1);
@@ -197,63 +186,24 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization interface
     // ---------------------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
+    // SCM plugin
+    auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
 
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
-            vis_irr->SetChaseCamera(trackPoint, 4.0, 1.0);
-            vis_irr->SetChaseCameraPosition(ChVector3d(-3, 4, 1.5));
-            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&vehicle);
-            vis_irr->AttachDriver(&driver);
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // SCM plugin
-            auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
-
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->EnableSkyTexture(SkyMode::DOME);
-            vis_vsg->SetCameraAngleDeg(40);
-            vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetChaseCamera(trackPoint, 7.0, 2.0);
-            vis_vsg->SetChaseCameraPosition(ChVector3d(-3, 4, 1.5));
-            vis_vsg->SetChaseCameraMultipliers(1e-4, 10);
-            vis_vsg->AttachVehicle(&vehicle);
-            vis_vsg->AttachDriver(&driver);
-            vis_vsg->AttachPlugin(visSCM);
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    // Create the vehicle VSG interface
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+    vis->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowPosition(100, 100);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetCameraAngleDeg(40);
+    vis->SetLightIntensity(1.0f);
+    vis->SetChaseCamera(trackPoint, 7.0, 2.0);
+    vis->SetChaseCameraPosition(ChVector3d(-3, 4, 1.5));
+    vis->SetChaseCameraMultipliers(1e-4, 10);
+    vis->AttachVehicle(&vehicle);
+    vis->AttachDriver(&driver);
+    vis->AttachPlugin(visSCM);
+    vis->Initialize();
 
     // -----------------
     // Initialize output

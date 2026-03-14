@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-//// TODO: currently not working properly with Chrono::VSG.
-
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -29,10 +27,9 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_vsg/ChVisualSystemVSG.h"
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
@@ -110,29 +107,24 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Create the vehicle run-time visualization interface
-    std::shared_ptr<ChVisualSystem> vis_sys;
-    ChVector3d cam_pos;
-    {
-        cam_pos = ChVector3d(0, -10, 1.5);
+    ChVector3d cam_pos = ChVector3d(0, -10, 1.5);
 
-        // Create the vehicle Irrlicht interface
-        auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-        vis_irr->AttachSystem(hmmwv.GetSystem());
-        vis_irr->SetWindowTitle("Rigid Terrain Demo");
-        vis_irr->SetWindowSize(1200, 800);
-        vis_irr->Initialize();
-        vis_irr->AddLightDirectional();
-        vis_irr->AddSkyBox();
-        vis_irr->AddLogo();
-        vis_irr->AddCamera(cam_pos, hmmwv.GetVehicle().GetPos());
+    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+    vis->AttachSystem(hmmwv.GetSystem());
+    vis->SetWindowTitle("Rigid Terrain Demo");
+    vis->SetWindowSize(1200, 800);
 
-        vis_sys = vis_irr;
-    }
+    vis->AddCamera(cam_pos, hmmwv.GetVehicle().GetPos());
+
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->Initialize();
 
     // Simulation loop
     hmmwv.GetVehicle().EnableRealtime(true);
 
-    while (vis_sys->Run()) {
+    while (vis->Run()) {
         double time = hmmwv.GetSystem()->GetChTime();
 
         // Dynamically remove and add patches when reaching current switch distance
@@ -162,13 +154,13 @@ int main(int argc, char* argv[]) {
 
         // Update camera position
         cam_pos.x() = veh_pos.x();
-        vis_sys->SetCameraPosition(cam_pos);
-        vis_sys->SetCameraTarget(veh_pos);
+        vis->SetCameraPosition(cam_pos);
+        vis->SetCameraTarget(veh_pos);
 
         // Render scene
-        vis_sys->BeginScene();
-        vis_sys->Render();
-        vis_sys->EndScene();
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();

@@ -32,9 +32,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
 #ifdef CHRONO_MUMPS
     #include "chrono_mumps/ChSolverMumps.h"
@@ -44,7 +42,7 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#define USE_IRRLICHT
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -93,19 +91,6 @@ bool output = true;
 bool dbg_output = false;
 bool povray_output = false;
 bool img_output = false;
-
-// =============================================================================
-
-// Dummy driver class (always returns 1 for throttle, 0 for all other inputs)
-class MyDriver {
-  public:
-    MyDriver() {}
-    double GetThrottle() const { return 1; }
-    double GetSteering() const { return 0; }
-    double GetBraking() const { return 0; }
-    void Synchronize(double time) {}
-    void Advance(double step) {}
-};
 
 // =============================================================================
 
@@ -190,7 +175,6 @@ int main(int argc, char* argv[]) {
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
-#ifdef USE_IRRLICHT
     // Create the driver system
     ChInteractiveDriver driver(vehicle);
 
@@ -204,23 +188,16 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
-    // Create the vehicle Irrlicht application
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    // Create the vehicle run-time application
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
     vis->SetWindowTitle("JSON Band-Tracked Vehicle Demo");
-    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
+    vis->SetWindowSize(1200, 800);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
     vis->AttachVehicle(&vehicle);
-    vis->AttachDriver(&driver);
-#else
-    // Create a default driver (always returns 1 for throttle, 0 for all other inputs)
-    MyDriver driver;
-    driver.Initialize();
-#endif
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 
     // -----------------
     // Initialize output
@@ -397,14 +374,12 @@ int main(int argc, char* argv[]) {
             cout << endl;
         }
 
-#ifdef USE_IRRLICHT
+        // Render scene
         if (!vis->Run())
             break;
-
-        // Render scene
         vis->BeginScene();
         vis->Render();
-#endif
+        vis->EndScene();
 
         if (step_number % render_steps == 0) {
             // Zero-pad frame numbers in file names for postprocessing
@@ -413,14 +388,6 @@ int main(int argc, char* argv[]) {
                 filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
                 utils::WriteVisualizationAssets(vehicle.GetSystem(), filename.str());
             }
-
-#ifdef USE_IRRLICHT
-            if (img_output && step_number > 200) {
-                std::ostringstream filename;
-                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
-                vis->WriteImageToFile(filename.str());
-            }
-#endif
             render_frame++;
         }
 
@@ -432,17 +399,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs);
-#ifdef USE_IRRLICHT
         vis->Synchronize(time, driver_inputs);
-#endif
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
-#ifdef USE_IRRLICHT
         vis->Advance(step_size);
-#endif
 
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
@@ -460,10 +423,6 @@ int main(int argc, char* argv[]) {
         cout << "   Step Time: " << step_timing;
         cout << "   Total Time: " << total_timing;
         cout << endl;
-
-#ifdef USE_IRRLICHT
-        vis->EndScene();
-#endif
     }
 
     if (output) {

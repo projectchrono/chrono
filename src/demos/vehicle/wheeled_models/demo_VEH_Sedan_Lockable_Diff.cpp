@@ -23,14 +23,14 @@
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #include "chrono_models/vehicle/sedan/Sedan.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::sedan;
 
@@ -98,15 +98,17 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    // Create the vehicle run-time interface
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+    vis->AttachVehicle(&sedan.GetVehicle());
     vis->SetWindowTitle("Sedan Demo Locked Diff");
+    vis->SetWindowSize(1280, 800);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
     vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.5), 4.0, 0.5);
     vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&sedan.GetVehicle());
 
     // Initialize output
     const std::string out_dir = GetChronoOutputPath() + "SEDAN";

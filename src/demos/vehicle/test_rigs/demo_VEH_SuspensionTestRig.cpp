@@ -32,15 +32,7 @@
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -148,9 +140,6 @@ RigMode rig_mode = RigMode::PUSHROD;
 enum class DriverMode { DATA_FILE, INTERACTIVE };
 DriverMode driver_mode = DriverMode::INTERACTIVE;
 
-// Run-time visualization system
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
 // Output collection
 ChOutput::Type output = ChOutput::Type::ASCII;
 bool plot = true;
@@ -202,8 +191,7 @@ std::shared_ptr<ChSuspensionTestRig> CreateFromSpecFile() {
             return chrono_types::make_shared<ChSuspensionTestRigPlatform>(
                 GetVehicleDataFile(setup.SuspensionRigJSON()));
         case RigMode::PUSHROD:
-            return chrono_types::make_shared<ChSuspensionTestRigPushrod>(
-                GetVehicleDataFile(setup.SuspensionRigJSON()));
+            return chrono_types::make_shared<ChSuspensionTestRigPushrod>(GetVehicleDataFile(setup.SuspensionRigJSON()));
     }
 }
 
@@ -258,41 +246,11 @@ int main(int argc, char* argv[]) {
     rig->Initialize();
 
     // Create the run-time visualization system
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
-    std::shared_ptr<ChVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChSuspensionTestRigVisualSystemIRR>();
-            vis_irr->SetWindowSize(1280, 1024);
-            vis_irr->SetWindowTitle("Suspension Test Rig");
-            vis_irr->AttachSTR(rig.get());
-            vis_irr->Initialize();
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChSuspensionTestRigVisualSystemVSG>();
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowTitle("Suspension Test Rig");
-            vis_vsg->AttachSTR(rig.get());
-            vis_vsg->Initialize();
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChSuspensionTestRigVisualSystemVSG>();
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowTitle("Suspension Test Rig");
+    vis->AttachSTR(rig.get());
+    vis->Initialize();
 
     // Set up rig output
     std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";

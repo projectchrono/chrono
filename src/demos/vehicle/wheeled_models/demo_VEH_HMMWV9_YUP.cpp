@@ -27,7 +27,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -36,7 +36,6 @@
 #define USE_PATH_FOLLOWER
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
@@ -126,6 +125,8 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
+    ChVector3d grid_center = VNULL;
+
 #ifdef USE_PATH_FOLLOWER
     // Path follower driver
     ////auto path = DoubleLaneChangePath(initLoc, 13.5, 4.0, 11.0, 20.0, true);
@@ -138,6 +139,9 @@ int main(int argc, char* argv[]) {
         initLoc + ChVector3d(0, 0.2, 20)    //
     };
     auto path = chrono_types::make_shared<ChBezierCurve>(points, true);
+
+    grid_center = initLoc + ChVector3d(10, 0, 10);
+    grid_center.y() = 0.01;
 
     ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "my_path", 10);
     driver.GetSteeringController().SetLookAheadDistance(5);
@@ -153,18 +157,19 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 #endif
 
-    // Vehicle Irrlicht run-time visualization
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("HMMWV-9 YUP Demo");
-    vis->SetCameraVertical(CameraVerticalDir::Y);
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional(-60, 300);
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(ChVector3d(0, 0.01, 0), ChWorldFrame::Quaternion()), ChColor(1, 0, 0));
+    // Vehicle run-time visualization
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->AttachVehicle(&hmmwv.GetVehicle());
     vis->AttachDriver(&driver);
+    vis->SetWindowTitle("HMMWV-9 YUP Demo");
+    vis->SetWindowSize(1280, 800);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(grid_center, ChWorldFrame::Quaternion()), ChColor(0.1f, 0.1f, 0.5f));
 
 #ifdef USE_PATH_FOLLOWER
     // Visualization of controller points (sentinel & target)
@@ -175,6 +180,8 @@ int main(int argc, char* argv[]) {
     int iballS = vis->AddVisualModel(ballS, ChFrame<>());
     int iballT = vis->AddVisualModel(ballT, ChFrame<>());
 #endif
+
+    vis->Initialize();
 
     // ---------------
     // Simulation loop
@@ -189,15 +196,14 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = hmmwv.GetSystem()->GetChTime();
 
-#ifdef USE_PATH_FOLLOWER
-        vis->UpdateVisualModel(iballS, ChFrame<>(driver.GetSteeringController().GetSentinelLocation()));
-        vis->UpdateVisualModel(iballT, ChFrame<>(driver.GetSteeringController().GetTargetLocation()));
-#endif
-
         if (step_number % render_steps == 0) {
+#ifdef USE_PATH_FOLLOWER
+            vis->UpdateVisualModel(iballS, ChFrame<>(driver.GetSteeringController().GetSentinelLocation()));
+            vis->UpdateVisualModel(iballT, ChFrame<>(driver.GetSteeringController().GetTargetLocation()));
+#endif
             vis->BeginScene();
             vis->Render();
-            vis->RenderFrame(ChFrame<>(), 10);
+            // vis->RenderFrame(ChFrame<>(), 10);
             vis->EndScene();
         }
 

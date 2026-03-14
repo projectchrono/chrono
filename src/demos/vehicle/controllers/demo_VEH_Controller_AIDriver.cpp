@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
+    // Create the vehicle run-time interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->AttachVehicle(&sedan.GetVehicle());
     vis->SetWindowTitle("Sedan AI Demo");

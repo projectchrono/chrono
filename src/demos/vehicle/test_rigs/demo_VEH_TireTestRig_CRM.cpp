@@ -30,9 +30,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 
-#ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
-#endif
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -219,7 +217,6 @@ int main() {
 
     std::shared_ptr<ChVisualSystem> vis;
 
-#ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
         auto sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetFsiSystemSPH();
@@ -242,9 +239,6 @@ int main() {
         visVSG->Initialize();
         vis = visVSG;
     }
-#else
-    render = false;
-#endif
 
 #ifdef CHRONO_POSTPROCESS
     // ---------------------------
@@ -306,7 +300,7 @@ int main() {
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
 
-                auto long_slip = rig.GetLongitudinalSlip();
+        auto long_slip = rig.GetLongitudinalSlip();
         auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
         auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
 

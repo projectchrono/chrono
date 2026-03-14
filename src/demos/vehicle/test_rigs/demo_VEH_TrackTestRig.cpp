@@ -26,15 +26,7 @@
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblySinglePin.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -50,9 +42,6 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-
-// Run-time visualization system
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Rig construction
 bool use_JSON = true;
@@ -71,7 +60,7 @@ bool use_track_RSDA = true;
 
 // Specification of test rig inputs
 enum class DriverMode {
-    KEYBOARD,    // interactive (Irrlicht) driver
+    KEYBOARD,    // interactive driver
     DATAFILE,    // inputs from data file
     ROADPROFILE  // inputs to follow road profile
 };
@@ -236,41 +225,11 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization system
     // ----------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
-    std::shared_ptr<ChVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChTrackTestRigVisualSystemIRR>();
-            vis_irr->SetWindowSize(1280, 1024);
-            vis_irr->SetWindowTitle("Track Test Rig");
-            vis_irr->AttachTTR(rig);
-            vis_irr->Initialize();
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowTitle("Track Test Rig");
-            vis_vsg->AttachTTR(rig);
-            vis_vsg->Initialize();
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowTitle("Track Test Rig");
+    vis->AttachTTR(rig);
+    vis->Initialize();
 
     // ------------------------------
     // Solver and integrator settings

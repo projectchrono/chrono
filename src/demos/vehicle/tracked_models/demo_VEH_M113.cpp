@@ -34,15 +34,7 @@
 
 #include "demos/SetChronoSolver.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -54,9 +46,6 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
 DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
@@ -86,7 +75,7 @@ double terrainWidth = 100.0;   // size in Y direction
 
 // Specification of vehicle inputs
 enum class DriverMode {
-    KEYBOARD,  // interactive (Irrlicht) driver
+    KEYBOARD,  // interactive driver
     DATAFILE,  // inputs from data file
     PATH       // drives in a straight line
 };
@@ -448,43 +437,14 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization
     // -----------------------------------------
 
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("M113 Vehicle Demo");
-            vis_irr->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&m113.GetVehicle());
-            vis_irr->AttachDriver(driver.get());
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("M113 Vehicle Demo");
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->AttachVehicle(&vehicle);
-            vis_vsg->AttachDriver(driver.get());
-            vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+    vis->SetWindowTitle("M113 Vehicle Demo");
+    vis->SetWindowSize(1280, 800);
+    vis->AttachVehicle(&vehicle);
+    vis->AttachDriver(driver.get());
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->Initialize();
 
     if (vehicle.GetNumTrackShoes(LEFT) > 0)
         std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
@@ -611,7 +571,7 @@ int main(int argc, char* argv[]) {
             if (!vis->Run())
                 break;
 
-             // Render scene and output post-processing data
+            // Render scene and output post-processing data
             if (step_number % render_steps == 0) {
                 vis->BeginScene();
                 vis->Render();

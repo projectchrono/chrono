@@ -1,9 +1,8 @@
 #=============================================================================
 # CMake configuration file for the TwoCars demo.
-# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -17,15 +16,7 @@ SET(PROGRAM demo_VEH_TwoCars)
 
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_vehicle_irrlicht")
-endif()
-
-if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_vehicle_vsg")
-endif()
-
+list(APPEND LIBS "Chrono_vehicle_vsg")
 
 #--------------------------------------------------------------
 # Create the executable

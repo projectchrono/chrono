@@ -1,9 +1,8 @@
 #=============================================================================
 # CMake configuration file for demos of various Chrono::Vehicle models.
-# These example programs require run-time visualization.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -17,28 +16,16 @@ set(DEMOS
     demo_VEH_WheeledGenericSet
     demo_VEH_Wheeled
     demo_VEH_WheeledJSON
+    demo_VEH_HMMWV9_YUP
+    demo_VEH_Sedan_Lockable_Diff
 )
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-   set(DEMOS ${DEMOS}
-       demo_VEH_HMMWV9_YUP
-       demo_VEH_Sedan_Lockable_Diff
-   )
-endif()
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_vehicle_irrlicht")
-endif()
-
-if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_vehicle_vsg")
-endif()
+list(APPEND LIBS "Chrono_vehicle_vsg")
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "Chrono_pardisomkl")

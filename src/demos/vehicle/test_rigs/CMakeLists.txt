@@ -1,9 +1,8 @@
 #=============================================================================
 # CMake configuration file for demos of various Chrono::Vehicle test rigs.
-# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -16,7 +15,7 @@ set(DEMOS
     demo_VEH_TrackTestRig
 )
 
-if(CH_ENABLE_MODULE_FSI_SPH AND CH_ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_FSI_SPH)
     set(DEMOS ${DEMOS} demo_VEH_TireTestRig_CRM)
 endif()
 
@@ -48,10 +47,6 @@ endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "Chrono_postprocess")
-endif()
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_vehicle_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)

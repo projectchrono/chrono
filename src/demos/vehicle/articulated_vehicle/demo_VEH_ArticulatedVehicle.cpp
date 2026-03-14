@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(0.5);
     driver.Initialize();
 
-    // Create the Irrlicht visualization
+    // Create the run-time visualization
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->AttachVehicle(&vehicle);
     vis->AttachDriver(&driver);
