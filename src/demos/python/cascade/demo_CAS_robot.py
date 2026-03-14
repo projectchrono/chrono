@@ -90,7 +90,7 @@ def make_frame_from_name(partname, root_transformation):
     shape_marker = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape_marker, partname)):
         frame_marker = chrono.ChFramed()
-        mydoc.FromCascadeToChrono(shape_marker.Location(), frame_marker)
+        mydoc.ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker)
         frame_marker.ConcatenatePreTransformation(root_transformation)
         return frame_marker
     else:

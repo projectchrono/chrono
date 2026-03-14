@@ -396,7 +396,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_base_turret;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem8/marker#1" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
 	else std::cout << "Warning. Desired marker not found in document \n";
 		// Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
 	frame_marker_base_turret %= root_frame;
@@ -410,7 +410,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_turret_bicep;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#2" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_bicep %= root_frame;
 
@@ -423,7 +423,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_bicep_elbow;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem1/marker#2" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_bicep_elbow %= root_frame;
 
@@ -436,7 +436,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_elbow_forearm;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem5/marker#2" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_elbow_forearm %= root_frame;
 	
@@ -449,7 +449,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_forearm_wrist;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem7/marker#2" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_forearm_wrist %= root_frame;
 
@@ -462,7 +462,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_wrist_hand;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem6/marker#2" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_wrist_hand %= root_frame;
 
@@ -475,7 +475,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_turret_cylinder;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#3" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_cylinder %= root_frame;
 
@@ -488,7 +488,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_cylinder_rod;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem3/marker#2" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_cylinder_rod %= root_frame;
 
@@ -501,7 +501,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 
 	ChFramed frame_marker_rod_bicep;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem2/marker#2" ))
-		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
+		ChCascadeDoc::ConvertFrameCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_rod_bicep %= root_frame;
 
