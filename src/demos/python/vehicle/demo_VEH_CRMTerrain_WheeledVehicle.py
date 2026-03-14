@@ -202,13 +202,13 @@ sph_params = fsi.SPHParameters()
 sph_params.integration_scheme = fsi.IntegrationScheme_RK2
 sph_params.initial_spacing = spacing
 sph_params.d0_multiplier = 1.2
-sph_params.kernel_threshold = 0.8
+sph_params.free_surface_threshold = 0.8
 sph_params.artificial_viscosity = 0.5
 sph_params.shifting_method = fsi.ShiftingMethod_PPST
 sph_params.shifting_ppst_push = 3.0
 sph_params.shifting_ppst_pull = 1.0
-sph_params.consistent_gradient_discretization = False
-sph_params.consistent_laplacian_discretization = False
+sph_params.use_consistent_gradient_discretization = False
+sph_params.use_consistent_laplacian_discretization = False
 sph_params.viscosity_method = fsi.ViscosityMethod_ARTIFICIAL_BILATERAL
 sph_params.boundary_method = fsi.BoundaryMethod_ADAMI
 terrain.SetSPHParameters(sph_params)
