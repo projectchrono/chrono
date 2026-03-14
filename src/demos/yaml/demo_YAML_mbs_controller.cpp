@@ -178,14 +178,8 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
-
-#ifndef CHRONO_VSG
-    std::cout << "No Chrono run-time visualization module enabled. Disabling visualization." << std::endl;
-    render = false;
-#endif
-
-    if (render) {
 #ifdef CHRONO_VSG
+    if (render) {
         auto vis_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vis_vsg->AttachSystem(sys.get());
         vis_vsg->SetWindowTitle("YAML model - " + model_name);
@@ -201,8 +195,12 @@ int main(int argc, char* argv[]) {
         vis_vsg->Initialize();
 
         vis = vis_vsg;
-#endif
     }
+#else
+    if (render)
+        std::cout << "Chrono::VSG run-time visualization module not enabled. Disabling visualization." << std::endl;
+    render = false;
+#endif
 
     // Create output directory
     if (output) {
