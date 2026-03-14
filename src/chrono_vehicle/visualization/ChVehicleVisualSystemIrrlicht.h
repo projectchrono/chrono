@@ -36,10 +36,6 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 
-#ifdef CHRONO_HAS_IRRKLANG
-    #include <irrKlang.h>
-#endif
-
 namespace chrono {
 namespace vehicle {
 
@@ -86,10 +82,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     /// Turn on/off rendering of stats (HUD).
     void EnableStats(bool val) { m_renderStats = val; }
 
-    /// Turn on/off Irrklang sound generation.
-    /// Note that this has an effect only if Irrklang support was enabled at configuration.
-    void EnableSound(bool sound);
-
     /// Initialize the visualization system.
     virtual void Initialize() override;
 
@@ -131,11 +123,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     bool m_renderStats;                            ///< turn on/off rendering of stats
     int m_HUD_x;                                   ///< x-coordinate of upper-left corner of HUD elements
     int m_HUD_y;                                   ///< y-coordinate of upper-left corner of HUD elements
-
-#ifdef CHRONO_HAS_IRRKLANG
-    irrklang::ISoundEngine* m_sound_engine;  ///< Sound player
-    irrklang::ISound* m_car_sound;           ///< Sound
-#endif
 
     friend class ChChaseCameraEventReceiver;
     friend class ChVehicleEventReceiver;
