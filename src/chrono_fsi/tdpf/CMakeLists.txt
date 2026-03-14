@@ -22,7 +22,7 @@ endif()
 
 # Return now if no HDF5 support
 if(NOT HDF5_FOUND)
-   message(WARNING "Required HDF5 support not available; disabling Chrono::FSI-TDPF")
+    message(WARNING "Required HDF5 support not available; disabling Chrono::FSI-TDPF")
     set(CH_ENABLE_MODULE_FSI_TDPF OFF CACHE BOOL "Enable the Chrono::TDPF FSI module" FORCE)
     return()
 endif()
