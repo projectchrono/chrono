@@ -1,16 +1,15 @@
 #=============================================================================
 # CMake configuration file for the ARTICULATED VEHICLE demo.
-# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-IF(NOT CH_ENABLE_MODULE_IRRLICHT)
-    RETURN()
-ENDIF()
+if(NOT CH_ENABLE_MODULE_VSG)
+    return()
+endif()
 
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(MODEL_FILES
+set(MODEL_FILES
     subsystems/ACV_Vehicle.h
     subsystems/ACV_Vehicle.cpp
     subsystems/ACV_ChassisFront.h
@@ -35,23 +34,21 @@ SET(MODEL_FILES
     subsystems/ACV_AutomaticTransmissionSimple.cpp
 )
 
-SET(PROGRAM
+set(PROGRAM
     demo_VEH_ArticulatedVehicle
 )
 
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
+include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 #--------------------------------------------------------------
 # Create the executable
 
-# MESSAGE(STATUS "...add ${PROGRAM}")
-
-ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
-SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${PROGRAM}.cpp ${MODEL_FILES})
+add_executable(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
+source_group("subsystems" FILES ${MODEL_FILES})
+source_group("" FILES ${PROGRAM}.cpp ${MODEL_FILES})
 
 if(APPLE)
    set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
@@ -61,10 +58,10 @@ if(MSVC)
   set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-TARGET_LINK_LIBRARIES(${PROGRAM}
+set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+target_link_libraries(${PROGRAM}
                       Chrono_vehicle
-                      Chrono_vehicle_irrlicht
+                      Chrono_vehicle_vsg
                       ChronoModels_vehicle)
 
-INSTALL(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
