@@ -32,8 +32,8 @@
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeBypass.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
 using std::cout;
@@ -84,8 +84,8 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     ChSystemSMC* m_system;                          // containing Chrono system
     std::vector<std::shared_ptr<ChBody>> m_bodies;  // proxy tire bodies
 
-#ifdef CHRONO_IRRLICHT
-    std::shared_ptr<irrlicht::ChVisualSystemIrrlicht> m_vis;  // Irrlicht run-time visualization
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vis;  // run-time visualization
 #endif
 };
 
@@ -155,20 +155,18 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     // Reset system time to 0.
     m_system->SetChTime(0);
 
-#ifdef CHRONO_IRRLICHT
+#ifdef CHRONO_VSG
     if (m_renderRT) {
-        // Create the Irrlicht visualization system
-        m_vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        m_vis->SetCameraVertical(CameraVerticalDir::Z);
-        m_vis->SetWindowSize(1280, 720);
-        m_vis->SetWindowTitle("Custom terrain node");
-        m_vis->Initialize();
-        m_vis->AddLogo();
-        m_vis->AddSkyBox();
-        m_vis->AddCamera(ChVector3d(2, 1.4, 1));
-        m_vis->AddLightDirectional();
-
+        // Create the run-time visualization system
+        m_vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vis->AttachSystem(m_system);
+        m_vis->SetCameraVertical(CameraVerticalDir::Z);
+        m_vis->SetWindowTitle("Custom terrain node");
+        m_vis->SetWindowSize(1280, 720);
+        m_vis->AddCamera(ChVector3d(2, 1.4, 1));
+        m_vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        m_vis->EnableShadows();
+        m_vis->Initialize();
     }
 #endif
 }
@@ -183,7 +181,7 @@ void MyTerrain::OnAdvance(double step_size) {
 }
 
 void MyTerrain::OnRender() {
-#ifdef CHRONO_IRRLICHT
+#ifdef CHRONO_VSG
     if (!m_vis->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
