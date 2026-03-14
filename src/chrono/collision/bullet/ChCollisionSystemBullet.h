@@ -146,7 +146,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     cbtCollisionAlgorithmCreateFunc* m_collision_arc_seg;
     cbtCollisionAlgorithmCreateFunc* m_collision_seg_arc;
     cbtCollisionAlgorithmCreateFunc* m_collision_arc_arc;
-    cbtCollisionAlgorithmCreateFunc* m_collision_cetri_cetri;
+    cbtCollisionAlgorithmCreateFunc* m_collision_chtri_chtri;
     cbtCollisionAlgorithmCreateFunc* m_collision_seg_seg;
 
     void* m_tmp_mem;

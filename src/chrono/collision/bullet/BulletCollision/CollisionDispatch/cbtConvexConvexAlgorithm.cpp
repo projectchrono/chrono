@@ -288,7 +288,7 @@ void cbtConvexConvexAlgorithm ::processCollision(const cbtCollisionObjectWrapper
 
 	/* ***CHRONO*** disable contact persistence for deformable triangle meshes vs convexes, 
 	because these do not simply move/rotate with affine transformation as other primitives. */
-	if((min0->getShapeType() == CE_TRIANGLE_SHAPE_PROXYTYPE) ||  (min1->getShapeType() == CE_TRIANGLE_SHAPE_PROXYTYPE)) 
+	if((min0->getShapeType() == CH_TRIANGLE_SHAPE_PROXYTYPE) ||  (min1->getShapeType() == CH_TRIANGLE_SHAPE_PROXYTYPE)) 
 		resultOut->getPersistentManifold()->clearManifold();
 
 	cbtVector3 normalOnB;

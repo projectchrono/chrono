@@ -57,7 +57,7 @@ cbtCEtriangleShape::cbtCEtriangleShape(const ChVector3d* mp1,
     owns_edge_3 = mowns_edge_3;
     sphereswept_rad = msphereswept_rad;
 
-    m_shapeType = CE_TRIANGLE_SHAPE_PROXYTYPE;
+    m_shapeType = CH_TRIANGLE_SHAPE_PROXYTYPE;
 }
 
 cbtVector3 cbtCEtriangleShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec0) const {
