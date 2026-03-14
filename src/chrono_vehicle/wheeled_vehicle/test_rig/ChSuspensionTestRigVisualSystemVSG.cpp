@@ -102,18 +102,24 @@ void ChSTRGuiComponentVSG::render(vsg::CommandBuffer& cb) {
         ImGui::TableNextColumn();
         ImGui::PushItemWidth(150.0f);
         ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
+        ImGui::PushID("steering_gauge");
         DrawGauge(-driver->GetSteering(), -1, 1);
+        ImGui::PopID();
         ImGui::PopStyleColor();
         ImGui::PopItemWidth();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Post left:");
         ImGui::TableNextColumn();
+        ImGui::PushID("left_post_gauge");
         DrawGauge(-driver->GetLeft(), -1, 1);
+        ImGui::PopID();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Post right:");
         ImGui::TableNextColumn();
+        ImGui::PushID("right_post_gauge");
+        ImGui::PopID();
         DrawGauge(-driver->GetRight(), -1, 1);
         ImGui::EndTable();
     }

@@ -23,6 +23,7 @@
 
 // forward references
 class cbtCollisionObject;
+class cbtTriangleMesh;
 
 namespace chrono {
 
@@ -88,6 +89,8 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
 
     std::vector<std::shared_ptr<cbtCollisionShape>> m_bt_shapes;  ///< list of Bullet collision shapes in model
     std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;      ///< extended list of collision shapes
+    
+    cbtTriangleMesh* m_bullet_mesh; ///< bullet triangle mesh soup for static or convex case
 
     friend class ChCollisionSystemBullet;
     friend class ChCollisionSystemBulletMulticore;
