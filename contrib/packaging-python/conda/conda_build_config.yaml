@@ -14,3 +14,11 @@ cuda_compiler_version: # [not osx]
 
 numpy:
   - 2.4.2
+
+c_stdlib:
+  - sysroot                    # [linux]
+  - macosx_deployment_target   # [osx]
+  - vs                         # [win]
+  
+c_stdlib_version:
+  - "2.34"          # [linux]

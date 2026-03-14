@@ -18,6 +18,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }} # [not osx]
+    - {{ stdlib('c') }}
     - cmake >=4
     - ninja   # [linux or osx]
     - jinja2  # [linux]
