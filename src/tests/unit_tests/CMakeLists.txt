@@ -112,6 +112,16 @@ if(CH_ENABLE_MODULE_MODAL)
   endif()
 endif()
 
+
+if(CH_ENABLE_MODULE_CASCADE)
+  option(BUILD_TESTING_CASCADE "Build unit tests for Cascade module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_CASCADE)
+  if(BUILD_TESTING_CASCADE)
+    ADD_SUBDIRECTORY(cascade)
+  endif()
+endif()
+
+
 if(CH_ENABLE_MODULE_VEHICLE)
   option(BUILD_TESTING_VEHICLE "Build unit tests for Vehicle module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_VEHICLE)
