@@ -228,6 +228,7 @@ using namespace chrono::sensor;
 %template(vector_ChFramed) std::vector< chrono::ChFrame<double> >;
 %template(vector_double) std::vector<double> ;
 
+%include "ChNoiseModel.i"
 %include "ChSensorBuffer.i"
 %include "ChFilter.i"
 %include "ChSensor.i"
@@ -237,7 +238,6 @@ using namespace chrono::sensor;
   %include "ChOptixSensor.i"
 #endif
 %include "chrono_sensor/ChSensorManager.h"
-%include "chrono_sensor/sensors/ChNoiseModel.h"
 
 
 
