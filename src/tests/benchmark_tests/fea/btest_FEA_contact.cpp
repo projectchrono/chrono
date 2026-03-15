@@ -115,8 +115,9 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
             solver->SetTolerance(1e-12);
-
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+
+            break;
         }
         case SolverType::MKL: {
 #ifdef CHRONO_PARDISO_MKL
