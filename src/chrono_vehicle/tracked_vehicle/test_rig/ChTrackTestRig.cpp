@@ -452,7 +452,11 @@ void ChTrackTestRig::PlotOutput(const std::string& out_dir, const std::string& o
     mplot.SetLabelX("time [s]");
     mplot.SetLabelY("wheel z [m]");
     mplot.SetCommand("set format y '%4.1e'");
-    mplot.SetCommand("set terminal wxt size 800, 600");
+#ifdef __APPLE__
+            mplot.SetCommand("set terminal qt size 800, 600");
+#else
+            mplot.SetCommand("set terminal wxt size 800, 600");
+#endif
     mplot.Plot(out_file, 1, 4, "sprocket", " with lines lw 2");
     mplot.Plot(out_file, 1, 7, "idler", " with lines lw 2");
     for (int i = 0; i < m_track->GetNumTrackSuspensions(); i++) {

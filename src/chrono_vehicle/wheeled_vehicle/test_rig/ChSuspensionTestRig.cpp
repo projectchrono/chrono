@@ -504,7 +504,11 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         {
             postprocess::ChGnuPlot gplot(out_dir + "/plot_actuators.gpl");
 
+#ifdef __APPLE__
+            gplot.SetCommand("set terminal qt size 800, 1200");
+#else
             gplot.SetCommand("set terminal wxt size 800, 1200");
+#endif
             gplot.SetCommand("set multiplot layout 2,1");
 
             gplot.SetTitle("Axle " + std::to_string(ia) + " - Actuator");
@@ -532,7 +536,11 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         {
             postprocess::ChGnuPlot gplot(out_dir + "/plot_wheels.gpl");
 
+#ifdef __APPLE__
+            gplot.SetCommand("set terminal qt size 800, 1200");
+#else
             gplot.SetCommand("set terminal wxt size 800, 1200");
+#endif
             gplot.SetCommand("set multiplot layout 2,1");
 
             gplot.SetTitle("Axle " + std::to_string(ia) + " - Wheel");
@@ -561,7 +569,11 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         if (num_tsda > 0) {
             postprocess::ChGnuPlot gplot(out_dir + "/plot_tsdas.gpl");
 
+#ifdef __APPLE__
+            gplot.SetCommand("set terminal qt size 1200, 1200");
+#else
             gplot.SetCommand("set terminal wxt size 1200, 1200");
+#endif
             gplot.SetCommand("set multiplot layout 3," + std::to_string(num_tsda) + " columns first ");
 
             gplot.SetCommand("set format y '%4.1f'");
@@ -600,7 +612,11 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         if (num_rsda > 0) {
             postprocess::ChGnuPlot gplot(out_dir + "/plot_rsdas.gpl");
 
+#ifdef __APPLE__
+            gplot.SetCommand("set terminal qt size 1200, 1200");
+#else
             gplot.SetCommand("set terminal wxt size 1200, 1200");
+#endif
             gplot.SetCommand("set multiplot layout 3," + std::to_string(num_rsda) + " columns first ");
 
             gplot.SetCommand("set format y '%4.1f'");
