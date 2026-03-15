@@ -108,6 +108,21 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Return the internal linear solver for K_IIc^{-1} computation
     std::shared_ptr<ChDirectSolverLS> GetModalSolver() const;
 
+    /// Floating frame update methods.
+    enum class FloatingFrameType {
+        COG,      ///< minimum kinetic energy by NR iteration with COG criterion
+        ATTACHED  ///< move follow attached frames
+    };
+
+    /// Set the type of FFR(floating frame reference) to be used, COG by default.
+    void SetFFRtype(FloatingFrameType type) { m_FFR_type = type; }
+
+    /// Get the type of FFR(floating frame reference) to be used.
+    FloatingFrameType GetFFRtype() const { return m_FFR_type; }
+
+    /// Add a attached frame for FFR, like body or fea-node, the FFR will follow frame by weight
+    void AddAttachedFrame(std::shared_ptr<ChFrameMoving<>> frame, double weight);
+
     /// Get the floating frame F of the reduced modal assembly.
     ChFrameMoving<> GetFloatingFrameOfReference() { return floating_frame_F; }
 
@@ -150,6 +165,17 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// animations, in fact the internal nodes would be completely neglected if m_internal_nodes_update == false; but
     /// calling this function one can update their changing positions for visualization, stress recovery, etc.
     void UpdateInternalState(UpdateFlags update_flags);
+
+    /// Updates the state of internal nodes by static equilibrium.
+    /// This function is target to improving the accuracy of internal nodes' deformation and internal load. It works
+    /// like a Post-processing, overwrite the state of modal by static equilibrium, while velocity and acceleration is
+    /// calculated same with UpdateInternalState. It might be better than static correction method because it doesn's
+    /// change modal matrix which will have better convergency rate. You can only call this function before
+    /// getting internal force of elements, and set m_internal_nodes_update to be false, instead of calling
+    /// UpdateInternalState in every step or NR-iteration, which will improve the simulation performance. Since the
+    /// linear assumption of the modal conflicts with corotation, it is recommended to call UpdateRotation(q_modal)
+    /// before obtaining the beam internal forces, it will improve axial load's accuracy significantly.
+    void UpdateInternalStateWithStaticEquilibrium(UpdateFlags update_flags = UpdateFlags::UPDATE_ALL);
 
     /// Resets the state of this modal assembly (both boundary and internal items) to the state snapshot in the initial
     /// configuration.
@@ -637,6 +663,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     // ChFrameMoving<> floating_frame_F_old;
     ChVectorDynamic<> m_res_CF;  ///< residual of the six constraint equations on the floating frame F
     double m_tol_CF = 0;         // tolerance of the Newton-Raphson iteration in searching for the floating frame F
+
+    FloatingFrameType m_FFR_type = FloatingFrameType::COG;  ///< type of floating frame
+
+    std::vector<std::shared_ptr<ChFrameMoving<>>> attached_F;  ///< attached frames
+    std::vector<ChQuaternion<>> attached_F_rot0;               ///< init quaternion of attached frames
+    std::vector<double> attached_F_weight;                     ///< weight quaternion of attached frames
 
     ChState m_full_state_x0;  // full state snapshot of assembly in the initial undeformed configuration
     ChState m_full_state_x;   // full state snapshot of assembly in the deformed configuration

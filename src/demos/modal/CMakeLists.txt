@@ -3,6 +3,7 @@
 
 set(DEMOS
     demo_MOD_slewing_beam
+    demo_MOD_internal_force
     )
 
 # Add demos that require Irrlicht
