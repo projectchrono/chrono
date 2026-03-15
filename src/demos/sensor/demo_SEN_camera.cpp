@@ -78,9 +78,9 @@ bool GetProblemSpecs(int argc,
                      CameraNoiseModelType& noise_model,
                      int& spp,
                      bool& use_diffuse_1,
-                     bool use_denoiser_1,
+                     bool& use_denoiser_1,
                      bool& use_diffuse_2,
-                     bool use_denoiser_2,
+                     bool& use_denoiser_2,
                      LightType& light_type);
 
 int main(int argc, char* argv[]) {
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     auto vis_mat2 = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat2->SetBSDF(BSDFType::SPECULAR);
     vis_mat2->SetAmbientColor({0.f, 0.f, 0.f});
-    vis_mat2->SetDiffuseColor({1.0, 1.0, 1.0});
+    vis_mat2->SetDiffuseColor({0.0, 0.0, 0.0});
     vis_mat2->SetSpecularColor({1.0f, 1.0f, 1.0f});
     vis_mat2->SetOpacity(1.f);
     vis_mat2->SetUseSpecularWorkflow(true);
@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Set up the background
-    if (light_type == LightType::ENVIRONMENT_LIGHT) {
+    if (light_type != LightType::ENVIRONMENT_LIGHT) {
         b.mode = BackgroundMode::SOLID_COLOR;
         b.color_zenith = ChVector3f(0.f, 0.f, 0.f);
         manager->scene->SetBackground(b);
@@ -677,9 +677,9 @@ bool GetProblemSpecs(int argc,
                      CameraNoiseModelType& noise_model,
                      int& spp,
                      bool& use_diffuse_1,
-                     bool use_denoiser_1,
+                     bool& use_denoiser_1,
                      bool& use_diffuse_2,
-                     bool use_denoiser_2,
+                     bool& use_denoiser_2,
                      LightType& light_type) {
     std::string description =
         "\nCamera sensor demo\n\n"                                           //
