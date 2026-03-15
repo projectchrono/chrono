@@ -12,17 +12,20 @@
 // Authors: Bryan Peterson, Antonio Recuero
 // =============================================================================
 //
-// Demo for 9-node, large deformation brick element
-// The user can run seven demos in the main function. 1) Axial dynamics excites
-// a beam made up of brick elements axially; 2) BendingQuasiStatic applies a qua-
-// sistatic load at a corner of a plate and is used for convergence verification;
-// 3) Swinging shell is used for verification of dynamics, rigid body and large
-// deformation problems, 4) ShellBrickContact is used to visualize contact between
-//  ANCF shell elements and 9-node bricks, 5) SimpleBoxContact is intended to
-// visualize contact between rigid bodies and bricks. 6) DPCapPress is a soil bin
-// scenario in which a set of nodal forces is applied to validate the Drucker-
-// Prager Cap Model.
-// The user can uncomment and run any of the seven demos
+// Demo for 9-node, large deformation brick element.
+// The user can run seven demos in the main function:
+// 1) AxialDynamics excites a beam made up of brick elements axially; 
+// 2) BendingQuasiStatic applies a qua-static load at a corner of a plate and
+//    is used for convergence verification;
+// 3) SwingingShell is used for verification of dynamics, rigid body and large
+//    deformation problems;
+// 4) SoilBin
+// 5) SimpleBoxContact is intended to visualize contact between rigid bodies and
+//    bricks;
+// 6) ShellBrickContact is used to visualize contact between ANCF shell elements
+//    and 9-node bricks;
+// 7) DPCapPress is a soil bin scenario in which a set of nodal forces is applied
+//    to validate the Drucker-Prager Cap Model.
 //
 // =============================================================================
 
@@ -117,7 +120,9 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+// -----------------------------------------------------------------------------
 // Soil Bin case testing Drucker-Prager Cap model
+
 void DPCapPress(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
@@ -426,7 +431,8 @@ void DPCapPress(const std::string& out_dir) {
     std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
-// Test1 Case
+// -----------------------------------------------------------------------------
+
 void ShellBrickContact(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
@@ -484,7 +490,7 @@ void ShellBrickContact(const std::string& out_dir) {
     double Sdy = shell_lenght_y / SnumDiv_y;
 
     bool Plasticity = true;
-    double timestep = 1e-4;
+    double timestep = 1e-5;
 
     // Create and add the nodes
     for (int j = 0; j <= numDiv_z; j++) {
@@ -742,9 +748,9 @@ void ShellBrickContact(const std::string& out_dir) {
     // Set the time integrator parameters
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
-    mystepper->SetAlpha(0.0);
+    mystepper->SetAlpha(-0.2);
     mystepper->SetMaxIters(20);
-    mystepper->SetAbsTolerances(1e-4, 1e-2);
+    mystepper->SetAbsTolerances(1e-3, 1e-2);
     mystepper->SetVerbose(true);
 
     sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
@@ -805,7 +811,8 @@ void ShellBrickContact(const std::string& out_dir) {
     std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
-// Test Case
+// -----------------------------------------------------------------------------
+
 void SimpleBoxContact(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
@@ -1086,7 +1093,9 @@ void SimpleBoxContact(const std::string& out_dir) {
     std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
+// -----------------------------------------------------------------------------
 // SoilBin Dynamic
+
 void SoilBin(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
@@ -1411,7 +1420,9 @@ void SoilBin(const std::string& out_dir) {
     std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
+// -----------------------------------------------------------------------------
 // Axial Dynamic
+
 void AxialDynamics(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
@@ -1658,7 +1669,9 @@ void AxialDynamics(const std::string& out_dir) {
     std::cout << mystepper->GetNumIterations() << std::endl;
 }
 
+// -----------------------------------------------------------------------------
 // QuasiStatic
+
 void BendingQuasiStatic(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
@@ -1875,7 +1888,9 @@ void BendingQuasiStatic(const std::string& out_dir) {
     }
 }
 
+// -----------------------------------------------------------------------------
 // Swinging (Bricked) Shell
+
 void SwingingShell(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
