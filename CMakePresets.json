@@ -104,6 +104,7 @@
 				"console_bridge_DIR": "$env{HOME}/Packages/urdf/$env{LIB_DIR}/console_bridge/cmake",
 				"tinyxml2_DIR": "$env{HOME}/Packages/urdf/CMake",
 				"Python3_ROOT_DIR": "/root/venv/",
+				"Python3_EXECUTABLE": "/root/venv/bin/python",
 				"Python3_FIND_STRATEGY": "LOCATION"
 			}
 		},
