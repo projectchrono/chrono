@@ -102,7 +102,9 @@
 				"urdfdom_DIR": "$env{HOME}/Packages/urdf/$env{LIB_DIR}/urdfdom/cmake",
 				"urdfdom_headers_DIR": "$env{HOME}/Packages/urdf/$env{LIB_DIR}/urdfdom_headers/cmake",
 				"console_bridge_DIR": "$env{HOME}/Packages/urdf/$env{LIB_DIR}/console_bridge/cmake",
-				"tinyxml2_DIR": "$env{HOME}/Packages/urdf/CMake"
+				"tinyxml2_DIR": "$env{HOME}/Packages/urdf/CMake",
+				"Python3_ROOT_DIR": "/root/venv/",
+				"Python3_FIND_STRATEGY": "LOCATION"
 			}
 		},
 		{
