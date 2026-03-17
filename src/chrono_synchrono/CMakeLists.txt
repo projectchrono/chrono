@@ -151,20 +151,10 @@ endif()
 set(DEPENDENCIES_SYNCHRONO ${DEPENDENCIES_SYNCHRONO} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
-# Generate and install configuration file
+# Add the Chrono_synchrono library
 #-----------------------------------------------------------------------------
 
 set(SYN_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in ${SYN_CONFIG_FILE} @ONLY)
-
-source_group("" FILES ${SYN_CONFIG_FILE})
-
-install(FILES ${SYN_CONFIG_FILE} DESTINATION include/chrono_synchrono)
-
-#-----------------------------------------------------------------------------
-# Add the Chrono_synchrono library
-#-----------------------------------------------------------------------------
 
 add_library(Chrono_synchrono
     ${SYN_BASE_FILES}
@@ -253,6 +243,25 @@ if (CH_USE_SYNCHRONO_FASTDDS)
 	  message(STATUS "  FooNathan found?      ${foonathan_memory_FOUND}")
 
 	  if (fastcdr_FOUND AND fastrtps_FOUND AND foonathan_memory_FOUND)
+        # Fast DDS package targets may be created in this directory scope only,
+        # but Chrono_synchrono exposes them through a PUBLIC link interface that
+        # is consumed from sibling demo directories.
+        set(FASTDDS_IMPORTED_TARGETS
+            fastrtps
+            fastcdr
+            foonathan_memory
+            foonathan_memory_node_size_debugger
+            eProsima_atomic
+            OpenSSL::SSL
+            OpenSSL::Crypto
+        )
+
+        foreach(dds_target IN LISTS FASTDDS_IMPORTED_TARGETS)
+          if(TARGET ${dds_target})
+            set_property(TARGET ${dds_target} PROPERTY IMPORTED_GLOBAL TRUE)
+          endif()
+        endforeach()
+
 		target_link_libraries(Chrono_synchrono PUBLIC fastrtps fastcdr)
 	    ##set(SYN_INCLUDES ${SYN_INCLUDES} ${fastrtps_INCLUDE_DIR} ${fastcdr_INCLUDE_DIR})
 		set(FASTDDS_FOUND TRUE)
@@ -293,6 +302,16 @@ endif()
 
 # Set some variables to be visible outside this directory
 set(FASTDDS_FOUND "${FASTDDS_FOUND}" PARENT_SCOPE)
+
+#-----------------------------------------------------------------------------
+# Generate and install configuration file
+#-----------------------------------------------------------------------------
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in ${SYN_CONFIG_FILE} @ONLY)
+
+source_group("" FILES ${SYN_CONFIG_FILE})
+
+install(FILES ${SYN_CONFIG_FILE} DESTINATION include/chrono_synchrono)
 
 
 install(TARGETS Chrono_synchrono
