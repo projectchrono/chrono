@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         // Create a sensor manager
         // -----------------------
         auto manager = std::make_shared<ChSensorManager>(&sys);
-        manager->SetRayRecursions(0);
+        manager->SetRayRecursions(9); // number of ray bounces for tracing each path
         manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
