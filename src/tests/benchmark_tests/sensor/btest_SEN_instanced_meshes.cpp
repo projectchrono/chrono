@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>({-10, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                                   // image width
             1080,                                                                   // image height
-            (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true                 // FOV
+            (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true, true           // FOV, samples per pixel (spp), lens model type, consider diffuse reflection, use OptiX denoiser
         );
         cam->SetName("Camera Sensor");
         if (vis)
