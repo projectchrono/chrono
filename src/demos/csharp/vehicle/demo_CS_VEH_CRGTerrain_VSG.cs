@@ -16,8 +16,7 @@
 // This demo also enables the use of a dynamic vehicle type through input prompt
 //
 // The default world frame is ISO (Z up, X forward, Y to the left).
-// Not currently working is that this this demo can be set up to work with
-// a non-ISO frame by un-commenting the input request to set Y-Up. This will
+// This demo can also be set up to work with a non-ISO frame by selecting Y-Up at runtime. This will
 // use a world frame with Y up, X forward, and Z to the right.
 // 
 //
@@ -64,7 +63,7 @@ namespace ChronoDemo
         };
 
         // Road visualization (mesh or boundary lines)
-        public static bool useMesh = false; // N.B. mesh visualisation is well-supported in VSG
+        public static bool useMesh = true; // N.B. mesh visualisation is well-supported in VSG
         // Desired vehicle speed (m/s)
         public static double targetSpeed = 12;
         // Minimum / maximum speed (m/s) for Human driver type
@@ -238,23 +237,19 @@ namespace ChronoDemo
             // ---------------
             // Set World Frame
             // ---------------
-            
-            // TODO: Y-Up functionality not currently functioning correctly.
-            /*
-            Console.WriteLine("Use Y-UP world frame? (default false):");
-            string yupInput = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(yupInput) && bool.TryParse(yupInput, out bool yupResult))
+
+            Console.WriteLine("Do you want to use a Y-Up world orientation (Y/N)? (default N):");
+            string orientationInput = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(orientationInput) && orientationInput.Equals("y", StringComparison.OrdinalIgnoreCase))
             {
-                yUp = yupResult;
+                yUp = true;
+                Console.WriteLine("\n\nY-Up world selected.\n\n");
             }
             else
             {
-                // If input is null, empty, or only whitespace, or if parsing fails, do nothing but give feedback
-                // (default is set above in declarations)
-                Console.WriteLine("Could not determine input value. Y-Up will be set to false.");
+                yUp = false;
+                Console.WriteLine("\n\nDefault Z-Up Chrono world set.\n\n");
             }
-
-            */
 
             if (yUp)
                 ChWorldFrame.SetYUP();
@@ -350,11 +345,11 @@ namespace ChronoDemo
             CRGTerrain terrain = new CRGTerrain(sys);
             terrain.UseMeshVisualization(useMesh); // likely needs spacing apart of mesh/filter?
             terrain.SetContactFrictionCoefficient(0.8f);
-            terrain.SetRoadsidePostDistance(25.0);
+            terrain.SetRoadsidePostDistance(50.0);
             // bright concrete
             terrain.SetRoadDiffuseTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Color.jpg");
-            //terrain.SetRoadNormalTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_NormalGL.jpg");
-            //terrain.SetRoadRoughnessTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Roughness.jpg");
+            terrain.SetRoadNormalTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_NormalGL.jpg");
+            terrain.SetRoadRoughnessTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Roughness.jpg");
             terrain.Initialize(crgRoadFile);
 
             // Get the vehicle path (middle of the road)
@@ -489,27 +484,33 @@ namespace ChronoDemo
             Console.WriteLine("Driver model: " + driver.GetDriverType());
 
             // -------------------------------
-            // Create the visualization system
+            // Create the VSG vis system
             // -------------------------------
 
             ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
             chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("OpenCRG Steering");
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowSize(1200, 800);
+            if (yUp)
+            {
+                chrono_vsg.CastToChVisualSystemVSG(vis).SetCameraVertical(CameraVerticalDir.Y);
+            }
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
             chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
-            vis.AttachVehicle(getTheVehicle);  // Must attach vehicle BEFORE Initialize()
+            vis.AttachVehicle(getTheVehicle);
             vis.AttachTerrain(terrain);
-            vis.Initialize();
 
-            // Set up sentinal
+            // Set up sentinel/target markers (added BEFORE Initialize() for VSG scene graph following the C++ demo)
             var sentinel = new ChVisualShapeSphere(0.1);
             var target = new ChVisualShapeSphere(0.1);
             sentinel.SetColor(new ChColor(1, 0, 0));
             target.SetColor(new ChColor(0, 1, 0));
             int sentinelID = vis.AddVisualModel(sentinel, new ChFramed());
             int targetID = vis.AddVisualModel(target, new ChFramed());
+
+            vis.Initialize();
 
             // ---------------
             // Simulation loop

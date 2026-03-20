@@ -24,6 +24,7 @@
 using System;
 using static ChronoGlobals;
 using static chrono_vehicle;
+using static chrono;
 
 namespace ChronoDemo
 {
@@ -131,21 +132,17 @@ namespace ChronoDemo
             VisualiseTerrain(); // See below after simulation loop
 
 
-            // Create the vehicle Irrlicht interface
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Rollover Demo");
-            if (isYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); } // Adjustment for Y-Up world
+            // Create the VSG vehicle interface
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Rollover Demo");
+            if (isYUp) { chrono_vsg.CastToChVisualSystemVSG(vis).SetCameraVertical(CameraVerticalDir.Y); }
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
+            vis.AttachVehicle(hmmwv.GetVehicle());  // Must attach vehicle BEFORE Initialize()
             vis.Initialize();
-            if (isYUp)
-            { // add a light in the correct location for Y-Up
-                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.4f, 0.4f, 0.4f));
-            } else {
-                vis.AddLightDirectional(80, 10);
-            }
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(hmmwv.GetVehicle());
 
 
             // ---------------

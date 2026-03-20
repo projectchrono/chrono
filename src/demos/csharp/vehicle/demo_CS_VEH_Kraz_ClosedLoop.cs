@@ -97,15 +97,16 @@ namespace ChronoDemo
             }
             terrain.Initialize();
 
-            // Create the vehicle Irrlicht interface
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
+            // Create the VSG vehicle interface
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 6, 0.5);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
+            vis.AttachVehicle(truck.GetTractor());  // Must attach vehicle BEFORE Initialize()
             vis.Initialize();
-            vis.AddLightDirectional();
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(truck.GetTractor());
             
             // Create the straight path and the driver system
             var path = StraightLinePath(new ChVector3d(-terrainLength / 2, 0, 0.5), new ChVector3d(10 * terrainLength / 2, 0, 0.5), 1);

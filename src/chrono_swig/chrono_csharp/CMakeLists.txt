@@ -406,16 +406,16 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   if(MSVC)
     set_source_files_properties(${INTERFACE_FILE_VEHICLE} PROPERTIES COMPILE_OPTIONS "-w401,503,833")
   endif()
-  
+
+  # Vehicle C# wrapper expliclity opts out of irrlicht and doesn't try to link it.
+  # Keep the global Irrlicht SWIG define for other C# wrappers (e.g. MBS)
+  if(CH_ENABLE_MODULE_IRRLICHT)
+    set_property(SOURCE ${INTERFACE_FILE_VEHICLE} APPEND PROPERTY COMPILE_OPTIONS "-UCHRONO_IRRLICHT")
+  endif()
+
   # Create the SWIG module.
   swig_add_library(Chrono_csharp_vehicle LANGUAGE csharp SOURCES ${INTERFACE_FILE_VEHICLE})
   target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_core Chrono_vehicle ChronoModels_vehicle)
-
-  if(CH_ENABLE_MODULE_IRRLICHT)
-    find_package(Irrlicht QUIET REQUIRED)
-    target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_irrlicht Chrono_vehicle_irrlicht Irrlicht::Irrlicht)
-    add_dependencies(Chrono_csharp_vehicle Chrono_csharp_irrlicht)
-  endif()
   
   if(CH_ENABLE_MODULE_VSG)
       target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_vehicle_vsg Chrono_vsg)
@@ -439,9 +439,11 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
                         )
   
   target_compile_definitions(Chrono_csharp_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
-  if (CH_USE_OPENCRG)
-    target_compile_definitions(Chrono_csharp_vehicle PRIVATE "CHRONO_HAS_OPENCRG")
-  endif()
+  # removed the has opencrg definition since it gets defined in ChConfigVehicle.h and this
+  # triggers a redefinition error when the wrapper tries to compile with the opencrg module enabled
+  ##    if (CH_USE_OPENCRG)
+  ##      target_compile_definitions(Chrono_csharp_vehicle PRIVATE "CHRONO_HAS_OPENCRG")
+  ##    endif()
   
   add_dependencies(Chrono_csharp_vehicle Chrono_core Chrono_vehicle ChronoModels_vehicle)
 
