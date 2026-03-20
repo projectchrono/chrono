@@ -818,6 +818,8 @@ if(CH_USE_CSHARP_WRAPPER)
             -DCORE_SOURCE_DIR=${CHRONO_CSHARP_CORE_SOURCE_DIR}
             -DMODULE_SOURCE_DIRS=${_chrono_csharp_module_dirs_arg}
             -P ${CHRONO_CSHARP_COLLECT_SCRIPT}
+    # Wipe the output dir to ensure old files don't cause issues
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CHRONO_CSHARP_WRAPPER_ROOT}/obj"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CHRONO_CSHARP_WRAPPER_OUTPUT_ROOT}/$<CONFIG>"
     COMMAND ${DOTNET_EXE} publish ${CHRONO_CSHARP_WRAPPER_PROJECT}
             --configuration $<CONFIG>
