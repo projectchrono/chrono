@@ -121,7 +121,7 @@ endif()
 message(STATUS "Add demo programs for FEA module")
 
 foreach(PROGRAM ${FEA_DEMOS})
-    add_executable(${PROGRAM}  ${PROGRAM}.cpp ${UTILS})
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
     source_group(""  FILES ${PROGRAM}.cpp ${UTILS})
 
     set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)

@@ -28,15 +28,7 @@
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -50,9 +42,6 @@ using namespace chrono::postprocess;
 #include "demos/SetChronoSolver.h"
 
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -213,58 +202,21 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization interface and the interactive driver
     // ------------------------------------------------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
     std::string title = "Vehicle demo - " + vehicle_model->ModelName();
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle(title);
-            vis_irr->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
-                                    vehicle_model->CameraHeight());
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&vehicle);
-            vis_irr->AttachDriver(&driver);
 
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle(title);
-            vis_vsg->AttachVehicle(&vehicle);
-            vis_vsg->AttachDriver(&driver);
-            vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
-                                    vehicle_model->CameraHeight());
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->EnableSkyTexture(SkyMode::DOME);
-            vis_vsg->SetCameraAngleDeg(40);
-            vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+    vis->SetWindowTitle(title);
+    vis->AttachVehicle(&vehicle);
+    vis->AttachDriver(&driver);
+    vis->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowPosition(100, 100);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetCameraAngleDeg(40);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 
     // ---------------------------------------------------------
     // Create the Blender post-processing visualization exporter
@@ -321,9 +273,9 @@ int main(int argc, char* argv[]) {
 #endif
 
                 // Illustrate saving a snapshot to disk file
-                if (render_frame == 142) {
-                    vis->WriteImageToFile(out_dir + "/snapshot.png");
-                }
+                ////if (render_frame == 142) {
+                ////    vis->WriteImageToFile(out_dir + "/snapshot.png");
+                ////}
 
                 render_frame++;
             }

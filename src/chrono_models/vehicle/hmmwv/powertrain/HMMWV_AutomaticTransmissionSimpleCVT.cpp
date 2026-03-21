@@ -15,7 +15,7 @@
 // Automatic Continuous Variable Transmission (CVT) model for the HMMWV vehicle.
 // - both power and torque limited
 // - no torque converter
-// - simple gear-varying model (linearly dependend on driveshaft angular velocity)
+// - simple gear-varying model (linearly dependent on driveshaft angular velocity)
 // - simple optional consideration of efficiency
 //
 // =============================================================================

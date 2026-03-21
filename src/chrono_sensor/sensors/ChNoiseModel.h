@@ -80,7 +80,7 @@ class CH_SENSOR_API ChNoiseNormal : public ChNoiseModel {
     ChVector3d m_stdev;            ///< standard deviation of the normal distribution
 };
 
-/// IMU Noise model: Gaussian drifting noise with noncorrelated equal distributions.
+/// IMU Noise model: Gaussian drifting noise with non-correlated equal distributions.
 class CH_SENSOR_API ChNoiseNormalDrift : public ChNoiseModel {
   public:
     ChNoiseNormalDrift(double updateRate, ChVector3d mean, ChVector3d stdev, double drift_bias, double tau_drift);

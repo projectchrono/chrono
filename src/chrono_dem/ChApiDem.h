@@ -54,7 +54,7 @@
     @brief Module for DEM parallel simulation
 
     This module provides support for granular dynamics on the DEM through CUDA.
-    Currently, systems of monodisperse spheres can interact via full-history frictional contact with both
+    Currently, systems of mono-disperse spheres can interact via full-history frictional contact with both
     analytical boundary conditions and triangle meshes.
 
     For additional information, see:

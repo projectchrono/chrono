@@ -74,14 +74,13 @@ extern "C" __global__ void __raygen__camera() {
         uv.y *= (float)(img_size.y) / (float)(img_size.x);  
 
         // Apply lens distortion model
-        if (camera.lens_model == FOV_LENS && ((uv.x) > 1e-5 || abs(uv.y) > 1e-5)) {
+        if (camera.lens_model == CameraLensModelType::FOV_LENS && ((uv.x) > 1e-5 || abs(uv.y) > 1e-5)) {
             float focal = 1.f / tanf(camera.hFOV / 2.0);
             float2 uv_nrmlz = uv / focal;
             float rd = sqrtf(uv_nrmlz.x * uv_nrmlz.x + uv_nrmlz.y * uv_nrmlz.y);
             float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
             uv = uv_nrmlz * (ru / rd) * focal;
-        }
-        else if (camera.lens_model == RADIAL) {
+        } else if (camera.lens_model == CameraLensModelType::RADIAL) {
             float recip_focal = tanf(camera.hFOV / 2.0);
             float2 uv_nrmlz = uv * recip_focal;
             float rd2 = uv_nrmlz.x * uv_nrmlz.x + uv_nrmlz.y * uv_nrmlz.y;

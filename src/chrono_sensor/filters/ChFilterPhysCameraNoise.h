@@ -21,7 +21,7 @@
 // I = L + N_read
 // 
 // L ~ Poisson(\lambda + D * t), where \lambda is average number of illumination
-// eletrons, D is temporal dark current and hot pixels in [electrons/sec], and t is exposure time in [sec].
+// electrons, D is temporal dark current and hot pixels in [electrons/sec], and t is exposure time in [sec].
 // N_read ~ Normal(0, \sigma_{read}), where \sigma_{read} is STD of read and
 // fixed pattern noises
 //

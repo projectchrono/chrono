@@ -136,7 +136,7 @@ class ChApiParsers ChParserYAML {
     bool m_verbose;        ///< verbose terminal output (default: false)
     bool m_use_degrees;    ///< all angles given in degrees (default: true)
 
-    std::string m_output_dir;               ///< root oputput directory
+    std::string m_output_dir;               ///< root output directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
 
     DataPathType m_data_path;

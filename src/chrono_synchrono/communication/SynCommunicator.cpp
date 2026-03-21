@@ -13,7 +13,7 @@
 //
 // Class that handles communication across ranks or external entities. A
 // communicator is something that passes messages over some protocol and
-// interfaecs either a rank with another rank, a rank with an external process
+// interfaces either a rank with another rank, a rank with an external process
 // or really anything that relies on communication over some network interface.
 //
 // This class is implemented as a very generic abstract handler that holds and

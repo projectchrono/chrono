@@ -24,7 +24,7 @@
 
 //// RADU
 //// When using the MultiStep tangential displacement mode, we need to calculate the
-//// indeices of the shape in collision.  This conflicts with cases where contacts
+//// indices of the shape in collision.  This conflicts with cases where contacts
 //// are defined by a user custom callback as there are no shapes defined in that
 //// case. Is there a solution?
 
@@ -72,7 +72,7 @@ void function_CalcContactForces(
     real* vel,                                            // body linear and angular velocities
     real3* friction,                                      // eff. coefficients of friction (per contact)
     real2* modulus,                                       // eff. elasticity and shear modulus (per contact)
-    real3* adhesion,                                      // eff. adhesion paramters (per contact)
+    real3* adhesion,                                      // eff. adhesion parameters (per contact)
     real* cr,                                             // eff. coefficient of restitution (per contact)
     real4* smc_params,                                    // eff. SMC parameters k and g (per contact)
     real3* pt1,                                           // point on shape 1 (per contact)
@@ -360,8 +360,8 @@ void function_CalcContactForces(
                 real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[b1]));
                 real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[b2]));
 
-                // If the duration of the current contact is less than the durration of a typical collision,
-                // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts
+                // If the duration of the current contact is less than the duration of a typical collision,
+                // do not apply friction. Rolling and spinning friction should only be applied to persistent contacts
                 // Rolling and spinning friction are applied right away for critically damped or over-damped systems
                 real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
                 if (d_coeff < 1.0) {
@@ -432,7 +432,7 @@ void function_CalcContactForces(
             return;
     }
 
-    // Calculate the the normal and tangential contact forces.
+    // Calculate the normal and tangential contact forces.
     // The normal force is a magnitude, and it will be applied along the contact
     // normal direction (negative relative to body1 & positive relative to body2).
     // The tangential force is a vector with two parts: one depends on the stored
@@ -482,8 +482,8 @@ void function_CalcContactForces(
     real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[b1]));
     real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[b2]));
 
-    // If the duration of the current contact is less than the durration of a typical collision,
-    // do not apply friction. Rolling and spinning friction should only be applied to persistant contacts.
+    // If the duration of the current contact is less than the duration of a typical collision,
+    // do not apply friction. Rolling and spinning friction should only be applied to persistent contacts.
     // Rolling and spinning friction are applied right away for critically damped or over-damped systems.
     real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
     if (d_coeff < 1.0) {
@@ -581,7 +581,7 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
             data_manager->host_data.v.data(),                       // body linear and angular velocities
             data_manager->host_data.fric_rigid_rigid.data(),        // eff. coefficients of friction (per contact)
             data_manager->host_data.modulus_rigid_rigid.data(),     // eff. elasticity and shear modulus (per contact)
-            data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion paramters (per contact)
+            data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion parameters (per contact)
             data_manager->host_data.cr_rigid_rigid.data(),          // eff. coefficient of restitution (per contact)
             data_manager->host_data.smc_rigid_rigid.data(),         // eff. SMC parameters k and g (per contact)
             data_manager->cd_data->cpta_rigid_rigid.data(),         // point on shape 1 (per contact)

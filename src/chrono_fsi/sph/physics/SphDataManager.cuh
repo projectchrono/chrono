@@ -404,8 +404,8 @@ struct FsiDataManager {
     thrust::device_vector<uint> neighborList;    ///< neighbor list for all particles
     thrust::device_vector<uint> freeSurfaceIdD;  ///< identifiers for particles close to free surface
 
-    thrust::device_vector<Real> courantViscousTimeStepD;  ///< courant time step for viscosity
-    thrust::device_vector<Real> accelerationTimeStepD;    ///< courant time step for acceleration - unsorted
+    thrust::device_vector<Real> courantViscousTimeStepD;  ///< Courant time step for viscosity
+    thrust::device_vector<Real> accelerationTimeStepD;    ///< Courant time step for acceleration - unsorted
 
   private:
     // Memory management parameters

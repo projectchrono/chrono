@@ -29,6 +29,10 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+
 #include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
@@ -115,7 +119,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     /// Obtain settled terrain configuration.
     /// This is an optional operation that can be performed for granular terrain before initiating
-    /// communictation with the rig node. For granular terrain, a settled configuration can
+    /// communication with the rig node. For granular terrain, a settled configuration can
     /// be obtained either through simulation or by initializing particles from a previously
     /// generated checkpointing file.
     void Settle();
@@ -139,14 +143,16 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     ChSystemMulticore* m_system;  ///< containing system
     bool m_constructed;           ///< system construction completed?
 
-    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsys;  ///< run-time visualization system
+#endif
 
     double m_thick;  ///< container wall thickness
 
     double m_radius_p;  ///< radius for a proxy body
 
     utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
-    double m_init_depth;                  ///< height of granular maerial initialization volume
+    double m_init_depth;                  ///< height of granular material initialization volume
     double m_separation_factor;           ///< radius inflation factor for initial particle separation
     bool m_in_layers;                     ///< initialize material layer-by-layer (true) or all at once (false)
 
@@ -193,10 +199,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     void WriteParticleInformation(ChWriterCSV& csv);
 
-    static ChVector3d CalcBarycentricCoords(const ChVector3d& v1,
-                                            const ChVector3d& v2,
-                                            const ChVector3d& v3,
-                                            const ChVector3d& vP);
+    static ChVector3d CalcBarycentricCoords(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3, const ChVector3d& vP);
 };
 
 /// @} vehicle_cosim_chrono

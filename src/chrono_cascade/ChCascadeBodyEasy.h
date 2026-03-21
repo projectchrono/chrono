@@ -51,7 +51,7 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
     /// ChCascadeTriangulate.
     ChCascadeBodyEasy(TopoDS_Shape& shape,                               ///< OpenCASCADE shape
                       double density,                                    ///< density
-                      std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tesselation parameters
+                      std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tessellation parameters
                       bool create_collision = false,                     ///< create collision shape
                       std::shared_ptr<ChContactMaterial> mat = nullptr   ///< surface contact material
     );
@@ -81,7 +81,7 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
   private:
     void Init(TopoDS_Shape& shape,                               ///< OpenCASCADE shape
               double density,                                    ///< density
-              std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tesselation parameters
+              std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tessellation parameters
               bool create_collision = false,                     ///< create collision shape
               std::shared_ptr<ChContactMaterial> mat = nullptr   ///< surface contact material
     );
@@ -117,12 +117,12 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
         std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,  ///< profiles of holes, in XY plane
         double thickness,                                          ///< thickness in Z direction
         double density,                                            ///< density
-        std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
+        std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tessellation parameters
         bool create_collision = false,                    ///< create 2D collision shape using the face outer profile
         std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );
 
-    /// If multiple profiles on different Z dephts are needed, after the ChCascadeBodyEasyProfile constructor is
+    /// If multiple profiles on different Z depths are needed, after the ChCascadeBodyEasyProfile constructor is
     /// executed with the first profile, you can use this function to add further profiles. Note that the additional
     /// profiles should be at different Z depths, and not intersecting along Z distance, because no boolean 'join'
     /// operation is done and in case they overlap by some amount, the computation of inertia and mass would be
@@ -131,7 +131,7 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
                     std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,  ///< profiles of holes, in XY plane
                     double thickness,                                          ///< thickness in Z direction
                     double density,                                            ///< density
-                    std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
+                    std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tessellation parameters
                     bool create_collision = false,  ///< create 2D collision shape using the face outer profile
                     std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );

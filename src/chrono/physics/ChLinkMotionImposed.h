@@ -34,13 +34,13 @@ namespace chrono {
 /// Notes
 /// - if you are interested in simply imposing a straight motion, just use  ChLinkMotorLinearPosition, and if you just
 /// need to impose a rotation on a shaft, just use the ChLinkMotorRotationAngle.
-/// - no compliance is allowed, so if the imposed motion hits an undeformable obstacle it mets a pathological situation
+/// - no compliance is allowed, so if the imposed motion hits an undeformable obstacle it meets a pathological situation
 /// and the solver result can be unstable/unpredictable. Think at it as a 6DOF servo drive with "infinitely stiff"
 /// control.
 ///
 /// By default it is initialized with no motion / no rotation, so by default is just like welding the two bodies, so it
 /// is up to the user to provide proper ChFunctionRotation and a proper ChFunctionPosition. Note: differently from most
-/// other ChLinkMate-inherited links, that assume the frame2 as link coodrinate system, in this case we use the "moving"
+/// other ChLinkMate-inherited links, that assume the frame2 as link coordinate system, in this case we use the "moving"
 /// auxiliary frame M whose motion is concatenated to frame2 (in absolute coordinates, such moving frame will be
 /// coincident with frame1 if the constraint is well assembled - in fact this makes constraint forces more intuitive,
 /// as one will get reaction forces and torques as applied to the frame1 of moving body 1).

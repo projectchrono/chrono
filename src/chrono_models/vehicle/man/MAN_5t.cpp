@@ -114,7 +114,7 @@ void MAN_5t::Initialize() {
             engine = chrono_types::make_shared<MAN_5t_EngineSimpleMap>("Engine");
             break;
         case EngineModelType::SIMPLE:
-            // this engine model includes already gearshifting
+            // this engine model already includes gear shifting
             engine = chrono_types::make_shared<MAN_5t_EngineSimple>("Engine");
             transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionSimple>("Transmission");
             break;

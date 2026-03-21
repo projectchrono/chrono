@@ -36,6 +36,9 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
+#endif
 
 #undef CHRONO_MUMPS
 #include "demos/SetChronoSolver.h"
@@ -67,9 +70,7 @@ class HMMWV_Model : public Vehicle_Model {
     virtual double InitHeight() const override { return 0.75; }
     virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
     virtual std::string EngineJSON() const override { return "hmmwv/powertrain/HMMWV_EngineShafts.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"; }
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"; }
     ////virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json"; }
     ////virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json"; }
@@ -81,9 +82,7 @@ class Polaris_Model : public Vehicle_Model {
     virtual double InitHeight() const override { return 0.2; }
     virtual std::string VehicleJSON() const override { return "Polaris/Polaris.json"; }
     virtual std::string EngineJSON() const override { return "Polaris/Polaris_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json"; }
     virtual std::string TireJSON() const override { return "Polaris/Polaris_RigidMeshTire.json"; }
     ////virtual std::string TireJSON() const override { return "Polaris/Polaris_ANCF4Tire_Lumped.json"; }
     ////virtual std::string TireJSON() const override { return "Polaris/Polaris_ANCF8Tire_Lumped.json"; }
@@ -92,10 +91,11 @@ class Polaris_Model : public Vehicle_Model {
 auto vehicle_model = Polaris_Model();
 
 // =============================================================================
-// Specification of a terrain model from JSON file
+// Specification of terrain model from JSON files
 
-////std::string terrain_specfile = "cosim/terrain/rigid.json";
-std::string terrain_specfile = "cosim/terrain/scm_soft.json";
+////std::string terrain_specfile = GetVehicleDataFile("cosim/terrain/rigid.json");
+////std::string terrain_specfile = GetVehicleDataFile("cosim/terrain/granular_sph.json");
+std::string terrain_specfile = GetVehicleDataFile("cosim/terrain/scm_soft.json");
 
 // =============================================================================
 
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
     if (num_procs != 6) {
         if (rank == 0)
             std::cout << "\n\n4-wheel vehicle cosimulation code must be run on exactly 6 ranks!\n\n" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 
@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
     cosim::InitializeFramework(4);
 
     // Peek in spec file and extract terrain type
-    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(GetVehicleDataFile(terrain_specfile));
+    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
         MPI_Finalize();
         return 1;
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Prepare output directory.
+    // Prepare output directory
     std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_COSIM";
     if (rank == 0) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -235,9 +235,9 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
-    out_dir = out_dir + "/" + vehicle_model.ModelName() + "_"                                    //
-              + (tire_type == ChVehicleCosimTireNode::TireType::RIGID ? "Rigid_" : "Flexible_")  //
-              + (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::RIGID ? "Rigid" : "SCM");
+    out_dir = out_dir + "/" + vehicle_model.ModelName() + "_"                 //
+              + ChVehicleCosimTireNode::GetTireTypeAsString(tire_type) + "_"  //
+              + ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type);
     if (rank == 0) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
@@ -256,8 +256,7 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
         ChVehicleCosimWheeledVehicleNode* vehicle;
-        vehicle = new ChVehicleCosimWheeledVehicleNode(GetVehicleDataFile(vehicle_model.VehicleJSON()),
-                                                       GetVehicleDataFile(vehicle_model.EngineJSON()),
+        vehicle = new ChVehicleCosimWheeledVehicleNode(GetVehicleDataFile(vehicle_model.VehicleJSON()), GetVehicleDataFile(vehicle_model.EngineJSON()),
                                                        GetVehicleDataFile(vehicle_model.TransmissionJSON()));
 
         if (use_DBP_rig) {
@@ -301,7 +300,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeRigid(GetVehicleDataFile(terrain_specfile), method);
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(terrain_specfile, method);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_terrain);
@@ -320,7 +319,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNodeChrono::Type::SCM: {
-                auto terrain = new ChVehicleCosimTerrainNodeSCM(GetVehicleDataFile(terrain_specfile));
+                auto terrain = new ChVehicleCosimTerrainNodeSCM(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_terrain);
@@ -338,6 +337,25 @@ int main(int argc, char** argv) {
                 node = terrain;
                 break;
             }
+
+            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
+#ifdef CHRONO_FSI_SPH
+                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
+                terrain->SetDimensions(terrain_length, terrain_width);
+                terrain->SetVerbose(verbose);
+                terrain->SetStepSize(step_terrain);
+                terrain->SetOutDir(out_dir);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
+                terrain->SetCameraPosition(ChVector3d(0, 2 * terrain_width, 1.0));
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                node = terrain;
+#endif
+                break;
+            }
+
         }
     }
 
@@ -359,8 +377,7 @@ int main(int argc, char** argv) {
                 break;
             }
             case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
-                auto tire =
-                    new ChVehicleCosimTireNodeFlexible(rank - 2, GetVehicleDataFile(vehicle_model.TireJSON()));
+                auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, GetVehicleDataFile(vehicle_model.TireJSON()));
                 tire->EnableTirePressure(true);
                 tire->SetVerbose(verbose);
                 tire->SetStepSize(step_fea_tire);
@@ -427,8 +444,7 @@ int main(int argc, char** argv) {
         node->Synchronize(cosim_frame, time);
         node->Advance(step_cosim);
         if (verbose)
-            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
-                 << node->GetTotalExecutionTime() << "]" << endl;
+            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  [" << node->GetTotalExecutionTime() << "]" << endl;
 
         if (output && time > output_frame / output_fps) {
             node->OutputData(output_frame);

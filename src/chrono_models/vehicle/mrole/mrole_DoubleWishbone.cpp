@@ -125,7 +125,7 @@ mrole_DoubleWishboneRear::mrole_DoubleWishboneRear(const std::string& name) : Ch
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 
 mrole_DoubleWishboneFront::~mrole_DoubleWishboneFront() {}

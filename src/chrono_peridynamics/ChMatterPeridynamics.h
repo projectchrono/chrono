@@ -87,13 +87,13 @@ class ChMatterPeriBase {
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally)
     /// Changes the collision model of nodes, from collision to no collision, etc.,
-    /// depending on the evolution of the system. It is run right before the collision detection compute proximyty bonds
+    /// depending on the evolution of the system. It is run right before the collision detection compute proximity bonds
     /// & contacts. This may add/remove collision models, or may change them. The base behavior in ChMatterPeri is: turn
     /// on collision model if  node->IsRequiringCollision()
     virtual void ComputeCollisionStateChanges() = 0;
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally)
-    /// Base behaviour in ChMatterPeri: resets the ChNodePeri::F_peridyn vector of each ChNodePeri to zero.
+    /// Base behavior in ChMatterPeri: resets the ChNodePeri::F_peridyn vector of each ChNodePeri to zero.
     virtual void ComputeForcesReset() = 0;
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT:  ***IMPORTANT***
@@ -263,7 +263,7 @@ class ChMatterPeri : public ChMatterPeriBase {
     }
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally)
-    /// Base behaviour:
+    /// Base behavior:
     ///  - resets the ChNodePeri::F vector of each ChNodePeri to zero.
     ///  - adds or remove collision model from the collision engine
     ///  - resets is_fluid optimization flag (is not is_fluid, bonds are persistent as an elastic, and collision engine
@@ -282,7 +282,7 @@ class ChMatterPeri : public ChMatterPeriBase {
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally)
     /// Changes the collision model of nodes, from collision to no collision, etc., ex when an interface is generated,
-    /// depending on the evolution of the system. It is run right before the collision detection compute proximyty bonds
+    /// depending on the evolution of the system. It is run right before the collision detection compute proximity bonds
     /// & contacts. This may add/remove collision models, or may change them. The base behavior is: create collision
     /// models when node->IsRequiringCollision(), remove if not.
     virtual void ComputeCollisionStateChanges() override {
@@ -294,7 +294,7 @@ class ChMatterPeri : public ChMatterPeriBase {
                 // create model
                 if (!node->GetCollisionModel()) {
                     double aabb_rad =
-                        node->GetHorizonRadius() / 2;  // to avoid too many pairs: bonding boxes hemisizes will sum
+                        node->GetHorizonRadius() / 2;  // to avoid too many pairs: bonding boxes semi-sizes will sum
                     double coll_rad = node->GetCollisionRadius();
                     std::shared_ptr<ChCollisionShape> cshape;
                     if (node->is_boundary)

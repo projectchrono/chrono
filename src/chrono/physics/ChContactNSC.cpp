@@ -157,7 +157,7 @@ void ChContactNSC::ContIntLoadConstraint_C(const unsigned int off_L,
 
             // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
             // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
-            // I.e. If clamping kicks in (when using large timesteps and low compliance), it acts as a numerical
+            // I.e. If clamping kicks in (when using large time steps and low compliance), it acts as a numerical
             // damping.
             if (do_clamp) {
                 qc = std::max(qc, -recovery_clamp);
@@ -223,7 +223,7 @@ void ChContactNSC::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
             ChVector3d Vrel_w = V2_w - V1_w;
             ChVector3d Vrel_cplane = contact_plane.transpose() * Vrel_w;
 
-            double h = 1.0 / factor;  // inverse timestep is factor
+            double h = 1.0 / factor;  // inverse time step is factor
 
             double neg_rebounce_speed = Vrel_cplane.x() * restitution;
             if (neg_rebounce_speed < -min_rebounce_speed)
@@ -239,7 +239,7 @@ void ChContactNSC::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
         // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 
         if (compliance) {
-            //  inverse timestep is factor
+            //  inverse time step is factor
             double h = 1.0 / factor;
 
             double alpha = dampingf;                    // [R]=alpha*[K]
@@ -252,7 +252,7 @@ void ChContactNSC::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
 
             double qc = inv_hpa * norm_dist;
 
-            // If clamping kicks in(when using large timesteps and low compliance), it acts as a numerical damping.
+            // If clamping kicks in(when using large time steps and low compliance), it acts as a numerical damping.
             if (do_clamp)
                 qc = std::max(qc, -recovery_clamp);
 

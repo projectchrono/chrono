@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     robot.PopulateSystem(sys);
 
     // Get selected bodies of the robot
-    auto torso = robot.GetChBody("torso");
+    auto root = robot.GetRootChBody();
     auto sled = robot.GetChBody("sled");
     auto limb1_wheel = robot.GetChBody("limb1_link8");
     auto limb2_wheel = robot.GetChBody("limb2_link8");
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     limb4_wheel->GetCollisionModel()->SetAllShapesMaterial(cmat);
 
     // Fix root body
-    robot.GetRootChBody()->SetFixed(true);
+    root->SetFixed(true);
 
     // Read the list of actuated motors, cache the motor links, and set their actuation function
     int num_motors = 32;
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
 
     // Create the visualization window
     std::shared_ptr<ChVisualSystem> vis;
-    auto camera_lookat = torso->GetPos();
+    auto camera_lookat = root->GetPos();
     auto camera_loc = camera_lookat + ChVector3d(3, 3, 0);
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
@@ -277,13 +277,13 @@ int main(int argc, char* argv[]) {
             sys.GetCollisionSystem()->BindItem(ground);
 
             // Release robot
-            torso->SetFixed(false);
+            robot.GetRootChBody()->SetFixed(false);
 
             terrain_created = true;
         }
 
         // Update camera location
-        camera_lookat = ChVector3d(torso->GetPos().x(), torso->GetPos().y(), camera_lookat.z());
+        camera_lookat = ChVector3d(root->GetPos().x(), root->GetPos().y(), camera_lookat.z());
         camera_loc = camera_lookat + ChVector3d(3, 3, 0);
 
         vis->BeginScene();

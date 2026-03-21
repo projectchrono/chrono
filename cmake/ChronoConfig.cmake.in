@@ -66,8 +66,6 @@
 # * Chrono::Vehicle module
 #     CHRONO_VEHICLE_OPENCRG
 #       set to true if OpenCRG support is vailable.
-#     CHRONO_VEHICLE_IRRKLANG
-#       set to true if Irrklang support is available.
 # * Chrono::Synchrono module
 #     CHRONO_SYNCHRONO_FASTDDS
 #       set to true if FastDDS support is available.
@@ -625,24 +623,10 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(Chrono_IRRLICHT_REQUESTED AND Chrono_IRRLICHT_AVAILABLE)
-      if(@CH_USE_IRRKLANG@)
-        set(IRRKLANG_ROOT "@IRRKLANG_ROOT@")
-        set(IRRKLANG_LIBDIR "@IRRKLANG_LIBDIR@")
-        find_package(IRRKLANG QUIET)
-        if (NOT IRRKLANG_FOUND)
-          if(NOT Chrono_FIND_QUIETLY)
-              message(STATUS "Chrono_vehicle_irrlicht was built with IrrKlang that has not been found. Chrono_vehicle_irrlicht will not be enabled.")
-          endif()
-        endif()
-      endif()
-
-      if (NOT @CH_USE_IRRKLANG@ OR IRRKLANG_FOUND)
         list(PREPEND CHRONO_LIB_NAMES "Chrono_vehicle_irrlicht")
         if (NOT CHRONO_STATIC)
           list(APPEND CHRONO_DLL_NAMES "Chrono_vehicle_irrlicht.dll")
         endif()
-      endif()
-
     endif()
 
     if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
@@ -666,7 +650,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
     endif()
 
-    set(CHRONO_VEHICLE_IRRKLANG @CH_USE_IRRKLANG@)
     set(CHRONO_VEHICLE_OPENCRG @CH_USE_OPENCRG@)
 
   elseif(${COMPONENT_UPPER} STREQUAL "FSI")

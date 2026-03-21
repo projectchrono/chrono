@@ -156,7 +156,7 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
     m_fixed = fixed;
 }
 
-// Create Visulization assets
+// Create Visualization assets
 void Turtlebot_Part::AddVisualizationAssets() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);

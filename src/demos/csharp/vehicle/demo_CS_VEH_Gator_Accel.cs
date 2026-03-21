@@ -22,6 +22,7 @@
 using System;
 using static ChronoGlobals;
 using static chrono_vehicle;
+using static chrono; // for the access to pi
 
 namespace ChronoDemo
 {
@@ -123,15 +124,16 @@ namespace ChronoDemo
             driver.GetSpeedController().SetGains(0.6, 0.4, 0.4);
             driver.Initialize();
 
-            // Create the vehicle Irrlicht interface
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Gator Acceleration");
+            // Create the visualization interface
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Gator Acceleration");
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
+            vis.AttachVehicle(gator.GetVehicle());  // Must attach vehicle BEFORE Initialize()
             vis.Initialize();
-            vis.AddLightDirectional();
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(gator.GetVehicle());
 
             // ---------------
             // Simulation loop

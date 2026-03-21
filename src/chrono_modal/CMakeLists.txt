@@ -132,6 +132,6 @@ install(TARGETS Chrono_modal
 install(FILES ${Chrono_MODAL_HEADERS}
         DESTINATION include/chrono_modal)
 
-# Install files for chrono-config (in both build and install trees)
+# Install files for ChronoConfig (in both build and install trees)
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindSpectra.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindSpectra.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})

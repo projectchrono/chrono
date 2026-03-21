@@ -398,7 +398,7 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
                             m_material_shaders_module, "__closesthit__material_shader");
 
     #ifdef USE_SENSOR_NVDB
-        // NanoVDB Voulume intersection and shading
+        // NanoVDB Volume intersection and shading
         CreateOptixProgramGroup(m_nvdb_vol_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_nvdb_vol_intersection_module,
                                 "__intersection__nvdb_vol_intersect", m_material_shaders_module,
                                 "__closesthit__material_shader");
@@ -520,12 +520,12 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::CAMERA: {
             program_groups.push_back(m_camera_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.camera.hFOV = 3.14f / 4;      // default value
-            raygen_record->data.specific.camera.frame_buffer = {};     // default value
-            raygen_record->data.specific.camera.use_gi = false;        // default value
-            raygen_record->data.specific.camera.use_fog = true;        // default value
-            raygen_record->data.specific.camera.gamma = 2.2f;          // default value
-            raygen_record->data.specific.camera.lens_model = PINHOLE;  // default value
+            raygen_record->data.specific.camera.hFOV = 3.14f / 4;                           // default value
+            raygen_record->data.specific.camera.frame_buffer = {};                          // default value
+            raygen_record->data.specific.camera.use_gi = false;                             // default value
+            raygen_record->data.specific.camera.use_fog = true;                             // default value
+            raygen_record->data.specific.camera.gamma = 2.2f;                               // default value
+            raygen_record->data.specific.camera.lens_model = CameraLensModelType::PINHOLE;  // default value
             raygen_record->data.specific.camera.lens_parameters = {};
             raygen_record->data.specific.camera.integrator = Integrator::LEGACY;
             break;
@@ -551,7 +551,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.phys_camera.use_gi = false;
             raygen_record->data.specific.phys_camera.use_fog = true;
             raygen_record->data.specific.phys_camera.gamma = 1.0f;
-            raygen_record->data.specific.phys_camera.lens_model = PINHOLE;
+            raygen_record->data.specific.phys_camera.lens_model = CameraLensModelType::PINHOLE;
             raygen_record->data.specific.phys_camera.lens_parameters = {};
             raygen_record->data.specific.phys_camera.integrator = Integrator::LEGACY;
             raygen_record->data.specific.phys_camera.super_sample_factor = 1;
@@ -573,21 +573,21 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::SEGMENTATION: {
             program_groups.push_back(m_segment_cam_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segment_cam_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;      // default value
-            raygen_record->data.specific.segmentation.frame_buffer = {};     // default value
-            raygen_record->data.specific.segmentation.lens_model = PINHOLE;  // default value
-            raygen_record->data.specific.segmentation.lens_parameters = {};
+            raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;                           // default value
+            raygen_record->data.specific.segmentation.frame_buffer = {};                          // default value
+            raygen_record->data.specific.segmentation.lens_model = CameraLensModelType::PINHOLE;  // default value
+            raygen_record->data.specific.segmentation.lens_parameters = {};                       //
             break;
         }
 
         case PipelineType::DEPTH_CAMERA: {
             program_groups.push_back(m_depthCamera_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_depthCamera_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.depthCamera.hFOV = 3.14f / 4;   // default value
-            raygen_record->data.specific.depthCamera.frame_buffer = {};  // default value
-            raygen_record->data.specific.depthCamera.lens_model = PINHOLE;     // default value
-            raygen_record->data.specific.depthCamera.lens_parameters = {};
-            raygen_record->data.specific.depthCamera.max_depth = 1000.f;  // default value
+            raygen_record->data.specific.depthCamera.hFOV = 3.14f / 4;                           // default value
+            raygen_record->data.specific.depthCamera.frame_buffer = {};                          // default value
+            raygen_record->data.specific.depthCamera.lens_model = CameraLensModelType::PINHOLE;  // default value
+            raygen_record->data.specific.depthCamera.lens_parameters = {};                       //
+            raygen_record->data.specific.depthCamera.max_depth = 1000.f;                         // default value
             break;
         }
 
@@ -598,7 +598,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             // Set default values
             raygen_record->data.specific.normalCamera.hFOV = 3.14f / 4; // [rad]
             raygen_record->data.specific.normalCamera.frame_buffer = {};
-            raygen_record->data.specific.normalCamera.lens_model = PINHOLE;
+            raygen_record->data.specific.normalCamera.lens_model = CameraLensModelType::PINHOLE;
             raygen_record->data.specific.normalCamera.lens_parameters = {};
             break;
         }
@@ -845,7 +845,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             CreateDeviceTexture(material.ks_tex, d_img_array, mat->GetKsTexture());
         }
         
-        // metalic texture
+        // metallic texture
         if (mat->GetMetallicTexture() != "") {
             cudaArray_t d_img_array;
             CreateDeviceTexture(material.metallic_tex, d_img_array, mat->GetMetallicTexture());

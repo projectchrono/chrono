@@ -30,10 +30,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularDEM.h"
 
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -174,10 +170,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::SetTangentialDisplacementModel(dem::C
     m_tangential_model = model;
 }
 
-void ChVehicleCosimTerrainNodeGranularDEM::SetSamplingMethod(utils::SamplingType type,
-                                                             double init_height,
-                                                             double sep_factor,
-                                                             bool in_layers) {
+void ChVehicleCosimTerrainNodeGranularDEM::SetSamplingMethod(utils::SamplingType type, double init_height, double sep_factor, bool in_layers) {
     m_sampling_type = type;
     m_init_depth = init_height;
     m_separation_factor = sep_factor;
@@ -228,7 +221,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::Construct() {
 #endif
 
     // Calculate domain size
-    //// TODO: For now, we need to hack in a larger dimZ to accomodate any wheels that will only show up later.
+    //// TODO: For now, we need to hack in a larger dimZ to accommodate any wheels that will only show up later.
     ////       This limitations needs to be removed in Chrono::Dem!
     ////       Second, we are limited to creating this domain centered at the origin!?!
     float r = m_separation_factor * (float)m_radius_g;
@@ -278,8 +271,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::Construct() {
             std::getline(ifile, line);
             std::istringstream iss1(line);
             unsigned int identifier;
-            iss1 >> identifier >> pos[i].x() >> pos[i].y() >> pos[i].z() >> vel[i].x() >> vel[i].y() >> vel[i].z() >>
-                omg[i].x() >> omg[i].y() >> omg[i].z();
+            iss1 >> identifier >> pos[i].x() >> pos[i].y() >> pos[i].z() >> vel[i].x() >> vel[i].y() >> vel[i].z() >> omg[i].x() >> omg[i].y() >> omg[i].z();
             assert(identifier == i);
         }
         m_systemDEM->SetParticles(pos, vel, omg);
@@ -467,15 +459,12 @@ void ChVehicleCosimTerrainNodeGranularDEM::Settle() {
         max_contacts = std::max(max_contacts, n_contacts);
 
         if (m_verbose)
-            cout << '\r' << std::fixed << std::setprecision(6) << (steps + 1) * m_step_size << "  ["
-                 << m_timer.GetTimeSeconds() << "]   " << n_contacts << std::flush;
+            cout << '\r' << std::fixed << std::setprecision(6) << (steps + 1) * m_step_size << "  [" << m_timer.GetTimeSeconds() << "]   " << n_contacts << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && steps % output_steps == 0) {
             std::string filename = OutputFilename(m_node_out_dir + "/settling", "settling", "csv", output_frame + 1, 5);
-            m_systemDEM->SetParticleOutputFlags(dem::CHDEM_OUTPUT_FLAGS::VEL_COMPONENTS |
-                                                dem::CHDEM_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                                                dem::CHDEM_OUTPUT_FLAGS::FORCE_COMPONENTS);
+            m_systemDEM->SetParticleOutputFlags(dem::CHDEM_OUTPUT_FLAGS::VEL_COMPONENTS | dem::CHDEM_OUTPUT_FLAGS::ANG_VEL_COMPONENTS | dem::CHDEM_OUTPUT_FLAGS::FORCE_COMPONENTS);
             m_systemDEM->WriteParticleFile(filename);
             output_frame++;
         }
@@ -670,21 +659,23 @@ void ChVehicleCosimTerrainNodeGranularDEM::OnInitialize(unsigned int num_objects
 
     // Create the visualization window
     if (m_renderRT) {
-#if defined(CHRONO_VSG)
-        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-        vsys_vsg->AttachSystem(m_system);
-        vsys_vsg->SetWindowTitle("Terrain Node (GranularDEM)");
-        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
-        vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        vsys_vsg->SetCameraAngleDeg(40);
-        vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
-        vsys_vsg->SetImageOutput(m_writeRT);
-        vsys_vsg->Initialize();
+#ifdef CHRONO_VSG
+        m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
 
-        m_vsys = vsys_vsg;
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (GranularDEM)");
+        m_vsys->SetWindowSize(ChVector2i(1280, 720));
+        m_vsys->SetWindowPosition(ChVector2i(100, 100));
+        ////m_vsys->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
+        m_vsys->EnableSkyTexture();
+        m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
+        m_vsys->SetCameraAngleDeg(40);
+        m_vsys->SetLightIntensity(1.0f);
+        m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
+        m_vsys->SetImageOutput(m_writeRT);
+        m_vsys->Initialize();
+
+        m_vsys->ToggleAbsFrameVisibility();
 #endif
     }
 }
@@ -726,12 +717,10 @@ void ChVehicleCosimTerrainNodeGranularDEM::OnAdvance(double step_size) {
 }
 
 void ChVehicleCosimTerrainNodeGranularDEM::OnRender() {
-#ifdef CHRONO_VSG
-    if (!m_vsys)
+    if (!m_renderRT)
         return;
-    if (!m_vsys->Run())
-        MPI_Abort(MPI_COMM_WORLD, 1);
 
+#ifdef CHRONO_VSG
     UpdateVisualizationParticles();
 
     if (m_track && !m_proxies.empty()) {
@@ -740,7 +729,10 @@ void ChVehicleCosimTerrainNodeGranularDEM::OnRender() {
         m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
 
-    m_vsys->Render();
+    if (m_vsys->Run())
+        m_vsys->Render();
+    else
+        MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 }
 
@@ -784,9 +776,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::OnOutputData(int frame) {
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "simulation", "csv", frame + 1, 5);
 
     m_systemDEM->SetParticleOutputMode(dem::CHDEM_OUTPUT_MODE::CSV);
-    m_systemDEM->SetParticleOutputFlags(dem::CHDEM_OUTPUT_FLAGS::VEL_COMPONENTS |
-                                        dem::CHDEM_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                                        dem::CHDEM_OUTPUT_FLAGS::FORCE_COMPONENTS);
+    m_systemDEM->SetParticleOutputFlags(dem::CHDEM_OUTPUT_FLAGS::VEL_COMPONENTS | dem::CHDEM_OUTPUT_FLAGS::ANG_VEL_COMPONENTS | dem::CHDEM_OUTPUT_FLAGS::FORCE_COMPONENTS);
     m_systemDEM->WriteParticleFile(filename);
 }
 
@@ -797,8 +787,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::OutputVisualizationData(int frame) {
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies
-        utils::WriteVisualizationAssets(
-            m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() == tag_obstacles; }, true);
+        utils::WriteVisualizationAssets(m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() == tag_obstacles; }, true);
     }
 }
 

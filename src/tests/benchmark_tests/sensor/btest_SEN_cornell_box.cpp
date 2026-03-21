@@ -42,14 +42,6 @@ using namespace chrono::sensor;
 // Camera parameters
 // -----------------------------------------------------------------------------
 
-// Noise model attached to the sensor
-enum NoiseModel {
-    CONST_NORMAL,     // Gaussian noise with constant mean and standard deviation
-    PIXEL_DEPENDENT,  // Pixel dependent gaussian noise
-    NONE              // No noise model
-};
-NoiseModel noise_model = PIXEL_DEPENDENT;
-
 // Camera lens model
 // Either PINHOLE or SPHERICAL
 CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
@@ -62,7 +54,7 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = (float)CH_PI / 2.;
+float fov = (float)CH_PI_2;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = .05f;

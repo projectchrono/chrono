@@ -152,19 +152,18 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-
     if (num_procs != 8) {
         if (rank == 0)
             std::cout << "\nCuriosity cosimulation code must be run on exactly 8 ranks!\n\n" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 
     // Parse command line arguments
-    std::string terrain_specfile;
-    ChVector2d init_loc(0, 0);
-    double terrain_length = -1;
-    double terrain_width = -1;
+    std::string terrain_specfile = GetVehicleDataFile("cosim/terrain/rigid.json");
+    ChVector2d init_loc(3, 0);
+    double terrain_length = 20;
+    double terrain_width = 6;
     int nthreads_tire = 1;
     int nthreads_terrain = 1;
     double step_size = 1e-4;
@@ -178,9 +177,8 @@ int main(int argc, char** argv) {
     bool verbose = true;
     bool use_DBP_rig = false;
     bool add_obstacles = false;
-    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, init_loc, terrain_length, terrain_width, nthreads_tire,
-                         nthreads_terrain, step_size, fixed_settling_time, KE_threshold, settling_time, sim_time,
-                         output_fps, vis_output_fps, render_fps, verbose, use_DBP_rig, add_obstacles)) {
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, init_loc, terrain_length, terrain_width, nthreads_tire, nthreads_terrain, step_size, fixed_settling_time, KE_threshold,
+                         settling_time, sim_time, output_fps, vis_output_fps, render_fps, verbose, use_DBP_rig, add_obstacles)) {
         MPI_Finalize();
         return 1;
     }
@@ -213,7 +211,7 @@ int main(int argc, char** argv) {
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP) {
         if (rank == 0)
             cout << "Chrono::Multicore is required for GRANULAR_OMP terrain type!" << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 #endif
@@ -221,7 +219,7 @@ int main(int argc, char** argv) {
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_DEM) {
         if (rank == 0)
             cout << "Chrono::Dem is required for GRANULAR_DEM terrain type!" << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 #endif
@@ -229,7 +227,7 @@ int main(int argc, char** argv) {
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH) {
         if (rank == 0)
             cout << "Chrono::FSI is required for GRANULAR_SPH terrain type!" << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 #endif
@@ -298,8 +296,7 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(
-            rank - 2, GetVehicleDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
+        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, GetVehicleDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetOutDir(out_dir, suffix);
@@ -472,8 +469,7 @@ int main(int argc, char** argv) {
         node->Synchronize(is, time);
         node->Advance(step_size);
         if (verbose)
-            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
-                 << node->GetTotalExecutionTime() << "]" << endl;
+            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  [" << node->GetTotalExecutionTime() << "]" << endl;
 
         if (is % output_steps == 0) {
             node->OutputData(output_frame);
@@ -515,31 +511,26 @@ bool GetProblemSpecs(int argc,
                      bool& add_obstacles) {
     ChCLI cli(argv[0], "Curiosity co-simulation (run on 8 MPI ranks)");
 
-    cli.AddOption<std::string>("Experiment", "terrain_specfile", "Terrain specification file [JSON format]");
-    cli.AddOption<double>("Experiment", "terrain_length", "If positive, overwrite terrain length read from JSON file",
-                          std::to_string(terrain_length));
-    cli.AddOption<double>("Experiment", "terrain_width", "If positive, overwrite terrain width read from JSON file",
-                          std::to_string(terrain_width));
-    cli.AddOption<std::vector<double>>("Experiment", "init_loc", "Initial rover position (x,y)", "0,0");
+    std::string init_loc_default = std::to_string(init_loc.x()) + "," + std::to_string(init_loc.y());
+
+    cli.AddOption<std::string>("Experiment", "terrain_specfile", "Terrain specification file [JSON format]", terrain_specfile);
+    cli.AddOption<double>("Experiment", "terrain_length", "If positive, overwrite terrain length read from JSON file", std::to_string(terrain_length));
+    cli.AddOption<double>("Experiment", "terrain_width", "If positive, overwrite terrain width read from JSON file", std::to_string(terrain_width));
+    cli.AddOption<std::vector<double>>("Experiment", "init_loc", "Initial rover position (x,y)", init_loc_default);
     cli.AddOption<bool>("Experiment", "attach_rig", "Attache DBP rig");
     cli.AddOption<bool>("Experiment", "add_obstacles", "Add rigid obstacles");
 
-    cli.AddOption<double>("Simulation", "settling_time", "Duration of settling phase [s]",
-                          std::to_string(settling_time));
+    cli.AddOption<double>("Simulation", "settling_time", "Duration of settling phase [s]", std::to_string(settling_time));
     cli.AddOption<double>("Simulation", "KE_threshold", "KE threshold for settling [J] (default: infinity)");
-    cli.AddOption<double>("Simulation", "sim_time", "Simulation length after settling phase [s]",
-                          std::to_string(sim_time));
+    cli.AddOption<double>("Simulation", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
     cli.AddOption<double>("Simulation", "step_size", "Integration step size [s]", std::to_string(step_size));
 
-    cli.AddOption<int>("Simulation", "threads_tire", "Number of OpenMP threads for the tire node",
-                       std::to_string(nthreads_tire));
-    cli.AddOption<int>("Simulation", "threads_terrain", "Number of OpenMP threads for the terrain node",
-                       std::to_string(nthreads_terrain));
+    cli.AddOption<int>("Simulation", "threads_tire", "Number of OpenMP threads for the tire node", std::to_string(nthreads_tire));
+    cli.AddOption<int>("Simulation", "threads_terrain", "Number of OpenMP threads for the terrain node", std::to_string(nthreads_terrain));
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose messages");
     cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
-    cli.AddOption<double>("Output", "vis_output_fps", "Visualization output frequency [fps]",
-                          std::to_string(vis_output_fps));
+    cli.AddOption<double>("Output", "vis_output_fps", "Visualization output frequency [fps]", std::to_string(vis_output_fps));
 
     cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
 

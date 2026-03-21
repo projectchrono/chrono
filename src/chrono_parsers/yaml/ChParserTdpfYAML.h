@@ -66,7 +66,7 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     /// Create and return a Chrono FSI problem configured from cached model and simulation parameters.
     /// By default, the Chrono FSI problem is initialized (with no associated MBS system). If a system is attached after
     /// creation, the caller must create the FSI problem with initialize=false, attach an MBS to the problem, and then
-    /// explictly initialize the FSI problem.
+    /// explicitly initialize the FSI problem.
     std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> CreateFsiSystemTDPF(bool initialize = true);
 
     /// Access the underlying FSI system.

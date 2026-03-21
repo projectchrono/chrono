@@ -26,7 +26,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid�flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations
@@ -1108,7 +1108,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntDamping(ChVectorDynamic
     // the 2nd Piola-Kirchoff stresses more efficient.  The combined result is then scaled by minus the Gauss
     // quadrature weight times the element Jacobian at the corresponding Gauss point (m_kGQ) again for efficiency.
     // Since only the diagonal terms in the 6x6 stiffness matrix are used, the 2nd Piola-Kirchoff can be calculated by
-    // simply scaling the vector of scaled Green-Lagrange strains in Voight notation by the corresponding diagonal entry
+    // simply scaling the vector of scaled Green-Lagrange strains in Voigt notation by the corresponding diagonal entry
     // in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -1346,7 +1346,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntDamping(ChVectorDynamic
 
     // =============================================================================
     // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points at a time
-    // component by component. Note that the Green-Largrange strain components have been scaled and already been
+    // component by component. Note that the Green-Lagrange strain components have been scaled and already been
     // combined with their scaled time derivatives and minus the Gauss quadrature weight times the element Jacobian at
     // the corresponding Gauss point to make the calculation of the 2nd Piola-Kirchoff stresses more efficient.
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -1456,7 +1456,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntNoDamping(ChVectorDynam
     // The result is then scaled by minus the Gauss quadrature weight times the element Jacobian at the
     // corresponding Gauss point (m_kGQ) for efficiency. Since only the diagonal terms in the 6x6 stiffness matrix are
     // used, the 2nd Piola-Kirchoff stress can be calculated by simply scaling the vector of scaled Green-Lagrange
-    // strains in Voight notation by the corresponding diagonal entry in the stiffness matrix.
+    // strains in Voigt notation by the corresponding diagonal entry in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
     // =============================================================================
@@ -1613,7 +1613,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntNoDamping(ChVectorDynam
 
     // =============================================================================
     // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points at a time
-    // component by component. Note that the Green-Largrange strain components have already been scaled
+    // component by component. Note that the Green-Lagrange strain components have already been scaled
     // by minus the Gauss quadrature weight times the element Jacobian at the corresponding Gauss point to make the
     // calculation of the 2nd Piola-Kirchoff stresses more efficient.
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -1765,7 +1765,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     //==============================================================================
 
     // =============================================================================
-    // Calculate the partial derivative of the Green-Largrange strains with respect to the nodal coordinates
+    // Calculate the partial derivative of the Green-Lagrange strains with respect to the nodal coordinates
     // (transposed).  This calculation is performed in blocks across all the Gauss quadrature points at the same
     // time.  This value should be store in row major memory layout to align with the access patterns for
     // calculating this matrix.
@@ -1923,9 +1923,9 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     const ChVectorN<double, 6>& D0 = GetMaterial()->Get_D0();
 
     // =============================================================================
-    // Calculate the combination of the scaled partial derivative of the Green-Largrange strains with respect to the
-    // nodal coordinates, the scaled partial derivative of the time derivative of the Green-Largrange strains with
-    // respect to the nodal coordinates, the scaled partial derivative of the Green-Largrange strains with respect
+    // Calculate the combination of the scaled partial derivative of the Green-Lagrange strains with respect to the
+    // nodal coordinates, the scaled partial derivative of the time derivative of the Green-Lagrange strains with
+    // respect to the nodal coordinates, the scaled partial derivative of the Green-Lagrange strains with respect
     // to the time derivative of the nodal coordinates, and the other parameters to correctly integrate across the
     // volume of the element.  This calculation is performed in blocks across all the Gauss quadrature points at the
     // same time.  This value should be store in row major memory layout to align with the access patterns for
@@ -2104,7 +2104,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     // =============================================================================
     // For the D0 Gauss quadrature points:
     // Since only the diagonal terms in the 6x6 stiffness matrix are used, the 2nd Piola-Kirchoff stress can be
-    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voight notation by the corresponding
+    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voigt notation by the corresponding
     // diagonal entry in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -2271,7 +2271,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
 
     // =============================================================================
     // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Dv Gauss quadrature points.
-    // Note that the Green-Largrange strain components have been scaled have already been combined with their scaled
+    // Note that the Green-Lagrange strain components have been scaled have already been combined with their scaled
     // time derivatives and minus the Gauss quadrature weight times the element Jacobian at the corresponding Gauss
     // point to make the calculation of the 2nd Piola-Kirchoff stresses more efficient.
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -2316,7 +2316,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     }
 
     // =============================================================================
-    // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+    // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
     // matrix, combine this with the scaled mass matrix, and then expand them out to full size by summing the
     // contribution into the correct locations of the full sized Jacobian matrix
     // =============================================================================
@@ -2381,7 +2381,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     //==============================================================================
 
     // =============================================================================
-    // Calculate the partial derivative of the Green-Largrange strains with respect to the nodal coordinates
+    // Calculate the partial derivative of the Green-Lagrange strains with respect to the nodal coordinates
     // (transposed).  This calculation is performed in blocks across all the Gauss quadrature points at the same
     // time.  This value should be store in row major memory layout to align with the access patterns for
     // calculating this matrix.
@@ -2528,7 +2528,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     const ChVectorN<double, 6>& D0 = GetMaterial()->Get_D0();
 
     // =============================================================================
-    // Calculate the combination of the scaled partial derivative of the Green-Largrange strains with respect to the
+    // Calculate the combination of the scaled partial derivative of the Green-Lagrange strains with respect to the
     // nodal coordinates and the other parameters to correctly integrate across the
     // volume of the element multiplied by the stiffness matrix.  This calculation is performed in blocks across all the
     // Gauss quadrature points at the same time.  This value should be store in row major memory layout to align with
@@ -2706,7 +2706,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     // =============================================================================
     // For the D0 Gauss quadrature points:
     // Since only the diagonal terms in the 6x6 stiffness matrix are used, the 2nd Piola-Kirchoff stress can be
-    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voight notation by the corresponding
+    // calculated by simply scaling the vector of scaled Green-Lagrange strains in Voigt notation by the corresponding
     // diagonal entry in the stiffness matrix.
     // Results are written in Voigt notation: epsilon = [E11,E22,E33,2*E23,2*E13,2*E12]
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -2794,7 +2794,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
 
     // =============================================================================
     // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Dv Gauss quadrature points.
-    // Note that the Green-Largrange strain components have been scaled by minus the Gauss quadrature weight times the
+    // Note that the Green-Lagrange strain components have been scaled by minus the Gauss quadrature weight times the
     // element Jacobian at the corresponding Gauss point to make the calculation of the 2nd Piola-Kirchoff stresses more
     // efficient.
     //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -2839,7 +2839,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     }
 
     // =============================================================================
-    // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+    // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
     // matrix, combine this with the scaled mass matrix, and then expand them out to full size by summing the
     // contribution into the correct locations of the full sized Jacobian matrix
     // =============================================================================

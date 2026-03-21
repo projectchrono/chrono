@@ -77,7 +77,7 @@ class ChCollisionPair {
     }
 
     /// Swap geometries, that is
-    /// geo1 becomes geo2 and viceversa; normal and so on are updates as well.
+    /// geo1 becomes geo2 and vice-versa; normal and so on are updates as well.
     void SwapGeometries() {
         ChGeometry* gtemp;
         gtemp = geo1;

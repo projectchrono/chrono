@@ -219,11 +219,7 @@ void ChVehicleCosimBaseNode::SetOutDir(const std::string& dir_name, const std::s
     m_outf << std::scientific;
 }
 
-std::string ChVehicleCosimBaseNode::OutputFilename(const std::string& dir,
-                                                   const std::string& root,
-                                                   const std::string& ext,
-                                                   int frame,
-                                                   int frame_digits) {
+std::string ChVehicleCosimBaseNode::OutputFilename(const std::string& dir, const std::string& root, const std::string& ext, int frame, int frame_digits) {
     // Frame number is zero padded for postprocessing
     std::ostringstream filename;
     filename << dir << "/" << root << "_" << std::setw(frame_digits) << std::setfill('0') << frame << "." << ext;
@@ -399,8 +395,7 @@ void ChVehicleCosimBaseNode::SendGeometry(const utils::ChBodyGeometry& geom, int
         unsigned int surf_props[] = {nv, nn, nt, (unsigned int)mesh.matID};
         MPI_Send(surf_props, 4, MPI_INT, dest, 0, MPI_COMM_WORLD);
         if (m_verbose)
-            cout << "[" << GetNodeTypeString() << "] Send: vertices = " << surf_props[0]
-                 << "  triangles = " << surf_props[2] << endl;
+            cout << "[" << GetNodeTypeString() << "] Send: vertices = " << surf_props[0] << "  triangles = " << surf_props[2] << endl;
 
         double* vert_data = new double[3 * nv + 3 * nn];
         unsigned int* tri_data = new unsigned int[3 * nt + 3 * nt];
@@ -444,8 +439,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(utils::ChBodyGeometry& geom, int sourc
     for (int i = 0; i < num_materials; i++) {
         float props[8];
         MPI_Recv(props, 8, MPI_FLOAT, source, 0, MPI_COMM_WORLD, &status);
-        geom.materials.push_back(
-            ChContactMaterialData(props[0], props[1], props[2], props[3], props[4], props[5], props[6], props[7]));
+        geom.materials.push_back(ChContactMaterialData(props[0], props[1], props[2], props[3], props[4], props[5], props[6], props[7]));
     }
 
     // Receive shape geometry

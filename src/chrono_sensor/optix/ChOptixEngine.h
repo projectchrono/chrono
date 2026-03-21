@@ -58,8 +58,8 @@ struct RenderThread {
     std::mutex mutex;            ///< mutex for protecting the render operations
     std::condition_variable cv;  ///< condition variable for notifying the render threads
     bool terminate;
-    bool start;  ///< for signalling to the worker to start
-    bool done;   ///< for signalling to any parents we are complete
+    bool start;  ///< for signaling to the worker to start
+    bool done;   ///< for signaling to any parents we are complete
 };
 
 /// Optix Engine that is responsible for managing all render-based sensors.
@@ -109,11 +109,11 @@ class CH_SENSOR_API ChOptixEngine {
 
   private:
     void Start();           ///< start the render thread
-    void StopAllThreads();  ///< stop the scene and render threads, remove all asigned sensors
+    void StopAllThreads();  ///< stop the scene and render threads, remove all signed sensors
 
     bool m_verbose;     ///< whether the context should print errors and warnings
     bool m_debug;       ///< enable OpyiX debug and validation options
-    void Initialize();  ///< intialize function for the optix engine. This is what gets everything up and running
+    void Initialize();  ///< initialize function for the optix engine. This is what gets everything up and running
 
     /// Render processing function for rendering in separate threads.
     void RenderProcess(RenderThread& tself, std::shared_ptr<ChOptixSensor> sensor);

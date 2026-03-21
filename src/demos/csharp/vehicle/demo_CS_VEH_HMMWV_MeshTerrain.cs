@@ -34,45 +34,17 @@ namespace ChronoDemo
         // Helper method to create vehicle visualisation system based visual module available
         static ChVehicleVisualSystem CreateVehicleVisualizationSystem(ChWheeledVehicle vehicle, bool isYUp)
         {
-#if CHRONO_VSG
             ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
             chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Mesh Terrain Demo");
             if (isYUp) { chrono_vsg.CastToChVisualSystemVSG(vis).SetCameraVertical(CameraVerticalDir.Y); }
-            vis.SetChaseCamera(new ChVector3d(-5.0, 0.0, 2.0), 2.0, 0.5);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
             chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
             chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
             chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis.AttachVehicle(vehicle);  // Must attach vehicle BEFORE Initialize()
             vis.Initialize();
-            
-            Console.WriteLine("Using VSG visualization");
             return vis;
-#elif CHRONO_IRRLICHT
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Mesh Terrain Demo");
-            if (isYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); }
-            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
-            vis.Initialize();
-            if (isYUp)
-            {
-                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.5f, 0.5f, 0.5f));
-            }
-            else
-            {
-                vis.AddLightDirectional(80, 10);
-            }
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(vehicle);
-            
-            Console.WriteLine("Using Irrlicht visualization");
-            return vis;
-#else
-            Console.WriteLine("Error: No visualization system available!");
-            Environment.Exit(1);
-            return null;
-#endif
         }
 
         static void Main(string[] args)

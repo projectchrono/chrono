@@ -174,11 +174,11 @@ std::string ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(ColorMode mode)
         case ColorMode::VELOCITY_MAG:
             return "Velocity magnitude";
         case ColorMode::VELOCITY_X:
-            return "Velocityy component X";
+            return "Velocity component X";
         case ColorMode::VELOCITY_Y:
-            return "Velocityy component Y";
+            return "Velocity component Y";
         case ColorMode::VELOCITY_Z:
-            return "Velocityy component Z";
+            return "Velocity component Z";
     }
     return "None";
 }

@@ -43,19 +43,19 @@ class ChApi ChVisualShapeSurface : public ChVisualShape {
     /// Set if using only isolines.
     void SetWireframe(bool mw) { wireframe = mw; }
 
-    /// Subdivision density for tesselation.
+    /// Subdivision density for tessellation.
     int GetResolutionU() { return resolution_U; }
 
-    /// Subdivision density for tesselation.
+    /// Subdivision density for tessellation.
     int GetResolutionV() { return resolution_V; }
 
-    /// Set u- subdivision density for tesselation.
+    /// Set u- subdivision density for tessellation.
     void SetResolutionU(int mr) { resolution_U = mr; }
 
-    /// Set v- subdivision density for tesselation.
+    /// Set v- subdivision density for tessellation.
     void SetResolutionV(int mr) { resolution_V = mr; }
 
-    /// Set subdivision density for tesselation (both for u and v).
+    /// Set subdivision density for tessellation (both for u and v).
     void SetResolution(int mr) {
         resolution_U = mr;
         resolution_V = mr;

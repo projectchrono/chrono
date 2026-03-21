@@ -32,8 +32,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionModelMulticore)
 CH_UPCASTING(ChCollisionModelMulticore, ChCollisionModelImpl)
 
-ChCollisionModelMulticore::ChCollisionModelMulticore(ChCollisionModel* collision_model)
-    : ChCollisionModelImpl(collision_model), aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
+ChCollisionModelMulticore::ChCollisionModelMulticore(ChCollisionModel* collision_model) : ChCollisionModelImpl(collision_model), aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
     collision_model->SetSafeMargin(0);
 
     assert(collision_model->GetContactable());
@@ -240,6 +239,7 @@ void ChCollisionModelMulticore::Populate() {
                     ChVector3d p2 = position + rotation.Rotate(tri.p2);
                     ChVector3d p3 = position + rotation.Rotate(tri.p3);
                     auto shape_triangle = chrono_types::make_shared<ChCollisionShapeTriangle>(material, p1, p2, p3);
+                    shape_triangle->SetParentShape(shape_trimesh);
 
                     auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
                     ct_shape->A = FromChVector(p1);

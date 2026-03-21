@@ -85,7 +85,7 @@ class ChApi ChSolver {
     /// The argument `analyze` indicates if a full analysis of the system matrix is required. This is true when a
     /// structural change in the system was detected (e.g., when a physical component was added to or removed from the
     /// Chrono system).
-    /// This function must return true if successfull and false otherwise.
+    /// This function must return true if successful and false otherwise.
     virtual bool Setup(ChSystemDescriptor& sysd, bool analyze) { return true; }
 
     /// Solve the linear system.

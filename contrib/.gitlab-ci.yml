@@ -126,7 +126,7 @@ linux:ubuntu22.04-gcc:test:
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
-    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$LD_LIBRARY_PATH"
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$HOME/Packages/opencascade-7.9.3/lib/:$LD_LIBRARY_PATH"
     - cmake --install .
     - ninja test
   dependencies: ["linux:ubuntu22.04-gcc:build"]
@@ -160,7 +160,7 @@ linux:ubuntu22.04-clang:test:
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
-    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$LD_LIBRARY_PATH"
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$HOME/Packages/opencascade-7.9.3/lib/:$LD_LIBRARY_PATH"
     - cmake --install .
     - ninja test
   dependencies: ["linux:ubuntu22.04-clang:build"]
@@ -265,7 +265,10 @@ windows:vs2022:test:
   script:
   # Build vsg with buildVSG script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\bin;$env:LocalAppData\Python\pythoncore-3.12-64"
+  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\bin;C:\OpenCASCADE-7.9.3\opencascade-7.9.3-vc14-64\win64\vc14\bin;$env:LocalAppData\Python\pythoncore-3.12-64"
+  # Include third-party dependencies required by OCCT
+  - $env:PATH += ";C:\OpenCASCADE-7.9.3\3rdparty-vc14-64\jemalloc-vc14-64\bin;C:\OpenCASCADE-7.9.3\3rdparty-vc14-64\tbb-2021.13.0-x64\bin;C:\OpenCASCADE-7.9.3\3rdparty-vc14-64\freetype-2.13.3-x64\bin"
+  - $env:PATH += ";C:\OpenCASCADE-7.9.3\3rdparty-vc14-64\ffmpeg-3.3.4-64\bin;C:\OpenCASCADE-7.9.3\3rdparty-vc14-64\openvr-1.14.15-64\bin\win64;C:\OpenCASCADE-7.9.3\3rdparty-vc14-64\freeimage-3.18.0-x64\bin"
   - cd build
   - cmake --install . --config Release
   - ctest --output-on-failure -C Release

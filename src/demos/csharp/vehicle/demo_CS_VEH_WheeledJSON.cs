@@ -20,6 +20,7 @@
 using System;
 using static ChronoGlobals;
 using static chrono_vehicle;
+using static chrono;
 
 namespace ChronoDemo
 {
@@ -73,23 +74,24 @@ namespace ChronoDemo
             RigidTerrain terrain = new RigidTerrain(system, GetVehicleDataFile("terrain/RigidPlane.json"));
             terrain.Initialize();
 
-            // Create the interactive Irrlicht driver system
+            // Create the interactive driver system
             ChInteractiveDriver driver = new ChInteractiveDriver(vehicle);
             driver.SetSteeringDelta(0.02);
             driver.SetThrottleDelta(0.02);
             driver.SetBrakingDelta(0.06);
             driver.Initialize();
 
-            // Create the run-time visualization
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("CSharp Vehicle Irrlicht Demo");
+            // Create the run-time visualization - VSG only
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("CSharp Vehicle VSG Demo");
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 3, 1.5);
-            vis.Initialize();
-            vis.AddLightDirectional();
-            vis.AddSkyBox();
-            vis.AddLogo();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
             vis.AttachVehicle(vehicle);
             vis.AttachDriver(driver);
+            vis.Initialize();
 
             // Simulation loop
             double step_size = 2e-3;

@@ -87,7 +87,7 @@ struct ChJoystickButtonIRR {
 
     int id;                  // controller ID
     int button;              // controller button
-    std::string name;        // buttoin name
+    std::string name;        // button name
     int buttonPressedCount;  // counter to identify continuous press
     bool buttonPressed;      // current output value
 };
@@ -508,11 +508,6 @@ ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
     // Create the event receivers for camera and vehicle control
     m_camera_control = new ChChaseCameraEventReceiver(this);
     m_vehicle_control = new ChVehicleEventReceiver(this);
-
-#ifdef CHRONO_HAS_IRRKLANG
-    m_sound_engine = 0;
-    m_car_sound = 0;
-#endif
 }
 
 ChVehicleVisualSystemIrrlicht::~ChVehicleVisualSystemIrrlicht() {
@@ -572,32 +567,6 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
-// Turn on/off Irrklang sound generation.
-// Note that this has an effect only if Irrklang support was enabled at
-// configuration.
-// -----------------------------------------------------------------------------
-void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
-#ifdef CHRONO_HAS_IRRKLANG
-    if (sound) {
-        // Start the sound engine with default parameters
-        m_sound_engine = irrklang::createIrrKlangDevice();
-
-        // To play a sound, call play2D(). The second parameter tells the engine to
-        // play it looped.
-        if (m_sound_engine) {
-            m_car_sound =
-                m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
-            m_car_sound->setIsPaused(true);
-        } else
-            std::cerr << "Cannot start sound engine Irrklang" << std::endl;
-    } else {
-        m_sound_engine = 0;
-        m_car_sound = 0;
-    }
-#endif
-}
-
-// -----------------------------------------------------------------------------
 // Advance the dynamics of the chase camera.
 // The integration of the underlying ODEs is performed using as many steps as
 // needed to advance by the specified duration.
@@ -618,25 +587,6 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
 
     GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
     GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
-
-#ifdef CHRONO_HAS_IRRKLANG
-    static int stepsbetweensound = 0;
-
-    // Update sound pitch
-    if (m_car_sound && m_vehicle->GetPowertrainAssembly()) {
-        stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrainAssembly()->GetEngine()->GetMotorSpeed() * 60 / CH_2PI;
-        double soundspeed = engine_rpm / (4000.);  // denominator: to guess
-        if (soundspeed < 0.1)
-            soundspeed = 0.1;
-        if (stepsbetweensound > 20) {
-            stepsbetweensound = 0;
-            if (m_car_sound->getIsPaused())
-                m_car_sound->setIsPaused(false);
-            m_car_sound->setPlaybackSpeed((irrklang::ik_f32)soundspeed);
-        }
-    }
-#endif
 }
 
 // -----------------------------------------------------------------------------

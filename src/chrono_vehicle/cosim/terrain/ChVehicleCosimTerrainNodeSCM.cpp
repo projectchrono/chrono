@@ -34,13 +34,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#endif
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
-
 using std::cout;
 using std::endl;
 
@@ -53,15 +46,10 @@ namespace vehicle {
 static const double max_sinkage = 0.15;
 
 // -----------------------------------------------------------------------------
-// Construction of the terrain node:
-// - create the Chrono system and set solver parameters
-// - create the Irrlicht visualization window
+// Construction of the terrain node
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double width)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC),
-      m_terrain(nullptr),
-      m_radius_p(5e-3),
-      m_use_checkpoint(false) {
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC), m_terrain(nullptr), m_radius_p(5e-3), m_use_checkpoint(false) {
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
@@ -81,9 +69,7 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
 }
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC),
-      m_terrain(nullptr),
-      m_use_checkpoint(false) {
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC), m_terrain(nullptr), m_use_checkpoint(false) {
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
@@ -228,8 +214,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     // Add all rigid obstacles
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh =
-            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
         ChVector3d baricenter;
         ChMatrix33<> inertia;
@@ -380,34 +365,23 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
 
     // Create the visualization window
     if (m_renderRT) {
-#if defined(CHRONO_VSG)
-        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-        vsys_vsg->AttachSystem(m_system);
-        vsys_vsg->SetWindowTitle("Terrain Node (SCM)");
-        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
-        vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        vsys_vsg->SetCameraAngleDeg(40);
-        vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
-        vsys_vsg->SetImageOutput(m_writeRT);
-        vsys_vsg->Initialize();
+#ifdef CHRONO_VSG
+        m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
 
-        m_vsys = vsys_vsg;
-#elif defined(CHRONO_IRRLICHT)
-        auto vsys_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        vsys_irr->AttachSystem(m_system);
-        vsys_irr->SetWindowTitle("Terrain Node (SCM)");
-        vsys_irr->SetCameraVertical(CameraVerticalDir::Z);
-        vsys_irr->SetWindowSize(1280, 720);
-        vsys_irr->Initialize();
-        vsys_irr->AddLogo();
-        vsys_irr->AddSkyBox();
-        vsys_irr->AddTypicalLights();
-        vsys_irr->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (SCM)");
+        m_vsys->SetWindowSize(ChVector2i(1280, 720));
+        m_vsys->SetWindowPosition(ChVector2i(100, 100));
+        ////m_vsys->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
+        m_vsys->EnableSkyTexture();
+        m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
+        m_vsys->SetCameraAngleDeg(40);
+        m_vsys->SetLightIntensity(1.0f);
+        m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
+        m_vsys->SetImageOutput(m_writeRT);
+        m_vsys->Initialize();
 
-        m_vsys = vsys_irr;
+        m_vsys->ToggleAbsFrameVisibility();
 #endif
     }
 }
@@ -468,17 +442,18 @@ void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainFor
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeSCM::OnRender() {
-    if (!m_vsys)
+    if (!m_renderRT)
         return;
-    if (!m_vsys->Run())
-        MPI_Abort(MPI_COMM_WORLD, 1);
 
+#ifdef CHRONO_VSG
     if (m_track)
         m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
-    m_vsys->BeginScene();
-    m_vsys->Render();
-    m_vsys->EndScene();
+    if (m_vsys->Run())
+        m_vsys->Render();
+    else
+        MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 }
 
 // -----------------------------------------------------------------------------

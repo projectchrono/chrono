@@ -16,7 +16,7 @@
 // (including the vehicle itself, the powertrain, and the tires).
 //
 // The MAN Kat 1 truck family has been designed for offroad service.
-// The development stems from the 60s, the begin of servce was ca. 1976
+// The development stems from the 60s, the begin of service was ca. 1976
 //
 // The model data come from publicly available sources, fora of private Kat 1
 // users and the book:

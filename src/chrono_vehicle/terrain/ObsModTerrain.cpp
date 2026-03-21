@@ -141,7 +141,7 @@ double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
             }
         }
         if (ix1 == -1) {
-            std::cerr << "x intervall?\n";
+            std::cerr << "x interval?\n";
         }
         int jy1 = -1;
         int jy2 = -1;
@@ -153,7 +153,7 @@ double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
             }
         }
         if (jy1 == -1) {
-            std::cerr << "y intervall?\n";
+            std::cerr << "y interval?\n";
         }
         double x = loc_ISO.x();
         double y = loc_ISO.y();

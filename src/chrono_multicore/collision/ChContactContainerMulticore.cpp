@@ -63,7 +63,7 @@ void ChContactContainerMulticore::EndAddContact() {
 }
 
 void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
-    // Readibility
+    // Readability
     auto& cd_data = data_manager->cd_data;
     const auto& ptA = cd_data->cpta_rigid_rigid;
     const auto& ptB = cd_data->cptb_rigid_rigid;

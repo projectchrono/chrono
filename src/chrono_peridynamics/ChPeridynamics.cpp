@@ -333,7 +333,7 @@ void ChPeridynamics::FillBox(
                 mnode->volume = nodevol;
                 mnode->vol_size = spacing;
                 if (B_matter) {
-                    // node is at interface, shared betwen two matters. Correct volume:
+                    // node is at interface, shared between two matters. Correct volume:
                     mnode->volume = 0.5 * nodevol;
                     mnode->vol_size = spacing * 0.5;  // ?
                 }

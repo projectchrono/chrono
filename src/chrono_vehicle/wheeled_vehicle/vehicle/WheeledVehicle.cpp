@@ -112,7 +112,7 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     m_axles.resize(m_num_axles);
     m_arb_locations.resize(m_num_axles);
     m_susp_locations.resize(m_num_axles);
-    m_susp_steering_index.resize(m_num_axles, -1);    // default: non-steerbale
+    m_susp_steering_index.resize(m_num_axles, -1);    // default: non-steerable
     m_susp_chassis_index.resize(m_num_axles, -1);     // default: attached to main chassis
     m_susp_subchassis_index.resize(m_num_axles, -1);  // default: no subchassis attachment
 
@@ -386,7 +386,7 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
         assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());
     }
 
-    // Initialize the powertain (if present)
+    // Initialize the powertrain (if present)
     if (m_powertrain_assembly) {
         InitializePowertrain(m_powertrain_assembly);
     }

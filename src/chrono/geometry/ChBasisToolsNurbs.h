@@ -61,7 +61,7 @@ class ChApi ChBasisToolsNurbs {
 
     /// Compute vector of bases R and their first derivatives.
     /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) NURBS, at the i-th knot span,
-    /// given the parameter u, the order p, the knot vector Knots, the weights Weights
+    /// given the parameter u, the order p, the knot vector Knots, the weights Weights.
     /// Results go into the row vector     R = {  R1,     R2,     R3,  , ....  R_(p+1)    }
     ///        and into the row vector dR/du = { dR1/du, dR2/du, dR3/du, .... dR_(p+1)/du }
     static void BasisEvaluateDeriv(

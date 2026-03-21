@@ -4,15 +4,10 @@ endif()
 
 set(DEMOS "")
 
-if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   set(DEMOS ${DEMOS}
       demo_CS_VEH_Kraz_OpenLoop
       demo_CS_VEH_HMMWV_MeshTerrain
-  )
-endif()
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-  set(DEMOS ${DEMOS}
       demo_CS_VEH_WheeledJSON
       demo_CS_VEH_UAZBUS
       demo_CS_VEH_HMMWV_Rollover
@@ -28,7 +23,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
   if(CH_USE_OPENCRG)
     set(DEMOS ${DEMOS}
-        demo_CS_VEH_CRGTerrain_IRR
+        demo_CS_VEH_CRGTerrain_VSG
     )
   endif()
 
@@ -45,9 +40,6 @@ endif()
 set(MODULE_LIST)
 list(APPEND MODULE_LIST "core")
 list(APPEND MODULE_LIST "vehicle")
-if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND MODULE_LIST "irrlicht")
-endif()
 if(CH_ENABLE_MODULE_VSG)
   list(APPEND MODULE_LIST "vsg")
 endif()
@@ -91,9 +83,6 @@ foreach(PROGRAM ${DEMOS})
   endif()
   
   # Add preprocessor defines based on available visualisation modules
-  if(CH_ENABLE_MODULE_IRRLICHT)
-    target_compile_options(${PROGRAM} PRIVATE "/define:CHRONO_IRRLICHT")
-  endif()
   if(CH_ENABLE_MODULE_VSG)
     target_compile_options(${PROGRAM} PRIVATE "/define:CHRONO_VSG")
   endif()

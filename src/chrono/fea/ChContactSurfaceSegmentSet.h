@@ -46,7 +46,7 @@ class ChApi ChContactSegmentXYZ : public ChContactable {
     /// Set node ownership.
     void SetNodeOwnership(const ChVector2b& owns_node) { m_owns_node = owns_node; }
 
-    /// Acccess the specified FEA node for which this is a proxy.
+    /// Access the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
 
     /// Returns true if the specified node is owned by this segment.
@@ -175,7 +175,7 @@ class ChApi ChContactSegmentXYZRot : public ChContactable /*, public ChLoadableU
     /// Set node ownership.
     void SetNodeOwnership(const ChVector2b& owns_node) { m_owns_node = owns_node; }
 
-    /// Acccess the specified FEA node for which this is a proxy.
+    /// Access the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyzrot> GetNode(int i) const { return m_nodes[i]; }
 
     /// Returns true if the specified node is owned by this segment.

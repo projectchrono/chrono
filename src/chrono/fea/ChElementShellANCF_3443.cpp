@@ -1219,7 +1219,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
         // current layer at a time component by component.
-        // Note that the Green-Largrange strain components have been scaled have already been combined with their scaled
+        // Note that the Green-Lagrange strain components have been scaled have already been combined with their scaled
         // time derivatives and minus the Gauss quadrature weight times the element Jacobian at the corresponding Gauss
         // point to make the calculation of the 2nd Piola-Kirchoff stresses more efficient.
         //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -1391,7 +1391,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntNoDamping(ChVectorDyna
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
         // current layer at a time component by component.
-        // Note that the Green-Largrange strain components have been scaled have already been combined with their scaled
+        // Note that the Green-Lagrange strain components have been scaled have already been combined with their scaled
         // time derivatives and minus the Gauss quadrature weight times the element Jacobian at the corresponding Gauss
         // point to make the calculation of the 2nd Piola-Kirchoff stresses more efficient.
         //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -1562,7 +1562,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         //==============================================================================
 
         // =============================================================================
-        // Calculate the partial derivative of the Green-Largrange strains with respect to the nodal coordinates
+        // Calculate the partial derivative of the Green-Lagrange strains with respect to the nodal coordinates
         // (transposed).  This calculation is performed in blocks across all the Gauss quadrature points at the same
         // time.  This value should be store in row major memory layout to align with the access patterns for
         // calculating this matrix.
@@ -1661,9 +1661,9 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         }
 
         // =============================================================================
-        // Calculate the combination of the scaled partial derivative of the Green-Largrange strains with respect to the
-        // nodal coordinates, the scaled partial derivative of the time derivative of the Green-Largrange strains with
-        // respect to the nodal coordinates, the scaled partial derivative of the Green-Largrange strains with respect
+        // Calculate the combination of the scaled partial derivative of the Green-Lagrange strains with respect to the
+        // nodal coordinates, the scaled partial derivative of the time derivative of the Green-Lagrange strains with
+        // respect to the nodal coordinates, the scaled partial derivative of the Green-Lagrange strains with respect
         // to the time derivative of the nodal coordinates, and the other parameters to correctly integrate across the
         // volume of the element.  This calculation is performed in blocks across all the Gauss quadrature points at the
         // same time.  This value should be store in row major memory layout to align with the access patterns for
@@ -1921,7 +1921,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
         // current layer at a time component by component.
-        // Note that the Green-Largrange strain components have been scaled have already been combined with their scaled
+        // Note that the Green-Lagrange strain components have been scaled have already been combined with their scaled
         // time derivatives and minus the Gauss quadrature weight times the element Jacobian at the corresponding Gauss
         // point to make the calculation of the 2nd Piola-Kirchoff stresses more efficient.
         //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -1965,7 +1965,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         }
 
         // =============================================================================
-        // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+        // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
         // matrix and then expand them out to full size by summing the contribution into the correct locations of the
         // full sized Jacobian matrix
         // =============================================================================
@@ -2030,7 +2030,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         //==============================================================================
 
         // =============================================================================
-        // Calculate the partial derivative of the Green-Largrange strains with respect to the nodal coordinates
+        // Calculate the partial derivative of the Green-Lagrange strains with respect to the nodal coordinates
         // (transposed).  This calculation is performed in blocks across all the Gauss quadrature points at the same
         // time.  This value should be store in row major memory layout to align with the access patterns for
         // calculating this matrix.
@@ -2117,7 +2117,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         }
 
         // =============================================================================
-        // Calculate the scaled partial derivative of the Green-Largrange strains with respect to the nodal coordinates
+        // Calculate the scaled partial derivative of the Green-Lagrange strains with respect to the nodal coordinates
         // and the other parameters to correctly integrate across the volume of the element.  This calculation is
         // performed in blocks across all the Gauss quadrature points at the same time.  This value should be store in
         // row major memory layout to align with the access patterns for calculating this matrix.
@@ -2325,7 +2325,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
         // current layer at a time component by component.
-        // Note that the Green-Largrange strain components have been scaled have already been combined with their scaled
+        // Note that the Green-Lagrange strain components have been scaled have already been combined with their scaled
         // time derivatives and minus the Gauss quadrature weight times the element Jacobian at the corresponding Gauss
         // point to make the calculation of the 2nd Piola-Kirchoff stresses more efficient.
         //  kGQ*SPK2 = kGQ*[SPK2_11,SPK2_22,SPK2_33,SPK2_23,SPK2_13,SPK2_12] = D * E_Combined
@@ -2369,7 +2369,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         }
 
         // =============================================================================
-        // Calculate just the non-sparse upper triangular entires of the sparse and symmetric component of the Jacobian
+        // Calculate just the non-sparse upper triangular entries of the sparse and symmetric component of the Jacobian
         // matrix and then expand them out to full size by summing the contribution into the correct locations of the
         // full sized Jacobian matrix
         // =============================================================================

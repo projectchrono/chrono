@@ -47,23 +47,46 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
 
     virtual ~ChVehicleCosimDBPRig() {}
 
+    /// Set verbose flag.
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
     /// Set window (in seconds) for the running average filter for drawbar pull reporting (default: 0.1 s).
     void SetDBPFilterWindow(double window) { m_dbp_filter_window = window; }
 
     /// Set window (in seconds) for the running average filter for slip reporting (default: 0.1 s).
     void SetSlipFilterWindow(double window) { m_slip_filter_window = window; }
 
+    /// Set the delay and ramping time intervals for reaching the prescribed angular velocity.
+    /// By default, the angular velocity is kept zero for 0.2 s and then increased to the prescribed value in 0.5 s.
+    void SetRampingIntervals(double delay, double ramp_time);
+
+    /// Construct and initialize the rig mechanism.
+    virtual void Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size);
+
+    /// Advance rig state by specified step size.
+    virtual void Advance(double step_size);
+
     /// Get rig type.
     virtual Type GetType() const = 0;
 
-    /// Return current value of longitudinal slip.
-    virtual double GetSlip() const = 0;
+    /// Get total time delay.
+    /// This is the total time necessary to bring motor velocities to their nominal values and is used to decide whether or not to generate rig output.
+    double GetTimeDelay() { return m_time_delay + m_time_ramp; }
+
+    /// Return the function specifying spindle angular speed.
+    std::shared_ptr<ChFunction> GetMotorFunction() const { return m_rot_motor_func; }
+
+    /// Return current rig location.
+    double GetLocation() const { return m_carrier->GetPos().x(); }
 
     /// Return current rig linear speed.
-    virtual double GetLinVel() const = 0;
+    double GetLinVel() const { return m_carrier->GetPosDt().x(); }
 
     /// Return current wheel angular speed.
     virtual double GetAngVel() const = 0;
+
+    /// Return current value of longitudinal slip.
+    double GetSlip() const;
 
     /// Return current raw drawbar-pull value.
     virtual double GetDBP() const = 0;
@@ -77,30 +100,21 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
   protected:
     ChVehicleCosimDBPRig();
 
-    /// Initialize the rig mechanism, by attaching it to the specified chassis body.
-    virtual void InitializeRig(std::shared_ptr<ChBody> chassis,  ///< associated chassis body
-                               double wheel_radius               ///< radius (tire or sprocket)
-                               ) = 0;
-
-    /// Return a function to specify spindle angular speed.
-    virtual std::shared_ptr<ChFunction> GetMotorFunction() const = 0;
-
-    bool m_verbose;       ///< verbose messages during simulation?
-    double m_delay_time;  ///< initialization (ramping up) time
+    bool m_verbose;                                ///< verbose messages during simulation?
+    double m_time_delay;                           ///< initial interval with zero motor velocities
+    double m_time_ramp;                            ///< time interval to ramp up motor velocities to prescribed value
+    double m_wheel_radius;                         ///< wheel radius
+    std::shared_ptr<ChBody> m_ground;              ///< ground body
+    std::shared_ptr<ChBody> m_carrier;             ///< rig carrier body
+    std::shared_ptr<ChFunction> m_rot_motor_func;  ///< imposed spindle angular speed
 
   private:
-    void Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size);
-    void OnAdvance(double step_size);
-
     std::unique_ptr<utils::ChRunningAverage> m_dbp_filter;   ///< running average filter for DBP
     double m_dbp_filter_window;                              ///< window (span) for the DBP filter
     double m_dbp_filtered;                                   ///< current value of filtered DBP
     std::unique_ptr<utils::ChRunningAverage> m_slip_filter;  ///< running average filter for slip
     double m_slip_filter_window;                             ///< window (span) for the slip filter
     double m_slip_filtered;                                  ///< current value of filtered slip
-
-    friend class ChVehicleCosimWheeledMBSNode;
-    friend class ChVehicleCosimTrackedMBSNode;
 };
 
 /// Drawbar-pull rig mechanism with imposed slip.
@@ -137,39 +151,23 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     /// Infer the actuation type from the given string.
     static ActuationType GetActuationTypeFromString(const std::string& type);
 
-    /// Return the current slip value.
-    virtual double GetSlip() const override { return m_slip; }
-
-    /// Return current rig linear speed.
-    virtual double GetLinVel() const override { return m_lin_vel; }
-
     /// Return current wheel angular speed.
     virtual double GetAngVel() const override { return m_ang_vel; }
 
     /// Return current raw drawbar-pull value.
     virtual double GetDBP() const override;
 
-    /// Set the delay and ramping time intervals for reaching the prescribed linear and angular velocities.
-    /// By default, the velocities are kept zero for 0.2 s and then increased to their final values in 0.5 s.
-    void SetRampingIntervals(double delay, double ramp_time);
-
   private:
-    virtual void InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) override;
-    virtual std::shared_ptr<ChFunction> GetMotorFunction() const override;
+    virtual void Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size) override;
+    virtual void Advance(double step_size) override;
 
-    ActuationType m_act_type;  ///< actuation type
-
-    std::shared_ptr<ChFunction> m_rot_motor_func;         ///< imposed spindle angular speed
+    ActuationType m_act_type;                             ///< actuation type
     std::shared_ptr<ChFunction> m_lin_motor_func;         ///< imposed carrier linear speed
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;  ///< linear motor for imposed linear velocity
-
-    double m_time_delay;  ///< initial interval with zero velocities
-    double m_time_ramp;   ///< time interval to ramp up velocities to final values
-
-    double m_base_vel;  ///< base velocity (linear or angular, depending on actuation type)
-    double m_slip;      ///< prescribed longitudinal slip for wheel
-    double m_lin_vel;   ///< rig linear velocity (based on actuation type and slip value)
-    double m_ang_vel;   ///< wheel angular velocity (based on actuation type and slip value)
+    double m_base_vel;                                    ///< base velocity (linear or angular, depending on actuation type)
+    double m_slip;                                        ///< prescribed longitudinal slip for wheel
+    double m_lin_vel;                                     ///< rig linear velocity (based on actuation type and slip value)
+    double m_ang_vel;                                     ///< wheel angular velocity (based on actuation type and slip value)
 };
 
 /// Drawbar-pull rig mechanism with imposed angular velocity.
@@ -182,16 +180,11 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDB
     ChVehicleCosimDBPRigImposedAngVel(double ang_vel,    ///< prescribed wheel angular speed
                                       double force_rate  ///< rate of change of resistive force
     );
+
     ~ChVehicleCosimDBPRigImposedAngVel() {}
 
     /// Get rig type.
     virtual Type GetType() const override { return Type::IMPOSED_ANG_VEL; }
-
-    /// Return the current slip value.
-    virtual double GetSlip() const override;
-
-    /// Return current rig linear speed.
-    virtual double GetLinVel() const override;
 
     /// Return current wheel angular speed.
     virtual double GetAngVel() const override { return m_ang_vel; }
@@ -199,24 +192,13 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDB
     /// Return current raw drawbar-pull value.
     virtual double GetDBP() const override;
 
-    /// Set the delay and ramping time intervals for reaching the prescribed angular velocity.
-    /// By default, the angular velocity is kept zero for 0.2 s and then increased to the prescribed value in 0.5 s.
-    void SetRampingIntervals(double delay, double ramp_time);
-
   private:
-    virtual void InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) override;
-    virtual std::shared_ptr<ChFunction> GetMotorFunction() const override;
+    virtual void Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size) override;
+    virtual void Advance(double step_size) override;
 
-    std::shared_ptr<ChBody> m_carrier;             ///< rig carrier body
-    std::shared_ptr<ChFunction> m_rot_motor_func;  ///< imposed spindle angular speed
     std::shared_ptr<ChLoadBodyForce> m_DBP_force;  ///< resistive (DBP) force
-
-    double m_time_delay;  ///< initial interval with zero angular velocity
-    double m_time_ramp;   ///< time interval to ramp up angular velocity to prescribed value
-
-    double m_ang_vel;      ///< wheel angular velocity
-    double m_force_rate;   ///< rate of change of resistive force
-    double m_tire_radius;  ///< tire radius
+    double m_ang_vel;                              ///< wheel angular velocity (imposed)
+    double m_force_rate;                           ///< rate of change of resistive force
 };
 
 /// @} vehicle_cosim_mbs

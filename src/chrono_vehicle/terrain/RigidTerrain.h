@@ -144,7 +144,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     );
 
     /// Add a terrain patch drawn from a vector of vectors - refined using the LEPP method.
-    /// For each Chvector, x and y represent grid elements and the z value is the height.
+    /// For each vector, x and y represent grid elements and the z value is the height.
     /// Usually, 10% to 25% of the heightmap resolution for unrefined_resolution produces good results.
     std::shared_ptr<Patch> AddPatch(
         std::shared_ptr<ChContactMaterial> material,  ///< [in] contact material
@@ -159,7 +159,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         double smoothing_factor = 0.25,               ///< [in] Taubin smoothing degree [0,1]
         double max_edge_length = 1.0,                 ///< [in] Maximum edge length in Refine Mesh Edges LEPP method
         double sweep_sphere_radius = 0.001,           ///< [in] radius of sweep sphere
-        bool visualization = true                     ///< [in] enable/disable construction of visualisation assets
+        bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
     /// Initialize all defined terrain patches.

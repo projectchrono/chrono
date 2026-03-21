@@ -24,7 +24,7 @@ Here are the main features:
 - To **build** this module:
 	- you must have the [OpenCASCADE](http://www.opencascade.org) libraries installed.
 
-Currently, the Chrono API is compatible with the OpenCASCADE **OCCT v.7.9.2**. Other versions of OpenCASCADE *are not compatible*.
+Currently, the Chrono API is compatible with OpenCASCADE **OCCT 7.9.2** and **OCCCT 7.9.3**. Other versions of OpenCASCADE *are not compatible*.
 
 
 ## Building instructions

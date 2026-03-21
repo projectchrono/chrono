@@ -138,7 +138,7 @@ void ordschur(ChMatrixDynamic<std::complex<double>>& U,
 // test the convergence of the ith eigenvalue in Krylov-Schur iteration
 int testConverge(ChMatrixDynamic<std::complex<double>>& H, int k, int i, double tol) {
     /*
-    % H is the hessenberg matrix after truncation
+    % H is the Hessenberg matrix after truncation
     % The test rule is
     %    | b_i | < max( ||H(1:k, 1:k)||_F * epsilon, tol * | \lambda_i | )
     % Return flag:
@@ -194,7 +194,7 @@ void truncateKrylov(ChMatrixDynamic<std::complex<double>>& Q,
     H << Ho(seq(0, k - 1), seq(0, k - 1)), Ho(m, seq(0, k - 1));
 }
 
-// Perform Schur decompostion on A and put the needed k eigenvalues
+// Perform Schur decomposition on A and put the needed k eigenvalues
 // on the upper left block.
 void sortSchur(ChMatrixDynamic<std::complex<double>>& US,
                ChMatrixDynamic<std::complex<double>>& TS,
@@ -357,7 +357,7 @@ void KrylovSchur(
         }
     }
 
-    // return the convergence infomation
+    // return the convergence information
     ni = i;
     if (p > k) {
         flag = 0;  // converges

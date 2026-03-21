@@ -21,7 +21,6 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 
-#include "chrono_models/vehicle/artcar/ARTcar.h"
 #include "chrono_models/vehicle/jeep/Cherokee.h"
 #include "chrono_models/vehicle/bmw/BMW_E90.h"
 #include "chrono_models/vehicle/citybus/CityBus.h"
@@ -45,7 +44,6 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-using namespace chrono::vehicle::artcar;
 using namespace chrono::vehicle::jeep;
 using namespace chrono::vehicle::bmw;
 using namespace chrono::vehicle::citybus;
@@ -90,25 +88,6 @@ class WheeledVehicleModel {
     ChCollisionSystem::Type collision_system_type;
     CollisionType chassis_collision_type;
     ChTire::CollisionType tire_collision_type;
-};
-
-class ARTcar_Model : public WheeledVehicleModel {
-  public:
-    virtual std::string ModelName() const override { return "ARTCAR"; }
-    virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        car->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { car->Advance(step); }
-    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 0.2); }
-    virtual double CameraDistance() const override { return 2.0; }
-    virtual double CameraHeight() const override { return 0.3; }
-
-  private:
-    void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    ARTcar* car;
 };
 
 class Citybus_Model : public WheeledVehicleModel {
@@ -492,36 +471,6 @@ class U401_Model : public WheeledVehicleModel {
 };
 
 // =============================================================================
-
-void ARTcar_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    car = new ARTcar(system);
-    car->SetInitPosition(init_pos);
-    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
-}
-
-void ARTcar_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    car = new ARTcar();
-    car->SetCollisionSystemType(collision_system_type);
-    car->SetContactMethod(contact_method);
-    car->SetInitPosition(init_pos);
-    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
-}
-
-void ARTcar_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    car->SetChassisCollisionType(chassis_collision_type);
-    car->SetChassisFixed(false);
-    car->SetTireType(TireModelType::TMEASY);
-    car->SetTireCollisionType(tire_collision_type);
-    car->Initialize();
-
-    car->SetChassisVisualizationType(chassis_vis);
-    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    car->SetWheelVisualizationType(VisualizationType::NONE);
-    car->SetTireVisualizationType(VisualizationType::MESH);
-}
-
-// -----------------------------------------------------------------------------
 
 void Citybus_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
     bus = new CityBus(system);
@@ -1156,7 +1105,6 @@ void U401_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chass
 
 std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> WheeledVehicleModel::List() {
     std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> models = {
-        {chrono_types::make_shared<ARTcar_Model>(), "ARTCAR"},         //
         {chrono_types::make_shared<Cherokee_Model>(), "Cherokee"},     //
         {chrono_types::make_shared<BMW_E90_Model>(), "BMW_E90"},       //
         {chrono_types::make_shared<Citybus_Model>(), "CITYBUS"},       //

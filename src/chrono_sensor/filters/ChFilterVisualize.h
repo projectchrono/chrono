@@ -110,7 +110,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     static int s_windowCount;       ///< keeps track of the window count
     static std::mutex s_glfwMutex;  ///< mutex to prevent us making two windows at the exact same time
 
-    bool m_window_disabled = false;  ///< for checking if window is not allowed on sysmtem (e.g. headless rendering)
+    bool m_window_disabled = false;  ///< for checking if window is not allowed on system (e.g. headless rendering)
     int m_w;                         ///< width of the window
     int m_h;                         ///< height of the window
     bool m_fullscreen;               ///< toggle for fullscreen mode

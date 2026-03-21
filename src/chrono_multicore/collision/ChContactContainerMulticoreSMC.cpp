@@ -132,7 +132,7 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
     auto modelA = (ChCollisionModelMulticore*)blist[b1]->GetCollisionModel()->GetImplementation();
     auto modelB = (ChCollisionModelMulticore*)blist[b2]->GetCollisionModel()->GetImplementation();
 
-    // Collsion shapes in contact
+    // Collision shapes in contact
     auto shape1 = modelA->m_shapes[s1_index].get();
     auto shape2 = modelB->m_shapes[s2_index].get();
 

@@ -25,7 +25,8 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #include "subsystems/ACV_Vehicle.h"
 #include "subsystems/ACV_EngineSimple.h"
@@ -114,16 +115,18 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(0.5);
     driver.Initialize();
 
-    // Create the Irrlicht visualization
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Articulated Vehicle Demo");
-    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
+    // Create the run-time visualization
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->AttachVehicle(&vehicle);
     vis->AttachDriver(&driver);
+    vis->SetWindowTitle("Articulated Vehicle Demo");
+    vis->SetWindowSize(1280, 800);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->SetChaseCamera(trackPoint, 10.0, 0.5);
+    vis->Initialize();
 
     // ---------------
     // Simulation loop

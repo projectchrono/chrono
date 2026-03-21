@@ -173,6 +173,9 @@ void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
+    //// RADU TODO
+    //// Allow attaching more than one ChSystem to the same Irrlicht visualization
+
     ChVisualSystem::AttachSystem(sys);
 
     // If the visualization system is already initialized
@@ -1009,6 +1012,11 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
             mchildnode->setRotation(shape_m4.getRotationDegrees());
 
             SetVisualMaterial(mchildnode, shape);
+
+            mchildnode->setAutomaticCulling(scene::EAC_OFF);
+            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, true);
+            mchildnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
+            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );

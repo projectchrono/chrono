@@ -319,7 +319,7 @@ int SCMTerrain::GetNumContactPatches() const {
     return m_loader->m_num_contact_patches;
 }
 
-// Return the number of nodes in the erosion domain at last step (bulldosing effects).
+// Return the number of nodes in the erosion domain at last step (bulldozing effects).
 int SCMTerrain::GetNumErosionNodes() const {
     return m_loader->m_num_erosion_nodes;
 }

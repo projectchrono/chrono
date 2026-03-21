@@ -95,7 +95,7 @@ class ChModalEventReceiver : public irr::IEventReceiver {
     ChModalVisualSystemIrrlicht<ScalarType>* m_modal_vsys;
 };
 
-/// Customized Chrono Irrlicht visualization for modal analaysis.
+/// Customized Chrono Irrlicht visualization for modal analysis.
 template <typename ScalarType>
 class ChModalVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
   public:

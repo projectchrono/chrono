@@ -30,15 +30,7 @@
 
 #include "chrono_models/vehicle/m113/M113.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
 #ifdef CHRONO_MUMPS
     #include "chrono_mumps/ChSolverMumps.h"
@@ -60,9 +52,6 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Band track type (BAND_BUSHING or BAND_ANCF)
 TrackShoeType shoe_type = TrackShoeType::BAND_ANCF;
@@ -272,57 +261,19 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization
     // -----------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
     std::string title = std::string("M113 Band-track Vehicle - ") +
                         (shoe_type == TrackShoeType::BAND_BUSHING ? " - BUSHINGS" : " - ANCF MESH");
-    std::shared_ptr<ChVehicleVisualSystem> vis;
 
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle(title);
-            vis_irr->SetWindowSize(1200, 800);
-            vis_irr->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&vehicle);
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle(title);
-            vis_vsg->SetWindowSize(1200, 800);
-            vis_vsg->EnableSkyTexture(SkyMode::DOME);
-            vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
-            vis_vsg->AttachVehicle(&m113.GetVehicle());
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    // Create the vehicle VSG interface
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+    vis->SetWindowTitle(title);
+    vis->SetWindowSize(1200, 800);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
+    vis->AttachVehicle(&m113.GetVehicle());
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 
     // Setup chassis position output with column headers
     chrono::ChWriterCSV csv("\t");
@@ -592,7 +543,10 @@ void AddFixedObstacles(ChSystem* system) {
 
 // =============================================================================
 
-void WriteMeshVTK(const std::string& vtk_dir, int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr<fea::ChMesh> meshR) {
+void WriteMeshVTK(const std::string& vtk_dir,
+                  int frame,
+                  std::shared_ptr<fea::ChMesh> meshL,
+                  std::shared_ptr<fea::ChMesh> meshR) {
     static bool generate_connectivity = true;
     if (generate_connectivity) {
         fea::ChMeshExporter::WriteMesh(meshL, vtk_dir + "/meshL_connectivity.out");

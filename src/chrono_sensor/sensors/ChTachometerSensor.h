@@ -15,7 +15,7 @@
 // Tachometer model is parameterized by :
 // 1. parent: the body the sensor is taking measurements
 // 2. updateRate: frequency of data acquisition
-// 3. axis: Axis of rotatioh to measure (X,Y,Z)
+// 3. axis: Axis of rotation to measure (X,Y,Z)
 //
 // =============================================================================
 
@@ -27,8 +27,6 @@
 namespace chrono {
 namespace sensor {
 
-enum Axis { X, Y, Z };
-
 /// @addtogroup sensor_sensors
 /// @{
 
@@ -36,6 +34,9 @@ enum Axis { X, Y, Z };
 /// This class queries the chrono system for the angular velocity of the parent body.
 class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
   public:
+    /// Tachometer axis of rotation.
+    enum class Axis { X, Y, Z };
+
     /// Class constructor
     /// @param parent Body to which the sensor is attached
     /// @param update Rate at which the sensor should update.

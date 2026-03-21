@@ -14,8 +14,6 @@
 //
 // Main driver function for a tracked vehicle specified through JSON files.
 //
-// If using the Irrlicht interface, driver inputs are obtained from the keyboard.
-//
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
@@ -37,15 +35,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -155,9 +145,6 @@ class Marder_SinglePin : public Vehicle_Model {
 // USER SETTINGS
 // =============================================================================
 
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
 // Current vehicle model selection
 ////auto vehicle_model = M113_SinglePin();
 ////auto vehicle_model = M113_DoublePin();
@@ -178,7 +165,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Specification of vehicle inputs
 enum class DriverMode {
-    KEYBOARD,  // interactive (Irrlicht) driver
+    KEYBOARD,  // interactive driver
     DATAFILE,  // inputs from data file
     PATH       // drives in a straight line
 };
@@ -384,55 +371,16 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization
     // -----------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
     std::string title = "JSON tracked vehicle demo - " + vehicle_model.ModelName();
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle(title);
-            vis_irr->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
-            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&vehicle);
-            vis_irr->AttachDriver(driver.get());
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle(title);
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->EnableSkyTexture(SkyMode::DOME);
-            vis_vsg->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
-            vis_vsg->AttachVehicle(&vehicle);
-            vis_vsg->AttachDriver(driver.get());
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+    vis->SetWindowTitle(title);
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowPosition(100, 100);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
+    vis->AttachVehicle(&vehicle);
+    vis->AttachDriver(driver.get());
+    vis->Initialize();
 
     // Solver and integrator settings
     double step_size = 1e-3;

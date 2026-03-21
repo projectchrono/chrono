@@ -231,7 +231,7 @@ UAZBUS_SAEToeBarLeafspringAxle::UAZBUS_SAEToeBarLeafspringAxle(const std::string
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 UAZBUS_SAEToeBarLeafspringAxle::~UAZBUS_SAEToeBarLeafspringAxle() {}
 

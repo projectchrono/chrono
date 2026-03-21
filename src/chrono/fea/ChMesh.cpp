@@ -157,7 +157,7 @@ void ChMesh::Setup() {
     }
 }
 
-// Updates all time-dependant variables, if any...
+// Updates all time-dependent variables, if any...
 // Ex: maybe the elasticity can increase in time, etc.
 void ChMesh::Update(double m_time, UpdateFlags update_flags) {
     // Parent class update

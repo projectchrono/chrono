@@ -16,7 +16,7 @@
 //
 // DeDion axles are lightweight solid axles, they don't carry a differential
 // gearbox. There are tow guiding joints
-//  - longitudinal: spherejoint
+//  - longitudinal: spherical joint
 //  - lateral: point-to-plane (simplest version),
 //             in real life often a Watt linkage is used instead
 // Example cars with DeDion axle(s)

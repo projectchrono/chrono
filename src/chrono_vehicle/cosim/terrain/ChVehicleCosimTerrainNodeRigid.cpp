@@ -33,13 +33,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#endif
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
-
 #include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
@@ -83,8 +76,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
     m_path_points.push_back({m_dimX, 0, 0});
 }
 
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method)
-    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method) {
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method) : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -216,8 +208,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     vis_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
     vis_mat->SetTextureScale(m_dimX, m_dimY);
 
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, 0.2),
-                          ChVector3d(m_dimX / 2, 0, -0.1), QUNIT, true, vis_mat);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, 0.2), ChVector3d(m_dimX / 2, 0, -0.1), QUNIT, true, vis_mat);
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
@@ -239,8 +230,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     // Add all rigid obstacles
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh =
-            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
         ChVector3d baricenter;
         ChMatrix33<> inertia;
@@ -332,8 +322,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
         body->SetFixed(m_fixed_proxies);
         body->EnableCollision(true);
 
-        utils::AddSphereGeometry(body.get(), material, m_radius_p, ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0),
-                                 true);
+        utils::AddSphereGeometry(body.get(), material, m_radius_p, ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
 
@@ -385,34 +374,23 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
 
     // Create the visualization window
     if (m_renderRT) {
-#if defined(CHRONO_VSG)
-        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-        vsys_vsg->AttachSystem(m_system);
-        vsys_vsg->SetWindowTitle("Terrain Node (Rigid)");
-        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
-        vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        vsys_vsg->SetCameraAngleDeg(40);
-        vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
-        vsys_vsg->SetImageOutput(m_writeRT);
-        vsys_vsg->Initialize();
+#ifdef CHRONO_VSG
+        m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
 
-        m_vsys = vsys_vsg;
-#elif defined(CHRONO_IRRLICHT)
-        auto vsys_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        vsys_irr->AttachSystem(m_system);
-        vsys_irr->SetWindowTitle("Terrain Node (Rigid)");
-        vsys_irr->SetCameraVertical(CameraVerticalDir::Z);
-        vsys_irr->SetWindowSize(1280, 720);
-        vsys_irr->Initialize();
-        vsys_irr->AddLogo();
-        vsys_irr->AddSkyBox();
-        vsys_irr->AddTypicalLights();
-        vsys_irr->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (Rigid)");
+        m_vsys->SetWindowSize(ChVector2i(1280, 720));
+        m_vsys->SetWindowPosition(ChVector2i(100, 100));
+        ////m_vsys->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
+        m_vsys->EnableSkyTexture();
+        m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
+        m_vsys->SetCameraAngleDeg(40);
+        m_vsys->SetLightIntensity(1.0f);
+        m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
+        m_vsys->SetImageOutput(m_writeRT);
+        m_vsys->Initialize();
 
-        m_vsys = vsys_irr;
+        m_vsys->ToggleAbsFrameVisibility();
 #endif
     }
 }
@@ -473,17 +451,18 @@ void ChVehicleCosimTerrainNodeRigid::GetForceRigidProxy(unsigned int i, TerrainF
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeRigid::OnRender() {
-    if (!m_vsys)
+    if (!m_renderRT)
         return;
-    if (!m_vsys->Run())
-        MPI_Abort(MPI_COMM_WORLD, 1);
 
+#ifdef CHRONO_VSG
     if (m_track)
         m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
-    m_vsys->BeginScene();
-    m_vsys->Render();
-    m_vsys->EndScene();
+    if (m_vsys->Run())
+        m_vsys->Render();
+    else
+        MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -491,16 +470,14 @@ void ChVehicleCosimTerrainNodeRigid::OnRender() {
 void ChVehicleCosimTerrainNodeRigid::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     // Include only main body and obstacles
-    utils::WriteVisualizationAssets(
-        m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_obstacles; }, true);
+    utils::WriteVisualizationAssets(m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_obstacles; }, true);
 }
 
 void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
 
-    auto lowest = std::min_element(
-        proxy->bodies.begin(), proxy->bodies.end(),
-        [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
+    auto lowest =
+        std::min_element(proxy->bodies.begin(), proxy->bodies.end(), [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
     double height = (*lowest)->GetPos().z();
     const ChVector3d& vel = (*lowest)->GetPosDt();
     cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel << endl;

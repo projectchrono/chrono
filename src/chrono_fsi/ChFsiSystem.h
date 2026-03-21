@@ -65,7 +65,7 @@ class CH_FSI_API ChFsiSystem {
     /// The default implementation sets the verbose mode for the FSI system and the underlying FSI interface.
     void SetVerbose(bool verbose);
 
-    /// Set gravitational acceleration for the FSI syatem.
+    /// Set gravitational acceleration for the FSI system.
     /// This function sets gravity for both the fluid and multibody systems.
     void SetGravitationalAcceleration(const ChVector3d& gravity);
 

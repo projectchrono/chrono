@@ -330,7 +330,7 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector3d>& points,
     if (create_collision) {
         assert(material);
         // avoid passing to collision the inner points discarded by convex hull
-        // processor, so use mesh vertexes instead of all argument points
+        // processor, so use mesh vertices instead of all argument points
         std::vector<ChVector3d> points_reduced;
         points_reduced.resize(vshape->GetMesh()->GetCoordsVertices().size());
         for (unsigned int i = 0; i < vshape->GetMesh()->GetCoordsVertices().size(); ++i)
@@ -416,7 +416,7 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector3d>& points,
     if (create_collision) {
         assert(material);
         // avoid passing to collision the inner points discarded by convex hull
-        // processor, so use mesh vertexes instead of all argument points
+        // processor, so use mesh vertices instead of all argument points
         std::vector<ChVector3d> points_reduced;
         points_reduced.resize(vshape->GetMesh()->GetCoordsVertices().size());
         for (unsigned int i = 0; i < vshape->GetMesh()->GetCoordsVertices().size(); ++i)

@@ -32,8 +32,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::vsg3d;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
 // -----------------------------------------------------------------------------
 
 void ConstructModel(ChSystem& sys, int id) {

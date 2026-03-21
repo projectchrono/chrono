@@ -669,7 +669,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
 
         static std::function<void(fmi2Real)> null_fmi2Real_setter = [](fmi2Real) {};
 
-        // TODO: check if needed: the following functions must be binded to a fixed counter value, not to
+        // TODO: check if needed: the following functions must be bound to a fixed counter value, not to
         // this->visualizers_counter
         fmi2Integer visualizer_counter_current = visualizers_counter;
 

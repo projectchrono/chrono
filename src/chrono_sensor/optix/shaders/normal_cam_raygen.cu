@@ -42,15 +42,14 @@ extern "C" __global__ void __raygen__normal_camera() {
     d.y *= (float)(screen.y) / (float)(screen.x);  // correct for the aspect ratio
 
     // FOV lens model
-    if (camera.lens_model == FOV_LENS && ((d.x) > 1e-5 || abs(d.y) > 1e-5)) {
+    if (camera.lens_model == CameraLensModelType::FOV_LENS && ((d.x) > 1e-5 || abs(d.y) > 1e-5)) {
         float focal = 1.f / tanf(camera.hFOV / 2.0);
         float2 d_normalized = d / focal;
         float rd = sqrtf(d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y);
         float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
         d = d_normalized * (ru / rd) * focal;
-
     } // radial lens model
-    else if (camera.lens_model == RADIAL) {
+    else if (camera.lens_model == CameraLensModelType::RADIAL) {
         float focal = 1.f / tanf(camera.hFOV / 2.0);
         float recip_focal = tanf(camera.hFOV / 2.0);
         float2 d_normalized = d * recip_focal;

@@ -340,7 +340,7 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
                                                half4* output_buffer) {
     m_cuda_stream = stream;
 
-    // intialize device memory for the denoiser
+    // initialize device memory for the denoiser
     OptixDenoiserSizes denoiser_sizes;
     OPTIX_ERROR_CHECK(optixDenoiserComputeMemoryResources(m_denoiser, w, h, &denoiser_sizes));
     m_scratch_size = static_cast<uint32_t>(denoiser_sizes.withoutOverlapScratchSizeInBytes);
@@ -400,7 +400,7 @@ CH_SENSOR_API void ChOptixDenoiser::Execute() {
                                           &m_params,      /// OptixDenoiserParams* params OK
                                           md_state,       // denoiserState OK
                                           m_state_size,   // denoiserStateSizeInBytes OK
-                                          &guideLayer,    // OptixDenoiserGuideLayer* guidelayer
+                                          &guideLayer,    // OptixDenoiserGuideLayer* guide layer
                                           &inLayer,       // OptixeDenoiserLayer* layer
                                           1,              // uint num layers
                                           0,              // uint inputOffsetX

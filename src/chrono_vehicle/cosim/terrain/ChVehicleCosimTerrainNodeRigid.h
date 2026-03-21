@@ -27,6 +27,10 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+
 #include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
@@ -80,9 +84,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void OnInitialize(unsigned int num_objects) override;
 
   private:
-    ChSystem* m_system;                      ///< containing system
-    double m_radius_p;                       ///< radius for a proxy body
-    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
+    ChSystem* m_system;  ///< containing system
+    double m_radius_p;   ///< radius for a proxy body
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsys;  ///< run-time visualization system
+#endif
 
     virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
 

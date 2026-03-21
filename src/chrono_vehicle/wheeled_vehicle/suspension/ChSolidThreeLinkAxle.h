@@ -134,7 +134,7 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
         SPRING_C,    ///< spring, chassis
         SPINDLE,     ///< spindle location
         TRIANGLE_A,  ///< triangle link location on the axle (single point y = 0)
-        TRIANGLE_C,  ///< triangle link locationon the chassis (two points)
+        TRIANGLE_C,  ///< triangle link location on the chassis (two points)
         LINK_A,      ///< longitudinal link location on the axle (two points)
         LINK_C,      ///< longitudinal link location on the chassis (two points)
         NUM_POINTS

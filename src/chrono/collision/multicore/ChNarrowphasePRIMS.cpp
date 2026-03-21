@@ -645,7 +645,7 @@ int box_capsule(const real3& pos1,
     }
 
     // Generate the two points where the capsule centerline intersects
-    // the exapanded box (still expressed in the box frame). Snap these
+    // the expanded box (still expressed in the box frame). Snap these
     // locations onto the original box, then snap back onto the capsule
     // axis. This reduces the collision problem to 1 or 2 box-sphere
     // collisions.

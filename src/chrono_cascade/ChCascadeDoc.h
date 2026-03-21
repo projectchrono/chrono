@@ -52,11 +52,11 @@ class ChApiCASCADE ChCascadeDoc {
     bool GetRootShape(TopoDS_Shape& shape, const int num = 1) const;
 
     /// Get a sub-shape with a given name, returned in 'shape'.
-    /// Since the document can contain assemblies, subassemblies, etc.,
-    /// the input name can use a 'directory type' syntax using the '/' slash such as: "assembly/subassebmly/subsubassembly/mypart".
+    /// Since the document can contain assemblies, sub-assemblies, etc.,
+    /// the input name can use a 'directory type' syntax using the '/' slash such as: "assembly/sub-assembly/sub-sub-assembly/part".
     /// It is possible to use '#' and '?' wildcards as in Unix.
     /// If there are multiple parts (or assemblies) with the same name, only the first instance is returned in 'shape'.
-    /// Otherwise, one can use the '#' wildcard to get the n-th object, such as: "MyAssembly/bolt#3" or "Car/Wheel#2/hub".
+    /// Otherwise, one can use the '#' wildcard to get the nth object, such as: "MyAssembly/bolt#3" or "Car/Wheel#2/hub".
     /// If the 'set_location_to_root' parameter is true (default), the location of the
     /// shape is changed so that it represents its position with respect to the root, that is
     /// the shape .Location() function will give the absolute position, otherwise if false
@@ -89,7 +89,7 @@ class ChApiCASCADE ChCascadeDoc {
         const double density,         ///< pass the density here
         ChVector3d& center_position,  ///< get the COG position center, with respect to shape pos
         ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
-        ChVector3d& inertiaXY,        ///< get the inertia extradiagonal terms
+        ChVector3d& inertiaXY,        ///< get the inertia extra-diagonal terms
         double& volume,               ///< get the volume
         double& mass                  ///< get the mass
     );

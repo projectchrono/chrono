@@ -1640,7 +1640,7 @@ void ChElementHexaANCF_3813::SetupInitial(ChSystem* system) {
     m_stock_jac_EAS.setZero();
     // Compute stiffness matrix
     // (this is not constant in ANCF and will be called automatically many times by ComputeKRMmatricesGlobal()
-    // when the solver will run, yet maybe nice to privide an initial nonzero value)
+    // when the solver will run, yet maybe nice to provide an initial nonzero value)
     ComputeStiffnessMatrix();
 }
 

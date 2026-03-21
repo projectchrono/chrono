@@ -29,7 +29,7 @@
 namespace chrono {
 
 /// Create rigid bodies with a spherical shape.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 class ChApi ChBodyEasySphere : public ChBody {
   public:
@@ -66,7 +66,7 @@ class ChApi ChBodyEasySphere : public ChBody {
 };
 
 /// Create rigid bodies with an ellipsoid shape.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 class ChApi ChBodyEasyEllipsoid : public ChBody {
   public:
@@ -103,7 +103,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
 };
 
 /// Create rigid bodies with a cylinder shape.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 class ChApi ChBodyEasyCylinder : public ChBody {
   public:
@@ -148,7 +148,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
 };
 
 /// Create rigid bodies with a box shape.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 class ChApi ChBodyEasyBox : public ChBody {
   public:
@@ -191,7 +191,7 @@ class ChApi ChBodyEasyBox : public ChBody {
 };
 
 /// Create rigid bodies with a convex hull shape.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 class ChApi ChBodyEasyConvexHull : public ChBody {
   public:
@@ -236,7 +236,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
 };
 
 /// Create rigid body with a convex hull shape, with a reference frame distinct from the centroidal frame.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
   public:
@@ -279,7 +279,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
 };
 
 /// Create rigid bodies with a mesh shape, with a reference frame distinct from the centroidal frame.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
   public:
@@ -345,7 +345,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
 };
 
 /// Create rigid bodies with a shape made of a cluster of spheres.
-/// Optionally sets the visualization and/or collision geometry and automatically calculates intertia properties based
+/// Optionally sets the visualization and/or collision geometry and automatically calculates inertia properties based
 /// on the geometry.
 /// Note that the mass and inertia are computed as if spheres are not intersecting! If a more precise mass/inertia
 /// estimation is needed when spheres are intersecting, change mass and inertia after creation using more advanced

@@ -822,7 +822,7 @@ void ChSystemDem::ReadHstHistory(std::ifstream& ifile, unsigned int totItem) {
         std::getline(ifile, line);
 
     // The header will tell the max number of partners (use as offset),
-    // but MAX_SPHERES_TOUCHED_BY_SPHERE is the monodispersity standard
+    // but MAX_SPHERES_TOUCHED_BY_SPHERE is the mono-dispersity standard
     unsigned int max_partner = MAX_SPHERES_TOUCHED_BY_SPHERE;
     unsigned int formatMode = quarryHistoryFormat(line, max_partner);
 
@@ -905,7 +905,7 @@ void ChSystemDem::ReadParticleFile(const std::string& infilename) {
     ReadCsvParticles(ifile, UINT_MAX);
 }
 
-// A smaller hasher that helps determine the indentifier type.
+// A smaller hasher that helps determine the identifier type.
 // It is powerful enough for our purpose and good-looking. We did not use built-in functions (such as string_view?)
 // because that could require C++17, also I feel it would make the code look longer. In any case, if this small
 // hasher is not sufficient anymore in future updates, we can spot that during compilation.
@@ -922,7 +922,7 @@ bool diff(float3 a, float3 b) {
     return std::abs(a.x - b.x) > 1e-6f || std::abs(a.y - b.y) > 1e-6f || std::abs(a.z - b.z) > 1e-6f;
 }
 
-// Use hash to find matching indentifier and load parameters. Return 1 if found no matching paramter to set, return
+// Use hash to find matching identifier and load parameters. Return 1 if found no matching paramter to set, return
 // 0 if status normal
 bool ChSystemDem::SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) {
     unsigned int i;        // integer holder
@@ -1100,7 +1100,7 @@ bool ChSystemDem::SetParamsFromIdentifier(const std::string& identifier, std::is
     if (incst && !overwrite)
         CHDEM_ERROR(
             "ERROR! Parameter \"%s\" is inconsistent with the current simulation system.\n"
-            "If you wish to construct a simulation systen from scratch using this checkpoint file, then you "
+            "If you wish to construct a simulation system from scratch using this checkpoint file, then you "
             "should supply this file as the constructor parameter.\nExiting...\n",
             identifier.c_str());
 
@@ -1108,7 +1108,7 @@ bool ChSystemDem::SetParamsFromIdentifier(const std::string& identifier, std::is
 }
 
 // Read in simulation parameters. Returns the total number of particles. If instructed to overwrite, then overwrite
-// cuurent simulation parameters with the values in the checkpoint file; else, when an inconsistency is found, throw
+// current simulation parameters with the values in the checkpoint file; else, when an inconsistency is found, throw
 // an error.
 unsigned int ChSystemDem::ReadDatParams(std::ifstream& ifile, bool overwrite) {
     std::string line;
@@ -1197,7 +1197,7 @@ void ChSystemDem::ReadCheckpointFile(const std::string& infilename, bool overwri
 
 // -----------------------------------------------------------------------------
 
-// DemMesh veriosn of reading checkpointed params using hashed identifier.
+// DemMesh version of reading checkpointed params using hashed identifier.
 bool ChSystemDemMesh::SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) {
     float f;               // float holder
     double d;              // double holder
@@ -1423,7 +1423,7 @@ void ChSystemDem::WriteCheckpointFile(const std::string& outfilename) {
     // Then, the particle kinematics info
     cpFile << std::string("CsvParticles\n");
     // In checkpointing, we want all particle info written, instead of selected output that the user can enforce via
-    // setting OutputFlags. Therefore, we temporarily set OutputFlags to maximum, then revert after this writting is
+    // setting OutputFlags. Therefore, we temporarily set OutputFlags to maximum, then revert after this writing is
     // done.
     unsigned int outFlags = m_sys->output_flags;
     SetParticleOutputFlags(VEL_COMPONENTS | FIXITY | ANG_VEL_COMPONENTS);
@@ -1512,7 +1512,7 @@ void ChSystemDem::WriteHstHistory(std::ofstream& histFile) const {
             for (unsigned int i = 0; i < MAX_SPHERES_TOUCHED_BY_SPHERE; i++)
                 outstrstream << m_sys->contact_partners_map[MAX_SPHERES_TOUCHED_BY_SPHERE * n + i] << " ";
         }
-        // Write write contact_history_map
+        // Write contact_history_map
         if (formatMode & 2) {
             for (unsigned int i = 0; i < MAX_SPHERES_TOUCHED_BY_SPHERE; i++) {
                 history_UU.x =
@@ -1574,7 +1574,7 @@ void ChSystemDemMesh::WriteCheckpointFile(const std::string& outfilename) {
     // Then, the particle kinematics info
     cpFile << std::string("CsvParticles\n");
     // In checkpointing, we want all particle info written, instead of selected output that the user can enforce via
-    // setting OutputFlags. Therefore, we temporarily set OutputFlags to maximum, then revert after this writting is
+    // setting OutputFlags. Therefore, we temporarily set OutputFlags to maximum, then revert after this writing is
     // done.
     unsigned int outFlags = m_sys->output_flags;
     SetParticleOutputFlags(VEL_COMPONENTS | FIXITY | ANG_VEL_COMPONENTS);

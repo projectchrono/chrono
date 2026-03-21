@@ -71,7 +71,7 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     /// Get the max number of iterations using the Newton Raphson procedure.
     double GetMaxIters() const { return max_iters; }
 
-    /// Get the current Jacobian update startegy.
+    /// Get the current Jacobian update strategy.
     JacobianUpdate GetJacobianUpdateMethod() const { return jacobian_update_method; }
 
     /// Return Jacobian update method as a string.
@@ -94,7 +94,7 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     /// Return the cumulative number of Newton iterations.
     unsigned int GetNumIterations() const { return num_iters; }
 
-    /// Return the cummulative number of calls to the solver's Setup function.
+    /// Return the cumulative number of calls to the solver's Setup function.
     unsigned int GetNumSetupCalls() const { return num_setups; }
 
     /// Return the cumulative number of calls to the solver's Solve function.
@@ -223,7 +223,7 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 
     unsigned int num_iters;   ///< current cumulative number of Newton iterations
     unsigned int num_setups;  ///< current cumulative number of Setup() calls
-    unsigned int num_solves;  ///< current cummulative number of Solve() calls
+    unsigned int num_solves;  ///< current cumulative number of Solve() calls
 
     unsigned int num_terminated;  ///< number of terminated NEwton iterations
 

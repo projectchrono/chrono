@@ -68,7 +68,7 @@ class CH_SENSOR_API ChFilterRGBDHalf4ToImageHalf4 : public ChFilter {
 
   private:
     std::shared_ptr<SensorDeviceRGBDHalf4Buffer> m_buffer_in;   ///< holder of the output RGBA8 image
-    std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_out;      ///< holder of the intput RGBA float image
+    std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_out;      ///< holder of the input RGBA float image
     CUstream m_cuda_stream;                                     ///< reference to the cuda stream
 };
 
@@ -119,7 +119,7 @@ class CH_SENSOR_API ChFilterImageHalf4ToRGBA16 : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_in;   ///< holder of the intput RGBA float image
+    std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_in;   ///< holder of the input RGBA float image
     std::shared_ptr<SensorDeviceRGBA16Buffer> m_buffer_out;  ///< holder of the output RGBA16 image
     CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };

@@ -33,7 +33,7 @@ namespace fea {
 
 /// Constraint that allows an IGA beam to slide relative to a ChBodyFrame.
 /// The beam is allowed to slide inside a 'outlet' represented by the x axis of a coordinate system floating with a
-/// ChBodyFrame. The parameteric coordinate of the point of the spline that correspond to the outlet is automatically
+/// ChBodyFrame. The parametric coordinate of the point of the spline that correspond to the outlet is automatically
 /// updated during the sliding motion.
 class ChApi ChLinkBeamIGAFrame : public ChLinkBase {
   public:

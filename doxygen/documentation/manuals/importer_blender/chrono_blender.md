@@ -1,31 +1,28 @@
 Chrono::Blender {#introduction_chrono_blender}
 ==========================
 
-Chrono::Blender is an add-on tool for the widespread 
-[Blender](http://www.blender.org) modeling and rendering software.
-Thanks to this add-on, you can generate high quality photorealistic
-animations of Chrono simulations.
+Chrono::Blender is an add-on for the [Blender](http://www.blender.org) modeling and rendering software.
+With this add-on, you can generate high quality photo-realistic animations of Chrono simulations.
 
-![](http://projectchrono.org/assets/manual/blender_addin.jpg)
-
-This requires that you build the [postprocessing module](@ref module_postprocess_installation), 
-so that you can use the ChBlender class to export all Chrono visual assets into .py files in a 
-directory when you run the simulation. For each time step, a .py file will be generated. 
+Use of the Chrono::Blender requires that you build the [Chrono::Postprocess](@ref module_postprocess_installation) module, 
+so that you can use the ChBlender class to export all Chrono visual assets into .py files in a directory when you run the
+simulation. For each time step, a .py file will be generated. 
 
 Then you can open Blender, import those files from the **File/Import../Chrono** menu, and you
 will find all the Chrono assets being imported in the GUI of Blender. At this point, you can 
 modify the objects, add lights, cameras, effects, perform high quality rendering, videos, etc,
-as regularly done via the Blender GUI.
+as regularly done via the Blender GUI. <br>
 
+![](http://projectchrono.org/assets/manual/blender_addin.jpg)
 
 ## Overview
 
 This is a short overview of the main features of the add-on. 
 If you want to test the following features on your PC, first you must do these steps:
 
-- install the add-on in Blender
+- [install](@ref chrono_blender_installation) the add-on in Blender
 
-- if not yet enabled, turn on *CH_ENABLE_MODULE_POSTPROCESSING* in CMake and rebuild Chrono
+- if not yet enabled, turn on `CH_ENABLE_MODULE_POSTPROCESS` in CMake and build Chrono
 
 - build *demo_POST_* (also, look at the comments in the source *demo_POST_blender.cpp* in order to learn)
 

@@ -15,7 +15,7 @@
 // Tachometer model is parameterized by :
 // 1. parent: the body the sensor is taking measurements
 // 2. updateRate: frequency of data acquisition
-// 3. axis: Axis of rotatioh to measure (X,Y,Z)
+// 3. axis: Axis of rotation to measure (X,Y,Z)
 //
 // =============================================================================
 

@@ -23,7 +23,7 @@
 
 namespace chrono {
 
-/// Base class for stress and strain tensors, in compact Voight notation.
+/// Base class for stress and strain tensors, in compact Voigt notation.
 /// This tensor representation uses 6 components in a column.
 template <class Real = double>
 class ChVoightTensor : public ChVectorN<Real, 6> {
@@ -192,7 +192,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     double GetEquivalentOctahedralDeviatoric() const { return std::sqrt(CH_2_3 * GetInvariant_J2()); }
 };
 
-/// Class for stress tensors, in compact Voight notation that is with 6 components in a column.
+/// Class for stress tensors, in compact Voigt notation that is with 6 components in a column.
 template <class Real = double>
 class ChStressTensor : public ChVoightTensor<Real> {
   public:
@@ -227,7 +227,7 @@ class ChStressTensor : public ChVoightTensor<Real> {
     }
 };
 
-/// Class for strain tensors, in compact Voight notation that is with 6 components in a column.
+/// Class for strain tensors, in compact Voigt notation that is with 6 components in a column.
 template <class Real = double>
 class ChStrainTensor : public ChVoightTensor<Real> {
   public:

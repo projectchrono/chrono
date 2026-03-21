@@ -384,7 +384,7 @@ void Viper::Create(ViperWheelType wheel_type) {
     // create rover chassis
     m_chassis = chrono_types::make_shared<ViperChassis>("chassis", m_default_material);
 
-    // initilize rover wheels
+    // initialize rover wheels
     double wx = 0.5618 + 0.08;
     double wy = 0.2067 + 0.32 + 0.0831;
     double wz = 0.0;
@@ -523,7 +523,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
     };
 
     // Orientation of lift motors.
-    // A positive lifting input results in rasing the chassis relative to the wheels.
+    // A positive lifting input results in raising the chassis relative to the wheels.
     ChQuaternion<> lm_rot[] = {
         QUNIT,                  // LF
         QuatFromAngleX(CH_PI),  // RF

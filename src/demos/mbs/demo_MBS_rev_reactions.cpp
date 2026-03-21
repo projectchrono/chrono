@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
         tools::drawCoordsys(vis.get(), rev->GetFrame2Abs().GetCoordsys());
 
         // Render reaction force on 1st connected body
-        if (false) {
+        {
             // Extract reaction force on body1 and express it in absolute frame
             auto frc = rev->GetFrame1Abs().TransformDirectionLocalToParent(rev->GetReaction1().force);
 
@@ -91,11 +91,11 @@ int main(int argc, char* argv[]) {
 
             auto p1 = rev->GetFrame1Abs().GetPos();
             auto p2 = p1 + frc;
-            tools::drawSegment(vis.get(), p1, p2, ChColor(0.5f, 0.5f, 0), false);
+            tools::drawSegment(vis.get(), p1, p2, ChColor(0.5f, 0.5f, 0.0f), false);
         }
 
         // Render reaction force on 2nd connected body
-        if (true) {
+        {
             // Extract reaction force on body1 and express it in absolute frame
             auto frc = rev->GetFrame2Abs().TransformDirectionLocalToParent(rev->GetReaction2().force);
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
             auto p1 = rev->GetFrame2Abs().GetPos();
             auto p2 = p1 + frc;
-            tools::drawSegment(vis.get(), p1, p2, ChColor(0.5f, 0.5f, 0), false);
+            tools::drawSegment(vis.get(), p1, p2, ChColor(0.0f, 0.5f, 0.5f), false);
         }
 
         vis->EndScene();

@@ -26,6 +26,7 @@
 using System;
 using static ChronoGlobals;
 using static chrono_vehicle;
+using static chrono;
 
 namespace ChronoDemo
 {
@@ -151,16 +152,17 @@ namespace ChronoDemo
             // Visualisation Setup
             //------------------------------------------
 
-            // Create the vehicle Irrlicht interface
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Rigid Terrain Demo");
+            // Create the VSG vehicle interface
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("Rigid Terrain Demo");
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 0.75), 6.0, 0.75);
-            vis.Initialize();
-            vis.AddLightDirectional();
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(hmmwv.GetVehicle());
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
+            vis.AttachVehicle(hmmwv.GetVehicle());  // Must attach vehicle BEFORE Initialize()
             vis.AttachDriver(driver);
+            vis.Initialize();
 
             // TODO: Fix wrapping for calc height
             /*

@@ -492,6 +492,7 @@ add_subdirectory(chrono)
 # ATTENTION: It is important to configure Chrono::Mumps before any other modules that may depend on Intel MKL!
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_pardisomkl)
+add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_parsers)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
@@ -502,7 +503,6 @@ add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_peridynamics)
 add_subdirectory(chrono_multicore)
-add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_dem)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_models)
@@ -612,12 +612,6 @@ else()
   set(CHRONO_PARDISO_MKL "#undef CHRONO_PARDISO_MKL")
 endif()
 
-if(CH_ENABLE_MODULE_PARSERS)
-  set(CHRONO_PARSERS "#define CHRONO_PARSERS")
-else()
-  set(CHRONO_PARSERS "#undef CHRONO_PARSERS")
-endif()
-
 if(CH_ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
@@ -652,6 +646,12 @@ else()
   set(CHRONO_FSI "#undef CHRONO_FSI")
   set(CHRONO_FSI_SPH "#undef CHRONO_FSI_SPH")
   set(CHRONO_FSI_TDPF "#undef CHRONO_FSI_TDPF")
+endif()
+
+if(CH_ENABLE_MODULE_PARSERS)
+  set(CHRONO_PARSERS "#define CHRONO_PARSERS")
+else()
+  set(CHRONO_PARSERS "#undef CHRONO_PARSERS")
 endif()
 
 if(CH_ENABLE_MODULE_DEM)
@@ -756,32 +756,33 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
 
-# Create Chrono project configuration script in install and build trees
+# Create Chrono project configuration script for the install tree
 set(CH_INSTALL_TREE TRUE)
 set(CH_BUILD_TREE_DIR "")
 set(CHRONO_SWIG_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_swig")
 configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
+  "${CMAKE_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake-install"
   INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
+# Create Chrono project configuration script for the build tree
 set(CH_INSTALL_TREE FALSE)
 set(CH_BUILD_TREE_DIR "${PROJECT_BINARY_DIR}")
 set(CHRONO_SWIG_DIR "${CMAKE_BINARY_DIR}/chrono_swig")
 configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+  "${CMAKE_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake"
   INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
 unset(CH_INSTALL_TREE)
 unset(CH_BUILD_TREE_DIR)
 
-# install config files
+# install config file
 install(FILES
-        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
-        RENAME "chrono-config.cmake"
+        "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake-install"
+        RENAME "ChronoConfig.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
@@ -805,32 +806,23 @@ if(CH_ENABLE_MODULE_CSHARP)
 endif()
 
 #-----------------------------------------------------------------------------
+# Create the ChronoConfigVersion.cmake file
+#-----------------------------------------------------------------------------
 
+write_basic_package_version_file(
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfigVersion.cmake"
+  VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}"
+  COMPATIBILITY SameMajorVersion
+)
 
-## TODO DARIOM: do version
-# # set version
-# set(version 3.4.1)
-
-# set_property(TARGET MathFunctions PROPERTY VERSION ${version})
-# set_property(TARGET MathFunctions PROPERTY SOVERSION 3)
-# set_property(TARGET MathFunctions PROPERTY
-#   INTERFACE_MathFunctions_MAJOR_VERSION 3)
-# set_property(TARGET MathFunctions APPEND PROPERTY
-#   COMPATIBLE_INTERFACE_STRING MathFunctions_MAJOR_VERSION
-# )
-
-# # generate the version file for the config file
-# write_basic_package_version_file(
-#   "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
-#   VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}"
-#   COMPATIBILITY AnyNewerVersion
-# )
-
+install(FILES
+        "${CMAKE_BINARY_DIR}/cmake/ChronoConfigVersion.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
 
 #-----------------------------------------------------------------------------
 # Export generated ChronoTargets.cmake
 #-----------------------------------------------------------------------------
-
 
 export(EXPORT ChronoTargets
        FILE "${CMAKE_BINARY_DIR}/cmake/ChronoTargets.cmake"

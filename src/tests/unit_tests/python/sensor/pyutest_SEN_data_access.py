@@ -27,7 +27,7 @@ def test_data_access():
                               W, H,
                               chrono.CH_PI / 3,
                               1, 
-                              sens.PINHOLE, # CameraLensModelType::PINHOLE
+                              sens.CameraLensModelType_PINHOLE,
                               False, # use_diffuse_reflect
                               False, # use_denoiser
                               sens.Integrator_LEGACY, # integrator

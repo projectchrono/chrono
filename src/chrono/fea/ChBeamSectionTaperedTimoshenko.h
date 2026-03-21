@@ -43,7 +43,7 @@ struct DampingCoefficients {
     double alpha = 0.0;  ///< mass-proportional damping coefficient, be zero as default
 };
 
-/// The aeverage section properties of tapered section could be stored in this struct.
+/// The average section properties of tapered section could be stored in this struct.
 struct AverageSectionParameters {
     double mu;     ///< mass per unit length
     double alpha;  ///< section rotation about elastic center[rad]
@@ -54,18 +54,18 @@ struct AverageSectionParameters {
     double My;     ///< mass center y displacement respect to centerline
     double Mz;     ///< mass center z displacement respect to centerline
 
-    double Jyy;  ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
-    double Jzz;  ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
-    double Jyz;  ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes
-    double Jxx;  ///< inertia Jxx per unit lenght, in centerline reference, measured along centerline main axes
+    double Jyy;  ///< inertia Jyy per unit length, in centerline reference, measured along centerline main axes
+    double Jzz;  ///< inertia Jzz per unit length, in centerline reference, measured along centerline main axes
+    double Jyz;  ///< inertia Jyz per unit length, in centerline reference, measured along centerline main axes
+    double Jxx;  ///< inertia Jxx per unit length, in centerline reference, measured along centerline main axes
     double Qy;   ///< mass moment of area along yy, in centerline reference, measured along centerline main axes
     double Qz;   ///< mass moment of area along zz, in centerline reference, measured along centerline main axes
 
     double mass_phi;  ///< rotation angle of mass principal axis about elastic center[rad]
-    double Jmyy;      ///< inertia Jyy per unit lenght, in mass center reference, measured along mass principal axes
-    double Jmzz;      ///< inertia Jzz per unit lenght, in mass center reference, measured along mass principal axes
-    double Jmyz;      ///< inertia Jyz per unit lenght, in mass center reference, measured along mass principal axes
-    double Jmxx;      ///< inertia Jxx per unit lenght, in mass center reference, measured along mass principal axes
+    double Jmyy;      ///< inertia Jyy per unit length, in mass center reference, measured along mass principal axes
+    double Jmzz;      ///< inertia Jzz per unit length, in mass center reference, measured along mass principal axes
+    double Jmyz;      ///< inertia Jyz per unit length, in mass center reference, measured along mass principal axes
+    double Jmxx;      ///< inertia Jxx per unit length, in mass center reference, measured along mass principal axes
     double Qmy;  ///< mass moment of area along yy, in mass center reference, measured along mass principal axes, which
                  ///< is exactly zero in theory.
     double Qmz;  ///< mass moment of area along zz, in mass center reference, measured along mass principal axes, which
@@ -73,14 +73,14 @@ struct AverageSectionParameters {
 
     double EA;    ///< axial rigidity
     double GJ;    ///< torsion rigidity
-    double GAyy;  ///< shear regidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
-    double GAzz;  ///< shear regidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
-    double EIyy;  ///< bending regidity about yy, evaluated in the elastic center and elastic principal axis
+    double GAyy;  ///< shear rigidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
+    double GAzz;  ///< shear rigidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
+    double EIyy;  ///< bending rigidity about yy, evaluated in the elastic center and elastic principal axis
     double EIzz;  ///< bending rigidity about zz, evaluated in the elastic center and elastic principal axis
 
-    double GAmyy;  ///< shear regidity along yy, evaluated in the mass center and mass principal axis
-    double GAmzz;  ///< shear regidity along zz, evaluated in the mass center and mass principal axis
-    double EImyy;  ///< bending regidity about yy, evaluated in the mass center and mass principal axis
+    double GAmyy;  ///< shear rigidity along yy, evaluated in the mass center and mass principal axis
+    double GAmzz;  ///< shear rigidity along zz, evaluated in the mass center and mass principal axis
+    double EImyy;  ///< bending rigidity about yy, evaluated in the mass center and mass principal axis
     double EImzz;  ///< bending rigidity about zz, evaluated in the mass center and mass principal axis
 
     double phimy;  ///< shear-deformation parameter, phimy = 12*EImzz/(GAmyy*L*L)
@@ -100,8 +100,8 @@ struct AverageSectionParameters {
 /// To be used with ChElementBeamTaperedTimoshenko.
 class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleighAdvancedGeneric {
   protected:
-    double GAyy;  ///< shear regidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
-    double GAzz;  ///< shear regidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
+    double GAyy;  ///< shear rigidity along yy, evaluated in the elastic center and elastic principal axis. GAyy=ky*G*A
+    double GAzz;  ///< shear rigidity along zz, evaluated in the elastic center and elastic principal axis. GAzz=kz*G*A
 
     ///   Mass moment of area, defined as :
     /// \f$ Q_{y} =  \int_\Omega \rho z d\Omega \f$,
@@ -115,7 +115,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
 
     /// An artificial correction factor for the structural damping model in the shear deformation,
     /// as default it's 1.0 and don't have any correction effect.
-    /// But when the numerical divergence occured, you could try to set this value be larger than 1.0
+    /// But when the numerical divergence occurred, you could try to set this value be larger than 1.0
     /// to improve the numerical stability in long-time simulation.
     double artificial_factor_for_shear_damping = 1.0;
 
@@ -132,7 +132,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     ChBeamSectionTimoshenkoAdvancedGeneric(
         const double mAx,                          ///< axial rigidity
         const double mTxx,                         ///< torsion rigidity
-        const double mByy,                         ///< bending regidity about yy
+        const double mByy,                         ///< bending rigidity about yy
         const double mBzz,                         ///< bending rigidity about zz
         const double mGAyy,                        ///< shear rigidity along yy
         const double mGAzz,                        ///< shear rigidity along zz
@@ -144,15 +144,15 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
         const double mSz,                          ///< shear center z displacement respect to centerline
         const double mmu,                          ///< mass per unit length
         const double
-            mJyy,  ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
+            mJyy,  ///< inertia Jyy per unit length, in centerline reference, measured along centerline main axes
         const double
-            mJzz,  ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
+            mJzz,  ///< inertia Jzz per unit length, in centerline reference, measured along centerline main axes
         const double mJyz =
-            0,  ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes const
+            0,  ///< inertia Jyz per unit length, in centerline reference, measured along centerline main axes const
         const double mQy =
-            0,  ///< inertia Qy per unit lenght, in centerline reference, measured along centerline main axes
+            0,  ///< inertia Qy per unit length, in centerline reference, measured along centerline main axes
         const double mQz =
-            0,  ///< inertia Qz per unit lenght, in centerline reference, measured along centerline main axes
+            0,  ///< inertia Qz per unit length, in centerline reference, measured along centerline main axes
         const double mMy = 0,  ///< mass center y displacement respect to centerline
         const double mMz = 0   ///< mass center z displacement respect to centerline
         )
@@ -271,7 +271,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
 
     /// Set the artificial correction factor for the structural damping model in the shear deformation,
     /// as default it's 1.0 and don't have any correction effect.
-    /// But when the numerical divergence occured, you could try to set this value be larger than 1.0
+    /// But when the numerical divergence occurred, you could try to set this value be larger than 1.0
     /// to improve the numerical stability in long-time simulation.
     virtual void SetArtificialFactorForShearDamping(double mv) { this->artificial_factor_for_shear_damping = mv; };
 
@@ -361,7 +361,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool compute_inertia_stiffness_matrix = true;
 
     /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
-    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    /// an analytical expression is provided. Children classes must take care of this. Default: false.
     bool compute_Ri_Ki_by_num_diff = false;
 
     /// A lock to avoid computing avg_sec_par several times, initialized as false by default.
@@ -392,7 +392,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     );
 
     // A quick algorithm to derive the mass matrix via a simple transformation in case of mass axis orientation and mass
-    // cetner offset. But, it has been validated to be WRONG. It is kept here only to remind you not to try this simple
+    // center offset. But, it has been validated to be WRONG. It is kept here only to remind you not to try this simple
     // method again.
     virtual void ComputeSimpleConsistentInertiaMatrix(
         ChMatrixNM<double, 12, 12>& M  ///< 12x12 sectional mass matrix values here

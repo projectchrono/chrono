@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Eric Brandt, Asher Elmquist, Han Wang
 // =============================================================================
-// This filter visualizes cartesian radar data
+// This filter visualizes Cartesian radar data
 // =============================================================================
 
 #ifndef CHFILTERRADARXYZVISUALIZE_H

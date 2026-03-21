@@ -231,7 +231,7 @@ class ChExternalActuatorFmu : public ChExternalFmu {
     std::string m_fmu_filename;               ///< name of the FMU file
     std::string m_unpack_dir;                 ///< name of directory where FMU file is unpacked
     bool is_attached;                         ///< true if actuator attached to bodies
-    ChBody* m_body1;                          ///< first conected body
+    ChBody* m_body1;                          ///< first connected body
     ChBody* m_body2;                          ///< second connected body
     ChVector3d m_loc1;                        ///< point on body 1 (local frame)
     ChVector3d m_loc2;                        ///< point on body 2 (local frame)

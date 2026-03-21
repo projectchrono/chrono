@@ -54,7 +54,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     ~ChRadarSensor();
 
     /// Gives the horizontal field of view of the radar (angle between right-most and left-most ray for a "frame").
-    /// Horizontal field of view should be 360-(angular resulution) in degrees for a full 360 degree scanning radar.
+    /// Horizontal field of view should be 360-(angular resolution) in degrees for a full 360 degree scanning radar.
     /// @return The horizontal field of view of the radar sensor
     float GetHFOV() const { return m_hFOV; }
 

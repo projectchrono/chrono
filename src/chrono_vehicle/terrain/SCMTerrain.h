@@ -170,9 +170,9 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
     /// Add a new moving active domain associated with the specified body.
     /// Note: the OOBB is placed relative to the body *reference frame*.
-    /// Multiple calls to this function can be made, each of them adding a new active active domain.
+    /// Multiple calls to this function can be made, each of them adding a new active domain.
     /// The union of all currently defined active domains is used to reduce the number of ray casting operations, by
-    /// ensuring that rays are generated only from SCM grid nodes inside the projection of the an actiove domains's OOBB
+    /// ensuring that rays are generated only from SCM grid nodes inside the projection of the an active domains's OOBB
     /// onto the SCM reference plane. If there are no user-provided active domains, a single default one is defined to
     /// encompass all collision shapes in the system at any given time.
     void AddActiveDomain(std::shared_ptr<ChBody> body,   ///< [in] monitored body
@@ -319,7 +319,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     int GetNumRayHits() const;
     /// Return the number of contact patches at last step.
     int GetNumContactPatches() const;
-    /// Return the number of nodes in the erosion domain at last step (bulldosing effects).
+    /// Return the number of nodes in the erosion domain at last step (bulldozing effects).
     int GetNumErosionNodes() const;
 
     /// Return time for updating active domains at last step (ms).
@@ -360,7 +360,7 @@ class CH_VEHICLE_API SCMContactableData {
     );
 
   private:
-    double area_ratio;     ///< fraction of contactable surface where soil-soil parameters are overriden
+    double area_ratio;     ///< fraction of contactable surface where soil-soil parameters are overridden
     double Mohr_cohesion;  ///< cohesion for shear failure [Pa]
     double Mohr_mu;        ///< coefficient of friction for shear failure [degree]
     double Janosi_shear;   ///< shear parameter in Janosi-Hanamoto formula [m]

@@ -21,7 +21,7 @@ namespace cascade {
 /// @addtogroup cascade_module
 /// @{
 
-/// Class for storing settings on OpenCASCADE tesselation of shapes.
+/// Class for storing settings on OpenCASCADE tessellation of shapes.
 class ChCascadeTriangulate {
   public:
     ChCascadeTriangulate(

@@ -82,7 +82,7 @@ ChOptixEngine::~ChOptixEngine() {
 void ChOptixEngine::Initialize() {
     cudaFree(0);
     OptixDeviceContext context;
-    CUcontext cuCtx = 0;  // zero means take the current context, TODO: enable multigpu
+    CUcontext cuCtx = 0;  // zero means take the current context, TODO: enable multi-GPU
     OPTIX_ERROR_CHECK(optixInit());
     OptixDeviceContextOptions options = {};
     options.logCallbackFunction = &optix_log_callback;
@@ -120,7 +120,7 @@ void ChOptixEngine::Initialize() {
     m_geometry = chrono_types::make_shared<ChOptixGeometry>(m_context);
     m_pipeline = chrono_types::make_shared<ChOptixPipeline>(m_context, m_recursions, m_debug);
 
-    // TODO: enable multigpu
+    // TODO: enable multi-GPU
 }
 
 void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
@@ -302,7 +302,7 @@ void ChOptixEngine::StopAllThreads() {
     }
     m_sceneThread.cv.notify_all();
 
-    // wait for it to finish the terminate proces
+    // wait for it to finish the terminate process
     {
         std::unique_lock<std::mutex> lck(m_sceneThread.mutex);
         while (!m_sceneThread.done) {
@@ -330,7 +330,7 @@ void ChOptixEngine::StopAllThreads() {
         }
         m_renderThreads[i].cv.notify_all();
 
-        // wait for it to finish the terminate proces
+        // wait for it to finish the terminate process
         std::unique_lock<std::mutex> lck(m_renderThreads[i].mutex);
         while (!m_renderThreads[i].done) {
             m_renderThreads[i].cv.wait(lck);
@@ -386,7 +386,7 @@ void ChOptixEngine::RenderProcess(RenderThread& tself, std::shared_ptr<ChOptixSe
         std::cout << "Sensor = " << sensor->GetName() << ", Process time = " << milli << "ms" << std::endl;
 #endif
         tself.done = true;
-        tmp_lock.unlock();  // explicitely release the lock on this render thread
+        tmp_lock.unlock();  // explicitly release the lock on this render thread
         tself.cv.notify_all();
     }
 }
@@ -436,7 +436,7 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
         }
         m_renderQueue.clear();  // empty list of sensor when everything is processed
         tself.done = true;
-        tmp_lock.unlock();      // explicitely release the lock on the job queue
+        tmp_lock.unlock();      // explicitly release the lock on the job queue
         tself.cv.notify_all();  // wake up anyone waiting for us
     }
 }
@@ -551,7 +551,7 @@ void ChOptixEngine::ConstructScene() {
         m_sceneThread.cv.wait(lck);
     }
     cudaDeviceSynchronize();
-    // wipeout all of old scene
+    // wipe out all of old scene
     m_geometry->Cleanup();         // remove all geometry
     m_pipeline->CleanMaterials();  // remove all programs and materials
 
@@ -796,7 +796,7 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         if (float* d_pts = scene->GetFSIParticles()) {
             int n = scene->GetNumFSIParticles();
             
-            printf("Creatinng NanoVDB Handle...\n");
+            printf("Creating NanoVDB Handle...\n");
             using buildType = nanovdb::Point;
             nanovdb::GridHandle<nanovdb::CudaDeviceBuffer> handle = createNanoVDBGridHandle(d_pts, n);
             nanovdb::NanoGrid<buildType>* grid = handle.deviceGrid<buildType>();

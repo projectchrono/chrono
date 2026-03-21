@@ -1322,7 +1322,7 @@ void cbtCollisionWorld::debugDrawObject(const cbtTransform& worldTransform, cons
 	{
 		switch (shape->getShapeType())
 		{
-			case CE_TRIANGLE_SHAPE_PROXYTYPE:	// ***CHRONO***
+			case CH_TRIANGLE_SHAPE_PROXYTYPE:	// ***CHRONO***
 			{
 				const cbtCEtriangleShape* triShape = static_cast<const cbtCEtriangleShape*>(shape);
 				auto v1 = triShape->get_p1();

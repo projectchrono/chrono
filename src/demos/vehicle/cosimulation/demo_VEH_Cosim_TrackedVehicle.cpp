@@ -58,13 +58,7 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Forward declarations
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     int rank,
-                     std::string& terrain_specfile,
-                     double& length,
-                     double& width,
-                     bool& verbose);
+bool GetProblemSpecs(int argc, char** argv, int rank, std::string& terrain_specfile, double& length, double& width, bool& verbose);
 
 // =============================================================================
 
@@ -130,12 +124,12 @@ int main(int argc, char** argv) {
     if (num_procs != 2) {
         if (rank == 0)
             std::cout << "\n\nTracked vehicle cosimulation code must be run on exactly 2 ranks!\n\n" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 
     // Simulation parameters
-    std::string terrain_specfile;
+    std::string terrain_specfile = GetVehicleDataFile("cosim/terrain/rigid.json");
     double step_size = 5e-4;
     double sim_time = 20.0;
     double output_fps = 100;
@@ -160,19 +154,18 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.9);
+    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.5);
 
     // Overwrite terrain patch size if using a DBP rig
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
-        init_loc = ChVector3d(-5, 0, 0.9);
+        init_loc = ChVector3d(-5, 0, 0.5);
     }
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
-    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::RIGID ||
-        terrain_type != ChVehicleCosimTerrainNodeChrono::Type::SCM) {
+    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::RIGID && terrain_type != ChVehicleCosimTerrainNodeChrono::Type::SCM) {
         if (rank == 0)
             std::cout << "Only RIGID or SCM terrain supported" << std::endl;
         MPI_Finalize();
@@ -206,13 +199,11 @@ int main(int argc, char** argv) {
 
         ChVehicleCosimTrackedVehicleNode* vehicle;
         if (use_JSON_spec) {
-            vehicle = new ChVehicleCosimTrackedVehicleNode(
-                GetVehicleDataFile("M113/vehicle/M113_Vehicle_SinglePin.json"),
-                GetVehicleDataFile("M113/powertrain/M113_EngineShafts.json"),
-                GetVehicleDataFile("M113/powertrain/M113_AutomaticTransmissionShafts.json"));
+            vehicle =
+                new ChVehicleCosimTrackedVehicleNode(GetVehicleDataFile("M113/vehicle/M113_Vehicle_SinglePin.json"), GetVehicleDataFile("M113/powertrain/M113_EngineShafts.json"),
+                                                     GetVehicleDataFile("M113/powertrain/M113_AutomaticTransmissionShafts.json"));
         } else {
-            auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle_SinglePin>(
-                false, DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
+            auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle_SinglePin>(false, DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
             auto m113_engine = chrono_types::make_shared<m113::M113_EngineShafts>("Engine");
             auto m113_transmission = chrono_types::make_shared<m113::M113_AutomaticTransmissionShafts>("Transmission");
             auto m113_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(m113_engine, m113_transmission);
@@ -302,8 +293,7 @@ int main(int argc, char** argv) {
         node->Synchronize(is, time);
         node->Advance(step_size);
         if (verbose)
-            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
-                 << node->GetTotalExecutionTime() << "]" << endl;
+            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  [" << node->GetTotalExecutionTime() << "]" << endl;
 
         if (is % output_steps == 0) {
             node->OutputData(output_frame);
@@ -318,16 +308,10 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     int rank,
-                     std::string& terrain_specfile,
-                     double& length,
-                     double& width,
-                     bool& verbose) {
+bool GetProblemSpecs(int argc, char** argv, int rank, std::string& terrain_specfile, double& length, double& width, bool& verbose) {
     ChCLI cli(argv[0], "Tracked vehicle co-simulation (run on 2 MPI ranks)");
 
-    cli.AddOption<std::string>("", "terrain_specfile", "Terrain specification file [JSON format]");
+    cli.AddOption<std::string>("", "terrain_specfile", "Terrain specification file [JSON format]", terrain_specfile);
     cli.AddOption<double>("", "terrain_length", "Terrain length [m]", std::to_string(length));
     cli.AddOption<double>("", "terrain_width", "Terrain width [m]", std::to_string(width));
 

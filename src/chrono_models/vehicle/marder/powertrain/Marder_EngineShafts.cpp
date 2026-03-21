@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Marder engine model based on ChShaft objects. Engine data unknown,
-// MROLE engine used instead (similar power/torque/speed characterristcs)
+// MROLE engine used instead (similar power/torque/speed characteristics)
 //
 // =============================================================================
 

@@ -81,7 +81,7 @@ bool ChNodeFEAxyzDDD::IsSlope3Fixed() const {
 }
 
 void ChNodeFEAxyzDDD::SetupInitial(ChSystem* system) {
-    // If the 3rd derivative vectore is free, ensure all other derivative vectors are also free.
+    // If the 3rd derivative vector is free, ensure all other derivative vectors are also free.
     if (!IsSlope3Fixed())
         SetSlope2Fixed(false);
 

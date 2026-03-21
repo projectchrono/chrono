@@ -876,7 +876,7 @@ void drawRotSpring(ChVisualSystemIrrlicht* vis,
 }
 
 // -----------------------------------------------------------------------------
-// Draw grids in 3D space, with given orientation, colour and spacing.
+// Draw grids in 3D space, with given orientation, color and spacing.
 // -----------------------------------------------------------------------------
 void drawGrid(ChVisualSystemIrrlicht* vis,
               double ustep,

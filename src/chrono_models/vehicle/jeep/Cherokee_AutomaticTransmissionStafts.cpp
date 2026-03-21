@@ -47,7 +47,7 @@ void Cherokee_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fw
 }
 
 void Cherokee_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
-    // assumpted stall speed = 2500 rpm
+    // assumed stall speed = 2500 rpm
     map->AddPoint(0.0,17.65);
     map->AddPoint(0.1,17.58);
     map->AddPoint(0.2,17.77);

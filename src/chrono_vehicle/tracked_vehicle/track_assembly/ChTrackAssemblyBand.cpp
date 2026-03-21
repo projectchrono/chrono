@@ -148,7 +148,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
                   [&Distances](size_t idx1, size_t idx2) { return Distances[idx1] > Distances[idx2]; });
 
         // Step 3: Going down the ordered list of circles from farthest to closest,
-        // find the tangent point that is the closest CCW angle to to the starting
+        // find the tangent point that is the closest CCW angle to the starting
         // angle and save those tangent points.  Attacking the problem in this order
         // skips over multiple circle tangents that are co-linear
 

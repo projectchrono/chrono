@@ -38,12 +38,12 @@ namespace vehicle {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-/// Base class for closed-loop path-follower driver modesl.
+/// Base class for closed-loop path-follower driver models.
 /// This driver model uses a path steering controller and a speed controller.
 /// The steering controller adjusts the steering input to follow the prescribed path.  The output from the speed
 /// controller is used to adjust throttle and braking inputs in order to maintain the prescribed constant vehicle speed.
 ///
-/// Derived classes differ in the type of laterla steering controller.
+/// Derived classes differ in the type of lateral steering controller.
 ///
 /// @sa ChSteeringController
 /// @sa ChSpeedController

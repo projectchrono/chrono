@@ -30,8 +30,9 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
+#include "chrono_sensor/utils/ChSensorUtils.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
@@ -41,41 +42,13 @@
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 #include "chrono_sensor/sensors/Sensor.h"
 
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+
 using namespace chrono;
 using namespace chrono::sensor;
 
-// -----------------------------------------------------------------------------
-// Lidar parameters
-// -----------------------------------------------------------------------------
-
-// Noise model attached to the sensor
-enum NoiseModel {
-    CONST_NORMAL_XYZI,  // Gaussian noise with constant mean and standard deviation
-    NONE                // No noise model
-};
-NoiseModel noise_model = CONST_NORMAL_XYZI;
-
-// Lidar return mode
-// Either STRONGEST_RETURN, MEAN_RETURN, FIRST_RETURN, LAST_RETURN
-LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
-
-// Update rate in Hz
-float update_rate = 5.f;
-
-// Number of horizontal and vertical samples
-unsigned int horizontal_samples = 4500;
-unsigned int vertical_samples = 32;
-
-// Horizontal and vertical field of view (radians)
-float horizontal_fov = (float)(2 * CH_PI);  // 360 degree scan
-float max_vert_angle = (float)CH_PI / 12;   // 15 degrees up
-float min_vert_angle = (float)-CH_PI / 6;   // 30 degrees down
-
-// Lag time
-float lag = 0.f;
-
-// Collection window for the lidar
-float collection_time = 1 / update_rate;  // typically 1/update rate
+using std::cout;
+using std::endl;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -96,18 +69,81 @@ bool vis = true;
 // Output directories
 const std::string out_dir = "SENSOR_OUTPUT/LIDAR_DEMO/";
 
+// -----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     LidarReturnMode& return_mode,
+                     LidarNoiseModelType& noise_model,
+                     unsigned int& horizontal_samples,
+                     unsigned int& vertical_samples,
+                     float& update_rate,
+                     float& horizontal_fov,
+                     float& max_vert_angle,
+                     float& min_vert_angle);
+
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
+
+    // --------------
+    // Lidar settings
+    // --------------
+
+    // Noise model attached to the sensor
+    LidarNoiseModelType noise_model = LidarNoiseModelType::CONST_NORMAL;
+
+    // Lidar return mode
+    // Either STRONGEST_RETURN, MEAN_RETURN, FIRST_RETURN, LAST_RETURN
+    LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
+
+    // Update rate in Hz
+    float update_rate = 5.0f;
+
+    // Number of horizontal and vertical samples
+    unsigned int horizontal_samples = 4500;
+    unsigned int vertical_samples = 32;
+
+    // Horizontal and vertical field of view (degrees)
+    float horizontal_fov = 360;  // 360 degree scan
+    float max_vert_angle = +15;  // 15 degrees up
+    float min_vert_angle = -30;  // 30 degrees down
+
+    // Lag time
+    float lag = 0.f;
+    
+    // Collection window for the lidar
+    float collection_time = 1 / update_rate;
+
+    // Parse command line arguments
+    if (!GetProblemSpecs(argc, argv, return_mode, noise_model, horizontal_samples, vertical_samples, update_rate,
+                         horizontal_fov, max_vert_angle, min_vert_angle)) {
+        return 1;
+    }
+
+    cout << "Lidar return mode:       " << LidarReturnModeAsString(return_mode) << endl;
+    cout << "Lidar noise model:       " << LidarNoiseModelTypeAsString(noise_model) << endl;
+    cout << "Num. horizontal samples: " << horizontal_samples << endl;
+    cout << "Num. vertical samples:   " << vertical_samples << endl;
+    cout << "Update rate:             " << update_rate << " Hz" << endl;
+    cout << "Horizontal FOV:          " << horizontal_fov << " deg" << horizontal_fov << endl;
+    cout << "Min. vertical angle:     " << min_vert_angle << " deg" << horizontal_fov << endl;
+    cout << "Max. vertical angle:     " << max_vert_angle << " deg" << horizontal_fov << endl;
+
+    horizontal_fov *= (float)CH_DEG_TO_RAD;
+    max_vert_angle *= (float)CH_DEG_TO_RAD;
+    min_vert_angle *= (float)CH_DEG_TO_RAD;
 
     // -----------------
     // Create the system
     // -----------------
+
     ChSystemNSC sys;
     sys.SetGravityY();
 
     // ----------------------------------
-    // add a mesh to be sensed by a lidar
+    // Add a mesh to be sensed by a lidar
     // ----------------------------------
+
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"),
                                                                   false, true);
     mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -182,10 +218,10 @@ int main(int argc, char* argv[]) {
 
     // Add a noise model filter to the lidar sensor
     switch (noise_model) {
-        case CONST_NORMAL_XYZI:
+        case LidarNoiseModelType::CONST_NORMAL:
             lidar->PushFilter(chrono_types::make_shared<ChFilterLidarNoiseXYZI>(0.01f, 0.001f, 0.001f, 0.01f));
             break;
-        case NONE:
+        case LidarNoiseModelType::NONE:
             // Don't add any noise models
             break;
     }
@@ -249,13 +285,13 @@ int main(int argc, char* argv[]) {
     // cloud data
     lidar2->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>("PC from depth"));
 
-    // Add a noise model filter to the camera sensor
+    // Add a noise model filter to the lidar sensor
     switch (noise_model) {
-        case CONST_NORMAL_XYZI:
+        case LidarNoiseModelType::CONST_NORMAL:
             lidar2->PushFilter(
                 chrono_types::make_shared<ChFilterLidarNoiseXYZI>(0.01f, 0.001f, 0.001f, 0.01f, "Noise"));
             break;
-        case NONE:
+        case LidarNoiseModelType::NONE:
             // Don't add any noise models
             break;
     }
@@ -300,17 +336,17 @@ int main(int argc, char* argv[]) {
         // di_ideal_ptr =
         // lidar->GetMostRecentBuffer<UserDIBufferPtr>();
         // if (di_ideal_ptr->Buffer) {
-        //     std::cout << "DI buffer received from
-        //     ideal lidar model." << std::endl;
-        //     std::cout << "\tLidar resolution: " <<
+        //     cout << "DI buffer received from
+        //     ideal lidar model." << endl;
+        //     cout << "\tLidar resolution: " <<
         //     di_ideal_ptr->Width << "x" <<
-        //     di_ideal_ptr->Height << std::endl;
-        //     std::cout << "\tFirst Point: [" <<
+        //     di_ideal_ptr->Height << endl;
+        //     cout << "\tFirst Point: [" <<
         //     di_ideal_ptr->Buffer[0].range << ", "
         //               <<
         //               di_ideal_ptr->Buffer[0].intensity
         //               << "]\n"
-        //               << std::endl;
+        //               << endl;
         // }
 
         // Access the XYZI buffer from the model
@@ -353,9 +389,9 @@ int main(int argc, char* argv[]) {
         //             }
         //         }
         //     }
-        //     std::cout << "Mean difference in lidar
+        //     cout << "Mean difference in lidar
         //     values: " << total_error / samples <<
-        //     std::endl << std::endl;
+        //     endl << endl;
         // }
 
         // Update sensor manager
@@ -371,7 +407,86 @@ int main(int argc, char* argv[]) {
 
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    std::cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
+    cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     LidarReturnMode& return_mode,
+                     LidarNoiseModelType& noise_model,
+                     unsigned int& horizontal_samples,
+                     unsigned int& vertical_samples,
+                     float& update_rate,
+                     float& horizontal_fov,
+                     float& max_vert_angle,
+                     float& min_vert_angle) {
+    std::string description =
+        "\nLidar sensor demo\n\n"                                                             //
+        "Return mode:  'Strongest_return', 'Mean_return', 'First_return' or 'Last_return'\n"  //
+        "Noise models: 'Const_normal' or 'None'\n";                                           //
+
+    ChCLI cli(argv[0], description);
+
+    std::string return_mode_str = LidarReturnModeAsString(return_mode);
+    std::string noise_model_str = LidarNoiseModelTypeAsString(noise_model);
+
+    cli.AddOption<std::string>("Lidar", "return_mode", "Lidar return mode", return_mode_str);
+    cli.AddOption<std::string>("Lidar", "noise_model", "Lidar noise model", noise_model_str);
+
+    cli.AddOption<unsigned int>("Lidar", "horizontal_samples", "Number of horizontal samples",
+                                std::to_string(horizontal_samples));
+    cli.AddOption<unsigned int>("Lidar", "vertical_samples", "Number of horizontal samples",
+                                std::to_string(vertical_samples));
+    cli.AddOption<float>("Lidar", "update_rate", "Update rate (Hz)", std::to_string(update_rate));
+    cli.AddOption<float>("Lidar", "horizontal_fov", "Horizontal FOV (deg)", std::to_string(horizontal_fov));
+    cli.AddOption<float>("Lidar", "max_vert_angle", "Max vertical angle (deg)", std::to_string(max_vert_angle));
+    cli.AddOption<float>("Lidar", "min_vert_angle", "Min vertical angle (deg)", std::to_string(min_vert_angle));
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    return_mode_str = cli.GetAsType<std::string>("return_mode");
+    noise_model_str = cli.GetAsType<std::string>("noise_model");
+
+    if (return_mode_str == "Strongest_return")
+        return_mode = LidarReturnMode::STRONGEST_RETURN;
+    else if (return_mode_str == "Mean_return")
+        return_mode = LidarReturnMode::MEAN_RETURN;
+    else if (return_mode_str == "First_return")
+        return_mode = LidarReturnMode::FIRST_RETURN;
+    else if (return_mode_str == "Last_return")
+        return_mode = LidarReturnMode::LAST_RETURN;
+    else {
+        cout << "Incorrect return mode. Use one of: Strongest_return, Mean_return, First_return or Last_return"
+             << std::endl;
+        cli.Help();
+        return false;
+    }
+
+    if (noise_model_str == "Const_normal")
+        noise_model = LidarNoiseModelType::CONST_NORMAL;
+    else if (noise_model_str == "None")
+        noise_model = LidarNoiseModelType::NONE;
+    else {
+        cout << "Incorrect noise model. Use one of: Const_normal or None" << std::endl;
+        cli.Help();
+        return false;
+    }
+
+    horizontal_samples = cli.GetAsType<unsigned int>("horizontal_samples");
+    vertical_samples = cli.GetAsType<unsigned int>("vertical_samples");
+
+    update_rate = cli.GetAsType<float>("update_rate");
+
+    horizontal_fov = cli.GetAsType<float>("horizontal_fov");
+    max_vert_angle = cli.GetAsType<float>("max_vert_angle");
+    min_vert_angle = cli.GetAsType<float>("min_vert_angle");
+
+    return true;
 }

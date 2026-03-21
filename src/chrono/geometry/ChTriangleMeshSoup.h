@@ -26,9 +26,6 @@ namespace chrono {
 
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
-  private:
-    std::vector<ChTriangle> m_triangles;  ///< triangle list
-
   public:
     ChTriangleMeshSoup() {}
     ChTriangleMeshSoup(const ChTriangleMeshSoup& source);
@@ -36,12 +33,19 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChTriangleMeshSoup* Clone() const override { return new ChTriangleMeshSoup(*this); }
 
-    /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
+    /// Create and return a ChTriangleMeshSoup from a Wavefront OBJ file.
     /// If an error occurrs during loading, an empty shared pointer is returned.
     static std::shared_ptr<ChTriangleMeshSoup> CreateFromWavefrontFile(const std::string& filename);
 
     /// Load from the given Wavefront .obj file
     bool LoadWavefrontMesh(std::string filename);
+
+    /// Create and return a ChTriangleMeshSoup from an STL file.
+    /// If an error occurrs during loading, an empty shared pointer is returned.
+    static std::shared_ptr<ChTriangleMeshSoup> CreateFromSTLFile(const std::string& filename);
+
+    /// Load an STL file into this triangle mesh.
+    bool LoadSTLMesh(const std::string& filename);
 
     /// Access the n-th triangle in mesh
     ////virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }
@@ -62,9 +66,9 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     std::vector<ChTriangle>& GetTriangles() { return m_triangles; }
 
     /// Clear all data
-    virtual void Clear() override { this->m_triangles.clear(); }
+    virtual void Clear() override { m_triangles.clear(); }
 
-    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    /// Transform all vertices, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
 
     /// Get the class type as an enum.
@@ -75,6 +79,9 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::vector<ChTriangle> m_triangles;  ///< triangle list
 };
 
 /// @} chrono_geometry

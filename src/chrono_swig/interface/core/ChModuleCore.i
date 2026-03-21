@@ -138,6 +138,9 @@ inline const char* ChUtils_GetFilename() {
 #endif
 #endif              // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
+#ifdef SWIGCSHARP
+%apply unsigned char { uint8_t }; // C# byte-cast fix- to use uint8_t instead (see ChUpdateFlags.i)
+#endif
 
 #ifdef SWIGPYTHON
 #ifdef CHRONO_PYTHON_NUMPY
@@ -370,6 +373,10 @@ inline const char* ChUtils_GetFilename() {
 // functions/   classes
 %include "ChFunction.i"
 
+#ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
+// update flags for ChSystem & ChMesh, etc.
+%include "ChUpdateFlags.i"
+#endif              // --------------------------------------------------------------------- CSHARP
 %include "../../../chrono/fea/ChMesh.h"
 
 
@@ -443,7 +450,8 @@ inline const char* ChUtils_GetFilename() {
 
 // Utils
 // for hulls and meshing
-%include "../../../chrono/collision/ChConvexDecomposition.h"
+// %include "../../../chrono/collision/ChConvexDecomposition.h"
+%include "ChConvexDecomposition.i"
 
 %include "../../../chrono/input_output/ChCheckpoint.h"
 %include "../../../chrono/input_output/ChCheckpointASCII.h"

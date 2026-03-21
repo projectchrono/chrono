@@ -42,10 +42,10 @@ ChApi bool LineLineIntersect(const ChVector3d& p1,
                              const ChVector3d& p2,
                              const ChVector3d& p3,
                              const ChVector3d& p4,
-                             ChVector3d* pa,
-                             ChVector3d* pb,
-                             double* mua,
-                             double* mub);
+                             ChVector3d& pa,
+                             ChVector3d& pb,
+                             double& mua,
+                             double& mub);
 
 /// Calculate distance between a point B and the segment (A1,A2).
 /// Returns the distance from B to the line and sets the line parameter 'u' such that u=0 indicates that B projects into

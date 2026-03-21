@@ -116,7 +116,7 @@ class ChApi ChConstraint {
 
     /// Indicate whether the constraint is currently active.
     /// In general, this indicates if it must be included into the system solver or not.
-    /// This method acumulates the effect of all flags, so a constraint may be inactive either because it is 'disabled',
+    /// This method accumulates the effect of all flags, so a constraint may be inactive either because it is 'disabled',
     /// 'broken', 'redundant', or not 'valid'.
     inline bool IsActive() const { return active; }
 

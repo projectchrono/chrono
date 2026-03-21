@@ -98,7 +98,7 @@ class ChApi ChCollisionModel {
 
     /// By default, family mask is all turned on, so all families can collide with this object, but you can turn on-off
     /// some bytes of this mask so that some families do not collide. When two objects collide, the contact is created
-    /// only if the family is within the 'family mask' of the other, and viceversa.
+    /// only if the family is within the 'family mask' of the other, and vice-versa.
     void DisallowCollisionsWith(int family);
     void AllowCollisionsWith(int family);
 

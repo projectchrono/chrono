@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Han Wang, Asher Elmquist
 // =============================================================================
-// This filter converts radar polar coordinates to cartesian coordinates and
+// This filter converts radar polar coordinates to Cartesian coordinates and
 // removes beams with no returns
 // =============================================================================
 #ifndef CHFILTERRADARXYZRETURN_H

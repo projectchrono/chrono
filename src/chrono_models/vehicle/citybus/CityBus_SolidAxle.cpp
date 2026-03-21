@@ -123,7 +123,7 @@ CityBus_SolidAxleRear::CityBus_SolidAxleRear(const std::string& name) : ChSolidA
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 CityBus_SolidAxleFront::~CityBus_SolidAxleFront() {}
 

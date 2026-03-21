@@ -114,6 +114,6 @@ install(TARGETS Chrono_irrlicht
 install(FILES ${IRR_HEADER_FILES}
         DESTINATION include/chrono_irrlicht)
 
-# Install files for chrono-config (in both build and install trees)
+# Install files for ChronoConfig (in both build and install trees)
 file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})

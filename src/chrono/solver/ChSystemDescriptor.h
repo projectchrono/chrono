@@ -174,7 +174,7 @@ class ChApi ChSystemDescriptor {
     /// \return  the number of scalar constraint multipliers (i.e. the rows of the column vector).
     virtual unsigned int FromVectorToConstraints(const ChVectorDynamic<>& vector);
 
-    /// Gather all unknows x = {q,l} into a column vector.
+    /// Gather all unknowns x = {q,l} into a column vector.
     /// The column vector will be automatically reset and resized to the proper length if requested.
     /// \return  the number of scalar unknowns
     virtual unsigned int FromUnknownsToVector(ChVectorDynamic<>& vector,  ///< system-level vector x={q,l}
@@ -317,7 +317,7 @@ class ChApi ChSystemDescriptor {
     /// Resulting estimates are passed as references in member arguments.
     virtual void ComputeFeasibilityViolation(
         double& resulting_maxviolation,  ///< gets the max constraint violation (either bi- and unilateral.)
-        double& resulting_feasability    ///< gets the max feasability as max |l*c| , for unilateral only
+        double& resulting_feasability    ///< gets the max feasibility as max |l*c| , for unilateral only
     );
 
     // LOGGING/OUTPUT/ETC.

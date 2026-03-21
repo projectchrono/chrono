@@ -188,7 +188,7 @@ class CH_SENSOR_API ChOptixGeometry {
     unsigned int m_nvdb_gas_id;
     bool m_nvdb_inst = false;  
 
-    // intance and root buffers
+    // instance and root buffers
     std::vector<OptixInstance> m_instances;  ///< host vector of geometry instances
     CUdeviceptr md_instances = {};           ///< device pointer to the instances on the device
     CUdeviceptr md_root_temp_buffer = {};    ///< device pointer to the root acceleration temporary buffer

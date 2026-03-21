@@ -45,8 +45,8 @@ class ChLinkTSDA;
 /// Body visualization mode.
 enum class VisualizationType {
     NONE,        ///< no visualization
-    PRIMITIVES,  ///< use primitve shapes (create primitive ChVisualShape objects)
-    MESH,        ///< use a mesh data file (create a ChVisualShapeModelFile)
+    PRIMITIVES,  ///< use primitive shapes (create primitive ChVisualShape objects)
+    MESH,        ///< use a mesh data file
     COLLISION    ///< visualize collision shapes
 };
 
@@ -177,8 +177,8 @@ class ChApi ChBodyGeometry {
     /// - COLLISION:  render collision shapes (if any), otherwise
     /// - MESH:       render an associated model file (if any), otherwise
     /// - PRIMITIVES: render primitive shapes (boxes, spheres, meshes, etc)
-    /// If `create_material==false`, no visualization material is used for any shape (to allow optional use of dyynamic
-    /// colors); this is not applicable for VisualizatinoType::MESH.
+    /// If `create_material==false`, no visualization material is used for any shape (to allow optional use of dynamic
+    /// colors); this is not applicable for VisualizationType::MESH.
     void CreateVisualizationAssets(std::shared_ptr<ChBody> body,
                                    VisualizationType vis = VisualizationType::PRIMITIVES,
                                    bool create_materials = true);

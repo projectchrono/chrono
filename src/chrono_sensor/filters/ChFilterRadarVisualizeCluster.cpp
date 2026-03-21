@@ -103,7 +103,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         glPointSize(1.0);
         glBegin(GL_POINTS);
 
-        // display the points, synchronoizing the streamf first
+        // display the points, synchronizing the streamf first
         cudaStreamSynchronize(m_cuda_stream);
         // draw the vertices, color them by clusterID
 

@@ -163,8 +163,15 @@ bool SynChronoManager::Initialize(ChSystem* system) {
     CreateAgentsFromDescriptions();
 
     // Initialize each zombie with the passed system
-    for (auto& zombie_pair : m_zombies)
+    for (auto& zombie_pair : m_zombies) {
+        if (!zombie_pair.second) {
+            SynLog() << "WARNING: Null zombie registered for " << zombie_pair.first.GetKeyString()
+                     << " during initialization. Skipping.\n";
+            continue;
+        }
+
         zombie_pair.second->InitializeZombie(system);
+    }
 
     m_initialized = true;
 
@@ -282,7 +289,7 @@ void SynChronoManager::ProcessReceivedMessages() {
 
 void SynChronoManager::DistributeMessages() {
     for (auto& message_agent_pair : m_messages) {
-        // For readibility
+        // For readability
         auto to_agent = message_agent_pair.first;
         auto messages = message_agent_pair.second;
 
@@ -305,7 +312,7 @@ void SynChronoManager::DistributeMessages() {
 
 void SynChronoManager::CreateAgentsFromDescriptions() {
     for (auto& message_agent_pair : m_messages) {
-        // For readibility
+        // For readability
         auto to_agent = message_agent_pair.first;
         auto messages = message_agent_pair.second;
 
@@ -315,10 +322,11 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
             auto message = *it;
             try {
                 /// TODO: In the future, this shouldn't be necessary since destination and source will be used
-                if (auto zombie = m_zombies[message->GetSourceKey()]) {
-                    to_agent->RegisterZombie(zombie);
+                auto zombie_it = m_zombies.find(message->GetSourceKey());
+                if (zombie_it != m_zombies.end() && zombie_it->second) {
+                    to_agent->RegisterZombie(zombie_it->second);
                 } else {
-                    zombie = SynAgentFactory::CreateAgent(message);
+                    auto zombie = SynAgentFactory::CreateAgent(message);
                     AddZombie(zombie, message->GetSourceKey());
                     to_agent->RegisterZombie(zombie);
 

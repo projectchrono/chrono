@@ -172,7 +172,7 @@ CityBus_LeafspringAxle::CityBus_LeafspringAxle(const std::string& name) : ChLeaf
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 CityBus_LeafspringAxle::~CityBus_LeafspringAxle() {}
 

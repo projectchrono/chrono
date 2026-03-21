@@ -137,7 +137,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
 
     t = 1.0 / L;
     y = gamma;
-    // If no iterations are performed or the residual is NAN (which is shouldnt be)
+    // If no iterations are performed or the residual is NAN (which is should not be)
     // make sure that gamma_hat has something inside of it. Otherwise gamma will be
     // overwritten with a vector of zero size
     gamma_hat = gamma;
@@ -169,7 +169,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
 
         // Compute the residual
         temp = gamma_new - g_diff * (N_gamma_new - r);
-        // ಠ_ಠ THIS PROJECTION IS IMPORTANT! (╯°□°)╯︵ ┻━┻
+        // THIS PROJECTION IS IMPORTANT!
         // If turned off the residual will be very incorrect! Turning it off can cause the solver to effectively use the
         // solution found in the first step because the residual never get's smaller. (You can convince yourself of this
         // by

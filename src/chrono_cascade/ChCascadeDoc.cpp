@@ -240,7 +240,7 @@ class GetNamedShapesCallback : public ChCascadeDoc::ScanShapesCallback {
                         if (this->set_location_to_root)
                             shape.Location(loc);
 
-                        // For single istance: only 1st found shape is considered
+                        // For single instance: only 1st found shape is considered
                         if (!res_found) {
                             res_found = true;
                             res_shape = shape;
@@ -344,7 +344,7 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& shape,    ///< pass t
                                        const double density,         ///< pass the density here
                                        ChVector3d& center_position,  ///< get the position center, respect to shape pos.
                                        ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
-                                       ChVector3d& inertiaXY,        ///< get the inertia extradiagonal terms
+                                       ChVector3d& inertiaXY,        ///< get the inertia extra-diagonal terms
                                        double& volume,               ///< get the volume
                                        double& mass                  ///< get the mass
 ) {

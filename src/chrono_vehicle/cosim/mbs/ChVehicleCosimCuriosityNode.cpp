@@ -28,12 +28,6 @@
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#endif
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimCuriosityNode.h"
 
@@ -129,32 +123,16 @@ void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2d& terrain_size, 
 
     // Initialize run-time visualization
     if (m_renderRT) {
-#if defined(CHRONO_VSG)
-        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-        vsys_vsg->AttachSystem(m_system);
-        vsys_vsg->SetWindowTitle("Curiosity Rover Node");
-        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2i(100, 300));
-        vsys_vsg->AddCamera(m_cam_pos, m_cam_target);
-        vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
-                          ChColor(0.1f, 0.3f, 0.1f));
-        vsys_vsg->Initialize();
-
-        m_vsys = vsys_vsg;
-#elif defined(CHRONO_IRRLICHT)
-        auto vsys_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        vsys_irr->AttachSystem(m_system);
-        vsys_irr->SetWindowTitle("Curiosity Rover Node");
-        vsys_irr->SetCameraVertical(CameraVerticalDir::Z);
-        vsys_irr->SetWindowSize(1280, 720);
-        vsys_irr->Initialize();
-        vsys_irr->AddLogo();
-        vsys_irr->AddSkyBox();
-        vsys_irr->AddCamera(m_cam_pos, m_cam_target);
-        vsys_irr->AddTypicalLights();
-
-        m_vsys = vsys_irr;
-
+#ifdef CHRONO_VSG
+        m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Curiosity Rover Node");
+        m_vsys->SetWindowSize(ChVector2i(1280, 720));
+        m_vsys->SetWindowPosition(ChVector2i(100, 300));
+        m_vsys->AddCamera(m_cam_pos, m_cam_target);
+        m_vsys->SetLightDirection(CH_PI_4, CH_PI_4);
+        m_vsys->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM, ChColor(0.1f, 0.3f, 0.1f));
+        m_vsys->Initialize();
 #endif
     }
 }
@@ -209,18 +187,18 @@ void ChVehicleCosimCuriosityNode::ApplySpindleForce(unsigned int i, const Terrai
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimCuriosityNode::OnRender() {
-    if (!m_vsys)
+    if (!m_renderRT)
         return;
-    if (!m_vsys->Run())
-        MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track) {
+#ifdef CHRONO_VSG
+    if (m_track)
         m_vsys->UpdateCamera(m_cam_pos, m_curiosity->GetChassisPos());
-    }
 
-    m_vsys->BeginScene();
-    m_vsys->Render();
-    m_vsys->EndScene();
+    if (m_vsys->Run())
+        m_vsys->Render();
+    else
+        MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 }
 
 void ChVehicleCosimCuriosityNode::OnOutputData(int frame) {
@@ -234,8 +212,7 @@ void ChVehicleCosimCuriosityNode::OnOutputData(int frame) {
         // Body states
         m_outf << pos.x() << del << pos.y() << del << pos.z() << del;
         // Solver statistics (for last integration step)
-        m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
-               << del << m_system->GetTimerUpdate() << del;
+        m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve() << del << m_system->GetTimerUpdate() << del;
         m_outf << endl;
     }
 

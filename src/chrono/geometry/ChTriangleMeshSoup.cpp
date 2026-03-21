@@ -17,6 +17,9 @@
 
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
+extern "C" {
+#include "chrono_thirdparty/libstl/stlfile.h"
+}
 
 namespace chrono {
 
@@ -63,6 +66,52 @@ bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
         }
     }
 
+    return true;
+}
+
+std::shared_ptr<ChTriangleMeshSoup> ChTriangleMeshSoup::CreateFromSTLFile(const std::string& filename) {
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
+    if (!trimesh->LoadSTLMesh(filename))
+        return nullptr;
+    return trimesh;
+}
+
+bool ChTriangleMeshSoup::LoadSTLMesh(const std::string& filename) {
+    char comment[80];
+    FILE* fp;
+    vertex_t nverts;
+    float* verts;
+    triangle_t ntris;
+    triangle_t* tris;
+    uint16_t* attrs;
+
+    fp = fopen(filename.c_str(), "rb");
+    auto success = loadstl(fp, comment, &verts, &nverts, &tris, &attrs, &ntris);
+    fclose(fp);
+
+    if (success != 0) {
+        free(tris);
+        free(verts);
+        free(attrs);
+        return false;
+    }
+
+    m_triangles.clear();
+    m_triangles.reserve(ntris);
+    for (triangle_t i = 0; i < ntris; ++i) {
+        triangle_t i1 = tris[i * 3];
+        triangle_t i2 = tris[i * 3 + 1];
+        triangle_t i3 = tris[i * 3 + 2];
+
+        ChVector3d v1(verts[i1 * 3], verts[i1 * 3 + 1], verts[i1 * 3 + 2]);
+        ChVector3d v2(verts[i2 * 3], verts[i2 * 3 + 1], verts[i2 * 3 + 2]);
+        ChVector3d v3(verts[i3 * 3], verts[i3 * 3 + 1], verts[i3 * 3 + 2]);
+        m_triangles.emplace_back(v1, v2, v3);
+    }
+
+    free(tris);
+    free(verts);
+    free(attrs);
     return true;
 }
 

@@ -63,7 +63,6 @@ class TireCollision {
 
     void Calculate() {
         auto sa = std::sin(angle);
-        auto ca = std::cos(angle);
 
         // Construct terrain inclined by given angle
         TestTerrain terrain(angle);

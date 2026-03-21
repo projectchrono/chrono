@@ -23,7 +23,7 @@ namespace fea {
 /// Returns the axis-aligned bounding box (assuming axes of local reference of the section)
 /// This functions has many uses, ex.for drawing, optimizations, collisions.
 /// We provide a fallback default implementation that iterates over all points thanks to GetPoints(),
-/// but one could override this if a more efficient implementaiton is possible (ex for circular beams, etc.)
+/// but one could override this if a more efficient implementation is possible (ex for circular beams, etc.)
 
 void ChBeamSectionShape::GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const {
     ymin = 1e30;

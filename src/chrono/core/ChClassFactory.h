@@ -479,7 +479,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     }
     template <class Tc = t>
     typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in, void* ptr) {
-        // do nothing, ArchiveIn does not esist for this type
+        // do nothing, ArchiveIn does not exists for this type
     }
 
     template <class Tc = t>
@@ -488,7 +488,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     }
     template <class Tc = t>
     typename enable_if<!ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& archive_out, void* ptr) {
-        // do nothing, ArchiveIn does not esist for this type
+        // do nothing, ArchiveIn does not exists for this type
     }
 
     template <class Tc = t>
@@ -501,7 +501,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     typename enable_if<!ChDetect_ArchiveOutConstructor<Tc>::value, void>::type _archive_out_constructor(
         ChArchiveOut& archive_out,
         void* ptr) {
-        // do nothing, ArchiveOutConstructor does not esist for this type
+        // do nothing, ArchiveOutConstructor does not exists for this type
     }
 
     template <class Tc = t>
@@ -561,7 +561,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
 /// derived class have different values: Derived d; Derived* d_ptr = &d; Base*    b_ptr = &d; Usually d_ptr == b_ptr,
 /// but if Derived is defined with multiple inheritance, then d_ptr != b_ptr This is usually not a problem, since the
 /// conversion between pointers of different types is usually done automatically; However during serialization the
-/// type-erasure impedes this automatic conversion. This can have distruptive consequences: Suppose that (as during
+/// type-erasure impedes this automatic conversion. This can have disruptive consequences: Suppose that (as during
 /// serialization):
 /// - an object of type Derived is created: `Derived d;`
 /// - a pointer to such object is type-erased to void* (e.g. to be stored in a common container): 

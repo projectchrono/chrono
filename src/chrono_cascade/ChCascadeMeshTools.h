@@ -43,7 +43,7 @@ class ChApiCASCADE ChCascadeMeshTools {
     /// Chrono ChTriangleMesh triangle mesh.
     static void FillTriangleMeshFromCascade(ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
                                             const TopoDS_Shape& shape,      ///< OpenCASCADE face to be meshed
-                                            const ChCascadeTriangulate& tolerances  ///< tesselation tolerances
+                                            const ChCascadeTriangulate& tolerances  ///< tessellation tolerances
     );
 
     /// This function can be used to convert a OpenCASCADE shape into a
@@ -51,7 +51,7 @@ class ChApiCASCADE ChCascadeMeshTools {
     /// Also normals are saved.
     static void FillObjFileFromCascade(std::ofstream& objfile,     ///< the .obj file will be written here
                                        const TopoDS_Shape& shape,  ///< OpenCASCADE face to be output as 'obj' file
-                                       const ChCascadeTriangulate& tolerances  ///< tesselation tolerances
+                                       const ChCascadeTriangulate& tolerances  ///< tessellation tolerances
     );
 };
 

@@ -215,7 +215,7 @@ void ChVehicleCosimTireNode::Synchronize(int step_number, double time) {
 }
 
 void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
-    // Act as a simple counduit between the MBS and TERRAIN nodes
+    // Act as a simple conduit between the MBS and TERRAIN nodes
     MPI_Status status;
 
     // Receive spindle state data from MBS node
@@ -351,7 +351,7 @@ void ChVehicleCosimTireNode::OutputData(int frame) {
         auto va = std::max(1e-4, ChVector2d(s_linvel_loc.x(), s_linvel_loc.z()).Length());
         auto v = sign * va;
         auto o = s_angvel_loc.y();
-        auto longitudinal_slip = (o * m_tire->GetRadius() - v) / v;
+        auto longitudinal_slip = (v > 1e-4) ? (o * m_tire->GetRadius() - v) / v : 0;
         m_outf << v << del << o << del << longitudinal_slip << endl;
     }
 

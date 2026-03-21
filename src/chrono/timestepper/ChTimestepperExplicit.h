@@ -30,7 +30,7 @@ class ChApi ChTimestepperExplicit : public ChTimestepper {
     virtual ~ChTimestepperExplicit();
 
     /// Turn on the diagonal lumping.
-    /// This can achieve a large speedup because no linear system is needeed to compute the derivative (i.e.
+    /// This can achieve a large speedup because no linear system is needed to compute the derivative (i.e.
     /// acceleration in II order systems), but not all Chintegrable might support the diagonal lumping.
     /// - If lumping is not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception.
     /// - If lumping introduces some approximation, you'll get nonzero in GetLumpingError().

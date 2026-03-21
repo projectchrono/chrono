@@ -38,15 +38,7 @@
 
 #include "chrono_fmi/ChExternalFmu.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -63,9 +55,6 @@ using std::cout;
 using std::endl;
 
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step sizes
 double step_size = 2e-3;
@@ -287,55 +276,23 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization system
     // ----------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
     int sentinelID = -1;
     int targetID = -1;
     auto vis = chrono_types::make_shared<ChVehicleVisualSystem>();
     if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-                auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-                vis_irr->SetWindowTitle("Double lane change with driver FMU");
-                vis_irr->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
-                vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
-                vis_irr->Initialize();
-                vis_irr->AddLightDirectional();
-                vis_irr->AddLogo();
-                vis_irr->AttachVehicle(&vehicle);
+        auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+        vis_vsg->SetWindowTitle("Double lane change with driver FMU");
+        vis_vsg->SetWindowSize(1280, 800);
+        vis_vsg->SetWindowPosition(100, 100);
+        vis_vsg->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
+        vis_vsg->SetCameraAngleDeg(40);
+        vis_vsg->SetLightIntensity(1.0f);
+        vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis_vsg->AttachVehicle(&vehicle);
+        vis_vsg->AttachTerrain(&terrain);
+        vis_vsg->Initialize();
 
-                vis = vis_irr;
-#endif
-                break;
-            }
-            default:
-            case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-                auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-                vis_vsg->SetWindowTitle("Double lane change with driver FMU");
-                vis_vsg->SetWindowSize(1280, 800);
-                vis_vsg->SetWindowPosition(100, 100);
-                vis_vsg->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
-                vis_vsg->SetCameraAngleDeg(40);
-                vis_vsg->SetLightIntensity(1.0f);
-                vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
-                vis_vsg->AttachVehicle(&vehicle);
-                vis_vsg->AttachTerrain(&terrain);
-                vis_vsg->Initialize();
-
-                vis = vis_vsg;
-#endif
-                break;
-            }
-        }
+        vis = vis_vsg;
 
         // Add a visualization grid
         vis->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc + ChVector3d(0, 0, -0.05), QuatFromAngleZ(init_yaw)),

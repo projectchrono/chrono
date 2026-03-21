@@ -5,7 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
-  - [\[Added\] PyChrono-Numpy integration](#added-pychrono-numpy-integration)
+  - [\[Added\] PyChrono-NumPy integration](#added-pychrono-numpy-integration)
   - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [\[Added\] Support for output and checkpointing](#added-support-for-output-and-checkpointing)
   - [\[Added\] New Python and CSharp wrappers](#added-new-python-and-csharp-wrappers)
@@ -15,11 +15,12 @@ Change Log
   - [\[Changed\] Refactoring of Chrono::FSI and Chrono fluid solvers](#changed-refactoring-of-chronofsi-and-chrono-fluid-solvers)
   - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
   - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
-  - [\[Added\] New Chrono::VSG features and capabilities](#added-new-chronovsg-features-and-capabilities)
+  - [\[Added\] Chrono::VSG features and capabilities](#added-chronovsg-features-and-capabilities)
   - [\[Changed\] Refactoring of Chrono CMake build system](#changed-refactoring-of-chrono-cmake-build-system) 
   - [\[Added\] Support for modeling components with internal dynamics (DAE)](#added-support-for-modeling-components-with-internal-dynamics-dae)
   - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
   - [\[Fixed\] Miscellaneous fixes](#fixed-miscellaneous-fixes)
+  - [\[Removed\] Obsoleted modules and features](#removed-obsoleted-modules-and-features)
 - [Release 9.0.1 (2024-07-03)](#release-901-2024-07-03)
   - [\[Fixed\] Bug fixes in FSI solver](#fixed-bug-fixes-in-fsi-solver)
   - [\[Fixed\] Miscellaneous bug fixes](#fixed-miscellaneous-bug-fixes)
@@ -126,13 +127,37 @@ Change Log
 
 # Unreleased (development branch)
 
-## [Added] PyChrono-Numpy integration
+## [Added] PyChrono-NumPy integration
 
-**TODO**
+PyChrono now provides optional NumPy integration (enabled when NumPy is detected at build time) for convenient and efficient data exchange between Chrono types and the Python ecosystem.
+
+Key additions include:
+- `to_numpy()` helpers for core math types (`ChVector3d`, `ChQuaterniond`, `ChMatrix33d`, `ChMatrixDynamicd`, `ChMatrix66d`).
+- `__array__` support so Chrono objects can be used directly with NumPy APIs (e.g., `np.asarray(obj)`), with optional dtype conversion.
+- Constructors from NumPy arrays for `ChMatrix33d` and `ChMatrixDynamicd`.
+- New SPH FSI convenience getters returning NumPy arrays (e.g., particle positions/velocities/properties), enabling vectorized post-processing.
+
+The original numpy-sensor integration is re-organized to align with the new framework. 
+- When NumPy is detected at build time, ``Get*Data()`` functions will be made available. 
+- When NumPy is not available, PyChrono continues to build normally, with NumPy-specific features excluded. With this, the sensor PyChrono module is now able to build without NumPy.
 
 ## [Added] Chrono::Sensor features and updates
 
-**TODO**
+The Chrono::Sensor module can now be built without OptiX support, on platforms where that is not installed or not available. 
+OptiX use and the corresponding ray tracing-based sensor models (camera, lidar, radar) can be enabled at configuration time by setting the CMake variable `CH_USE_SENSOR_OPTIX` to `ON`.  
+With this, sensor models that do not rely on OptiX (e.g., GPS or IMU) are now available on all platforms. 
+
+New features added to the camera sensor in the Chrono::Sensor module are listed below. 
+See [demo_SEN_camera](https://github.com/projectchrono/chrono/blob/main/src/demos/sensor/demo_SEN_camera.cpp) and [demo_SEN_cornell_box](https://github.com/projectchrono/chrono/blob/main/src/demos/sensor/demo_SEN_cornell_box.cpp) for usage and rendering examples.
+
+- Chrono::Sensor now provides multiple types of lights, including Point Light, Spot Light, Directional Light, Rectangle Area Light, Disk Area Light, and Environment Light.
+- A new rendering algorithm, `Integrator::PATH`, was added to the camera sensor. <br>
+  Users can choose the rendering algorithm (the previous `Integrator::LEGACY` or the new `Integrator::PATH`) by changing the `Integrator` flag in the ChCameraSensor constructor.
+- A new auxiliary map generator, `ChNormalCamera`, allows generation of normal maps.
+- A new type of camera sensor, `ChPhysCameraSensor`, was added. This is a physics-based camera sensor and additionally considers multiple optical artifacts, including defocus blur, vignetting, exposure triangle, noises, and camera response function (CRF). <br>
+  Users can change the camera setting parameters, including aperture number, exposure time, ISO, float focal length, and focus distance. See [demo_SEN_phys_cam](https://github.com/projectchrono/chrono/blob/main/src/demos/sensor/demo_SEN_phys_cam.cpp) for an example.
+
+The `TensorRT` feature was removed. With PyChrono now wrapping the Chrono::Sensor module, this feature was superfluous. Users can now transfer data to Python nodes through Chrono::ROS or directly use PyChrono.
 
 ## [Added] Support for output and checkpointing
 
@@ -147,10 +172,15 @@ Support for checkpointing was also added to Chrono::Vehicle. A vehicle checkpoin
 
 Additional Chrono modules were wrapped for use in Python (through PyChrono) or in C#:
 
-- new PyChrono wrapped modules: Chrono::VSG.
-- new C# wrapped modules: Chrono::Sensor, Chrono::VSG, Chrono robot models library.
+- new PyChrono wrapped modules: Chrono::VSG and Chrono::FSI-SPH.
+- new C# wrapped modules: Chrono::Sensor, Chrono::VSG, Chrono::ROS, and the Chrono robot models library.
 
-**TODO**
+In addition, more capabilities from the Chrono::Vehicle module are now also available through PyChrono:
+- the `ChTireTestRig` model is now available to Python users.
+- the `GetModifiedNodes` and `SetModifiedNodes` SCMTerrain functions are now exposed in PyChrono.
+
+
+Note that PyChrono now supports multi-threading in Project Chrono. Callbacks from co-simulated systems (e.g., SPH and MBS via the Chrono::FSI-SPH module) are now work in PyChrono. 
 
 ## [Changed] Refactor Jacobian update strategy for implicit integrators
 
@@ -263,7 +293,7 @@ For Chrono::FSI-TDPF simulations, the custom VSG plugin:
 - allows enabling/disabling rendering of the water surface.
 - displays the colormap used for color-coding water surface (if used).
 
-## [Added] New Chrono::VSG features and capabilities
+## [Added] Chrono::VSG features and capabilities
 
 New features in the Chrono::VSG run-time visualization system now allow to:
 
@@ -277,7 +307,7 @@ New features in the Chrono::Vehicle custom VSG visualization allow to:
 - enable/disable rendering of vehicle components at the sub-system level (e.g., chassis, suspension, steering, wheels for a wheeled vehicle).
 - display tire-terrain information for handling tire models, including the conact patch frame and the normal tire-terrain force.
 
-Chrono::VSG can now use a sky box or a sky dome. When using a sky dome, if the information is provided for the current sky texture, the texture is rotated so that the position of the light source (sun) in the sky texture matches the direction of the light and hence shados (if enabled).
+Chrono::VSG can now use a sky box or a sky dome. When using a sky dome, if the information is provided for the current sky texture, the texture is rotated so that the position of the light source (sun) in the sky texture matches the direction of the light and hence shadows (if enabled).
 
 ## [Changed] Refactoring of Chrono CMake build system
 
@@ -420,7 +450,18 @@ Further details are explained in the documentation.
 
 - The pressure angle "alpha" in ChLinkLockGear was tilted in the opposite direction for external gears, but it was correct in the case of internal gears. Now it is correct for both cases. Also a unit test has been added.
 
+## [Removed] Obsoleted modules and features
 
+The following Chrono modules and features were obsoleted:
+
+- Chrono::Distributed (MPI-based, domain decomposition for granular simulations using Chrono::Multicore).
+- Chrono::Pardiso (Pardiso direct sparse linear solver based on the Pardiso code from https://www.pardiso-project.org/). <br>
+  Note: Chrono::PardisoMKL is still available.
+- Chrono::OpenGL (simple OpenGL run-time visualization). <br>
+  Note: use Chrono::VSG for comparable performance and significantly richer set of features.
+- MPM solver in Chrono::Multicore.
+- Custom optimization solvers from the core Chrono module.
+- SPH support in core Chrono module.
 
 # Release 9.0.1 (2024-07-03)
 

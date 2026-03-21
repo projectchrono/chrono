@@ -64,7 +64,7 @@ class ChArchiveIn;
 
 /// Functor to call the ArchiveIn function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveIn
-/// easier and equippable with virtual functions.
+/// easier and equipped with virtual functions.
 
 class ChFunctorArchiveIn {
   public:
@@ -386,7 +386,7 @@ ChNameValue<T> make_ChNameValue(const std::string& auto_name,
 
 /// Class to handle C++ values of generic type using type erasure and functors.
 /// For example used to call the ArchiveOut function for unrelated classes that implemented them. This helps stripping
-/// out the templating, to make ChArchiveOut easier and equippable with virtual functions.
+/// out the templating, to make ChArchiveOut easier and equipped with virtual functions.
 class ChValue {
   public:
     virtual ~ChValue() {}

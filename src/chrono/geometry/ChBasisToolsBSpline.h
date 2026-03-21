@@ -106,7 +106,7 @@ class ChApi ChBasisToolsBSpline {
     /// given the parameter u, the order p, the knot vector knotU.
     /// Results go into the row vector N = { N1, N2, N3.... N_(p+1) }
     static void BasisEvaluate(const int p,                     ///< order
-                              const int i,                     ///< knot span, assume aready computed via FindSpan()
+                              const int i,                     ///< knot span, assume already computed via FindSpan()
                               const double u,                  ///< parameter
                               const ChVectorDynamic<>& knotU,  ///< knot vector
                               ChVectorDynamic<>& N  ///< here return basis functions N evaluated at u, that is: N(u)
@@ -144,7 +144,7 @@ class ChApi ChBasisToolsBSpline {
     /// The derivative order ranges from 0 (no derivative) to d, where d is the number of
     /// rows of the passed DN matrix. Usually two rows, for N and their shape derivatives.
     static void BasisEvaluateDeriv(const int p,     ///< order of spline
-                                   const int i,     ///< knot span, assume aready computed via FindSpan()
+                                   const int i,     ///< knot span, assume already computed via FindSpan()
                                    const double u,  ///< parameter
                                    const ChVectorDynamic<>& knotU,  ///< knot vector
                                    ChMatrixDynamic<>& DN  ///< here return derivatives evaluated at u, that is: dN/du(u)

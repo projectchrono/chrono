@@ -28,6 +28,7 @@ ChLinkLockGear::ChLinkLockGear()
       phase(0),
       checkphase(false),
       epicyclic(false),
+      phase_setup_needed(false),
       a1(0),
       a2(0),
       r1(0),
@@ -53,6 +54,7 @@ ChLinkLockGear::ChLinkLockGear(const ChLinkLockGear& other) : ChLinkLock(other) 
     a2 = other.a2;
     epicyclic = other.epicyclic;
     checkphase = other.checkphase;
+    phase_setup_needed = other.phase_setup_needed;
     r1 = other.r1;
     r2 = other.r2;
     contact_pt = other.contact_pt;
@@ -306,13 +308,20 @@ void ChLinkLockGear::Update(double time, UpdateFlags update_flags) {
             double realtau = tau;
             if (epicyclic)
                 realtau = -tau;
+
+            if (phase_setup_needed) {
+                // will ensure m_delta = 0 at this first update (later updates will keep this phase)
+                phase = -(a2 / realtau) - a1;  
+                phase_setup_needed = false;
+            }
+
             double m_delta;
             m_delta = -(a2 / realtau) - a1 - phase;
 
             if (m_delta > CH_PI)
-                m_delta -= (CH_2PI);  // range -180..+180 is better than 0...360
+                m_delta -= (CH_2PI);  // range -180..+180 is better than 0...360 deg
             if (m_delta > (CH_PI / 4.0))
-                m_delta = (CH_PI / 4.0);  // phase correction only in +/- 45�
+                m_delta = (CH_PI / 4.0);  // phase correction only in +/- 45 deg
             if (m_delta < -(CH_PI / 4.0))
                 m_delta = -(CH_PI / 4.0);
 
@@ -357,6 +366,7 @@ void ChLinkLockGear::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(phase);
     archive_out << CHNVP(checkphase);
     archive_out << CHNVP(epicyclic);
+    archive_out << CHNVP(phase_setup_needed);
     archive_out << CHNVP(a1);
     archive_out << CHNVP(a2);
     archive_out << CHNVP(r1);
@@ -380,6 +390,7 @@ void ChLinkLockGear::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(phase);
     archive_in >> CHNVP(checkphase);
     archive_in >> CHNVP(epicyclic);
+    archive_in >> CHNVP(phase_setup_needed);
     archive_in >> CHNVP(a1);
     archive_in >> CHNVP(a2);
     archive_in >> CHNVP(r1);

@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChVehicle {
     /// Get a handle to the vehicle's main chassis subsystem.
     std::shared_ptr<ChChassis> GetChassis() const { return m_chassis; }
 
-    /// Get the specified specified rear chassis subsystem.
+    /// Get the specified rear chassis subsystem.
     std::shared_ptr<ChChassisRear> GetChassisRear(int id) const { return m_chassis_rear[id]; }
 
     /// Get a handle to the specified chassis connector.
@@ -220,7 +220,7 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Enable output for this vehicle system.
     void SetOutput(ChOutput::Type type,          ///< [in] type of output DB
-                   ChOutput::Mode mode,          ///< [in] outut mode
+                   ChOutput::Mode mode,          ///< [in] output mode
                    const std::string& out_dir,   ///< [in] output directory name
                    const std::string& out_name,  ///< [in] rootname of output file
                    double output_step            ///< [in] interval between output times
@@ -228,7 +228,7 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Enable output for this vehicle system using an existing output stream.
     void SetOutput(ChOutput::Type type,       ///< [in] type of output DB
-                   ChOutput::Mode mode,       ///< [in] outut mode
+                   ChOutput::Mode mode,       ///< [in] output mode
                    std::ostream& out_stream,  ///< [in] output stream
                    double output_step         ///< [in] interval between output times
     );

@@ -1097,8 +1097,6 @@ set(Chrono_utils_SOURCES
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
     utils/ChForceFunctors.cpp
-    utils/ChSocket.cpp
-    utils/ChSocketCommunication.cpp
     )
 set(Chrono_utils_HEADERS
     utils/ChConstants.h
@@ -1116,9 +1114,17 @@ set(Chrono_utils_HEADERS
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
     utils/ChForceFunctors.h
-    utils/ChSocket.h
-    utils/ChSocketCommunication.h
 )
+if(NOT EMSCRIPTEN)
+    set(Chrono_utils_SOURCES ${Chrono_utils_SOURCES}
+        utils/ChSocket.cpp
+        utils/ChSocketCommunication.cpp
+    )
+    set(Chrono_utils_HEADERS ${Chrono_utils_HEADERS}
+        utils/ChSocket.h
+        utils/ChSocketCommunication.h
+    )
+endif()
 if(BUILD_BENCHMARKING)
     set(Chrono_utils_HEADERS ${Chrono_utils_HEADERS} utils/ChBenchmark.h)
 endif()
@@ -1531,7 +1537,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
 endif()
 
-# Compiler warning level and disbaled warnings
+# Compiler warning level and disabled warnings
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Warning level set to default")

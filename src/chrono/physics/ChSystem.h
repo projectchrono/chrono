@@ -159,13 +159,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Set the gravitational acceleration vector (default: [0, 0, 0]).
     void SetGravitationalAcceleration(const ChVector3d& gacc) { G_acc = gacc; }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative X direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative X direction.
     void SetGravityX() { G_acc = ChVector3d(-9.8, 0, 0); }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative Y direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative Y direction.
     void SetGravityY() { G_acc = ChVector3d(0, -9.8, 0); }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative Z direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative Z direction.
     void SetGravityZ() { G_acc = ChVector3d(0, 0, -9.8); }
 
     /// Get the gravitatoinal acceleration vector.
@@ -518,7 +518,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const { return timer_jacobian(); }
 
-    /// Return the time (in seconds) for runnning the collision detection step, within the time step.
+    /// Return the time (in seconds) for running the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
 
     /// Return the time (in seconds) for system setup, within the time step.
@@ -827,7 +827,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual ChVector3d GetBodyAppliedTorque(ChBody* body);
 
     /// Put bodies to sleep if possible. Also awakens sleeping bodies, if needed.
-    /// Returns true if some body changed from sleep to no sleep or viceversa,
+    /// Returns true if some body changed from sleep to no sleep or vice-versa,
     /// returns false if nothing changed. In the former case also performs Setup()
     /// since the system changed.
     bool ManageSleepingBodies();

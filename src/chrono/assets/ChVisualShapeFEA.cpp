@@ -196,32 +196,32 @@ ChVector3f& FetchOrAllocate(std::vector<ChVector3f>& mvector, unsigned int& id) 
     return mvector[id - 1];
 }
 
-void TriangleNormalsReset(std::vector<ChVector3d>& normals, std::vector<int>& accumul) {
+void TriangleNormalsReset(std::vector<ChVector3d>& normals, std::vector<int>& accumulators) {
     for (unsigned int nn = 0; nn < normals.size(); ++nn) {
         normals[nn] = ChVector3d(0, 0, 0);
-        accumul[nn] = 0;
+        accumulators[nn] = 0;
     }
 }
 
 void TriangleNormalsCompute(ChVector3i norm_indexes,
                             ChVector3i vert_indexes,
-                            std::vector<ChVector3d>& vertexes,
+                            std::vector<ChVector3d>& vertices,
                             std::vector<ChVector3d>& normals,
-                            std::vector<int>& accumul) {
-    ChVector3d tnorm = Vcross(vertexes[vert_indexes.y()] - vertexes[vert_indexes.x()],
-                              vertexes[vert_indexes.z()] - vertexes[vert_indexes.x()])
+                            std::vector<int>& accumulators) {
+    ChVector3d tnorm = Vcross(vertices[vert_indexes.y()] - vertices[vert_indexes.x()],
+                              vertices[vert_indexes.z()] - vertices[vert_indexes.x()])
                            .GetNormalized();
     normals[norm_indexes.x()] += tnorm;
     normals[norm_indexes.y()] += tnorm;
     normals[norm_indexes.z()] += tnorm;
-    accumul[norm_indexes.x()] += 1;
-    accumul[norm_indexes.y()] += 1;
-    accumul[norm_indexes.z()] += 1;
+    accumulators[norm_indexes.x()] += 1;
+    accumulators[norm_indexes.y()] += 1;
+    accumulators[norm_indexes.z()] += 1;
 }
 
-void TriangleNormalsSmooth(std::vector<ChVector3d>& normals, std::vector<int>& accumul) {
+void TriangleNormalsSmooth(std::vector<ChVector3d>& normals, std::vector<int>& accumulators) {
     for (unsigned int nn = 0; nn < normals.size(); ++nn) {
-        normals[nn] = normals[nn] * (1.0 / (double)accumul[nn]);
+        normals[nn] = normals[nn] * (1.0 / (double)accumulators[nn]);
     }
 }
 
@@ -240,7 +240,7 @@ void ChVisualShapeFEA::UpdateBuffers_Tetrahedron(std::shared_ptr<fea::ChElementB
     unsigned int ivert_el = i_verts;
     unsigned int inorm_el = i_vnorms;
 
-    // vertexes
+    // vertices
     ChVector3d p0 = node0->GetPos();
     ChVector3d p1 = node1->GetPos();
     ChVector3d p2 = node2->GetPos();
@@ -315,7 +315,7 @@ void ChVisualShapeFEA::UpdateBuffers_Tetra_4_P(std::shared_ptr<fea::ChElementBas
     unsigned int ivert_el = i_verts;
     unsigned int inorm_el = i_vnorms;
 
-    // vertexes
+    // vertices
     ChVector3d p0 = node0->GetPos();
     ChVector3d p1 = node1->GetPos();
     ChVector3d p2 = node2->GetPos();
@@ -391,7 +391,7 @@ void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
             pt[in] = nodes[in]->GetX0();
     }
 
-    // vertexes
+    // vertices
 
     if (shrink_elements) {
         ChVector3d vc(0, 0, 0);
@@ -407,7 +407,7 @@ void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
         ++i_verts;
     }
 
-    // colours and colours indexes
+    // colors and colors indexes
     for (int in = 0; in < 8; ++in) {
         trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(nodes[in], element));
         ++i_vcols;
@@ -554,7 +554,7 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
                 sectionshape->GetPoints(il, msubline_pts);
                 sectionshape->GetNormals(il, msubline_normals);
 
-                // store rotated vertexes, colors, normals
+                // store rotated vertices, colors, normals
                 for (int is = 0; is < msubline_pts.size(); ++is) {
                     ChVector3d Rw = msectionrot.Rotate(msubline_pts[is]);
                     ChVector3d Rn = msectionrot.Rotate(msubline_normals[is]);
@@ -693,7 +693,7 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 ++triangle_pt;
 
             }  // end for(iv)
-        }      // end for(iu)
+        }  // end for(iu)
 
     } else {
         // Non-triangular shell
@@ -743,8 +743,8 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 }
 
             }  // end for(iv)
-        }      // end for(iu)
-    }          // end triangular shell
+        }  // end for(iu)
+    }  // end triangular shell
 }
 
 void ChVisualShapeFEA::UpdateBuffers_LoadSurface(std::shared_ptr<ChMeshSurface> surface,
@@ -763,7 +763,7 @@ void ChVisualShapeFEA::UpdateBuffers_LoadSurface(std::shared_ptr<ChMeshSurface> 
             unsigned int ivert_el = i_verts;
             unsigned int inorm_el = i_vnorms;
 
-            // vertexes
+            // vertices
             ChVector3d p0 = node0->GetPos();
             ChVector3d p1 = node1->GetPos();
             ChVector3d p2 = node2->GetPos();
@@ -817,7 +817,7 @@ void ChVisualShapeFEA::UpdateBuffers_ContactSurfaceMesh(std::shared_ptr<ChContac
         unsigned int ivert_el = i_verts;
         unsigned int inorm_el = i_vnorms;
 
-        // vertexes
+        // vertices
         ChVector3d p0 = face->GetNode(0)->pos;
         ChVector3d p1 = face->GetNode(1)->pos;
         ChVector3d p2 = face->GetNode(2)->pos;
@@ -865,7 +865,7 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
     size_t n_vnorms = 0;
     size_t n_triangles = 0;
 
-    // A - Count the needed vertexes and faces
+    // A - Count the needed vertices and faces
 
     switch (fem_data_type) {
         case DataType::NONE:

@@ -90,7 +90,7 @@ class CH_SENSOR_API ChSensorManager {
     /// Set the maximum number of allowable optix engines.
     /// The manager will spawn up to this number of optix engines (separate threads for rendering) based on the update
     /// rate of the sensors. Sensors with similar update rates will be grouped on the same engine to reduce the number
-    /// of scene updates that are required as this is a major bottleneck in the multithreading paradigm of the render
+    /// of scene updates that are required as this is a major bottleneck in the multi-threading paradigm of the render
     /// engine.
     /// @param num_groups The maximum number of optix engines the manager is allowed to create.
     void SetMaxEngines(int num_groups);
@@ -116,7 +116,7 @@ class CH_SENSOR_API ChSensorManager {
 
 #ifdef CHRONO_HAS_OPTIX
     /// Public pointer to the scene.
-    /// This is used to specify additional componenets include lights, background colors, etc.
+    /// This is used to specify additional components include lights, background colors, etc.
     std::shared_ptr<ChScene> scene;
 #endif
 

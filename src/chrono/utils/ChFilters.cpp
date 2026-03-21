@@ -1068,7 +1068,7 @@ void ChISO2631_Vibration_SeatCushionLogger::Reset() {
 void ChISO2631_Vibration_SeatCushionLogger::GeneratePlotFile(std::string fName, std::string testInfo) {
     std::ofstream plt(fName);
     if (!plt.is_open()) {
-        std::cout << "ChISO2631_SeatCushionLogger: Connot generate file '" << fName << "', bailing out!" << std::endl;
+        std::cout << "ChISO2631_SeatCushionLogger: Cannot generate file '" << fName << "', bailing out!" << std::endl;
         return;
     }
     plt << "$ALLDATA << EOD" << std::endl;

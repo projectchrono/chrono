@@ -48,7 +48,7 @@ class ChApi ChCollisionShape {
         TETRAHEDRON,  // Not implemented in Bullet collision system
         PATH2D,       // 2D path (compound object)
         SEGMENT2D,    // line segment (part of a 2D path)
-        ARC2D,        // circlular arc (part of a 2D path)
+        ARC2D,        // circular arc (part of a 2D path)
         UNKNOWN_SHAPE
     };
 
@@ -74,6 +74,15 @@ class ChApi ChCollisionShape {
     /// Return true if the collision shape is marked as modifiable.
     bool IsMutable() const { return is_mutable; }
 
+    /// Set the parent shape.
+    /// This is meaningful only for collision shapes that are part of a compound (for example, a ChCollisionShapeMeshTriangle which is part of a ChCollisionShapeTriangleMesh).
+    /// For collision shapes that are not part of a compound, the parent shape should be left at its default `nullptr` value.
+    void SetParentShape(std::shared_ptr<ChCollisionShape> parent);
+
+    /// Get the parent shape.
+    /// Returns `nullptr` is this collision shape is not part of a compound.
+    ChCollisionShape* GetParentShape() const { return m_parent; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
@@ -81,9 +90,10 @@ class ChApi ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
-    Type m_type;                                    ///< type of collision shape
-    std::shared_ptr<ChContactMaterial> m_material;  ///< surface contact material
-    bool is_mutable;                                ///< flag indicating whether the shape is rigid or deformable
+    Type m_type;                                              ///< type of collision shape
+    bool is_mutable = false;                                  ///< flag indicating whether the shape is rigid or deformable
+    std::shared_ptr<ChContactMaterial> m_material = nullptr;  ///< surface contact material
+    ChCollisionShape* m_parent = nullptr;                     ///< parent collision shape (if part of compound)
 
     friend class ChCollisionModel;
 };

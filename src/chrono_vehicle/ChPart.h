@@ -131,7 +131,7 @@ class CH_VEHICLE_API ChPart {
 
     /// Read states of this subsystem's components from the specified checkpoint database.
     /// This base class implementation imports states for component physical items.
-    /// An assembly of parts should override this function and invoke ReadCheckpoint() for each copmponent part.
+    /// An assembly of parts should override this function and invoke ReadCheckpoint() for each component part.
     virtual void ReadCheckpoint(ChCheckpoint& database);
 
     /// Utility function for transforming inertia tensors between centroidal frames.

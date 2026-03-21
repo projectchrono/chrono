@@ -30,7 +30,7 @@
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
+    #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
 #include "chrono_thirdparty/rapidjson/document.h"

@@ -402,7 +402,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         unsigned char* roughData = stbi_load(material->GetRoughnessTexture().c_str(), &wR, &hR, &nR, 1);
         if (metalData && roughData) {
             if ((wM != wR) || (hM != hR)) {
-                vsg::error("Metalness and Roughness Textures must have the same size!");
+                vsg::error("Metal and Roughness Textures must have the same size!");
                 return {};
             }
         }
@@ -453,25 +453,28 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
     struct SetPipelineStates : public vsg::Visitor {
         bool wireframe;
         bool blending;
+
         SetPipelineStates(bool inWire, bool inBlend) : wireframe(inWire), blending(inBlend) {}
 
         void apply(vsg::Object& object) { object.traverse(*this); }
         void apply(vsg::RasterizationState& rs) {
-            if (!blending) {
-                // combination of color blending and two sided lighting leads to strange effects
+            // Transparent objects must render both faces
+            if (blending)
                 rs.cullMode = VK_CULL_MODE_NONE;
-            }
-            if (wireframe)
-                rs.polygonMode = VK_POLYGON_MODE_LINE;
-            else
-                rs.polygonMode = VK_POLYGON_MODE_FILL;
+            rs.polygonMode = wireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+        }
+        void apply(vsg::DepthStencilState& dss) {
+            // Transparent surfaces must not write to depth buffer, otherwise geometry behind them is occluded
+            if (blending)
+                dss.depthWriteEnable = VK_FALSE;
         }
         void apply(vsg::InputAssemblyState& ias) {
             // if (wireframe) ias.topology = VK_POLYGON_MODE_LINE;
         }
         void apply(vsg::ColorBlendState& cbs) { cbs.configureAttachments(blending); }
-    } sps(wireframe, use_blending);
+    };
 
+    SetPipelineStates sps(wireframe, use_blending);
     graphicsPipelineConfig->accept(sps);
 
     // if required initialize GraphicsPipeline/Layout etc.

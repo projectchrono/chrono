@@ -41,7 +41,7 @@ noise_model = NoiseModel.NONE
 
 # Camera lens model
 # Either PINHOLE or FOV_LENS
-lens_model = sens.PINHOLE
+lens_model = sens.CameraLensModelType_PINHOLE
 
 # Update rate in Hz
 update_rate = 30.0

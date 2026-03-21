@@ -86,11 +86,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC),
-      m_terrain(nullptr),
-      m_active_box_size(0),
-      m_show_geometry(true),
-      m_show_bce(true) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC), m_terrain(nullptr), m_active_box_size(0), m_show_geometry(true), m_show_bce(true) {
     // Create systems
     m_system = new ChSystemSMC;
 
@@ -267,8 +263,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         double thickness = 0.01;
         auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
         geometry->materials.push_back(b.m_contact_mat);
-        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(
-            VNULL, QUNIT, GetChronoDataFile(b.m_mesh_filename), VNULL, 1.0, thickness, 0));
+        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, GetChronoDataFile(b.m_mesh_filename), VNULL, 1.0, thickness, 0));
 
         // Create visualization and collision shapes
         geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
@@ -415,7 +410,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
     // Add mesh to MBS and FSI systems
     m_system->AddMesh(proxy->mesh);
     m_terrain->AddFeaMesh(proxy->mesh, false);
-    
+
     m_proxies[i] = proxy;
 }
 
@@ -468,8 +463,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 #ifdef CHRONO_VSG
         // FSI plugin
         const auto& aabb_particles = m_terrain->GetSPHBoundingBox();
-        auto col_callback =
-            chrono_types::make_shared<ParticleHeightColorCallback>(aabb_particles.min.z(), aabb_particles.max.z());
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb_particles.min.z(), aabb_particles.max.z());
 
         auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(true);
@@ -480,16 +474,20 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 
         // VSG visual system (attach visFSI as plugin)
         m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+
         m_vsys->AttachPlugin(visFSI);
         m_vsys->AttachSystem(m_system);
         m_vsys->SetWindowTitle("Terrain Node (GranularSPH)");
         m_vsys->SetVerbose(false);
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        m_vsys->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
+        ////m_vsys->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
+        m_vsys->EnableSkyTexture();
         m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
         m_vsys->SetImageOutput(m_writeRT);
         m_vsys->Initialize();
+
+        m_vsys->ToggleAbsFrameVisibility();
 #endif
     }
 }
@@ -533,8 +531,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies
-        utils::WriteVisualizationAssets(
-            m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() == tag_obstacles; }, true);
+        utils::WriteVisualizationAssets(m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() == tag_obstacles; }, true);
     }
 }
 

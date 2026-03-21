@@ -14,8 +14,8 @@
 //
 // Base class for a solid Panhard axle suspension.
 //
-// This class is meant for modelling a very simple nonsteerable solid Panhard
-// axle. The guiding function is modelled by a ChLinkLockRevolutePrismatic joint
+// This class is meant for modeling a very simple non-steerable solid Panhard
+// axle. The guiding function is modeled by a ChLinkLockRevolutePrismatic joint
 // which allows vertical movement and tilting of the axle tube but no elasticity.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,

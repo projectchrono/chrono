@@ -27,7 +27,7 @@ class ChPeridynamics;
 /// @addtogroup chrono_peridynamics
 /// @{
 
-/// Helper class: the per-bond auxialiary data for ChMatterPeriBBimplicit
+/// Helper class: the per-bond auxiliary data for ChMatterPeriBBimplicit
 class ChApiPeridynamics ChMatterDataPerBondBBimplicit : public ChMatterDataPerBond {
   public:
     enum class bond_state {
@@ -83,7 +83,7 @@ class ChApiPeridynamics ChMatterPeriBBimplicit
     double VolumeCorrection(double dist, double horizon, double vol_size);
 
     // Implement the function that adds the peridynamics force to each node, as a
-    // summation of all the effects of neighbouring nodes.
+    // summation of all the effects of neighboring nodes.
     virtual void ComputeForces() override;
 
     virtual unsigned int GetNumConstraints() override { return (unsigned int)bonds.size(); }

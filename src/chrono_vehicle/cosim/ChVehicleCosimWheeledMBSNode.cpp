@@ -108,7 +108,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
         m_path = chrono_types::make_shared<ChBezierCurve>(path_points);
     }
 
-    if (m_verbose) 
+    if (m_verbose)
         cout << "[MBS node    ] Recv: num. path points =  " << num_path_points << endl;
 
     // Let derived classes construct and initialize their multibody system
@@ -117,8 +117,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
 
     // There must be a number of TIRE nodes equal to the number of spindles.
     if (m_num_tire_nodes != (unsigned int)num_spindles) {
-        std::cerr << "Error: number of TIRE nodes (" << m_num_tire_nodes << ") different from number of spindles ("
-                  << num_spindles << ")." << std::endl;
+        std::cerr << "Error: number of TIRE nodes (" << m_num_tire_nodes << ") different from number of spindles (" << num_spindles << ")." << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
@@ -176,7 +175,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
 
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {
-        m_DBP_rig->m_verbose = m_verbose;
+        m_DBP_rig->SetVerbose(m_verbose);
         m_DBP_rig->Initialize(GetChassisBody(), tire_info[0].y(), m_step_size);
 
         m_DBP_outf.open(m_node_out_dir + "/DBP.dat", std::ios::out);
@@ -242,7 +241,12 @@ void ChVehicleCosimWheeledMBSNode::Advance(double step_size) {
         PreAdvance(h);
         m_system->DoStepDynamics(h);
         if (m_DBP_rig) {
-            m_DBP_rig->OnAdvance(step_size);
+            m_DBP_rig->Advance(step_size);
+            if (m_verbose)
+                cout << "[MBS node    ] DBP rig location: " << m_DBP_rig->GetLocation()  //
+                     << " lin. vel: " << m_DBP_rig->GetLinVel()                          //
+                     << " ang. vel: " << m_DBP_rig->GetAngVel()                          //
+                     << " slip: " << m_DBP_rig->GetSlip() << endl;
         }
         PostAdvance(h);
         t += h;
@@ -258,7 +262,7 @@ void ChVehicleCosimWheeledMBSNode::OutputData(int frame) {
     double time = m_system->GetChTime();
 
     // If a DBP rig is attached, output its results
-    if (m_DBP_rig && time >= m_DBP_rig->m_delay_time) {
+    if (m_DBP_rig && time >= m_DBP_rig->GetTimeDelay()) {
         std::string del("  ");
 
         m_DBP_outf << time << del;

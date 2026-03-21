@@ -14,7 +14,7 @@
 //
 // Visual assets that can be used for higher quality rendering such as that
 // used by the sensing module. These materials follow, in part, from the
-// Wavefront obj mtl specification.
+// Wavefront obj material specification.
 //
 // =============================================================================
 
@@ -79,14 +79,14 @@ class ChApi ChVisualMaterial {
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
     /// Set the Hapke material parameters.
-    /// Note that this implementation ignores the impact of coherent backscatter.
+    /// Note that this implementation ignores the impact of coherent back-scatter.
     void SetHapkeParameters(
         float w,       ///< single scattering albedo
         float b,       ///< shape controlling parameter for the amplitude of backward and forward scatter of particles
         float c,       ///< weighting factor that controls the contribution of backward and forward scatter
         float B_s0,    ///< amplitude of the opposition effect caused by shadow hiding
         float h_s,     ///< angular width of the opposition effect caused by shadow hiding
-        float phi,     ///< fillig factor
+        float phi,     ///< filling factor
         float theta_p  ///< effective value of the photometric roughness
     );
 
@@ -139,7 +139,7 @@ class ChApi ChVisualMaterial {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
-    /// Method to allow deserialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Create a default material.
@@ -190,7 +190,7 @@ class ChApi ChVisualMaterial {
     float hapke_c;        ///< weighting factor that controls the contribution of backward and forward scatter
     float hapke_B_s0;     ///< amplitude of the opposition effect caused by shadow hiding
     float hapke_h_s;      ///< angular width of the opposition effect caused by shadow hiding
-    float hapke_phi;      ///< fillig factor
+    float hapke_phi;      ///< filling factor
     float hapke_theta_p;  ///< effective value of the photometric roughness
 };
 

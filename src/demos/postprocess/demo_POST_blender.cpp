@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
-    // ==Asset== Attach a 'triangle mesh', defined via vertexes & triangle faces. Here, 4 vertexes, 2 faces
+    // ==Asset== Attach a 'triangle mesh', defined via vertices & triangle faces. Here, 4 vertices, 2 faces
     // Note that triangle mesh can contain float or scalar properties, per-face or per-vertex: these will be
     // rendered using falsecolor color scales in Blender, selecting the desired property via the Chrono add-on GUI.
 
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     // ...four vertices
     trimesh->GetMesh()->GetCoordsVertices() =
         std::vector<chrono::ChVector3d>{{2, 1, 0}, {3, 1, 0}, {3, 2, 0}, {2, 2, 0}};
-    // ...two triangle faces, whose indexes point to the vertexes above. Counterclockwise.
+    // ...two triangle faces, whose indexes point to the vertices above. Counterclockwise.
     trimesh->GetMesh()->GetIndicesVertexes() = std::vector<chrono::ChVector3i>{
         {0, 1, 2},
         {2, 3, 0},
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     trimesh->GetMesh()->GetCoordsNormals() = std::vector<chrono::ChVector3d>{
         {0, 0, 1},
     };
-    // ... same normal for all vertexes of both triangles (NOTE: normals would be unnecessary in Blender, etc.)
+    // ... same normal for all vertices of both triangles (NOTE: normals would be unnecessary in Blender, etc.)
     trimesh->GetMesh()->GetIndicesNormals() = std::vector<chrono::ChVector3i>{{0, 0, 0}, {0, 0, 0}};
     // ... per-vertex colors, RGB:
     trimesh->GetMesh()->GetCoordsColors() =
@@ -184,7 +184,10 @@ int main(int argc, char* argv[]) {
     my_vectors.data = std::vector<ChVector3d>{{0, 1, 2}, {3, 0, 0}, {0, 0, 2}, {0, 0, 0}};
     trimesh->GetMesh()->AddPropertyPerVertex(my_vectors);
 
+    trimesh->SetMutable(true);
+
     body->AddVisualShape(trimesh, ChFrame<>(ChVector3d(1, 1, 0)));
+
 
     // ==Asset== Attach a set of 'point glyphs', in this case: n dots rendered as small spheres.
 
@@ -194,6 +197,7 @@ int main(int argc, char* argv[]) {
                                      ChVector3d(1 + i * 0.2, 2, 0.2),  // the position
                                      ChColor(0.3f, i * 0.1f, 0)        // the vector color
         );
+    glyphs_points->SetMutable(true);
     body->AddVisualShape(glyphs_points);
 
     glyphs_points->glyph_scalewidth = 0.08;  // set larger 3D item
@@ -206,6 +210,7 @@ int main(int argc, char* argv[]) {
                                         ChCoordsys<>(ChVector3d(1 + i * 0.2, 2, 0.5),         // the position
                                                      QuatFromAngleX(i * 20 * CH_DEG_TO_RAD))  // the rotation
         );
+    glyphs_coords->SetMutable(true);
     body->AddVisualShape(glyphs_coords);
 
     glyphs_coords->glyph_scalewidth = 0.16;  // set larger 3D item
@@ -230,6 +235,7 @@ int main(int argc, char* argv[]) {
     my_temperature_for_glyps.max = 70;
     glyphs_vectors->AddProperty(my_temperature_for_glyps);
 
+    glyphs_vectors->SetMutable(true);
     body->AddVisualShape(glyphs_vectors);
 
     // some settings that will be used by Blender for appearance of the glyps, to override default rendering properties
@@ -252,6 +258,8 @@ int main(int argc, char* argv[]) {
     glyphs_vectors->glyph_eigenvalues_type = ChGlyphs::eCh_GlyphEigenvalues::PROPERTY;
     glyphs_vectors->glyph_eigenvalues_prop = "eigenvalues";
     glyphs_tensors->glyph_scalewidth = 0.8;  // scale for all ellipsoids
+
+    glyphs_tensors->SetMutable(true);
     body->AddVisualShape(glyphs_tensors);
 
     // ==Asset== Attach a line or a path (will be drawn as a line in 3D)
@@ -329,11 +337,11 @@ int main(int argc, char* argv[]) {
 
     // Turn on exporting contacts
     blender_exporter.SetShowContactsVectors(
-        ChBlender::ContactSymbolVectorLength::PROPERTY,  // vector symbol lenght is given by |F|  property (contact
+        ChBlender::ContactSymbolVectorLength::PROPERTY,  // vector symbol length is given by |F|  property (contact
                                                          // force)
         0.005,  // absolute length of symbol if CONSTANT, or length scaling factor if ATTR
-        "F",    // name of the property to use for lenght if in ATTR mode (currently only option: "F")
-        ChBlender::ContactSymbolVectorWidth::CONSTANT,  // vector symbol lenght is a constant value
+        "F",    // name of the property to use for length if in ATTR mode (currently only option: "F")
+        ChBlender::ContactSymbolVectorWidth::CONSTANT,  // vector symbol length is a constant value
         0.01,  // absolute width of symbol if CONSTANT, or width scaling factor if ATTR
         "",    // name of the property to use for width if in ATTR mode (currently only option: "F")
         ChBlender::ContactSymbolColor::PROPERTY,  // vector symbol color is a falsecolor depending on |F| property

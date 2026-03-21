@@ -56,7 +56,7 @@ class CH_SENSOR_API ChSegmentationCamera : public ChOptixSensor {
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
     /// Returns the lens model parameters.
-    /// @return LensParams of lens parameters. Will default to zeros for any terms not used. These are coverted for the
+    /// @return LensParams of lens parameters. Will default to zeros for any terms not used. These are converted for the
     /// inverse model
     LensParams GetLensParameters() const { return m_lens_parameters; }
 

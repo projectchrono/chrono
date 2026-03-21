@@ -25,6 +25,7 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChVisualShapeCascade.h"
 #include "chrono/solver/ChSolverADMM.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -39,19 +40,18 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::cascade;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::NONE;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
-#ifdef CHRONO_IRRLICHT
-    vis_type = ChVisualSystem::Type::IRRLICHT;
+#if !defined(CHRONO_IRRLICHT) && !defined(CHRONO_VSG)
+    std::cerr << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
+    return 1;
 #endif
-#ifdef CHRONO_VSG
-    vis_type = ChVisualSystem::Type::VSG;
-#endif
+
     // Check for valid visualization system
     if(vis_type == ChVisualSystem::Type::NONE) {
         std::cout << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
-        return 99;
+        return 1;
     }
     // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
@@ -387,24 +387,31 @@ int main(int argc, char* argv[]) {
     sys.Add(mfloor);
 
     // Create a stack of boxes to be impacted
-    if (true) {
-        double brick_h = 0.3;
-        for (int ix = 0; ix < 3; ++ix)
-            for (int ib = 0; ib < 6; ++ib) {
-                std::shared_ptr<ChBodyEasyBox> cube(
-                    new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
-                cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
-                cube->SetRot(QuatFromAngleY(ib * 0.1));
-                cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom::Get()),  //
-                                                          0.5f + float(0.5 * ChRandom::Get()),  //
-                                                          0.5f + float(0.5 * ChRandom::Get())   //
-                                                          ));
-                sys.Add(cube);
-            }
-    }
+    double brick_h = 0.3;
+    for (int ix = 0; ix < 3; ++ix)
+        for (int ib = 0; ib < 6; ++ib) {
+            std::shared_ptr<ChBodyEasyBox> cube(new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
+            cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
+            cube->SetRot(QuatFromAngleY(ib * 0.1));
+            cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom::Get()),  //
+                                                      0.5f + float(0.5 * ChRandom::Get()),  //
+                                                      0.5f + float(0.5 * ChRandom::Get())   //
+                                                      ));
+            sys.Add(cube);
+        }
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
@@ -430,6 +437,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetWindowTitle("Load a robot model from STEP file");
             vis_vsg->AddCamera(ChVector3d(2.2, 1.6, 2.5), ChVector3d(0, 1, 0));
+            vis_vsg->SetLightDirection(-CH_PI_2, CH_PI_4);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

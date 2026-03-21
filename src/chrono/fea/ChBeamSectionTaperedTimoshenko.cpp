@@ -198,7 +198,7 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::GetMainInertiasInMassReference(doub
     Jmyz = Jm_vec(4);
 }
 
-// Three Lambda functions to evalute the average parameters conveniently.
+// Three Lambda functions to evaluate the average parameters conveniently.
 auto GetAverageValue = [](const double mv1, const double mv2) { return (mv1 + mv2) / 2.0; };
 
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.

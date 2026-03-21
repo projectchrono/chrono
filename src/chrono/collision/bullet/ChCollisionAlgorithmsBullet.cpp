@@ -102,7 +102,7 @@ void cbtCapsuleBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectW
     // For a capsule, projects these points back onto the capsule axis and check intersection between spheres centered
     // at the points on the axis and the box.  In this case, the projection is done orthogonal to the capsule axis.
 
-    const cbtScalar parallel_tol = cbtScalar(1e-5);           // tolearance for parallelism tests
+    const cbtScalar parallel_tol = cbtScalar(1e-5);           // tolerance for parallelism tests
     const cbtScalar near_tol = cbtScalar(1e-4) * (2 * hlen);  // tolerance for line parameters of near duplicate points
 
     std::vector<cbtScalar> t_points = {-hlen, +hlen};  // initialize list of candidates with segment ends
@@ -349,7 +349,7 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
     cbtScalar radius = cyl->getRadius();    // cylinder radius
     cbtScalar hlen = cyl->getHalfLength();  // cylinder half-length
 
-    const cbtScalar parallel_tol = cbtScalar(1e-5);  // tolearance for parallelism tests
+    const cbtScalar parallel_tol = cbtScalar(1e-5);  // tolerance for parallelism tests
 
     int num_contacts = 0;
 
@@ -409,7 +409,7 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
     // - If an edge intersects the cylinder, consider 3 candidate contact points: the 2 intersection points
     //   and their midpoint.
     for (int idir = 0; idir < 3; idir++) {
-        // current box edge direction and halflength
+        // current box edge direction and half-length
         cbtVector3 eD(0, 0, 0);
         eD[idir] = 1;
         cbtScalar eH = hdims[idir];
@@ -1021,7 +1021,7 @@ cbtCollisionAlgorithm* cbtArcArcCollisionAlgorithm::CreateFunc::CreateCollisionA
 
 // ================================================================================================
 
-cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(
     cbtPersistentManifold* mf,
     const cbtCollisionAlgorithmConstructionInfo& ci,
     const cbtCollisionObjectWrapper* col0,
@@ -1039,18 +1039,18 @@ cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
     }
 }
 
-cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(
     const cbtCollisionAlgorithmConstructionInfo& ci)
     : cbtActivatingCollisionAlgorithm(ci) {}
 
-cbtCEtriangleShapeCollisionAlgorithm ::~cbtCEtriangleShapeCollisionAlgorithm() {
+cbtChTriangleShapeCollisionAlgorithm ::~cbtChTriangleShapeCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
     }
 }
 
-void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
                                                             const cbtCollisionObjectWrapper* body1,
                                                             const cbtDispatcherInfo& dispatchInfo,
                                                             cbtManifoldResult* resultOut) {
@@ -1084,56 +1084,54 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     // Interval boundaries for the distances between vertex-face or edge-edge,
     // these intervals are used to reject distances, where the distance here is assumed for the naked triangles, i.e.
     // WITHOUT the shpereswept_r inflating!
-    double max_allowed_dist =
-        triModelA->GetEnvelope() + triModelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
-    double min_allowed_dist =
-        triA->sphereswept_r() + triB->sphereswept_r() - (triModelA->GetSafeMargin() + triModelB->GetSafeMargin());
-    double max_edge_dist_earlyout = std::max(max_allowed_dist, std::fabs(min_allowed_dist));
+    const double max_allowed_dist = triModelA->GetEnvelope() + triModelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
+    const double min_allowed_dist = triA->sphereswept_r() + triB->sphereswept_r() - (triModelA->GetSafeMargin() + triModelB->GetSafeMargin());
+    const double max_edge_dist_earlyout = std::max(max_allowed_dist, std::abs(min_allowed_dist));
 
     // Offsets for knowing where the contact points are respect to the points on the naked triangles
     //  - add the sphereswept_r values because one might want to work on the "inflated" triangles for robustness
     //  - TRICK!! offset also by outward 'envelope' because during ReportContacts()
     //    contact points are offset inward by envelope, to cope with GJK method.
-    double offset_A = triA->sphereswept_r() + triModelA->GetEnvelope();
-    double offset_B = triB->sphereswept_r() + triModelB->GetEnvelope();
+    const double offset_A = triA->sphereswept_r() + triModelA->GetEnvelope();
+    const double offset_B = triB->sphereswept_r() + triModelB->GetEnvelope();
 
-    const cbtTransform& m44Ta = triObj1Wrap->getCollisionObject()->getWorldTransform();
-    const cbtTransform& m44Tb = triObj2Wrap->getCollisionObject()->getWorldTransform();
-    const cbtMatrix3x3& mcbtRa = m44Ta.getBasis();
-    const cbtMatrix3x3& mcbtRb = m44Tb.getBasis();
-    ChMatrix33<> mRa;
-    mRa(0, 0) = mcbtRa[0][0];
-    mRa(0, 1) = mcbtRa[0][1];
-    mRa(0, 2) = mcbtRa[0][2];
-    mRa(1, 0) = mcbtRa[1][0];
-    mRa(1, 1) = mcbtRa[1][1];
-    mRa(1, 2) = mcbtRa[1][2];
-    mRa(2, 0) = mcbtRa[2][0];
-    mRa(2, 1) = mcbtRa[2][1];
-    mRa(2, 2) = mcbtRa[2][2];
-    ChVector3d mOa(m44Ta.getOrigin().x(), m44Ta.getOrigin().y(), m44Ta.getOrigin().z());
+    const cbtTransform& cbt_transfA = triObj1Wrap->getCollisionObject()->getWorldTransform();
+    const cbtTransform& cbt_transfB = triObj2Wrap->getCollisionObject()->getWorldTransform();
+    const cbtMatrix3x3& cbt_rotA = cbt_transfA.getBasis();
+    const cbtMatrix3x3& cbt_rotB = cbt_transfB.getBasis();
+    ChMatrix33<> rotA;
+    rotA(0, 0) = cbt_rotA[0][0];
+    rotA(0, 1) = cbt_rotA[0][1];
+    rotA(0, 2) = cbt_rotA[0][2];
+    rotA(1, 0) = cbt_rotA[1][0];
+    rotA(1, 1) = cbt_rotA[1][1];
+    rotA(1, 2) = cbt_rotA[1][2];
+    rotA(2, 0) = cbt_rotA[2][0];
+    rotA(2, 1) = cbt_rotA[2][1];
+    rotA(2, 2) = cbt_rotA[2][2];
+    ChVector3d originA(cbt_transfA.getOrigin().x(), cbt_transfA.getOrigin().y(), cbt_transfA.getOrigin().z());
 
-    ChMatrix33<> mRb;
-    mRb(0, 0) = mcbtRb[0][0];
-    mRb(0, 1) = mcbtRb[0][1];
-    mRb(0, 2) = mcbtRb[0][2];
-    mRb(1, 0) = mcbtRb[1][0];
-    mRb(1, 1) = mcbtRb[1][1];
-    mRb(1, 2) = mcbtRb[1][2];
-    mRb(2, 0) = mcbtRb[2][0];
-    mRb(2, 1) = mcbtRb[2][1];
-    mRb(2, 2) = mcbtRb[2][2];
-    ChVector3d mOb(m44Tb.getOrigin().x(), m44Tb.getOrigin().y(), m44Tb.getOrigin().z());
+    ChMatrix33<> rotB;
+    rotB(0, 0) = cbt_rotB[0][0];
+    rotB(0, 1) = cbt_rotB[0][1];
+    rotB(0, 2) = cbt_rotB[0][2];
+    rotB(1, 0) = cbt_rotB[1][0];
+    rotB(1, 1) = cbt_rotB[1][1];
+    rotB(1, 2) = cbt_rotB[1][2];
+    rotB(2, 0) = cbt_rotB[2][0];
+    rotB(2, 1) = cbt_rotB[2][1];
+    rotB(2, 2) = cbt_rotB[2][2];
+    ChVector3d originB(cbt_transfB.getOrigin().x(), cbt_transfB.getOrigin().y(), cbt_transfB.getOrigin().z());
 
-    // transform points to absolute coords, since models might be roto-translated
-    ChVector3d pA1 = mOa + mRa * (*triA->get_p1());
-    ChVector3d pA2 = mOa + mRa * (*triA->get_p2());
-    ChVector3d pA3 = mOa + mRa * (*triA->get_p3());
-    ChVector3d pB1 = mOb + mRb * (*triB->get_p1());
-    ChVector3d pB2 = mOb + mRb * (*triB->get_p2());
-    ChVector3d pB3 = mOb + mRb * (*triB->get_p3());
+    // Transform points to absolute coords, since models might be roto-translated
+    ChVector3d pA1 = originA + rotA * (*triA->get_p1());
+    ChVector3d pA2 = originA + rotA * (*triA->get_p2());
+    ChVector3d pA3 = originA + rotA * (*triA->get_p3());
+    ChVector3d pB1 = originB + rotB * (*triB->get_p1());
+    ChVector3d pB2 = originB + rotB * (*triB->get_p2());
+    ChVector3d pB3 = originB + rotB * (*triB->get_p3());
 
-    // edges
+    // Edges
     ChVector3d eA1 = pA2 - pA1;
     ChVector3d eA2 = pA3 - pA2;
     ChVector3d eA3 = pA1 - pA3;
@@ -1141,23 +1139,19 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     ChVector3d eB2 = pB3 - pB2;
     ChVector3d eB3 = pB1 - pB3;
 
-    // normals
+    // Normals
     ChVector3d nA = Vcross(eA1, eA2).GetNormalized();
     ChVector3d nB = Vcross(eB1, eB2).GetNormalized();
 
-    double dist = 1e20;
-    bool is_into;
-    ChVector3d p_projected;
-    double mu, mv;
-
-    // Shortcut: if two degenerate 'skinny' triangles with points 2&3 coincident (ex. used to
-    // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return:
+    // Shortcut: if two degenerate 'skinny' triangles with points 2&3 coincident (e.g. used to
+    // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return
     if ((pA2 == pA3) && (pB2 == pB3) && triA->owns_e1() && triB->owns_e1()) {
-        ChVector3d cA, cB, D;
-        if (utils::LineLineIntersect(pA1, pA2, pB1, pB2, &cA, &cB, &mu, &mv)) {
-            D = cB - cA;
-            dist = D.Length();
-            if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
+        ChVector3d cA, cB;
+        double u = 0, v = 0;
+        if (utils::LineLineIntersect(pA1, pA2, pB1, pB2, cA, cB, u, v)) {
+            ChVector3d D = cB - cA;
+            double dist = D.Length();
+            if (dist < max_allowed_dist && dist > min_allowed_dist && u > 0 && u < 1 && v > 0 && v < 1) {
                 _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                 resultOut->refreshContactPoints();
                 return;
@@ -1165,364 +1159,115 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
         }
     }
 
-    // vertex-face tests:
+    // Vertex-face tests
+    auto vertex_face_test = [max_allowed_dist, min_allowed_dist, &resultOut, offset_A, offset_B, this](bool tri_owns_vertex_i, const ChVector3d& point, const ChVector3d& vt1,
+                                                                                                       const ChVector3d& vt2, const ChVector3d& vt3, bool flip_contact) -> void {
+        if (tri_owns_vertex_i) {
+            double u = 0, v = 0;
+            bool in_triangle = false;
+            ChVector3d p_projected;
+            double dist = utils::PointTriangleDistance(point, vt1, vt2, vt3, u, v, in_triangle, p_projected);
+            if (in_triangle) {
+                if (dist > min_allowed_dist && dist < max_allowed_dist) {
+                    if (!flip_contact)
+                        _add_contact(point, p_projected, dist, resultOut, offset_A, offset_B);
+                    else
+                        _add_contact(p_projected, point, dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+    };
 
-    if (triA->owns_v1()) {
-        dist = utils::PointTriangleDistance(pA1, pB1, pB2, pB3, mu, mv, is_into, p_projected);
-        if (is_into) {
-            if (dist < max_allowed_dist && dist > min_allowed_dist) {
-                _add_contact(pA1, p_projected, dist, resultOut, offset_A, offset_B);
-            }
-        }
-    }
-    if (triA->owns_v2()) {
-        dist = utils::PointTriangleDistance(pA2, pB1, pB2, pB3, mu, mv, is_into, p_projected);
-        if (is_into) {
-            if (dist < max_allowed_dist && dist > min_allowed_dist) {
-                _add_contact(pA2, p_projected, dist, resultOut, offset_A, offset_B);
-            }
-        }
-    }
-    if (triA->owns_v3()) {
-        dist = utils::PointTriangleDistance(pA3, pB1, pB2, pB3, mu, mv, is_into, p_projected);
-        if (is_into) {
-            if (dist < max_allowed_dist && dist > min_allowed_dist) {
-                _add_contact(pA3, p_projected, dist, resultOut, offset_A, offset_B);
-            }
-        }
-    }
+    vertex_face_test(triA->owns_v1(), pA1, pB1, pB2, pB3, false);
+    vertex_face_test(triA->owns_v2(), pA2, pB1, pB2, pB3, false);
+    vertex_face_test(triA->owns_v3(), pA3, pB1, pB2, pB3, false);
+    //
+    vertex_face_test(triB->owns_v1(), pB1, pA1, pA2, pA3, true);
+    vertex_face_test(triB->owns_v2(), pB2, pA1, pA2, pA3, true);
+    vertex_face_test(triB->owns_v3(), pB3, pA1, pA2, pA3, true);
 
-    if (triB->owns_v1()) {
-        dist = utils::PointTriangleDistance(pB1, pA1, pA2, pA3, mu, mv, is_into, p_projected);
-        if (is_into) {
-            if (dist < max_allowed_dist && dist > min_allowed_dist) {
-                _add_contact(p_projected, pB1, dist, resultOut, offset_A, offset_B);
-            }
-        }
-    }
-    if (triB->owns_v2()) {
-        dist = utils::PointTriangleDistance(pB2, pA1, pA2, pA3, mu, mv, is_into, p_projected);
-        if (is_into) {
-            if (dist < max_allowed_dist && dist > min_allowed_dist) {
-                _add_contact(p_projected, pB2, dist, resultOut, offset_A, offset_B);
-            }
-        }
-    }
-    if (triB->owns_v3()) {
-        dist = utils::PointTriangleDistance(pB3, pA1, pA2, pA3, mu, mv, is_into, p_projected);
-        if (is_into) {
-            if (dist < max_allowed_dist && dist > min_allowed_dist) {
-                _add_contact(p_projected, pB3, dist, resultOut, offset_A, offset_B);
-            }
-        }
-    }
+    // Edge-edge tests
     double beta_A1 = 0, beta_A2 = 0, beta_A3 = 0, beta_B1 = 0, beta_B2 = 0, beta_B3 = 0;  // defaults for free edge
     ChVector3d tA1, tA2, tA3, tB1, tB2, tB3;
     ChVector3d lA1, lA2, lA3, lB1, lB2, lB3;
 
-    //  edges-edges tests
+    auto edge_edge_setup = [](ChVector3d& tt, ChVector3d& ll, double& beta, bool tri_owns_edge_i, const chrono::ChVector3d* edge_opposite_point, const ChVector3d& edge_segment,
+                              const ChVector3d& normal, const ChVector3d& origin, const ChMatrix33d& rotmat, const ChVector3d& point) -> void {
+        if (tri_owns_edge_i) {
+            tt = Vcross(edge_segment, normal).GetNormalized();
+            if (edge_opposite_point)
+                ll = (origin + rotmat * (*edge_opposite_point)) - point;
+            else
+                ll = -tt;
+            beta = std::atan2(Vdot(ll, tt), Vdot(ll, normal));
+            if (beta < 0)
+                beta += CH_2PI;
+        }
+    };
 
-    if (triA->owns_e1()) {
-        tA1 = Vcross(eA1, nA).GetNormalized();
-        if (triA->get_e1())
-            lA1 = (mOa + mRa * (*triA->get_e1())) - pA1;
-        else
-            lA1 = -tA1;
-        beta_A1 = atan2(Vdot(lA1, tA1), Vdot(lA1, nA));
-        if (beta_A1 < 0)
-            beta_A1 += CH_2PI;
-    }
-    if (triA->owns_e2()) {
-        tA2 = Vcross(eA2, nA).GetNormalized();
-        if (triA->get_e2())
-            lA2 = (mOa + mRa * (*triA->get_e2())) - pA2;
-        else
-            lA2 = -tA2;
-        beta_A2 = atan2(Vdot(lA2, tA2), Vdot(lA2, nA));
-        if (beta_A2 < 0)
-            beta_A2 += CH_2PI;
-    }
-    if (triA->owns_e3()) {
-        tA3 = Vcross(eA3, nA).GetNormalized();
-        if (triA->get_e3())
-            lA3 = (mOa + mRa * (*triA->get_e3())) - pA3;
-        else
-            lA3 = -tA3;
-        beta_A3 = atan2(Vdot(lA3, tA3), Vdot(lA3, nA));
-        if (beta_A3 < 0)
-            beta_A3 += CH_2PI;
-    }
-    if (triB->owns_e1()) {
-        tB1 = Vcross(eB1, nB).GetNormalized();
-        if (triB->get_e1())
-            lB1 = (mOb + mRb * (*triB->get_e1())) - pB1;
-        else
-            lB1 = -tB1;
-        beta_B1 = atan2(Vdot(lB1, tB1), Vdot(lB1, nB));
-        if (beta_B1 < 0)
-            beta_B1 += CH_2PI;
-    }
-    if (triB->owns_e2()) {
-        tB2 = Vcross(eB2, nB).GetNormalized();
-        if (triB->get_e2())
-            lB2 = (mOb + mRb * (*triB->get_e2())) - pB2;
-        else
-            lB2 = -tB2;
-        beta_B2 = atan2(Vdot(lB2, tB2), Vdot(lB2, nB));
-        if (beta_B2 < 0)
-            beta_B2 += CH_2PI;
-    }
-    if (triB->owns_e3()) {
-        tB3 = Vcross(eB3, nB).GetNormalized();
-        if (triB->get_e3())
-            lB3 = (mOb + mRb * (*triB->get_e3())) - pB3;
-        else
-            lB3 = -tB3;
-        beta_B3 = atan2(Vdot(lB3, tB3), Vdot(lB3, nB));
-        if (beta_B3 < 0)
-            beta_B3 += CH_2PI;
-    }
+    edge_edge_setup(tA1, lA1, beta_A1, triA->owns_e1(), triA->get_e1(), eA1, nA, originA, rotA, pA1);
+    edge_edge_setup(tA2, lA2, beta_A2, triA->owns_e2(), triA->get_e2(), eA2, nA, originA, rotA, pA2);
+    edge_edge_setup(tA3, lA3, beta_A3, triA->owns_e3(), triA->get_e3(), eA3, nA, originA, rotA, pA3);
+    //
+    edge_edge_setup(tB1, lB1, beta_B1, triB->owns_e1(), triB->get_e1(), eB1, nB, originB, rotB, pB1);
+    edge_edge_setup(tB2, lB2, beta_B2, triB->owns_e2(), triB->get_e2(), eB2, nB, originB, rotB, pB2);
+    edge_edge_setup(tB3, lB3, beta_B3, triB->owns_e3(), triB->get_e3(), eB3, nB, originB, rotB, pB3);
 
-    ChVector3d cA, cB, D;
+    const double edge_tol = 1e-3;
+    //  +edge_tol to discard flat edges with some tolerance
+    const double beta_convex_limit = CH_PI_2 + edge_tol;
+    //  +/- edge_tol to inflate arc of acceptance of edge vs edge, to cope with singular cases (e.g. flat cube vs flat cube)
+    const double alpha_lo_limit = -edge_tol;
+    const double CH_PI_mtol = CH_PI - edge_tol;
+    const double CH_PI_2_ptol = CH_PI_2 + edge_tol;
 
-    double edge_tol = 1e-3;
-    //  + edge_tol to discard flat edges with some tolerance:
-    double beta_convex_limit = CH_PI_2 + edge_tol;
-    //  +/- edge_tol to inflate arc of acceptance of edge vs edge, to cope with singular cases (ex. flat cube vs
-    //  flat cube):
-    double alpha_lo_limit = -edge_tol;
-    double CH_C_PI_mtol = CH_PI - edge_tol;
-    double CH_C_PI_2_ptol = CH_PI_2 + edge_tol;
+    auto edge_edge_test = [max_allowed_dist, min_allowed_dist, beta_convex_limit, max_edge_dist_earlyout, alpha_lo_limit, CH_PI_mtol, CH_PI_2_ptol, &resultOut, offset_A,
+                           offset_B, this](bool triA_owns_edge_i, bool triB_owns_edge_i, double beta_Ai, double beta_Bi, const ChVector3d& pAi, const ChVector3d& pAj,
+                                           const ChVector3d& pBi, const ChVector3d& pBj, const ChVector3d& tAi, const ChVector3d& nA, const ChVector3d& tBi,
+                                           const ChVector3d& nB) -> void {
+        if (triA_owns_edge_i && triB_owns_edge_i) {
+            if (beta_Ai > beta_convex_limit && beta_Bi > beta_convex_limit) {
+                ChVector3d cA, cB;
+                double u = 0, v = 0;
+                if (utils::LineLineIntersect(pAi, pAj, pBi, pBj, cA, cB, u, v)) {
+                    ChVector3d D = cB - cA;
+                    double dist = D.Length();
+                    if (dist < max_edge_dist_earlyout && u > 0 && u < 1 && v > 0 && v < 1) {
+                        double alpha_A = std::atan2(Vdot(D, tAi), Vdot(D, nA));
+                        double alpha_B = std::atan2(Vdot(-D, tBi), Vdot(-D, nB));
+                        if (alpha_A < alpha_lo_limit)
+                            alpha_A += CH_2PI;
+                        if (alpha_B < alpha_lo_limit)
+                            alpha_B += CH_2PI;
+                        if ((alpha_A < beta_Ai - CH_PI_2_ptol) && (alpha_B < beta_Bi - CH_PI_2_ptol)) {
+                            if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
+                                _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                        } else if (alpha_A > CH_PI_mtol && (alpha_A < beta_Ai + CH_PI_2) && alpha_B > CH_PI_mtol && (alpha_B < beta_Bi + CH_PI_2_ptol)) {
+                            if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
+                                _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                        }
+                    }
+                }
+            }
+        }
+    };
 
-    // edge A1 vs edge B1
-    if (triA->owns_e1() && triB->owns_e1())
-        if (beta_A1 > beta_convex_limit && beta_B1 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA1, pA2, pB1, pB2, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    double alpha_A = atan2(Vdot(D, tA1), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB1), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A1 vs edge B2
-    if (triA->owns_e1() && triB->owns_e2())
-        if (beta_A1 > beta_convex_limit && beta_B2 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA1, pA2, pB2, pB3, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA1), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB2), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A1 vs edge B3
-    if (triA->owns_e1() && triB->owns_e3())
-        if (beta_A1 > beta_convex_limit && beta_B3 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA1, pA2, pB3, pB1, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA1), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB3), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A2 vs edge B1
-    if (triA->owns_e2() && triB->owns_e1())
-        if (beta_A2 > beta_convex_limit && beta_B1 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA2, pA3, pB1, pB2, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA2), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB1), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A2 vs edge B2
-    if (triA->owns_e2() && triB->owns_e2())
-        if (beta_A2 > beta_convex_limit && beta_B2 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA2, pA3, pB2, pB3, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA2), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB2), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A2 vs edge B3
-    if (triA->owns_e2() && triB->owns_e3())
-        if (beta_A2 > beta_convex_limit && beta_B3 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA2, pA3, pB3, pB1, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA2), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB3), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A3 vs edge B1
-    if (triA->owns_e3() && triB->owns_e1())
-        if (beta_A3 > beta_convex_limit && beta_B1 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA3, pA1, pB1, pB2, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA3), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB1), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A3 vs edge B2
-    if (triA->owns_e3() && triB->owns_e2())
-        if (beta_A3 > beta_convex_limit && beta_B2 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA3, pA1, pB2, pB3, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA3), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB2), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
-    // edge A3 vs edge B3
-    if (triA->owns_e3() && triB->owns_e3())
-        if (beta_A3 > beta_convex_limit && beta_B3 > beta_convex_limit) {
-            if (utils::LineLineIntersect(pA3, pA1, pB3, pB1, &cA, &cB, &mu, &mv)) {
-                D = cB - cA;
-                dist = D.Length();
-                if (dist < max_edge_dist_earlyout && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
-                    D = cB - cA;
-                    double alpha_A = atan2(Vdot(D, tA3), Vdot(D, nA));
-                    double alpha_B = atan2(Vdot(-D, tB3), Vdot(-D, nB));
-                    if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_2PI;
-                    if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
-                        if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
-                            _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
-                               (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
-                            _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
-                    }
-                }
-            }
-        }
+    edge_edge_test(triA->owns_e1(), triB->owns_e1(), beta_A1, beta_B1, pA1, pA2, pB1, pB2, tA1, nA, tB1, nB);  // edge A1 vs edge B1
+    edge_edge_test(triA->owns_e1(), triB->owns_e2(), beta_A1, beta_B2, pA1, pA2, pB2, pB3, tA1, nA, tB2, nB);  // edge A1 vs edge B2
+    edge_edge_test(triA->owns_e1(), triB->owns_e3(), beta_A1, beta_B3, pA1, pA2, pB3, pB1, tA1, nA, tB3, nB);  // edge A1 vs edge B3
+    //
+    edge_edge_test(triA->owns_e2(), triB->owns_e1(), beta_A2, beta_B1, pA2, pA3, pB1, pB2, tA2, nA, tB1, nB);  // edge A2 vs edge B1
+    edge_edge_test(triA->owns_e2(), triB->owns_e2(), beta_A2, beta_B2, pA2, pA3, pB2, pB3, tA2, nA, tB2, nB);  // edge A2 vs edge B2
+    edge_edge_test(triA->owns_e2(), triB->owns_e3(), beta_A2, beta_B3, pA2, pA3, pB3, pB1, tA2, nA, tB3, nB);  // edge A2 vs edge B3
+    //
+    edge_edge_test(triA->owns_e3(), triB->owns_e1(), beta_A3, beta_B1, pA3, pA1, pB1, pB2, tA3, nA, tB1, nB);  // edge A3 vs edge B1
+    edge_edge_test(triA->owns_e3(), triB->owns_e2(), beta_A3, beta_B2, pA3, pA1, pB2, pB3, tA3, nA, tB2, nB);  // edge A3 vs edge B2
+    edge_edge_test(triA->owns_e3(), triB->owns_e3(), beta_A3, beta_B3, pA3, pA1, pB3, pB1, tA3, nA, tB3, nB);  // edge A3 vs edge B3
 
     resultOut->refreshContactPoints();
 }
 
-cbtScalar cbtCEtriangleShapeCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+cbtScalar cbtChTriangleShapeCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
                                                                       cbtCollisionObject* body1,
                                                                       const cbtDispatcherInfo& dispatchInfo,
                                                                       cbtManifoldResult* resultOut) {
@@ -1530,13 +1275,13 @@ cbtScalar cbtCEtriangleShapeCollisionAlgorithm::calculateTimeOfImpact(cbtCollisi
     return cbtScalar(1.);
 }
 
-void cbtCEtriangleShapeCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
+void cbtChTriangleShapeCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
     if (m_manifoldPtr && m_ownManifold) {
         manifoldArray.push_back(m_manifoldPtr);
     }
 }
 
-void cbtCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector3d& candid_pA,
+void cbtChTriangleShapeCollisionAlgorithm::_add_contact(const ChVector3d& candid_pA,
                                                         const ChVector3d& candid_pB,
                                                         const double dist,
                                                         cbtManifoldResult* resultOut,
@@ -1552,15 +1297,15 @@ void cbtCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector3d& candid
     resultOut->addContactPoint(absN_onB, absB + absN_onB * (cbtScalar)offsetB, (cbtScalar)(dist - (offsetA + offsetB)));
 }
 
-cbtCollisionAlgorithm* cbtCEtriangleShapeCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+cbtCollisionAlgorithm* cbtChTriangleShapeCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
     cbtCollisionAlgorithmConstructionInfo& ci,
     const cbtCollisionObjectWrapper* body0Wrap,
     const cbtCollisionObjectWrapper* body1Wrap) {
-    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtCEtriangleShapeCollisionAlgorithm));
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtChTriangleShapeCollisionAlgorithm));
     if (!m_swapped) {
-        return new (mem) cbtCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+        return new (mem) cbtChTriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
-        return new (mem) cbtCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+        return new (mem) cbtChTriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 

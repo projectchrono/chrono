@@ -10,6 +10,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/collision/ChCollisionInfo.h"
 
 namespace chrono {
@@ -53,14 +55,10 @@ ChCollisionInfo::ChCollisionInfo(const ChCollisionInfo& other, const bool swap) 
 }
 
 void ChCollisionInfo::SwapModels() {
-    ChCollisionModel* modeltemp;
-    modeltemp = modelA;
-    modelA = modelB;
-    modelB = modeltemp;
-    ChVector3d vtemp;
-    vtemp = vpA;
-    vpA = vpB;
-    vpB = vtemp;
+    using std::swap;
+    swap(modelA, modelB);
+    swap(shapeA, shapeB);
+    swap(vpA, vpB);
     vN = Vmul(vN, -1.0);
 }
 

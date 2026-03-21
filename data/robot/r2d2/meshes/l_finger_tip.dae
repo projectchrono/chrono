@@ -95,7 +95,7 @@
   </library_effects>
   <library_images>
     <image id="file3" name="file3">
-      <init_from>l_finger_tip_color.tif</init_from>
+      <init_from>l_finger_tip_color.png</init_from>
       <extra>
         <technique profile="OpenCOLLADAMaya">
           <dgnode_type>kFile</dgnode_type>

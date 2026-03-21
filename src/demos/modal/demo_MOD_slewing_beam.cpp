@@ -169,7 +169,7 @@ void RunSlewingBeam(bool do_modal_reduction,
         );
     };
 
-    // Mesh the slewing beam with several seperate modal assemblies
+    // Mesh the slewing beam with several separate modal assemblies
     std::vector<std::shared_ptr<ChModalAssembly>> modal_assembly_list;
     double delta_x = beam_L / n_parts;
     for (int i_part = 0; i_part < n_parts; i_part++) {

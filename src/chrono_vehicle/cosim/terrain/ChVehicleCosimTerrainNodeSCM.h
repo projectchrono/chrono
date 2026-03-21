@@ -28,14 +28,11 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
-namespace chrono {
-
-#ifdef CHRONO_IRRLICHT
-namespace irrlicht {
-class ChVisualSystemIrrlicht;
-}
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
+namespace chrono {
 namespace vehicle {
 
 /// @addtogroup vehicle_cosim_chrono
@@ -58,16 +55,15 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     void SetFromSpecfile(const std::string& specfile);
 
     /// Set the SCM material properties for terrain.
-    void SetPropertiesSCM(
-        double spacing,        ///< SCM grid spacing
-        double Bekker_Kphi,    ///< Kphi, frictional modulus in Bekker model
-        double Bekker_Kc,      ///< Kc, cohesive modulus in Bekker model
-        double Bekker_n,       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-        double Mohr_cohesion,  ///< cohesion [Pa], for shear failure
-        double Mohr_friction,  ///< Friction angle [degrees], for shear failure
-        double Janosi_shear,   ///< shear parameter J [m], (usually a few mm or cm)
-        double elastic_K,      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
-        double damping_R       ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
+    void SetPropertiesSCM(double spacing,        ///< SCM grid spacing
+                          double Bekker_Kphi,    ///< Kphi, frictional modulus in Bekker model
+                          double Bekker_Kc,      ///< Kc, cohesive modulus in Bekker model
+                          double Bekker_n,       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+                          double Mohr_cohesion,  ///< cohesion [Pa], for shear failure
+                          double Mohr_friction,  ///< Friction angle [degrees], for shear failure
+                          double Janosi_shear,   ///< shear parameter J [m], (usually a few mm or cm)
+                          double elastic_K,      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
+                          double damping_R       ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
     );
 
     /// Set the number of OpenMP threads for SCM ray-casting (default: 1).
@@ -90,9 +86,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void WriteCheckpoint(const std::string& filename) const override;
 
   private:
-    ChSystem* m_system;                      ///< containing system
-    SCMTerrain* m_terrain;                   ///< SCM terrain
-    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
+    ChSystem* m_system;     ///< containing system
+    SCMTerrain* m_terrain;  ///< SCM terrain
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsys;  ///< run-time visualization system
+#endif
 
     double m_spacing;        ///< SCM grid spacing
     double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model

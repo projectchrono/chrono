@@ -170,7 +170,7 @@ class ChSystemDem_impl {
         int64_t BD_offset_Z;  /// Z offset of big domain from its original frame; allows the subdomain to move
 
         float cohesionAcc_s2s;  ///< Constant acceleration of sphere-to-sphere cohesion
-        float adhesionAcc_s2w;  ///< Accleration of adhesion
+        float adhesionAcc_s2w;  ///< Acceleration of adhesion
 
         double LENGTH_UNIT;  ///< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
         double TIME_UNIT;    ///< 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_UNIT
@@ -389,7 +389,7 @@ class ChSystemDem_impl {
     /// Set bc sphere position.
     void SetBCSpherePosition(size_t bc_id, const float3 pos);
 
-    /// Set bc sphere vleocity.
+    /// Set bc sphere velocity.
     void SetBCSphereVelocity(size_t bc_id, const float3 velo);
 
     /// Return velocity of BC sphere.
@@ -496,7 +496,7 @@ class ChSystemDem_impl {
     /// Get rolling friction v_rot.
     float3 getRollingVrot(unsigned int i, unsigned int j);
 
-    /// Get rolling characterisitc contact time.
+    /// Get rolling characteristic contact time.
     float getRollingCharContactTime(unsigned int i, unsigned int j);
 
     /// Get tangential friction force between body i and j, return 0 if not in contact.

@@ -45,7 +45,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     /// Set input file name with hydro data (HDF5 format).
     void SetHydroFilename(const std::string& filename);
 
-    /// Set gravity for the FSI syatem.
+    /// Set gravity for the FSI system.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Return gravitational acceleration.

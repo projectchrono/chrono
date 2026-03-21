@@ -89,7 +89,7 @@ void ChContinuumElastic::ComputeStressStrainMatrix() {
     StressStrainMatrix.setZero(6, 6);
     StressStrainMatrix(0, 0) = (m_E * (1 - m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
     // StressStrainMatrix(1,1)=StressStrainMatrix(0,0);	//
-    // StressStrainMatrix(2,2)=StressStrainMatrix(0,0);	//per non ricalcolare; qual'� meglio?
+    // StressStrainMatrix(2,2)=StressStrainMatrix(0,0);	//
     StressStrainMatrix(1, 1) = (m_E * (1 - m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
     StressStrainMatrix(2, 2) = (m_E * (1 - m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
     StressStrainMatrix(0, 1) = (m_E * (m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);

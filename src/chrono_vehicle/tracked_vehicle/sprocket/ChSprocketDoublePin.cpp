@@ -454,7 +454,7 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketDoublePin::GetColli
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeDoublePin>(track->GetTrackShoe(0));
     assert(shoe);
 
-    // Extract parameterization of gear profile
+    // Extract parametrization of gear profile
     int gear_nteeth = GetNumTeeth();
     double gear_RT = GetOuterRadius();
     double gear_R = GetArcRadius();
@@ -462,7 +462,7 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketDoublePin::GetColli
     double gear_W = GetArcCenterOffset();
     double lateral_backlash = GetLateralBacklash();
 
-    // Extract parameterization of the shoe connector contact geometry.
+    // Extract parametrization of the shoe connector contact geometry.
     double shoe_len = shoe->GetConnectorLength();
     double shoe_R = shoe->GetConnectorRadius();
     ChVector3d shoe_locPin = shoe->GetLateralContactPoint();
