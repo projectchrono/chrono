@@ -56,6 +56,7 @@ requirements:
     - numpy
     - irrlicht
     - occt ==7.9.3
+    - pythonocc-core ==7.9.3
     - glew
     - glfw
     - eigen ==3.4.0
