@@ -1,8 +1,6 @@
 
 set(DEMOS "")
 
-list(APPEND DEMOS demo_ROS_ipc_test)
-
 if (CH_ROS_HAS_INTERFACES)
   list(APPEND DEMOS demo_ROS_viper)
 endif()
