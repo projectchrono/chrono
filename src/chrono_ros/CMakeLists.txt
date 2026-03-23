@@ -191,6 +191,15 @@ if (CH_ENABLE_MODULE_SENSOR)
 endif()
 source_group("sensor_handler" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 
+set(CH_ROS_MBS_HANDLER_FILES
+  handlers/mbs/ChROSHydraulicCraneHandler_ipc.h
+  handlers/mbs/ChROSCraneStateHandler.h
+  handlers/mbs/ChROSCraneStateHandler.cpp
+  handlers/mbs/ChROSActuatorStateHandler.h
+  handlers/mbs/ChROSActuatorStateHandler.cpp
+)
+source_group("mbs_handler" FILES ${CH_ROS_MBS_HANDLER_FILES})
+
 set(CH_ROS_ROBOT_HANDLER_FILES
   handlers/robot/ChROSRobotModelHandler.h
   handlers/robot/ChROSRobotModelHandler.cpp
@@ -230,6 +239,7 @@ add_library(Chrono_ros SHARED
             ${CH_ROS_HANDLER_FILES}
             ${CH_ROS_VEHICLE_HANDLER_FILES}
             ${CH_ROS_SENSOR_HANDLER_FILES}
+            ${CH_ROS_MBS_HANDLER_FILES}
             ${CH_ROS_ROBOT_HANDLER_FILES}
 )
 add_library(Chrono::ros ALIAS Chrono_ros)
@@ -338,6 +348,8 @@ target_sources(chrono_ros_node PRIVATE
     handlers/sensor/ChROSIMUHandler_ros.cpp
     handlers/sensor/ChROSGPSHandler_ros.cpp
     handlers/robot/ChROSRobotModelHandler_ros.cpp
+    handlers/mbs/ChROSCraneStateHandler_ros.cpp
+    handlers/mbs/ChROSActuatorStateHandler_ros.cpp
 )
 
 target_include_directories(chrono_ros_node PRIVATE 

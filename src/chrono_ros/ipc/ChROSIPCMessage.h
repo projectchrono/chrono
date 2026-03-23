@@ -45,6 +45,8 @@ enum class MessageType : uint32_t {
     IMU_DATA = 14,
     GPS_DATA = 15,
     CUSTOM_DATA = 16,
+    CRANE_STATE_DATA = 17,      ///< Crane mechanism displacement publisher
+    ACTUATOR_STATE_DATA = 18,   ///< Hydraulic actuator state publisher
     SHUTDOWN = 99
 };
 

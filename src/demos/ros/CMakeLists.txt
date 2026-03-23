@@ -1,5 +1,7 @@
 
-set(DEMOS "")
+set(DEMOS
+  demo_ROS_hydraulic_crane
+)
 
 if (CH_ROS_HAS_INTERFACES)
   list(APPEND DEMOS demo_ROS_viper)
