@@ -452,6 +452,22 @@ class CH_MODELS_API CuriositySpeedDriver : public CuriosityDriver {
     double m_speed;
 };
 
+class CH_MODELS_API CuriosityDirectControl : public CuriosityDriver {
+  public:
+    CuriosityDirectControl() {}
+
+    ~CuriosityDirectControl() {}
+
+    // Set Direct control of drive speeds and steer angles
+    void SetDirectControl(
+      std::array<double, 6> m_drive_speeds,
+      std::array<double, 4> m_steer_angles
+    );
+  private:
+    virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED;}
+    virtual void Update(double time) override {}
+};
+
 /// @} robot_models_curiosity
 
 }  // namespace curiosity
