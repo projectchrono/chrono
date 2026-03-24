@@ -733,5 +733,10 @@ void CuriositySpeedDriver::Update(double time) {
     drive_speeds = {speed, speed, speed, speed, speed, speed};
 }
 
+void CuriosityDirectControl::SetDirectControl(std::array<double, 6> m_drive_speeds,std::array<double, 4> m_steer_angles){
+    drive_speeds = m_drive_speeds;
+    steer_angles = m_steer_angles;
+}
+
 }  // namespace curiosity
 }  // namespace chrono
