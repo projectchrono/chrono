@@ -43,6 +43,7 @@ ChModalAssembly::ChModalAssembly()
       m_internal_nodes_update(true),
       m_modal_automatic_gravity(true) {
     m_solver_invKIIc = chrono_types::make_shared<ChSolverSparseQR>();
+    m_solver_invKIIc->LockSparsityPattern(false);
 }
 
 ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(other) {
@@ -86,6 +87,7 @@ void ChModalAssembly::FlagModelAsReduced() {
 
 void ChModalAssembly::SetModalSolver(std::shared_ptr<ChDirectSolverLS> newsolver) {
     m_solver_invKIIc = newsolver;
+    m_solver_invKIIc->LockSparsityPattern(false);
 }
 
 std::shared_ptr<ChDirectSolverLS> ChModalAssembly::GetModalSolver() const {
