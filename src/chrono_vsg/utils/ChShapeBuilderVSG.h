@@ -45,19 +45,25 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     vsg::ref_ptr<vsg::Group> CreatePbrShape(ShapeType shape_type,
                                             std::shared_ptr<ChVisualMaterial> material,
                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                            bool wireframe);
+                                            bool double_faced,
+                                            bool wireframe,
+                                            float wire_width = 1);
 
     vsg::ref_ptr<vsg::Group> CreatePbrSurfaceShape(std::shared_ptr<ChSurface> geometry,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    int resolution_u,
                                                    int resolution_v,
-                                                   bool wireframe);
+                                                   bool double_faced,
+                                                   bool wireframe,
+                                                   float wire_width = 1);
 
     vsg::ref_ptr<vsg::Group> CreateTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       const std::vector<ChVisualMaterialSharedPtr>& materials,
-                                                      bool wireframe);
+                                                      bool double_faced,
+                                                      bool wireframe,
+                                                      float wire_width = 1);
 
     /// Convert the specified mesh into a triangle soup with vertex colors.
     /// Vertex normals are calculated from each face normal, resulting in sharp edges.
@@ -65,17 +71,21 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    const ChColor& default_color,
                                                    float opacity,
-                                                   bool wireframe);
+                                                   bool double_faced,
+                                                   bool wireframe,
+                                                   float wire_width = 1);
 
     /// Convert the specified mesh into a triangle mesh with vertex colors.
     /// Vertex normals are calculated by averaging the normals of incident faces, resulting in smoothed edges.
     vsg::ref_ptr<vsg::Group> CreateTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       const ChColor& default_color,
-                                                      bool wireframe);
+                                                      bool double_faced,
+                                                      bool wireframe,
+                                                      float wire_width = 1);
 
     /// Create a symbol to represent a reference frame.
-    /// These are 3 mututally orthogonal line segments, colored by default red, green, and blue.
+    /// These are 3 mutually orthogonal line segments, colored by default red, green, and blue.
     /// The color factor controls simultaneous darkening of the 3 colors (a value of 1 indicates pure colors).
     vsg::ref_ptr<vsg::Group> createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                float line_width,
@@ -148,7 +158,9 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                             vsg::ref_ptr<vsg::ushortArray>& indices,
                                             std::shared_ptr<ChVisualMaterial> material,
                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                            bool wireframe);
+                                            bool double_Faced,
+                                            bool wireframe,
+                                            float wire_width);
 
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::CompileTraversal> m_compileTraversal;

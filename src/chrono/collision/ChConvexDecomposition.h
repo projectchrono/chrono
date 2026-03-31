@@ -163,7 +163,7 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
     /// Note 1: the triangle mesh does not need connectivity information (a basic 'triangle soup' is enough).
     /// Note 2: all vertices must be properly ordered (oriented triangles, normals pointing outside).
     /// Note 3: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition).
-    virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
+    virtual bool AddTriangleMesh(const ChTriangleMesh& tm) override;
 
     /// Set the parameters for this convex decomposition algorithm.
     /// Use this function before calling ComputeConvexDecomposition().

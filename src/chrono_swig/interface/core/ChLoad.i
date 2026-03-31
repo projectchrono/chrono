@@ -11,6 +11,7 @@
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsNodeXYZ.h"
+#include "chrono/physics/ChLoadHydrodynamics.h"
 
 %}
 
@@ -38,6 +39,7 @@
 %shared_ptr(chrono::ChLoadNodeXYZBody)
 %shared_ptr(chrono::ChLoadNodeXYZBodySpring)
 %shared_ptr(chrono::ChLoadNodeXYZBodyBushing)
+%shared_ptr(chrono::ChLoadHydrodynamics)
 
 // Tell SWIG about parent class in Python
 %import "chrono_swig/interface/core/ChPhysicsItem.i"
@@ -50,7 +52,7 @@
 %feature("director") chrono::ChLoadCustom;
 %feature("director") chrono::ChLoadCustomMultiple;
 
-%template(vector_ChLoadable) std::vector< std::shared_ptr< chrono::ChLoadable >>;
+%template(vector_ChLoadable) std::vector<std::shared_ptr<chrono::ChLoadable>>;
 
 %ignore chrono::ChLoadBase::ComputeJacobian;
 %ignore chrono::ChLoadCustom::ComputeJacobian;
@@ -60,3 +62,4 @@
 %include "../../../chrono/physics/ChLoad.h"
 %include "../../../chrono/physics/ChLoadsBody.h"
 %include "../../../chrono/physics/ChLoadsNodeXYZ.h"
+%include "../../../chrono/physics/ChLoadHydrodynamics.h"

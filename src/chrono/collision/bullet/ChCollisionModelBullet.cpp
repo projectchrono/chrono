@@ -55,7 +55,7 @@ static void PopulateBulletMesh(cbtTriangleMesh* bullet_mesh, std::shared_ptr<ChT
 
 // -----------------------------------------------------------------------------
 
-ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model) : ChCollisionModelImpl(collision_model), m_bullet_mesh(nullptr) {
+ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model) : ChCollisionModelImpl(collision_model) {
     bt_collision_object = std::unique_ptr<cbtCollisionObject>(new cbtCollisionObject);
     bt_collision_object->setCollisionShape(nullptr);
     bt_collision_object->setUserPointer((void*)this);
@@ -64,7 +64,6 @@ ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model
 ChCollisionModelBullet::~ChCollisionModelBullet() {
     m_shapes.clear();
     m_bt_shapes.clear();
-    delete m_bullet_mesh;
 }
 
 // -----------------------------------------------------------------------------
@@ -556,20 +555,20 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     }
 
     // Triangle mesh without connectivity ---------------------
-    m_bullet_mesh = new cbtTriangleMesh;
-
     if (is_static) {
         // Here a static cbtBvhTriangleMeshShape suffices, but cbtGImpactMeshShape might work better?
-        PopulateBulletMesh(m_bullet_mesh, trimesh);
-        auto bt_shape = chrono_types::make_shared<cbtBvhTriangleMeshShape_handlemesh>(m_bullet_mesh);
+        cbtTriangleMesh* bullet_mesh = new cbtTriangleMesh;
+        PopulateBulletMesh(bullet_mesh, trimesh);
+        auto bt_shape = chrono_types::make_shared<cbtBvhTriangleMeshShape_handlemesh>(bullet_mesh);
         bt_shape->setMargin(static_cast<cbtScalar>(safe_margin));
         injectShape(shape_trimesh, bt_shape, frame);
         return;
     }
 
     if (is_convex) {
-        PopulateBulletMesh(m_bullet_mesh, trimesh);
-        auto bt_shape = chrono_types::make_shared<cbtConvexTriangleMeshShape_handlemesh>(m_bullet_mesh);
+        cbtTriangleMesh* bullet_mesh = new cbtTriangleMesh;
+        PopulateBulletMesh(bullet_mesh, trimesh);
+        auto bt_shape = chrono_types::make_shared<cbtConvexTriangleMeshShape_handlemesh>(bullet_mesh);
         bt_shape->setMargin(static_cast<cbtScalar>(envelope));
         injectShape(shape_trimesh, bt_shape, frame);
         return;

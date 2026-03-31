@@ -41,7 +41,7 @@ vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options
 
     if (skipZbuffer) {
         // create a DepthStencilState, disable depth test and add this to the ShaderSet::defaultGraphicsPipelineStates
-        // container so it's used when setting up the TextGroup subgraph
+        // container so it's used when setting up the TextGroup sub-graph
         auto depthStencilState = vsg::DepthStencilState::create();
         depthStencilState->depthTestEnable = VK_FALSE;
         shaderSet->defaultGraphicsPipelineStates.push_back(depthStencilState);
@@ -49,8 +49,7 @@ vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options
     return shaderSet;
 }
 
-vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options> options,
-                                                std::shared_ptr<ChVisualMaterial> material) {
+vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options> options, std::shared_ptr<ChVisualMaterial> material) {
 #define VIEW_DESCRIPTOR_SET 0
 #define MATERIAL_DESCRIPTOR_SET 1
 
@@ -71,117 +70,77 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
 
     shaderSet->addAttributeBinding("vsg_Vertex", "", 0, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
     shaderSet->addAttributeBinding("vsg_Normal", "", 1, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
-    shaderSet->addAttributeBinding("vsg_TexCoord0", "VSG_TEXTURECOORD_0", 2, VK_FORMAT_R32G32_SFLOAT,
-                                   vsg::vec2Array::create(1));
-    shaderSet->addAttributeBinding("vsg_TexCoord1", "VSG_TEXTURECOORD_1", 3, VK_FORMAT_R32G32_SFLOAT,
-                                   vsg::vec2Array::create(1));
-    shaderSet->addAttributeBinding("vsg_TexCoord2", "VSG_TEXTURECOORD_2", 4, VK_FORMAT_R32G32_SFLOAT,
-                                   vsg::vec2Array::create(1));
-    shaderSet->addAttributeBinding("vsg_TexCoord3", "VSG_TEXTURECOORD_3", 5, VK_FORMAT_R32G32_SFLOAT,
-                                   vsg::vec2Array::create(1));
-    shaderSet->addAttributeBinding("vsg_Color", "", 6, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1),
-                                   vsg::CoordinateSpace::LINEAR);
+    shaderSet->addAttributeBinding("vsg_TexCoord0", "VSG_TEXTURECOORD_0", 2, VK_FORMAT_R32G32_SFLOAT, vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord1", "VSG_TEXTURECOORD_1", 3, VK_FORMAT_R32G32_SFLOAT, vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord2", "VSG_TEXTURECOORD_2", 4, VK_FORMAT_R32G32_SFLOAT, vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord3", "VSG_TEXTURECOORD_3", 5, VK_FORMAT_R32G32_SFLOAT, vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Color", "", 6, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1), vsg::CoordinateSpace::LINEAR);
 
-    shaderSet->addAttributeBinding("vsg_Translation_scaleDistance", "VSG_BILLBOARD", 7, VK_FORMAT_R32G32B32A32_SFLOAT,
-                                   vsg::vec4Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Translation_scaleDistance", "VSG_BILLBOARD", 7, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1));
 
-    shaderSet->addAttributeBinding("vsg_Translation", "VSG_INSTANCE_TRANSLATION", 7, VK_FORMAT_R32G32B32_SFLOAT,
-                                   vsg::vec3Array::create(1));
-    shaderSet->addAttributeBinding("vsg_Rotation", "VSG_INSTANCE_ROTATION", 8, VK_FORMAT_R32G32B32A32_SFLOAT,
-                                   vsg::quatArray::create(1));
-    shaderSet->addAttributeBinding("vsg_Scale", "VSG_INSTANCE_SCALE", 9, VK_FORMAT_R32G32B32_SFLOAT,
-                                   vsg::vec3Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Translation", "VSG_INSTANCE_TRANSLATION", 7, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Rotation", "VSG_INSTANCE_ROTATION", 8, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::quatArray::create(1));
+    shaderSet->addAttributeBinding("vsg_Scale", "VSG_INSTANCE_SCALE", 9, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
 
-    shaderSet->addAttributeBinding("vsg_JointIndices", "VSG_SKINNING", 10, VK_FORMAT_R32G32B32A32_SINT,
-                                   vsg::ivec4Array::create(1));
-    shaderSet->addAttributeBinding("vsg_JointWeights", "VSG_SKINNING", 11, VK_FORMAT_R32G32B32A32_SFLOAT,
-                                   vsg::vec4Array::create(1));
+    shaderSet->addAttributeBinding("vsg_JointIndices", "VSG_SKINNING", 10, VK_FORMAT_R32G32B32A32_SINT, vsg::ivec4Array::create(1));
+    shaderSet->addAttributeBinding("vsg_JointWeights", "VSG_SKINNING", 11, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1));
 
-    shaderSet->addDescriptorBinding("diffuseMap", "VSG_DIFFUSE_MAP", MATERIAL_DESCRIPTOR_SET, 0,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("diffuseMap", "VSG_DIFFUSE_MAP", MATERIAL_DESCRIPTOR_SET, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-    shaderSet->addDescriptorBinding("detailMap", "VSG_DETAIL_MAP", MATERIAL_DESCRIPTOR_SET, 1,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("detailMap", "VSG_DETAIL_MAP", MATERIAL_DESCRIPTOR_SET, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-    shaderSet->addDescriptorBinding("normalMap", "VSG_NORMAL_MAP", MATERIAL_DESCRIPTOR_SET, 2,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}),
-                                    vsg::CoordinateSpace::LINEAR);
-    shaderSet->addDescriptorBinding("aoMap", "VSG_LIGHTMAP_MAP", MATERIAL_DESCRIPTOR_SET, 3,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("normalMap", "VSG_NORMAL_MAP", MATERIAL_DESCRIPTOR_SET, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                    vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}), vsg::CoordinateSpace::LINEAR);
+    shaderSet->addDescriptorBinding("aoMap", "VSG_LIGHTMAP_MAP", MATERIAL_DESCRIPTOR_SET, 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
-    shaderSet->addDescriptorBinding("emissiveMap", "VSG_EMISSIVE_MAP", MATERIAL_DESCRIPTOR_SET, 4,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("emissiveMap", "VSG_EMISSIVE_MAP", MATERIAL_DESCRIPTOR_SET, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-    shaderSet->addDescriptorBinding("specularMap", "VSG_SPECULAR_MAP", MATERIAL_DESCRIPTOR_SET, 5,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("specularMap", "VSG_SPECULAR_MAP", MATERIAL_DESCRIPTOR_SET, 5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-    shaderSet->addDescriptorBinding("mrMap", "VSG_METALLROUGHNESS_MAP", MATERIAL_DESCRIPTOR_SET, 6,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                    vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}),
-                                    vsg::CoordinateSpace::LINEAR);
+    shaderSet->addDescriptorBinding("mrMap", "VSG_METALLROUGHNESS_MAP", MATERIAL_DESCRIPTOR_SET, 6, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                    vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}), vsg::CoordinateSpace::LINEAR);
 
-    shaderSet->addDescriptorBinding("displacementMap", "VSG_DISPLACEMENT_MAP", MATERIAL_DESCRIPTOR_SET, 7,
-                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
-                                    vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}),
-                                    vsg::CoordinateSpace::LINEAR);
-    shaderSet->addDescriptorBinding("displacementMapScale", "VSG_DISPLACEMENT_MAP", MATERIAL_DESCRIPTOR_SET, 8,
-                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT,
+    shaderSet->addDescriptorBinding("displacementMap", "VSG_DISPLACEMENT_MAP", MATERIAL_DESCRIPTOR_SET, 7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
+                                    vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}), vsg::CoordinateSpace::LINEAR);
+    shaderSet->addDescriptorBinding("displacementMapScale", "VSG_DISPLACEMENT_MAP", MATERIAL_DESCRIPTOR_SET, 8, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT,
                                     vsg::vec3Value::create(1.0f, 1.0f, 1.0f));
 
-    shaderSet->addDescriptorBinding("PbrMaterial", "", MATERIAL_DESCRIPTOR_SET, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                                    1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create(),
-                                    vsg::CoordinateSpace::LINEAR);
-    shaderSet->addDescriptorBinding("texCoordIndices", "", MATERIAL_DESCRIPTOR_SET, 11,
-                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("PbrMaterial", "", MATERIAL_DESCRIPTOR_SET, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                    vsg::PbrMaterialValue::create(), vsg::CoordinateSpace::LINEAR);
+    shaderSet->addDescriptorBinding("texCoordIndices", "", MATERIAL_DESCRIPTOR_SET, 11, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::TexCoordIndicesValue::create(), vsg::CoordinateSpace::LINEAR);
 
-    shaderSet->addDescriptorBinding("jointMatrices", "VSG_SKINNING", MATERIAL_DESCRIPTOR_SET, 12,
-                                    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT,
+    shaderSet->addDescriptorBinding("jointMatrices", "VSG_SKINNING", MATERIAL_DESCRIPTOR_SET, 12, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT,
                                     vsg::mat4Value::create());
 
-    shaderSet->addDescriptorBinding("lightData", "", VIEW_DESCRIPTOR_SET, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("lightData", "", VIEW_DESCRIPTOR_SET, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::vec4Array::create(64));
-    shaderSet->addDescriptorBinding("viewportData", "", VIEW_DESCRIPTOR_SET, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("viewportData", "", VIEW_DESCRIPTOR_SET, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::vec4Value::create(0, 0, 1280, 1024));
-    shaderSet->addDescriptorBinding("shadowMaps", "", VIEW_DESCRIPTOR_SET, 2, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1,
-                                    VK_SHADER_STAGE_FRAGMENT_BIT,
+    shaderSet->addDescriptorBinding("shadowMaps", "", VIEW_DESCRIPTOR_SET, 2, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::floatArray3D::create(1, 1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
-    shaderSet->addDescriptorBinding("shadowMapDirectSampler", "VSG_SHADOWS_PCSS", VIEW_DESCRIPTOR_SET, 3,
-                                    VK_DESCRIPTOR_TYPE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
-    shaderSet->addDescriptorBinding("shadowMapShadowSampler", "", VIEW_DESCRIPTOR_SET, 4, VK_DESCRIPTOR_TYPE_SAMPLER, 1,
-                                    VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
+    shaderSet->addDescriptorBinding("shadowMapDirectSampler", "VSG_SHADOWS_PCSS", VIEW_DESCRIPTOR_SET, 3, VK_DESCRIPTOR_TYPE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
+    shaderSet->addDescriptorBinding("shadowMapShadowSampler", "", VIEW_DESCRIPTOR_SET, 4, VK_DESCRIPTOR_TYPE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
 
     // additional defines
-    shaderSet->optionalDefines = {"VSG_GREYSCALE_DIFFUSE_MAP", "VSG_TWO_SIDED_LIGHTING", "VSG_POINT_SPRITE",
-                                  "VSG_WORKFLOW_SPECGLOSS",    "VSG_SHADOWS_PCSS",       "VSG_SHADOWS_SOFT",
-                                  "VSG_SHADOWS_HARD",          "SHADOWMAP_DEBUG",        "VSG_ALPHA_TEST"};
+    shaderSet->optionalDefines = {"VSG_GREYSCALE_DIFFUSE_MAP", "VSG_TWO_SIDED_LIGHTING", "VSG_POINT_SPRITE", "VSG_WORKFLOW_SPECGLOSS", "VSG_SHADOWS_PCSS",
+                                  "VSG_SHADOWS_SOFT",          "VSG_SHADOWS_HARD",       "SHADOWMAP_DEBUG",  "VSG_ALPHA_TEST"};
 
     shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_ALL, 0, 128);
 
+    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{{"VSG_INSTANCE_TRANSLATION"}, vsg::TranslationArrayState::create()});
     shaderSet->definesArrayStates.push_back(
-        vsg::DefinesArrayState{{"VSG_INSTANCE_TRANSLATION"}, vsg::TranslationArrayState::create()});
-    shaderSet->definesArrayStates.push_back(
-        vsg::DefinesArrayState{{"VSG_INSTANCE_TRANSLATION", "VSG_INSTANCE_ROTATION", "VSG_INSTANCE_SCALE"},
-                               vsg::TranslationRotationScaleArrayState::create()});
-    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{
-        {"VSG_INSTANCE_TRANSLATION", "VSG_DISPLACEMENT_MAP"}, vsg::TranslationAndDisplacementMapArrayState::create()});
-    shaderSet->definesArrayStates.push_back(
-        vsg::DefinesArrayState{{"VSG_DISPLACEMENT_MAP"}, vsg::DisplacementMapArrayState::create()});
-    shaderSet->definesArrayStates.push_back(
-        vsg::DefinesArrayState{{"VSG_BILLBOARD"}, vsg::BillboardArrayState::create()});
+        vsg::DefinesArrayState{{"VSG_INSTANCE_TRANSLATION", "VSG_INSTANCE_ROTATION", "VSG_INSTANCE_SCALE"}, vsg::TranslationRotationScaleArrayState::create()});
+    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{{"VSG_INSTANCE_TRANSLATION", "VSG_DISPLACEMENT_MAP"}, vsg::TranslationAndDisplacementMapArrayState::create()});
+    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{{"VSG_DISPLACEMENT_MAP"}, vsg::DisplacementMapArrayState::create()});
+    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{{"VSG_BILLBOARD"}, vsg::BillboardArrayState::create()});
 
     shaderSet->customDescriptorSetBindings.push_back(vsg::ViewDependentStateBinding::create(VIEW_DESCRIPTOR_SET));
 
     return shaderSet;
 }
 
-vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options,
-                                                   VkPrimitiveTopology topology,
-                                                   float line_width,
-                                                   bool skipZbuffer) {
+vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options, VkPrimitiveTopology topology, float line_width, bool skipZbuffer) {
     vsg::ref_ptr<vsg::SharedObjects> sharedObjects;
     if (!sharedObjects) {
         if (options)
@@ -231,7 +190,9 @@ vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Optio
 
 vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Options> options,
                                                   std::shared_ptr<ChVisualMaterial> material,
-                                                  bool wireframe) {
+                                                  bool double_faced,
+                                                  bool wireframe,
+                                                  float wire_width) {
     vsg::ref_ptr<vsg::SharedObjects> sharedObjects;
 
     bool use_blending = (material->GetOpacity() < 1.0) || (!material->GetOpacityTexture().empty());
@@ -277,8 +238,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
@@ -289,8 +249,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
             pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
         } else {
-            std::cerr << "createPbrStateGroup: could not read diffuse texture file <" << material->GetKdTexture()
-                      << std::endl;
+            std::cerr << "createPbrStateGroup: could not read diffuse texture file <" << material->GetKdTexture() << std::endl;
         }
     }
 
@@ -299,8 +258,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
@@ -309,8 +267,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("emissiveMap", image, sampler);
         } else {
-            std::cerr << "createPbrStateGroup: could not read emissive texture file <" << material->GetKeTexture()
-                      << std::endl;
+            std::cerr << "createPbrStateGroup: could not read emissive texture file <" << material->GetKeTexture() << std::endl;
         }
     }
 
@@ -319,8 +276,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
@@ -329,8 +285,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("specularMap", image, sampler);
         } else {
-            std::cerr << "createPbrStateGroup: could not read specular texture file <" << material->GetKsTexture()
-                      << std::endl;
+            std::cerr << "createPbrStateGroup: could not read specular texture file <" << material->GetKsTexture() << std::endl;
         }
     }
 
@@ -339,8 +294,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
@@ -349,8 +303,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("opacityMap", image, sampler);
         } else {
-            std::cerr << "createPbrStateGroup: could not read opacity texture file <" << material->GetOpacityTexture()
-                      << std::endl;
+            std::cerr << "createPbrStateGroup: could not read opacity texture file <" << material->GetOpacityTexture() << std::endl;
         }
     }
 
@@ -359,8 +312,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
@@ -369,8 +321,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("normalMap", image, sampler);
         } else {
-            std::cerr << "createPbrStateGroup: could not read normal map file <" << material->GetNormalMapTexture()
-                      << std::endl;
+            std::cerr << "createPbrStateGroup: could not read normal map file <" << material->GetNormalMapTexture() << std::endl;
         }
     }
 
@@ -379,8 +330,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
@@ -389,8 +339,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("aoMap", image, sampler);
         } else {
-            std::cerr << "createPbrStateGroup: could not read ambient occlusion map file <"
-                      << material->GetAmbientOcclusionTexture() << std::endl;
+            std::cerr << "createPbrStateGroup: could not read ambient occlusion map file <" << material->GetAmbientOcclusionTexture() << std::endl;
         }
     }
 
@@ -452,16 +401,28 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
      */
     struct SetPipelineStates : public vsg::Visitor {
         bool wireframe;
+        float wire_width;
         bool blending;
+        bool double_faced;
 
-        SetPipelineStates(bool inWire, bool inBlend) : wireframe(inWire), blending(inBlend) {}
+        SetPipelineStates(bool wireframe, float wire_width, bool blending, bool double_faced)
+            : wireframe(wireframe), wire_width(wire_width), blending(blending), double_faced(double_faced) {}
 
         void apply(vsg::Object& object) { object.traverse(*this); }
         void apply(vsg::RasterizationState& rs) {
-            // Transparent objects must render both faces
-            if (blending)
+            if (blending) {
+                // Transparent objects must always render both faces
                 rs.cullMode = VK_CULL_MODE_NONE;
-            rs.polygonMode = wireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+            }
+            if (double_faced) {
+                rs.cullMode = VK_CULL_MODE_NONE;
+            }
+            if (wireframe) {
+                rs.polygonMode = VK_POLYGON_MODE_LINE;
+                rs.lineWidth = wire_width;
+            } else {
+                rs.polygonMode = VK_POLYGON_MODE_FILL;
+            }
         }
         void apply(vsg::DepthStencilState& dss) {
             // Transparent surfaces must not write to depth buffer, otherwise geometry behind them is occluded
@@ -474,7 +435,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         void apply(vsg::ColorBlendState& cbs) { cbs.configureAttachments(blending); }
     };
 
-    SetPipelineStates sps(wireframe, use_blending);
+    SetPipelineStates sps(wireframe, wire_width, use_blending, double_faced);
     graphicsPipelineConfig->accept(sps);
 
     // if required initialize GraphicsPipeline/Layout etc.
@@ -495,37 +456,28 @@ vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::sha
     auto pbrMat = vsg::PbrMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
     float dim = 1.0f;
-    pbrMat->value().baseColorFactor.set(dim * chronoMat->GetDiffuseColor().R, dim * chronoMat->GetDiffuseColor().G,
-                                        dim * chronoMat->GetDiffuseColor().B, alpha);
-    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
-                                       chronoMat->GetEmissiveColor().B, alpha);
-    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
-                                       chronoMat->GetSpecularColor().B, alpha);
+    pbrMat->value().baseColorFactor.set(dim * chronoMat->GetDiffuseColor().R, dim * chronoMat->GetDiffuseColor().G, dim * chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G, chronoMat->GetEmissiveColor().B, alpha);
+    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
     pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
     pbrMat->value().metallicFactor = chronoMat->GetMetallic();
-    pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                      chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G, chronoMat->GetDiffuseColor().B, alpha);
     pbrMat->value().alphaMask = alpha;
     pbrMat->value().alphaMaskCutoff = 0.3f;
 
     return pbrMat;
 }
 
-vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(
-    std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
     auto phongMat = vsg::PhongMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
 
-    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
-                                   chronoMat->GetEmissiveColor().B, alpha);
-    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
-                                   chronoMat->GetSpecularColor().B, alpha);
-    phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                  chronoMat->GetDiffuseColor().B, alpha);
+    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G, chronoMat->GetEmissiveColor().B, alpha);
+    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G, chronoMat->GetDiffuseColor().B, alpha);
     phongMat->value().alphaMask = alpha;
     phongMat->value().alphaMaskCutoff = 0.3f;
-    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G,
-                                  chronoMat->GetAmbientColor().B, alpha);
+    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G, chronoMat->GetAmbientColor().B, alpha);
     return phongMat;
 }
 

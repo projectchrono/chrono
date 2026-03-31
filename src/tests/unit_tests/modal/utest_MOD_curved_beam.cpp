@@ -24,6 +24,12 @@
 // The simulation results from modal redution are compared against the results from
 // corotational formulation in chrono::fea module.
 //
+// WARNING: examples are using imperial units!!!
+// WARNING: in the paper all units that should refer to forces are actually
+//          adimensionalized with respect to gravity!!!
+//          So forces of 600lb are actually 600lb*in/s^2
+//          So Young mod of 1e7 psi is actually 1e7 lb*in/s^2/in^2
+//
 // Successful execution of this unit test may validate: the material stiffness
 // matrix, the geometric stiffness matrix, and the gravity load
 // =============================================================================
@@ -46,6 +52,9 @@ using namespace chrono;
 using namespace chrono::modal;
 using namespace chrono::fea;
 
+constexpr double meters_to_inches = 39.37007874;
+constexpr double kilograms_to_libres = 2.2046226218;
+
 class LoadScaling : public ChStaticNonLinearAnalysisIncremental::LoadIncrementCallback {
   public:
     LoadScaling(std::shared_ptr<ChNodeFEAxyzrot> node, double nominal_load)
@@ -64,15 +73,17 @@ class LoadScaling : public ChStaticNonLinearAnalysisIncremental::LoadIncrementCa
 
 // -----------------------------------------------------------------------------
 
-ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose) {
+ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool use_gravity, bool verbose) {
     // Create a Chrono physical system
     ChSystemNSC sys;
 
     sys.Clear();
     sys.SetChTime(0);
 
+    // WARNING: using IMPERIAL UNITS
+
     // Parameters
-    double radius = 100.0;
+    double radius = 100.0;  // inches
     double rotangle = 45.0 * CH_DEG_TO_RAD;
     int n_parts = 5;
     int n_totalelements = n_parts * 8;
@@ -81,14 +92,14 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
     double damping_alpha = 0;
     double damping_beta = 0.002;
 
-    double b = 1.0;
-    double h = 1.0;
+    double b = 1.0;  // inches
+    double h = 1.0;  // inches
     double Area = b * h;
     double Iyy = 1 / 12.0 * b * h * h * h;
     double Izz = 1 / 12.0 * h * b * b * b;
     double Iyz = 0;
 
-    double rho = 7800 * 2.2046226218 / std::pow(39.37007874, 3);
+    double rho = 7800 * kilograms_to_libres / std::pow(meters_to_inches, 3);  // CONVERTING DENSITY IN IMPERIAL UNITS
     double mass_per_unit_length = rho * Area;
     double Jyy = rho * Iyy;
     double Jzz = rho * Izz;
@@ -106,7 +117,8 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
     double Qy = 0;
     double Qz = 0;
     section->SetMassMatrixFPM(mass_per_unit_length, Jyy, Jzz, Jyz, Qy, Qz);
-    double k11 = 1e7;
+    const double E = 1e7;
+    double k11 = E;
     double k22 = 4.166667e6;
     double k33 = 4.166667e6;
     double k44 = 7.03e5;
@@ -138,7 +150,7 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
         mod_assem->SetInternalNodesUpdate(true);
         mod_assem->SetUseLinearInertialTerm(true);
         mod_assem->SetUseStaticCorrection(false);
-        mod_assem->SetModalAutomaticGravity(true);  // with gravity
+        mod_assem->SetModalAutomaticGravity(use_gravity);
         if (use_herting)
             mod_assem->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
         else
@@ -150,8 +162,8 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
         mod_assem->AddInternalMesh(mesh_internal);
         auto mesh_boundary = chrono_types::make_shared<ChMesh>();
         mod_assem->AddMesh(mesh_boundary);
-        mesh_internal->SetAutomaticGravity(true);  // with gravity
-        mesh_boundary->SetAutomaticGravity(true);  // with gravity
+        mesh_internal->SetAutomaticGravity(use_gravity);
+        mesh_boundary->SetAutomaticGravity(use_gravity);
 
         // Build nodes
         auto mbeam_nodes = std::vector<std::shared_ptr<ChNodeFEAxyzrot>>(mn_ele + 1);
@@ -191,7 +203,7 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
         }
     };
 
-    // Mesh the curved beam with several separate modal assemblies to deal with the significant geometrical nonliearity
+    // Mesh the curved beam with several separate modal assemblies to deal with the significant geometrical nonlinearity
     std::vector<std::shared_ptr<ChModalAssembly>> modal_assembly_list;
     double delta_angle = rotangle / n_parts;
     for (int i_part = 0; i_part < n_parts; i_part++) {
@@ -227,12 +239,18 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
     ChVector3d tip_pos_x0 = tip_node->GetPos();
 
     // Set gravity
-    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, use_gravity ? -5.0 : 0.0));
+
+    // double grav_acc_inches = 9.81 * meters_to_inches;
+    //  sys.SetGravitationalAcceleration(ChVector3d(0, 0, USE_GRAVITY ? -grav_acc_inches : 0.0));  // -Z axis
+    //   sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0.0));  // -Z axis
 
     // Set linear solver for both system simulation and modal reduction
+    // #undef CHRONO_PARDISO_MKL
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     sys.SetSolver(mkl_solver);
+    mkl_solver->LockSparsityPattern(false);
 
     for (int i_part = 0; i_part < n_parts; i_part++) {
         auto mkl_modal_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -246,6 +264,7 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
         auto qr_solver = chrono_types::make_shared<ChSolverSparseQR>();
         modal_assembly_list.at(i_part)->SetModalSolver(qr_solver);
     }
+    qr_solver->LockSparsityPattern(false);
 #endif
 
     sys.Setup();
@@ -266,11 +285,15 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
     }
 
     // Create a load scaling callback object
+    // Bathe paper talks about a load parameter k = P*R^2/E/I
     double Pz = 600;
+    // double load_parameter = Pz * radius * radius / E / Izz;
+
+    // double load_parameter = 6.0;
+    // double Pz = load_parameter * E * Izz / radius / radius;
     auto load_scaling = chrono_types::make_shared<LoadScaling>(tip_node, Pz);
 
     // Static analysis (incremental)
-    std::cout << "Perform static analysis" << std::endl;
     ChStaticNonLinearAnalysisIncremental static_analysis;
     static_analysis.SetLoadIncrementCallback(load_scaling);
     static_analysis.SetMaxIterationsNewton(100);
@@ -280,32 +303,72 @@ ChVector3d RunCurvedBeam(bool do_modal_reduction, bool use_herting, bool verbose
     sys.DoStaticAnalysis(static_analysis);
 
     // Print the tip displacement
-    auto res = tip_node->GetPos() - tip_pos_x0;
-    std::cout << "Tip displacement is:\t" << res.x() << "\t" << res.y() << "\t" << res.z() << "\n";
+    auto res = (tip_node->GetPos() - tip_pos_x0);
+    // std::cout << "Tip rest position:\t" << tip_pos_x0.x() << "\t" << tip_pos_x0.y() << "\t" << tip_pos_x0.z() <<
+    // "\n"; std::cout << "Tip original position:\t" << tip_node->GetPos().x() << "\t" << tip_node->GetPos().y() << "\t"
+    //           << tip_node->GetPos().z() << "\n";
+    std::cout << "Tip displacement:\t" << res.x() << "\t" << res.y() << "\t" << res.z();
+    // std::cout << "Load parameter 'k': " << load_parameter << std::endl;
+    // std::cout << "Adimensional tip displacement:\t" << res.x() / radius << "\t" << res.y() / radius << "\t" <<
+    // res.z() / radius << "\n";
 
     return res;
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-
     bool verbose = false;
-    double tol = 1.0;
+    double tol = 0.05;
 
-    // ChModalAssembly should be able to run successfully in the full state
-    std::cout << "1. Run corotational beam model not reduced:\n";
-    ChVector3d res_corot = RunCurvedBeam(false, false, verbose);
+    //// WARNING: consider that are inches
+    const ChVector3d reference_solution_Sonneville = {-23.821, 13.732, 53.610};  // 16 elements
+    // const ChVector3d reference_solution_Bathe = {-23.5, 13.4, 53.604};               // 8 elements
+    // const ChVector3d reference_solution_Ibrahimbegovic = {-23.814, -13.729, 53.605};  // 8 elements
 
-    std::cout << "\n\n2. Run modal reduction model with Craig Bampton method:\n";
-    ChVector3d res_modal_CraigBampton = RunCurvedBeam(true, false, verbose);
-    bool check_CraigBampton = (res_modal_CraigBampton - res_corot).eigen().norm() < tol;
+    // Bathe reference values for K = 6.0, taken from Fig. 9
+    // const ChVector3d ref_values = {-0.20807, 0.1222, 0.50532};
 
-    std::cout << "\n\n3. Run modal reduction model with Herting method:\n";
-    ChVector3d res_modal_Herting = RunCurvedBeam(true, true, verbose);
-    bool check_Herting = (res_modal_Herting - res_corot).eigen().norm() < tol;
+    const ChVector3d ref_values_no_grav = reference_solution_Sonneville;
 
-    bool passed = check_CraigBampton && check_Herting;
-    std::cout << "\nUNIT TEST of modal assembly with curved beam: " << (passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "############### WITH GRAVITY DISABLED ###############\n";
+    bool use_gravity = false;
+    std::cout << "Original model (not reduced):\n";
+    ChVector3d res_full = RunCurvedBeam(false, false, use_gravity, verbose);
+    bool check_full = (res_full - ref_values_no_grav).eigen().norm() / ref_values_no_grav.Length() < tol;
+    std::cout << "\nSTATUS: " << (check_full ? "PASSED" : "FAILED");
+
+    std::cout << "\n\nReduced Model - Craig Bampton:\n";
+    ChVector3d res_modal_CraigBampton_nograv = RunCurvedBeam(true, false, use_gravity, verbose);
+    bool check_CraigBampton_nograv =
+        (res_modal_CraigBampton_nograv - ref_values_no_grav).eigen().norm() / ref_values_no_grav.Length() < tol;
+    std::cout << "\nSTATUS: " << (check_CraigBampton_nograv ? "PASSED" : "FAILED");
+
+    std::cout << "\n\nReduced Model - Herting:\n";
+    ChVector3d res_modal_Herting_nograv = RunCurvedBeam(true, true, use_gravity, verbose);
+    bool check_Herting_nograv =
+        (res_modal_Herting_nograv - ref_values_no_grav).eigen().norm() / ref_values_no_grav.Length() < tol;
+    std::cout << "\nSTATUS: " << (check_Herting_nograv ? "PASSED" : "FAILED");
+
+    std::cout << "\n\n############### WITH GRAVITY ENABLED ###############\n";
+
+    use_gravity = true;
+    std::cout << "\n\nOriginal model (not reduced) - WITH GRAVITY - USED AS REFERENCE:\n";
+    ChVector3d res_full_grav = RunCurvedBeam(false, false, use_gravity, verbose);
+
+    std::cout << "\n\nReduced Model - Craig Bampton - WITH GRAVITY:\n";
+    ChVector3d res_modal_CraigBampton_gravity = RunCurvedBeam(true, false, use_gravity, verbose);
+    bool check_CraigBampton_gravity =
+        (res_modal_CraigBampton_gravity - res_full_grav).eigen().norm() / res_full_grav.Length() < tol;
+    std::cout << "\nSTATUS: " << (check_CraigBampton_gravity ? "PASSED" : "FAILED");
+
+    std::cout << "\n\nReduced Model - Herting - WITH GRAVITY:\n";
+    ChVector3d res_modal_Herting_gravity = RunCurvedBeam(true, true, use_gravity, verbose);
+    bool check_Herting_gravity =
+        (res_modal_Herting_gravity - res_full_grav).eigen().norm() / res_full_grav.Length() < tol;
+    std::cout << "\nSTATUS: " << (check_Herting_gravity ? "PASSED" : "FAILED");
+
+    bool passed =
+        check_CraigBampton_nograv && check_Herting_nograv && check_CraigBampton_gravity && check_Herting_gravity;
+    std::cout << "\nUNIT TEST of modal assembly with curved beam: " << (passed ? "PASSED" : "FAILED");
 
     return !passed;
 }

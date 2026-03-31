@@ -2819,44 +2819,52 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
 
         // 4-
         // Update the gravitational force on the internal bodies and nodes
-        if (m_modal_automatic_gravity && GetSystem()->GetGravitationalAcceleration().Length2()) {
+        if (m_modal_automatic_gravity) {
             ChVectorDynamic<> g_acc_loc;
             g_acc_loc.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal);
 
             unsigned int offset_loc = 0;
-            ChVector3d gloc = floating_frame_F.GetRot().RotateBack(GetSystem()->GetGravitationalAcceleration());
+            auto gloc = floating_frame_F.GetRot().RotateBack(GetSystem()->GetGravitationalAcceleration()).eigen();
             // boundary bodies
             for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
-                g_acc_loc.segment(offset_loc, 3) = gloc.eigen();
+                if (!bodylist[ip]->IsActive())
+                    continue;
+                g_acc_loc.segment(offset_loc, 3) = gloc;
                 offset_loc += bodylist[ip]->GetNumCoordsVelLevel();
             }
             // boundary nodes
             for (unsigned int ip = 0; ip < meshlist.size(); ++ip) {
                 for (auto& node : meshlist[ip]->GetNodes()) {
+                    if (node->IsFixed())
+                        continue;
                     if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        g_acc_loc.segment(offset_loc, xyz->GetNumCoordsVelLevel()) = gloc.eigen();
+                        g_acc_loc.segment(offset_loc, xyz->GetNumCoordsVelLevel()) = gloc;
                         offset_loc += xyz->GetNumCoordsVelLevel();
                     }
                     if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        g_acc_loc.segment(offset_loc, 3) = gloc.eigen();
+                        g_acc_loc.segment(offset_loc, 3) = gloc;
                         offset_loc += xyzrot->GetNumCoordsVelLevel();
                     }
                 }
             }
             // internal bodies
             for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-                g_acc_loc.segment(offset_loc, 3) = gloc.eigen();
+                if (!internal_bodylist[ip]->IsActive())
+                    continue;
+                g_acc_loc.segment(offset_loc, 3) = gloc;
                 offset_loc += internal_bodylist[ip]->GetNumCoordsVelLevel();
             }
             // internal nodes
             for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
                 for (auto& node : internal_meshlist[ip]->GetNodes()) {
+                    if (node->IsFixed())
+                        continue;
                     if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        g_acc_loc.segment(offset_loc, xyz->GetNumCoordsVelLevel()) = gloc.eigen();
+                        g_acc_loc.segment(offset_loc, xyz->GetNumCoordsVelLevel()) = gloc;
                         offset_loc += xyz->GetNumCoordsVelLevel();
                     }
                     if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        g_acc_loc.segment(offset_loc, 3) = gloc.eigen();
+                        g_acc_loc.segment(offset_loc, 3) = gloc;
                         offset_loc += xyzrot->GetNumCoordsVelLevel();
                     }
                 }
@@ -2866,9 +2874,10 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             ChVectorDynamic<> f_gravity;
             f_gravity.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal);
             ChVectorDynamic<> f_gravity_loc = full_M_loc * g_acc_loc;
-            for (unsigned int i_node = 0; i_node < f_gravity.size() / 6; ++i_node)
+            for (unsigned int i_node = 0; i_node < f_gravity.size() / 6; ++i_node) {
                 f_gravity.segment(6 * i_node, 3) =
                     floating_frame_F.GetRot().Rotate(f_gravity_loc.segment(6 * i_node, 3)).eigen();
+            }
 
             // only add the gravitational forces for internal part since it has been inherited from the parent methods
             // for the boundary part
@@ -3321,6 +3330,249 @@ void ChModalAssembly::ArchiveIn(ChArchiveIn& archive_in) {
 
     // Recompute statistics, offsets, etc.
     Setup();
+}
+
+bool ChModalAssembly::LoadReducedModel(ChArchiveIn& archive_in) {
+    
+    archive_in >> CHNVP(m_is_model_reduced);
+    archive_in >> CHNVP(is_projection_initialized);
+
+    if (is_projection_initialized) {
+        archive_in >> CHNVP(U_locred_0);
+        archive_in >> CHNVP(Q_0);
+        archive_in >> CHNVP(P_parallel_0);
+        archive_in >> CHNVP(P_perp_0);
+    }
+
+    // archive_in >> CHNVP(modal_variables);
+    // archive_in >> CHNVP(modal_Hblock);
+    archive_in >> CHNVP(modal_q);
+    archive_in >> CHNVP(modal_q_dt);
+    archive_in >> CHNVP(modal_q_dtdt);
+    archive_in >> CHNVP(modal_M);
+    archive_in >> CHNVP(modal_K);
+    archive_in >> CHNVP(modal_R);
+
+    archive_in >> CHNVP(Psi);
+
+    archive_in >> CHNVP(Psi_S);
+    archive_in >> CHNVP(Psi_D);
+    archive_in >> CHNVP(Psi_Cor);
+    archive_in >> CHNVP(Psi_S_LambdaI);
+    archive_in >> CHNVP(Psi_D_LambdaI);
+    archive_in >> CHNVP(Psi_Cor_LambdaI);
+
+    archive_in >> CHNVP(m_solver_invKIIc->GetMatrix(), "m_solver_invKIIc_MATRIX");
+    m_solver_invKIIc->SetupCurrent();
+
+    archive_in >> CHNVP(is_initialized);
+    archive_in >> CHNVP(cog_frame);
+    archive_in >> CHNVP(floating_frame_F0);
+    archive_in >> CHNVP(floating_frame_F);
+    // archive_in >> CHNVP(m_res_CF);
+    // archive_in >> CHNVP(m_tol_CF);
+    archive_in >> CHNVP(m_full_state_x0);
+    archive_in >> CHNVP(m_full_state_x);
+    // archive_in >> CHNVP(U_locred);
+    // archive_in >> CHNVP(Uloc_B);
+    archive_in >> CHNVP(Uloc_I);
+    // archive_in >> CHNVP(P_F);
+    archive_in >> CHNVP(m_full_forces_internal);
+    archive_in >> CHNVP(full_M_loc);
+    archive_in >> CHNVP(full_K_loc);
+    archive_in >> CHNVP(full_R_loc);
+    archive_in >> CHNVP(full_Cq_loc);
+    archive_in >> CHNVP(full_K_loc_ext);
+    archive_in >> CHNVP(full_M_loc_ext);
+
+    archive_in >> CHNVP(M_red);
+    archive_in >> CHNVP(K_red);
+    archive_in >> CHNVP(R_red);
+    archive_in >> CHNVP(M_BB_loc);
+    archive_in >> CHNVP(M_BI_loc);
+    archive_in >> CHNVP(M_IB_loc);
+    archive_in >> CHNVP(M_II_loc);
+    archive_in >> CHNVP(K_BB_loc);
+    archive_in >> CHNVP(K_BI_loc);
+    archive_in >> CHNVP(K_IB_loc);
+    archive_in >> CHNVP(K_II_loc);
+    archive_in >> CHNVP(Cq_IB_loc);
+    archive_in >> CHNVP(Cq_II_loc);
+    archive_in >> CHNVP(Cq_I_loc);
+    archive_in >> CHNVP(MBI_PsiST_MII);
+    archive_in >> CHNVP(PTKredP);
+    archive_in >> CHNVP(PTRredP);
+    archive_in >> CHNVP(m_modal_reduction_type);
+    archive_in >> CHNVP(m_verbose);
+    archive_in >> CHNVP(m_internal_nodes_update);
+    archive_in >> CHNVP(m_modal_automatic_gravity);
+    archive_in >> CHNVP(m_use_linear_inertial_term);
+    archive_in >> CHNVP(m_scaling_factor_CqI);
+    archive_in >> CHNVP(m_num_coords_modal);
+    archive_in >> CHNVP(m_num_coords_static_correction);
+
+    // archive_in >> CHNVP(m_num_bodies_internal);
+    // archive_in >> CHNVP(m_num_links_internal);
+    // archive_in >> CHNVP(m_num_meshes_internal);
+    // archive_in >> CHNVP(m_num_otherphysicsitems_internal);
+    // archive_in >> CHNVP(m_num_coords_pos_internal);
+    // archive_in >> CHNVP(m_num_coords_vel_internal);
+    // archive_in >> CHNVP(m_num_constr_internal);
+    // archive_in >> CHNVP(m_num_constr_bil_internal);
+    // archive_in >> CHNVP(m_num_constr_uni_internal);
+    // archive_in >> CHNVP(m_num_bodies_boundary);
+    // archive_in >> CHNVP(m_num_links_boundary);
+    // archive_in >> CHNVP(m_num_meshes_boundary);
+    // archive_in >> CHNVP(m_num_otherphysicsitems_boundary);
+    // archive_in >> CHNVP(m_num_coords_pos_boundary);
+    // archive_in >> CHNVP(m_num_coords_vel_boundary);
+    // archive_in >> CHNVP(m_num_constr_boundary);
+    // archive_in >> CHNVP(m_num_constr_bil_boundary);
+    // archive_in >> CHNVP(m_num_constr_uni_boundary);
+
+    // Some bookkeeping methods call modal_variables->State() = ____
+    // However, the operator= does not allow the resizing, so we need to set them here
+    modal_variables = new ChVariablesGenericDiagonalMass(m_num_coords_modal);
+    modal_variables->GetMassDiagonal().setZero();
+
+    // See comments in SetupModalData
+    std::vector<ChVariables*> mvars;
+    ChSystemDescriptor temporary_descriptor;
+    for (auto& body : bodylist)
+        body->InjectVariables(temporary_descriptor);
+    for (auto& link : linklist)
+        link->InjectVariables(temporary_descriptor);
+    for (auto& mesh : meshlist)
+        mesh->InjectVariables(temporary_descriptor);
+    for (auto& item : otherphysicslist)
+        item->InjectVariables(temporary_descriptor);
+    mvars = temporary_descriptor.GetVariables();
+    mvars.push_back(modal_variables);
+
+    std::vector<ChVariables*> mvars_active;
+    for (auto mvar : mvars) {
+        if (mvar->IsActive())
+            mvars_active.push_back(mvar);
+    }
+    modal_Hblock.SetVariables(mvars_active);
+
+    if (!m_is_model_reduced) {
+        archive_in >> CHNVP(m_modal_eigvect);
+        archive_in >> CHNVP(m_modal_eigvals);
+        archive_in >> CHNVP(m_modal_freq);
+        archive_in >> CHNVP(m_modal_damping_ratios);
+    }
+
+    Setup();
+
+    return true;
+}
+
+bool ChModalAssembly::SaveReducedModel(ChArchiveOut& archive_out) const {
+
+
+    archive_out << CHNVP(m_is_model_reduced);
+    archive_out << CHNVP(is_projection_initialized);
+
+    if (is_projection_initialized) {
+        archive_out << CHNVP(U_locred_0);    // required for reduction
+        archive_out << CHNVP(Q_0);           // required for reduction
+        archive_out << CHNVP(P_parallel_0);  // required for reduction
+        archive_out << CHNVP(P_perp_0);      // required for reduction
+    }
+
+    // archive_out << CHNVP(modal_variables);
+    // archive_out << CHNVP(modal_Hblock);
+    archive_out << CHNVP(modal_q);
+    archive_out << CHNVP(modal_q_dt);
+    archive_out << CHNVP(modal_q_dtdt);
+    archive_out << CHNVP(modal_M);
+    archive_out << CHNVP(modal_K);
+    archive_out << CHNVP(modal_R);
+
+    archive_out << CHNVP(Psi);
+
+    archive_out << CHNVP(Psi_S);            // required for reduction
+    archive_out << CHNVP(Psi_D);            // required for reduction
+    archive_out << CHNVP(Psi_Cor);          // required for reduction
+    archive_out << CHNVP(Psi_S_LambdaI);    // required for reduction
+    archive_out << CHNVP(Psi_D_LambdaI);    // required for reduction
+    archive_out << CHNVP(Psi_Cor_LambdaI);  // required for reduction
+
+    archive_out << CHNVP(m_solver_invKIIc->GetMatrix(), "m_solver_invKIIc_MATRIX");
+    archive_out << CHNVP(is_initialized);
+    archive_out << CHNVP(cog_frame);
+    archive_out << CHNVP(floating_frame_F0);
+    archive_out << CHNVP(floating_frame_F);
+    // archive_out << CHNVP(m_res_CF);
+    // archive_out << CHNVP(m_tol_CF);
+    archive_out << CHNVP(m_full_state_x0);  // required for reduction
+    archive_out << CHNVP(m_full_state_x);
+    // archive_out << CHNVP(U_locred);
+    // archive_out << CHNVP(Uloc_B); // updated at each timestep
+    archive_out << CHNVP(Uloc_I);
+    // archive_out << CHNVP(P_F);
+    archive_out << CHNVP(m_full_forces_internal);
+    archive_out << CHNVP(full_M_loc);
+    archive_out << CHNVP(full_K_loc);
+    archive_out << CHNVP(full_R_loc);
+    archive_out << CHNVP(full_Cq_loc);
+    archive_out << CHNVP(full_K_loc_ext);
+    archive_out << CHNVP(full_M_loc_ext);
+
+    archive_out << CHNVP(M_red);      // required for reduction
+    archive_out << CHNVP(K_red);      // required for reduction
+    archive_out << CHNVP(R_red);      // required for reduction
+    archive_out << CHNVP(M_BB_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(M_BI_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(M_IB_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(M_II_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(K_BB_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(K_BI_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(K_IB_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(K_II_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(Cq_IB_loc);  // can be recomputed from full, but expensive
+    archive_out << CHNVP(Cq_II_loc);  // can be recomputed from full, but expensive
+    archive_out << CHNVP(Cq_I_loc);   // can be recomputed from full, but expensive
+    archive_out << CHNVP(MBI_PsiST_MII);
+    archive_out << CHNVP(PTKredP);
+    archive_out << CHNVP(PTRredP);
+    archive_out << CHNVP(m_modal_reduction_type);
+    archive_out << CHNVP(m_verbose);
+    archive_out << CHNVP(m_internal_nodes_update);
+    archive_out << CHNVP(m_modal_automatic_gravity);
+    archive_out << CHNVP(m_use_linear_inertial_term);
+    archive_out << CHNVP(m_scaling_factor_CqI);
+    archive_out << CHNVP(m_num_coords_modal);
+    archive_out << CHNVP(m_num_coords_static_correction);
+
+    // archive_out << CHNVP(m_num_bodies_internal);
+    // archive_out << CHNVP(m_num_links_internal);
+    // archive_out << CHNVP(m_num_meshes_internal);
+    // archive_out << CHNVP(m_num_otherphysicsitems_internal);
+    // archive_out << CHNVP(m_num_coords_pos_internal);
+    // archive_out << CHNVP(m_num_coords_vel_internal);
+    // archive_out << CHNVP(m_num_constr_internal);
+    // archive_out << CHNVP(m_num_constr_bil_internal);
+    // archive_out << CHNVP(m_num_constr_uni_internal);
+    // archive_out << CHNVP(m_num_bodies_boundary);
+    // archive_out << CHNVP(m_num_links_boundary);
+    // archive_out << CHNVP(m_num_meshes_boundary);
+    // archive_out << CHNVP(m_num_otherphysicsitems_boundary);
+    // archive_out << CHNVP(m_num_coords_pos_boundary);
+    // archive_out << CHNVP(m_num_coords_vel_boundary);
+    // archive_out << CHNVP(m_num_constr_boundary);
+    // archive_out << CHNVP(m_num_constr_bil_boundary);
+    // archive_out << CHNVP(m_num_constr_uni_boundary);
+
+    if (!m_is_model_reduced) {
+        archive_out << CHNVP(m_modal_eigvect);
+        archive_out << CHNVP(m_modal_eigvals);
+        archive_out << CHNVP(m_modal_freq);
+        archive_out << CHNVP(m_modal_damping_ratios);
+    }
+
+    return true;
 }
 
 }  // end namespace modal

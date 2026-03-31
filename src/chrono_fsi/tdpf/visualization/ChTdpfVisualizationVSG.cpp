@@ -142,7 +142,7 @@ ChTdpfVisualizationVSG::ChTdpfVisualizationVSG(ChFsiFluidSystemTDPF* sysTDPF)
 }
 
 ChTdpfVisualizationVSG::~ChTdpfVisualizationVSG() {
-    if (m_vsys) {
+    if (m_vsys && m_sysMBS->GetVisualSystem()) {
         auto& systems = m_vsys->GetSystems();
         auto index = std::find(systems.begin(), systems.end(), m_sysMBS);
         if (index != systems.end())
@@ -290,7 +290,7 @@ void ChTdpfVisualizationVSG::OnBindAssets() {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(), 1);
     auto child = m_vsys->GetVSGShapeBuilder()->CreateTrimeshColShape(m_wave_mesh.trimesh, transform, ChColor(1, 1, 1),
-                                                                     m_wave_mesh.opacity, m_wave_mesh.wireframe);
+                                                                     m_wave_mesh.opacity, false, m_wave_mesh.wireframe);
     vsg::Mask mask = m_waves_visible;
     m_wave_scene->addChild(mask, child);
 

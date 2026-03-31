@@ -96,7 +96,7 @@ ChScmVisualizationVSG::ChScmVisualizationVSG(SCMTerrain* scm)
 }
 
 ChScmVisualizationVSG::~ChScmVisualizationVSG() {
-    if (m_vsys) {
+    if (m_vsys && m_sys->GetVisualSystem()) {
         auto& systems = m_vsys->GetSystems();
         auto index = std::find(systems.begin(), systems.end(), m_sys);
         if (index != systems.end())
@@ -188,7 +188,7 @@ void ChScmVisualizationVSG::BindActiveBox(SCMLoader::ActiveDomainInfo& domain) {
     auto dframe = bframe.TransformLocalToParent(ChFramed(domain.m_center));
     transform->matrix = vsg::dmat4CH(dframe, domain.m_hdims);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
 
     // Set group properties
     group->setValue("Object", &domain);
@@ -207,7 +207,7 @@ void ChScmVisualizationVSG::BindDefaultActiveBox() {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(m_default_domain.m_center, QUNIT), m_default_domain.m_hdims);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
 
     // Set group properties
     group->setValue("Object", &m_default_domain);

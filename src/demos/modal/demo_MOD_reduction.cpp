@@ -66,7 +66,7 @@ unsigned int num_modes = 12;
 bool USE_STATIC_CORRECTION = false;
 bool UPDATE_INTERNAL_NODES = true;
 bool USE_LINEAR_INERTIAL_TERM = true;
-bool USE_GRAVITY = false;
+bool USE_GRAVITY = true;
 
 // static stuff for GUI:
 bool UPDATE_EXAMPLE = false;

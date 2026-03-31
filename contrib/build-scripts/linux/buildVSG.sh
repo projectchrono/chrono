@@ -19,7 +19,8 @@
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 #      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
 #      assimp (github.com/assimp/assimp):                          Tag v5.4.3
-#      draco (github.com/google/draco)                             Tag 1.5.7
+#      draco (github.com/google/draco):                            Tag 1.5.7
+#      glslang (github.com/KhronosGroup/glslang.git):              Tag 15.4.0
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------

@@ -15,19 +15,23 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 
 ## Required Dependencies
 
-- To **run** applications based on this module, the following are required:
-  * NVIDIA GPU, Turing or newer - capable of running OptiX
-  * NVIDIA Graphics driver R580 or newer
-
 - To **build** applications based on this module, the following are required:
   * [CUDA](https://developer.nvidia.com/cuda-downloads)
-  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 9.0 or newer (will **NOT** work with older versions)
+  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 9.0 or 9.1 (will **NOT** work with older versions)
   * [GLFW](https://www.glfw.org/) - version 3.0 or newer
   * [GLEW](http://glew.sourceforge.net/) - version 1.0 or newer
   * [OpenGL](https://www.opengl.org/)
 
+- To **run** applications based on this module, the following are required:
+  * NVIDIA GPU, Turing or newer - capable of running OptiX
+  * NVIDIA Graphics driver R580 or newer - appropriate for the OptiX version
+
 <div class="ce-warning">
-OptiX support in Chrono::Sensor is optional. If OptiX is not available, sensor models that require ray-tracing (e.g., camera, lidar, radar) will not be included in the Chrono::Sensor library. Availability of OptiX support is indicated via the macro `CHRONO_HAS_OPTIX` in the configuration header `ChConfigSensor.h`.
+
+OptiX support in Chrono::Sensor is now **optional**. If OptiX is not available, sensor models that require ray-tracing (e.g., camera, lidar, radar) will not be included in the Chrono::Sensor library. Availability of OptiX support is indicated via the macro `CHRONO_HAS_OPTIX` in the configuration header `ChConfigSensor.h`.
+
+Even if OptiX is available, users can disable the ray-tracing-based sensor (by setting the `CH_USE_SENSOR_OPTIX` CMake variable to `OFF`).
+
 </div>
 
 ## Building instructions

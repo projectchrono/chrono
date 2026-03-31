@@ -97,7 +97,9 @@ linux:doxygen:deploy:
     # VSG
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
 
-linux:ubuntu22.04-gcc:build:
+linux:ubuntu22.04-gcc:amd64:build:
+  tags:
+    - amd64
   extends: .ubuntu
   stage: build
   script:
@@ -116,9 +118,11 @@ linux:ubuntu22.04-gcc:build:
     paths:
       - build/
 
-linux:ubuntu22.04-gcc:test:
+linux:ubuntu22.04-gcc:amd64:test:
+  tags:
+    - amd64
   stage: test
-  needs: ["linux:ubuntu22.04-gcc:build"]
+  needs: ["linux:ubuntu22.04-gcc:amd64:build"]
   extends: .ubuntu
   script:
     - cd build
@@ -129,9 +133,11 @@ linux:ubuntu22.04-gcc:test:
     - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$HOME/Packages/opencascade-7.9.3/lib/:$LD_LIBRARY_PATH"
     - cmake --install .
     - ninja test
-  dependencies: ["linux:ubuntu22.04-gcc:build"]
+  dependencies: ["linux:ubuntu22.04-gcc:amd64:build"]
 
-linux:ubuntu22.04-clang:build:
+linux:ubuntu22.04-clang:amd64:build:
+  tags:
+    - amd64
   extends: .ubuntu
   stage: build
   script:
@@ -150,9 +156,11 @@ linux:ubuntu22.04-clang:build:
     paths:
       - build/
 
-linux:ubuntu22.04-clang:test:
+linux:ubuntu22.04-clang:amd64:test:
+  tags:
+    - amd64
   stage: test
-  needs: ["linux:ubuntu22.04-clang:build"]
+  needs: ["linux:ubuntu22.04-clang:amd64:build"]
   extends: .ubuntu
   script:
     - cd build
@@ -163,7 +171,7 @@ linux:ubuntu22.04-clang:test:
     - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$HOME/Packages/opencascade-7.9.3/lib/:$LD_LIBRARY_PATH"
     - cmake --install .
     - ninja test
-  dependencies: ["linux:ubuntu22.04-clang:build"]
+  dependencies: ["linux:ubuntu22.04-clang:amd64:build"]
 
 .ubuntu-deploy-base:
   tags:

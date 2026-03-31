@@ -16,7 +16,8 @@
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 @rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
 @rem      assimp (github.com/assimp/assimp):                          Tag v5.4.3
-@rem      draco (github.com/google/draco)                             Tag 1.5.7
+@rem      draco (github.com/google/draco):                            Tag 1.5.7
+@rem      glslang (github.com/KhronosGroup/glslang.git):              Tag 15.4.0
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON

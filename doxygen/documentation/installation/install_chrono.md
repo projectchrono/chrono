@@ -51,7 +51,7 @@ Additional support is checked if enabling specific Chrono modules. For example, 
 
 #### CUDA support {#cuda}
 
-Chrono can be configured and built with CUDA versions newer than 12.3. Use of CUDA and therefore of the CUDA-based Chrono modules (Chrono::FSI-SPH, Chrono::DEM, and Chrono::Sensor) require an NVIDIA GPU. Consult the [NVIDIA website](https://developer.nvidia.com/cuda-downloads) for instructions on installing CUDA and the necessary NVIDIA drivers for your machine and operating system.
+Chrono can be configured and built with CUDA versions newer than 12.3 (**note** that CCUDA 13.0 is not yet supported). Use of CUDA and therefore of the CUDA-based Chrono modules (Chrono::FSI-SPH, Chrono::DEM, and Chrono::Sensor) require an NVIDIA GPU. Consult the [NVIDIA website](https://developer.nvidia.com/cuda-downloads) for instructions on installing CUDA and the necessary NVIDIA drivers for your machine and operating system.
 
 If using a CMake version newer than 3.23, the Chrono configuration sets the CUDA architectures to `all-major` (this can be changed to `native` or any other specific architecture). For older CMake versions, it is the user's responsibility to properly set `CHRONO_CUDA_ARCHITECTURES` to a value appropriate for their GPU card (note that a compute capability of "8.9" must be entered as `89`).
 
@@ -67,7 +67,7 @@ It is possible to use Thrust stand-alone (e.g., for use on machines without an N
 
 #### MPI support {#mpi}
 
-An MPI installation is necessary for Chrono::Synchrono and for the co-simulation framework available in Chrono::Vehicle (for vehicle-terrain interaction). Chrono has been successfully built with Intel MPI (also included in the [Intel oneAPI HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html), [Microsoft MPI](https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi), [OpenMPI](https://www.open-mpi.org/), and [MPICH](https://www.mpich.org/).
+An MPI installation is necessary for Chrono::Synchrono and for the co-simulation framework available in Chrono::Vehicle (for vehicle-terrain interaction). Chrono has been successfully built with Intel MPI (also included in the [Intel oneAPI HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html), [Microsoft MPI](https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi), [OpenMPI](https://www.open-mpi.org/), and [MPICH](https://www.mpich.org/)).
 
 #### OpenMP support {#openmp}
 

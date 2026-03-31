@@ -10,6 +10,7 @@ RUN if [ ! -d "/usr/local/cuda" ]; then echo "CUDA is required Chrono::Sensor.";
 RUN if [ -z "${OPTIX_SCRIPT}" ]; then echo "OPTIX_SCRIPT must be set to install Chrono::Sensor."; exit 1; fi
 
 # TODO: need to add mapping to the /usr/share/nvidia/nvoptix.bin for denoisers.
+# Get optix script at https://developer.nvidia.com/designworks/optix/downloads/legacy
 # OptiX
 COPY ${OPTIX_SCRIPT} /tmp/optix.sh
 RUN sudo chmod +x /tmp/optix.sh && \

@@ -53,6 +53,8 @@ INCLUDE ./ch_vehicle.dockerfile
 INCLUDE ./ch_sensor.dockerfile
 INCLUDE ./ch_parser.dockerfile
 INCLUDE ./ch_python.dockerfile
+INCLUDE ./ch_synchrono.dockerfile
+
 
 # Install Chrono
 RUN ${PRE_BUILD_SCRIPTS} && \

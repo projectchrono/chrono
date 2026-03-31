@@ -36,36 +36,11 @@ There are two prerequisites for building the Chrono VSG module:
   - [vsgImGui](github.com/vsg-dev/vsgImGui.git) 0.7.0
   - [assimp](github.com/assimp/assimp) 5.4.3
   - [draco](github.com/google/draco) 1.5.7
+  - [glslang](github.com/KhronosGroup/glslang.git) 15.4.0
 
-The two approaches for building and installing the VSG dependencies are described in the next two sections.
-For the reasons detailed above, We **strongly recommend** using the provided VSG build scripts.
+  Because of this, we **strongly recommend** using the provided VSG build scripts, instead of `vsgFramework`. 
 
-### 1. VSG Framework
-
-The official way of obtaining all VSG prerequisites for the Chrono::VSG module is to build the [vsgFramework](https://github.com/vsg-dev/vsgFramework) which collects several VSG-related projects and facilitates their build and installation in one single step.  
-
-The VSG libraries are themselves under active development, and so is vsgFramework. While functional, things do occasionally break down and some fixes may be needed to get the necessary dependency libraries. The instructions below reflect the current state of the vsgFramework code.
-
-  1. Clone the vsgFramework [GitHub repository](https://github.com/vsg-dev/vsgFramework).
-     Assume the sources are in a local directory **[vsgFramework_source]**.
-  2. Create a **build** directory and an **install** directory for vsgFramework. 
-     Assume these are **[vsgFramework_build]** and **[vsgFramework_install]**, respectively.
-  3. Use CMake to configure vsgFramework.  Note that the only components that are necessary for Chrono::VSG are *assimp*, *vsgImGui*, and *vsgXchange*. Enable the corresponding `BUILD_***` CMake options and unselect all other.
-  4. Set the installation directory (`CMAKE_INSTALL_PREFIX`) to be the **[vsgFramework_install]** directory created above.
-  5. Note that vsgFramework can create either *static* or *dynamic* VSG libraries.  Either type will work on Linux or on MacOS. However, only *dynamic* libraries (*DLLs*) work on Windows. Set the CMake variable `BUILD_SHARED_LIBS` accordingly.
-  6. Complete CMake configuration and generate the build scripts.
-  7. Build and install the vsgFramework libraries (using whatever is appropriate for the generator you selected in CMake; make, ninja, VS, etc.)
-  8. The VSG headers, libraries, and DLLs (if appropriate) installed in **[vsgFramework_install]** must be made available and accessible to CMake during configuration of Chrono below.  If needed (e.g., on Windows), add to the system `PATH` environment variable the directory **[vsgFramework_install]/bin**.
-
-  <div class="ce-warning">
-  The `assimp` component requires `zlib`. 
-  On some Linux systems, installing the default zlib package may not provide a library that is suitable for dynamic linking. 
-  You may need to rebuild zlib yourself, making sure you generate position-independent code. 
-  In particular, if using GCC, make sure to add the flag `-fPIC`.
-  </div>
-
-
-### 2. VSG build scripts
+## VSG build scripts
 
 With the VSG libraries themselves under active development, their latest versions may be incompatible with the current Chrono::VSG code. To ensure compatibility between the Chrono::VSG and its VSG dependencies, we provide (with the Chrono source code) a set of scripts which download specific code versions of the VSG dependencies, build all necessary libraries, and install them in a user-specified location.
 

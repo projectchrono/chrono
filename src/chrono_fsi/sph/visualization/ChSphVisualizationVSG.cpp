@@ -183,7 +183,7 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
       m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
       m_flex_bce_color(ChColor(1.0f, 1.0f, 0.4f)),
-      m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
+      m_active_box_color(ChColor(1.0f, 1.0f, 1.0f)),
       m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir("."),
@@ -211,7 +211,7 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
 }
 
 ChSphVisualizationVSG::~ChSphVisualizationVSG() {
-    if (m_vsys) {
+    if (m_vsys && m_sysMBS->GetVisualSystem()) {
         auto& systems = m_vsys->GetSystems();
         auto index = std::find(systems.begin(), systems.end(), m_sysMBS);
         if (index != systems.end())
@@ -375,14 +375,14 @@ void ChSphVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
 
 void ChSphVisualizationVSG::BindComputationalDomain() {
     auto material = chrono_types::make_shared<ChVisualMaterial>();
-    material->SetDiffuseColor(m_active_box_color);
+    material->SetDiffuseColor(ChColor::Mix(m_active_box_color, ChColor(0, 1, 0)));
 
     auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
 
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", nullptr);
@@ -401,7 +401,7 @@ void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, in
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", obj);

@@ -92,9 +92,9 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBody> float_body = chrono_types::make_shared<ChBodyEasyMesh>(  //
         float_meshfile,                                                              // file name
         0,                                                                           // density
-        false,  // do not evaluate mass automatically
-        true,   // create visualization asset
-        false   // collisions
+        false,                                                                       // do not evaluate mass automatically
+        true,                                                                        // create visualization asset
+        false                                                                        // collisions
     );
     float_body->SetName("body1");
     float_body->SetPos(ChVector3d(0, 0, -0.72));
@@ -109,9 +109,9 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBody> plate_body = chrono_types::make_shared<ChBodyEasyMesh>(  //
         plate_meshfile,                                                              // file name
         0,                                                                           // density
-        false,  // do not evaluate mass automatically
-        true,   // create visualization asset
-        false   // collisions
+        false,                                                                       // do not evaluate mass automatically
+        true,                                                                        // create visualization asset
+        false                                                                        // collisions
     );
     plate_body->SetName("body2");
     plate_body->SetPos(ChVector3d(0, 0, -21.29));
@@ -120,10 +120,9 @@ int main(int argc, char* argv[]) {
     plate_body->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.1f, 0.6f));
     sysMBS.Add(plate_body);
 
-    // Prismatic joint between the two bodies
+    // Prismatic joint between the floating body and the plate
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(float_body, plate_body, false, ChFramed(ChVector3d(0, 0, -0.72)),
-                          ChFramed(ChVector3d(0, 0, -21.29)));
+    prismatic->Initialize(float_body, plate_body, false, ChFramed(ChVector3d(0, 0, -0.72)), ChFramed(ChVector3d(0, 0, -21.29)));
     sysMBS.AddLink(prismatic);
 
     // PTO TSDA
@@ -131,6 +130,19 @@ int main(int argc, char* argv[]) {
     prismatic_pto->Initialize(float_body, plate_body, false, ChVector3d(0, 0, -0.72), ChVector3d(0, 0, -21.29));
     prismatic_pto->SetDampingCoefficient(0.0);
     sysMBS.AddLink(prismatic_pto);
+
+    // Top body (to illustrate inclusion of a "non-hydrodynamic" body)
+    ChVector3d top_pos(0, 0, 10.0);
+    std::shared_ptr<ChBody> top_body = chrono_types::make_shared<ChBodyEasySphere>(2.0, 100.0);
+    top_body->SetName("top");
+    top_body->SetPos(top_pos);
+    top_body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.2f));
+    sysMBS.AddBody(top_body);
+
+    // Revolute joint between top body and plate
+    auto rev = chrono_types::make_shared<ChLinkRevolute>();
+    rev->Initialize(plate_body, top_body, ChFramed(top_pos, QUNIT));
+    sysMBS.AddLink(rev);
 
     // ----- TDPF fluid system
     ChFsiFluidSystemTDPF sysTDPF;

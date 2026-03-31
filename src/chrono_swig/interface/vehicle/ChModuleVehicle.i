@@ -66,6 +66,7 @@
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsNodeXYZ.h"
+#include "chrono/physics/ChLoadHydrodynamics.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"

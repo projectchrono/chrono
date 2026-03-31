@@ -2244,6 +2244,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
         const auto& shape = shape_instance.shape;
         const auto& X_SM = shape_instance.frame;
         bool wireframe = shape_instance.wireframe;
+        bool double_faced = shape->IsDoubleFaced();
 
         if (!shape->IsVisible())
             continue;
@@ -2260,33 +2261,32 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
             auto grp =
                 !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != std::string::npos
-                    ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE, material, transform, wireframe)
-                    : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, wireframe);
+                    ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE, material, transform, double_faced, wireframe)
+                    : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
             double rad = cylinder->GetRadius();
             double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp =
-                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto barrel = std::dynamic_pointer_cast<ChVisualShapeBarrel>(shape)) {
             //// TODO
@@ -2295,7 +2295,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
             if (trimesh->IsMutable())  // already treated as deformable mesh
@@ -2303,10 +2303,8 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
             auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
-                                                                      trimesh->GetMaterials(), wireframe)
-                           : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
-                                                                   trimesh->GetOpacity(), wireframe);
+                           ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform, trimesh->GetMaterials(), double_faced, wireframe)
+                           : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(), trimesh->GetOpacity(), double_faced, wireframe);
             group->addChild(grp);
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             const auto& filename = model_file->GetFilename();
@@ -2356,7 +2354,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
             auto grp = m_shapeBuilder->CreatePbrSurfaceShape(geometry, material, transform, resolution_u, resolution_v,
-                                                             wireframe);
+                                                             double_faced, wireframe);
             group->addChild(grp);
         }
     }
@@ -2382,13 +2380,14 @@ void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> gro
         if (trimesh->GetMesh()->GetNumTriangles() == 0)
             continue;
 
+        bool double_faced = trimesh->IsDoubleFaced();
+        bool wireframe = trimesh->IsWireframe();
+
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
         auto child = trimesh->GetNumMaterials() > 0
-                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
-                                                                    trimesh->GetMaterials(), trimesh->IsWireframe())
-                         : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
-                                                                 trimesh->GetOpacity(), trimesh->IsWireframe());
+                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform, trimesh->GetMaterials(), double_faced, wireframe)
+                         : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(), trimesh->GetOpacity(), double_faced, wireframe);
 
         group->addChild(child);
 
@@ -2438,38 +2437,38 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
         if (auto box = std::dynamic_pointer_cast<ChCollisionShapeBox>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, true, true);
             group->addChild(grp);
         } else if (auto sphere = std::dynamic_pointer_cast<ChCollisionShapeSphere>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChCollisionShapeEllipsoid>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCollisionShapeCylinder>(shape)) {
             double rad = cylinder->GetRadius();
             double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, true, true);
             group->addChild(grp);
         } else if (auto capsule = std::dynamic_pointer_cast<ChCollisionShapeCapsule>(shape)) {
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto cone = std::dynamic_pointer_cast<ChCollisionShapeCone>(shape)) {
             double rad = cone->GetRadius();
             double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChCollisionShapeTriangleMesh>(shape)) {
             if (trimesh->IsMutable())  // already treated as deformable mesh
@@ -2480,7 +2479,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
                 continue;
             auto grp =
-                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true, true);
             group->addChild(grp);
         } else if (auto hull = std::dynamic_pointer_cast<ChCollisionShapeConvexHull>(shape)) {
             if (hull->IsMutable())  // already treated as deformable mesh
@@ -2491,7 +2490,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
             auto grp =
-                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+                m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true, true);
             group->addChild(grp);
         }
     }
@@ -2527,7 +2526,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> g
         if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
             continue;
 
-        auto child = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+        auto child = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true, true);
         group->addChild(child);
 
         // Load deformable mesh data (for CPU->GPU transfer)

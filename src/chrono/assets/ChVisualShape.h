@@ -76,6 +76,12 @@ class ChApi ChVisualShape {
     /// Return true if the visualization shape is marked as modifiable.
     bool IsMutable() const { return is_mutable; }
 
+    /// Set shape rendering as double-faced (default: false).
+    void SetDoubleFaced(bool val) { is_double_faced = val; }
+
+    /// Return true if the visualization shape must be rendered double-faced.
+    bool IsDoubleFaced() const { return is_double_faced; }
+
     /// Add a visualization material and return its index in the list of materials.
     int AddMaterial(std::shared_ptr<ChVisualMaterial> material);
 
@@ -109,8 +115,9 @@ class ChApi ChVisualShape {
     /// Since a visual shape can be shared in multiple instances, this function may be called with different updaters.
     virtual void Update(ChObj* updater, const ChFrame<>& frame) {}
 
-    bool is_visible;  ///< shape visibility flag
-    bool is_mutable;  ///< flag indicating whether the shape is rigid or deformable
+    bool is_visible;       ///< shape visibility flag
+    bool is_mutable;       ///< flag indicating whether the shape is rigid or deformable
+    bool is_double_faced;  ///< flag indicating that the shape should be rendered double-faced
 
     std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
 

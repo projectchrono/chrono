@@ -229,8 +229,28 @@ if (CH_USE_SYNCHRONO_FASTDDS)
 	set(FastDDS_ROOT "" CACHE PATH "Path to FastDDS install directory")
 
 	if (FastDDS_ROOT STREQUAL "")
+	  # When ROS 2 is sourced, cmake may silently find the ROS-bundled FastDDS
+	  # through CMAKE_PREFIX_PATH.  That copy is a different version and will
+	  # cause ABI conflicts at link or run time.  Require an explicit path.
+	  if (DEFINED ENV{AMENT_PREFIX_PATH})
+	    message(WARNING
+	      "CH_USE_SYNCHRONO_FASTDDS is ON but FastDDS_ROOT is empty while a "
+	      "ROS 2 environment is sourced.  Set FastDDS_ROOT to a standalone "
+	      "FastDDS installation to avoid picking up the ROS-bundled copy.")
+	  endif()
 	  set(FASTDDS_FOUND FALSE)
 	else()
+	  # Reject a FastDDS_ROOT that points inside a ROS 2 installation tree.
+	  # The ROS-bundled FastDDS/FastCDR is typically a different major version
+	  # and will cause ABI or discovery conflicts with SynChrono.
+	  string(TOLOWER "${FastDDS_ROOT}" _fastdds_root_lower)
+	  if (_fastdds_root_lower MATCHES "/opt/ros/" OR _fastdds_root_lower MATCHES "ament" OR _fastdds_root_lower MATCHES "colcon")
+	    message(FATAL_ERROR
+	      "FastDDS_ROOT (${FastDDS_ROOT}) appears to point into a ROS 2 "
+	      "installation.  SynChrono requires a standalone FastDDS build.  "
+	      "Please set FastDDS_ROOT to an independent FastDDS install prefix.")
+	  endif()
+
 	  message(STATUS "Find FastRTPS")
 	  find_package(fastrtps REQUIRED PATHS "${FastDDS_ROOT}/cmake" "${fastrtps}/share/fastrtps/cmake")
 	  

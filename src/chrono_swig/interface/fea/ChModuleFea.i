@@ -97,6 +97,7 @@
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsNodeXYZ.h"
+#include "chrono/physics/ChLoadHydrodynamics.h"
 #include "chrono/physics/ChLoader.h"
 #include "chrono/physics/ChLoaderU.h"
 #include "chrono/physics/ChLoaderUV.h"
@@ -182,6 +183,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLoadBase)
 %shared_ptr(chrono::ChLoadCustom)
 %shared_ptr(chrono::ChLoadCustomMultiple)
+%shared_ptr(chrono::ChLoadHydrodynamics)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
 
@@ -396,19 +398,23 @@ using namespace chrono::fea;
 %include "../../../chrono/physics/ChContactable.h"  
 
 %include "../../../chrono/fea/ChContinuumMaterial.h"
+
 // TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChNodeFEAbase::ComputeKRMmatricesGlobal;
 %include "../../../chrono/fea/ChNodeFEAbase.h"
+
 %include "../../../chrono/fea/ChNodeFEAxyz.h"
 %include "../../../chrono/fea/ChNodeFEAxyzP.h"
 %include "../../../chrono/fea/ChNodeFEAxyzD.h"
 %include "../../../chrono/fea/ChNodeFEAxyzDD.h"
 %include "../../../chrono/fea/ChNodeFEAxyzDDD.h"
 %include "../../../chrono/fea/ChNodeFEAxyzrot.h"
+
 // TODO: if eigen::ref can be wrapped, unignore these
 %ignore chrono::fea::ChElementBase::ComputeKRMmatricesGlobal;
 %ignore chrono::fea::ChElementBase::ComputeMmatrixGlobal;
 %include "../../../chrono/fea/ChElementBase.h"
+
 %include "../../../chrono/fea/ChElementGeneric.h"
 %include "../../../chrono/fea/ChElementBar.h"
 %include "../../../chrono/fea/ChElementSpring.h"
@@ -439,6 +445,7 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChElementHexaANCF_3813.h"
 %include "../../../chrono/fea/ChElementHexaANCF_3813_9.h"
 %include "../../../chrono/fea/ChMaterialShellANCF.h"
+
 // TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChElasticityReissner::ComputeStiffnessMatrix;
 %ignore chrono::fea::ChPlasticityReissner::ComputeStiffnessMatrixElastoplastic;
@@ -446,6 +453,7 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChDampingReissnerRayleigh::ComputeDampingMatrix;
 %ignore chrono::fea::ChMaterialShellReissner::ComputeStiffnessMatrix;
 %include "../../../chrono/fea/ChMaterialShellReissner.h"
+
 // TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChElasticityKirchhoff::ComputeStiffnessMatrix;
 %ignore chrono::fea::ChPlasticityKirchhoff::ComputeStiffnessMatrixElastoplastic;
@@ -453,6 +461,7 @@ using namespace chrono::fea;
 %ignore chrono::fea::ChDampingKirchhoffReissner::ComputeDampingMatrix;
 %ignore chrono::fea::ChMaterialShellKirchhoff::ComputeStiffnessMatrix;
 %include "../../../chrono/fea/ChMaterialShellKirchhoff.h"
+
 %include "../../../chrono/fea/ChElementShell.h"
 %rename(ShellReissner4Layer) chrono::fea::ChElementShellReissner4::Layer;
 %include "../../../chrono/fea/ChElementShellReissner4.h"
