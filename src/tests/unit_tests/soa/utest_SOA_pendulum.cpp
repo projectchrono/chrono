@@ -87,7 +87,7 @@ TEST(SOA_pendulum, kinematics) {
 
     // Traverse bodies in assembly and print their absolute position, orientation, and velocities
     for (const auto& b : soa.getBodies()) {
-        cout << b->getName() << endl;
+        cout << b->GetName() << endl;
         cout << "          p: " << b->getAbsLoc() << " | q: " << b->getAbsQuat() << endl;
         cout << "          v: " << b->getAbsLinVel() << " | o: " << b->getAbsAngVel() << endl;
         cout << "    COM   p: " << b->getAbsCOMLoc() << " | v: " << b->getAbsCOMVel() << endl;
