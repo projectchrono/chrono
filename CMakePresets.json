@@ -163,6 +163,7 @@
 				"SPIRV-Tools_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/SPIRV-Tools/",
 				"SPIRV-Tools-opt_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/vsg_build/lib/cmake/SPIRV-Tools-opt/",
 				"SWIG_EXECUTABLE": "/root/venv/bin/swig",
+				"CH_USE_SENSOR_OPTIX": "OFF",
 				"CH_USE_SENSOR_NVRTC": "ON",
 				"CH_USE_SYNCHRONO_FASTDDS": "ON",
 				"CMAKE_BUILD_TYPE": "Release",
