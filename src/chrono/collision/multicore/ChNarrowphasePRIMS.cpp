@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/multicore_math/thrust.h"
 
 #include "chrono/collision/multicore/ChNarrowphase.h"
@@ -1302,13 +1304,13 @@ int triangle_box(const real3& pos1,
 
         // Clamp triangle edge to extended box slabs i2 and i3
         real tRange[2] = {-C_REAL_MAX, +C_REAL_MAX};
-        if (abs(AB[i2]) > threshold_par) {
+        if (std::abs(AB[i2]) > threshold_par) {
             real tA = (-hdims1s[i2] - A[i2]) / AB[i2];
             real tB = (+hdims1s[i2] - A[i2]) / AB[i2];
             tRange[0] = Max(tRange[0], Min(tA, tB));
             tRange[1] = Min(tRange[1], Max(tA, tB));
         }
-        if (abs(AB[i3]) > threshold_par) {
+        if (std::abs(AB[i3]) > threshold_par) {
             real tA = (-hdims1s[i3] - A[i3]) / AB[i3];
             real tB = (+hdims1s[i3] - A[i3]) / AB[i3];
             tRange[0] = Max(tRange[0], Min(tA, tB));
@@ -1333,8 +1335,8 @@ int triangle_box(const real3& pos1,
             real t = Clamp(Dot(tri_point - A, AB) / AB_len2, 0, 1);
             tri_point = A + t * AB;
 
-            if (abs(tri_point[i1]) > hdims1s[i1] || abs(tri_point[i2]) > hdims1s[i2] ||
-                abs(tri_point[i3]) > hdims1s[i3])
+            if (std::abs(tri_point[i1]) > hdims1s[i1] || std::abs(tri_point[i2]) > hdims1s[i2] ||
+                std::abs(tri_point[i3]) > hdims1s[i3])
                 continue;
 
             // Point on box

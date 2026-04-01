@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include <cassert>
+#include <cmath>
 
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
@@ -150,9 +151,9 @@ bool point_vs_face(const real3& hdims,
     uint ip = (i + 2) % 3;  // previous direction (0->2->1->0)
 
     // No interaction if point outside box slabs in face plane
-    if (abs(point[in]) > hdims[in])
+    if (std::abs(point[in]) > hdims[in])
         return false;
-    if (abs(point[ip]) > hdims[ip])
+    if (std::abs(point[ip]) > hdims[ip])
         return false;
 
     // Decide if working with the "positive" or "negative" box face
@@ -221,7 +222,7 @@ bool segment_vs_edge(const real3& hdims,
     locE[i] += tE;
 
     // No interaction if point not on edge
-    if (abs(locE[i]) > hdims[i])
+    if (std::abs(locE[i]) > hdims[i])
         return false;
 
     // Closest point on segment
@@ -268,7 +269,7 @@ int box_intersects_box(const real3& hdims1,
     // Test the axes of the 1st box.
     for (uint i = 0; i < 3; i++) {
         real r2 = Rabs(i, 0) * hdims2[0] + Rabs(i, 1) * hdims2[1] + Rabs(i, 2) * hdims2[2];
-        real overlap = hdims1[i] + r2 - abs(pos[i]) + separation;
+        real overlap = hdims1[i] + r2 - std::abs(pos[i]) + separation;
 
         if (overlap <= 0)
             return 0;
@@ -283,7 +284,7 @@ int box_intersects_box(const real3& hdims1,
     // Test the axes of the 2nd box.
     for (uint i = 0; i < 3; i++) {
         real r1 = Rabs(0, i) * hdims1[0] + Rabs(1, i) * hdims1[1] + Rabs(2, i) * hdims1[2];
-        real overlap = r1 + hdims2[i] - abs(R(0, i) * pos[0] + R(1, i) * pos[1] + R(2, i) * pos[2]) + separation;
+        real overlap = r1 + hdims2[i] - std::abs(R(0, i) * pos[0] + R(1, i) * pos[1] + R(2, i) * pos[2]) + separation;
 
         if (overlap <= 0)
             return 0;
@@ -308,7 +309,7 @@ int box_intersects_box(const real3& hdims1,
             if (lengthSqr > 1e-6) {
                 real r1 = hdims1[y1] * Rabs(z1, x2) + hdims1[z1] * Rabs(y1, x2);
                 real r2 = hdims2[y2] * Rabs(x1, z2) + hdims2[z2] * Rabs(x1, y2);
-                real overlap = r1 + r2 - abs(pos[z1] * R(y1, x2) - pos[y1] * R(z1, x2)) + separation;
+                real overlap = r1 + r2 - std::abs(pos[z1] * R(y1, x2) - pos[y1] * R(z1, x2)) + separation;
 
                 if (overlap <= 0)
                     return 0;
