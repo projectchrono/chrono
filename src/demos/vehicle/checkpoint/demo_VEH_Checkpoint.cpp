@@ -297,7 +297,7 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         for (const auto& a : vehicle_1.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ExportCheckpoint(ChCheckpoint::Format::ASCII,
+                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
                                                    dir_1 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
@@ -309,7 +309,7 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         for (const auto& a : vehicle_2.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ExportCheckpoint(ChCheckpoint::Format::ASCII,
+                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
                                                    dir_2 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
