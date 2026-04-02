@@ -643,8 +643,7 @@ if (CHRONO_THRUST_FOUND)
     set(Chrono_MulticoreMath_HEADERS
         multicore_math/matrix.h
         multicore_math/real.h
-        multicore_math/real_double.h
-        multicore_math/real_single.h
+        multicore_math/real2.h
         multicore_math/real2.h
         multicore_math/real3.h
         multicore_math/real4.h

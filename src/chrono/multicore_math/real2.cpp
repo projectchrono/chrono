@@ -71,11 +71,11 @@ bool operator==(const real2& lhs, const real2& rhs) {
 }
 
 real2 Max(const real2& a, const real2& b) {
-    return real2(Max(a.x, b.x), Max(a.y, b.y));
+    return real2(std::max(a.x, b.x), std::max(a.y, b.y));
 }
 
 real2 Min(const real2& a, const real2& b) {
-    return real2(Min(a.x, b.x), Min(a.y, b.y));
+    return real2(std::min(a.x, b.x), std::min(a.y, b.y));
 }
 
 real Dot(const real2& v1, const real2& v2) {
@@ -90,7 +90,7 @@ real Length2(const real2& v1) {
     return v1.x * v1.x + v1.y * v1.y;
 }
 real2 Normalize(const real2& v1) {
-    return v1 / Sqrt(Dot(v1));
+    return v1 / std::sqrt(Dot(v1));
 }
 void Print(real2 v, const char* name) {
     printf("%s\n", name);

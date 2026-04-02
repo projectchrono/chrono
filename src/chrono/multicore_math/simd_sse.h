@@ -98,14 +98,14 @@ inline __m128 Cross3(__m128 a, __m128 b) {
 
 inline __m128 Normalize3(__m128 v) {
     real t = Dot3(v);
-    real dp = InvSqrt(t);
+    real dp = 1 / std::sqrt(t);
     __m128 tmp = _mm_mul_ps(v, _mm_set1_ps(dp));
     return _mm_and_ps(tmp, REAL3MASK);
 }
 
 inline __m128 Normalize(__m128 v) {
     real t = Dot4(v);
-    real dp = InvSqrt(t);
+    real dp = 1 / std::sqrt(t);
     return _mm_mul_ps(v, _mm_set1_ps(dp));
 }
 
@@ -213,7 +213,7 @@ inline real HorizontalAdd(real3 a) {
 }
 
 inline bool IsZero(const real3& v, const real& a) {
-    return chrono::Abs(v.x) < a && chrono::Abs(v.y) < a && chrono::Abs(v.z) < a;
+    return std::abs(v.x) < a && std::abs(v.y) < a && std::abs(v.z) < a;
 }
 
 inline __m128i Set(int x) {

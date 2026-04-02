@@ -71,9 +71,10 @@ linux:doxygen:deploy:
 # Ubuntu Builder #
 #----------------#
 
-.ubuntu:
+.ubuntu:amd64:
   tags:
     - linux
+    - amd64
   image:
       name: uwsbel/packages:cuda12.8.1
   before_script:
@@ -97,10 +98,35 @@ linux:doxygen:deploy:
     # VSG
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
 
+.ubuntu:arm64:
+  tags:
+    - linux
+    - arm64
+  image:
+      name: uwsbel/packages:cuda12.8.1
+  before_script:
+    # Defining configuration variables
+    - export DEBIAN_FRONTEND=noninteractive
+    - export LIB_DIR="lib"
+    - ldconfig
+    # ROS
+    - source /opt/ros/humble/setup.sh
+    - mkdir -p $CI_PROJECT_DIR/contrib/ros_ws/src
+    - cd $CI_PROJECT_DIR/contrib/ros_ws
+    - git clone https://github.com/projectchrono/chrono_ros_interfaces.git src/
+    - colcon build --packages-select chrono_ros_interfaces
+    # Initialize git repository
+    - cd $CI_PROJECT_DIR
+    - git submodule init
+    - git submodule update
+    - mkdir -p build
+    # VSG
+    - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
+
 linux:ubuntu22.04-gcc:amd64:build:
   tags:
     - amd64
-  extends: .ubuntu
+  extends: .ubuntu:amd64
   stage: build
   script:
     # Source ROS distro
@@ -109,7 +135,7 @@ linux:ubuntu22.04-gcc:amd64:build:
     - export C_COMPILER="/usr/bin/gcc"
     - export CXX_COMPILER="/usr/bin/g++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-amd64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -123,7 +149,7 @@ linux:ubuntu22.04-gcc:amd64:test:
     - amd64
   stage: test
   needs: ["linux:ubuntu22.04-gcc:amd64:build"]
-  extends: .ubuntu
+  extends: .ubuntu:amd64
   script:
     - cd build
     # Source ROS distro
@@ -138,7 +164,7 @@ linux:ubuntu22.04-gcc:amd64:test:
 linux:ubuntu22.04-clang:amd64:build:
   tags:
     - amd64
-  extends: .ubuntu
+  extends: .ubuntu:amd64
   stage: build
   script:
     # Source ROS distro
@@ -147,7 +173,7 @@ linux:ubuntu22.04-clang:amd64:build:
     - export C_COMPILER="/usr/bin/clang"
     - export CXX_COMPILER="/usr/bin/clang++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-amd64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -161,7 +187,7 @@ linux:ubuntu22.04-clang:amd64:test:
     - amd64
   stage: test
   needs: ["linux:ubuntu22.04-clang:amd64:build"]
-  extends: .ubuntu
+  extends: .ubuntu:amd64
   script:
     - cd build
     # Source ROS distro
@@ -172,6 +198,82 @@ linux:ubuntu22.04-clang:amd64:test:
     - cmake --install .
     - ninja test
   dependencies: ["linux:ubuntu22.04-clang:amd64:build"]
+
+linux:ubuntu22.04-gcc:arm64:build:
+  tags:
+    - arm64
+  extends: .ubuntu:arm64
+  stage: build
+  script:
+    # Source ROS distro
+    - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
+    # Defining compiler variables
+    - export C_COMPILER="/usr/bin/gcc"
+    - export CXX_COMPILER="/usr/bin/g++"
+    # Building chrono
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-arm64
+    # Making chrono
+    - cd $CI_PROJECT_DIR/build
+    - ninja
+  artifacts:
+    expire_in: 60m
+    paths:
+      - build/
+
+linux:ubuntu22.04-gcc:arm64:test:
+  tags:
+    - arm64
+  stage: test
+  needs: ["linux:ubuntu22.04-gcc:arm64:build"]
+  extends: .ubuntu:arm64
+  script:
+    - cd build
+    # Source ROS distro
+    - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
+    - export OMP_NUM_THREADS=8
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$HOME/Packages/opencascade-7.9.3/lib/:$LD_LIBRARY_PATH"
+    - cmake --install .
+    - ninja test
+  dependencies: ["linux:ubuntu22.04-gcc:arm64:build"]
+
+linux:ubuntu22.04-clang:arm64:build:
+  tags:
+    - arm64
+  extends: .ubuntu:arm64
+  stage: build
+  script:
+    # Source ROS distro
+    - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
+    # Defining compiler variables
+    - export C_COMPILER="/usr/bin/clang"
+    - export CXX_COMPILER="/usr/bin/clang++"
+    # Building chrono
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-arm64
+    # Making chrono
+    - cd $CI_PROJECT_DIR/build
+    - ninja
+  artifacts:
+    expire_in: 60m
+    paths:
+      - build/
+
+linux:ubuntu22.04-clang:arm64:test:
+  tags:
+    - arm64
+  stage: test
+  needs: ["linux:ubuntu22.04-clang:arm64:build"]
+  extends: .ubuntu:arm64
+  script:
+    - cd build
+    # Source ROS distro
+    - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
+    - export OMP_NUM_THREADS=8
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib/:$HOME/Packages/opencascade-7.9.3/lib/:$LD_LIBRARY_PATH"
+    - cmake --install .
+    - ninja test
+  dependencies: ["linux:ubuntu22.04-clang:arm64:build"]
 
 .ubuntu-deploy-base:
   tags:

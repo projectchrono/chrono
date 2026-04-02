@@ -179,12 +179,9 @@ ChApi real3 AbsRotate(const quaternion& q, const real3& v) {
 
     real3 result;
 
-    result[0] = Abs((e0e0 + e1e1) * real(2.0) - real(1.0)) * v[0] + Abs((e1e2 - e0e3) * real(2.0)) * v[1] +
-                Abs((e1e3 + e0e2) * real(2.0)) * v[2];
-    result[1] = Abs((e1e2 + e0e3) * real(2.0)) * v[0] + Abs((e0e0 + e2e2) * real(2.0) - real(1.0)) * v[1] +
-                Abs((e2e3 - e0e1) * real(2.0)) * v[2];
-    result[2] = Abs((e1e3 - e0e2) * real(2.0)) * v[0] + Abs((e2e3 + e0e1) * real(2.0)) * v[1] +
-                Abs((e0e0 + e3e3) * real(2.0) - real(1.0)) * v[2];
+    result[0] = std::abs((e0e0 + e1e1) * 2 - 1) * v[0] + std::abs((e1e2 - e0e3) * 2) * v[1] + std::abs((e1e3 + e0e2) * 2) * v[2];
+    result[1] = std::abs((e1e2 + e0e3) * 2) * v[0] + std::abs((e0e0 + e2e2) * 2 - 1) * v[1] + std::abs((e2e3 - e0e1) * 2) * v[2];
+    result[2] = std::abs((e1e3 - e0e2) * 2) * v[0] + std::abs((e2e3 + e0e1) * 2) * v[1] + std::abs((e0e0 + e3e3) * 2 - 1) * v[2];
     return result;
 }
 
@@ -192,9 +189,9 @@ ChApi quaternion QuatFromAngleAxis(const real& angle, const real3& axis) {
     quaternion quat;
     real halfang;
     real sinhalf;
-    halfang = (angle * 0.5);
-    sinhalf = Sin(halfang);
-    quat.w = Cos(halfang);
+    halfang = (angle / 2);
+    sinhalf = std::sin(halfang);
+    quat.w = std::cos(halfang);
     quat.x = axis[0] * sinhalf;
     quat.y = axis[1] * sinhalf;
     quat.z = axis[2] * sinhalf;

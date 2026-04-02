@@ -29,7 +29,7 @@ real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct,
     Project(tmp.data());
     tmp = (1.0 / gdiff) * (gamma - tmp);
 
-    return Sqrt((double)(tmp, tmp));
+    return std::sqrt((tmp, tmp));
 }
 
 uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
@@ -84,10 +84,10 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
 
     // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
     tmp = gamma - gamma_hat;
-    L = Sqrt((double)(tmp, tmp));
+    L = std::sqrt((tmp, tmp));
     if (L > 0) {
         SchurProduct(tmp, tmp);
-        L = Sqrt((double)(tmp, tmp)) / L;
+        L = std::sqrt((tmp, tmp)) / L;
     } else {
         L = 1;
     }
@@ -141,8 +141,8 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
             // (14) endwhile
         }
 
-        // (15) theta_(k+1) = (-theta_k^2 + theta_k * Sqrt(theta_k^2 + 4)) / 2;
-        thetaNew = (-std::pow(theta, 2.0) + theta * Sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
+        // (15) theta_(k+1) = (-theta_k^2 + theta_k * std::sqrt(theta_k^2 + 4)) / 2;
+        thetaNew = (-std::pow(theta, 2.0) + theta * std::sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
 
         // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
         Beta = theta * (1.0 - theta) / (std::pow(theta, 2) + thetaNew);

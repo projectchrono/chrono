@@ -109,11 +109,11 @@ ChApi real Dot(const real3& v) {
 
 ChApi real3 Normalize(const real3& v) {
     // return simd::Normalize3(v);
-    return v / Sqrt(Dot(v));
+    return v / std::sqrt(Dot(v));
 }
 
 ChApi real Length(const real3& v) {
-    return Sqrt(Dot(v));
+    return std::sqrt(Dot(v));
     // return simd::Length3(v);
 }
 
@@ -170,18 +170,18 @@ ChApi real Length2(const real3& v1) {
 }
 
 ChApi real SafeLength(const real3& v) {
-    real len_sq = Length2(v);
-    if (len_sq) {
-        return Sqrt(len_sq);
+    real len2 = Length2(v);
+    if (len2) {
+        return std::sqrt(len2);
     } else {
         return 0.0f;
     }
 }
 
 ChApi real3 SafeNormalize(const real3& v, const real3& safe) {
-    real len_sq = Length2(v);
-    if (len_sq > real(0)) {
-        return v * InvSqrt(len_sq);
+    real len2 = Length2(v);
+    if (len2 > real(0)) {
+        return v * (1 / std::sqrt(len2));
     } else {
         return safe;
     }
@@ -193,11 +193,10 @@ ChApi real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max
 
 ChApi real3 Clamp(const real3& v, real max_length) {
     real3 x = v;
-    real len_sq = Dot(x);
-    real inv_len = InvSqrt(len_sq);
+    real len2 = Dot(x);
 
-    if (len_sq > Sqr(max_length))
-        x *= inv_len * max_length;
+    if (len2 > std::sqrt(max_length))
+        x *= max_length / std::sqrt(len2);
 
     return x;
 }
@@ -256,7 +255,7 @@ ChApi real3 Round(const real3& v) {
 }
 
 ChApi bool IsZero(const real3& v) {
-    return simd::IsZero(v, C_REAL_EPSILON);
+    return simd::IsZero(v, CH_REAL_EPSILON);
 }
 
 ChApi real3 OrthogonalVector(const real3& v) {
