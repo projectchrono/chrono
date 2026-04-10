@@ -30,11 +30,11 @@ ChMaterialVECT::ChMaterialVECT(double rho,  // material density
                                        double sigmat, double sigmas, double nt, double lt, 
 									   double Ed, double sigmac0, double beta, double Hc0,
 									   double Hc1, double kc0, double kc1, double kc2, double kc3,
-									   double mu0, double muinf, double sigmaN0, double kt)
+									   double mu0, double muinf, double sigmaN0, double kt, bool ela_flag)
     : m_rho(rho), m_E0(E0), m_alpha(alpha), m_sigmat(sigmat), m_sigmas(sigmas), m_nt(nt),
 		m_lt(lt), m_Ed(Ed), m_sigmac0(sigmac0), m_beta(beta), m_Hc0(Hc0), m_Hc1(Hc1),
 		m_kc0(kc0), m_kc1(kc1), m_kc2(kc2), m_kc3(kc3), m_mu0(mu0), m_muinf(muinf), 
-		m_sigmaN0(sigmaN0), m_kt(kt) {
+		m_sigmaN0(sigmaN0), m_kt(kt), m_ela(ela_flag) {
         
 }
 
@@ -56,18 +56,22 @@ ChMaterialVECT::ChMaterialVECT(const ChMaterialVECT& my_material)
 // Destructor
 ChMaterialVECT::~ChMaterialVECT()	{};
 
-// statec(0): normal N strain
-// statec(1): shear M strain
-// statec(2): shear L strain
-// statec(3): normal N stress
-// statec(4): shear M stress
-// statec(5): shear L stress
-// statec(6): maximum normal N strain
-// statec(7): maximum shear T strain
-// statec(8): effective strain
-// statec(9): effective stress
-// statec(10): internal work
-// statec(11): crack opening
+// statev(0): normal N strain
+// statev(1): shear M strain
+// statev(2): shear L strain
+// statev(3): normal N stress
+// statev(4): shear M stress
+// statev(5): shear L stress
+// statev(6): maximum normal N strain
+// statev(7): maximum shear T strain
+// statev(8): effective strain
+// statev(9): effective stress
+// statev(10): internal work
+// statev(11): crack opening
+// statev(12): normal N eigenstrain
+// statev(13): shear M eigenstrain
+// statev(14): shear L eigenstrain
+// statev(15): dissipated energy
 
 void ChMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, double &len, double &epsV, ChVectorDynamic<>& statev, ChVectorDynamic<>& mstress, double& area) {
     	mstress.resize(3);    	
@@ -108,9 +112,22 @@ void ChMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, double &len, dou
 			mstress(1) = sigmaM;
 			mstress(2) = sigmaL;
 		}
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
+		//double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
+		const auto stress_old = statev.segment(3,3);
+		
+		double Wint = len * area * ((mstress + stress_old)/2).dot(dmstrain);
+
+		ChVectorN<double, 3> dmstrain_in;
+		ChVectorN<double, 3> dstress_in;
+		dstress_in(0) = (mstress(0) - statev(3)) / E0;
+		dstress_in(1) = (mstress(1) - statev(4)) / (E0 * alpha);
+		dstress_in(2) = (mstress(2) - statev(5)) / (E0 * alpha);
+		dmstrain_in = dmstrain - dstress_in;
+		//double DE = len * area * ((mstress(0)+ statev(3))/2 * dmstrain_in(0) + (mstress(1)+statev(4)) / 2 * dmstrain_in(1) +( mstress(2) + statev(5))/2 * dmstrain_in(2));
+		double DE = len * area * ((mstress + stress_old)/2).dot(dmstrain_in); // Dissipated energy
+
 		double w_N = len * (mstrain(0) - mstress(0) / E0);
-		double w_M = len * (mstrain(1) - mstress(1) / (E0*alpha));
+		double w_M = len * (mstrain(1) - mstress(1) / (E0 * alpha));
 		double w_L = len * (mstrain(2) - mstress(2) / (E0 * alpha));
 
 		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
@@ -125,49 +142,11 @@ void ChMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, double &len, dou
 		statev(9) = pow(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha, 0.5);
 		statev(10) = Wint + statev(10);
 		statev(11) = w;
+		statev(15) = DE + statev(15);
 	}
 	else {
 		mstress << 0.0, 0.0, 0.0;		
 	}
-	//std::cout << "stress: " << mstress << std::endl;
-	//std::cout << statev(3) << ' ' << statev(4) << ' ' << statev(5) << ' ' << statev(0) << ' ' << statev(1) << ' ' << statev(2) << std::endl;
-	
-	/*
-	
-	if (epsQ!=0) {
-	        double strsQ=E0*epsQ;
-		mstress(0)=strsQ*mstrain(0)/epsQ;
-		mstress(1)=alpha*strsQ*mstrain(1)/epsQ;
-		mstress(2)=alpha*strsQ*mstrain(2)/epsQ;
-		
-		
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
-		double w_N = len * (mstrain(0) - mstress(0) / E0);
-		double w_M = len * (mstrain(1) - mstress(1) / (E0*alpha));
-		double w_L = len * (mstrain(2) - mstress(2) / (E0 * alpha));
-
-
-		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
-		
-		
-		statev(0) = mstrain(0);
-		statev(1) = mstrain(1);
-		statev(2) = mstrain(2);
-		statev(3) = mstress(0);
-		statev(4) = mstress(1);
-		statev(5) = mstress(2);
-		statev(8) = pow(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)), 0.5);
-		statev(9) = pow(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha, 0.5);
-		statev(10) = Wint + statev(10);
-		statev(11) = w;
-		
-	}else{
-		mstress<< 0.0, 0.0, 0.0;
-		//statev.setZero();		
-		//mstress.setZero();
-	}
-	*/
-	//printf("Statev: %f, %f, %f, %f, %f, %f\n",statev(0), statev(1), statev(2), statev(3), statev(4), statev(5));
 }
 
 
@@ -220,11 +199,24 @@ void ChMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDynamic<
 			mstress(2) = sigmaL;
 			
 		}
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * netdmstrain(0) + (mstress(1)+statev(4)) / 2 * netdmstrain(1) +( mstress(2) + statev(5))/2 * netdmstrain(2));
+		
+		const auto stress_old = statev.segment(3,3);
+		
+		double Wint = len * area * ((mstress + stress_old)/2).dot(netdmstrain);
+
+		//double Wint = len * area * ((mstress(0)+ statev(3))/2 * netdmstrain(0) + (mstress(1)+statev(4)) / 2 * netdmstrain(1) +( mstress(2) + statev(5))/2 * netdmstrain(2));
+		ChVectorDynamic<> netdmstrain_in(3);
+		ChVectorDynamic<> dstress_in(3);
+		dstress_in(0) = (mstress(0) - statev(3)) / E0;
+		dstress_in(1) = (mstress(1) - statev(4)) / (E0 * alpha);
+		dstress_in(2) = (mstress(2) - statev(5)) / (E0 * alpha);
+		netdmstrain_in = netdmstrain - dstress_in;
+		//double DE = len * area * ((mstress(0)+ statev(3))/2 * dmstrain_in(0) + (mstress(1)+statev(4)) / 2 * dmstrain_in(1) +( mstress(2) + statev(5))/2 * dmstrain_in(2));
+		double DE = len * area * ((mstress + stress_old)/2).dot(netdmstrain_in); // Dissipated energy
+		
 		double w_N = len * (netstrain(0) - mstress(0) / E0);
 		double w_M = len * (netstrain(1) - mstress(1) / (E0*alpha));
 		double w_L = len * (netstrain(2) - mstress(2) / (E0 * alpha));
-
 
 		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
 
@@ -241,50 +233,11 @@ void ChMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDynamic<
 		statev(12) = netstrain(0);
 		statev(13) = netstrain(1);
 		statev(14) = netstrain(2);
+		statev(15) = DE + statev(15);
 	}
 	else {
 		mstress << 0.0, 0.0, 0.0;		
 	}
-	//std::cout << "stress: " << mstress << std::endl;
-	//std::cout << statev(3) << ' ' << statev(4) << ' ' << statev(5) << ' ' << statev(0) << ' ' << statev(1) << ' ' << statev(2) << std::endl;
-	
-
-	/*
-	if (epsQ!=0) {
-	        double strsQ=E0*epsQ;	        
-	        
-		mstress(0)=strsQ*netstrain(0)/epsQ;
-		mstress(1)=alpha*strsQ*netstrain(1)/epsQ;
-		mstress(2)=alpha*strsQ*netstrain(2)/epsQ;
-		
-		
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
-		double w_N = len * (mstrain(0) - mstress(0) / E0);
-		double w_M = len * (mstrain(1) - mstress(1) / (E0*alpha));
-		double w_L = len * (mstrain(2) - mstress(2) / (E0 * alpha));
-
-		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
-		
-		
-		statev(0) = mstrain(0);
-		statev(1) = mstrain(1);
-		statev(2) = mstrain(2);
-		statev(3) = mstress(0);
-		statev(4) = mstress(1);
-		statev(5) = mstress(2);
-		statev(8) = pow(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)), 0.5);
-		statev(9) = pow(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha, 0.5);
-		statev(10) = Wint + statev(10);
-		statev(11) = w;
-		
-	}else{
-		mstress<< 0.0, 0.0, 0.0;
-
-		//statev.setZero();		
-		//mstress.setZero();
-	}
-	*/
-	//printf("Statev: %f, %f, %f, %f, %f, %f\n",statev(0), statev(1), statev(2), statev(3), statev(4), statev(5));
 }
 
 double ChMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, ChVectorDynamic<>& statev) {
@@ -342,6 +295,10 @@ double ChMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, ChVec
 	double strs_ela = E0 * (epsQ - statev(8)) + statev(9);
 	double sigma_fr = std::min(std::max(strs_ela, 0.0), sigma_bt);
 	
+	bool ela_flag = this->Get_ela();
+	if (ela_flag) {
+		sigma_fr = strs_ela;
+	}
 	return sigma_fr;
 }
 
@@ -403,6 +360,11 @@ double ChMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, double& epsV, ChVe
 
 	double sigma_ela = statev(3) + ENc * (mstrain(0) - statev(0));
 	double sigma_com = std::min(std::max(sigma_ela, -sigma_bc), 0.0);
+	
+	bool ela_flag = this->Get_ela();
+	if (ela_flag) {
+		sigma_com = sigma_ela;
+	}
 	return sigma_com;
 }
 
@@ -422,6 +384,11 @@ std::pair<double, double> ChMaterialVECT::ShearBC(ChVectorDynamic<>& mstrain, Ch
 	double sigmaT_ela = pow(sigmaM_ela * sigmaM_ela + sigmaL_ela * sigmaL_ela, 0.5);
 
 	double sigmaT = std::min(std::max(sigmaT_ela, 0.0), sigmabs);
+
+	bool ela_flag = this->Get_ela();
+	if (ela_flag) {
+		sigmaT = sigmaT_ela;
+	}
 
 	double sigmaM, sigmaL;
 
@@ -497,6 +464,12 @@ double ChMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, ChVectorDynamic<>&
 
 	double sigma_ela = statev(3) + ENc * (dmstrain(0));
 	double sigma_com = std::min(std::max(sigma_ela, -sigma_bc), 0.0);
+	
+	bool ela_flag = this->Get_ela();
+	if (ela_flag) {
+		sigma_com = sigma_ela;
+	}
+
 	return sigma_com;
 }
 
@@ -516,6 +489,11 @@ std::pair<double, double> ChMaterialVECT::ShearBC(ChVectorDynamic<>& mstrain, Ch
 	double sigmaT_ela = pow(sigmaM_ela * sigmaM_ela + sigmaL_ela * sigmaL_ela, 0.5);
 
 	double sigmaT = std::min(std::max(sigmaT_ela, 0.0), sigmabs);
+
+	bool ela_flag = this->Get_ela();
+	if (ela_flag) {
+		sigmaT = sigmaT_ela;
+	}
 
 	double sigmaM, sigmaL;
 

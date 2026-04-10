@@ -42,7 +42,7 @@ class ChLdpmApi ChMaterialVECT {
                        double sigmat, double sigmas, double nt, double lt, 
 					   double Ed, double sigmac0, double beta, double Hc0,
 					   double Hc1, double kc0, double kc1, double kc2, double kc3,
-					   double mu0, double muinf, double sigmaN0, double kt
+					   double mu0, double muinf, double sigmaN0, double kt, bool ela_flag
     );
     
     ChMaterialVECT();
@@ -146,6 +146,10 @@ class ChLdpmApi ChMaterialVECT {
     double Get_rs() const { return m_rs; }
     void Set_rs(double rs) { m_rs = rs; }
     
+    /// Return the tensile unloading.
+    double Get_ela() const { return m_ela; }
+    void Set_ela(bool ela_flag) { m_ela = ela_flag; }
+
     /// Set and Get RayleighDampingK coefficient.
     double GetRayleighDampingK() const { return RayleighDampingK; }
     void SetRayleighDampingK(double myRayleighDampingK) { RayleighDampingK = myRayleighDampingK; }
@@ -190,7 +194,8 @@ class ChLdpmApi ChMaterialVECT {
     double m_muinf;             ///< asymptotic friction
     double m_sigmaN0;           ///< transitional stress.
     double m_kt;                ///< tensile unloading
-	double m_rs=0;              ///< Shear softening modulus ratio
+	  double m_rs=0;              ///< Shear softening modulus ratio
+    bool m_ela = false;                 ///< elastic analysis or not
     double RayleighDampingK=0;
     double RayleighDampingM=0;
   //public:
