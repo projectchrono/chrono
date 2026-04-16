@@ -290,7 +290,7 @@ void ChCascadeDoc::ScanCascadeShapes(ScanShapesCallback& callback) const {
     }
 }
 
-bool ChCascadeDoc::LoadSTEP(const std::string& filename) {
+bool ChCascadeDoc::LoadSTEP(const std::string& filename) const {
     STEPCAFControl_Reader cafreader;
 
     if (!Interface_Static::SetCVal("xstep.cascade.unit", "M"))

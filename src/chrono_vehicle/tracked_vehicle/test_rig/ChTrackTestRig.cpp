@@ -33,7 +33,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"

@@ -1,3 +1,7 @@
+set(DEMOS
+    demo_VEH_Checkpoint
+)
+
 #--------------------------------------------------------------
 # Chrono libraries
 
@@ -21,26 +25,25 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 endif()
 
 #--------------------------------------------------------------
-# Create the executable
+# Create the executables
 
-set(PROGRAM demo_VEH_Checkpoint)
-set(FILES 
-    demo_VEH_Checkpoint.cpp
+set(EXTRA_FILES
     ../WheeledVehicleModels.h
     ../../SetChronoSolver.h
 )
 
-add_executable(${PROGRAM} ${FILES})
-source_group("" FILES ${FILES})
+foreach(PROGRAM ${DEMOS})
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${EXTRA_FILES})
+    source_group("" FILES ${PROGRAM}.cpp ${EXTRA_FILES})
 
-if(APPLE)
-  set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
-endif()
-if(MSVC)
-  set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
-set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-target_link_libraries(${PROGRAM} ${LIBS})
+    if(APPLE)
+      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
 
-install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
-
+    install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+endforeach()

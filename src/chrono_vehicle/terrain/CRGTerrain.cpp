@@ -445,7 +445,7 @@ void CRGTerrain::SetupLineGraphics() {
 void CRGTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     auto& coords = m_mesh->GetCoordsVertices();
-    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& indices = m_mesh->GetIndicesVertices();
     auto& coords_uv = m_mesh->GetCoordsUV();
     auto& indices_uv = m_mesh->GetIndicesUV();
 

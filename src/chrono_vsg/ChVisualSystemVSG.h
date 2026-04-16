@@ -324,13 +324,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Set GUI font size (default: 13).
     void SetGuiFontSize(float size);
 
-    /// Add a wireframe grid with specified resolution at the specified position.
-    virtual void AddGrid(double x_step,                                      ///< spacing in x direction
-                         double y_step,                                      ///< spacing in y direction
-                         int nx,                                             ///< number of divisions in x direction
-                         int ny,                                             ///< number of divisions in y direction
-                         ChCoordsys<> pos = CSYSNORM,                        ///< position of grid center
-                         ChColor col = ChColor(0.1f, 0.1f, 0.1f)) override;  ///< line color
+    /// Add a grid with specified parameters in the x-y plane of the given frame.
+    virtual void AddGrid(double x_step,     ///< spacing in x direction
+                         double y_step,     ///< spacing in y direction
+                         int nx,            ///< number of divisions in x direction
+                         int ny,            ///< number of divisions in y direction
+                         ChCoordsys<> pos,  ///< grid reference frame
+                         ChColor col        ///< grid line color
+                         ) override;
 
     /// Add a visual model not bound to a Chrono object.
     /// The return value is the index of the new visual model.
@@ -405,9 +406,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<ShapeBuilder> GetVSGShapeBuilder() const { return m_shapeBuilder; }
 
     /// Get the ImGui texture for the specified colormap.
-    vsg::ref_ptr<vsgImGui::Texture> GetColormapTexture(ChColormap::Type type) const {
-        return m_colormap_textures.at(type);
-    }
+    vsg::ref_ptr<vsgImGui::Texture> GetColormapTexture(ChColormap::Type type) const { return m_colormap_textures.at(type); }
 
     /// Data for particle clouds managed by the visual system.
     struct ParticleCloud {
@@ -515,8 +514,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
     std::vector<DeformableMesh> m_def_meshes;
 
-    std::vector<ParticleCloud> m_clouds;     ///< particle cloud metadata cached for VSG interoperability
-    bool m_default_cloud_visibility = true;  ///< fallback visibility before a specific tag is toggled
+    std::vector<ParticleCloud> m_clouds;                         ///< particle cloud metadata cached for VSG interoperability
+    bool m_default_cloud_visibility = true;                      ///< fallback visibility before a specific tag is toggled
     std::unordered_map<int, bool> m_cloud_visibility_overrides;  ///< per-tag visibility overrides
 
     bool m_show_visibility_controls;  ///< enable/disable global visibility controls
@@ -681,8 +680,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     double m_light_intensity;  ///< directional light intensity
     double m_elevation;        ///< directional light elevation (measured from
-    double m_azimuth;          ///< directional light azimuth (measured from 
-    
+    double m_azimuth;          ///< directional light azimuth (measured from
+
     float m_gui_font_size = 20.0f;
 
     // Component rendering

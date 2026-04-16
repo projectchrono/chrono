@@ -36,8 +36,8 @@ class ChApi ChFunctionRamp : public ChFunction {
 
     virtual Type GetType() const override { return ChFunction::Type::RAMP; }
 
-    virtual double GetVal(double x) const override { return (m_y0 + (x * m_ang_coeff)); }
-    virtual double GetDer(double x) const override { return (m_ang_coeff); }
+    virtual double GetVal(double x) const override { return m_y0 + m_ang_coeff * x; }
+    virtual double GetDer(double x) const override { return m_ang_coeff; }
     virtual double GetDer2(double x) const override { return 0; }
     virtual double GetDer3(double x) const override { return 0; }
 
@@ -45,13 +45,13 @@ class ChApi ChFunctionRamp : public ChFunction {
     void SetStartVal(double y0) { m_y0 = y0; }
 
     /// Get the initial value.
-    double GetStartVal() { return m_y0; }
+    double GetStartVal() const { return m_y0; }
 
     /// Set the angular coefficient.
     void SetAngularCoeff(double ang_coeff) { m_ang_coeff = ang_coeff; }
 
     /// Get the angular coefficient.
-    double GetAngularCoeff() { return m_ang_coeff; }
+    double GetAngularCoeff() const { return m_ang_coeff; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

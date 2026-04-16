@@ -103,21 +103,23 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     setupcount = other.setupcount;
     write_matrix = other.write_matrix;
     output_dir = other.output_dir;
+    if (other.GetCollisionSystem())
+        SetCollisionSystemType(other.GetCollisionSystem()->GetType());
     SetTimestepperType(other.GetTimestepperType());
+    SetSolverType(other.GetSolverType());
     nthreads_chrono = other.nthreads_chrono;
     nthreads_eigen = other.nthreads_eigen;
     nthreads_collision = other.nthreads_collision;
+    max_penetration_recovery_speed = other.max_penetration_recovery_speed;
+    use_sleeping = other.use_sleeping;
+    ncontacts = other.ncontacts;
+    collision_callbacks = other.collision_callbacks;
+
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
+
     is_initialized = false;
     is_updated = false;
     applied_forces_current = false;
-
-    max_penetration_recovery_speed = other.max_penetration_recovery_speed;
-    SetSolverType(other.GetSolverType());
-    use_sleeping = other.use_sleeping;
-
-    ncontacts = other.ncontacts;
-
-    collision_callbacks = other.collision_callbacks;
 }
 
 ChSystem::~ChSystem() {

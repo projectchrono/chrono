@@ -34,12 +34,6 @@ namespace chrono {
 /// The function takes care of computing the acceleration 'acc' so to achieve the desired final displacement in the
 /// given duration.
 class ChApi ChFunctionConstAcc : public ChFunction {
-  private:
-    double m_displacement;
-    double m_accel1_end;
-    double m_accel2_start;
-    double m_duration;
-
   public:
     ChFunctionConstAcc();
     ChFunctionConstAcc(double displacement, double acceleration1_end, double acceleration2_start, double duration);
@@ -54,6 +48,7 @@ class ChApi ChFunctionConstAcc : public ChFunction {
     virtual double GetVal(double x) const override;
     virtual double GetDer(double x) const override;
     virtual double GetDer2(double x) const override;
+    virtual double GetDer3(double x) const override;
 
     /// Set duration of the double acceleration.
     void SetDuration(double duration);
@@ -99,6 +94,12 @@ class ChApi ChFunctionConstAcc : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double m_displacement;
+    double m_accel1_end;
+    double m_accel2_start;
+    double m_duration;
 };
 
 /// @} chrono_functions

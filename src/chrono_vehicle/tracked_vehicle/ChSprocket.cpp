@@ -175,7 +175,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(dou
     auto mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     std::vector<ChVector3d>& vertices = mesh->GetCoordsVertices();
     std::vector<ChVector3d>& normals = mesh->GetCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertices();
     std::vector<ChVector3i>& idx_normals = mesh->GetIndicesNormals();
     ////std::vector<ChVector2d>& uv_coords = mesh->GetCoordsUV();
     std::vector<ChColor>& colors = mesh->GetCoordsColors();

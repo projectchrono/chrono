@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
         // triangular mesh
         auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj, false, true);
         mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-        mesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+        mesh->RepairDuplicateVertices(1e-9);                              // if meshes are not watertight
         rock_mesh.push_back(mesh);
 
         // contact shape

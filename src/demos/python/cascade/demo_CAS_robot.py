@@ -55,7 +55,7 @@ def make_body_from_name(partname, root_transformation):
     shape1 = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape1, partname)):
         # Make a ChBody representing the TopoDS_Shape part from the CAD:
-        mbody1 = cascade.ChCascadeBodyEasy(shape1, # shape
+        mbody1 = cascade.ChBodyEasyCascade(shape1, # shape
                                            1000,   # density (center of mass & inertia automatically computed)
                                            True,    # mesh for visualization?
                                            False)   # mesh for collision?

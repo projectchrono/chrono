@@ -22,7 +22,7 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Polynomial step function
+/// Fifth-degree polynomial step function
 ///     `y = h * (10*(x/w)^3 - 15*(x/w)^4 + 6*(x/w)^5)`
 /// where:
 /// - `w` is the ramp width
@@ -30,10 +30,6 @@ namespace chrono {
 ///
 /// First and second derivatives at the start and end points are zero.
 class ChApi ChFunctionPoly345 : public ChFunction {
-  private:
-    double m_height;
-    double m_width;
-
   public:
     ChFunctionPoly345() : m_height(1), m_width(1) {}
     ChFunctionPoly345(double height, double width);
@@ -67,6 +63,10 @@ class ChApi ChFunctionPoly345 : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double m_height;
+    double m_width;
 };
 
 /// @} chrono_functions

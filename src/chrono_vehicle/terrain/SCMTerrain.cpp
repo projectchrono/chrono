@@ -561,7 +561,7 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
 
     // Load triangular mesh
     const auto& vertices = trimesh.GetCoordsVertices();
-    const auto& faces = trimesh.GetIndicesVertexes();
+    const auto& faces = trimesh.GetIndicesVertices();
 
     // Find x, y, and z ranges of vertex data
     auto minmaxX = std::minmax_element(begin(vertices), end(vertices),
@@ -648,7 +648,7 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     trimesh->Clear();
     std::vector<ChVector3d>& vertices = trimesh->GetCoordsVertices();
     std::vector<ChVector3d>& normals = trimesh->GetCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertices();
     std::vector<ChVector3i>& idx_normals = trimesh->GetIndicesNormals();
     std::vector<ChVector2d>& uv_coords = trimesh->GetCoordsUV();
     std::vector<ChColor>& colors = trimesh->GetCoordsColors();

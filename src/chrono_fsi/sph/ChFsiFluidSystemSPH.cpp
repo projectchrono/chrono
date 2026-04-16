@@ -2470,7 +2470,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsMesh(ChTriangleMeshConn
     Real spacing = m_paramsH->d0;
 
     // Ensure mesh if watertight
-    mesh.RepairDuplicateVertexes(1e-9);
+    mesh.RepairDuplicateVertices(1e-9);
     auto bbox = mesh.GetBoundingBox();
 
     const double EPSI = 1e-6;

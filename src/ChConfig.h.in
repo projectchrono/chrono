@@ -103,13 +103,12 @@
 // OpenMP settings
 // -----------------------------------------------------------------------------
 
-// If OpenMP is found the following define is set
-//   #define CHRONO_OMP_FOUND
-// Set the highest OpenMP version supported, one of:
+// If OpenMP is found the following define is set, define CHRONO_OMP_FOUND and
+// set the highest OpenMP version supported, one of:
 //   #define CHRONO_OMP_VERSION "2.0"
 //   #define CHRONO_OMP_VERSION "3.0"
 //   #define CHRONO_OMP_VERSION "4.0"
-// and define one or more of the following, as appropriate
+// define one or more of the following, as appropriate
 //   #define CHRONO_OMP_20
 //   #define CHRONO_OMP_30
 //   #define CHRONO_OMP_40
@@ -124,21 +123,19 @@
 
 // -----------------------------------------------------------------------------
 
-// If SSE support was found, then
-//   #define CHRONO_HAS_SSE
-// and set the SSE level support, one of the following
+// If SSE support was found, define CHRONO_HAS_SSE and
+// set the SSE level support, one of the following
 //   #define CHRONO_SSE_LEVEL "1.0"
 //   #define CHRONO_SSE_LEVEL "2.0"
 //   #define CHRONO_SSE_LEVEL "3.0"
 //   #define CHRONO_SSE_LEVEL "4.1"
 //   #define CHRONO_SSE_LEVEL "4.2"
-// and define one or more of the following, as appropriate
+// define one or more of the following, as appropriate
 //   #define CHRONO_SSE_1.0
 //   #define CHRONO_SSE_2.0
 //   #define CHRONO_SSE_3.0
 //   #define CHRONO_SSE_4.1
 //   #define CHRONO_SSE_4.2
-
 @CHRONO_HAS_SSE@
 @CHRONO_SSE_LEVEL@
 @CHRONO_SSE_1_0@
@@ -149,15 +146,13 @@
 
 // -----------------------------------------------------------------------------
 
-// If AVX support was found, then
-//   #define CHRONO_HAS_AVX
-// and set the SSE level support, one of the following
+// If AVX support was found, define CHRONO_HAS_AVX and
+// set the SSE level support, one of the following
 //   #define CHRONO_AVX_LEVEL "1.0"
 //   #define CHRONO_AVX_LEVEL "2.0"
-// and define one or more of the following, as appropriate
+// define one or more of the following, as appropriate
 //   #define CHRONO_AVX_1.0
 //   #define CHRONO_AVX_2.0
-
 @CHRONO_HAS_AVX@
 @CHRONO_AVX_LEVEL@
 @CHRONO_AVX_1_0@
@@ -165,44 +160,36 @@
 
 // -----------------------------------------------------------------------------
 
-// If NEON support was found, then
-//   #define CHRONO_HAS_NEON
-
+// If NEON support was found, define CHRONO_HAS_NEON
 @CHRONO_HAS_NEON@
 
 // -----------------------------------------------------------------------------
 
-// If FMA support was found, then
-//   #define CHRONO_HAS_FMA
-
+// If FMA support was found, define CHRONO_HAS_FMA
 @CHRONO_HAS_FMA@
 
 // -----------------------------------------------------------------------------
 
-// Use SIMD if available
-
+// Use SIMD if available, define CHRONO_SIMD_ENABLED
 @CHRONO_SIMD_ENABLED@
 
 // -----------------------------------------------------------------------------
 
-// If HDF5 was found, then
-//   #define CHRONO_HAS_HDF5
-
+// If HDF5 was found, define CHRONO_HAS_HDF5
 @CHRONO_HAS_HDF5@
 
 // -----------------------------------------------------------------------------
 
-// If CUDA is available, then
-//   #define CHRONO_HAS_CUDA
-//   #CHRONO_CUDA_VERSION
+// If YAML parser support is available, define CHRONO_HAS_YAML
+@CHRONO_HAS_YAML@
 
+// -----------------------------------------------------------------------------
+
+// If CUDA is available, define CHRONO_HAS_CUDA and set CUDA version
 @CHRONO_HAS_CUDA@
 @CHRONO_CUDA_VERSION@
 
-// If THRUST is available, then
-//   #define CHRONO_HAS_THRUST
-//   #CHRONO_THRUST_VERSION
-
+// If THRUST is available, define CHRONO_HAS_THRUST and set Thrust version
 @CHRONO_HAS_THRUST@
 @CHRONO_THRUST_VERSION@
 
@@ -215,10 +202,8 @@
 
 // -----------------------------------------------------------------------------
 
-// If Google Test and Benchmark are enabled and available, then
-//   #define CHRONO_HAS_GTEST
-//   #define CHRONO_HAS_GBENCHMARK
-
+// If Google Test and/or Benchmark are enabled and available, define CHRONO_HAS_GTEST
+// and/or CHRONO_HAS_GBENCHMARK
 @CHRONO_HAS_GTEST@
 @CHRONO_HAS_GBENCHMARK@
 
@@ -231,9 +216,8 @@
 #define USE_COLLISION_DOUBLE
 
 // -----------------------------------------------------------------------------
-// Length of the path to the Chrono source directory
-// -----------------------------------------------------------------------------
 
+// Length of the path to the Chrono source directory
 #define SOURCE_PATH_SIZE @SOURCE_PATH_SIZE@
 
 #endif

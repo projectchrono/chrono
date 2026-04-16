@@ -28,7 +28,7 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 

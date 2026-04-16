@@ -32,7 +32,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

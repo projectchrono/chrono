@@ -24,7 +24,7 @@
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "FMU_WheeledVehicle.h"
 

@@ -22,17 +22,17 @@ void ChInertiaUtils::InertiaFromCluster(const std::vector<ChVector3d>& positions
                                         const std::vector<double>& masses,
                                         ChMatrix33<>& totJ,
                                         double& totmass,
-                                        ChVector3d& baricenter) {
+                                        ChVector3d& barycenter) {
     assert(positions.size() == Jlocal.size());
     assert(positions.size() == masses.size());
 
     totmass = 0;
     totJ.setZero();
-    baricenter = VNULL;
+    barycenter = VNULL;
 
-    // compute tot mass and baricenter position
+    // compute tot mass and barycenter position
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        baricenter = (baricenter * totmass + positions[i] * masses[i]) / (totmass + masses[i]);
+        barycenter = (barycenter * totmass + positions[i] * masses[i]) / (totmass + masses[i]);
         totmass += masses[i];
     }
 
@@ -46,7 +46,7 @@ void ChInertiaUtils::InertiaFromCluster(const std::vector<ChVector3d>& positions
 
         // Huygens-Steiner parallel axis theorem:
 
-        ChVector3d dist = positions[i] - baricenter;
+        ChVector3d dist = positions[i] - barycenter;
 
         ChMatrix33<> absJtranslated;
         absJtranslated = absJ;

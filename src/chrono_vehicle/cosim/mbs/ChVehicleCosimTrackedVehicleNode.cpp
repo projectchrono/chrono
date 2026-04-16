@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 

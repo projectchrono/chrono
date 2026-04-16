@@ -18,7 +18,7 @@
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/chassis/ChassisConnectorArticulated.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

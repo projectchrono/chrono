@@ -539,7 +539,7 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChVisualShapeTri
 
     // index data/params
     mesh_input.triangleArray.indexBuffer = d_indices;
-    mesh_input.triangleArray.numIndexTriplets = static_cast<unsigned int>(mesh->GetIndicesVertexes().size());
+    mesh_input.triangleArray.numIndexTriplets = static_cast<unsigned int>(mesh->GetIndicesVertices().size());
     mesh_input.triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
     // TODO: if vertices get padded to uint4, this need to reflect that
     mesh_input.triangleArray.indexStrideInBytes = sizeof(uint4);  // sizeof(uint3);

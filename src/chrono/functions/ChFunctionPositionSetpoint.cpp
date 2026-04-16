@@ -50,7 +50,7 @@ void ChFunctionPositionSetpoint::Reset(double s) {
     last_P_ds = 0;
 }
 
-void ChFunctionPositionSetpoint::SetSetpoint(ChVector3d p_setpoint, double s) {
+void ChFunctionPositionSetpoint::SetSetpoint(const ChVector3d& p_setpoint, double s) {
     if (s > S) {
         // if successive setpoint time, scroll buffer of past samples
         last_s = S;
@@ -81,6 +81,13 @@ void ChFunctionPositionSetpoint::SetSetpoint(ChVector3d p_setpoint, double s) {
             P_dsds = (P_ds - last_P_ds) / ds;
         }
     }
+}
+
+void ChFunctionPositionSetpoint::SetSetpointAndDerivatives(const ChVector3d& p_setpoint, const ChVector3d& p_setpoint_ds, const ChVector3d& p_setpoint_dsds) {
+    mode = eChSetpointMode::OVERRIDE;
+    P = p_setpoint;
+    P_ds = p_setpoint_ds;
+    P_dsds = p_setpoint_dsds;
 }
 
 ChVector3d ChFunctionPositionSetpoint::GetPos(double s) const {

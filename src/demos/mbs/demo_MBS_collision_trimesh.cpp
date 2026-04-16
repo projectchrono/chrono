@@ -49,7 +49,7 @@ std::shared_ptr<ChTriangleMeshConnected> CreateShoe() {
     auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
                                                                  false, true);
     mesh->Transform(VNULL, ChMatrix33<>(1.2));
-    mesh->RepairDuplicateVertexes(1e-9);
+    mesh->RepairDuplicateVertices(1e-9);
 
     return mesh;
 }
@@ -58,7 +58,7 @@ std::shared_ptr<ChTriangleMeshConnected> CreateBox() {
     auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"),
                                                                  false, true);
     mesh->Transform(VNULL, ChMatrix33<>(ChVector3d(0.15, 0.05, 0.15)));
-    mesh->RepairDuplicateVertexes(1e-9);
+    mesh->RepairDuplicateVertices(1e-9);
 
     return mesh;
 }

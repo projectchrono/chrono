@@ -21,7 +21,7 @@ set(Chrono_CASCADE_SOURCES
     ChCascadeMeshTools.cpp
     ChCascadeDoc.cpp
     ChVisualShapeCascade.cpp
-    ChCascadeBodyEasy.cpp
+    ChBodyEasyCascade.cpp	
 )
 
 set(Chrono_CASCADE_HEADERS
@@ -30,9 +30,11 @@ set(Chrono_CASCADE_HEADERS
     ChCascadeMeshTools.h
     ChCascadeDoc.h
     ChVisualShapeCascade.h
-    ChCascadeBodyEasy.h
+    ChBodyEasyCascade.h
 )
 if(CH_ENABLE_MODULE_IRRLICHT)
+    set(Chrono_CASCADE_SOURCES ${Chrono_CASCADE_SOURCES}
+        ChCascadeIrrMeshTools.cpp)
     set(Chrono_CASCADE_HEADERS ${Chrono_CASCADE_HEADERS}
         ChCascadeIrrMeshTools.h)
 endif()

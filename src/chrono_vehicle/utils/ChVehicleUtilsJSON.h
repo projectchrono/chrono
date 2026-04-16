@@ -21,11 +21,7 @@
 
 #include <vector>
 
-#include "chrono/assets/ChColor.h"
-#include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector3.h"
-
-#include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/input_output/ChUtilsJSON.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -48,52 +44,6 @@
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-
-/// Load and return a RapidJSON document from the specified file.
-/// A Null document is returned if the file cannot be opened.
-CH_VEHICLE_API void ReadFileJSON(const std::string& filename, rapidjson::Document& d);
-
-// -----------------------------------------------------------------------------
-
-/// Load and return a ChVector3d from the specified JSON array.
-CH_VEHICLE_API ChVector3d ReadVectorJSON(const rapidjson::Value& a);
-
-///  Load and return a ChQuaternion from the specified JSON array.
-CH_VEHICLE_API ChQuaternion<> ReadQuaternionJSON(const rapidjson::Value& a);
-
-/// Load and return a coordinate system from the specific JSON value.
-CH_VEHICLE_API ChCoordsys<> ReadCoordinateSystemJSON(const rapidjson::Value& a);
-
-///  Load and return a ChColor from the specified JSON array.
-CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
-
-// -----------------------------------------------------------------------------
-
-CH_VEHICLE_API ChContactMaterialData ReadMaterialInfoJSON(const rapidjson::Value& mat);
-
-CH_VEHICLE_API std::shared_ptr<ChJoint::BushingData> ReadBushingDataJSON(const rapidjson::Value& bd);
-
-/// Load and return a vehicle joint type from the specific JSON value.
-CH_VEHICLE_API ChJoint::Type ReadVehicleJointTypeJSON(const rapidjson::Value& a);
-
-// -----------------------------------------------------------------------------
-
-/// Load and return a vehicle geometry structure from the specified JSON value.
-/// Collision geometry and contact material information is set in the return ChBodyGeometry object if the given JSON
-/// object has a member "Contact". Visualization geometry is loaded if the JSON object has a member "Visualization".
-CH_VEHICLE_API utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d);
-
-/// Load and return a TSDA geometry structure from the specified JSON value.
-CH_VEHICLE_API utils::ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d);
-
-// -----------------------------------------------------------------------------
-
-CH_VEHICLE_API std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::Value& td,
-                                                                             double& free_length);
-CH_VEHICLE_API std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::Value& td,
-                                                                              double& free_angle);
 
 // -----------------------------------------------------------------------------
 
@@ -159,31 +109,6 @@ CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const 
 
 /// Load and return a road-wheel from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename);
-
-// -----------------------------------------------------------------------------
-
-/// Utility class for reading and setting an (x,y) map.
-class CH_VEHICLE_API ChMapData {
-  public:
-    /// Construct a ChMapData with an empty map.
-    ChMapData() : m_n(0) {}
-
-    /// Read data from the specified JSON object.
-    void Read(const rapidjson::Value& a);
-
-    /// Set the map data to the specified recorder function.
-    /// The map data is scaled by the specified factors.
-    void Set(ChFunctionInterp& map, double x_factor = 1, double y_factor = 1) const;
-
-    /// Set the map data to the specified vector of pairs.
-    /// The map data is scaled by the specified factors.
-    void Set(std::vector<std::pair<double, double>>& vec, double x_factor = 1, double y_factor = 1) const;
-
-  private:
-    unsigned int m_n;
-    std::vector<double> m_x;
-    std::vector<double> m_y;
-};
 
 }  // end namespace vehicle
 }  // end namespace chrono

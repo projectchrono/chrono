@@ -190,7 +190,7 @@ void ChLinkNodeFace::CompleteInitialization() {
 
     bool is_into;
     ChVector3d p_projected;
-    m_d = utils::PointTriangleDistance(m_point->GetPos(), m_triangle->GetPos1(), m_triangle->GetPos2(),
+    m_d = utils::PointTrianglePlaneDistance(m_point->GetPos(), m_triangle->GetPos1(), m_triangle->GetPos2(),
                                        m_triangle->GetPos3(), m_s2, m_s3, is_into, p_projected);
     m_s1 = 1 - m_s2 - m_s3;
 }

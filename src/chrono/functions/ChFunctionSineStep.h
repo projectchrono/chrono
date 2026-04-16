@@ -38,6 +38,7 @@ class ChApi ChFunctionSineStep : public ChFunction {
     virtual double GetVal(double x) const override;
     virtual double GetDer(double x) const override;
     virtual double GetDer2(double x) const override;
+    virtual double GetDer3(double x) const override;
 
     void SetFirstPoint(const ChVector2d& p1);
     void SetSecondPoint(const ChVector2d& p2);

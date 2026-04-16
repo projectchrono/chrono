@@ -21,7 +21,7 @@
 #include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono_cascade/ChCascadeBodyEasy.h"
+#include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChVisualShapeCascade.h"
 #include "chrono/solver/ChSolverADMM.h"
@@ -89,15 +89,15 @@ int main(int argc, char* argv[]) {
     // syntax and * or ? wldcards, etc.
     //
 
-    std::shared_ptr<ChCascadeBodyEasy> body_base;
-    std::shared_ptr<ChCascadeBodyEasy> body_turret;
-    std::shared_ptr<ChCascadeBodyEasy> body_bicep;
-    std::shared_ptr<ChCascadeBodyEasy> body_elbow;
-    std::shared_ptr<ChCascadeBodyEasy> body_forearm;
-    std::shared_ptr<ChCascadeBodyEasy> body_wrist;
-    std::shared_ptr<ChCascadeBodyEasy> body_hand;
-    std::shared_ptr<ChCascadeBodyEasy> body_cylinder;
-    std::shared_ptr<ChCascadeBodyEasy> body_rod;
+    std::shared_ptr<ChBodyEasyCascade> body_base;
+    std::shared_ptr<ChBodyEasyCascade> body_turret;
+    std::shared_ptr<ChBodyEasyCascade> body_bicep;
+    std::shared_ptr<ChBodyEasyCascade> body_elbow;
+    std::shared_ptr<ChBodyEasyCascade> body_forearm;
+    std::shared_ptr<ChBodyEasyCascade> body_wrist;
+    std::shared_ptr<ChBodyEasyCascade> body_hand;
+    std::shared_ptr<ChBodyEasyCascade> body_cylinder;
+    std::shared_ptr<ChBodyEasyCascade> body_rod;
 
     // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     if (load_ok) {
         TopoDS_Shape shape_base;
         if (mydoc.GetNamedShape(shape_base, "Assem10/Assem8")) {
-            body_base = chrono_types::make_shared<ChCascadeBodyEasy>(shape_base, 1000, true, false);
+            body_base = chrono_types::make_shared<ChBodyEasyCascade>(shape_base, 1000, true, false);
             sys.Add(body_base);
 
             // The base is fixed to the ground
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_turret;
         if (mydoc.GetNamedShape(shape_turret, "Assem10/Assem4")) {
-            auto mbody = chrono_types::make_shared<ChCascadeBodyEasy>(shape_turret, 1000, true, false);
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_turret, 1000, true, false);
             body_turret = mbody;
             sys.Add(body_turret);
             // Move the body as for global displacement/rotation
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_bicep;
         if (mydoc.GetNamedShape(shape_bicep, "Assem10/Assem1")) {
-            body_bicep = chrono_types::make_shared<ChCascadeBodyEasy>(shape_bicep, 1000, true, false);
+            body_bicep = chrono_types::make_shared<ChBodyEasyCascade>(shape_bicep, 1000, true, false);
             sys.Add(body_bicep);
             // Move the body as for global displacement/rotation
             body_bicep->ConcatenatePreTransformation(root_frame);
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_elbow;
         if (mydoc.GetNamedShape(shape_elbow, "Assem10/Assem5")) {
-            body_elbow = chrono_types::make_shared<ChCascadeBodyEasy>(shape_elbow, 1000, true, false);
+            body_elbow = chrono_types::make_shared<ChBodyEasyCascade>(shape_elbow, 1000, true, false);
             sys.Add(body_elbow);
             // Move the body as for global displacement/rotation
             body_elbow->ConcatenatePreTransformation(root_frame);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_forearm;
         if (mydoc.GetNamedShape(shape_forearm, "Assem10/Assem7")) {
-            body_forearm = chrono_types::make_shared<ChCascadeBodyEasy>(shape_forearm, 1000, true, false);
+            body_forearm = chrono_types::make_shared<ChBodyEasyCascade>(shape_forearm, 1000, true, false);
             sys.Add(body_forearm);
             // Move the body as for global displacement/rotation
             body_forearm->ConcatenatePreTransformation(root_frame);
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_wrist;
         if (mydoc.GetNamedShape(shape_wrist, "Assem10/Assem6")) {
-            body_wrist = chrono_types::make_shared<ChCascadeBodyEasy>(shape_wrist, 1000, true, false);
+            body_wrist = chrono_types::make_shared<ChBodyEasyCascade>(shape_wrist, 1000, true, false);
             sys.Add(body_wrist);
             // Move the body as for global displacement/rotation
             body_wrist->ConcatenatePreTransformation(root_frame);
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_hand;
         if (mydoc.GetNamedShape(shape_hand, "Assem10/Assem9")) {
-            body_hand = chrono_types::make_shared<ChCascadeBodyEasy>(shape_hand, 1000, true, false);
+            body_hand = chrono_types::make_shared<ChBodyEasyCascade>(shape_hand, 1000, true, false);
             sys.Add(body_hand);
             // Move the body as for global displacement/rotation
             body_hand->ConcatenatePreTransformation(root_frame);
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_cylinder;
         if (mydoc.GetNamedShape(shape_cylinder, "Assem10/Assem3")) {
-            body_cylinder = chrono_types::make_shared<ChCascadeBodyEasy>(shape_cylinder, 1000, true, false);
+            body_cylinder = chrono_types::make_shared<ChBodyEasyCascade>(shape_cylinder, 1000, true, false);
             sys.Add(body_cylinder);
             // Move the body as for global displacement/rotation
             body_cylinder->ConcatenatePreTransformation(root_frame);
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_rod;
         if (mydoc.GetNamedShape(shape_rod, "Assem10/Assem2")) {
-            body_rod = chrono_types::make_shared<ChCascadeBodyEasy>(shape_rod, 1000, true, false);
+            body_rod = chrono_types::make_shared<ChBodyEasyCascade>(shape_rod, 1000, true, false);
             sys.Add(body_rod);
             // Move the body as for global displacement/rotation
             body_rod->ConcatenatePreTransformation(root_frame);

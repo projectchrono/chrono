@@ -24,20 +24,11 @@ namespace chrono {
 
 /// Cubic fillet function.
 /// Cubic polynomial `y(x)` that smoothly connects two points with given start and end derivatives.
-/// - `y(0)`     = GetStartVal()
+/// - `y(0)` = GetStartVal()
 /// - `y(width)` = GetEndVal()
 /// - `der(y)(0)` = GetStartDer()
 /// - `der(y)(width)` = GetEndDer()
 class ChApi ChFunctionFillet3 : public ChFunction {
-  private:
-    double m_width;      ///< width of the fillet
-    double m_val_start;  ///< value at x=0
-    double m_val_end;    ///< value at x=duration
-    double m_der_start;  ///< derivative at x=0
-    double m_der_end;    ///< derivative at x=m_width
-
-    double c1, c2, c3, c4;  // used internally...
-
   public:
     ChFunctionFillet3()
         : m_width(1), m_val_start(0), m_val_end(0), m_der_start(0), m_der_end(0), c1(0), c2(0), c3(0), c4(0) {}
@@ -52,10 +43,11 @@ class ChApi ChFunctionFillet3 : public ChFunction {
     virtual double GetVal(double x) const override;
     virtual double GetDer(double x) const override;
     virtual double GetDer2(double x) const override;
+    virtual double GetDer3(double x) const override;
 
     void SetWidth(double width);
 
-    double GetWidth() { return m_width; }
+    double GetWidth() const { return m_width; }
 
     /// Setup the function after parameter changes.
     /// This must be called by the user after the parameters are changed.
@@ -74,22 +66,30 @@ class ChApi ChFunctionFillet3 : public ChFunction {
     void SetEndDer(double der_end) { m_der_end = der_end; }
 
     /// Get the initial value of the function
-    double GetStartVal() { return m_val_start; }
+    double GetStartVal() const { return m_val_start; }
 
     /// Get the end value of the function
-    double GetEndVal() { return m_val_end; }
+    double GetEndVal() const { return m_val_end; }
 
     /// Get the initial derivative of the function
-    double GetStartDer() { return m_der_start; }
+    double GetStartDer() const { return m_der_start; }
 
     /// Get the end derivative of the function
-    double GetEndDer() { return m_der_end; }
+    double GetEndDer() const { return m_der_end; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double m_width;      ///< width of the fillet
+    double m_val_start;  ///< value at x=0
+    double m_val_end;    ///< value at x=duration
+    double m_der_start;  ///< derivative at x=0
+    double m_der_end;    ///< derivative at x=m_width
+    double c1, c2, c3, c4;  // for internal use
 };
 
 /// @} chrono_functions

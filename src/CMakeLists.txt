@@ -178,6 +178,11 @@ endif()
 
 option(CH_USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
+set(CHRONO_HAS_SSE "#undef CHRONO_HAS_SSE")
+set(CHRONO_HAS_AVX "#undef CHRONO_HAS_AVX")
+set(CHRONO_HAS_FMA "#undef CHRONO_HAS_FMA")
+set(CHRONO_HAS_NEON "#undef CHRONO_HAS_NEON")
+
 if(CH_USE_SIMD)
    find_package(SIMD)
 
@@ -226,7 +231,7 @@ if(CH_USE_SIMD)
 
    # NEON support
    if(SIMD_NEON)
-     set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
+     set(CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
    endif()
 
    message(STATUS "SIMD optimization:")
@@ -395,24 +400,63 @@ option(CH_ENABLE_HDF5 "Enable HDF5 support" OFF)
 
 if(CH_ENABLE_HDF5)
     message(STATUS "Searching for HDF5...")
-    find_package(HDF5 COMPONENTS CXX)
 
+    find_package(HDF5 COMPONENTS CXX)
     if (HDF5_FOUND)
         message(STATUS "  HDF5 found         (HDF5_FOUND)         ${HDF5_FOUND}")
         message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
         message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
         message(STATUS "  HDF5 libraries     (HDF5_LIBRARIES)     ${HDF5_LIBRARIES}")
-
-        set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
     else()
         message(STATUS "  Could not find HDF5")
     endif()
+endif()
 
+#-----------------------------------------------------------------------------
+# Enable YAML support
+#-----------------------------------------------------------------------------
+
+option(CH_ENABLE_YAML "Enable YAML support" ON)
+
+if(CH_ENABLE_YAML)
+    message(STATUS "Enabling YAML support...")
+
+    if(MSVC AND MSVC_VERSION LESS 1930)
+        # Due to a bug, yaml-cpp cannot be compiled with VS 2019 or older
+        message("WARNING: yaml-cpp requires Visual Studio 2022 or newer.")
+        message(STATUS "YAML parser support disabled.")
+        set(CHRONO_YAML_ENABLED NO)
+    else()
+        # Fetch yaml-cpp from third party directory
+        include(FetchContent)
+    
+        FetchContent_Declare(
+          yaml-cpp
+          SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp"
+        )
+        FetchContent_MakeAvailable(yaml-cpp)
+        
+        mark_as_advanced(FORCE YAML_CPP_INSTALL)
+        mark_as_advanced(FORCE YAML_CPP_INSTALL_CMAKEDIR)
+        
+        # Disable warnings
+        if (MSVC)
+          target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+          target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4275>)
+          target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4267>)
+        endif()
+
+        message(STATUS "  Using ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp.")
+        set(CHRONO_YAML_ENABLED YES)
+    endif()
 endif()
 
 #------------------------------------------------------------
 # Build submodules
 #------------------------------------------------------------
+
+set(CHRONO_HAS_GTEST "#undef CHRONO_HAS_GTEST")
+set(CHRONO_HAS_GBENCHMARK "#undef CHRONO_HAS_GBENCHMARK")
 
 if(BUILD_TESTING)
   message(STATUS "Build Google test framework")
@@ -435,7 +479,6 @@ if(BUILD_TESTING)
     message("  Google test code not found: update git submodules.")
     message("  Building of unit tests was disabled.")
     set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree." FORCE)
-    set(CHRONO_HAS_GTEST "")
   endif()
 
 endif()
@@ -475,7 +518,6 @@ if(BUILD_BENCHMARKING)
     message("  Google benchmark code not found: update git submodules.")
     message("  Building of benchmark tests was disabled.")
     set(BUILD_BENCHMARKING OFF CACHE BOOL "Build benchmark tests" FORCE)
-    set(CHRONO_HAS_GBENCHMARK "")
   endif()
 
 endif()
@@ -526,6 +568,20 @@ if(BUILD_BENCHMARKING)
 endif()
 
 message(STATUS "")
+
+#------------------------------------------------------------
+# Install yaml-cpp
+#------------------------------------------------------------
+
+if(CHRONO_YAML_ENABLED)
+  install(TARGETS yaml-cpp
+          EXPORT ChronoTargets
+          RUNTIME DESTINATION bin
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          #INCLUDES DESTINATION include/chrono_thirdparty/yaml-cpp
+  )
+endif()
 
 #------------------------------------------------------------
 # Install headers from chrono_thirdparty folder
@@ -616,6 +672,7 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
+  set(CHRONO_HAS_GNUPLOT "#undef CHRONO_HAS_GNUPLOT")
 endif()
 
 if(CH_ENABLE_MODULE_PYTHON)
@@ -726,7 +783,19 @@ else()
     set(CHRONO_HAS_CXX17 "#undef CHRONO_HAS_CXX17")
 endif()
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
+if(HDF5_FOUND)
+    set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
+else()
+    set(CHRONO_HAS_HDF5 "#undef CHRONO_HAS_HDF5")
+endif()
+
+if(CHRONO_YAML_ENABLED)
+    set(CHRONO_HAS_YAML "#define CHRONO_HAS_YAML")
+else()
+    set(CHRONO_HAS_YAML "#undef CHRONO_HAS_YAML")
+endif()
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ChConfig.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
                @ONLY)
 
@@ -737,7 +806,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
 # Generate and install the versioning header file
 #-----------------------------------------------------------------------------
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChVersion.h.in"
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ChVersion.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
                @ONLY)
 

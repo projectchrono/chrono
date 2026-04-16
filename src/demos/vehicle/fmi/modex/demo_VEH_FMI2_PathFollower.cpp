@@ -295,8 +295,7 @@ int main(int argc, char* argv[]) {
         vis = vis_vsg;
 
         // Add a visualization grid
-        vis->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc + ChVector3d(0, 0, -0.05), QuatFromAngleZ(init_yaw)),
-                     ChColor(0.31f, 0.43f, 0.43f));
+        vis->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc + ChVector3d(0, 0, -0.05), QuatFromAngleZ(init_yaw)), ChColor(0.31f, 0.43f, 0.43f));
 
         // Add visualization of controller points (sentinel & target)
         auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

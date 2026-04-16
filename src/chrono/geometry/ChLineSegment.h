@@ -28,6 +28,10 @@ namespace chrono {
 /// Geometric object representing a segment in 3D space with two end points.
 class ChApi ChLineSegment : public ChLine {
   public:
+    ChVector3d pA;  ///< first segment endpoint
+    ChVector3d pB;  ///< second segment endpoint
+
+  public:
     ChLineSegment(const ChVector3d A = VNULL, const ChVector3d B = VNULL) : pA(A), pB(B) {}
     ChLineSegment(const ChLineSegment& source);
     ~ChLineSegment() {}
@@ -38,6 +42,7 @@ class ChApi ChLineSegment : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_SEGMENT; }
 
+    /// Get the complexity.
     virtual int GetComplexity() const override { return 2; }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
@@ -58,9 +63,6 @@ class ChApi ChLineSegment : public ChLine {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-    ChVector3d pA;  ///< first segment endpoint
-    ChVector3d pB;  ///< second segment endpoint
 };
 
 /// @} chrono_geometry

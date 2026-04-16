@@ -386,7 +386,7 @@ void ChVehicleCosimBaseNode::SendGeometry(const utils::ChBodyGeometry& geom, int
         const auto& trimesh = mesh.trimesh;
         const auto& vertices = trimesh->GetCoordsVertices();
         const auto& normals = trimesh->GetCoordsNormals();
-        const auto& idx_vertices = trimesh->GetIndicesVertexes();
+        const auto& idx_vertices = trimesh->GetIndicesVertices();
         const auto& idx_normals = trimesh->GetIndicesNormals();
         unsigned int nv = trimesh->GetNumVertices();
         unsigned int nn = trimesh->GetNumNormals();
@@ -483,7 +483,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(utils::ChBodyGeometry& geom, int sourc
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         auto& vertices = trimesh->GetCoordsVertices();
         auto& normals = trimesh->GetCoordsNormals();
-        auto& idx_vertices = trimesh->GetIndicesVertexes();
+        auto& idx_vertices = trimesh->GetIndicesVertices();
         auto& idx_normals = trimesh->GetIndicesNormals();
 
         int surf_props[4];
@@ -495,7 +495,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(utils::ChBodyGeometry& geom, int sourc
 
         trimesh->GetCoordsVertices().resize(nv);
         trimesh->GetCoordsNormals().resize(nn);
-        trimesh->GetIndicesVertexes().resize(nt);
+        trimesh->GetIndicesVertices().resize(nt);
         trimesh->GetIndicesNormals().resize(nt);
 
         // Tire mesh vertices & normals and triangle indices

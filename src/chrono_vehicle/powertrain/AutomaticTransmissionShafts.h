@@ -21,7 +21,7 @@
 #define SHAFTS_AUTOMATIC_TRANSMISSION_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 
 namespace chrono {

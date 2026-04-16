@@ -19,7 +19,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "FMU_ForceElementTire.h"
 

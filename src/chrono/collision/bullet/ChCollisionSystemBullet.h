@@ -35,6 +35,9 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     ChCollisionSystemBullet();
     virtual ~ChCollisionSystemBullet();
 
+    /// Return type of the collision system.
+    virtual Type GetType() const override { return Type::BULLET; }
+
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
     virtual void Clear() override;

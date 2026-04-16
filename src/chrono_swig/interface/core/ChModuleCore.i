@@ -80,6 +80,10 @@
 #include "chrono/input_output/ChCheckpoint.h"
 #include "chrono/input_output/ChCheckpointASCII.h"
 #include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsJSON.h"
+#ifdef CHRONO_HAS_YAML
+#include "chrono/input_output/ChUtilsYAML.h"
+#endif
 #include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtils.h"
@@ -96,6 +100,12 @@ using namespace chrono::utils;
 using namespace chrono::fea;
 %}
 
+#ifdef SWIGCSHARP
+%csmethodmodifiers chrono::ChCollisionSystem::GetType "public new"
+#ifdef CHRONO_HAS_YAML
+%csmethodmodifiers chrono::ChYamlFileHandler::GetType "public new"
+#endif
+#endif
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
@@ -456,6 +466,10 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/input_output/ChCheckpoint.h"
 %include "../../../chrono/input_output/ChCheckpointASCII.h"
 %include "../../../chrono/input_output/ChWriterCSV.h"
+%include "../../../chrono/input_output/ChUtilsJSON.h"
+#ifdef CHRONO_HAS_YAML
+%include "../../../chrono/input_output/ChUtilsYAML.h"
+#endif
 %include "../../../chrono/input_output/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChConstants.h"
 %include "../../../chrono/utils/ChUtils.h"

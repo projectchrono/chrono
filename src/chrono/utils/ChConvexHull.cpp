@@ -30,13 +30,13 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 // Return twice the signed area of the triangle {p1,p2,p3}
-double SignedArea(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
+static double SignedArea(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     return (p2.y() - p1.y()) * (p3.x() - p2.x()) - (p2.x() - p1.x()) * (p3.y() - p2.y());
 }
 
 // Utility function to decide relative orientation of 3 points.
 // Returns 0 for collinear points, +1 for clock-wise, -1 for counterclockwise.
-int Orientation(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
+static int Orientation(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     static double eps = 1e-10;
     double val = SignedArea(p1, p2, p3);
 
@@ -46,7 +46,7 @@ int Orientation(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3
 }
 
 // Return true if point p2 is between points p1 and p3 (the 3 points are assumed collinear).
-bool InBetween(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
+static bool InBetween(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     bool a = (p2.x() >= p1.x() && p2.x() <= p3.x()) || (p2.x() <= p1.x() && p2.x() >= p3.x());
     bool b = (p2.y() >= p1.y() && p2.y() <= p3.y()) || (p2.y() <= p1.y() && p2.y() >= p3.y());
     return a && b;

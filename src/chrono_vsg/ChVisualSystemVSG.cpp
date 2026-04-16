@@ -2485,8 +2485,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             if (hull->IsMutable())  // already treated as deformable mesh
                 continue;
             auto trimesh_connected = chrono_types::make_shared<ChTriangleMeshConnected>();
-            bt_utils::ChConvexHullLibraryWrapper lh;
-            lh.ComputeHull(hull->GetPoints(), *trimesh_connected);
+            bt_utils::ChConvexHullLibraryWrapper::ComputeHull(hull->GetPoints(), *trimesh_connected);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
             auto grp =

@@ -1631,15 +1631,15 @@ void ChSystemDemMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
 
     // Writing faces
     ostream << "\n\n";
-    ostream << "CELLS " << mmesh->GetIndicesVertexes().size() << " " << 4 * mmesh->GetIndicesVertexes().size()
+    ostream << "CELLS " << mmesh->GetIndicesVertices().size() << " " << 4 * mmesh->GetIndicesVertices().size()
             << std::endl;
-    for (auto& f : mmesh->GetIndicesVertexes())
+    for (auto& f : mmesh->GetIndicesVertices())
         ostream << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
 
     // Writing face types. Type 5 is generally triangles
     ostream << "\n\n";
-    ostream << "CELL_TYPES " << mmesh->GetIndicesVertexes().size() << std::endl;
-    auto nfaces = mmesh->GetIndicesVertexes().size();
+    ostream << "CELL_TYPES " << mmesh->GetIndicesVertices().size() << std::endl;
+    auto nfaces = mmesh->GetIndicesVertices().size();
     for (size_t j = 0; j < nfaces; j++)
         ostream << "5 " << std::endl;
 
@@ -1717,7 +1717,7 @@ void ChSystemDemMesh::WriteMeshes(const std::string& outfilename) const {
     for (const auto& mmesh : m_meshes) {
         vertexOffset[mesh_num + 1] = (unsigned int)mmesh->GetCoordsVertices().size();
         total_v += mmesh->GetCoordsVertices().size();
-        total_f += mmesh->GetIndicesVertexes().size();
+        total_f += mmesh->GetIndicesVertices().size();
         mesh_num++;
     }
     for (unsigned int i = 1; i < m_meshes.size(); i++)
@@ -1741,7 +1741,7 @@ void ChSystemDemMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "CELLS " << total_f << " " << 4 * total_f << std::endl;
     mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        for (auto& f : mmesh->GetIndicesVertexes()) {
+        for (auto& f : mmesh->GetIndicesVertices()) {
             ostream << "3 " << f.x() + vertexOffset[mesh_num] << " " << f.y() + vertexOffset[mesh_num] << " "
                     << f.z() + vertexOffset[mesh_num] << std::endl;
         }
@@ -1752,7 +1752,7 @@ void ChSystemDemMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "\n\n";
     ostream << "CELL_TYPES " << total_f << std::endl;
     for (const auto& mmesh : m_meshes) {
-        auto nfaces = mmesh->GetIndicesVertexes().size();
+        auto nfaces = mmesh->GetIndicesVertices().size();
         for (size_t j = 0; j < nfaces; j++)
             ostream << "5 " << std::endl;
     }

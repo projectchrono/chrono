@@ -55,7 +55,7 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
         m_trimesh = chrono_types::make_shared<chrono::ChTriangleMeshConnected>();
         m_trimesh->LoadWavefrontMesh(filename, false, true);
         m_trimesh->Transform(chrono::ChVector3d(0, 0, 0), chrono::ChMatrix33<>(scale));
-        m_trimesh->RepairDuplicateVertexes(1e-9);
+        m_trimesh->RepairDuplicateVertices(1e-9);
 
         // Calculate inertia properties
         double density = 1500;
@@ -148,9 +148,9 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
             auto w = frame.TransformPointLocalToParent(v);
             outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
         }
-        auto nf = m_trimesh->GetIndicesVertexes().size();
+        auto nf = m_trimesh->GetIndicesVertices().size();
         outf << "CELLS " << nf << " " << 4 * nf << std::endl;
-        for (auto& f : m_trimesh->GetIndicesVertexes()) {
+        for (auto& f : m_trimesh->GetIndicesVertices()) {
             outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
         }
         outf << "CELL_TYPES " << nf << std::endl;
@@ -228,9 +228,9 @@ void WriteWheelVTK(const std::string& filename, chrono::ChTriangleMeshConnected&
         auto w = frame.TransformPointLocalToParent(v);
         outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
     }
-    auto nf = mesh.GetIndicesVertexes().size();
+    auto nf = mesh.GetIndicesVertices().size();
     outf << "CELLS " << nf << " " << 4 * nf << std::endl;
-    for (auto& f : mesh.GetIndicesVertexes()) {
+    for (auto& f : mesh.GetIndicesVertices()) {
         outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
     }
     outf << "CELL_TYPES " << nf << std::endl;

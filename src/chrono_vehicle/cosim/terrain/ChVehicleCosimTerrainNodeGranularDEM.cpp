@@ -354,9 +354,9 @@ void ChVehicleCosimTerrainNodeGranularDEM::Construct() {
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector3d baricenter;
+        ChVector3d barycenter;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, barycenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetName("obstacle");

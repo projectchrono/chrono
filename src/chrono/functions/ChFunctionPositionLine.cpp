@@ -26,11 +26,11 @@ CH_FACTORY_REGISTER(ChFunctionPositionLine)
 static const double FD_STEP = 1e-4;
 
 ChFunctionPositionLine::ChFunctionPositionLine() {
-    // default trajectory is a segment
-    this->m_trajectory_line = chrono_types::make_shared<ChLineSegment>();
+    // Default trajectory set as linear segment
+    m_trajectory_line = chrono_types::make_shared<ChLineSegment>();
 
-    // default s(t) function. User will provide better fx.
-    m_space_fun = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
+    // Default s(t) function set as linear ramp. User is expected to provide custom function.
+    m_space_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, 1.0);
 }
 
 ChFunctionPositionLine::ChFunctionPositionLine(std::shared_ptr<ChLine> line) {

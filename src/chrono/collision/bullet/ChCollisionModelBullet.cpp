@@ -383,9 +383,8 @@ void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeCo
     model->SetSafeMargin((cbtScalar)std::min((double)safe_margin, approx_chord * 0.2));
 
     // shrink the convex hull by GetSafeMargin()
-    bt_utils::ChConvexHullLibraryWrapper lh;
     ChTriangleMeshConnected mmesh;
-    lh.ComputeHull(points, mmesh);
+    bt_utils::ChConvexHullLibraryWrapper::ComputeHull(points, mmesh);
     mmesh.MakeOffset(-safe_margin);
 
     auto bt_shape = chrono_types::make_shared<cbtConvexHullShape>();

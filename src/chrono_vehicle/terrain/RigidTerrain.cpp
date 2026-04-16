@@ -33,7 +33,7 @@
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_thirdparty/stb/stb.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -322,7 +322,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     patch->m_trimesh->GetCoordsUV().resize(n_verts);
     patch->m_trimesh->GetCoordsColors().resize(n_verts);
 
-    patch->m_trimesh->GetIndicesVertexes().resize(n_faces);
+    patch->m_trimesh->GetIndicesVertices().resize(n_faces);
     patch->m_trimesh->GetIndicesNormals().resize(n_faces);
     patch->m_trimesh->GetIndicesUV().resize(n_faces);
 
@@ -334,7 +334,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     std::vector<ChVector3d>& normals = patch->m_trimesh->GetCoordsNormals();
     std::vector<ChColor>& colors = patch->m_trimesh->GetCoordsColors();
     std::vector<ChVector2d>& uvs = patch->m_trimesh->GetCoordsUV();
-    std::vector<ChVector3i>& idx_vertices = patch->m_trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = patch->m_trimesh->GetIndicesVertices();
     std::vector<ChVector3i>& idx_normals = patch->m_trimesh->GetIndicesNormals();
     std::vector<ChVector3i>& idx_uvs = patch->m_trimesh->GetIndicesUV();
 
@@ -613,11 +613,11 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
             unsigned int v3 = v2 + 1;
             // Alternating triangles for the RHF - i.e. counter-clockwise vertices
             if ((i + j) % 2 == 0) {
-                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v0, v2, v1));
-                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v1, v2, v3));
+                patch->m_trimesh->GetIndicesVertices().push_back(ChVector3i(v0, v2, v1));
+                patch->m_trimesh->GetIndicesVertices().push_back(ChVector3i(v1, v2, v3));
             } else {
-                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v0, v2, v3));
-                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v0, v3, v1));
+                patch->m_trimesh->GetIndicesVertices().push_back(ChVector3i(v0, v2, v3));
+                patch->m_trimesh->GetIndicesVertices().push_back(ChVector3i(v0, v3, v1));
             }
         }
     }
@@ -658,8 +658,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                 continue;
 
             // get the vertices
-            const auto& tri1 = patch->m_trimesh->GetIndicesVertexes()[tri1_index];
-            const auto& tri2 = patch->m_trimesh->GetIndicesVertexes()[tri2_index];
+            const auto& tri1 = patch->m_trimesh->GetIndicesVertices()[tri1_index];
+            const auto& tri2 = patch->m_trimesh->GetIndicesVertices()[tri2_index];
             // Calculate normals for each triangle
             ChVector3d normal1 =
                 Vcross(vertices[tri1.y()] - vertices[tri1.x()], vertices[tri1.z()] - vertices[tri1.x()])
@@ -729,14 +729,14 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     //---------------------------------------------------------------------------
 
     // Repair duplicate vertices
-    ////int merged_vertices = patch->m_trimesh->RepairDuplicateVertexes(1e-18);
+    ////int merged_vertices = patch->m_trimesh->RepairDuplicateVertices(1e-18);
     ////std::cout << "Number of merged vertices: " << merged_vertices << std::endl;
 
     // Taubin smoothing approach, controllable with smoothing factor 0-1
     // Note: Does not set height - this is done in the iterative loop
     // Ensure latest values used
     auto& vertices = patch->m_trimesh->GetCoordsVertices();
-    auto& triangles = patch->m_trimesh->GetIndicesVertexes();
+    auto& triangles = patch->m_trimesh->GetIndicesVertices();
     n_verts = patch->m_trimesh->GetNumVertices();  // update the vertices again
     // Smoothing loop
     if (smoothing_factor != 0) {  // skip if smoothing is zero

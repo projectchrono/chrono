@@ -23,7 +23,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"

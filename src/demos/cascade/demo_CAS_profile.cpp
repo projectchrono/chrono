@@ -12,15 +12,15 @@
 //   Show how to use the OpenCASCADE features
 //   implemented in the unit_CASCADE:
 //
-//   - use the ChCascadeBodyEasy to create a 2D shape with proper mass & inertia
-//   - use the ChCascadeBodyEasy to define a 2D collision profile optimized for smooth arc contacts
+//   - use the ChBodyEasyCascade to create a 2D shape with proper mass & inertia
+//   - use the ChBodyEasyCascade to define a 2D collision profile optimized for smooth arc contacts
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono_cascade/ChCascadeBodyEasy.h"
+#include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChVisualShapeCascade.h"
 #include "chrono/assets/ChVisualSystem.h"
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         pathwheel->AddSubLine(marc0);
     }
 
-    // Create the rotating Geneva wheel using the ChCascadeBodyEasyProfile  body, this will automate
+    // Create the rotating Geneva wheel using the ChBodyEasyCascadeProfile  body, this will automate
     // some useful operations:
     // - it computes a triangulation of face surrounded by profile (and holes, if any) as a visualizer asset
     // - it computes the mass and the inertia tensor given the profile
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     // - it adds a 2D collision profile optimized for 2D-2D collision scenarios, with smooth arc collisions.
     // Might throw exception if some wire path not on XY plane, or not closed.
 
-    auto genevawheel = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
+    auto genevawheel = chrono_types::make_shared<ChBodyEasyCascadeProfile>(
         std::vector<std::shared_ptr<::chrono::ChLinePath>>{pathwheel},      // wire(s) containing the face
         std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
         0.05,                                                               // the thickness
@@ -193,8 +193,8 @@ int main(int argc, char* argv[]) {
     pathcrankstopper->AddSubLine(mstopperve1);
     pathcrankstopper->AddSubLine(mstopperve2);
 
-    // Use the ChCascadeBodyEasyProfile to define a 2D profile, again:
-    auto crank = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
+    // Use the ChBodyEasyCascadeProfile to define a 2D profile, again:
+    auto crank = chrono_types::make_shared<ChBodyEasyCascadeProfile>(
         std::vector<std::shared_ptr<::chrono::ChLinePath>>{pathcrankstopper,
                                                            pathcrankpin},   // wire(s) containing the face
         std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     followerwire->AddSubLine(msfoll3);
     followerwire->AddSubLine(msfoll4);
 
-    auto follower = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
+    auto follower = chrono_types::make_shared<ChBodyEasyCascadeProfile>(
         std::vector<std::shared_ptr<::chrono::ChLinePath>>{followerwire},   // wire(s) containing the face
         std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
         0.09,                                                               // the thickness

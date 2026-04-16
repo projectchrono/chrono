@@ -316,7 +316,7 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         }
     }
 
-    // Create the driver systems and initialize from checkpint files
+    // Create the driver systems and initialize from checkpoint files
     ChDriver driver_1(vehicle_1);
     ChDriver driver_2(vehicle_2);
     driver_1.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/driver_checkpoint.txt");

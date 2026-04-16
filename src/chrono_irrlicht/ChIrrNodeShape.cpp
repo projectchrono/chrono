@@ -55,7 +55,7 @@ void ChIrrNodeShape::Update() {
     }
 
     if (auto trianglemesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(m_shape)) {
-        if (trianglemesh->FixedConnectivity())
+        if (trianglemesh->IsFixedConnectivity())
             UpdateTriangleMeshFixedConnectivity(trianglemesh);
         else
             UpdateTriangleMesh(trianglemesh);
@@ -123,7 +123,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
     const auto& uvs = mesh->GetCoordsUV();
     const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& c_indices = mesh->GetIndicesColors();
@@ -231,7 +231,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
     const auto& normals = mesh->GetCoordsNormals();
     const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& m_indices = mesh->GetIndicesMaterials();
@@ -369,9 +369,9 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisua
     std::vector<ChVector3d>& normals = mesh->GetCoordsNormals();
     std::vector<ChVector2d>& uvs = mesh->GetCoordsUV();
     std::vector<ChColor>& colors = mesh->GetCoordsColors();
-    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertices();
 
-    unsigned int ntriangles = (unsigned int)mesh->GetIndicesVertexes().size();
+    unsigned int ntriangles = (unsigned int)mesh->GetIndicesVertices().size();
     unsigned int nvertices = (unsigned int)mesh->GetCoordsVertices().size();
     unsigned int nuvs = (unsigned int)mesh->GetCoordsUV().size();
     unsigned int ncolors = (unsigned int)mesh->GetCoordsColors().size();

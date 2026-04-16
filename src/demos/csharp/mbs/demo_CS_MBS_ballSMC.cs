@@ -23,7 +23,7 @@ namespace ChronoDemo
 {
     internal class Program
     {
-        // Helper method to create visualisation system
+        // Helper method to create visualization system
         static ChVisualSystem CreateVisualizationSystem(ChSystemSMC sys)
         {
 #if CHRONO_VSG

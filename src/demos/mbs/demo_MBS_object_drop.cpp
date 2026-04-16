@@ -166,8 +166,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, 3, -6));
             vis_irr->AttachSystem(sys.get());
-            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.105, 0), QuatFromAngleX(CH_PI_2)),
-                             ChColor(0.1f, 0.1f, 0.1f));
+            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.105, 0), QuatFromAngleX(CH_PI_2)), ChColor(0.1f, 0.1f, 0.1f));
 
             vis = vis_irr;
 #endif
@@ -187,8 +186,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
-            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.105, 0), QuatFromAngleX(CH_PI_2)),
-                             ChColor(0.1f, 0.1f, 0.1f));
+            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.105, 0), QuatFromAngleX(CH_PI_2)), ChColor(0.1f, 0.1f, 0.1f));
             vis_vsg->Initialize();
 
             vis = vis_vsg;

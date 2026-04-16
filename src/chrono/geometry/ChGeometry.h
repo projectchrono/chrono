@@ -147,7 +147,7 @@ class ChApi ChGeometry {
     virtual double GetBoundingSphereRadius() const;
 
     /// Compute center of mass.
-    virtual ChVector3d Baricenter() const { return VNULL; }
+    virtual ChVector3d Barycenter() const { return VNULL; }
 
     /// Returns the dimension of the geometry
     /// (0=point, 1=line, 2=surface, 3=solid)

@@ -24,7 +24,7 @@
 
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtils.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "FMU_PathFollowerDriver.h"

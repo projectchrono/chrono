@@ -53,6 +53,13 @@ double ChFunctionPoly::GetDer2(double x) const {
     return total;
 }
 
+void ChFunctionPoly::SetCoefficients(const std::vector<double>& coeffs) {
+    if (coeffs.size() < 1)
+        throw std::invalid_argument("ChFunctionPoly::SetCoefficients: coefficients vector should have at least one element.");
+
+    m_coeffs = coeffs;
+}
+
 void ChFunctionPoly::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChFunctionPoly>();

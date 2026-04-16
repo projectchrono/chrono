@@ -28,22 +28,20 @@ class ChApi ChFunctionBSpline : public ChFunction {
   public:
     /// Generic univariate B-Spline of order \a p, approximating given control points.
     /// If knot vector is not provided, initialize it as equally spaced and clamped at both ends.
-    ChFunctionBSpline(int p,                             ///< order
-                      const ChVectorDynamic<>& cpoints,  ///< control points
-                      ChVectorDynamic<>* knots = 0       ///< knot vector
+    ChFunctionBSpline(int p,                              ///< order
+                      const ChVectorDynamic<>& cpoints,   ///< control points
+                      ChVectorDynamic<>* knots = nullptr  ///< knot vector
     );
 
     /// Univariate B-Spline of order p, exactly interpolating given waypoints and derivatives:
     /// internally solve linear problem A * b = c to find proper constrained control points
     /// (eg. useful to pass through given points with assigned velocities, at specific times).
     /// If knot vector is not provided, initialize it as equally spaced and clamped at both ends.
-    ChFunctionBSpline(
-        int p,                                 ///< order
-        const ChVectorDynamic<>& x_interp,     ///< parameters (eg. times) at which to perform interpolation
-        const ChVectorDynamic<>& y_dN_interp,  ///< output value to interpolate, Nth derivative: y(x)^(Nth)
-        const ChVectorDynamic<int>&
-            der_order,                ///< derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
-        ChVectorDynamic<>* knots = 0  ///< knot vector
+    ChFunctionBSpline(int p,                                  ///< order
+                      const ChVectorDynamic<>& x_interp,      ///< parameters (eg. times) at which to perform interpolation
+                      const ChVectorDynamic<>& y_dN_interp,   ///< output value to interpolate, Nth derivative: y(x)^(Nth)
+                      const ChVectorDynamic<int>& der_order,  ///< derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
+                      ChVectorDynamic<>* knots = nullptr      ///< knot vector
     );
 
     ChFunctionBSpline(const ChFunctionBSpline& other);
@@ -90,13 +88,11 @@ class ChApi ChFunctionBSpline : public ChFunction {
 
     /// Recompute B-Spline control points to exactly interpolate given waypoints and derivatives
     /// (eg. satisfy position, velocity, acceleration constraints).
-    virtual void ApplyInterpolationConstraints(
-        int p,                                 ///< order
-        const ChVectorDynamic<>& x_interp,     ///< parameters (eg. times) at which perform interpolation
-        const ChVectorDynamic<>& y_dN_interp,  ///< output value to interpolate, Nth derivative: y(x)^(Nth)
-        const ChVectorDynamic<int>
-            der_order,                ///< derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
-        ChVectorDynamic<>* knots = 0  ///< knot vector
+    virtual void ApplyInterpolationConstraints(int p,                                 ///< order
+                                               const ChVectorDynamic<>& x_interp,     ///< parameters (eg. times) at which perform interpolation
+                                               const ChVectorDynamic<>& y_dN_interp,  ///< output value to interpolate, Nth derivative: y(x)^(Nth)
+                                               const ChVectorDynamic<int> der_order,  ///< derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
+                                               ChVectorDynamic<>* knots = 0           ///< knot vector
     );
 
     /// Method to allow serialization of transient data to archives.

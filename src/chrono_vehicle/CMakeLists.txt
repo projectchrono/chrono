@@ -250,8 +250,8 @@ set(CV_UTILS_FILES
     utils/ChAdaptiveSpeedController.cpp
     utils/ChVehiclePath.h
     utils/ChVehiclePath.cpp
-    utils/ChUtilsJSON.h
-    utils/ChUtilsJSON.cpp
+    utils/ChVehicleUtilsJSON.h
+    utils/ChVehicleUtilsJSON.cpp
 )
 source_group("utils" FILES ${CV_UTILS_FILES})
 

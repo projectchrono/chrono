@@ -1012,11 +1012,11 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
     if (!mesh_found) {
         // make sure chrono mesh is setup as expected
         if (mesh->GetIndicesMaterials().size() == 0) {
-            mesh->GetIndicesMaterials() = std::vector<int>(mesh->GetIndicesVertexes().size(), 0);
+            mesh->GetIndicesMaterials() = std::vector<int>(mesh->GetIndicesVertices().size(), 0);
         }
 
         // move the chrono data to contiguous data structures to be copied to gpu
-        std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->GetIndicesVertexes().size());
+        std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->GetIndicesVertices().size());
         std::vector<uint4> normal_index_buffer = std::vector<uint4>(mesh->GetIndicesNormals().size());
         std::vector<uint4> uv_index_buffer = std::vector<uint4>(mesh->GetIndicesUV().size());
         std::vector<unsigned int> mat_index_buffer;
@@ -1025,10 +1025,10 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         std::vector<float2> uv_buffer = std::vector<float2>(mesh->GetCoordsUV().size());
 
         // not optional for vertex indices
-        for (int i = 0; i < mesh->GetIndicesVertexes().size(); i++) {
-            vertex_index_buffer[i] = make_uint4((unsigned int)mesh->GetIndicesVertexes()[i].x(),  //
-                                                (unsigned int)mesh->GetIndicesVertexes()[i].y(),  //
-                                                (unsigned int)mesh->GetIndicesVertexes()[i].z(), 0);
+        for (int i = 0; i < mesh->GetIndicesVertices().size(); i++) {
+            vertex_index_buffer[i] = make_uint4((unsigned int)mesh->GetIndicesVertices()[i].x(),  //
+                                                (unsigned int)mesh->GetIndicesVertices()[i].y(),  //
+                                                (unsigned int)mesh->GetIndicesVertices()[i].z(), 0);
         }
 
         uint4* d_vertex_index_buffer = {};
@@ -1203,7 +1203,7 @@ unsigned int ChOptixPipeline::GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
 
     unsigned int mesh_id = m_material_records[mat_id].data.mesh_pool_id;
     CUdeviceptr d_normals = reinterpret_cast<CUdeviceptr>(m_mesh_pool[mesh_id].normal_buffer);
-    unsigned int num_triangles = static_cast<unsigned int>(mesh_shape->GetMesh()->GetIndicesVertexes().size());
+    unsigned int num_triangles = static_cast<unsigned int>(mesh_shape->GetMesh()->GetIndicesVertices().size());
     m_deformable_meshes.push_back(std::make_tuple(mesh_shape, d_vertices, d_normals, num_triangles));
 
     return mat_id;
@@ -1219,7 +1219,7 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
         auto mesh = mesh_shape->GetMesh();
 
         // if the mesh has changed size, we need to recreate the entire mesh (not very nice)
-        if (num_prev_triangles != mesh_shape->GetMesh()->GetIndicesVertexes().size()) {
+        if (num_prev_triangles != mesh_shape->GetMesh()->GetIndicesVertices().size()) {
             throw std::runtime_error("Error: changing mesh size not supported by Chrono::Sensor");
         }
 

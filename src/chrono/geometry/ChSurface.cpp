@@ -57,6 +57,7 @@ void ChSurface::ArchiveOut(ChArchiveOut& archive_out) {
     ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
     // archive_out << CHNVP(closed);
+    archive_out << CHNVP(wireframe);
 }
 
 void ChSurface::ArchiveIn(ChArchiveIn& archive_in) {
@@ -66,6 +67,7 @@ void ChSurface::ArchiveIn(ChArchiveIn& archive_in) {
     ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
     // archive_in >> CHNVP(closed);
+    archive_in >> CHNVP(wireframe);
 }
 
 }  // end namespace chrono

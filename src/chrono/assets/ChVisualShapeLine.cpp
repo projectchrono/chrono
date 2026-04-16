@@ -32,6 +32,7 @@ void ChVisualShapeLine::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(gline);
     archive_out << CHNVP(npoints);
     archive_out << CHNVP(thickness);
+    archive_out << CHNVP(name);
 }
 
 void ChVisualShapeLine::ArchiveIn(ChArchiveIn& archive_in) {
@@ -43,6 +44,7 @@ void ChVisualShapeLine::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(gline);
     archive_in >> CHNVP(npoints);
     archive_in >> CHNVP(thickness);
+    archive_in >> CHNVP(name);
 }
 
 }  // end namespace chrono

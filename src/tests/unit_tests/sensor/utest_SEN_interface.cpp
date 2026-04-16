@@ -202,7 +202,7 @@ TEST(SensorInterface, mesh_channels) {
     // triangle with only verts and vert ids
     auto triangle = chrono_types::make_shared<ChTriangleMeshConnected>();
     triangle->GetCoordsVertices() = vertices;
-    triangle->GetIndicesVertexes() = vert_ids;
+    triangle->GetIndicesVertices() = vert_ids;
 
     auto triangle_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     triangle_shape->SetMesh(triangle);

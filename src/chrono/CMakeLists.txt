@@ -1138,19 +1138,29 @@ set(Chrono_inputoutput_HEADERS
     input_output/ChCheckpointASCII.h
     input_output/ChWriterCSV.h
     input_output/ChUtilsInputOutput.h
+    input_output/ChUtilsJSON.h
 )
 set(Chrono_inputoutput_SOURCES
     input_output/ChOutputASCII.cpp
     input_output/ChCheckpointASCII.cpp
     input_output/ChWriterCSV.cpp
     input_output/ChUtilsInputOutput.cpp
+    input_output/ChUtilsJSON.cpp
 )
-if (HDF5_FOUND)
+if(HDF5_FOUND)
     set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
         input_output/ChOutputHDF5.h
     )
     set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
         input_output/ChOutputHDF5.cpp
+    )
+endif()
+if(CHRONO_YAML_ENABLED)
+    set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChUtilsYAML.h
+    )
+    set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChUtilsYAML.cpp
     )
 endif()
 source_group(input_output FILES ${Chrono_inputoutput_SOURCES} ${Chrono_inputoutput_HEADERS})
@@ -1470,6 +1480,10 @@ if(HDF5_FOUND)
       target_include_directories(Chrono_core PUBLIC ${HDF5_INCLUDE_DIRS})
       target_link_libraries(Chrono_core PUBLIC ${HDF5_CXX_LIBRARIES})
     endif()
+endif()
+
+if(CHRONO_YAML_ENABLED)
+  target_link_libraries(Chrono_core PUBLIC yaml-cpp::yaml-cpp)
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.

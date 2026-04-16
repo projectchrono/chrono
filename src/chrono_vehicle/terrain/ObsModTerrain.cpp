@@ -209,7 +209,7 @@ void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
 void ObsModTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     auto& coords = m_mesh->GetCoordsVertices();
-    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& indices = m_mesh->GetIndicesVertices();
     auto& normals = m_mesh->GetCoordsNormals();
     auto& normidx = m_mesh->GetIndicesNormals();
 

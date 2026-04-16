@@ -190,7 +190,7 @@ void ChContactTriangleXYZ::ContactComputeQ(const ChVector3d& F,
     double s2, s3;
     bool is_into;
     ChVector3d p_projected;
-    /*double dist =*/utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    /*double dist =*/utils::PointTrianglePlaneDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
     Q.segment(offset + 0, 3) = F.eigen() * s1;
@@ -209,7 +209,7 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_p
     double s2, s3;
     bool is_into;
     ChVector3d p_projected;
-    /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->pos, GetNode(1)->pos, GetNode(2)->pos, s2, s3,
+    /*double dist =*/utils::PointTrianglePlaneDistance(abs_point, GetNode(0)->pos, GetNode(1)->pos, GetNode(2)->pos, s2, s3,
                                                   is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
@@ -301,7 +301,7 @@ ChVector3d ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
 void ChContactTriangleXYZ::ComputeUVfromP(const ChVector3d& P, double& u, double& v) {
     bool is_into;
     ChVector3d p_projected;
-    /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->pos, m_nodes[1]->pos, m_nodes[2]->pos, u, v, is_into,
+    /*double dist =*/utils::PointTrianglePlaneDistance(P, m_nodes[0]->pos, m_nodes[1]->pos, m_nodes[2]->pos, u, v, is_into,
                                                   p_projected);
 }
 
@@ -488,7 +488,7 @@ void ChContactTriangleXYZRot::ContactComputeQ(const ChVector3d& F,
     double s2, s3;
     bool is_into;
     ChVector3d p_projected;
-    utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    utils::PointTrianglePlaneDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 6, 3) = F.eigen() * s2;
@@ -515,7 +515,7 @@ void ChContactTriangleXYZRot::ComputeJacobianForContactPart(const ChVector3d& ab
     double s2, s3;
     bool is_into;
     ChVector3d p_projected;
-    /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->GetPos(), GetNode(1)->GetPos(),
+    /*double dist =*/utils::PointTrianglePlaneDistance(abs_point, GetNode(0)->GetPos(), GetNode(1)->GetPos(),
                                                   GetNode(2)->GetPos(), s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
@@ -612,7 +612,7 @@ ChVector3d ChContactTriangleXYZRot::ComputeNormal(const double U, const double V
 void ChContactTriangleXYZRot::ComputeUVfromP(const ChVector3d& P, double& u, double& v) {
     bool is_into;
     ChVector3d p_projected;
-    /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->GetPos(), m_nodes[1]->GetPos(), m_nodes[2]->GetPos(),
+    /*double dist =*/utils::PointTrianglePlaneDistance(P, m_nodes[0]->GetPos(), m_nodes[1]->GetPos(), m_nodes[2]->GetPos(),
                                                   u, v, is_into, p_projected);
 }
 
@@ -715,7 +715,7 @@ void ChContactSurfaceMesh::ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshCo
     }
 
     std::vector<NodeTripletXYZ> triangles_ptrs;
-    for (const auto& tri : trimesh->GetIndicesVertexes()) {
+    for (const auto& tri : trimesh->GetIndicesVertices()) {
         const auto& node0 = nodes[tri[0]];
         const auto& node1 = nodes[tri[1]];
         const auto& node2 = nodes[tri[2]];

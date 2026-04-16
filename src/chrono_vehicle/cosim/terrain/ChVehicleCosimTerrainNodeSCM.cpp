@@ -216,9 +216,9 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector3d baricenter;
+        ChVector3d barycenter;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, barycenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetPos(b.m_init_pos);

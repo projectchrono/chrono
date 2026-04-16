@@ -510,9 +510,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector3d baricenter;
+        ChVector3d barycenter;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, barycenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetName("obstacle");
@@ -861,7 +861,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
-    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    const auto& idx_verts = trimesh->GetIndicesVertices();
     int nt = trimesh->GetNumTriangles();
 
     // shape_data contains all triangle vertex locations, in groups of three real3, one group for each triangle.
@@ -947,7 +947,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
-    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    const auto& idx_verts = trimesh->GetIndicesVertices();
     int nt = trimesh->GetNumTriangles();
 
     // Maintain an unordered map of vertex indices and associated contact forces.

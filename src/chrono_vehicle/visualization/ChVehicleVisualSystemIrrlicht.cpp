@@ -25,7 +25,7 @@
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 

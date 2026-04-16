@@ -25,9 +25,6 @@ namespace chrono {
 /// Polynomial function.
 /// `y = a + b*x + c*x^2 + d*x^3 + ...`
 class ChApi ChFunctionPoly : public ChFunction {
-  private:
-    std::vector<double> m_coeffs;
-
   public:
     ChFunctionPoly();
     ChFunctionPoly(const ChFunctionPoly& other);
@@ -41,17 +38,11 @@ class ChApi ChFunctionPoly : public ChFunction {
     virtual double GetDer(double x) const override;
     virtual double GetDer2(double x) const override;
 
-    /// Set the polynomial coefficients.
-    /// The order of the polynome is equal to the size of the provided vector of coefficients
-    void SetCoefficients(const std::vector<double>& coeffs) {
-        if (coeffs.size() < 1)
-            throw std::invalid_argument(
-                "ChFunctionPoly::SetCoefficients: coefficients vector should have at least one element.");
+    /// Set the polynomial coefficients (ascending order).
+    /// The order of the polynomial is equal to the size of the provided vector of coefficients.
+    void SetCoefficients(const std::vector<double>& coeffs);
 
-        m_coeffs = coeffs;
-    }
-
-    /// Get the polynomial coefficients.
+    /// Get the polynomial coefficients (ascending order).
     std::vector<double> GetCoefficients() const { return m_coeffs; }
 
     /// Get the order of the polynomial.
@@ -66,6 +57,9 @@ class ChApi ChFunctionPoly : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::vector<double> m_coeffs;
 };
 
 /// @} chrono_functions

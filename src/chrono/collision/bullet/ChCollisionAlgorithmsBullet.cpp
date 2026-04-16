@@ -1166,7 +1166,7 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             double u = 0, v = 0;
             bool in_triangle = false;
             ChVector3d p_projected;
-            double dist = utils::PointTriangleDistance(point, vt1, vt2, vt3, u, v, in_triangle, p_projected);
+            double dist = utils::PointTrianglePlaneDistance(point, vt1, vt2, vt3, u, v, in_triangle, p_projected);
             if (in_triangle) {
                 if (dist > min_allowed_dist && dist < max_allowed_dist) {
                     if (!flip_contact)

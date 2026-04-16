@@ -27,7 +27,7 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"

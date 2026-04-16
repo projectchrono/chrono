@@ -43,14 +43,14 @@ ChVector3d ChLine::GetTangent(double parU) const {
         uA = parU;
     }
 
-    auto vA = Evaluate(uA);
-    auto vB = Evaluate(uB);
+    ChVector3d vA = Evaluate(uA);
+    ChVector3d vB = Evaluate(uB);
 
-    return (vB - vA) * (1 / bdf);
+    return (vB - vA) * (1. / bdf);
 }
 
-bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approxU, double tol) const {
-    double mu;
+bool ChLine::FindNearestLinePoint(const ChVector3d& point, double& resU, double approxU, double tol) const {
+    double mu = 0;
     int points = 20;
     double bestU = 0;
     double bestdist = 9999999;
@@ -60,11 +60,11 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
 
     ChVector3d vres, vp1, vp2;
 
-    points = this->GetComplexity();
+    points = GetComplexity();
 
-    points = points * 4;  // double sampling along line.
+    points = points * 4;  // double sampling along line
 
-    // first approximation
+    // First approximation
     for (int i = 0; i <= points; i++) {
         mu = (double)i / (double)points;
         vres = Evaluate(mu);
@@ -74,10 +74,11 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
             bestU = mu;
         }
     }
-    // refine position with pseudo-NR
-    double step = 1 / (double)points;
+
+    // Refine position with pseudo-NR
+    double step = 1.0 / (double)points;
     double nrU = bestU;
-    double u1, u2;
+    double u1 = 0, u2 = 0;
 
     u1 = nrU - step;
     if (u1 < 0) {
@@ -86,7 +87,7 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
         else
             u1 = u1 + 1;
     }
-    vres = this->Evaluate(u1);
+    vres = Evaluate(u1);
     d1 = Vlength(Vsub(vres, point));
     vp1 = vres;
 
@@ -97,7 +98,7 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
         else
             u2 = u2 - 1;
     }
-    vres = this->Evaluate(u2);
+    vres = Evaluate(u2);
     d2 = Vlength(Vsub(vres, point));
     vp2 = vres;
 
@@ -116,7 +117,7 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
             else
                 nrU = nrU - 1;
         }
-        vres = this->Evaluate(nrU);
+        vres = Evaluate(nrU);
         dist = Vlength(Vsub(vres, point));
 
         bestU = nrU;
@@ -153,21 +154,21 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
     return true;
 }
 
-double ChLine::CurveCurveDist(ChLine* compline, int samples) const {
+double ChLine::CurveCurveDist(const ChLine* compline, int samples) const {
     double mres = 0;
-    double par;
+    double par = 0;
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
         ChVector3d ptB = compline->Evaluate(par);
-        this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector3d ptA = this->Evaluate(mpos);
+        FindNearestLinePoint(ptB, mpos, 0, 0.00002);
+        ChVector3d ptA = Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     // ..and vice-versa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector3d ptB = this->Evaluate(par);
+        ChVector3d ptB = Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
         ChVector3d ptA = compline->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
@@ -176,24 +177,24 @@ double ChLine::CurveCurveDist(ChLine* compline, int samples) const {
     return (mres / (samples * 2));
 }
 
-double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
+double ChLine::CurveCurveDistMax(const ChLine* compline, int samples) const {
     double mres = 0;
-    double par;
-    double mdis;
+    double par = 0;
+    double mdis = 0;
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
-        double mpos;
+        double mpos = 0;
         ChVector3d ptB = compline->Evaluate(par);
-        this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector3d ptA = this->Evaluate(mpos);
+        FindNearestLinePoint(ptB, mpos, 0, 0.00002);
+        ChVector3d ptA = Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
     }
     // ..and vice-versa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
-        double mpos;
-        ChVector3d ptB = this->Evaluate(par);
+        double mpos = 0;
+        ChVector3d ptB = Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
         ChVector3d ptA = compline->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
@@ -204,53 +205,53 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
     return mres;
 }
 
-double ChLine::CurveSegmentDist(ChLine* complinesegm, int samples) const {
+double ChLine::CurveSegmentDist(const ChLine* complinesegm, int samples) const {
     double mres = 0;
-    double par;
+    double par = 0;
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
-        double mpos;
+        double mpos = 0;
         ChVector3d ptB = complinesegm->Evaluate(par);
-        this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector3d ptA = this->Evaluate(mpos);
+        FindNearestLinePoint(ptB, mpos, 0, 0.00002);
+        ChVector3d ptA = Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     return (mres / samples);
 }
 
-double ChLine::CurveSegmentDistMax(ChLine* complinesegm, int samples) const {
+double ChLine::CurveSegmentDistMax(const ChLine* complinesegm, int samples) const {
     double mres = 0;
-    double par;
-    double mdis;
+    double par = 0;
+    double mdis = 0;
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
-        double mpos;
+        double mpos = 0;
         ChVector3d ptB = complinesegm->Evaluate(par);
-        this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector3d ptA = this->Evaluate(mpos);
+        FindNearestLinePoint(ptB, mpos, 0, 0.00002);
+        ChVector3d ptA = Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
     }
-    return (mres);
+    return mres;
 }
 
 double ChLine::Length(int sampling) const {
     double mres = 0;
-    double par, step;
+    double par = 0, step = 0;
 
     if (!closed)
-        step = 1 / ((double)(GetComplexity() - 1));
+        step = 1.0 / ((double)(GetComplexity() - 1));
     else
-        step = 1 / ((double)(GetComplexity()));
+        step = 1.0 / ((double)(GetComplexity()));
 
     if (sampling > 1)
         step = step / (double)sampling;
 
-    ChVector3d pA = this->Evaluate(0.0);
+    ChVector3d pA = Evaluate(0.0);
     ChVector3d pB;
     for (par = 0; par <= 1.000000001; par = par + step) {
-        pB = this->Evaluate(par);
+        pB = Evaluate(par);
         mres += Vlength(Vsub(pA, pB));
         pA = pB;
     }
