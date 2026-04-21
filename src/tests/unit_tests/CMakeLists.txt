@@ -96,6 +96,7 @@ if(BUILD_TESTING_BASE)
   ADD_SUBDIRECTORY(physics)
   ADD_SUBDIRECTORY(joints)
   ADD_SUBDIRECTORY(smc_contact/sequential)
+  ADD_SUBDIRECTORY(geometry)
 endif()
 
 option(BUILD_TESTING_FEA "Build unit tests for FEA module" TRUE)
@@ -186,4 +187,3 @@ if(CH_ENABLE_MODULE_FSI_SPH)
     ADD_SUBDIRECTORY(fsi/sph)
   endif()
 endif()
-
