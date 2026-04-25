@@ -16,9 +16,14 @@
 
 #pragma once
 
-#include <cub/cub.cuh>
+#include "chrono_dem/cuda/ChGpuRuntime.h"
 
-#include <cuda.h>
+#if defined(CHRONO_USE_HIP)
+    #include <hipcub/hipcub.hpp>
+    namespace cub = hipcub;
+#else
+    #include <cub/cub.cuh>
+#endif
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -369,7 +374,7 @@ inline __device__ void findNewLocalCoords(ChSystemDem_impl::GranSphereDataPtr sp
             (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, (float)gran_params->BD_frame_X * l_unit,
             (float)gran_params->BD_frame_Y * l_unit, (float)gran_params->BD_frame_Z * l_unit);
         __threadfence();
-        cuda::std::terminate();
+        CHGPU_DEVICE_ABORT();
     }
 
     // write local pos back to global memory

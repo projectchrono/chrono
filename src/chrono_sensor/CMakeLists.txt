@@ -37,7 +37,10 @@ set(CH_USE_SENSOR_OPTIX TRUE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor f
 
 if(CH_USE_SENSOR_OPTIX)
 
-  if(CHRONO_CUDA_FOUND)
+  if(CHRONO_HIP_FOUND)
+    message(STATUS "WARNING: Chrono::Sensor / OptiX is CUDA-only and not supported with HIP; disabling OptiX-dependent features")
+    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
+  elseif(CHRONO_CUDA_FOUND)
     message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
   
     message(STATUS "Looking for OptiX")

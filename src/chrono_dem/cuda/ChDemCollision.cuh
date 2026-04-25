@@ -19,6 +19,22 @@
 #include "chrono_dem/ChDemDefines.h"
 #include "chrono_dem/cuda/ChCudaMathUtils.cuh"
 
+__device__ inline double chrono_dem_drcp_ru_compat(double value) {
+#if defined(CHRONO_USE_HIP)
+    return __drcp_rn(value);
+#else
+    return __drcp_ru(value);
+#endif
+}
+
+__device__ inline double chrono_dem_dmul_ru_compat(double lhs, double rhs) {
+#if defined(CHRONO_USE_HIP)
+    return __dmul_rn(lhs, rhs);
+#else
+    return __dmul_ru(lhs, rhs);
+#endif
+}
+
 /// @addtogroup dem_cuda
 /// @{
 
@@ -89,9 +105,9 @@ __device__ bool snap_to_face(const double3& A, const double3& B, const double3& 
 
     // P inside face region. Return projection of P onto face
     // barycentric coordinates (u,v,w)
-    double denom = __drcp_ru(va + vb + vc);
-    double v = __dmul_ru(vb, denom);
-    double w = __dmul_ru(vc, denom);
+    double denom = chrono_dem_drcp_ru_compat(va + vb + vc);
+    double v = chrono_dem_dmul_ru_compat(vb, denom);
+    double w = chrono_dem_dmul_ru_compat(vc, denom);
     res = A + v * AB + w * AC;  // = u*A + v*B + w*C  where  (u = 1 - v - w)
     return false;
 }

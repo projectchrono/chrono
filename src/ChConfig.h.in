@@ -189,12 +189,16 @@
 @CHRONO_HAS_CUDA@
 @CHRONO_CUDA_VERSION@
 
+// If HIP is available, define CHRONO_HAS_HIP and set HIP/ROCm version
+@CHRONO_HAS_HIP@
+@CHRONO_HIP_VERSION@
+
 // If THRUST is available, define CHRONO_HAS_THRUST and set Thrust version
 @CHRONO_HAS_THRUST@
 @CHRONO_THRUST_VERSION@
 
-// If CUDA is not available, force Thrust to always use the OMP backend
-#ifndef CHRONO_HAS_CUDA
+// If neither CUDA nor HIP is available, force Thrust to always use the OMP backend
+#if !defined(CHRONO_HAS_CUDA) && !defined(CHRONO_HAS_HIP)
   #ifndef THRUST_DEVICE_SYSTEM
     #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
   #endif
