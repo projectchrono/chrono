@@ -1206,8 +1206,16 @@ void ChSystemDem_impl::initializeSpheres() {
     int dev_ID;
     demErrchk(cudaGetDevice(&dev_ID));
     // these two will be mostly read by everyone
+#if defined(CUDART_VERSION) && (CUDART_VERSION >= 13000)
+    cudaMemLocation dev_location{};
+    dev_location.type = cudaMemLocationTypeDevice;
+    dev_location.id = dev_ID;
+    demErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_location));
+    demErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_location));
+#else
     demErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID));
     demErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
+#endif
 
     INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU,
                 stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
