@@ -41,7 +41,6 @@ ChApi bool LineLineIntersect(const ChVector3d& p1, const ChVector3d& p2, const C
 ChApi double PointLineDistance(const ChVector3d& B, const ChVector3d& A1, const ChVector3d& A2, double& u, bool& in_segment);
 
 /// Calculate and return distance of a point from a triangle surface plane.
-/// Returned distance value is positive if given point lies on triangle 'out' side (out is where points A1 A2 A3 can be read in clockwise fashion).
 /// Additionally:
 /// - compute projected point in barycentric coordinates u, v
 /// - check if point projection lies inside the triangle ('in_triangle' set to true)

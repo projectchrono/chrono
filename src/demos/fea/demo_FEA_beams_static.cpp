@@ -217,13 +217,13 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.20, 0), 0, VECT_Y),
+        tools::DrawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.20, 0), 0, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.45, -0.25), CH_PI_2, VECT_X),
+        tools::DrawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.45, -0.25), CH_PI_2, VECT_X),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.001, -0.20, -0.25), CH_PI_2, VECT_Y),
+        tools::DrawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.001, -0.20, -0.25), CH_PI_2, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
         sys.DoStepDynamics(0.001);

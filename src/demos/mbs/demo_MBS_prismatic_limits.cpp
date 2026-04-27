@@ -142,9 +142,9 @@ int main(int argc, char* argv[]) {
 
         vis->BeginScene();
         vis->Render();
-        tools::drawSegment(vis.get(), ChVector3d(+2, 0, 0), ChVector3d(+2, 0, -2), ChColor(1, 0.5f, 0), true);
+        tools::DrawSegment(vis.get(), ChVector3d(+2, 0, 0), ChVector3d(+2, 0, -2), ChColor(1, 0.5f, 0), true);
         if (max_lim_enabled) {
-            tools::drawSegment(vis.get(), ChVector3d(-1, 0, 0), ChVector3d(-1, 0, -2), ChColor(1, 0.5f, 0), true);
+            tools::DrawSegment(vis.get(), ChVector3d(-1, 0, 0), ChVector3d(-1, 0, -2), ChColor(1, 0.5f, 0), true);
         }
         vis->EndScene();
 

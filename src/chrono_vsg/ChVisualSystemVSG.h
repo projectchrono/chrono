@@ -621,14 +621,26 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the body COM frame.
     void BindCOMFrame(const std::shared_ptr<ChBody>& body);
 
-    /// Bind the body COM symbols.
-    void BindCOMSymbols();
+    /// Create body label text.
+    void CreateBodyLabel(const std::shared_ptr<ChBody>& body);
 
     /// Bind the link frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
-    /// Bind the body and link labels.
-    void BindLabels();
+    /// Create body label text.
+    void CreateLinkLabel(const std::shared_ptr<ChLinkBase>& link);
+
+    /// Bind the body COM symbols.
+    /// This function creates (if needed) the node in the COM symbol scene and caches the VSG symbol positions.
+    void BindCOMSymbols(const std::vector<ChVector3d>& c_pos);
+
+    /// Bind the body labels.
+    /// This function creates (if needed) the nodes in the body label scene and caches the VSG label texts.
+    void BindBodyLabels();
+
+    /// Bind the link labels.
+    /// This function creates (if needed) the nodes in the link label scene and caches the VSG label texts.
+    void BindLinkLabels();
 
     /// Populate a VSG group with non-mutable visualization shapes (from the given visual model).
     void PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
@@ -728,8 +740,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     vsg::ref_ptr<vsg::vec3Array> m_com_symbol_vertices;
     vsg::ref_ptr<vsg::vec4Array> m_com_symbol_positions;
-    bool m_com_size_changed;
-    bool m_com_symbols_empty;
+    bool m_com_symbol_size_changed;
 
     // Labels
     std::string m_label_font_path;         ///< path to label font

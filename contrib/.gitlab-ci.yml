@@ -275,9 +275,10 @@ linux:ubuntu22.04-clang:arm64:test:
     - ninja test
   dependencies: ["linux:ubuntu22.04-clang:arm64:build"]
 
-.ubuntu-deploy-base:
+.ubuntu-deploy-base:amd64:
   tags:
     - linux
+    - amd64
   image:
       name: uwsbel/packages:cuda12.8.1
   before_script:
@@ -305,27 +306,81 @@ linux:ubuntu22.04-clang:arm64:test:
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
   environment:
-    name: pychrono-ubuntu22.04
+    name: pychrono-ubuntu22.04-amd64
     url: https://anaconda.org/projectchrono/pychrono
 
-linux:ubuntu22.04:deploy-python3.12:
+.ubuntu-deploy-base:arm64:
+  tags:
+    - linux
+    - arm64
+  image:
+      name: uwsbel/packages:cuda12.8.1
+  before_script:
+    # this script overwrites the default ubuntu script to include conda preparations
+    - uname -a
+    # ROS
+    - source /opt/ros/humble/setup.sh
+    - mkdir -p $HOME/Packages/ros_ws/src
+    - cd $HOME/Packages/ros_ws
+    - git clone https://github.com/projectchrono/chrono_ros_interfaces.git src/
+    - colcon build --packages-select chrono_ros_interfaces
+    - source $HOME/Packages/ros_ws/install/setup.sh
+    # Initialize git repository
+    - cd $CI_PROJECT_DIR
+    - git submodule init
+    - git submodule update
+    - echo "Build PyChrono and deploy via Anaconda..."
+    # this command is needed to get the git describe data needed by the numbering
+    - git fetch --prune --unshallow
+    - wget "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh"
+    - bash Miniconda3-latest-Linux-aarch64.sh -b
+    - export PATH=$HOME/miniconda3/bin:$PATH
+    - conda config --set show_channel_urls true
+    - conda install conda-build "anaconda-client>=1.13.1" --yes
+    - conda update conda --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+  environment:
+    name: pychrono-ubuntu22.04-arm64
+    url: https://anaconda.org/projectchrono/pychrono
+
+linux:ubuntu22.04:amd64:deploy-python3.12:
   stage: deploy
   needs: []
-  extends: .ubuntu-deploy-base
+  extends: .ubuntu-deploy-base:amd64
   script:
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.12
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
-linux:ubuntu22.04:deploy-python3.13:
+linux:ubuntu22.04:amd64:deploy-python3.13:
   stage: deploy
   needs: []
-  extends: .ubuntu-deploy-base
+  extends: .ubuntu-deploy-base:amd64
   script:
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.13
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
+  when: manual
+
+linux:ubuntu22.04:arm64:deploy-python3.12:
+  stage: deploy
+  needs: []
+  extends: .ubuntu-deploy-base:arm64
+  script:
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.12
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-aarch64/pychrono*.conda -l main --force
+  when: manual
+
+linux:ubuntu22.04:arm64:deploy-python3.13:
+  stage: deploy
+  needs: []
+  extends: .ubuntu-deploy-base:arm64
+  script:
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda -c conda-forge --python=3.13
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-aarch64/pychrono*.conda -l main --force
   when: manual
 
 #------------------#
@@ -586,8 +641,6 @@ macos-apple:sonoma:test:
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
     - clang --version
-    # conda build uses "build.sh" for both Linux and MacOS. Since we do things differently, we do the following workaround
-    - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
   environment:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono

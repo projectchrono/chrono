@@ -435,34 +435,34 @@ void ChIrrGUI::Render() {
     g_textFPS->setText(str.c_str());
 
     int dmode = g_drawcontacts->getSelected();
-    tools::drawAllContactPoints(m_vis, symbolscale, (ContactsDrawMode)dmode);
+    tools::DrawAllContactPoints(m_vis, symbolscale, (ContactsDrawMode)dmode);
 
     int lmode = g_labelcontacts->getSelected();
-    tools::drawAllContactLabels(m_vis, (ContactsLabelMode)lmode);
+    tools::DrawAllContactLabels(m_vis, (ContactsLabelMode)lmode);
 
     int dmodeli = g_drawlinks->getSelected();
-    tools::drawAllLinks(m_vis, symbolscale, (LinkDrawMode)dmodeli);
+    tools::DrawAllLinks(m_vis, symbolscale, (LinkDrawMode)dmodeli);
 
     int lmodeli = g_labellinks->getSelected();
-    tools::drawAllLinkLabels(m_vis, (LinkLabelMode)lmodeli);
+    tools::DrawAllLinkLabels(m_vis, (LinkLabelMode)lmodeli);
 
     if (g_plot_aabb->isChecked())
-        tools::drawAllBoundingBoxes(m_vis);
+        tools::DrawAllBoundingBoxes(m_vis);
 
     if (g_plot_cogs->isChecked())
-        tools::drawAllCOGs(m_vis, symbolscale);
+        tools::DrawAllCOMs(m_vis, symbolscale);
 
     if (g_plot_abscoord->isChecked())
-        tools::drawCoordsys(m_vis, CSYSNORM, symbolscale);
+        tools::DrawCoordsys(m_vis, CSYSNORM, symbolscale);
 
     if (g_plot_linkframes->isChecked())
-        tools::drawAllLinkframes(m_vis, symbolscale);
+        tools::DrawAllLinkframes(m_vis, symbolscale);
 
     if (g_plot_collisionshapes->isChecked())
         DrawCollisionShapes(irr::video::SColor(50, 0, 0, 110));
 
     if (g_plot_convergence->isChecked())
-        tools::drawHUDviolation(m_vis, 240, 370, 300, 100);
+        tools::DrawSolverViolation(m_vis, 240, 370, 300, 100);
 
     g_tabbed->setVisible(show_infos);
     g_treeview->setVisible(show_explorer);
@@ -501,7 +501,7 @@ void ChIrrGUI::BeginScene() {
 
 void ChIrrGUI::EndScene() {
     if (show_profiler)
-        tools::drawProfiler(m_vis);
+        tools::DrawProfiler(m_vis);
 }
 
 }  // end namespace irrlicht

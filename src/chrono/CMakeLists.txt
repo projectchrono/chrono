@@ -347,6 +347,8 @@ set(Chrono_fea_SOURCES
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
     fea/ChLoadsNodeXYZRot.cpp
+    fea/ChLoaderGravity.cpp
+    fea/ChLoaderPressure.cpp
     )
 set(Chrono_fea_HEADERS
     fea/ChBuilderBeam.h
@@ -367,6 +369,8 @@ set(Chrono_fea_HEADERS
     fea/ChMeshSurface.h
     fea/ChLoadContactSurfaceMesh.h
     fea/ChLoadsNodeXYZRot.h
+    fea/ChLoaderGravity.h
+    fea/ChLoaderPressure.h
     fea/ChRotUtils.h
     )
 source_group(fea FILES ${Chrono_fea_SOURCES} ${Chrono_fea_HEADERS})
@@ -473,84 +477,80 @@ set(Chrono_fea_materials_HEADERS
 source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_materials_HEADERS})
 
 set(Chrono_fea_multiphysics_SOURCES
-    fea/ChNodeFEAfieldXYZ.cpp
-    fea/ChFieldElement.cpp
-    fea/ChFieldElementTetrahedron4.cpp
-    fea/ChFieldElementTetrahedron4Face.cpp
-    fea/ChFieldElementHexahedron8.cpp
-    fea/ChFieldElementHexahedron8Face.cpp
-    fea/ChFieldElementLoadableVolume.cpp
-    fea/ChFieldElementLoadableSurface.cpp
-    fea/ChFieldData.cpp
-    fea/ChField.cpp
-    fea/ChMaterial.cpp
-    fea/ChMaterial3DDensity.cpp
-    fea/ChMaterialPoisson.cpp
-    fea/ChMaterial3DThermal.cpp
-    fea/ChMaterial3DThermalLinear.cpp
-    fea/ChMaterial3DThermalNonlinear.cpp
-    fea/ChMaterial3DStress.cpp
-    fea/ChMaterial3DHyperelastic.cpp
-    fea/ChMaterial3DStressStVenant.cpp
-    fea/ChMaterial3DStressNeoHookean.cpp
-    fea/ChMaterial3DStressKelvinVoigt.cpp
-    fea/ChMaterial3DStressOgden.cpp
-    fea/ChMaterial3DThermalStress.cpp
-    fea/ChDomain.cpp
-    fea/ChDomainThermal.cpp
-    fea/ChDomainDeformation.cpp
-    fea/ChDomainThermoDeformation.cpp
-    fea/ChVisualDataExtractor.cpp
-    fea/ChDrawer.cpp
-    fea/ChLoaderPressure.cpp
-    fea/ChLoaderGravity.cpp
-    fea/ChLoaderHeatFlux.cpp
-    fea/ChLoaderHeatRadiation.cpp
-    fea/ChLoaderHeatConvection.cpp
-    fea/ChLoaderHeatVolumetricSource.cpp
-    fea/ChBuilderVolume.cpp
-    fea/ChLinkFieldNode.cpp
-    fea/ChSurfaceOfDomain.cpp
+    fea/multiphysics/ChNodeFEAfieldXYZ.cpp
+    fea/multiphysics/ChFieldElement.cpp
+    fea/multiphysics/ChFieldElementTetrahedron4.cpp
+    fea/multiphysics/ChFieldElementTetrahedron4Face.cpp
+    fea/multiphysics/ChFieldElementHexahedron8.cpp
+    fea/multiphysics/ChFieldElementHexahedron8Face.cpp
+    fea/multiphysics/ChFieldElementLoadableVolume.cpp
+    fea/multiphysics/ChFieldElementLoadableSurface.cpp
+    fea/multiphysics/ChFieldData.cpp
+    fea/multiphysics/ChField.cpp
+    fea/multiphysics/ChMaterial.cpp
+    fea/multiphysics/ChMaterial3DDensity.cpp
+    fea/multiphysics/ChMaterialPoisson.cpp
+    fea/multiphysics/ChMaterial3DThermal.cpp
+    fea/multiphysics/ChMaterial3DThermalLinear.cpp
+    fea/multiphysics/ChMaterial3DThermalNonlinear.cpp
+    fea/multiphysics/ChMaterial3DStress.cpp
+    fea/multiphysics/ChMaterial3DHyperelastic.cpp
+    fea/multiphysics/ChMaterial3DStressStVenant.cpp
+    fea/multiphysics/ChMaterial3DStressNeoHookean.cpp
+    fea/multiphysics/ChMaterial3DStressKelvinVoigt.cpp
+    fea/multiphysics/ChMaterial3DStressOgden.cpp
+    fea/multiphysics/ChMaterial3DThermalStress.cpp
+    fea/multiphysics/ChDomain.cpp
+    fea/multiphysics/ChDomainThermal.cpp
+    fea/multiphysics/ChDomainDeformation.cpp
+    fea/multiphysics/ChDomainThermoDeformation.cpp
+    fea/multiphysics/ChVisualDataExtractor.cpp
+    fea/multiphysics/ChDrawer.cpp
+    fea/multiphysics/ChLoaderHeatFlux.cpp
+    fea/multiphysics/ChLoaderHeatRadiation.cpp
+    fea/multiphysics/ChLoaderHeatConvection.cpp
+    fea/multiphysics/ChLoaderHeatVolumetricSource.cpp
+    fea/multiphysics/ChBuilderVolume.cpp
+    fea/multiphysics/ChLinkFieldNode.cpp
+    fea/multiphysics/ChSurfaceOfDomain.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
-    fea/ChNodeFEAfieldXYZ.h
-    fea/ChFieldElement.h
-    fea/ChFieldElementTetrahedron4.h
-    fea/ChFieldElementTetrahedron4Face.h
-    fea/ChFieldElementHexahedron8.h
-    fea/ChFieldElementHexahedron8Face.h
-    fea/ChFieldElementLoadableVolume.h
-    fea/ChFieldElementLoadableSurface.h
-    fea/ChFieldData.h
-    fea/ChField.h
-    fea/ChMaterial.h
-    fea/ChMaterial3DDensity.h
-    fea/ChMaterialPoisson.h
-    fea/ChMaterial3DThermal.h
-    fea/ChMaterial3DThermalLinear.h
-    fea/ChMaterial3DThermalNonlinear.h
-    fea/ChMaterial3DStress.h
-    fea/ChMaterial3DHyperelastic.h
-    fea/ChMaterial3DStressStVenant.h
-    fea/ChMaterial3DStressKelvinVoigt.h
-    fea/ChMaterial3DStressNeoHookean.h
-    fea/ChMaterial3DStressOgden.h
-    fea/ChMaterial3DThermalStress.h
-    fea/ChDomain.h
-    fea/ChDomainThermal.h
-    fea/ChDomainDeformation.h
-    fea/ChDomainThermoDeformation.h
-    fea/ChVisualDataExtractor.h
-    fea/ChDrawer.h
-    fea/ChLoaderPressure.h
-    fea/ChLoaderGravity.h
-    fea/ChLoaderHeatFlux.h
-    fea/ChLoaderHeatRadiation.h
-    fea/ChLoaderHeatConvection.h
-    fea/ChLoaderHeatVolumetricSource.h
-    fea/ChBuilderVolume.h
-    fea/ChLinkFieldNode.h
-    fea/ChSurfaceOfDomain.h
+    fea/multiphysics/ChNodeFEAfieldXYZ.h
+    fea/multiphysics/ChFieldElement.h
+    fea/multiphysics/ChFieldElementTetrahedron4.h
+    fea/multiphysics/ChFieldElementTetrahedron4Face.h
+    fea/multiphysics/ChFieldElementHexahedron8.h
+    fea/multiphysics/ChFieldElementHexahedron8Face.h
+    fea/multiphysics/ChFieldElementLoadableVolume.h
+    fea/multiphysics/ChFieldElementLoadableSurface.h
+    fea/multiphysics/ChFieldData.h
+    fea/multiphysics/ChField.h
+    fea/multiphysics/ChMaterial.h
+    fea/multiphysics/ChMaterial3DDensity.h
+    fea/multiphysics/ChMaterialPoisson.h
+    fea/multiphysics/ChMaterial3DThermal.h
+    fea/multiphysics/ChMaterial3DThermalLinear.h
+    fea/multiphysics/ChMaterial3DThermalNonlinear.h
+    fea/multiphysics/ChMaterial3DStress.h
+    fea/multiphysics/ChMaterial3DHyperelastic.h
+    fea/multiphysics/ChMaterial3DStressStVenant.h
+    fea/multiphysics/ChMaterial3DStressKelvinVoigt.h
+    fea/multiphysics/ChMaterial3DStressNeoHookean.h
+    fea/multiphysics/ChMaterial3DStressOgden.h
+    fea/multiphysics/ChMaterial3DThermalStress.h
+    fea/multiphysics/ChDomain.h
+    fea/multiphysics/ChDomainThermal.h
+    fea/multiphysics/ChDomainDeformation.h
+    fea/multiphysics/ChDomainThermoDeformation.h
+    fea/multiphysics/ChVisualDataExtractor.h
+    fea/multiphysics/ChDrawer.h
+    fea/multiphysics/ChLoaderHeatFlux.h
+    fea/multiphysics/ChLoaderHeatRadiation.h
+    fea/multiphysics/ChLoaderHeatConvection.h
+    fea/multiphysics/ChLoaderHeatVolumetricSource.h
+    fea/multiphysics/ChBuilderVolume.h
+    fea/multiphysics/ChLinkFieldNode.h
+    fea/multiphysics/ChSurfaceOfDomain.h
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 
@@ -770,7 +770,7 @@ set(Chrono_collision_SOURCES
     collision/ChCollisionShapeSegment.cpp
     collision/ChCollisionShapeSphere.cpp
     collision/ChCollisionShapeTriangle.cpp
-    collision/ChCollisionShapeMeshTriangle.cpp
+    collision/ChCollisionShapeConnectedTriangle.cpp
     collision/ChCollisionShapeTriangleMesh.cpp
     )
 set(Chrono_collision_HEADERS
@@ -798,7 +798,7 @@ set(Chrono_collision_HEADERS
     collision/ChCollisionShapeSegment.h
     collision/ChCollisionShapeSphere.h
     collision/ChCollisionShapeTriangle.h
-    collision/ChCollisionShapeMeshTriangle.h
+    collision/ChCollisionShapeConnectedTriangle.h
     collision/ChCollisionShapeTriangleMesh.h
     )
 source_group(collision FILES ${Chrono_collision_SOURCES} ${Chrono_collision_HEADERS})
@@ -881,7 +881,7 @@ set(Chrono_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionDispatch/cbtHashedSimplePairCache.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtChTriangleShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMeshShape.cpp

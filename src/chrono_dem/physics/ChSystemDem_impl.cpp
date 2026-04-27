@@ -12,8 +12,7 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Luning Fang, Radu Serban
 // =============================================================================
 
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "chrono_dem/cuda/ChGpuRuntime.h"
 #include <cmath>
 #include <vector>
 #include <algorithm>

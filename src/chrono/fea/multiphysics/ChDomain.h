@@ -1,0 +1,1099 @@
+﻿// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora 
+// =============================================================================
+
+#ifndef CHDOMAIN_H
+#define CHDOMAIN_H
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChTensors.h"
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/fea/multiphysics/ChFieldElement.h"
+#include "chrono/fea/multiphysics/ChFieldData.h"
+#include "chrono/fea/multiphysics/ChField.h"
+#include "chrono/fea/multiphysics/ChMaterial.h"
+#include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChVariablesGeneric.h"
+#include "chrono/solver/ChVariablesGenericDiagonalMass.h"
+
+
+namespace chrono {
+namespace fea {
+
+/// @addtogroup chrono_fea
+/// @{
+
+
+// This file contains  ChDomain , ChDomainImpl and some minor helper classes. A ChDomain
+// is the 'container' of a subset of ChFieldElement finite elements to whom a certain
+// material model is applied and computed. 
+
+
+
+// ----------------------------------------------------------------------------------
+
+/// Base class for auxiliary per-element properties.
+/// Inherit from this if you want to attach some property such as "float price; string name;" etc.
+/// Note: better inherit from ChElementDataKRM if you want that your elements have 
+/// tangent stiffness and tangent damping, that are used in implicit integration.
+
+class ChElementData {
+public:
+    ChKRMBlock* GetKRM() { return nullptr; }
+};
+
+/// Class of empty element data
+
+class ChElementDataNONE : public ChElementData {
+public:
+};
+
+/// Class for auxiliary per-element properties.
+/// Inherit from this if you want to attach some property such as "float price; string name;", 
+/// as well as for storing often-used data structures that persist together with the element and
+/// that could be updated at each Update() of the element in order to speedup other computations later.
+/// This contains the ChKRMBlock object, for automatic handling of tangent stiffness and tangent 
+/// damping matrices that are used in implicit integration.
+
+class ChElementDataKRM : public ChElementData {
+public:
+    ChKRMBlock* GetKRM() { return &Kmatr; }
+private:
+    ChKRMBlock Kmatr;
+};
+
+
+// -----------------------------------------------------------------------------
+
+
+// Type automation.
+// Turning a std::tuple<ClassA,ClassB,..> into std::tuple<std::shared_ptr<ClassA>,std::shared_ptr<ClassB>,..>
+template <typename Tuple>
+struct tuple_as_sharedptr;
+template <typename... Ts>
+struct tuple_as_sharedptr<std::tuple<Ts...>> {
+    using type = std::tuple<typename std::shared_ptr<Ts>...>;
+};
+
+// From a std::tuple<std::shared_ptr<Base>,std::shared_ptr<ClassDerivedFromBase>,..> 
+// to std::array<std::shared_ptr<Base>,N> 
+template <typename Base, typename Tuple, std::size_t... Is>
+auto make_basearray_from_tuple_IMPL( const Tuple& t, std::index_sequence<Is...>) {
+    return std::array<std::shared_ptr<Base>, std::tuple_size_v<Tuple>> { std::get<Is>(t)... };
+}
+template <typename Base, typename... Ts>
+auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
+    return make_basearray_from_tuple_IMPL<Base>(t, std::index_sequence_for<Ts...>{});
+}
+
+// -----------------------------------------------------------------------------
+
+
+
+/// Base class for domains subject to a material model. Domains define (sub) regions of 
+/// the mesh where the material has effect. That is, they operate on a set of finite elements.
+/// A ChDomain has these components:
+///   - a ChMaterial with properties for the domain material model (ex. ChMaterialPoisson)
+///   - set of ChFieldElement finite elements subject to the model
+///   - set of ChField fields (ex. temperature & displacement) needed for the material model
+///   - additional data linked to finite elements and helper structures
+/// Children classes should specialize this, possibly inheriting from ChDomainImpl
+
+class ChDomain : public ChPhysicsItem {
+public:
+
+    /// Adds a finite element to this domain. Elements should not be shared among multiple 
+    /// domains (whereas nodes could be shared).
+    virtual void AddElement(std::shared_ptr<ChFieldElement> melement) = 0;
+
+    /// Removes a finite element from this domain. 
+    virtual void RemoveElement(std::shared_ptr<ChFieldElement> melement) = 0;
+
+    /// Returns true if the element is already in the domain.
+    virtual bool IsElementAdded(std::shared_ptr<ChFieldElement> melement) = 0;
+
+
+    /// This rewires all pointers and correctly set up the element_datamap
+    virtual bool InitialDataSetup() = 0;  
+
+
+    /// Get the total coordinates per each node (summing the dofs per each field) 
+    virtual int GetNumPerNodeCoordsPosLevel() = 0;
+    /// Get the total coordinates per each node (summing the dofs per each field) 
+    virtual int GetNumPerNodeCoordsVelLevel() { return GetNumPerNodeCoordsPosLevel(); }
+    /// Get the total number of nodes affected by this domain (some could be shared with other domains)
+    virtual int GetNumNodes() = 0;
+
+    /// Get the number of fields used by this domain
+    virtual int GetNumFields() = 0;
+    /// Get the n-th field
+    virtual std::shared_ptr<ChFieldBase> GetField(int nfield) = 0;
+
+    /// Iterator for iterating on ChDomain finite elements (virtual iterator). Also, as a bonus,
+    /// it can return reference to the per-element data, per-materialpoint data, and shortcut
+    /// references to per-node data for the referenced nodes; all those data retrieved as base classes, 
+    /// so you may need downcasting. This data can be also obtained through the 
+    /// ElementData(std::shared_ptr<ChFieldElement> melement) function, that does not require downcasting, 
+    /// but such function is not available here in ChDomain base class. 
+    class IteratorOnElements {
+    public:
+        virtual ~IteratorOnElements() = default;
+        virtual std::shared_ptr<ChFieldElement> get_element() = 0;
+        virtual ChElementData& get_data_per_element() = 0;
+        virtual ChFieldData* get_data_per_matpoint(unsigned int i_matpoint) = 0;
+        virtual ChFieldData* get_data_per_matpoint_aux(unsigned int i_matpoint) = 0;
+        virtual ChFieldDataState* get_data_per_node(unsigned int i_node, unsigned int i_field) = 0;
+        virtual void next() = 0;
+        virtual bool is_end() const = 0;
+    };
+    virtual std::unique_ptr<IteratorOnElements> CreateIteratorOnElements() = 0;
+
+    /// Fills the S vector with the current i-th field states S_j at the nodes of the element.
+    /// If the S vector size is not the proper size, it will be resized. 
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldStateBlock(myelement, S, 1)  will give [T_1; T_2; ....]
+    virtual void GetFieldStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S, unsigned int i_field) = 0;
+
+    /// Fills the dSdt vector with the current i-th field states dS_j/dt at the nodes of the element. with proper ordering.
+    /// If the dSdt vector size is not the proper size, it will be resized.
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldStateBlockDt(myelement, dSdt, 1)  will give [dT/dt_1; dT/dt_2; ....]
+    virtual void GetFieldStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt, unsigned int i_field) = 0;
+
+
+protected:
+    unsigned int n_dofs;    ///< total degrees of freedom of element materialpoint states (ex plasticity)
+    unsigned int n_dofs_w;  ///< total degrees of freedom of element materialpoint states (ex plasticity), derivative (Lie algebra)
+};
+
+
+
+//-----------------------------------------------------------------------------------------------
+
+
+/// Class for domains subject to a material model. Domains define (sub) regions of 
+/// the mesh where the material has effect. That is, they operate on a set of finite elements.
+/// A ChDomain has these components:
+///   - a ChMaterial with properties for the domain material model (ex. ChMaterialPoisson)
+///   - set of ChFieldElement finite elements subject to the model
+///   - set of ChField fields (ex. temperature & displacement) needed for the material model
+///   - additional data linked to finite elements and helper structures
+/// Children classes should inherit and specialize this, mostly for the two functions:
+///   PointComputeInternalLoads()
+///   PointComputeKRMmatrices()
+/// The T_... types are used to carry type info about the per-node or per-element 
+/// or per-integration point data to instance. 
+/// Usable domains such as ChDomainThermal, ChDomainDeformation etc. are inherited 
+/// from this templated class.
+
+template <
+    typename T_per_node = std::tuple<ChFieldScalar>,
+    typename T_per_matpoint_aux = ChFieldDataNONE,
+    typename T_per_element = ChElementDataNONE
+>
+class ChDomainImpl : public ChDomain {
+public:
+
+    // This data structure will be instantiated per each finite element of the domain.
+    class DataPerElement {
+    public:
+        DataPerElement(int n_matpoints = 0, int n_nodes = 0) :
+            matpoints_data(n_matpoints),
+            matpoints_data_aux(n_matpoints),
+            nodes_data(n_nodes)
+        {}
+        T_per_element element_data;
+        std::vector<std::unique_ptr<ChFieldData>> matpoints_data;
+        std::vector<T_per_matpoint_aux>           matpoints_data_aux;
+        std::vector<std::array<ChFieldDataState*, std::tuple_size_v<T_per_node> > > nodes_data;
+
+        // Delete copy constructor/assignment
+        DataPerElement(const DataPerElement&) = delete;
+        DataPerElement& operator=(const DataPerElement&) = delete;
+        // Define move constructor
+        DataPerElement(DataPerElement&& other) noexcept
+            : element_data(std::move(other.element_data)),
+            matpoints_data(std::move(other.matpoints_data)),
+            matpoints_data_aux(std::move(other.matpoints_data_aux)),
+            nodes_data(std::move(other.nodes_data)) {}
+        // Define move assignment
+        DataPerElement& operator=(DataPerElement&& other) noexcept {
+            if (this != &other) {
+                element_data = std::move(other.element_data);
+                matpoints_data = std::move(other.matpoints_data);
+                matpoints_data_aux = std::move(other.matpoints_data_aux);
+                nodes_data = std::move(other.nodes_data);
+            }
+            return *this;
+        }
+    };
+
+
+    /// Construct a domain, given a tuple of fields.
+    ChDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFieldBase>(mfields); }
+
+    /// Access the DataPerElement associated to the element. This requires a lookup in a 
+    /// the unordered_map container, that usually has a very small but not negligible overhead.
+    DataPerElement& ElementData(std::shared_ptr<ChFieldElement> melement) {
+        // try_emplace inserts only if key is not present,
+        // constructing DataPerElement in place with default constructor.
+        auto [it, inserted] = element_datamap.try_emplace(melement);
+        return it->second;
+    }
+
+
+    // INTERFACE to ChDomain
+    //
+
+
+    virtual void AddElement(std::shared_ptr<ChFieldElement> melement) override {
+        auto data_el = DataPerElement(melement->GetNumMaterialPoints(), melement->GetNumNodes());
+        //...TO DO as done in InitialSetup
+        element_datamap.insert(std::make_pair(melement, std::move(data_el)));
+    }
+    virtual void RemoveElement(std::shared_ptr<ChFieldElement> melement) override {
+        element_datamap.erase(melement);
+    }
+    virtual bool IsElementAdded(std::shared_ptr<ChFieldElement> melement) override {
+        return (element_datamap.find(melement) != element_datamap.end());
+    };
+
+    /// This rewires all pointers and correctly set up the element_datamap
+    virtual bool InitialDataSetup() override {
+        num_nodes = 0;
+        per_node_coords_pos = 0;
+        per_node_coords_vel = 0;
+
+        for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+            this->fields[i_field]->Setup();
+            per_node_coords_pos += this->fields[i_field]->GetNumFieldCoordsPosLevel();
+            per_node_coords_vel += this->fields[i_field]->GetNumFieldCoordsVelLevel();
+        }
+
+        for (auto& mel : this->element_datamap) {
+
+            // setup array of quadrature data
+            if (!this->GetMaterial() || !this->GetMaterial()->CreateMaterialPointData()) {
+                mel.second.matpoints_data.resize(0); // optimization to avoid wasting memory if NO material-specific data at point 
+            }
+            else {
+                mel.second.matpoints_data.resize(mel.first->GetNumMaterialPoints());
+
+                size_t numQuadPoints = mel.first->GetNumMaterialPoints();
+                for (size_t i = 0; i < numQuadPoints; ++i) {
+                    auto mp_data = this->GetMaterial()->CreateMaterialPointData();
+                    mel.second.matpoints_data[i] = (std::move(mp_data));
+                }
+            }
+
+            if constexpr (std::is_same_v<T_per_matpoint_aux, ChFieldDataNONE>) {
+                mel.second.matpoints_data_aux.resize(0); // optimization to avoid wasting memory if NO domain-specific data at point
+            }
+            else {
+                mel.second.matpoints_data_aux.resize(mel.first->GetNumMaterialPoints());
+            }
+
+            // setup array of pointers to node field data 
+            // (this array is here only for efficiency, otherwise each element should lookup the ChField maps every time
+            // calling GetNodeDataPointer(mel.first->GetNode(i))
+            
+            std::vector<ChVariables*> mvars;
+            
+            mel.second.nodes_data.resize(mel.first->GetNumNodes());
+            for (int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                for (unsigned int i = 0; i < mel.first->GetNumNodes(); ++i) {
+                    mel.second.nodes_data[i][i_field] = fields[i_field]->GetNodeDataPointer(mel.first->GetNode(i));
+                    mvars.push_back(&(mel.second.nodes_data[i][i_field]->GetVariable()));
+                }
+            }
+
+            auto KRMblock = mel.second.element_data.GetKRM();
+            if (KRMblock)
+                KRMblock->SetVariables(mvars);
+
+            num_nodes += mel.first->GetNumNodes();
+        }
+        return true;
+    }
+
+    virtual int GetNumPerNodeCoordsPosLevel() override { return per_node_coords_pos; }
+    virtual int GetNumPerNodeCoordsVelLevel() override { return per_node_coords_vel; }
+    virtual int GetNumNodes() override { return num_nodes; }
+
+    virtual int GetNumFields() override { return (int)fields.size(); }
+    virtual std::shared_ptr<ChFieldBase> GetField(int nfield) override { return fields[nfield]; }
+
+    class IteratorOnElements : public ChDomain::IteratorOnElements {
+        using InternalIterator = typename std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement>::iterator;
+        InternalIterator it_;
+        InternalIterator end_;
+    public:
+        IteratorOnElements(InternalIterator begin, InternalIterator end)
+            : it_(begin), end_(end) {}
+
+        std::shared_ptr<ChFieldElement> get_element() override {
+            return it_->first;
+        }
+        ChElementData& get_data_per_element() override {
+            return it_->second.element_data;
+        }
+        ChFieldData* get_data_per_matpoint(unsigned int i_matpoint) override {
+            if (it_->second.matpoints_data.size())
+                return it_->second.matpoints_data[i_matpoint].get();
+            else
+                return nullptr;
+        }
+        ChFieldData* get_data_per_matpoint_aux(unsigned int i_matpoint) override {
+            if (it_->second.matpoints_data_aux.size())
+                return &(it_->second.matpoints_data_aux[i_matpoint]);
+            else 
+                return nullptr;
+        }
+        ChFieldDataState* get_data_per_node(unsigned int i_node, unsigned int i_field) override {
+            return it_->second.nodes_data[i_node][i_field];
+        }
+        void next() override {
+            if (it_ != end_) ++it_;
+        }
+        bool is_end() const override {
+            return it_ == end_;
+        }
+    };
+    std::unique_ptr<ChDomain::IteratorOnElements> CreateIteratorOnElements() override {
+        return std::make_unique<IteratorOnElements>(element_datamap.begin(), element_datamap.end());
+    }
+
+    virtual void GetFieldStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S, unsigned int i_field)  override {
+        auto& elementdata = this->ElementData(melement);
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsPosLevel();
+        S.resize(field_node_size * melement->GetNumNodes());
+        int off = 0;
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            S.segment(off, field_node_size) = elementdata.nodes_data[i_node][i_field]->State();
+            off += field_node_size;
+        }
+    }
+
+    virtual void GetFieldStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt, unsigned int i_field)  override {
+        auto& elementdata = this->ElementData(melement);
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+        dSdt.resize(field_node_size * melement->GetNumNodes());
+        int off = 0;
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            dSdt.segment(off, field_node_size) = elementdata.nodes_data[i_node][i_field]->StateDt();
+            off += field_node_size;
+        }
+    }
+
+
+    /// Fills the S_hh matrix with the "packed" i-th field states S_j at the nodes of the element.
+    /// The S_hh matrix has states values stacked side to side as columns! (NOT queued 
+    /// one after the other in a vector as in GetFieldStateBlock. Also, it is a bit faster).
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldPackedStateBlock(myelement, data, S, 0)  will give [x_1 | x_2 | ....]
+    virtual void GetFieldPackedStateBlock(std::shared_ptr<ChFieldElement> melement, DataPerElement& elementdata, ChMatrixDynamic<>& S_hh, unsigned int i_field)  {
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsPosLevel();
+        S_hh.resize(field_node_size,  melement->GetNumNodes());
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            S_hh.block(0, i_node, field_node_size, 1) = elementdata.nodes_data[i_node][i_field]->State();
+        }
+    }
+
+    /// Fills the dSdt_hh matrix with the "packed" i-th field states dSdt_j at the nodes of the element.
+    /// The S_hh matrix has states values stacked side to side as columns! (NOT queued 
+    /// one after the other in a vector as in GetFieldStateBlockDt. Also, it is a bit faster).
+    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// then GetFieldPackedStateBlockDt(myelement, data, dSdt, 0)  will give [dx/dt_1 | dx/dt_2 | ....]
+    virtual void GetFieldPackedStateBlockDt(std::shared_ptr<ChFieldElement> melement, DataPerElement& elementdata, ChMatrixDynamic<>& dSdt_hh, unsigned int i_field)  {
+        unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+        dSdt_hh.resize(field_node_size,  melement->GetNumNodes());
+        for (unsigned int i_node = 0; i_node < melement->GetNumNodes(); ++i_node) {
+            dSdt_hh.block(0, i_node, field_node_size, 1) = elementdata.nodes_data[i_node][i_field]->StateDt();
+        }
+    }
+
+    // FINITE ELEMENT MANAGERS
+
+    /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
+    /// It operates quadrature on the element, calling PointComputeInternalLoads(...) at each quadrature point.
+    virtual void ElementComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+                                             DataPerElement& data,
+                                             ChVectorDynamic<>& Fi) = 0;
+
+    /// For a given finite element, computes matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of
+    /// the tangent matrices M,R,K,: H = Mfactor*M + Rfactor*R + Kfactor*K. Setting Mfactor=1 and Rfactor=Kfactor=0, it
+    /// can be used to get just mass matrix, etc. It operates quadrature on the element, calling
+    /// PointComputeKRMmatrices(...) at each quadrature point.
+    virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+                                           DataPerElement& data,
+                                           ChMatrixRef H,
+                                           double Kfactor,
+                                           double Rfactor = 0,
+                                           double Mfactor = 0) = 0;
+
+ 
+
+    /// For a given finite element, computes the lumped mass matrix.
+    /// This falls back to the generic "Diagonal Scaling with Mass Preservation" approach, that 
+    /// takes the full consistent mass matrix and reduces it to a diagonal by scaling the total mass.
+    /// It works for all elements, 2D, 3D etc. It is not very efficient because it must compute the consitent mass matrix before.
+    virtual void ElementIntLoadLumpedMass_Md(std::shared_ptr<ChFieldElement> melement, DataPerElement& data,
+        ChVectorDynamic<>& Md_i,
+        double& error
+    ) {
+        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
+        Md_i.setZero(numelcoords);
+
+        // Pass through the computation of the consistent mass matrix (generic approach but inefficient)
+        ChMatrixDynamic<> M_consistent(numelcoords, numelcoords);
+
+        ElementComputeKRMmatrices(melement, data, M_consistent, 0, 0, 1);
+
+        // Calculate total mass (sum of all elements)
+        double total_mass = M_consistent.sum();
+        // Extract diagonal elements
+        Eigen::VectorXd diag_vals = M_consistent.diagonal();
+        // Calculate sum of diagonal elements
+        double diag_sum = diag_vals.sum();
+        // Check for zero or negative diagonal sum
+        assert(diag_sum > 0.0);
+        // Scale diagonal to preserve total mass
+        double scale_factor = total_mass / diag_sum;
+
+        error += std::abs(total_mass - diag_sum);
+        Md_i = diag_vals * scale_factor;
+    }
+
+    /// For a given finite element, computes updates at the end of a time step. This may happen less
+    /// frequently than a full Update. 
+    /// It falls back to calling PointUpdateEndStep per each material point.
+    virtual void ElementUpdateEndStep(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, double time
+    ) {
+        int numpoints = melement->GetNumMaterialPoints();
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            PointUpdateEndStep(melement,
+                data, i_point, time);
+        }
+    }
+
+
+
+    /// Compute updates (ex. plastic flow, increments, etc.) at the end of a time step.
+    /// This is called per each material point per each element.
+    /// This may happen less frequently than a full Update. 
+    virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement,
+                                    DataPerElement& data,
+                                    const int i_point,
+                                    const double time) {
+        // DO NOTHING by default. You can override this in your domain if you need to do some updates at the end of the
+        // time step, ex. for plasticity, etc.
+    }
+    
+
+    // INTERFACE to ChPhysicsItem
+    //
+
+    //virtual ChAABB GetTotalAABB() const override { ***TODO** };
+    //virtual ChVector3d GetCenter() const override { ***TODO** };;
+
+    virtual void Setup() override {
+        n_dofs = 0;
+        n_dofs_w = 0;
+
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        // Set node offsets in state vectors (based on the offsets of the containing mesh)
+                        mpointstate->DataSetOffsetPosLevel(GetOffset_x() + n_dofs);
+                        mpointstate->DataSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
+
+                        // Count the actual degrees of freedom (consider only nodes that are not fixed)
+                        if (!mpointstate->IsFixed()) {
+                            n_dofs += mpointstate->GetNumCoordsPosLevel();
+                            n_dofs_w += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+    };
+
+    virtual void SetupInitial() override {
+
+        this->InitialDataSetup();
+
+        for (auto& mel : this->element_datamap) {
+            mel.first->SetupInitial(this->GetSystem());
+        }
+    }
+
+    virtual void Update(double time, UpdateFlags update_flags) override {
+        // Parent class update
+        ChPhysicsItem::Update(time, update_flags);
+
+        for (auto& mel : this->element_datamap) {
+            mel.first->Update();
+        }
+    }
+
+
+
+
+    /// Set zero speed (and zero accelerations) in state without changing the position.
+    virtual void ForceToRest() override {}
+    virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }
+
+    /// From item's state to global state vectors y={x,v} pasting the states at the specified offsets.
+    virtual void IntStateGather(const unsigned int off_x,  ///< offset in x state vector
+        ChState& x,                ///< state vector, position part
+        const unsigned int off_v,  ///< offset in v state vector
+        ChStateDelta& v,           ///< state vector, speed part
+        double& T                  ///< time
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+        T = GetChTime();
+    }
+
+    /// From global state vectors y={x,v} to element states (if any)  (and update) fetching the states at the specified offsets.
+    virtual void IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
+        const ChState& x,          ///< state vector, position part
+        const unsigned int off_v,  ///< offset in v state vector
+        const ChStateDelta& v,     ///< state vector, speed part
+        const double T,            ///< time
+        UpdateFlags update_flags   ///< perform complete update, or exclude visual assets, etc.
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+        Update(T, update_flags);
+    }
+
+    /// From element states (if any) acceleration to global acceleration vector
+    virtual void IntStateGatherAcceleration(const unsigned int off_a,  ///< offset in a accel. vector
+        ChStateDelta& a            ///< acceleration part of state vector derivative
+    ) override {
+        unsigned int local_off_a = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateGatherAcceleration(off_a + local_off_a, a);
+                            local_off_a += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /// From global acceleration vector to element states (if any) acceleration
+    virtual void IntStateScatterAcceleration(const unsigned int off_a,  ///< offset in a accel. vector
+        const ChStateDelta& a  ///< acceleration part of state vector derivative
+    ) override {
+        unsigned int local_off_a = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateScatterAcceleration(off_a + local_off_a, a);
+                            local_off_a += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /// Computes x_new = x + Dt , using vectors at specified offsets.
+    /// By default, when DOF = DOF_w, it does just the sum, but in some cases (ex when using quaternions
+    /// for rotations) it could do more complex stuff, and children classes might overload it.
+    virtual void IntStateIncrement(const unsigned int off_x,  ///< offset in x state vector
+        ChState& x_new,            ///< state vector, position part, incremented result
+        const ChState& x,          ///< state vector, initial position part
+        const unsigned int off_v,  ///< offset in v state vector
+        const ChStateDelta& Dv     ///< state vector, increment
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    virtual void IntStateOnEndStep(double T) override {
+        for (auto& mel : this->element_datamap) {
+            ElementUpdateEndStep(mel.first, mel.second, T);
+        }
+    }
+
+    /// Computes Dt = x_new - x, using vectors at specified offsets.
+    /// By default, when DOF = DOF_w, it does just the difference of two state vectors, but in some cases (ex when using
+    /// quaternions for rotations) it could do more complex stuff, and children classes might overload it.
+    virtual void IntStateGetIncrement(const unsigned int off_x,  ///< offset in x state vector
+        const ChState& x_new,      ///< state vector, final position part
+        const ChState& x,          ///< state vector, initial position part
+        const unsigned int off_v,  ///< offset in v state vector
+        ChStateDelta& Dv           ///< state vector, increment. Here gets the result
+    ) override {
+        unsigned int local_off_x = 0;
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+                            local_off_x += mpointstate->GetNumCoordsPosLevel();
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /// Takes the F force term, scale and adds to R at given offset:
+    ///    R += c*F
+    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+        ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+        const double c           ///< a scaling factor
+    ) override {
+        // loads on element integration points states (if any)
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntLoadResidual_F(off + local_off_v, R, c);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+
+        // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
+        for (auto& mel : this->element_datamap) {
+            ChVectorDynamic<> Fi; // will be resized and zeroed by ElementComputeInternalLoads
+
+            //****COMPUTATIONAL OVERHEAD - compute all the F loads here
+            ElementComputeInternalLoads(mel.first, mel.second, Fi);
+
+            // Fi is contiguous, so must store sparsely in R, per each node and per each field of node
+            unsigned int stride = 0;
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    if (!mfielddata->IsFixed()) {
+                        R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * Fi.segment(stride, nfield_coords);
+                    }
+                    stride += nfield_coords;
+                }
+            }
+
+        } // end loop on elements
+
+    }
+
+    /// Takes the M*w  term,  multiplying mass by a vector, scale and adds to R at given offset:
+    ///    R += c*M*w
+    virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
+        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+        const ChVectorDynamic<>& w,  ///< the w vector
+        const double c               ///< a scaling factor
+    ) override {
+        // M*w   caused by element states (if any) if they have some atomic mass
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntLoadResidual_Mv(off + local_off_v, R, w, c);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+
+        // M*w   caused by elements, where M is the mass matrix of the element
+        for (auto& mel : this->element_datamap) {
+
+            int numelcoords = this->GetNumPerNodeCoordsVelLevel() * mel.first->GetNumNodes();
+
+            // Possible computational inefficiency: compute the consistent M matrix 
+            ChMatrixDynamic<> M_i(numelcoords, numelcoords);
+            ElementComputeKRMmatrices(mel.first, mel.second, M_i, 0, 0, 1);
+
+            ChVectorDynamic<> W_i(numelcoords);
+            W_i.setZero();
+            // sparse w to contiguous W_i
+            unsigned int stride = 0;
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    if (!mfielddata->IsFixed()) {
+                        W_i.segment(stride, nfield_coords) = w.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords);
+                    }
+                    stride += nfield_coords;
+                }
+            }
+
+            // R_i = c*M_i*W_i is contiguous, so must store sparsely in R, per each node and per each field of node
+            stride = 0;
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    if (!mfielddata->IsFixed()) {
+                        R.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * M_i.middleRows(stride, nfield_coords) * W_i;
+                    }
+                    stride += nfield_coords;
+                }
+            }
+
+
+        }
+    }
+
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
+        ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+        double& err,    ///< result: not touched if lumping does not introduce errors
+        const double c  ///< a scaling factor
+    ) override {
+        // Md   caused by element states (if any) if they have some 'mass'
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+        // Md   caused by elements, based on mass matrix of the element
+        for (auto& mel : this->element_datamap) {
+
+            // Possible computational inefficiency: compute the consistent M matrix
+            ChVectorDynamic<> Md_i;
+            ElementIntLoadLumpedMass_Md(mel.first, mel.second, Md_i, err);
+
+            // Md_i is contiguous, so must store sparsely in Md, per each node and per each field of node
+            unsigned int stride = 0;
+            for (unsigned int i_field = 0; i_field < this->fields.size(); ++i_field) {
+                int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel();
+                for (unsigned int i_node = 0; i_node < mel.first->GetNumNodes(); i_node++) {
+                    ChFieldDataState* mfielddata = mel.second.nodes_data[i_node][i_field];
+                    if (!mfielddata->IsFixed()) {
+                        Md.segment(mfielddata->DataGetOffsetVelLevel(), nfield_coords) += c * Md_i.segment(stride, nfield_coords);
+                    }
+                    stride += nfield_coords;
+                }
+            }
+
+        }
+    }
+
+    /// Prepare variables and constraints to accommodate a solution:
+    virtual void IntToDescriptor(
+        const unsigned int off_v,    ///< offset for \e v and \e R
+        const ChStateDelta& v,       ///< vector copied into the \e q 'unknowns' term of the variables
+        const ChVectorDynamic<>& R,  ///< vector copied into the \e F 'force' term of the variables
+        const unsigned int off_L,    ///< offset for \e L and \e Qc
+        const ChVectorDynamic<>& L,  ///< vector copied into the \e L 'lagrangian ' term of the constraints
+        const ChVectorDynamic<>& Qc  ///< vector copied into the \e Qb 'constraint' term of the constraints
+    ) override {
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntToDescriptor(off_v + local_off_v, v, R);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /// After a solver solution, fetch values from variables and constraints into vectors:
+    virtual void IntFromDescriptor(
+        const unsigned int off_v,  ///< offset for \e v
+        ChStateDelta& v,           ///< vector to where the \e q 'unknowns' term of the variables will be copied
+        const unsigned int off_L,  ///< offset for \e L
+        ChVectorDynamic<>& L       ///< vector to where \e L 'lagrangian ' term of the constraints will be copied
+    ) override {
+        unsigned int local_off_v = 0;
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mpointstate = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        if (!mpointstate->IsFixed()) {
+                            mpointstate->DataIntFromDescriptor(off_v + local_off_v, v);
+                            local_off_v += mpointstate->GetNumCoordsVelLevel();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override {
+        for (auto& mel : this->element_datamap) {
+            for (auto& matpoint : mel.second.matpoints_data) {
+                matpoint.get()->ForEach([&](ChFieldData* subdata) {
+                    if (ChFieldDataState* mfielddata = dynamic_cast<ChFieldDataState*>(subdata)) {
+                        mfielddata->InjectVariables(descriptor);
+                    }
+                });
+            }
+        }
+    }
+
+
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override {
+        for (auto& mel : this->element_datamap) {
+            if (mel.second.element_data.GetKRM()) {
+
+                //****COMPUTATIONAL OVERHEAD - compute all the tangent matrices here
+                ElementComputeKRMmatrices(mel.first,
+                    mel.second,
+                    mel.second.element_data.GetKRM()->GetMatrix(),
+                    Kfactor, Rfactor, Mfactor);
+            }
+
+        }
+    }
+
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override {
+        for (auto& mel : this->element_datamap) {
+            if (mel.second.element_data.GetKRM())
+                descriptor.InsertKRMBlock(mel.second.element_data.GetKRM());
+        }
+    }
+
+protected:
+
+    // Children classes must implement this. 
+    // The material is needed here to build the auxiliary per-material data.
+    virtual std::shared_ptr<ChMaterial> GetMaterial() = 0;
+
+
+    std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement> element_datamap;
+
+    std::array < std::shared_ptr<ChFieldBase>, std::tuple_size_v<T_per_node> > fields;
+
+private:
+    int per_node_coords_pos = 0;
+    int per_node_coords_vel = 0;
+    int num_nodes = 0;
+};
+
+
+
+
+////////////////////////////////////
+
+
+/// Class for all domains that computes internal loads and tangent matrices by integrating 
+/// at quadrature points. Specialized sub classes must implement the two methods
+/// PointComputeInternalLoads(...) and PointComputeKRMmatrices(...), that will be automatically called by the default
+/// implementation of ElementComputeInternalLoads(...) and ElementComputeKRMmatrices(...), that will do the quadrature
+/// loop and call the pointwise methods.
+/// BTW: if your elements are not based on quadrature, (ex. collocation, neural networks,etc.), it is enough to override
+/// ElementComputeInternalLoads(...) and ElementComputeKRMmatrices(...) directly, without using the default quadrature
+/// loop, or even better, for clarity: inherit from ChDomainGeneric
+
+template <typename T_per_node = std::tuple<ChFieldScalar>,
+          typename T_per_matpoint_aux = ChFieldDataNONE,
+          typename T_per_element = ChElementDataNONE>
+class ChDomainIntegrating : public ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
+  public:
+    // already in parent class, but need this redundant stuff for non-msvc compilers:
+    using DataPerElement = typename ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>::DataPerElement;
+
+    /// Construct a domain, given a tuple of fields.
+    ChDomainIntegrating(typename tuple_as_sharedptr<T_per_node>::type mfields)
+        : ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
+
+    /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
+    /// It operates quadrature on the element, calling PointComputeInternalLoads(...) at each quadrature point.
+    virtual void ElementComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+                                             DataPerElement& data,
+                                             ChVectorDynamic<>& Fi) {
+        int quadorder = melement->GetQuadratureOrder();
+        int numpoints = melement->GetNumMaterialPoints();
+        int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
+        Fi.setZero(numelcoords);
+        ChMatrix33<> J;
+        ChVector3d eta;
+        double weight;
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            melement->GetMaterialPointWeight(quadorder, i_point, weight,
+                                               eta);  // get eta coords and weight at this i-th point
+            double det_J = melement->ComputeJ(eta, J);
+            double s = weight * det_J;
+            PointComputeInternalLoads(melement, data, i_point, eta, s, Fi);
+        }
+    }
+
+    /// For a given finite element, computes matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled sum of
+    /// the tangent matrices M,R,K,: H = Mfactor*M + Rfactor*R + Kfactor*K. Setting Mfactor=1 and Rfactor=Kfactor=0, it
+    /// can be used to get just mass matrix, etc. It operates quadrature on the element, calling
+    /// PointComputeKRMmatrices(...) at each quadrature point.
+    virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+                                           DataPerElement& data,
+                                           ChMatrixRef H,
+                                           double Kfactor,
+                                           double Rfactor = 0,
+                                           double Mfactor = 0) {
+        int quadorder = melement->GetQuadratureOrder();
+        int numpoints = melement->GetNumMaterialPoints();
+        H.setZero();  // should be already of proper size
+        ChMatrix33<> J;
+        ChVector3d eta;
+        double weight;
+        for (int i_point = 0; i_point < numpoints; ++i_point) {
+            melement->GetMaterialPointWeight(quadorder, i_point, weight,
+                                               eta);  // get eta coords and weight at this i-th point
+            double det_J = melement->ComputeJ(eta, J);
+            double s = weight * det_J;
+            PointComputeKRMmatrices(melement, data, i_point, eta, H, Kfactor * s, Rfactor * s, Mfactor * s);
+        }
+    }
+
+    // SPECIFIC DOMAINS (THERMAL, ELASTIC etc.) LAWS MUST IMPLEMENT THESE TWO PURE VIRTUAL
+    // FUNCTIONS PointComputeInternalLoads PointComputeKRMmatrices ACCORDING TO SOME 
+    // CONSTITUTIVE LAWS
+
+    /// Computes the internal loads Fi for one quadrature point, except quadrature weighting,
+    /// and *ADD* the s-scaled result to Fi vector.
+    /// For example, if internal load in discretized coords is
+    ///    F   = \sum (Foo*B')*w*det(J);
+    /// here you must compute
+    ///    Fi += (Foo*B')*s
+    /// If the default quadrature is not good for you, then override ElementComputeInternalLoads() directly.
+    virtual void PointComputeInternalLoads(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        const double s,
+        ChVectorDynamic<>& Fi) = 0;
+
+    /// Computes tangent matrix H for one quadrature point, except quadrature weighting,
+    /// and *ADD* the scaled result to H matrix.
+    /// For example, if in discretized coords you have
+    ///    K   = \sum (B*E*B')*w*det(J); M=\sum(rho*N*N')*w*det(J); R = ...
+    /// and since we assume H = Mfactor*K + Kfactor*K + Rfactor*R, then here you must compute
+    ///    H  += Mpfactor*(rho*N*N') + Kpfactor*(B*E*B') + Rpfactor*...
+    /// If the default quadrature is not good for you, then override ElementComputeKRMmatrices() directly.
+    virtual void PointComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
+        DataPerElement& data,
+        const int i_point,
+        ChVector3d& eta,
+        ChMatrixRef H,
+        double Kpfactor,
+        double Rpfactor = 0,
+        double Mpfactor = 0) = 0;
+
+};
+
+
+////////////////////////////////////
+
+/// Class for all domains that computes internal loads and tangent matrices with 
+/// generic procedures (collocation, analytical formulas, neural networks, etc), not necessarily integrating at
+/// quadrature points.
+/// Specialized sub classes must implement the two methods ElementComputeInternalLoads and ElementComputeKRMmatrices.
+/// BTW: If you use elements with quadrature, it is better that you inherit from ChDomainIntegrating instead, 
+/// because it will do the quadrature loop for you and call the pointwise methods, so you can just focus on the
+/// constitutive law at the point level.
+
+template <typename T_per_node = std::tuple<ChFieldScalar>,
+          typename T_per_matpoint_aux = ChFieldDataNONE,
+          typename T_per_element = ChElementDataNONE>
+class ChDomainGeneric : public ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
+  public:
+    /// Construct a domain, given a tuple of fields.
+    ChDomainGeneric(typename tuple_as_sharedptr<T_per_node>::type mfields)
+        : ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
+
+    // SPECIFIC DOMAINS (THERMAL, ELASTIC etc.) LAWS MUST IMPLEMENT THE TWO PURE VIRTUAL
+    // FUNCTIONS ElementComputeInternalLoads  ElementComputeKRMmatrices ACCORDING TO SOME
+    // CONSTITUTIVE LAWS
+
+};
+
+
+/// @} chrono_fea
+
+}  // end namespace fea
+
+}  // end namespace chrono
+
+#endif

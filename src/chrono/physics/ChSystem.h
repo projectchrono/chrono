@@ -133,7 +133,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access the solver currently associated with this system.
-    virtual std::shared_ptr<ChSolver> GetSolver() { return solver; }
+    virtual std::shared_ptr<ChSolver> GetSolver() const { return solver; }
 
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
@@ -154,7 +154,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescriptor);
 
     /// Access directly the 'system descriptor'.
-    std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
+    std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() const { return descriptor; }
 
     /// Set the gravitational acceleration vector (default: [0, 0, 0]).
     void SetGravitationalAcceleration(const ChVector3d& gacc) { G_acc = gacc; }
@@ -511,7 +511,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // STATISTICS
 
     /// Gets the number of contacts.
-    virtual unsigned int GetNumContacts();
+    virtual unsigned int GetNumContacts() const;
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }

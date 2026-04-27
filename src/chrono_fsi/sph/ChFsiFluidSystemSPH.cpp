@@ -729,13 +729,18 @@ void ChFsiFluidSystemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_
 
 void PrintDeviceProperties(const cudaDeviceProp& prop) {
     cout << "GPU device: " << prop.name << endl;
-    cout << "  Compute capability: " << prop.major << "." << prop.minor << endl;
     cout << "  Total global memory: " << prop.totalGlobalMem / (1024. * 1024. * 1024.) << " GB" << endl;
     cout << "  Total constant memory: " << prop.totalConstMem / 1024. << " KB" << endl;
     cout << "  Total available static shared memory per block: " << prop.sharedMemPerBlock / 1024. << " KB" << endl;
+    cout << "  Number of multiprocessors: " << prop.multiProcessorCount << endl;
+#if defined(CHRONO_USE_HIP)
+    cout << "  Warp/Wavefront size: " << prop.warpSize << endl;
+    cout << "  Max threads per block: " << prop.maxThreadsPerBlock << endl;
+#else
+    cout << "  Compute capability: " << prop.major << "." << prop.minor << endl;
     cout << "  Max. dynamic shared memory per block: " << prop.sharedMemPerBlockOptin / 1024. << " KB" << endl;
     cout << "  Total shared memory per multiprocessor: " << prop.sharedMemPerMultiprocessor / 1024. << " KB" << endl;
-    cout << "  Number of multiprocessors: " << prop.multiProcessorCount << endl;
+#endif
 }
 
 void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {

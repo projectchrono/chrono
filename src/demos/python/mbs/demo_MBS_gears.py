@@ -194,10 +194,10 @@ while vis.Run():
     vis.BeginScene() 
     vis.Render()
     # Draw some segments for a simplified representation of pulley
-    chronoirr.drawSegment(vis,
+    chronoirr.DrawSegment(vis,
                           link_pulleyDE.GetBeltUpPos1(),
                           link_pulleyDE.GetBeltUpPos2());
-    chronoirr.drawSegment(vis,
+    chronoirr.DrawSegment(vis,
                           link_pulleyDE.GetBeltBottomPos1(),
                           link_pulleyDE.GetBeltBottomPos2());
     vis.EndScene()

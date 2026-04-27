@@ -258,7 +258,7 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
             ImGui::PopItemWidth();
             if (com_frame_scale != m_app->m_com_frame_scale) {
                 m_app->m_com_frame_scale = com_frame_scale;
-                m_app->m_com_size_changed = true;
+                m_app->m_com_symbol_size_changed = true;
             }
 
             ImGui::TableNextRow();

@@ -21,17 +21,10 @@
 namespace chrono {
 namespace utils {
 
-static const double EPS = 1e-20;
-static const double EPS_TRIDEGEN = 1e-10;
+static constexpr double EPS = 1e-20;
+static constexpr double EPS_TRIDEGEN = 1e-10;
 
-bool LineLineIntersect(const ChVector3d& p1,
-                       const ChVector3d& p2,
-                       const ChVector3d& p3,
-                       const ChVector3d& p4,
-                       ChVector3d& pa,
-                       ChVector3d& pb,
-                       double& ua,
-                       double& ub) {
+bool LineLineIntersect(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, const ChVector3d& p4, ChVector3d& pa, ChVector3d& pb, double& ua, double& ub) {
     ChVector3d p13, p43, p21;
     double d1343, d4321, d1321, d4343, d2121;
     double numer, denom;
@@ -92,57 +85,54 @@ double PointLineDistance(const ChVector3d& B, const ChVector3d& A1, const ChVect
     return mdist;
 }
 
-double PointTrianglePlaneDistance(const ChVector3d& B,
-                             const ChVector3d& A1,
-                             const ChVector3d& A2,
-                             const ChVector3d& A3,
-                             double& u,
-                             double& v,
-                             bool& in_triangle,
-                             ChVector3d& Bprojected) {
-    // defaults
+double PointTrianglePlaneDistance(const ChVector3d& B,    //
+                                  const ChVector3d& A1,   //
+                                  const ChVector3d& A2,   //
+                                  const ChVector3d& A3,   //
+                                  double& u,              //
+                                  double& v,              //
+                                  bool& in_triangle,      //
+                                  ChVector3d& Bprojected  //
+) {
+    // Defaults
     in_triangle = false;
-    u = v = -1;
-    double mdistance = 10e22;
+    u = -1.0;
+    v = -1.0;
 
-    ChVector3d Dx, Dy, Dz, T1, T1p;
+    ChVector3d dx = A2 - A1;
+    ChVector3d dy = A3 - A1;
+    ChVector3d normal = Vcross(dx, dy);  // not yet normalized
+    double n_len = normal.Length();
 
-    Dx = Vsub(A2, A1);
-    Dz = Vsub(A3, A1);
-    Dy = Vcross(Dz, Dx);
-
-    double dylen = Vlength(Dy);
-
-    if (fabs(dylen) < EPS_TRIDEGEN)  // degenerate triangle
-        return mdistance;
-
-    Dy = Vmul(Dy, 1.0 / dylen);
-
-    ChMatrix33<> mA(Dx, Dy, Dz);
-
-    // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    if (std::abs(mA.determinant()) < 0.000001)
-        return mdistance;
-
-    ChMatrix33<> mAi = mA.inverse();
-    T1 = mAi * (B - A1);
-    T1p = T1;
-    T1p.y() = 0;
-    u = T1.x();
-    v = T1.z();
-    mdistance = -T1.y();
-    if (u >= 0 && v >= 0 && v <= 1 - u) {
-        in_triangle = true;
-        Bprojected = A1 + mA * T1p;
+    // Check degenerate triangle
+    if (n_len < EPS_TRIDEGEN) {
+        return std::numeric_limits<double>::max();
     }
 
-    return mdistance;
+    normal = normal / n_len;                 // normalize now
+    double distance = Vdot(B - A1, normal);  // signed distance
+    Bprojected = B - normal * distance;
+
+    // Compute barycentric coordinates
+    ChVector3d wp = Bprojected - A1;
+    double d00 = Vdot(dx, dx);
+    double d01 = Vdot(dx, dy);
+    double d11 = Vdot(dy, dy);
+    double d20 = Vdot(wp, dx);
+    double d21 = Vdot(wp, dy);
+    double denom = d00 * d11 - d01 * d01;
+
+    u = (d11 * d20 - d01 * d21) / denom;
+    v = (d00 * d21 - d01 * d20) / denom;
+    in_triangle = (u >= 0.0) && (v >= 0.0) && (u + v <= 1.0);
+
+    return distance;
 }
 
 bool IsTriangleDegenerate(const ChVector3d& Dx, const ChVector3d& Dy) {
     ChVector3d vcr;
     vcr = Vcross(Dx, Dy);
-    if (fabs(vcr.x()) < EPS_TRIDEGEN && fabs(vcr.y()) < EPS_TRIDEGEN && fabs(vcr.z()) < EPS_TRIDEGEN)
+    if (std::abs(vcr.x()) < EPS_TRIDEGEN && std::abs(vcr.y()) < EPS_TRIDEGEN && std::abs(vcr.z()) < EPS_TRIDEGEN)
         return true;
     return false;
 }

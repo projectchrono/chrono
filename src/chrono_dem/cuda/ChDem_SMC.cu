@@ -34,11 +34,11 @@ __host__ float ChSystemDem_impl::computeArray3SquaredSum(std::vector<float, cuda
 
     // Use CUB to reduce. And put the reduced result at the last element of sphere_stats_buffer array.
     size_t temp_storage_bytes = 0;
-    cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                           sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
+    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                                      sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                           sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
+    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                                      sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer + num_spheres);
@@ -58,17 +58,17 @@ __host__ double ChSystemDem_impl::GetMaxParticleZ(bool getMax) {
     // Use CUB to find the max or min Z.
     size_t temp_storage_bytes = 0;
     if (getMax) {
-        cub::DeviceReduce::Max(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
+        demErrchk(cub::DeviceReduce::Max(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
         void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-        cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
+        demErrchk(cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
     } else {
-        cub::DeviceReduce::Min(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
+        demErrchk(cub::DeviceReduce::Min(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
         void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-        cub::DeviceReduce::Min(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
+        demErrchk(cub::DeviceReduce::Min(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
     }
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
@@ -88,11 +88,11 @@ __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveZ(float ZValue) {
 
     // Use CUB to find the max or min Z.
     size_t temp_storage_bytes = 0;
-    cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
+    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
+    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer_int + num_spheres);
@@ -111,11 +111,11 @@ __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveX(float XValue) {
 
     // Use CUB to find the max or min X.
     size_t temp_storage_bytes = 0;
-    cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
+    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
+    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer_int + num_spheres);
@@ -190,9 +190,9 @@ __host__ float ChSystemDem_impl::get_max_vel() const {
 
     void* d_temp_storage = NULL;
     size_t temp_storage_bytes = 0;
-    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nSpheres);
+    demErrchk(cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nSpheres));
     demErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nSpheres);
+    demErrchk(cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nSpheres));
     demErrchk(cudaMemcpy(&h_max_vel, d_max_vel, sizeof(float), cudaMemcpyDeviceToHost));
 
     demErrchk(cudaFree(d_absv));
@@ -584,14 +584,14 @@ __host__ void ChSystemDem_impl::runSphereBroadphase() {
 
     // cold run; CUB determines the amount of storage it needs (since first argument is NULL pointer)
     size_t temp_storage_bytes = 0;
-    cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+    demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs));
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
 
     // give CUB needed temporary storage on the device
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run the actual exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+    demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs));
     demErrchk(cudaDeviceSynchronize());
     demErrchk(cudaPeekAtLastError());
 

@@ -1326,7 +1326,7 @@ void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c, const do
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
-unsigned int ChSystem::GetNumContacts() {
+unsigned int ChSystem::GetNumContacts() const {
     return contact_container->GetNumContacts();
 }
 

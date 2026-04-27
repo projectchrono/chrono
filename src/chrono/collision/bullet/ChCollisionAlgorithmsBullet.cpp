@@ -24,7 +24,7 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCapsuleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtChTriangleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.h"
 
 namespace chrono {
@@ -1067,8 +1067,8 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     // Avoid persistence of contacts in manifold
     resultOut->getPersistentManifold()->clearManifold();
 
-    const cbtCEtriangleShape* triA = (cbtCEtriangleShape*)triObj1Wrap->getCollisionShape();
-    const cbtCEtriangleShape* triB = (cbtCEtriangleShape*)triObj2Wrap->getCollisionShape();
+    const cbtChTriangleShape* triA = (cbtChTriangleShape*)triObj1Wrap->getCollisionShape();
+    const cbtChTriangleShape* triB = (cbtChTriangleShape*)triObj2Wrap->getCollisionShape();
     ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
     ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
 

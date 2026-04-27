@@ -39,8 +39,8 @@ class ChApi ChCollisionShape {
         BARREL,        // Not supported in Chrono collision system
         POINT,
         SEGMENT,
-        TRIANGLE,      // stand-alone collision triangle
-        MESHTRIANGLE,  // triangle in a connected mesh
+        TRIANGLE,           // stand-alone collision triangle
+        CONNECTEDTRIANGLE,  // triangle in a connected mesh
         CAPSULE,
         CONE,         // Not implemented in Bullet collision system
         ROUNDEDBOX,   // Not implemented in Bullet collision system
@@ -75,7 +75,7 @@ class ChApi ChCollisionShape {
     bool IsMutable() const { return is_mutable; }
 
     /// Set the parent shape.
-    /// This is meaningful only for collision shapes that are part of a compound (for example, a ChCollisionShapeMeshTriangle which is part of a ChCollisionShapeTriangleMesh).
+    /// This is meaningful only for collision shapes that are part of a compound (for example, a ChCollisionShapeConnectedTriangle which is part of a ChCollisionShapeTriangleMesh).
     /// For collision shapes that are not part of a compound, the parent shape should be left at its default `nullptr` value.
     void SetParentShape(std::shared_ptr<ChCollisionShape> parent);
 

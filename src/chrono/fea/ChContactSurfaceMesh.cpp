@@ -645,7 +645,7 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyz> node1,
     contact_triangle->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
     ////contact_triangle->SetContactSurface(this);
 
-    auto tri_shape = chrono_types::make_shared<ChCollisionShapeMeshTriangle>(
+    auto tri_shape = chrono_types::make_shared<ChCollisionShapeConnectedTriangle>(
         m_material,                                   // contact material
         &node1->pos, &node2->pos, &node3->pos,        // face nodes
         edge_node1 ? &edge_node1->pos : &node1->pos,  // edge node 1
@@ -688,7 +688,7 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,
     contact_triangle->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
     ////contact_triangle->SetContactSurface(this);
 
-    auto tri_shape = chrono_types::make_shared<ChCollisionShapeMeshTriangle>(
+    auto tri_shape = chrono_types::make_shared<ChCollisionShapeConnectedTriangle>(
         m_material,                                             // contact material
         &node1->GetPos(), &node2->GetPos(), &node3->GetPos(),   // face nodes
         edge_node1 ? &edge_node1->GetPos() : &node1->GetPos(),  // edge node 1
