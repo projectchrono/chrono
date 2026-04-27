@@ -26,6 +26,7 @@ ChObj::ChObj(const ChObj& other) {
 
     m_name = other.m_name;
     ChTime = other.ChTime;
+    m_tag = other.m_tag;
 }
 
 int ChObj::GenerateUniqueIdentifier() {

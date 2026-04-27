@@ -488,6 +488,9 @@ bool ChArchiveInXML::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, st
 
             new_ptr = bVal.value().GetRawPtr();
 
+            // Unlikely, but might happen: one serialized an object (full, not as reference), but was already in
+            // external_id_ptr, so we have to rebind the pointer to the already existing object, and delete
+            // the new one just created now when deserializing:
             if (this->on_external_conflict_rebind && (this->external_id_ptr.find(obj_ID) != this->external_id_ptr.end())) {
                 // consume input serialized data anyway to keep the file scanning in sync
                 bVal.value().CallArchiveIn(*this, true_classname);
@@ -506,19 +509,23 @@ bool ChArchiveInXML::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, st
                 PutNewPointer(new_ptr, obj_ID);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this, true_classname);
-            } else {
+            } else if (!bVal.value().GetRawPtr()) {
                 throw std::runtime_error("Archive cannot create object " + std::string(bVal.name()) + "\n");
             }
 
         } else {
             if (ref_ID) {
-                if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
-                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
-                                             std::to_string((int)ref_ID) + " is not a valid number.");
+                // First check internal_id_ptr (objects created during this deserialization)
+                if (this->internal_id_ptr.find(ref_ID) != this->internal_id_ptr.end()) {
+                    bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
+                }
+                // Fallback to external_id_ptr (pre-existing objects registered before deserialization)
+                else if (this->external_id_ptr.find(ref_ID) != this->external_id_ptr.end()) {
+                    bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ref_ID]));
+                } else {
+                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " + std::to_string((int)ref_ID) + " is not a valid number.");
                 }
 
-                bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(),
-                                                             internal_id_ptr[ref_ID]));
             } else if (ext_ID) {
                 if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
                     throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _external_ID " +
