@@ -123,19 +123,24 @@ class ChApi ChProfileManager {
 
     static void dumpAll();
 
+    static void Enable() { enabled = true; } 
+    static void Disable() { enabled = false; }
+    static bool IsEnabled() { return enabled; }
+
   private:
     static ChProfileNode Root;
     static ChProfileNode* CurrentNode;
     static int FrameCounter;
     static unsigned long int ResetTime;
+    static bool enabled;
 };
 
 /// Simple way to profile a function's scope.
 class ChApi ChProfileSample {
   public:
-    ChProfileSample(const char* name) { ChProfileManager::Start_Profile(name); }
+    ChProfileSample(const char* name) { if (ChProfileManager::IsEnabled()) ChProfileManager::Start_Profile(name); }
 
-    ~ChProfileSample(void) { ChProfileManager::Stop_Profile(); }
+    ~ChProfileSample(void) { if (ChProfileManager::IsEnabled()) ChProfileManager::Stop_Profile(); }
 };
 
 }  // end namespace utils

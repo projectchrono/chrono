@@ -49,6 +49,7 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
+#include "chrono/utils/ChProfiler.h"
 
 #include "chrono_multidomain/ChDomainManagerSharedmemory.h"
 #include "chrono_multidomain/ChDomainBuilder.h"
@@ -70,6 +71,10 @@ static int unique_ID = 3;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    // This is needed because the run-time profiler is not thread safe,
+    // whereas the ChDomainManagerSharedmemory::DoAllStepDynamics() will run in parallel threads.
+    chrono::utils::ChProfileManager::Disable();
 
     // This source generates a simple executable with basic std::cout output on the command
     // line console, enough to show basic functionality of the multidomain module.
@@ -296,7 +301,7 @@ int main(int argc, char* argv[]) {
         vis_irr_0->BeginScene();
         vis_irr_0->Render();
         vis_irr_0->EndScene();
-        vis_irr_0->RemoveAllIrrNodes();
+        vis_irr_1->RemoveAllIrrNodes();
         vis_irr_1->BindAll();
         vis_irr_1->Run();
         vis_irr_1->BeginScene();

@@ -192,6 +192,7 @@ ChProfileNode ChProfileManager::Root("Root", NULL);
 ChProfileNode* ChProfileManager::CurrentNode = &ChProfileManager::Root;
 int ChProfileManager::FrameCounter = 0;
 unsigned long int ChProfileManager::ResetTime = 0;
+bool ChProfileManager::enabled = true;
 
 /***********************************************************************************************
  * ChProfileManager::Start_Profile -- Begin a named profile                                    *

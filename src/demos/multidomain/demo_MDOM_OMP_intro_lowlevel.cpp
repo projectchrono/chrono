@@ -45,6 +45,7 @@
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 #include "chrono_multidomain/ChSolverLumpedMultidomain.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono/utils/ChProfiler.h"
 
 using namespace chrono;
 using namespace multidomain;
@@ -70,6 +71,9 @@ int main(int argc, char* argv[]) {
     // OpenMP multithreading. This OpenMP multithreading is enough for didactical reasons,
     // then more advanced stuff must run usnig the MPI domain manager, shown in other demos.
 
+    // This is needed because the run-time profiler is not thread safe,
+    // whereas the ChDomainManagerSharedmemory::DoAllStepDynamics() will run in parallel threads.
+    chrono::utils::ChProfileManager::Disable();
 
     // 1- First you need a ChDomainManagerSharedmemory. This will use OpenMP multithreading
     //    as a method for parallelism (spreading processes on multiple computing nodes)
@@ -251,7 +255,7 @@ int main(int argc, char* argv[]) {
         vis_irr_0->BeginScene();
         vis_irr_0->Render();
         vis_irr_0->EndScene();
-        vis_irr_0->RemoveAllIrrNodes();
+        vis_irr_1->RemoveAllIrrNodes();
         vis_irr_1->BindAll();
         vis_irr_1->Run();
         vis_irr_1->BeginScene();
