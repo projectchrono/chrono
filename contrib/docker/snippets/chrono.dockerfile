@@ -93,12 +93,11 @@ INCLUDE ./ch_postprocess.dockerfile
 # build time; what it costs is binary size. Set this to a concrete compute capability to
 # target one GPU. Never set it to "native" -- with no GPU visible that is a FATAL_ERROR.
 ARG CHRONO_CUDA_ARCHITECTURES=""
-RUN ${PRE_BUILD_SCRIPTS} && \
+RUN eval "${PRE_BUILD_SCRIPTS} true" && \
     # Evaluate the cmake options to expand any $(...) commands or variables
     eval "_CMAKE_OPTIONS=\"${CMAKE_OPTIONS}\"" && \
-    mkdir ${CHRONO_DIR}/build && \
-    cd ${CHRONO_DIR}/build && \
-    cmake ../ -G Ninja \
+    cd ${CHRONO_DIR} && \
+    cmake -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_DEMOS=OFF \
         -DBUILD_BENCHMARKING=OFF \
@@ -107,9 +106,9 @@ RUN ${PRE_BUILD_SCRIPTS} && \
         -DEigen3_DIR=/usr/share/eigen3/cmake \
         -DCMAKE_INSTALL_PREFIX=${CHRONO_INSTALL_DIR} \
         -DCHRONO_CUDA_ARCHITECTURES="${CHRONO_CUDA_ARCHITECTURES}" \
-        ${_CMAKE_OPTIONS} \
-        && \
-    ninja && ninja install
+        ${_CMAKE_OPTIONS} && \
+    cmake --build build && \
+    cmake --install build
 
 
 # Update shell config
