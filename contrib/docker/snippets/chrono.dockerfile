@@ -93,6 +93,8 @@ INCLUDE ./ch_postprocess.dockerfile
 # build time; what it costs is binary size. Set this to a concrete compute capability to
 # target one GPU. Never set it to "native" -- with no GPU visible that is a FATAL_ERROR.
 ARG CHRONO_CUDA_ARCHITECTURES=""
+# Limit build parallelism without rebuilding dependency layers.
+ARG CMAKE_BUILD_PARALLEL_LEVEL
 RUN eval "${PRE_BUILD_SCRIPTS} true" && \
     # Evaluate the cmake options to expand any $(...) commands or variables
     eval "_CMAKE_OPTIONS=\"${CMAKE_OPTIONS}\"" && \

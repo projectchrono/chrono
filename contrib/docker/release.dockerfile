@@ -12,6 +12,8 @@
 # Common overrides:
 #   docker build -f release.dockerfile -t chrono/chrono:release \
 #     --build-arg CHRONO_CUDA_ARCHITECTURES="80;86;89" .
+#   docker build -f release.dockerfile -t chrono/chrono:release \
+#     --build-arg CMAKE_BUILD_PARALLEL_LEVEL=4 .
 #
 # This mirrors the docker-compose dev build defaults while allowing a direct
 # docker build invocation.
