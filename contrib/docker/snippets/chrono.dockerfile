@@ -61,6 +61,24 @@ INCLUDE ./ch_python.dockerfile
 # uncommenting once SynChrono is updated for the new toolchain.
 # INCLUDE ./ch_synchrono.dockerfile
 
+# ---------------------------------------------------------------------------
+# Optional additional modules enabled for this image.
+#
+# Keep ch_pardisomkl before ch_mumps: MUMPS is built against Intel MKL.
+# CUDA-dependent modules rely on cuda.dockerfile, included above.
+# Enabling all modules produces a large image and a long build.
+# ---------------------------------------------------------------------------
+INCLUDE ./ch_cascade.dockerfile
+INCLUDE ./ch_csharp.dockerfile
+INCLUDE ./ch_dem.dockerfile
+INCLUDE ./ch_fmi.dockerfile
+INCLUDE ./ch_fsi.dockerfile
+INCLUDE ./ch_pardisomkl.dockerfile
+INCLUDE ./ch_modal.dockerfile
+INCLUDE ./ch_multicore.dockerfile
+INCLUDE ./ch_mumps.dockerfile
+INCLUDE ./ch_peridynamics.dockerfile
+INCLUDE ./ch_postprocess.dockerfile
 
 # Install Chrono
 #
