@@ -25,6 +25,12 @@
 // Macros specifying enabled Chrono modules
 // -----------------------------------------------------------------------------
 
+// If module FEA was enabled, define CHRONO_FEA
+@CHRONO_FEA@
+
+// If module FEA_MULTIPHYSICS was enabled, define CHRONO_FEA_MULTIPHYSICS
+@CHRONO_FEA_MULTIPHYSICS@
+
 // If module CASCADE was enabled, define CHRONO_CASCADE
 @CHRONO_CASCADE@
 

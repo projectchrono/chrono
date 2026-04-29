@@ -23,8 +23,10 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
-#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
+#ifdef CHRONO_FEA
+    #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
+#endif
 
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
 
@@ -103,20 +105,25 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
 
         auto bodyA = dynamic_cast<ChBody*>(modA);
         auto bodyB = dynamic_cast<ChBody*>(modB);
+        #ifdef CHRONO_FEA
         auto vertexA = dynamic_cast<fea::ChContactNodeXYZ*>(modA);
         auto vertexB = dynamic_cast<fea::ChContactNodeXYZ*>(modB);
         auto faceA = dynamic_cast<fea::ChContactTriangleXYZ*>(modA);
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
+        #endif
 
         if (bodyA && bodyB) {
             cout << "  Body-Body:  " << bodyA->GetName() << "  " << bodyB->GetName() << endl;
             m_num_contacts_bb++;
             return true;
-        } else if (vertexA && vertexB) {
+        } 
+        #ifdef CHRONO_FEA
+        else if (vertexA && vertexB) {
             cout << "  Vertex-Vertex" << endl;
         } else if (faceA && faceB) {
             cout << "  Face-Face" << endl;
         }
+        #endif
 
         // Continue scanning contacts
         return true;
@@ -141,7 +148,9 @@ int main(int argc, char* argv[]) {
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
         rig = new ChTrackTestRig(GetVehicleDataFile(filename), create_track, ChContactMethod::SMC);
-    } else {
+    }
+#ifdef CHRONO_FEA
+    else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
         ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_4;
@@ -157,9 +166,8 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case TrackShoeType::BAND_ANCF: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(
-                    side, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width,
-                    false);
+                auto assembly =
+                    chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width, false);
                 assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;
@@ -172,6 +180,7 @@ int main(int argc, char* argv[]) {
         rig = new ChTrackTestRig(track_assembly, create_track, ChContactMethod::SMC);
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
+#endif
 
     // ----------------------------
     // Associate a collision system
@@ -291,7 +300,9 @@ int main(int argc, char* argv[]) {
     auto sys = rig->GetSystem();
     cout << "Number of bodies:        " << sys->GetBodies().size() << endl;
     cout << "Number of physics items: " << sys->GetOtherPhysicsItems().size() << endl;
+#ifdef CHRONO_FEA
     cout << "Number of FEA meshes:    " << sys->GetMeshes().size() << endl;
+#endif
 
     // -----------------
     // Initialize output

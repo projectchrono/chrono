@@ -6,8 +6,13 @@ set(DEMOS
   demo_IRR_assets
   demo_IRR_paths
   demo_IRR_visualize_collision
-  demo_IRR_visualize_FEA
 )
+
+if(CH_ENABLE_MODULE_FEA)
+  set(DEMOS ${DEMOS}
+    demo_IRR_visualize_FEA
+  )
+endif()
 
 if(CHRONO_THRUST_FOUND)
   set(DEMOS ${DEMOS}

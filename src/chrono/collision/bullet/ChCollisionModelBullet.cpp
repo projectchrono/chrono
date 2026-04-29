@@ -42,6 +42,8 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionModelBullet)
 CH_UPCASTING(ChCollisionModelBullet, ChCollisionModelImpl)
 
+// -----------------------------------------------------------------------------
+
 /// Utility function to populate a Bullet triangle mesh from a Chrono one
 static void PopulateBulletMesh(cbtTriangleMesh* bullet_mesh, std::shared_ptr<ChTriangleMesh> trimesh) {
     for (unsigned int i = 0; i < trimesh->GetNumTriangles(); i++) {
@@ -52,21 +54,6 @@ static void PopulateBulletMesh(cbtTriangleMesh* bullet_mesh, std::shared_ptr<ChT
         );
     }
 }
-
-// -----------------------------------------------------------------------------
-
-ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model) : ChCollisionModelImpl(collision_model) {
-    bt_collision_object = std::unique_ptr<cbtCollisionObject>(new cbtCollisionObject);
-    bt_collision_object->setCollisionShape(nullptr);
-    bt_collision_object->setUserPointer((void*)this);
-}
-
-ChCollisionModelBullet::~ChCollisionModelBullet() {
-    m_shapes.clear();
-    m_bt_shapes.clear();
-}
-
-// -----------------------------------------------------------------------------
 
 // Utility class to convert a Chrono frame into a Bullet transform.
 class cbtTransformCH : public cbtTransform {
@@ -91,6 +78,19 @@ class ChCoordsysBT : public ChCoordsys<double> {
         rot = ChQuaternion<>((double)q.w(), (double)q.x(), (double)q.y(), (double)q.z());
     }
 };
+
+// -----------------------------------------------------------------------------
+
+ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model) : ChCollisionModelImpl(collision_model) {
+    bt_collision_object = std::unique_ptr<cbtCollisionObject>(new cbtCollisionObject);
+    bt_collision_object->setCollisionShape(nullptr);
+    bt_collision_object->setUserPointer((void*)this);
+}
+
+ChCollisionModelBullet::~ChCollisionModelBullet() {
+    m_shapes.clear();
+    m_bt_shapes.clear();
+}
 
 // -----------------------------------------------------------------------------
 

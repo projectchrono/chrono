@@ -20,7 +20,9 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChVisualShape.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
+#ifdef CHRONO_FEA
+    #include "chrono/assets/ChVisualShapeFEA.h"
+#endif
 
 namespace chrono {
 
@@ -53,14 +55,13 @@ class ChApi ChVisualModel {
                   bool wireframe = false                 ///< solid rendering by default
     );
 
+#ifdef CHRONO_FEA
     /// Add visual shapes for an FEA mesh to this model.
     void AddShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
+#endif
 
     /// Get the number of visual shapes in the model.
     unsigned int GetNumShapes() const { return (unsigned int)m_shapes.size(); }
-
-    /// Get the number of FEA visual shapes in the model.
-    unsigned int GetNumShapesFEA() const { return (unsigned int)m_shapesFEA.size(); }
 
     /// Get the visual shapes in the model.
     const std::vector<ChVisualShapeInstance>& GetShapeInstances() const { return m_shapes; }
@@ -77,14 +78,19 @@ class ChApi ChVisualModel {
     /// Enable/disable wireframe rendering mode for the specified shape in the model (default: false).
     void EnableWireframe(unsigned int i, bool val = true) { m_shapes[i].wireframe = val; }
 
-    /// Get the rendering mode of the specifiedc shape instance in the model.
+    /// Get the rendering mode of the specified shape instance in the model.
     bool UseWireframe(unsigned int i) const { return m_shapes[i].wireframe; }
+
+#ifdef CHRONO_FEA
+    /// Get the number of FEA visual shapes in the model.
+    unsigned int GetNumShapesFEA() const { return (unsigned int)m_shapesFEA.size(); }
 
     /// Get the FEA visualization shapes in the model.
     const std::vector<std::shared_ptr<ChVisualShapeFEA>>& GetShapesFEA() const { return m_shapesFEA; }
 
     /// Get the specified FEA visualization object in the model.
     std::shared_ptr<ChVisualShapeFEA> GetShapeFEA(unsigned int i) const { return m_shapesFEA[i]; }
+#endif
 
     /// Erase all shapes in this model.
     void Clear();
@@ -111,7 +117,10 @@ class ChApi ChVisualModel {
     void Update(ChObj* owner, const ChFrame<>& frame);
 
     std::vector<ChVisualShapeInstance> m_shapes;
+#ifdef CHRONO_FEA
     std::vector<std::shared_ptr<ChVisualShapeFEA>> m_shapesFEA;
+#endif
+
     int m_tag=-1;
 
     friend class ChVisualModelInstance;

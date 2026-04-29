@@ -50,7 +50,7 @@ class CH_FSI_API ChFsiSplashsurfSPH {
     /// This corresponds to the cell size of the implicit background grid.
     void SetCubeSize(double size) { m_cube_size = size; }
 
-    /// Set the iso-surface threshold for the density  (in multiplies of the rest density).
+    /// Set the isosurface threshold for the density  (in multiplies of the rest density).
     /// This is the normalized value of the reconstructed density level that indicates the fluid surface.
     void SetSurfaceThreshold(double threshold) { m_surface_threshold = threshold; }
 

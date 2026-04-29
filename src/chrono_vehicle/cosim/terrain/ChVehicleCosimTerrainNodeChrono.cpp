@@ -85,8 +85,7 @@ bool ChVehicleCosimTerrainNodeChrono::ReadSpecfile(const std::string& specfile, 
     return true;
 }
 
-ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(
-    const std::string& specfile) {
+ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(const std::string& specfile) {
     Document d;
     if (!ReadSpecfile(specfile, d)) {
         return Type::UNKNOWN;
@@ -122,15 +121,8 @@ ChVector2d ChVehicleCosimTerrainNodeChrono::GetSizeFromSpecfile(const std::strin
 // -----------------------------------------------------------------------------
 // Construction of the base Chrono terrain node.
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type,
-                                                                 double length,
-                                                                 double width,
-                                                                 ChContactMethod method)
-    : ChVehicleCosimTerrainNode(length, width),
-      m_type(type),
-      m_method(method),
-      m_fixed_proxies(false),
-      m_init_height(0) {
+ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type, double length, double width, ChContactMethod method)
+    : ChVehicleCosimTerrainNode(length, width), m_type(type), m_method(method), m_fixed_proxies(false), m_init_height(0) {
     // Default terrain contact material
     switch (m_method) {
         case ChContactMethod::SMC:
@@ -167,7 +159,9 @@ void ChVehicleCosimTerrainNodeChrono::OnInitialize(unsigned int num_objects) {
                 CreateRigidProxy(i);
                 break;
             case InterfaceType::MESH:
+#ifdef CHRONO_FEA
                 CreateMeshProxy(i);
+#endif
                 break;
         }
     }

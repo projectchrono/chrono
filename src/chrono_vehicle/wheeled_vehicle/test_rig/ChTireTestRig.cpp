@@ -28,7 +28,9 @@
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#endif
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -672,17 +674,21 @@ void ChTireTestRig::CreateTerrainCRM() {
         auto bce = m_bce_callback->GetMarkers();
         terrain->GetFsiSystemSPH()->AddFsiBody(m_spindle, bce, ChFramed(), false);
     } else {
+    #ifdef CHRONO_FEA
         if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
             auto mesh = fea_tire->GetMesh();
             terrain->AddFeaMesh(mesh, false);
         } else {
+    #endif
             auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
             assert(rgd_tire->UseContactMesh());
             auto trimesh = rgd_tire->GetContactMesh();
             auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
             geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
             terrain->AddRigidBody(m_spindle, geometry, false);
+    #ifdef CHRONO_FEA
         }
+    #endif
     }
 
     terrain->Initialize();

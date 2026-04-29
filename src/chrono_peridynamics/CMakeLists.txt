@@ -11,6 +11,13 @@ endif()
 
 message(STATUS "\n==== Chrono Peridynamics module ====\n")
 
+if(NOT CH_ENABLE_MODULE_FEA)
+   message("Chrono::Peridynamics requires the Chrono::FEA module which is not enabled.")
+   message(STATUS "Disabling Chrono::Peridynamics.")
+   set(CH_ENABLE_MODULE_PERIDYNAMICS OFF CACHE BOOL "Enable the Chrono Peridynamics module" FORCE)
+   return()
+endif()
+
 #-----------------------------------------------------------------------------
 
 set(Chrono_PERIDYNAMICS_SOURCES 

@@ -104,9 +104,11 @@ void ChBlender::AddAll() {
     for (const auto& body : mSystem->GetBodies()) {
         Add(body);
     }
+#ifdef CHRONO_FEA
     for (const auto& mesh : mSystem->GetMeshes()) {
         Add(mesh);
     }
+#endif
     for (const auto& ph : mSystem->GetOtherPhysicsItems()) {
         Add(ph);
     }
@@ -119,9 +121,11 @@ void ChBlender::RemoveAll() {
     for (auto& body : mSystem->GetBodies()) {
         Remove(body);
     }
+#ifdef CHRONO_FEA
     for (auto& mesh : mSystem->GetMeshes()) {
         Remove(mesh);
     }
+#endif
     for (auto& ph : mSystem->GetOtherPhysicsItems()) {
         Remove(ph);
     }
@@ -200,21 +204,20 @@ void ChBlender::SetShowContactsOff() {
     this->contacts_show = ContactSymbolType::NONE;
 }
 
-void ChBlender::SetShowContactsVectors(
-    ContactSymbolVectorLength length_type,
-    double scale_length,  // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for
-                          // property
-    const std::string scale_prop,  // needed if ContactSymbolVectorLength::PROPERTY, options: 'norm'. Otherwise ""
-    ContactSymbolVectorWidth width_type,
-    double scale_width,  // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm
-                         // or property
-    const std::string width_prop,  // needed if ContactSymbolVectorWidth::PROPERTY, options: "norm". Otherwise ""
-    ContactSymbolColor color_type,
-    ChColor const_color,           // if ContactSymbolColor::CONSTANT, otherwise not used
-    const std::string color_prop,  // needed if ContactSymbolColor::PROPERTY, options: "norm". Otherwise ""
-    double colormap_start,         // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
-    double colormap_end,           // falsecolor start value, if not  ContactSymbolColor::CONSTANT
-    bool do_vector_tip) {
+void ChBlender::SetShowContactsVectors(ContactSymbolVectorLength length_type,
+                                       double scale_length,           // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for
+                                                                      // property
+                                       const std::string scale_prop,  // needed if ContactSymbolVectorLength::PROPERTY, options: 'norm'. Otherwise ""
+                                       ContactSymbolVectorWidth width_type,
+                                       double scale_width,            // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm
+                                                                      // or property
+                                       const std::string width_prop,  // needed if ContactSymbolVectorWidth::PROPERTY, options: "norm". Otherwise ""
+                                       ContactSymbolColor color_type,
+                                       ChColor const_color,           // if ContactSymbolColor::CONSTANT, otherwise not used
+                                       const std::string color_prop,  // needed if ContactSymbolColor::PROPERTY, options: "norm". Otherwise ""
+                                       double colormap_start,         // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+                                       double colormap_end,           // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+                                       bool do_vector_tip) {
     contacts_show = ContactSymbolType::VECTOR;
 
     this->contacts_vector_length_type = length_type;
@@ -231,16 +234,15 @@ void ChBlender::SetShowContactsVectors(
     this->contacts_colormap_endscale = colormap_end;
 }
 
-void ChBlender::SetShowContactsSpheres(
-    ContactSymbolSphereSize size_type,
-    double scale_size,  // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is scaling factor for norm or
-                        // property
-    ContactSymbolColor color_type,
-    ChColor const_color,          // if ContactSymbolColor::CONSTANT, otherwise not used
-    double colormap_start,        // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
-    double colormap_end,          // falsecolor start value, if not  ContactSymbolColor::CONSTANT
-    const std::string size_prop,  // needed if ContactSymbolSphereSize::PROPERTY
-    const std::string color_prop  // needed if ContactSymbolColor::PROPERTY)
+void ChBlender::SetShowContactsSpheres(ContactSymbolSphereSize size_type,
+                                       double scale_size,  // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is scaling factor for norm or
+                                                           // property
+                                       ContactSymbolColor color_type,
+                                       ChColor const_color,          // if ContactSymbolColor::CONSTANT, otherwise not used
+                                       double colormap_start,        // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+                                       double colormap_end,          // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+                                       const std::string size_prop,  // needed if ContactSymbolSphereSize::PROPERTY
+                                       const std::string color_prop  // needed if ContactSymbolColor::PROPERTY)
 ) {
     contacts_show = ContactSymbolType::SPHERE;
 
@@ -271,18 +273,18 @@ void ChBlender::ExportScript(const std::string& filename) {
     m_blender_frame_shapes.clear();
     m_blender_frame_materials.clear();
     m_blender_cameras.clear();
-    {
-        // Create directories
-        if (base_path != "") {
-            if (!filesystem::create_directory(filesystem::path(base_path))) {
-                std::cout << "Error creating base directory \"" << base_path << "\" for the Blender files." << std::endl;
-                return;
-            }
-            base_path = base_path + "/";
+
+    // Create directories
+    if (base_path != "") {
+        if (!filesystem::create_directory(filesystem::path(base_path))) {
+            std::cout << "Error creating base directory \"" << base_path << "\" for the Blender files." << std::endl;
+            return;
         }
-        filesystem::create_directory(filesystem::path(base_path + pic_path));
-        filesystem::create_directory(filesystem::path(base_path + out_path));
+        base_path = base_path + "/";
     }
+    filesystem::create_directory(filesystem::path(base_path + pic_path));
+    filesystem::create_directory(filesystem::path(base_path + out_path));
+
     // Generate the xxx.assets.py script (initial assets, it will be populated later by
     // appending assets as they enter the exporter, only once if shared, using ExportAssets() )
 
@@ -1217,10 +1219,12 @@ void ChBlender::ExportData(const std::string& filename) {
                 ExportItemState(state_file, clones, blender_frame);
             }
 
+#ifdef CHRONO_FEA
             // saving an FEA mesh?
             if (auto fea_mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
                 ExportItemState(state_file, fea_mesh, blender_frame);
             }
+#endif
 
             // saving a ChLinkMateGeneric constraint?
             if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {

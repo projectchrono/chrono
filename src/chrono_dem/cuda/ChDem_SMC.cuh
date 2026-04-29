@@ -24,6 +24,7 @@
 #else
     #include <cub/cub.cuh>
 #endif
+#include <thrust/functional.h>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -239,7 +240,7 @@ __global__ void getNumberOfSpheresTouchingEachSD(ChSystemDem_impl::GranSphereDat
 
     // Do a winningStreak search on whole block, might not have high utilization here
     bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
+    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, thrust::not_equal_to<unsigned int>());
     __syncthreads();
 
     // Write back to shared memory; eight-way bank conflicts here - to revisit later

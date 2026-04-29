@@ -63,7 +63,9 @@
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/assets/ChVisualShapeSurface.h"
+#ifdef CHRONO_FEA
 #include "chrono/assets/ChVisualShapeFEA.h"
+#endif
 
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/sensors/ChSensor.h"

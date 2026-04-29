@@ -28,12 +28,12 @@ namespace utils {
 /// @addtogroup chrono_utils
 /// @{
 
-/// Calculate the line segment (Pa, Pb) that is the shortest route between two lines (P1, P2) and (P3, P4).
-/// Calculate also the values of ua and ub where
+/// Calculate the unique line segment (Pa, Pb) that is the shortest route between two lines (P1, P2) and (P3, P4).
+/// Calculate also the values of ua and ub, where:
 ///    Pa = P1 + ua * (P2 - P1)
-///    Pb = P3 + ub * (P4 - P3)
-/// Return false if no solution exists.
-ChApi bool LineLineIntersect(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, const ChVector3d& p4, ChVector3d& pa, ChVector3d& pb, double& ua, double& ub);
+///    Pb = P3 + ub * (P4 - P3).
+/// Return false if no solution exists (i.e. degenerate or parallel lines).
+ChApi bool ClosestLinesPoints(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, const ChVector3d& p4, ChVector3d& pa, ChVector3d& pb, double& ua, double& ub);
 
 /// Calculate and return the distance between a point B and the segment (A1, A2).
 /// Provided line parameter 'u' is set such that u=0 indicates that B projects into A1 and u=1 indicates that B projects into A2.

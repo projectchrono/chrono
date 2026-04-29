@@ -24,65 +24,50 @@ namespace utils {
 static constexpr double EPS = 1e-20;
 static constexpr double EPS_TRIDEGEN = 1e-10;
 
-bool LineLineIntersect(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, const ChVector3d& p4, ChVector3d& pa, ChVector3d& pb, double& ua, double& ub) {
-    ChVector3d p13, p43, p21;
-    double d1343, d4321, d1321, d4343, d2121;
-    double numer, denom;
-
-    p13.x() = p1.x() - p3.x();
-    p13.y() = p1.y() - p3.y();
-    p13.z() = p1.z() - p3.z();
-    p43.x() = p4.x() - p3.x();
-    p43.y() = p4.y() - p3.y();
-    p43.z() = p4.z() - p3.z();
-    if (std::abs(p43.x()) < EPS && std::abs(p43.y()) < EPS && std::abs(p43.z()) < EPS)
-        return false;
-    p21.x() = p2.x() - p1.x();
-    p21.y() = p2.y() - p1.y();
-    p21.z() = p2.z() - p1.z();
-    if (std::abs(p21.x()) < EPS && std::abs(p21.y()) < EPS && std::abs(p21.z()) < EPS)
+bool ClosestLinesPoints(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, const ChVector3d& p4, ChVector3d& pa, ChVector3d& pb, double& ua, double& ub) {
+    ChVector3d p12 = p2 - p1;
+    if (std::abs(p12.x()) < EPS && std::abs(p12.y()) < EPS && std::abs(p12.z()) < EPS)
         return false;
 
-    d1343 = p13.x() * p43.x() + p13.y() * p43.y() + p13.z() * p43.z();
-    d4321 = p43.x() * p21.x() + p43.y() * p21.y() + p43.z() * p21.z();
-    d1321 = p13.x() * p21.x() + p13.y() * p21.y() + p13.z() * p21.z();
-    d4343 = p43.x() * p43.x() + p43.y() * p43.y() + p43.z() * p43.z();
-    d2121 = p21.x() * p21.x() + p21.y() * p21.y() + p21.z() * p21.z();
+    ChVector3d p34 = p4 - p3;
+    if (std::abs(p34.x()) < EPS && std::abs(p34.y()) < EPS && std::abs(p34.z()) < EPS)
+        return false;
 
-    denom = d2121 * d4343 - d4321 * d4321;
+    ChVector3d p31 = p1 - p3;
+    double d3134 = Vdot(p31, p34);
+    double d3412 = Vdot(p34, p12);
+    double d3112 = Vdot(p31, p12);
+    double d3434 = Vdot(p34, p34);
+    double d1212 = Vdot(p12, p12);
+
+    double denom = d1212 * d3434 - d3412 * d3412;
     if (std::abs(denom) < EPS)
         return false;
-    numer = d1343 * d4321 - d1321 * d4343;
+    double numer = d3134 * d3412 - d3112 * d3434;
 
     ua = numer / denom;
-    ub = (d1343 + d4321 * ua) / d4343;
-
-    pa.x() = p1.x() + ua * p21.x();
-    pa.y() = p1.y() + ua * p21.y();
-    pa.z() = p1.z() + ua * p21.z();
-    pb.x() = p3.x() + ub * p43.x();
-    pb.y() = p3.y() + ub * p43.y();
-    pb.z() = p3.z() + ub * p43.z();
+    ub = (d3134 + d3412 * ua) / d3434;
+    pa = p1 + ua * p12;
+    pb = p3 + ub * p34;
 
     return true;
 }
 
 double PointLineDistance(const ChVector3d& B, const ChVector3d& A1, const ChVector3d& A2, double& u, bool& in_segment) {
-    u = -1;
     in_segment = false;
-    double mdist = 10e34;
 
-    ChVector3d vseg = Vsub(A2, A1);
-    ChVector3d vdir = Vnorm(vseg);
-    ChVector3d vray = Vsub(B, A1);
+    ChVector3d line_seg = A2 - A1;
+    ChVector3d line_dir = line_seg.GetNormalized();
+    ChVector3d A1B = B - A1;
 
-    mdist = Vlength(Vcross(vray, vdir));
-    u = Vdot(vray, vdir) / Vlength(vseg);
+    double proj = Vdot(A1B, line_dir);
+    double dist = Vlength(A1B - proj * line_dir);
 
+    u = proj / Vlength(line_seg);
     if (u >= 0 && u <= 1)
         in_segment = true;
 
-    return mdist;
+    return dist;
 }
 
 double PointTrianglePlaneDistance(const ChVector3d& B,    //

@@ -18,10 +18,13 @@
 #include <cmath>
 #include <vector>
 
-#include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLinksAll.h"
+
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+#endif
 
 namespace chrono {
 
@@ -59,8 +62,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Attach a link to this assembly.
     void AddLink(std::shared_ptr<ChLinkBase> link);
 
+#ifdef CHRONO_FEA
     /// Attach a mesh to this assembly.
     void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
+#endif
 
     /// Attach a ChPhysicsItem object that is not a body, link, or mesh.
     void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
@@ -87,8 +92,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void RemoveShaft(std::shared_ptr<ChShaft> shaft);
     /// Remove a link from this assembly.
     void RemoveLink(std::shared_ptr<ChLinkBase> link);
+#ifdef CHRONO_FEA
     /// Remove a mesh from the assembly.
     void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
+#endif
     /// Remove a ChPhysicsItem object that is not a body or a link
     void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
     /// Remove arbitrary ChPhysicsItem that was added to the assembly.
@@ -100,8 +107,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void RemoveAllShafts();
     /// Remove all links from this assembly.
     void RemoveAllLinks();
+#ifdef CHRONO_FEA
     /// Remove all meshes from this assembly.
     void RemoveAllMeshes();
+#endif
     /// Remove all physics items  not in the body, link, or mesh lists.
     void RemoveAllOtherPhysicsItems();
 
@@ -111,8 +120,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return shaftlist; }
     /// Get the list of links.
     virtual const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return linklist; }
+#ifdef CHRONO_FEA
     /// Get the list of meshes.
     virtual const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return meshlist; }
+#endif
     /// Get the list of physics items that are not in the body or link lists.
     virtual const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const { return otherphysicslist; }
 
@@ -124,8 +135,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::shared_ptr<ChShaft> SearchShaft(const std::string& name) const;
     /// Search a link by its name.
     std::shared_ptr<ChLinkBase> SearchLink(const std::string& name) const;
+#ifdef CHRONO_FEA
     /// Search a mesh by its name.
     std::shared_ptr<fea::ChMesh> SearchMesh(const std::string& name) const;
+#endif
     /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
     std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const std::string& name) const;
     /// Search a marker by its name.
@@ -340,10 +353,12 @@ class ChApi ChAssembly : public ChPhysicsItem {
   protected:
     virtual void SetupInitial() override;
 
-    std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies
-    std::vector<std::shared_ptr<ChShaft>> shaftlist;               ///< list of 1-D shafts
-    std::vector<std::shared_ptr<ChLinkBase>> linklist;             ///< list of joints (links)
-    std::vector<std::shared_ptr<fea::ChMesh>> meshlist;            ///< list of meshes
+    std::vector<std::shared_ptr<ChBody>> bodylist;      ///< list of rigid bodies
+    std::vector<std::shared_ptr<ChShaft>> shaftlist;    ///< list of 1-D shafts
+    std::vector<std::shared_ptr<ChLinkBase>> linklist;  ///< list of joints (links)
+#ifdef CHRONO_FEA
+    std::vector<std::shared_ptr<fea::ChMesh>> meshlist;  ///< list of meshes
+#endif
     std::vector<std::shared_ptr<ChPhysicsItem>> otherphysicslist;  ///< list of other physics objects
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 

@@ -11,12 +11,14 @@
 #include "chrono_models/ChApiModels.h"
 
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
-//#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.h"
+#ifdef CHRONO_FEA
+//#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+#endif
 
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
@@ -49,12 +51,14 @@
 %import "chrono_swig/interface/vehicle/ChTire.i"
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_RigidTire)
-//%shared_ptr(chrono::vehicle::hmmwv::HMMWV_ReissnerTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac89Tire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac02Tire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_FialaTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_TMeasyTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_TMsimpleTire)
+#ifdef CHRONO_FEA
+//%shared_ptr(chrono::vehicle::hmmwv::HMMWV_ReissnerTire)
+#endif
 %shared_ptr(chrono::vehicle::sedan::Sedan_RigidTire)
 %shared_ptr(chrono::vehicle::sedan::Sedan_TMeasyTire)
 %shared_ptr(chrono::vehicle::sedan::Sedan_TMsimpleTire)
@@ -81,12 +85,14 @@
 // Model:
 
 %include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
-//%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
 %include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
 %include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
 %include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
 %include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 %include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.h"
+#ifdef CHRONO_FEA
+//%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+#endif
 
 %include "../../../chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 %include "../../../chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"

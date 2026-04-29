@@ -15,6 +15,7 @@
 #ifndef CHCONTACTSURFACEMESH_H
 #define CHCONTACTSURFACEMESH_H
 
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/fea/ChContactSurface.h"

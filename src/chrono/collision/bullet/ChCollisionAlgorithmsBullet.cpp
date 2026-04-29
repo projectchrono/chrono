@@ -40,16 +40,13 @@ cbtCapsuleBoxCollisionAlgorithm::cbtCapsuleBoxCollisionAlgorithm(cbtPersistentMa
     const cbtCollisionObjectWrapper* capsuleObjWrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
 
-    if (!m_manifoldPtr &&
-        m_dispatcher->needsCollision(capsuleObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject())) {
-        m_manifoldPtr =
-            m_dispatcher->getNewManifold(capsuleObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject());
+    if (!m_manifoldPtr && m_dispatcher->needsCollision(capsuleObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject())) {
+        m_manifoldPtr = m_dispatcher->getNewManifold(capsuleObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject());
         m_ownManifold = true;
     }
 }
 
-cbtCapsuleBoxCollisionAlgorithm::cbtCapsuleBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
-    : cbtActivatingCollisionAlgorithm(ci) {}
+cbtCapsuleBoxCollisionAlgorithm::cbtCapsuleBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci) : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtCapsuleBoxCollisionAlgorithm ::~cbtCapsuleBoxCollisionAlgorithm() {
     if (m_ownManifold) {
@@ -200,10 +197,9 @@ void cbtCapsuleBoxCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& m
     }
 }
 
-cbtCollisionAlgorithm* cbtCapsuleBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* body0Wrap,
-    const cbtCollisionObjectWrapper* body1Wrap) {
+cbtCollisionAlgorithm* cbtCapsuleBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                                             const cbtCollisionObjectWrapper* body0Wrap,
+                                                                                             const cbtCollisionObjectWrapper* body1Wrap) {
     void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtCapsuleBoxCollisionAlgorithm));
     if (!m_swapped) {
         return new (mem) cbtCapsuleBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
@@ -223,16 +219,13 @@ cbtCylshellBoxCollisionAlgorithm::cbtCylshellBoxCollisionAlgorithm(cbtPersistent
     const cbtCollisionObjectWrapper* cylshellObjWrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
 
-    if (!m_manifoldPtr &&
-        m_dispatcher->needsCollision(cylshellObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject())) {
-        m_manifoldPtr =
-            m_dispatcher->getNewManifold(cylshellObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject());
+    if (!m_manifoldPtr && m_dispatcher->needsCollision(cylshellObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject())) {
+        m_manifoldPtr = m_dispatcher->getNewManifold(cylshellObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject());
         m_ownManifold = true;
     }
 }
 
-cbtCylshellBoxCollisionAlgorithm::cbtCylshellBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
-    : cbtActivatingCollisionAlgorithm(ci) {}
+cbtCylshellBoxCollisionAlgorithm::cbtCylshellBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci) : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtCylshellBoxCollisionAlgorithm::~cbtCylshellBoxCollisionAlgorithm() {
     if (m_ownManifold) {
@@ -244,11 +237,7 @@ cbtCylshellBoxCollisionAlgorithm::~cbtCylshellBoxCollisionAlgorithm() {
 // Check and add contact between the given cylshell point and the specified box face.
 // 'iface' is +1, +2, +3 for the "positive" x, y, or z box face, respectively.
 // 'iface' is -1, -2, -3 for the "negative" x, y, or z box face, respectively.
-int addContactPoint(const cbtVector3& pc,
-                    int iface,
-                    const cbtVector3& hdims,
-                    const cbtTransform& X_box,
-                    cbtManifoldResult* resultOut) {
+int addContactPoint(const cbtVector3& pc, int iface, const cbtVector3& hdims, const cbtTransform& X_box, cbtManifoldResult* resultOut) {
     assert(iface >= -3 && iface <= +3 && iface != 0);
 
     // No contact if point outside box
@@ -291,13 +280,7 @@ int addContactPoint(const cbtVector3& pc,
 
 // Add contact between the given box point (assumed to be in or on the cylinder) and the cylshell.
 // All input vectors are assumed to be expressed in the box frame.
-int addContactPoint(const cbtVector3& p,
-                    const cbtVector3& c,
-                    const cbtVector3& a,
-                    const cbtScalar h,
-                    const cbtScalar r,
-                    const cbtTransform& X_box,
-                    cbtManifoldResult* resultOut) {
+int addContactPoint(const cbtVector3& p, const cbtVector3& c, const cbtVector3& a, const cbtScalar h, const cbtScalar r, const cbtTransform& X_box, cbtManifoldResult* resultOut) {
     // Find closest point on cylindrical surface to given location
     cbtVector3 q = bt_utils::ProjectPointOnLine(c, a, p);
     cbtVector3 v = p - q;
@@ -460,10 +443,9 @@ void cbtCylshellBoxCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& 
     }
 }
 
-cbtCollisionAlgorithm* cbtCylshellBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* body0Wrap,
-    const cbtCollisionObjectWrapper* body1Wrap) {
+cbtCollisionAlgorithm* cbtCylshellBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                                              const cbtCollisionObjectWrapper* body0Wrap,
+                                                                                              const cbtCollisionObjectWrapper* body1Wrap) {
     void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtCylshellBoxCollisionAlgorithm));
     if (!m_swapped) {
         return new (mem) cbtCylshellBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
@@ -474,12 +456,11 @@ cbtCollisionAlgorithm* cbtCylshellBoxCollisionAlgorithm::CreateFunc::CreateColli
 
 // ================================================================================================
 
-cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(
-    cbtPersistentManifold* mf,
-    const cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* col0,
-    const cbtCollisionObjectWrapper* col1,
-    bool isSwapped)
+cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(cbtPersistentManifold* mf,
+                                                                         const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                         const cbtCollisionObjectWrapper* col0,
+                                                                         const cbtCollisionObjectWrapper* col1,
+                                                                         bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* sphereObj = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* cylObj = m_isSwapped ? col0 : col1;
@@ -490,9 +471,7 @@ cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(
     }
 }
 
-cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(
-    const cbtCollisionAlgorithmConstructionInfo& ci)
-    : cbtActivatingCollisionAlgorithm(ci) {}
+cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci) : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtSphereCylinderCollisionAlgorithm ::~cbtSphereCylinderCollisionAlgorithm() {
     if (m_ownManifold) {
@@ -519,10 +498,8 @@ void cbtSphereCylinderCollisionAlgorithm::processCollision(const cbtCollisionObj
     const cbtCylinderShape* cylinder = (cbtCylinderShape*)cylObjWrap->getCollisionShape();
 
     const cbtTransform& m44T = cylObjWrap->getCollisionObject()->getWorldTransform();
-    cbtVector3 diff = m44T.invXform(
-        sphereObjWrap->getCollisionObject()
-            ->getWorldTransform()
-            .getOrigin());  // col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
+    cbtVector3 diff =
+        m44T.invXform(sphereObjWrap->getCollisionObject()->getWorldTransform().getOrigin());  // col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
     cbtScalar radius0 = sphere0->getRadius();
     cbtScalar radius1 = cylinder->getHalfExtentsWithMargin().getX();  // cylinder->getRadius();
     cbtScalar H1 = cylinder->getHalfExtentsWithMargin().getY();
@@ -595,10 +572,9 @@ void cbtSphereCylinderCollisionAlgorithm::getAllContactManifolds(cbtManifoldArra
     }
 }
 
-cbtCollisionAlgorithm* cbtSphereCylinderCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* body0Wrap,
-    const cbtCollisionObjectWrapper* body1Wrap) {
+cbtCollisionAlgorithm* cbtSphereCylinderCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                                                 const cbtCollisionObjectWrapper* body0Wrap,
+                                                                                                 const cbtCollisionObjectWrapper* body1Wrap) {
     void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtSphereCylinderCollisionAlgorithm));
     if (!m_swapped) {
         return new (mem) cbtSphereCylinderCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
@@ -618,16 +594,13 @@ cbtArcSegmentCollisionAlgorithm::cbtArcSegmentCollisionAlgorithm(cbtPersistentMa
     const cbtCollisionObjectWrapper* arcObjWrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? col0 : col1;
 
-    if (!m_manifoldPtr &&
-        m_dispatcher->needsCollision(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject())) {
-        m_manifoldPtr =
-            m_dispatcher->getNewManifold(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject());
+    if (!m_manifoldPtr && m_dispatcher->needsCollision(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject())) {
+        m_manifoldPtr = m_dispatcher->getNewManifold(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject());
         m_ownManifold = true;
     }
 }
 
-cbtArcSegmentCollisionAlgorithm::cbtArcSegmentCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
-    : cbtActivatingCollisionAlgorithm(ci) {}
+cbtArcSegmentCollisionAlgorithm::cbtArcSegmentCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci) : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtArcSegmentCollisionAlgorithm ::~cbtArcSegmentCollisionAlgorithm() {
     if (m_ownManifold) {
@@ -772,10 +745,9 @@ void cbtArcSegmentCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& m
     }
 }
 
-cbtCollisionAlgorithm* cbtArcSegmentCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* body0Wrap,
-    const cbtCollisionObjectWrapper* body1Wrap) {
+cbtCollisionAlgorithm* cbtArcSegmentCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                                             const cbtCollisionObjectWrapper* body0Wrap,
+                                                                                             const cbtCollisionObjectWrapper* body1Wrap) {
     void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtArcSegmentCollisionAlgorithm));
     if (!m_swapped) {
         return new (mem) cbtArcSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
@@ -795,16 +767,13 @@ cbtArcArcCollisionAlgorithm::cbtArcArcCollisionAlgorithm(cbtPersistentManifold* 
     const cbtCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? col0 : col1;
 
-    if (!m_manifoldPtr &&
-        m_dispatcher->needsCollision(arcObj1Wrap->getCollisionObject(), arcObj2Wrap->getCollisionObject())) {
-        m_manifoldPtr =
-            m_dispatcher->getNewManifold(arcObj1Wrap->getCollisionObject(), arcObj2Wrap->getCollisionObject());
+    if (!m_manifoldPtr && m_dispatcher->needsCollision(arcObj1Wrap->getCollisionObject(), arcObj2Wrap->getCollisionObject())) {
+        m_manifoldPtr = m_dispatcher->getNewManifold(arcObj1Wrap->getCollisionObject(), arcObj2Wrap->getCollisionObject());
         m_ownManifold = true;
     }
 }
 
-cbtArcArcCollisionAlgorithm::cbtArcArcCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
-    : cbtActivatingCollisionAlgorithm(ci) {}
+cbtArcArcCollisionAlgorithm::cbtArcArcCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci) : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtArcArcCollisionAlgorithm ::~cbtArcArcCollisionAlgorithm() {
     if (m_ownManifold) {
@@ -1007,10 +976,9 @@ void cbtArcArcCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manif
     }
 }
 
-cbtCollisionAlgorithm* cbtArcArcCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* body0Wrap,
-    const cbtCollisionObjectWrapper* body1Wrap) {
+cbtCollisionAlgorithm* cbtArcArcCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                                         const cbtCollisionObjectWrapper* body0Wrap,
+                                                                                         const cbtCollisionObjectWrapper* body1Wrap) {
     void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtArcArcCollisionAlgorithm));
     if (!m_swapped) {
         return new (mem) cbtArcArcCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
@@ -1021,27 +989,22 @@ cbtCollisionAlgorithm* cbtArcArcCollisionAlgorithm::CreateFunc::CreateCollisionA
 
 // ================================================================================================
 
-cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(
-    cbtPersistentManifold* mf,
-    const cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* col0,
-    const cbtCollisionObjectWrapper* col1,
-    bool isSwapped)
+cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(cbtPersistentManifold* mf,
+                                                                           const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                           const cbtCollisionObjectWrapper* col0,
+                                                                           const cbtCollisionObjectWrapper* col1,
+                                                                           bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? col0 : col1;
 
-    if (!m_manifoldPtr &&
-        m_dispatcher->needsCollision(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject())) {
-        m_manifoldPtr =
-            m_dispatcher->getNewManifold(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject());
+    if (!m_manifoldPtr && m_dispatcher->needsCollision(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject())) {
+        m_manifoldPtr = m_dispatcher->getNewManifold(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject());
         m_ownManifold = true;
     }
 }
 
-cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(
-    const cbtCollisionAlgorithmConstructionInfo& ci)
-    : cbtActivatingCollisionAlgorithm(ci) {}
+cbtChTriangleShapeCollisionAlgorithm::cbtChTriangleShapeCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci) : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtChTriangleShapeCollisionAlgorithm ::~cbtChTriangleShapeCollisionAlgorithm() {
     if (m_ownManifold) {
@@ -1069,8 +1032,8 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
 
     const cbtChTriangleShape* triA = (cbtChTriangleShape*)triObj1Wrap->getCollisionShape();
     const cbtChTriangleShape* triB = (cbtChTriangleShape*)triObj2Wrap->getCollisionShape();
-    ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
-    ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
+    const ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
+    const ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
 
     // Discard collisions between connected triangles
     //// TODO: use collision families to bypass during broadphase?
@@ -1148,10 +1111,10 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     if ((pA2 == pA3) && (pB2 == pB3) && triA->owns_e1() && triB->owns_e1()) {
         ChVector3d cA, cB;
         double u = 0, v = 0;
-        if (utils::LineLineIntersect(pA1, pA2, pB1, pB2, cA, cB, u, v)) {
+        if (utils::ClosestLinesPoints(pA1, pA2, pB1, pB2, cA, cB, u, v)) {
             ChVector3d D = cB - cA;
             double dist = D.Length();
-            if (dist < max_allowed_dist && dist > min_allowed_dist && u > 0 && u < 1 && v > 0 && v < 1) {
+            if (dist > min_allowed_dist && dist < max_allowed_dist && u > 0 && u < 1 && v > 0 && v < 1) {
                 _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                 resultOut->refreshContactPoints();
                 return;
@@ -1160,8 +1123,8 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     }
 
     // Vertex-face tests
-    auto vertex_face_test = [max_allowed_dist, min_allowed_dist, &resultOut, offset_A, offset_B, this](bool tri_owns_vertex_i, const ChVector3d& point, const ChVector3d& vt1,
-                                                                                                       const ChVector3d& vt2, const ChVector3d& vt3, bool flip_contact) -> void {
+    auto vertex_face_test = [max_allowed_dist, min_allowed_dist, &resultOut, offset_A, offset_B, this]                                                       //
+        (bool tri_owns_vertex_i, const ChVector3d& point, const ChVector3d& vt1, const ChVector3d& vt2, const ChVector3d& vt3, bool flip_contact) -> void {  //
         if (tri_owns_vertex_i) {
             double u = 0, v = 0;
             bool in_triangle = false;
@@ -1189,29 +1152,30 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     // Edge-edge tests
     double beta_A1 = 0, beta_A2 = 0, beta_A3 = 0, beta_B1 = 0, beta_B2 = 0, beta_B3 = 0;  // defaults for free edge
     ChVector3d tA1, tA2, tA3, tB1, tB2, tB3;
-    ChVector3d lA1, lA2, lA3, lB1, lB2, lB3;
 
-    auto edge_edge_setup = [](ChVector3d& tt, ChVector3d& ll, double& beta, bool tri_owns_edge_i, const chrono::ChVector3d* edge_opposite_point, const ChVector3d& edge_segment,
-                              const ChVector3d& normal, const ChVector3d& origin, const ChMatrix33d& rotmat, const ChVector3d& point) -> void {
+    auto edge_edge_setup = [](ChVector3d& tang, double& beta,                                                                                    //
+                              bool tri_owns_edge_i, const chrono::ChVector3d* edge_opposite_point, const ChVector3d& edge_segment,               //
+                              const ChVector3d& normal, const ChVector3d& origin, const ChMatrix33d& rotmat, const ChVector3d& point) -> void {  //
         if (tri_owns_edge_i) {
-            tt = Vcross(edge_segment, normal).GetNormalized();
+            tang = Vcross(edge_segment, normal).GetNormalized();
+            ChVector3d point_to_opposite;
             if (edge_opposite_point)
-                ll = (origin + rotmat * (*edge_opposite_point)) - point;
+                point_to_opposite = (origin + rotmat * (*edge_opposite_point)) - point;
             else
-                ll = -tt;
-            beta = std::atan2(Vdot(ll, tt), Vdot(ll, normal));
+                point_to_opposite = -tang;
+            beta = std::atan2(Vdot(point_to_opposite, tang), Vdot(point_to_opposite, normal));  // angle between normal and other triangle face
             if (beta < 0)
                 beta += CH_2PI;
         }
     };
 
-    edge_edge_setup(tA1, lA1, beta_A1, triA->owns_e1(), triA->get_e1(), eA1, nA, originA, rotA, pA1);
-    edge_edge_setup(tA2, lA2, beta_A2, triA->owns_e2(), triA->get_e2(), eA2, nA, originA, rotA, pA2);
-    edge_edge_setup(tA3, lA3, beta_A3, triA->owns_e3(), triA->get_e3(), eA3, nA, originA, rotA, pA3);
+    edge_edge_setup(tA1, beta_A1, triA->owns_e1(), triA->get_e1(), eA1, nA, originA, rotA, pA1);
+    edge_edge_setup(tA2, beta_A2, triA->owns_e2(), triA->get_e2(), eA2, nA, originA, rotA, pA2);
+    edge_edge_setup(tA3, beta_A3, triA->owns_e3(), triA->get_e3(), eA3, nA, originA, rotA, pA3);
     //
-    edge_edge_setup(tB1, lB1, beta_B1, triB->owns_e1(), triB->get_e1(), eB1, nB, originB, rotB, pB1);
-    edge_edge_setup(tB2, lB2, beta_B2, triB->owns_e2(), triB->get_e2(), eB2, nB, originB, rotB, pB2);
-    edge_edge_setup(tB3, lB3, beta_B3, triB->owns_e3(), triB->get_e3(), eB3, nB, originB, rotB, pB3);
+    edge_edge_setup(tB1, beta_B1, triB->owns_e1(), triB->get_e1(), eB1, nB, originB, rotB, pB1);
+    edge_edge_setup(tB2, beta_B2, triB->owns_e2(), triB->get_e2(), eB2, nB, originB, rotB, pB2);
+    edge_edge_setup(tB3, beta_B3, triB->owns_e3(), triB->get_e3(), eB3, nB, originB, rotB, pB3);
 
     const double edge_tol = 1e-3;
     //  +edge_tol to discard flat edges with some tolerance
@@ -1221,18 +1185,19 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     const double CH_PI_mtol = CH_PI - edge_tol;
     const double CH_PI_2_ptol = CH_PI_2 + edge_tol;
 
-    auto edge_edge_test = [max_allowed_dist, min_allowed_dist, beta_convex_limit, max_edge_dist_earlyout, alpha_lo_limit, CH_PI_mtol, CH_PI_2_ptol, &resultOut, offset_A,
-                           offset_B, this](bool triA_owns_edge_i, bool triB_owns_edge_i, double beta_Ai, double beta_Bi, const ChVector3d& pAi, const ChVector3d& pAj,
-                                           const ChVector3d& pBi, const ChVector3d& pBj, const ChVector3d& tAi, const ChVector3d& nA, const ChVector3d& tBi,
-                                           const ChVector3d& nB) -> void {
+    auto edge_edge_test =
+        [max_allowed_dist, min_allowed_dist, beta_convex_limit, max_edge_dist_earlyout, alpha_lo_limit, CH_PI_mtol, CH_PI_2_ptol, &resultOut, offset_A, offset_B, this]  //
+        (bool triA_owns_edge_i, bool triB_owns_edge_i, double beta_Ai, double beta_Bi,                                                                                   //
+         const ChVector3d& pAi, const ChVector3d& pAj, const ChVector3d& pBi, const ChVector3d& pBj,                                                                     //
+         const ChVector3d& tAi, const ChVector3d& nA, const ChVector3d& tBi, const ChVector3d& nB) -> void {                                                             //
         if (triA_owns_edge_i && triB_owns_edge_i) {
-            if (beta_Ai > beta_convex_limit && beta_Bi > beta_convex_limit) {
+            if ((beta_Ai > beta_convex_limit) && (beta_Bi > beta_convex_limit)) {
                 ChVector3d cA, cB;
                 double u = 0, v = 0;
-                if (utils::LineLineIntersect(pAi, pAj, pBi, pBj, cA, cB, u, v)) {
+                if (utils::ClosestLinesPoints(pAi, pAj, pBi, pBj, cA, cB, u, v)) {
                     ChVector3d D = cB - cA;
                     double dist = D.Length();
-                    if (dist < max_edge_dist_earlyout && u > 0 && u < 1 && v > 0 && v < 1) {
+                    if ((dist < max_edge_dist_earlyout) && (u >= 0) && (u <= 1) && (v >= 0) && (v <= 1)) {
                         double alpha_A = std::atan2(Vdot(D, tAi), Vdot(D, nA));
                         double alpha_B = std::atan2(Vdot(-D, tBi), Vdot(-D, nB));
                         if (alpha_A < alpha_lo_limit)
@@ -1240,14 +1205,15 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                         if (alpha_B < alpha_lo_limit)
                             alpha_B += CH_2PI;
                         if ((alpha_A < beta_Ai - CH_PI_2_ptol) && (alpha_B < beta_Bi - CH_PI_2_ptol)) {
-                            if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
+                            if ((dist < max_allowed_dist) && (dist > min_allowed_dist))  // distance interval check - outside
                                 _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                        } else if (alpha_A > CH_PI_mtol && (alpha_A < beta_Ai + CH_PI_2) && alpha_B > CH_PI_mtol && (alpha_B < beta_Bi + CH_PI_2_ptol)) {
-                            if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
+                        } else if ((alpha_A > CH_PI_mtol) && (alpha_A < beta_Ai + CH_PI_2) && (alpha_B > CH_PI_mtol) && (alpha_B < beta_Bi + CH_PI_2_ptol)) {
+                            if ((-dist < max_allowed_dist) && (-dist > min_allowed_dist))  // distance interval check - inside
                                 _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                         }
                     }
                 }
+                // TODO (?): handle case of utils::ClosestLinesPoints() returning false (e.g. parallel lines)
             }
         }
     };
@@ -1297,10 +1263,9 @@ void cbtChTriangleShapeCollisionAlgorithm::_add_contact(const ChVector3d& candid
     resultOut->addContactPoint(absN_onB, absB + absN_onB * (cbtScalar)offsetB, (cbtScalar)(dist - (offsetA + offsetB)));
 }
 
-cbtCollisionAlgorithm* cbtChTriangleShapeCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* body0Wrap,
-    const cbtCollisionObjectWrapper* body1Wrap) {
+cbtCollisionAlgorithm* cbtChTriangleShapeCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                                                  const cbtCollisionObjectWrapper* body0Wrap,
+                                                                                                  const cbtCollisionObjectWrapper* body1Wrap) {
     void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtChTriangleShapeCollisionAlgorithm));
     if (!m_swapped) {
         return new (mem) cbtChTriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
@@ -1311,27 +1276,22 @@ cbtCollisionAlgorithm* cbtChTriangleShapeCollisionAlgorithm::CreateFunc::CreateC
 
 // ================================================================================================
 
-cbtSegmentSegmentCollisionAlgorithm::cbtSegmentSegmentCollisionAlgorithm(
-    cbtPersistentManifold* mf,
-    const cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* col0,
-    const cbtCollisionObjectWrapper* col1,
-    bool isSwapped)
+cbtSegmentSegmentCollisionAlgorithm::cbtSegmentSegmentCollisionAlgorithm(cbtPersistentManifold* mf,
+                                                                         const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                         const cbtCollisionObjectWrapper* col0,
+                                                                         const cbtCollisionObjectWrapper* col1,
+                                                                         bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? col0 : col1;
 
-    if (!m_manifoldPtr &&
-        m_dispatcher->needsCollision(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject())) {
-        m_manifoldPtr =
-            m_dispatcher->getNewManifold(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject());
+    if (!m_manifoldPtr && m_dispatcher->needsCollision(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject())) {
+        m_manifoldPtr = m_dispatcher->getNewManifold(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject());
         m_ownManifold = true;
     }
 }
 
-cbtSegmentSegmentCollisionAlgorithm::cbtSegmentSegmentCollisionAlgorithm(
-    const cbtCollisionAlgorithmConstructionInfo& ci)
-    : cbtActivatingCollisionAlgorithm(ci) {}
+cbtSegmentSegmentCollisionAlgorithm::cbtSegmentSegmentCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci) : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtSegmentSegmentCollisionAlgorithm ::~cbtSegmentSegmentCollisionAlgorithm() {
     if (m_ownManifold) {
@@ -1395,10 +1355,9 @@ void cbtSegmentSegmentCollisionAlgorithm::_add_contact(const ChVector3d& candid_
     //// TODO
 }
 
-cbtCollisionAlgorithm* cbtSegmentSegmentCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    cbtCollisionAlgorithmConstructionInfo& ci,
-    const cbtCollisionObjectWrapper* body0Wrap,
-    const cbtCollisionObjectWrapper* body1Wrap) {
+cbtCollisionAlgorithm* cbtSegmentSegmentCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                                                 const cbtCollisionObjectWrapper* body0Wrap,
+                                                                                                 const cbtCollisionObjectWrapper* body1Wrap) {
     void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtSegmentSegmentCollisionAlgorithm));
     if (!m_swapped) {
         return new (mem) cbtSegmentSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);

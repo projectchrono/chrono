@@ -261,6 +261,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     outf << "  Rd   = " << m_damping_R << endl;
 }
 
+#ifdef CHRONO_FEA
 // Create bodies with triangular contact geometry as proxies for the mesh faces.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
@@ -322,6 +323,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
 
     m_proxies[i] = proxy;
 }
+#endif
 
 void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
@@ -386,6 +388,7 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
     }
 }
 
+#ifdef CHRONO_FEA
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
 void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
     // Get the proxy (contact surface) associated with this object
@@ -399,6 +402,7 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
         node->SetPosDt(mesh_state.vvel[in]);
     }
 }
+#endif
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
@@ -409,6 +413,7 @@ void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& r
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
 
+#ifdef CHRONO_FEA
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
@@ -425,6 +430,7 @@ void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact
         }
     }
 }
+#endif
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
