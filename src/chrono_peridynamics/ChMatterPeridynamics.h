@@ -17,6 +17,7 @@
 
 #include <cmath>
 
+#include "chrono/assets/ChGlyphs.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChContactMaterialNSC.h"

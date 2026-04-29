@@ -44,27 +44,31 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeSinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeDoublePin.h"
+#ifdef CHRONO_FEA
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
+#endif
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
+#ifdef CHRONO_FEA
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -73,7 +77,6 @@ using namespace chrono;
 
 %shared_ptr(chrono::ChLinePath)
 %import "../../../chrono/geometry/ChLinePath.h"
-
 
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChSprocketSinglePin)
@@ -103,28 +106,31 @@ using namespace chrono;
 
 %shared_ptr(chrono::vehicle::ChTrackShoe)
 %shared_ptr(chrono::vehicle::ChTrackShoeBand)
-%shared_ptr(chrono::vehicle::ChTrackShoeBandANCF)
 %shared_ptr(chrono::vehicle::ChTrackShoeBandBushing)
 %shared_ptr(chrono::vehicle::ChTrackShoeSegmented)
 %shared_ptr(chrono::vehicle::ChTrackShoeSinglePin)
 %shared_ptr(chrono::vehicle::ChTrackShoeDoublePin)
-%shared_ptr(chrono::vehicle::TrackShoeBandANCF)
 %shared_ptr(chrono::vehicle::TrackShoeBandBushing)
 %shared_ptr(chrono::vehicle::TrackShoeSinglePin)
 %shared_ptr(chrono::vehicle::TrackShoeDoublePin)
+#ifdef CHRONO_FEA
+%shared_ptr(chrono::vehicle::ChTrackShoeBandANCF)
+%shared_ptr(chrono::vehicle::TrackShoeBandANCF)
+#endif
 
 %shared_ptr(chrono::vehicle::ChTrackAssembly)
 %shared_ptr(chrono::vehicle::ChTrackAssemblyBand)
-%shared_ptr(chrono::vehicle::ChTrackAssemblyBandANCF)
 %shared_ptr(chrono::vehicle::ChTrackAssemblyBandBushing)
 %shared_ptr(chrono::vehicle::ChTrackAssemblySegmented)
 %shared_ptr(chrono::vehicle::ChTrackAssemblySinglePin)
 %shared_ptr(chrono::vehicle::ChTrackAssemblyDoublePin)
-%shared_ptr(chrono::vehicle::TrackAssemblyBandANCF)
 %shared_ptr(chrono::vehicle::TrackAssemblyBandBushing)
 %shared_ptr(chrono::vehicle::TrackAssemblySinglePin)
 %shared_ptr(chrono::vehicle::TrackAssemblyDoublePin)
-
+#ifdef CHRONO_FEA
+%shared_ptr(chrono::vehicle::ChTrackAssemblyBandANCF)
+%shared_ptr(chrono::vehicle::TrackAssemblyBandANCF)
+#endif
 
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
 
@@ -161,27 +167,31 @@ using namespace chrono;
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
-%include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
-%include "../../../chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandBushing.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeSinglePin.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeDoublePin.h"
+#ifdef CHRONO_FEA
+%include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
+%include "../../../chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
+#endif
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
-%include "../../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h"
-%include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
+#ifdef CHRONO_FEA
+%include "../../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
+%include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
+#endif
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
 %include "../../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"

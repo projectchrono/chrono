@@ -33,9 +33,11 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
+#endif
 #ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
@@ -355,7 +357,6 @@ int main(int argc, char** argv) {
 #endif
                 break;
             }
-
         }
     }
 
@@ -376,6 +377,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#ifdef CHRONO_FEA
             case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
                 auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, GetVehicleDataFile(vehicle_model.TireJSON()));
                 tire->EnableTirePressure(true);
@@ -419,6 +421,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#endif
             default:
                 break;
         }

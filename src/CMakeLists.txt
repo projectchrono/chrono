@@ -778,6 +778,18 @@ string(LENGTH "${CMAKE_SOURCE_DIR}/src/" SOURCE_PATH_SIZE)
 #       that a particular module was successfully built, not just
 #       enabled)
 
+if(CH_ENABLE_MODULE_FEA)
+  set(CHRONO_FEA "#define CHRONO_FEA")
+  if(CH_ENABLE_MODULE_FEA_MULTIPHYSICS)
+    set(CHRONO_FEA_MULTIPHYSICS "#define CHRONO_FEA_MULTIPHYSICS")
+  else()
+    set(CHRONO_FEA_MULTIPHYSICS "#undef CHRONO_FEA_MULTIPHYSICS")
+  endif()
+else()
+  set(CHRONO_FEA "#undef CHRONO_FEA")
+  set(CHRONO_FEA_MULTIPHYSICS "#undef CHRONO_FEA_MULTIPHYSICS")
+endif()
+
 if(CH_ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()

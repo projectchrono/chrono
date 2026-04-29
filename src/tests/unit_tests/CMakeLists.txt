@@ -99,10 +99,12 @@ if(BUILD_TESTING_BASE)
   ADD_SUBDIRECTORY(geometry)
 endif()
 
-option(BUILD_TESTING_FEA "Build unit tests for FEA module" TRUE)
-mark_as_advanced(FORCE BUILD_TESTING_FEA)
-if(BUILD_TESTING_FEA)
-  ADD_SUBDIRECTORY(fea)
+if(CH_ENABLE_MODULE_FEA)
+  option(BUILD_TESTING_FEA "Build unit tests for FEA module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_FEA)
+  if(BUILD_TESTING_FEA)
+    ADD_SUBDIRECTORY(fea)
+  endif()
 endif()
 
 if(CH_ENABLE_MODULE_MODAL)
@@ -113,7 +115,6 @@ if(CH_ENABLE_MODULE_MODAL)
   endif()
 endif()
 
-
 if(CH_ENABLE_MODULE_CASCADE)
   option(BUILD_TESTING_CASCADE "Build unit tests for Cascade module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_CASCADE)
@@ -121,7 +122,6 @@ if(CH_ENABLE_MODULE_CASCADE)
     ADD_SUBDIRECTORY(cascade)
   endif()
 endif()
-
 
 if(CH_ENABLE_MODULE_VEHICLE)
   option(BUILD_TESTING_VEHICLE "Build unit tests for Vehicle module" TRUE)

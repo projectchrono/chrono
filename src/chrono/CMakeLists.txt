@@ -14,6 +14,13 @@ option(CH_USE_BULLET_DOUBLE "Compile Chrono with double precision support in Bul
 cmake_dependent_option(CH_USE_BULLET_OPENMP "Compile Chrono with OpenMP support in Bullet" ON "CH_ENABLE_OPENMP" OFF)
 
 # -------------------------------------------------------------------------------------------------
+# FEA support
+# -------------------------------------------------------------------------------------------------
+
+option(CH_ENABLE_MODULE_FEA "Enable the Chrono FEA module" ON)
+cmake_dependent_option(CH_ENABLE_MODULE_FEA_MULTIPHYSICS "Enable the Chrono FEA-MULTIPHYSICS module" ON "CH_ENABLE_MODULE_FEA" OFF)
+
+# -------------------------------------------------------------------------------------------------
 # Collect files in the core Chrono library
 # -------------------------------------------------------------------------------------------------
 
@@ -331,7 +338,7 @@ source_group(physics\\shafts FILES ${Chrono_physics_shafts_SOURCES} ${Chrono_phy
 
 # FEA group
 
-set(Chrono_fea_SOURCES
+set(Chrono_fea_base_SOURCES
     fea/ChBuilderBeam.cpp
     fea/ChGaussIntegrationRule.cpp
     fea/ChGaussPoint.cpp
@@ -350,7 +357,7 @@ set(Chrono_fea_SOURCES
     fea/ChLoaderGravity.cpp
     fea/ChLoaderPressure.cpp
     )
-set(Chrono_fea_HEADERS
+set(Chrono_fea_base_HEADERS
     fea/ChBuilderBeam.h
     fea/ChHexahedronFace.h
     fea/ChTetrahedronFace.h
@@ -373,7 +380,7 @@ set(Chrono_fea_HEADERS
     fea/ChLoaderPressure.h
     fea/ChRotUtils.h
     )
-source_group(fea FILES ${Chrono_fea_SOURCES} ${Chrono_fea_HEADERS})
+source_group(fea FILES ${Chrono_fea_base_SOURCES} ${Chrono_fea_base_HEADERS})
 
 # FEA sub-groups
 
@@ -476,6 +483,42 @@ set(Chrono_fea_materials_HEADERS
     )
 source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_materials_HEADERS})
 
+set(Chrono_fea_sections_SOURCES
+    fea/ChBeamSection.cpp
+    fea/ChBeamSectionShape.cpp
+    fea/ChBeamSectionCosserat.cpp
+    fea/ChBeamSectionEuler.cpp
+    fea/ChBeamSectionTaperedTimoshenko.cpp
+    fea/ChBeamSectionTaperedTimoshenkoFPM.cpp
+    fea/ChBeamSectionCable.cpp
+    )
+set(Chrono_fea_sections_HEADERS
+    fea/ChBeamSection.h
+    fea/ChBeamSectionShape.h
+    fea/ChBeamSectionCosserat.h
+    fea/ChBeamSectionEuler.h
+    fea/ChBeamSectionTaperedTimoshenko.h
+    fea/ChBeamSectionTaperedTimoshenkoFPM.h
+    fea/ChBeamSectionCable.h
+    )
+source_group(fea\\sections FILES ${Chrono_fea_sections_SOURCES} ${Chrono_fea_sections_HEADERS})
+
+set(Chrono_fea_constraints_SOURCES
+    fea/ChLinkNodeFrame.cpp
+    fea/ChLinkNodeSlopeFrame.cpp
+    fea/ChLinkNodeNode.cpp
+    fea/ChLinkNodeFace.cpp
+    fea/ChLinkBeamIGAFrame.cpp
+    )
+set(Chrono_fea_constraints_HEADERS
+    fea/ChLinkNodeFrame.h
+    fea/ChLinkNodeSlopeFrame.h
+    fea/ChLinkNodeNode.h
+    fea/ChLinkNodeFace.h
+    fea/ChLinkBeamIGAFrame.h
+    )
+source_group(fea\\constraints FILES ${Chrono_fea_constraints_SOURCES} ${Chrono_fea_constraints_HEADERS})
+
 set(Chrono_fea_multiphysics_SOURCES
     fea/multiphysics/ChNodeFEAfieldXYZ.cpp
     fea/multiphysics/ChFieldElement.cpp
@@ -554,41 +597,34 @@ set(Chrono_fea_multiphysics_HEADERS
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 
-set(Chrono_fea_sections_SOURCES
-    fea/ChBeamSection.cpp
-    fea/ChBeamSectionShape.cpp
-    fea/ChBeamSectionCosserat.cpp
-    fea/ChBeamSectionEuler.cpp
-    fea/ChBeamSectionTaperedTimoshenko.cpp
-    fea/ChBeamSectionTaperedTimoshenkoFPM.cpp
-    fea/ChBeamSectionCable.cpp
+set(Chrono_fea_SOURCES "")
+set(Chrono_fea_HEADERS "")
+if(CH_ENABLE_MODULE_FEA)
+    set(Chrono_fea_SOURCES ${Chrono_fea_SOURCES}
+        ${Chrono_fea_base_SOURCES}
+        ${Chrono_fea_nodes_SOURCES}
+        ${Chrono_fea_elements_SOURCES}
+        ${Chrono_fea_materials_SOURCES}
+        ${Chrono_fea_sections_SOURCES}
+        ${Chrono_fea_constraints_SOURCES}
     )
-set(Chrono_fea_sections_HEADERS
-    fea/ChBeamSection.h
-    fea/ChBeamSectionShape.h
-    fea/ChBeamSectionCosserat.h
-    fea/ChBeamSectionEuler.h
-    fea/ChBeamSectionTaperedTimoshenko.h
-    fea/ChBeamSectionTaperedTimoshenkoFPM.h
-    fea/ChBeamSectionCable.h
+    set(Chrono_fea_HEADERS ${Chrono_fea_HEADERS}
+        ${Chrono_fea_base_HEADERS}
+        ${Chrono_fea_nodes_HEADERS}
+        ${Chrono_fea_elements_HEADERS}
+        ${Chrono_fea_materials_HEADERS}
+        ${Chrono_fea_sections_HEADERS}
+        ${Chrono_fea_constraints_HEADERS}
     )
-source_group(fea\\sections FILES ${Chrono_fea_sections_SOURCES} ${Chrono_fea_sections_HEADERS})
-
-set(Chrono_fea_constraints_SOURCES
-    fea/ChLinkNodeFrame.cpp
-    fea/ChLinkNodeSlopeFrame.cpp
-    fea/ChLinkNodeNode.cpp
-    fea/ChLinkNodeFace.cpp
-    fea/ChLinkBeamIGAFrame.cpp
-    )
-set(Chrono_fea_constraints_HEADERS
-    fea/ChLinkNodeFrame.h
-    fea/ChLinkNodeSlopeFrame.h
-    fea/ChLinkNodeNode.h
-    fea/ChLinkNodeFace.h
-    fea/ChLinkBeamIGAFrame.h
-    )
-source_group(fea\\constraints FILES ${Chrono_fea_constraints_SOURCES} ${Chrono_fea_constraints_HEADERS})
+    if(CH_ENABLE_MODULE_FEA_MULTIPHYSICS)
+        set(Chrono_fea_SOURCES ${Chrono_fea_SOURCES}
+            ${Chrono_fea_multiphysics_SOURCES}
+        )
+        set(Chrono_fea_HEADERS ${Chrono_fea_HEADERS}
+            ${Chrono_fea_multiphysics_HEADERS}
+        )
+    endif()
+endif()
 
 # Geometry group
 
@@ -681,7 +717,6 @@ set(Chrono_assets_SOURCES
     assets/ChVisualShapeLine.cpp
     assets/ChVisualShapePointPoint.cpp
     assets/ChVisualShapeSurface.cpp
-    assets/ChVisualShapeFEA.cpp
     )
 set(Chrono_assets_HEADERS
     assets/ChTexture.h
@@ -709,10 +744,16 @@ set(Chrono_assets_HEADERS
     assets/ChVisualShapeLine.h
     assets/ChVisualShapePointPoint.h
     assets/ChVisualShapeSurface.h
-    assets/ChVisualShapeFEA.h
     )
+if(CH_ENABLE_MODULE_FEA)
+    set(Chrono_assets_HEADERS ${Chrono_assets_SOURCES}
+        assets/ChVisualShapeFEA.cpp
+    )
+    set(Chrono_assets_HEADERS ${Chrono_assets_HEADERS}
+        assets/ChVisualShapeFEA.h
+    )
+endif()
 source_group(assets FILES ${Chrono_assets_SOURCES} ${Chrono_assets_HEADERS})
-
 
 # Multicore types and math 
 
@@ -1381,12 +1422,6 @@ set(Chrono_SOURCES
     ${Chrono_physics_hydraulics_SOURCES}
     ${Chrono_physics_shafts_SOURCES}
     ${Chrono_fea_SOURCES}
-    ${Chrono_fea_nodes_SOURCES}
-    ${Chrono_fea_elements_SOURCES}
-    ${Chrono_fea_constraints_SOURCES}
-    ${Chrono_fea_materials_SOURCES}
-    ${Chrono_fea_sections_SOURCES}
-    ${Chrono_fea_multiphysics_SOURCES}
     ${Chrono_solver_SOURCES}
     ${Chrono_solver_constraints_SOURCES}
     ${Chrono_solver_variables_SOURCES}
@@ -1413,13 +1448,6 @@ set(Chrono_HEADERS
     ${Chrono_physics_hydraulics_HEADERS}
     ${Chrono_physics_shafts_HEADERS}
     ${Chrono_fea_HEADERS}
-    ${Chrono_fea_nodes_HEADERS}
-    ${Chrono_fea_elements_HEADERS}
-    ${Chrono_fea_constraints_HEADERS}
-    ${Chrono_fea_materials_HEADERS}
-    ${Chrono_fea_multiphysics_HEADERS}
-    ${Chrono_fea_sections_HEADERS}
-    ${Chrono_fea_constraints_HEADERS}
     ${Chrono_solver_HEADERS}
     ${Chrono_solver_constraints_HEADERS}
     ${Chrono_solver_variables_HEADERS}

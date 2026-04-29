@@ -1674,10 +1674,12 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+#ifdef CHRONO_FEA
     if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
         BindMesh(mesh);
         return;
     }
+#endif
 
     if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
         BindParticleCloud(pcloud);
@@ -1738,10 +1740,12 @@ void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
     BindVisualShapesFixed(link, ObjectType::LINK);
 }
 
+#ifdef CHRONO_FEA
 void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
     mesh->UpdateVisualModel();
     BindVisualShapesMutable(mesh, ObjectType::FEA);
 }
+#endif
 
 void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
     for (const auto& body : assembly.GetBodies())
@@ -1750,8 +1754,10 @@ void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
     for (const auto& link : assembly.GetLinks())
         BindLink(link);
 
+#ifdef CHRONO_FEA
     for (const auto& mesh : assembly.GetMeshes())
         BindMesh(mesh);
+#endif
 
     for (const auto& item : assembly.GetOtherPhysicsItems()) {
         BindVisualShapesMutable(item, ObjectType::OTHER);

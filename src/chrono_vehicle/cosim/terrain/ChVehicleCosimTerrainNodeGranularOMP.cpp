@@ -739,6 +739,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
 
 // -----------------------------------------------------------------------------
 
+#ifdef CHRONO_FEA
 // Create bodies with triangular contact geometry as proxies for the mesh faces.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
@@ -786,6 +787,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
 
     m_proxies[i] = proxy;
 }
+#endif
 
 void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
@@ -846,6 +848,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnInitialize(unsigned int num_objects
     }
 }
 
+#ifdef CHRONO_FEA
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
 // The proxy body is effectively reconstructed at each synchronization time:
 //    - position at the center of mass of the three vertices
@@ -904,6 +907,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
     PrintMeshProxiesUpdateData(i, mesh_state);
 }
+#endif
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
@@ -936,6 +940,7 @@ ChVector3d ChVehicleCosimTerrainNodeGranularOMP::CalcBarycentricCoords(const ChV
     return ChVector3d(a1, a2, a3);
 }
 
+#ifdef CHRONO_FEA
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
@@ -998,6 +1003,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
         mesh_contact.nv++;
     }
 }
+#endif
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
@@ -1083,6 +1089,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
     utils::WriteVisualizationAssets(m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_particles; }, true);
 }
 
+#ifdef CHRONO_FEA
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     {
         auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
@@ -1099,6 +1106,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned i
         cout << "[Terrain node] object: " << i << "  lowest vertex:  height = " << (*lowest).z() << endl;
     }
 }
+#endif
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -18,15 +18,17 @@
 
 #include "chrono_models/vehicle/m113/M113_Suspension.h"
 
-#include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandANCF.h"
 #include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandBushing.h"
 #include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeSinglePin.h"
 #include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeDoublePin.h"
-
-#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyDoublePin.h"
+
+#ifdef CHRONO_FEA
+#include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandANCF.h"
+#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
+#endif
 %}
 
 %shared_ptr(chrono::vehicle::m113::M113_SprocketBand)
@@ -49,15 +51,18 @@
 
 %shared_ptr(chrono::vehicle::m113::M113_Suspension)
 
-%shared_ptr(chrono::vehicle::m113::M113_TrackShoeBandANCF)
 %shared_ptr(chrono::vehicle::m113::M113_TrackShoeBandBushing)
 %shared_ptr(chrono::vehicle::m113::M113_TrackShoeSinglePin)
 %shared_ptr(chrono::vehicle::m113::M113_TrackShoeDoublePin)
 
-%shared_ptr(chrono::vehicle::m113::M113_TrackAssemblyBandANCF)
 %shared_ptr(chrono::vehicle::m113::M113_TrackAssemblyBandBushing)
 %shared_ptr(chrono::vehicle::m113::M113_TrackAssemblySinglePin)
 %shared_ptr(chrono::vehicle::m113::M113_TrackAssemblyDoublePin)
+
+#ifdef CHRONO_FEA
+%shared_ptr(chrono::vehicle::m113::M113_TrackShoeBandANCF)
+%shared_ptr(chrono::vehicle::m113::M113_TrackAssemblyBandANCF)
+#endif
 
 // Parse the header file to generate wrappers
 
@@ -75,12 +80,15 @@
 
 %include "../../../chrono_models/vehicle/m113/M113_Suspension.h"
 
-%include "../../../chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandANCF.h"
 %include "../../../chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandBushing.h"
 %include "../../../chrono_models/vehicle/m113/track_shoe/M113_TrackShoeSinglePin.h"
 %include "../../../chrono_models/vehicle/m113/track_shoe/M113_TrackShoeDoublePin.h"
 
-%include "../../../chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 %include "../../../chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
 %include "../../../chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblySinglePin.h"
 %include "../../../chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyDoublePin.h"
+
+#ifdef CHRONO_FEA
+%include "../../../chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandANCF.h"
+%include "../../../chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
+#endif
