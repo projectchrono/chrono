@@ -387,6 +387,7 @@ void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,
 void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
                                                       ChVectorDynamic<>& Qc,
                                                       const double c,
+                                                      const double c_vel,  
                                                       bool do_clamp,
                                                       double recovery_clamp) {
     if (!IsActive())

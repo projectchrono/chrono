@@ -272,8 +272,7 @@ int main(int argc, char* argv[]) {
 #else
     // Expect fully qualified FMU filenames as program arguments
     if (argc != 5) {
-        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehicle_b [vehicle_FMU] [powertrain_FMU] [driver_FMU] [tire_FMU]"
-                  << std::endl;
+        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehicle_b [vehicle_FMU] [powertrain_FMU] [driver_FMU] [tire_FMU]" << std::endl;
         return 1;
     }
     std::string vehicle_fmu_filename = argv[1];

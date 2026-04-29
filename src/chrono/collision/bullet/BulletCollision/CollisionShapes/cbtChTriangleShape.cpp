@@ -21,7 +21,7 @@ software.
 #include <algorithm>
 #include <stdio.h>
 
-#include "BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
+#include "BulletCollision/CollisionShapes/cbtChTriangleShape.h"
 #include "BulletCollision/CollisionShapes/cbtCollisionMargin.h"
 #include "LinearMath/cbtQuaternion.h"
 
@@ -30,7 +30,7 @@ software.
 
 using namespace chrono;
 
-cbtCEtriangleShape::cbtCEtriangleShape(const ChVector3d* mp1,
+cbtChTriangleShape::cbtChTriangleShape(const ChVector3d* mp1,
                                        const ChVector3d* mp2,
                                        const ChVector3d* mp3,
                                        const ChVector3d* me1,
@@ -60,7 +60,7 @@ cbtCEtriangleShape::cbtCEtriangleShape(const ChVector3d* mp1,
     m_shapeType = CH_TRIANGLE_SHAPE_PROXYTYPE;
 }
 
-cbtVector3 cbtCEtriangleShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec0) const {
+cbtVector3 cbtChTriangleShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec0) const {
     auto v1 = cbtVector3CH(*p1);
     auto v2 = cbtVector3CH(*p2);
     auto v3 = cbtVector3CH(*p3);
@@ -76,13 +76,13 @@ cbtVector3 cbtCEtriangleShape::localGetSupportingVertexWithoutMargin(const cbtVe
     ////return sup + vec0.normalized() * sphereswept_rad;
 }
 
-void cbtCEtriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,
+void cbtChTriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,
                                                                            cbtVector3* supportVerticesOut,
                                                                            int numVectors) const {
     printf("NOT SUPPORTED!! \n");
 }
 
-void cbtCEtriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const {
+void cbtChTriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const {
     //// TODO
     // as an approximation, take the inertia of an average radius sphere
 
@@ -107,7 +107,7 @@ void cbtCEtriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inert
     inertia[2] = scaledmass * (x2 + y2);
 }
 
-void cbtCEtriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const {
+void cbtChTriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const {
     cbtVector3 p1_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p1);
     cbtVector3 p2_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p2);
     cbtVector3 p3_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p3);

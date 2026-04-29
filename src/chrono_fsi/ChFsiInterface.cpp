@@ -41,11 +41,7 @@ namespace fsi {
 // =============================================================================
 
 ChFsiInterface::ChFsiInterface(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
-    : m_sysMBS(sysMBS),
-      m_sysCFD(sysCFD),
-      m_verbose(true),
-      m_initialized(false),
-      m_node_directions_mode(NodeDirectionsMode::NONE) {}
+    : m_sysMBS(sysMBS), m_sysCFD(sysCFD), m_verbose(true), m_initialized(false), m_node_directions_mode(NodeDirectionsMode::NONE) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -55,6 +51,7 @@ unsigned int ChFsiInterface::GetNumBodies() const {
     return (unsigned int)m_fsi_bodies.size();
 }
 
+#ifdef CHRONO_FEA
 unsigned int ChFsiInterface::GetNumMeshes1D() const {
     return (unsigned int)m_fsi_meshes1D.size();
 }
@@ -90,6 +87,7 @@ unsigned int ChFsiInterface::GetNumNodes2D() const {
         n += m->GetNumNodes();
     return n;
 }
+#endif
 
 // ------------
 
@@ -107,9 +105,7 @@ void ChFsiInterface::AttachMultibodySystem(ChSystem* sys) {
     m_sysMBS = sys;
 }
 
-std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body,
-                                                    std::shared_ptr<utils::ChBodyGeometry> geometry,
-                                                    bool check_embedded) {
+std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded) {
     ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
     ChAssertAlways(!geometry || geometry->HasCollision());
@@ -135,8 +131,8 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
     return m_fsi_bodies.back();
 }
 
-std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface,
-                                                        bool check_embedded) {
+#ifdef CHRONO_FEA
+std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded) {
     ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
 
@@ -169,8 +165,7 @@ std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChC
     return m_fsi_meshes1D.back();
 }
 
-std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface,
-                                                        bool check_embedded) {
+std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded) {
     ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
 
@@ -209,6 +204,7 @@ std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChC
 
     return m_fsi_meshes2D.back();
 }
+#endif
 
 // ------------
 
@@ -216,12 +212,14 @@ void ChFsiInterface::Initialize() {
     if (m_verbose) {
         cout << "FSI interface solids" << endl;
         cout << "  Num. bodies:     " << GetNumBodies() << endl;
+#ifdef CHRONO_FEA
         cout << "  Num meshes 1D:   " << GetNumMeshes1D() << endl;
         cout << "  Num nodes 1D:    " << GetNumNodes1D() << endl;
         cout << "  Num elements 1D: " << GetNumElements1D() << endl;
         cout << "  Num meshes 2D:   " << GetNumMeshes2D() << endl;
         cout << "  Num nodes 2D:    " << GetNumNodes2D() << endl;
         cout << "  Num elements 2D: " << GetNumElements2D() << endl;
+#endif
     }
 
     m_initialized = true;
@@ -229,9 +227,71 @@ void ChFsiInterface::Initialize() {
 
 // ------------
 
-void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states,
-                                          std::vector<FsiMeshState>& mesh1D_states,
-                                          std::vector<FsiMeshState>& mesh2D_states) const {
+void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states) const {
+    unsigned int num_bodies = GetNumBodies();
+    body_states.resize(num_bodies);
+}
+
+bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_states) const {
+    if (body_states.size() != m_fsi_bodies.size()) {
+        cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size for vector of body states.";
+        return false;
+    }
+
+    return true;
+}
+
+void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states) {
+    if (!CheckStateVectors(body_states)) {
+        throw std::runtime_error("(ChFsiInterface::StoreSolidStates) incorrect state vector sizes.");
+    }
+
+    size_t num_bodies = m_fsi_bodies.size();
+    for (size_t ibody = 0; ibody < num_bodies; ibody++) {
+        std::shared_ptr<ChBody> body = m_fsi_bodies[ibody]->body;
+
+        body_states[ibody].pos = body->GetPos();
+        body_states[ibody].lin_vel = body->GetPosDt();
+        body_states[ibody].lin_acc = body->GetPosDt2();
+        body_states[ibody].rot = body->GetRot();
+        body_states[ibody].ang_vel = body->GetAngVelParent();
+        body_states[ibody].ang_acc = body->GetAngAccParent();
+    }
+}
+
+void ChFsiInterface::AllocateForceVectors(std::vector<FsiBodyForce>& body_forces) const {
+    unsigned int num_bodies = GetNumBodies();
+    body_forces.resize(num_bodies);
+}
+
+bool ChFsiInterface::CheckForceVectors(const std::vector<FsiBodyForce>& body_forces) const {
+    if (body_forces.size() != m_fsi_bodies.size()) {
+        cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size for vector of body forces.";
+        return false;
+    }
+
+    return true;
+}
+
+void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces) {
+    if (!CheckForceVectors(body_forces)) {
+        throw std::runtime_error("(ChFsiInterface::LoadSolidForces) incorrect force vector sizes.");
+    }
+
+    // External loads on rigid bodies
+    size_t ibody = 0;
+    for (const auto& fsi_body : m_fsi_bodies) {
+        fsi_body->body->EmptyAccumulator(fsi_body->fsi_accumulator);
+        fsi_body->body->AccumulateForce(fsi_body->fsi_accumulator, body_forces[ibody].force, fsi_body->body->GetPos(), false);
+        fsi_body->body->AccumulateTorque(fsi_body->fsi_accumulator, body_forces[ibody].torque, false);
+        ibody++;
+    }
+}
+
+//// TODO - eliminate code duplication (use above in the following)
+
+#ifdef CHRONO_FEA
+void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states, std::vector<FsiMeshState>& mesh1D_states, std::vector<FsiMeshState>& mesh2D_states) const {
     unsigned int num_bodies = GetNumBodies();
     unsigned int num_meshes1D = GetNumMeshes1D();
     unsigned int num_meshes2D = GetNumMeshes2D();
@@ -277,8 +337,7 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
         if (mesh1D_states[i].pos.size() != num_nodes ||  //
             mesh1D_states[i].vel.size() != num_nodes ||  //
             mesh1D_states[i].acc.size() != num_nodes) {
-            cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size of state vectors for mesh1D #" << i
-                 << endl;
+            cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size of state vectors for mesh1D #" << i << endl;
             return false;
         }
     }
@@ -293,8 +352,7 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
         if (mesh2D_states[i].pos.size() != num_nodes ||  //
             mesh2D_states[i].vel.size() != num_nodes ||  //
             mesh2D_states[i].acc.size() != num_nodes) {
-            cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size of state vectors for mesh2D #" << i
-                 << endl;
+            cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size of state vectors for mesh2D #" << i << endl;
             return false;
         }
     }
@@ -306,7 +364,7 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
 // NODAL_DIR_METHOD = 1:  average over adjacent elements
 // NODAL_DIR_METHOD = 2:  normalized sum over adjacent elements
 
-#define NODAL_DIR_METHOD 1
+    #define NODAL_DIR_METHOD 1
 
 // Utility function to calculate direction vectors at the flexible 1-D mesh nodes.
 // For 1-D meshes, these are averages of the segment direction vectors of adjacent segments.
@@ -320,28 +378,27 @@ void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
         const auto& P0 = states.pos[i0];
         const auto& P1 = states.pos[i1];
         auto d = P1 - P0;
-#if NODAL_DIR_METHOD == 2
+    #if NODAL_DIR_METHOD == 2
         d.Normalize();
-#endif
+    #endif
         states.dir[i0] += d;
         states.dir[i1] += d;
         counts[i0]++;
         counts[i1]++;
     }
 
-#if NODAL_DIR_METHOD == 1
-    std::transform(states.dir.begin(), states.dir.end(), counts.begin(), states.dir.begin(),
-                   [](const ChVector3d& v, int count) { return v / count; });
-#elif NODAL_DIR_METHOD == 2
+    #if NODAL_DIR_METHOD == 1
+    std::transform(states.dir.begin(), states.dir.end(), counts.begin(), states.dir.begin(), [](const ChVector3d& v, int count) { return v / count; });
+    #elif NODAL_DIR_METHOD == 2
     // Normalize nodal directions
     for (auto& d : states.dir)
         d.Normalize();
-#endif
+    #endif
 
-#ifdef DEBUG_LOG
+    #ifdef DEBUG_LOG
     for (auto& d : states.dir)
         cout << d << endl;
-#endif
+    #endif
 }
 
 // Utility function to calculate direction vectors at the flexible 2-D mesh nodes.
@@ -358,9 +415,9 @@ void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
         const auto& P1 = states.pos[i1];
         const auto& P2 = states.pos[i2];
         auto d = Vcross(P1 - P0, P2 - P0);
-#if NODAL_DIR_METHOD == 2
+    #if NODAL_DIR_METHOD == 2
         d.Normalize();
-#endif
+    #endif
         states.dir[i0] += d;
         states.dir[i1] += d;
         states.dir[i2] += d;
@@ -369,19 +426,16 @@ void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
         counts[i2]++;
     }
 
-#if NODAL_DIR_METHOD == 1
-    std::transform(states.dir.begin(), states.dir.end(), counts.begin(), states.dir.begin(),
-                   [](const ChVector3d& v, int count) { return v / count; });
-#elif NODAL_DIR_METHOD == 2
+    #if NODAL_DIR_METHOD == 1
+    std::transform(states.dir.begin(), states.dir.end(), counts.begin(), states.dir.begin(), [](const ChVector3d& v, int count) { return v / count; });
+    #elif NODAL_DIR_METHOD == 2
     // Normalize nodal directions
     for (auto& d : states.dir)
         d.Normalize();
-#endif
+    #endif
 }
 
-void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
-                                      std::vector<FsiMeshState>& mesh1D_states,
-                                      std::vector<FsiMeshState>& mesh2D_states) {
+void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states, std::vector<FsiMeshState>& mesh1D_states, std::vector<FsiMeshState>& mesh2D_states) {
     if (!CheckStateVectors(body_states, mesh1D_states, mesh2D_states)) {
         throw std::runtime_error("(ChFsiInterface::StoreSolidStates) incorrect state vector sizes.");
     }
@@ -445,9 +499,7 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
     }
 }
 
-void ChFsiInterface::AllocateForceVectors(std::vector<FsiBodyForce>& body_forces,
-                                          std::vector<FsiMeshForce>& mesh_forces1D,
-                                          std::vector<FsiMeshForce>& mesh_forces2D) const {
+void ChFsiInterface::AllocateForceVectors(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh_forces1D, std::vector<FsiMeshForce>& mesh_forces2D) const {
     unsigned int num_bodies = GetNumBodies();
     unsigned int num_meshes1D = GetNumMeshes1D();
     unsigned int num_meshes2D = GetNumMeshes2D();
@@ -483,8 +535,7 @@ bool ChFsiInterface::CheckForceVectors(const std::vector<FsiBodyForce>& body_for
     for (size_t i = 0; i < mesh_forces1D.size(); i++) {
         auto num_nodes = m_fsi_meshes1D[i]->GetNumNodes();
         if (mesh_forces1D[i].force.size() != num_nodes) {
-            cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size of force vectors for mesh1D #" << i
-                 << endl;
+            cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size of force vectors for mesh1D #" << i << endl;
             return false;
         }
     }
@@ -497,8 +548,7 @@ bool ChFsiInterface::CheckForceVectors(const std::vector<FsiBodyForce>& body_for
     for (size_t i = 0; i < mesh_forces2D.size(); i++) {
         auto num_nodes = m_fsi_meshes2D[i]->GetNumNodes();
         if (mesh_forces2D[i].force.size() != num_nodes) {
-            cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size of force vectors for mesh2D #" << i
-                 << endl;
+            cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size of force vectors for mesh2D #" << i << endl;
             return false;
         }
     }
@@ -506,9 +556,7 @@ bool ChFsiInterface::CheckForceVectors(const std::vector<FsiBodyForce>& body_for
     return true;
 }
 
-void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
-                                     std::vector<FsiMeshForce>& mesh1D_forces,
-                                     std::vector<FsiMeshForce>& mesh2D_forces) {
+void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) {
     if (!CheckForceVectors(body_forces, mesh1D_forces, mesh2D_forces)) {
         throw std::runtime_error("(ChFsiInterface::LoadSolidForces) incorrect force vector sizes.");
     }
@@ -518,8 +566,7 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
         size_t ibody = 0;
         for (const auto& fsi_body : m_fsi_bodies) {
             fsi_body->body->EmptyAccumulator(fsi_body->fsi_accumulator);
-            fsi_body->body->AccumulateForce(fsi_body->fsi_accumulator, body_forces[ibody].force,
-                                            fsi_body->body->GetPos(), false);
+            fsi_body->body->AccumulateForce(fsi_body->fsi_accumulator, body_forces[ibody].force, fsi_body->body->GetPos(), false);
             fsi_body->body->AccumulateTorque(fsi_body->fsi_accumulator, body_forces[ibody].torque, false);
             ibody++;
         }
@@ -551,35 +598,56 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
         }
     }
 }
+#endif
 
 // =============================================================================
 
-ChFsiInterfaceGeneric::ChFsiInterfaceGeneric(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
-    : ChFsiInterface(sysMBS, sysCFD) {}
+ChFsiInterfaceGeneric::ChFsiInterfaceGeneric(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD) : ChFsiInterface(sysMBS, sysCFD) {}
 
 ChFsiInterfaceGeneric::~ChFsiInterfaceGeneric() {}
 
 void ChFsiInterfaceGeneric::Initialize() {
     ChFsiInterface::Initialize();
 
+#ifdef CHRONO_FEA
     AllocateStateVectors(m_body_states, m_mesh1D_states, m_mesh2D_states);
     AllocateForceVectors(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
+#else
+    AllocateStateVectors(m_body_states);
+    AllocateForceVectors(m_body_forces);
+#endif
 }
 
 void ChFsiInterfaceGeneric::ExchangeSolidStates() {
+#ifdef CHRONO_FEA
     // Get solid states from multibody system in cached vectors
     StoreSolidStates(m_body_states, m_mesh1D_states, m_mesh2D_states);
 
     // Pass solid states to the fluid solver
     m_sysCFD->LoadSolidStates(m_body_states, m_mesh1D_states, m_mesh2D_states);
+#else
+    // Get solid states from multibody system in cached vectors
+    StoreSolidStates(m_body_states);
+
+    // Pass solid states to the fluid solver
+    m_sysCFD->LoadSolidStates(m_body_states);
+#endif
 }
 
 void ChFsiInterfaceGeneric::ExchangeSolidForces() {
+#ifdef CHRONO_FEA
     // Get solid forces from the fluid solver
     m_sysCFD->StoreSolidForces(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
 
     // Load solid forces to the multibody system (apply as external loads)
     LoadSolidForces(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
+#else
+    // Get solid forces from the fluid solver
+    m_sysCFD->StoreSolidForces(m_body_forces);
+
+    // Load solid forces to the multibody system (apply as external loads)
+    LoadSolidForces(m_body_forces);
+#endif
 }
 
 // =============================================================================

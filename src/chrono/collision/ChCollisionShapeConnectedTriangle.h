@@ -28,10 +28,26 @@ namespace chrono {
 /// in the containing mesh. This allows a collision system to implement mesh collision without double-counting node and
 /// edge interactions.
 /// For efficiency, this object uses pointers to the vertices in the containing mesh.
-class ChApi ChCollisionShapeMeshTriangle : public ChCollisionShape {
+class ChApi ChCollisionShapeConnectedTriangle : public ChCollisionShape {
   public:
-    ChCollisionShapeMeshTriangle();
-    ChCollisionShapeMeshTriangle(                     //
+    const ChVector3d* V1;
+    const ChVector3d* V2;
+    const ChVector3d* V3;
+    const ChVector3d* eP1;
+    const ChVector3d* eP2;
+    const ChVector3d* eP3;
+    bool ownsV1;
+    bool ownsV2;
+    bool ownsV3;
+    bool ownsE1;
+    bool ownsE2;
+    bool ownsE3;
+    double sradius;
+
+  public:
+    ChCollisionShapeConnectedTriangle();
+
+    ChCollisionShapeConnectedTriangle(                //
         std::shared_ptr<ChContactMaterial> material,  ///< contact material
         const ChVector3d* V1,                         ///< vertex1 coords
         const ChVector3d* V2,                         ///< vertex2 coords
@@ -47,7 +63,8 @@ class ChApi ChCollisionShapeMeshTriangle : public ChCollisionShape {
         bool ownsE3,                                  ///< edge3 owned by this triangle (otherwise, owned by neighbor)
         double sphere_radius                          ///< radius of swept sphere
     );
-    ~ChCollisionShapeMeshTriangle() {}
+
+    ~ChCollisionShapeConnectedTriangle() {}
 
     /// Get the shape bounding box.
     virtual ChAABB GetBoundingBox() const override;
@@ -57,20 +74,6 @@ class ChApi ChCollisionShapeMeshTriangle : public ChCollisionShape {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-    const ChVector3d* V1;
-    const ChVector3d* V2;
-    const ChVector3d* V3;
-    const ChVector3d* eP1;
-    const ChVector3d* eP2;
-    const ChVector3d* eP3;
-    bool ownsV1;
-    bool ownsV2;
-    bool ownsV3;
-    bool ownsE1;
-    bool ownsE2;
-    bool ownsE3;
-    double sradius;
 };
 
 /// @} chrono_collision

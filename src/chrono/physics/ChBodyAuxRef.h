@@ -77,7 +77,7 @@ class ChApi ChBodyAuxRef : public ChBody {
 
   public:
     // These functions override the ChBodyFrame (ChFrame) functions for setting position and rotation.
-    // In addition to setting the COM frame, they also must adjust ref_to_abs. Indeed, any of these 
+    // In addition to setting the COM frame, they also must adjust ref_to_abs. Indeed, any of these
     // functions move the entire body and as such the body REF frame must also be moved.
 
     virtual void SetPos(const ChVector3<>& pos) override;
@@ -86,9 +86,16 @@ class ChApi ChBodyAuxRef : public ChBody {
     virtual void SetCoordsys(const ChCoordsys<>& C) override;
     virtual void SetCoordsys(const ChVector3<>& v, const ChQuaternion<>& q) override;
 
+    virtual void SetPosDt(const ChVector3<>& p_dt) override;
+    virtual void SetLinVel(const ChVector3<>& p_dt) override;
+    virtual void SetRotDt(const ChQuaternion<>& q_dt) override;
+    virtual void SetAngVelLocal(const ChVector3<>& w) override;
+    virtual void SetAngVelParent(const ChVector3<>& w) override;
+    virtual void SetCoordsysDt(const ChCoordsys<>& csys_dt) override;
+
   private:
     ChFrameMoving<> ref_to_com;  ///< auxiliary REF location, relative to COM
-    ChFrameMoving<> ref_to_abs;  ///< auxiliary REF location, relative to abs coords
+    ChFrameMoving<> ref_to_abs;  ///< auxiliary REF location, relative to abs coordinates
 };
 
 CH_CLASS_VERSION(ChBodyAuxRef, 0)

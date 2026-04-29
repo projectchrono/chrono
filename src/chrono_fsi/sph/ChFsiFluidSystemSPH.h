@@ -72,37 +72,37 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        IntegrationScheme integration_scheme;  ///< Integration scheme (default: RK2)
-        EosType eos_type;                      ///< equation of state (default: ISOTHERMAL)
-        ViscosityMethod viscosity_method;      ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
-        BoundaryMethod boundary_method;        ///< boundary treatment (default: ADAMI)
-        KernelType kernel_type;                ///< kernel type (default: CUBIC_CPLINE)
-        ShiftingMethod shifting_method;        ///< shifting method (default: XSPH)
-        int num_bce_layers;                    ///< number of BCE layers (boundary and solids, default: 3)
-        double initial_spacing;                ///< initial particle spacing (default: 0.01)
-        double d0_multiplier;       ///< kernel length multiplier, h = d0_multiplier * initial_spacing (default: 1.2)
-        double max_velocity;        ///< maximum velocity (default: 1.0)
-        double shifting_xsph_eps;   ///< XSPH coefficient (default: 0.5)
-        double shifting_ppst_push;  ///< PPST pushing coefficient (default: 3.0)
-        double shifting_ppst_pull;  ///< shifting beta coefficient (default: 1.0)
-        double shifting_beta_implicit;    ///< shifting coefficient used in implicit solver (default: 1.0)
-        double shifting_diffusion_A;      ///< shifting coefficient used in diffusion (default: 2.0, range 1 to 6)
-        double shifting_diffusion_AFSM;   ///< shifting coefficient used in diffusion (default: 3.0)
-        double shifting_diffusion_AFST;   ///< shifting coefficient used in diffusion (default: 2.0)
-        double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
-        int density_reinit_steps;         ///< number of steps between density re-initializations (default: 2e8)
+        IntegrationScheme integration_scheme;          ///< Integration scheme (default: RK2)
+        EosType eos_type;                              ///< equation of state (default: ISOTHERMAL)
+        ViscosityMethod viscosity_method;              ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
+        BoundaryMethod boundary_method;                ///< boundary treatment (default: ADAMI)
+        KernelType kernel_type;                        ///< kernel type (default: CUBIC_CPLINE)
+        ShiftingMethod shifting_method;                ///< shifting method (default: XSPH)
+        int num_bce_layers;                            ///< number of BCE layers (boundary and solids, default: 3)
+        double initial_spacing;                        ///< initial particle spacing (default: 0.01)
+        double d0_multiplier;                          ///< kernel length multiplier, h = d0_multiplier * initial_spacing (default: 1.2)
+        double max_velocity;                           ///< maximum velocity (default: 1.0)
+        double shifting_xsph_eps;                      ///< XSPH coefficient (default: 0.5)
+        double shifting_ppst_push;                     ///< PPST pushing coefficient (default: 3.0)
+        double shifting_ppst_pull;                     ///< shifting beta coefficient (default: 1.0)
+        double shifting_beta_implicit;                 ///< shifting coefficient used in implicit solver (default: 1.0)
+        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 2.0, range 1 to 6)
+        double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 3.0)
+        double shifting_diffusion_AFST;                ///< shifting coefficient used in diffusion (default: 2.0)
+        double min_distance_coefficient;               ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
+        int density_reinit_steps;                      ///< number of steps between density re-initializations (default: 2e8)
         bool use_density_based_projection;             ///< (ISPH only, default: false)
         bool use_consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool use_consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double artificial_viscosity;                   ///< artificial viscosity coefficient (default: 0.02)
         bool use_delta_sph;                            ///< use delta SPH (default: true)
         double delta_sph_coefficient;                  ///< delta SPH coefficient (default: 0.1)
-        double free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
-                                        ///< field is computed and compared to this threshold. Particles with divergence
-                                        ///< less than this threshold are considered free surface particles (CRM only,
-                                        ///< default: 2.0)
-        int num_proximity_search_steps;  ///< number of steps between updates to neighbor lists (default: 4)
-        bool use_variable_time_step;     ///< use variable time step (default: false)
+        double free_surface_threshold;                 ///< threshold for identifying free surface. The divergence of the position
+                                                       ///< field is computed and compared to this threshold. Particles with divergence
+                                                       ///< less than this threshold are considered free surface particles (CRM only,
+                                                       ///< default: 2.0)
+        int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 4)
+        bool use_variable_time_step;                   ///< use variable time step (default: false)
 
         SPHParameters();
     };
@@ -121,7 +121,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     struct CH_FSI_API SplashsurfParameters {
         double smoothing_length;   ///< smoothing length used for the SPH kernel (in multiplies of the particle radius)
         double cube_size;          ///< cube edge length used for marching cubes (in multiplies of the particle radius)
-        double surface_threshold;  ///< iso-surface threshold for the density  (in multiplies of the rest density)
+        double surface_threshold;  ///< isosurface threshold for the density  (in multiplies of the rest density)
 
         SplashsurfParameters();
     };
@@ -468,10 +468,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Markers are created inside the truncated cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
-    std::vector<ChVector3d> CreatePointsTruncatedConeInterior(double rad,
-                                                              double rad_tip,
-                                                              double height,
-                                                              bool polar) const;
+    std::vector<ChVector3d> CreatePointsTruncatedConeInterior(double rad, double rad_tip, double height, bool polar) const;
 
     /// Create exterior marker points for a cone of specified radius and height.
     /// The cone is assumed centered at the origin and aligned with the Z axis.
@@ -484,18 +481,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Markers are created outside the truncated cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
-    std::vector<ChVector3d> CreatePointsTruncatedConeExterior(double rad,
-                                                              double rad_tip,
-                                                              double height,
-                                                              bool polar) const;
+    std::vector<ChVector3d> CreatePointsTruncatedConeExterior(double rad, double rad_tip, double height, bool polar) const;
 
     /// Create marker points filling a cylindrical annulus of specified radii and height.
     /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
-    std::vector<ChVector3d> CreatePointsCylinderAnnulus(double rad_inner,
-                                                        double rad_outer,
-                                                        double height,
-                                                        bool polar) const;
+    std::vector<ChVector3d> CreatePointsCylinderAnnulus(double rad_inner, double rad_outer, double height, bool polar) const;
 
     /// Create marker points filling a closed mesh.
     /// Markers are created on a Cartesian grid with a separation corresponding to system parameters.
@@ -523,6 +514,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         bool check_embedded;                 ///< if true, check for overlapping SPH particles
     };
 
+#ifdef CHRONO_FEA
     /// SPH specification of a 1D FSI deformable solid surface.
     struct FsiSphMesh1D {
         std::shared_ptr<FsiMesh1D> fsi_mesh;  ///< underlying FSI solid
@@ -540,6 +532,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         std::vector<ChVector3i> bce_ids;      ///< BCE identification (mesh ID, local face ID, global face ID)
         bool check_embedded;                  ///< if true, check for overlapping SPH particles
     };
+#endif
 
     /// Initialize simulation parameters with default values.
     void InitParams();
@@ -549,6 +542,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// SPH solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
+    /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the
+    /// given FSI rigid body.
+    void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce);
+
+#ifdef CHRONO_FEA
     /// SPH solver-specific actions taken when a 1D deformable solid is added as an FSI object.
     virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
 
@@ -567,13 +565,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                          bool remove_center         ///< eliminate markers on surface
     );
 
-    /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the
-    /// given FSI rigid body.
-    void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
-                          std::vector<int>& bce_ids,
-                          std::vector<ChVector3d>& bce_coords,
-                          std::vector<ChVector3d>& bce);
-
     /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
     /// given FSI 1D mesh.
     void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
@@ -591,17 +582,20 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                             std::vector<ChVector3i>& bce_ids,
                             std::vector<ChVector3d>& bce_coords,
                             std::vector<ChVector3d>& bce);
+#endif
 
     // ----------
 
     /// Initialize the SPH fluid system with FSI support.
-    virtual void Initialize(const std::vector<FsiBodyState>& body_states,
-                            const std::vector<FsiMeshState>& mesh1D_states,
-                            const std::vector<FsiMeshState>& mesh2D_states) override;
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states) override;
 
     /// Add the BCE markers for the given FSI rigid body to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
     void AddBCEFsiBody(const FsiSphBody& fsisph_body);
+
+#ifdef CHRONO_FEA
+    /// Initialize the SPH fluid system with FSI support.
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states, const std::vector<FsiMeshState>& mesh1D_states, const std::vector<FsiMeshState>& mesh2D_states) override;
 
     /// Add the BCE markers for the given FSI 1D mesh to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
@@ -610,9 +604,25 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Add the BCE markers for the given FSI 2D mesh to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
     void AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh);
+#endif
 
     // ----------
 
+    /// Load the given body and mesh node states in the SPH data manager structures.
+    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
+    /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
+    /// generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
+    /// co-simulation data exchange. If using the custom SPH FSI interface, MBS states are copied directly to the
+    /// device memory in ChFsiInterfaceSPH::ExchangeSolidStates.
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states) override;
+
+    /// Store the body and mesh node forces from the SPH data manager to the given vectors.
+    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
+    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
+    /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
+    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces) override;
+
+#ifdef CHRONO_FEA
     /// Load the given body and mesh node states in the SPH data manager structures.
     /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
     /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
@@ -627,9 +637,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
     /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
     /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
-                                  std::vector<FsiMeshForce> mesh1D_forces,
-                                  std::vector<FsiMeshForce> mesh2D_forces) override;
+    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces, std::vector<FsiMeshForce> mesh1D_forces, std::vector<FsiMeshForce> mesh2D_forces) override;
+#endif
 
     // ----------
 
@@ -665,9 +674,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
 
-    std::vector<FsiSphBody> m_bodies;      ///< list of FSI rigid bodies
+    std::vector<FsiSphBody> m_bodies;  ///< list of FSI rigid bodies
+#ifdef CHRONO_FEA
     std::vector<FsiSphMesh1D> m_meshes1D;  ///< list of FSI FEA meshes
     std::vector<FsiSphMesh2D> m_meshes2D;  ///< list of FSI FEA meshes
+#endif
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
 

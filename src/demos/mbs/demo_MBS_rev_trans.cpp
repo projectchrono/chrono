@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
         // Recall that the joint reference frame is given in the Body coordinates.
         ChVector3d p1 = rev_trans->GetFrame1Abs().GetPos();
         ChVector3d p2 = rev_trans->GetFrame1Abs().TransformPointLocalToParent(ChVector3d(L, 0, 0));
-        tools::drawSegment(vis.get(), p1, p2, ChColor(0, 1, 0), true);
+        tools::DrawSegment(vis.get(), p1, p2, ChColor(0, 1, 0), true);
 
         vis->EndScene();
 

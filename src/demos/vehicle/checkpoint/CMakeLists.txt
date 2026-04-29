@@ -1,5 +1,6 @@
 set(DEMOS
     demo_VEH_Checkpoint
+    demo_VEH_Checkpoint_Collision
 )
 
 #--------------------------------------------------------------

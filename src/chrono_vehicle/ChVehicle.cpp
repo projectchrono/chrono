@@ -58,8 +58,7 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     SetVehicleTag();
 
     // Create and set containing Chrono system
-    m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                        : static_cast<ChSystem*>(new ChSystemSMC);
+    m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC) : static_cast<ChSystem*>(new ChSystemSMC);
     m_system->SetName(name + "_system");
     m_system->SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
 
@@ -131,11 +130,7 @@ void ChVehicle::EnableRealtime(bool val) {
 // Enable output for this vehicle system.
 // -----------------------------------------------------------------------------
 
-void ChVehicle::SetOutput(ChOutput::Type type,
-                          ChOutput::Mode mode,
-                          const std::string& out_dir,
-                          const std::string& out_name,
-                          double output_step) {
+void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, const std::string& out_dir, const std::string& out_name, double output_step) {
     if (type == ChOutput::Type::NONE)
         return;
 
@@ -201,6 +196,40 @@ void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel)
 void ChVehicle::InitializePowertrain(std::shared_ptr<ChPowertrainAssembly> powertrain) {
     m_powertrain_assembly = powertrain;
     m_powertrain_assembly->Initialize(m_chassis);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicle::Relocate(const ChVector2d& xy_pos, double yaw_angle) {
+    if (!ChWorldFrame::IsISO()) {
+        std::cerr << "ChVehicle::Relocate() can only be used with an ISO world reference frame" << std::endl;
+        throw std::runtime_error("Attempt to use ChVehicle::Relocate in a non-ISO world reference frame");
+    }
+
+    auto old_veh_pos = GetPos();
+    auto old_veh_rot = GetRot();
+    auto old_veh_yaw = GetRot().GetCardanAnglesZYX().z();
+
+    auto delta_rot = QuatFromAngleZ(yaw_angle - old_veh_yaw);
+    auto new_veh_pos = ChVector3d(xy_pos.x(), xy_pos.y(), old_veh_pos.z());
+    auto new_veh_rot = delta_rot * old_veh_rot;
+
+    auto old_X_GV = GetRefFrame();
+    auto old_X_VG = old_X_GV.GetInverse();
+    auto new_X_GV = ChFrameMoving<>(new_veh_pos, new_veh_rot);
+
+    auto bodies = GetBodyList();
+    for (auto& body : bodies) {
+        auto old_X_GB = body->GetFrameCOMToAbs();  // (old) global -> body COM
+        auto X_VB = old_X_VG * old_X_GB;           // vehicle -> body COM
+        auto new_X_GB = new_X_GV * X_VB;           // (new) global -> body COM
+
+        body->SetPos(new_X_GB.GetPos());
+        body->SetRot(new_X_GB.GetRot());
+
+        body->SetPosDt(delta_rot.Rotate(body->GetPosDt()));
+        body->SetAngVelParent(delta_rot.Rotate(body->GetAngVelParent()));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -335,7 +364,7 @@ double ChVehicle::GetPitch(const ChTerrain& terrain) const {
 }
 
 double ChVehicle::GetSlipAngle() const {
-    auto V_abs = m_chassis->GetBody()->GetFrameRefToAbs().GetPosDt();  // chassis velocity (expressed in absolute frame)
+    auto V_abs = m_chassis->GetBody()->GetFrameRefToAbs().GetPosDt();           // chassis velocity (expressed in absolute frame)
     auto V_loc = m_chassis->GetBody()->TransformDirectionParentToLocal(V_abs);  // chassis velocity in local frame
 
     // slip angle (positive sign = left turn, negative sign = right turn)

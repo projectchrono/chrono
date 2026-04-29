@@ -114,7 +114,7 @@ class ChApi ChBodyGeometry {
         ChColor color;       ///< visualization color
     };
 
-    /// Tri-mesh shape for visualization and/or collision.
+    /// Trimesh shape for visualization and/or collision.
     struct ChApi TrimeshShape {
         TrimeshShape() = default;
         TrimeshShape(const ChVector3d& pos,

@@ -22,9 +22,11 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceSegmentSet.h"
 #include "chrono/utils/ChBodyGeometry.h"
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChContactSurfaceMesh.h"
+    #include "chrono/fea/ChContactSurfaceSegmentSet.h"
+#endif
 
 namespace chrono {
 
@@ -51,6 +53,26 @@ struct FsiBodyForce {
     ChVector3d torque;  ///< torque, expressed in the global frame
 };
 
+/// Description of a rigid body exposed to the FSI system.
+struct FsiBody {
+    size_t index;                              ///< body index in the list of FSI bodies
+    std::shared_ptr<ChBody> body;              ///< rigid body exposed to FSI system
+    std::shared_ptr<ChBodyGeometry> geometry;  ///< geometry for FSI interaction
+    ChVector3d fsi_force;                      ///< fluid force at body COM (expressed in absolute frame)
+    ChVector3d fsi_torque;                     ///< induced torque (expressed in absolute frame)
+    unsigned int fsi_accumulator;              ///< index of the body force accumulator for fluid forces
+};
+
+/// Methods for providing FEA node direction information.
+/// If provided, node direction vectors can be used to provide a more accurate interpolation of positions between nodes
+/// (piece-wise cubic as opposed to only piece-wise linear).
+enum class NodeDirectionsMode {
+    NONE,     ///< do not use FEA node directions (piece-wise linear interpolation)
+    AVERAGE,  ///< approximate directions by averaging over incident elements
+    EXACT     ///< use node directions communicated from FEA mesh
+};
+
+#ifdef CHRONO_FEA
 /// Definition of node states for a mesh.
 struct FsiMeshState {
     std::vector<ChVector3d> pos;  ///< global positions
@@ -64,29 +86,6 @@ struct FsiMeshState {
 /// Definition of a node forces for a mesh.
 struct FsiMeshForce {
     std::vector<ChVector3d> force;  ///< force, expressed in the global frame
-};
-
-// -----------------------------------------------------------------------------
-
-/// Methods for providing FEA node direction information.
-/// If provided, node direction vectors can be used to provide a more accurate interpolation of positions between nodes
-/// (piece-wise cubic as opposed to only piece-wise linear).
-enum class NodeDirectionsMode {
-    NONE,     ///< do not use FEA node directions (piece-wise linear interpolation)
-    AVERAGE,  ///< approximate directions by averaging over incident elements
-    EXACT     ///< use node directions communicated from FEA mesh
-};
-
-// -----------------------------------------------------------------------------
-
-/// Description of a rigid body exposed to the FSI system.
-struct FsiBody {
-    size_t index;                              ///< body index in the list of FSI bodies
-    std::shared_ptr<ChBody> body;              ///< rigid body exposed to FSI system
-    std::shared_ptr<ChBodyGeometry> geometry;  ///< geometry for FSI interaction
-    ChVector3d fsi_force;                      ///< fluid force at body COM (expressed in absolute frame)
-    ChVector3d fsi_torque;                     ///< induced torque (expressed in absolute frame)
-    unsigned int fsi_accumulator;              ///< index of the body force accumulator for fluid forces
 };
 
 /// Description of an FEA mesh surface with 1-D segments exposed to the FSI system.
@@ -110,6 +109,7 @@ struct FsiMesh2D {
     std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
     std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
 };
+#endif
 
 /// @} fsi_base
 

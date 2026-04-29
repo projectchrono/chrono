@@ -20,6 +20,7 @@ set(TESTS
 	utest_FEA_ANCFshell_3833_Formulation
 	utest_FEA_ANCFhexa_3843_Formulation
     utest_FEA_ANCFhexa_3813_9
+    utest_FEA_domain_deformation
 )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)

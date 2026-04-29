@@ -110,6 +110,7 @@ class ChApi ChLinkUniversal : public ChLink {
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
+                                     const double c_vel, 
                                      bool do_clamp,
                                      double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,

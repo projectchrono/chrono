@@ -36,10 +36,28 @@ namespace vehicle {
 
 ChRigidChassis::ChRigidChassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {}
 
-void ChRigidChassis::Construct(ChVehicle* vehicle,
-                               const ChCoordsys<>& chassisPos,
-                               double chassisFwdVel,
-                               int collision_family) {
+void ChRigidChassis::SetCollisionGeometry(const utils::ChBodyGeometry& geometry) {
+    // Clear current collision objects
+    if (m_geometry.HasCollision()) {
+        m_geometry.materials.clear();
+        m_geometry.coll_boxes.clear();
+        m_geometry.coll_spheres.clear();
+        m_geometry.coll_cylinders.clear();
+        m_geometry.coll_cones.clear();
+        m_geometry.coll_meshes.clear();
+        m_geometry.coll_hulls.clear();
+    }
+
+    m_geometry.materials = geometry.materials;
+    m_geometry.coll_boxes = geometry.coll_boxes;
+    m_geometry.coll_spheres = geometry.coll_spheres;
+    m_geometry.coll_cylinders = geometry.coll_cylinders;
+    m_geometry.coll_cones = geometry.coll_cones;
+    m_geometry.coll_meshes = geometry.coll_meshes;
+    m_geometry.coll_hulls = geometry.coll_hulls;
+}
+
+void ChRigidChassis::OnInitialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family) {
     // If collision shapes were defined, create the contact geometry and enable contact for the chassis's rigid body.
     // NOTE: setting the collision family is deferred to the containing vehicle system (which can also disable contact
     // between the chassis and certain vehicle subsystems).
@@ -63,7 +81,7 @@ void ChRigidChassis::RemoveVisualizationAssets() {
 
 ChRigidChassisRear::ChRigidChassisRear(const std::string& name) : ChChassisRear(name) {}
 
-void ChRigidChassisRear::Construct(std::shared_ptr<ChChassis> chassis, int collision_family) {
+void ChRigidChassisRear::OnInitialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
     // If collision shapes were defined, create the contact geometry and enable contact for the chassis's rigid body.
     // NOTE: setting the collision family is deferred to the containing vehicle system (which can also disable contact
     // between the chassis and certain vehicle subsystems).

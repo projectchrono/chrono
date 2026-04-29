@@ -27,6 +27,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 
+#ifdef CHRONO_FEA
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
@@ -36,6 +37,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
@@ -57,6 +59,7 @@
 %shared_ptr(chrono::vehicle::Pac02Tire)
 %shared_ptr(chrono::vehicle::FialaTire)
 
+#ifdef CHRONO_FEA
 %shared_ptr(chrono::vehicle::ChDeformableTire)
 %shared_ptr(chrono::vehicle::ChFEATire)
 %shared_ptr(chrono::vehicle::ChANCFTire)
@@ -66,6 +69,7 @@
 %shared_ptr(chrono::vehicle::ANCFToroidalTire)
 %shared_ptr(chrono::vehicle::ReissnerTire)
 %shared_ptr(chrono::vehicle::ReissnerToroidalTire)
+#endif
 
 #ifdef SWIGCSHARP
 %import "chrono_swig/interface/core/ChShaft.i"
@@ -96,6 +100,7 @@
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 
+#ifdef CHRONO_FEA
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
@@ -105,5 +110,6 @@
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
+#endif
 
 %include "chrono_swig/interface/models/TireModels.i"

@@ -292,6 +292,7 @@ void ChLinkRevoluteSpherical::IntLoadResidual_CqL(const unsigned int off_L,    /
 void ChLinkRevoluteSpherical::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
                                                   ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
                                                   const double c,            ///< a scaling factor
+                                                  const double c_vel,        ///< the scaling factor if the constraint is at speed level
                                                   bool do_clamp,             ///< apply clamping to c*C?
                                                   double recovery_clamp      ///< value for min/max clamping of c*C
 ) {

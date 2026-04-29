@@ -183,6 +183,9 @@ class CH_VEHICLE_API ChPart {
     /// A derived class should call this at the end of its initialization phase.
     void Initialize();
 
+    /// Get the list of bodies.
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const { return m_bodies; }
+
     /// Export the list of bodies to the specified JSON document.
     void ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies) const;
 

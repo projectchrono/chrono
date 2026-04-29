@@ -25,6 +25,7 @@
 #include <numeric>
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChVector2.h"
 #include "chrono/input_output/ChOutput.h"
 #include "chrono/input_output/ChCheckpoint.h"
 
@@ -149,6 +150,14 @@ class CH_VEHICLE_API ChVehicle {
     /// dipping below the terrain plane.
     double GetPitch(const ChTerrain& terrain) const;
 
+    /// Get the vehicle linear velocity.
+    /// This is the velocity of the origin of chassis reference frame, expressed in the global frame.
+    const ChVector3d& GetLinearVelocity() const { return m_chassis->GetLinearVelocity(); }
+
+    /// Get the vehicle angular velocity.
+    /// This is the angular velocity of the chassis reference frame, expressed in the chassis reference frame.
+    ChVector3d GetAngularVelocity() const { return m_chassis->GetAngularVelocity(); }
+
     /// Get the vehicle speed (velocity component in the vehicle forward direction).
     /// Return the speed measured at the origin of the main chassis reference frame.
     double GetSpeed() const { return m_chassis->GetSpeed(); }
@@ -264,6 +273,12 @@ class CH_VEHICLE_API ChVehicle {
     /// Enable/disable output from the chassis subsystem.
     void SetChassisOutput(bool state);
 
+    /// Relocate vehicle at given x-y location and reorient with given yaw angle.
+    /// This function can only be used if the world reference frame is ISO (Z up, X forward, Y to the left).
+    /// Note that this function is unaware of the terrain below the current and new locations.
+    /// It is the caller's responsibility to ensure that a vehicle relocation is possible.
+    void Relocate(const ChVector2d& xy_pos, double yaw_angle);
+
     /// Return true if the vehicle model contains bushings.
     bool HasBushings() const { return m_chassis->HasBushings(); }
 
@@ -289,6 +304,9 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
+
+    /// Return a list with all bodies in the vehicle system.
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const { return std::vector<std::shared_ptr<ChBody>>(); }
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
@@ -328,8 +346,7 @@ class CH_VEHICLE_API ChVehicle {
     /// Utility function for testing if any subsystem in a list generates output.
     template <typename T>
     static bool AnyOutput(const std::vector<std::shared_ptr<T>>& list) {
-        bool val = std::accumulate(list.begin(), list.end(), false,
-                                   [](bool a, std::shared_ptr<T> b) { return a || b->OutputEnabled(); });
+        bool val = std::accumulate(list.begin(), list.end(), false, [](bool a, std::shared_ptr<T> b) { return a || b->OutputEnabled(); });
         return val;
     }
 

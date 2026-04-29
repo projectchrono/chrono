@@ -10,8 +10,13 @@ set(DEMOS
     demo_VEH_Test_ISO2631_Shock
     demo_VEH_Test_Accel
     demo_VEH_Test_FMTV_Ride
-    demo_VEH_Test_TireFEA
 )
+
+if(CH_ENABLE_MODULE_FEA)
+   set(DEMOS ${DEMOS}
+       demo_VEH_Test_TireFEA
+   )
+endif()
 
 if(CH_USE_OPENCRG)
    if(CH_ENABLE_MODULE_VSG)

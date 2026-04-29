@@ -61,10 +61,6 @@ void ChCollisionModel::SyncPosition() {
         impl->SyncPosition();
 }
 
-ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
-    return contactable->GetPhysicsItem();
-}
-
 ChAABB ChCollisionModel::GetBoundingBox(bool local) const {
     if (local) {
         ChAABB aabb;
@@ -110,7 +106,7 @@ void ChCollisionModel::SetFamily(int family) {
 }
 
 // Return the position of the single bit set in family_group.
-int ChCollisionModel::GetFamily() {
+int ChCollisionModel::GetFamily() const {
     unsigned i = 1;
     int pos = 1;
     while (!(i & family_group)) {
@@ -137,7 +133,7 @@ void ChCollisionModel::AllowCollisionsWith(int family) {
 }
 
 // Return true if the family_mask bit in position mfamily is set.
-bool ChCollisionModel::CollidesWith(int family) {
+bool ChCollisionModel::CollidesWith(int family) const {
     assert(family >= 0 && family < 15);
     return (family_mask & (1 << family)) != 0;
 }
@@ -169,10 +165,7 @@ void ChCollisionModel::AddShapes(std::shared_ptr<ChCollisionModel> model, const 
         AddShape(si.shape, frame * si.frame);
 }
 
-void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
-                                   double radius,
-                                   const ChVector3d& p1,
-                                   const ChVector3d& p2) {
+void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material, double radius, const ChVector3d& p1, const ChVector3d& p2) {
     ChLineSegment seg(p1, p2);
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
@@ -182,8 +175,7 @@ void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
 }
 
 void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChContactMaterial> mat) {
-    assert(m_shape_instances.size() == 0 ||
-           m_shape_instances[0].shape->m_material->GetContactMethod() == mat->GetContactMethod());
+    assert(m_shape_instances.size() == 0 || m_shape_instances[0].shape->m_material->GetContactMethod() == mat->GetContactMethod());
     for (auto& si : m_shape_instances)
         si.shape->m_material = mat;
 }

@@ -73,7 +73,7 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
         Qc.setZero();
 
         LoadResidual_F(R, 1.0);
-        LoadConstraint_C(Qc, -2.0 / (Delta * Delta));
+        LoadConstraint_C(Qc, -2.0 / (Delta * Delta), -1.0 / Delta);
 
         // numerical differentiation to get the Qc term in constraints
         ChStateDelta dx(v);
@@ -82,11 +82,11 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
 
         StateIncrement(xdx, x, dx);
         StateScatter(xdx, v, T + Delta, update_flags);
-        LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
+        LoadConstraint_C(Qc, 1.0 / (Delta * Delta), 1.0 / Delta);
 
         StateIncrement(xdx, x, -dx);
         StateScatter(xdx, v, T - Delta, update_flags);
-        LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
+        LoadConstraint_C(Qc, 1.0 / (Delta * Delta), 0.0);
 
         StateScatter(x, v, T, update_flags);  // back to original state
 
@@ -107,7 +107,7 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
         LoadLumpedMass_Md(Md, err, 1.0);
 
         if (GetNumConstraints()) {
-            LoadConstraint_C(L, -lumping->Ck_penalty);  // L  = -k*C     // to do: modulate  k  as constraint-dependent,
+            LoadConstraint_C(L, -lumping->Ck_penalty, -lumping->Ck_penalty);  // L  = -k*C     // to do: modulate  k  as constraint-dependent,
                                                         // k=lumping->Ck_penalty*Ck_i
             LoadResidual_CqL(R, L, 1.0);                // Fc =  Cq' * (-k*C)    = Cq' * L
             // to do: add c_penalty for speed proportional damping, as   Fc = - Cq' * (k*C + c*(dC/dt))

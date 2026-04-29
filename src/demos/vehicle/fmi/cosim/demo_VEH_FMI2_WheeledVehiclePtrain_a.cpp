@@ -128,8 +128,7 @@ class DriverSystem {
     double braking;
 };
 
-DriverSystem::DriverSystem(ChSystem& sys, const std::string& path_filename)
-    : target_speed(10), steering(0), braking(0), throttle(0) {
+DriverSystem::DriverSystem(ChSystem& sys, const std::string& path_filename) : target_speed(10), steering(0), braking(0), throttle(0) {
     auto path = ChBezierCurve::Read(path_filename, false);
 
     speedPID = chrono_types::make_shared<ChSpeedController>();

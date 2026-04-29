@@ -22,7 +22,7 @@ if(CH_ENABLE_MODULE_VSG)
   )      
 endif()
 
-if(CH_ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_FEA AND CH_ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
       demo_FSI-SPH_FEAdirections
       demo_FSI-SPH_Flexible_Plate

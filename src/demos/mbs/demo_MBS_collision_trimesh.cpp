@@ -24,6 +24,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/core/ChRandom.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
@@ -46,8 +47,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChTriangleMeshConnected> CreateShoe() {
-    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
-                                                                 false, true);
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"), false, true);
     mesh->Transform(VNULL, ChMatrix33<>(1.2));
     mesh->RepairDuplicateVertices(1e-9);
 
@@ -55,8 +55,7 @@ std::shared_ptr<ChTriangleMeshConnected> CreateShoe() {
 }
 
 std::shared_ptr<ChTriangleMeshConnected> CreateBox() {
-    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"),
-                                                                 false, true);
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"), false, true);
     mesh->Transform(VNULL, ChMatrix33<>(ChVector3d(0.15, 0.05, 0.15)));
     mesh->RepairDuplicateVertices(1e-9);
 
@@ -250,12 +249,14 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
+    ChRealtimeStepTimer rt_timer;
 
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
         sys->DoStepDynamics(step);
+        rt_timer.Spin(step);
     }
 
     return 0;

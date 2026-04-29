@@ -28,17 +28,12 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChContactMethod contact_method)
-    : ChVehicle(name, contact_method), m_parking_on(false) {}
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChContactMethod contact_method) : ChVehicle(name, contact_method), m_parking_on(false) {}
 
-ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system)
-    : ChVehicle(name, system), m_parking_on(false) {}
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system), m_parking_on(false) {}
 
 // Initialize a tire and attach it to one of the vehicle's wheels.
-void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
-                                      std::shared_ptr<ChWheel> wheel,
-                                      VisualizationType tire_vis,
-                                      ChTire::CollisionType tire_coll) {
+void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire, std::shared_ptr<ChWheel> wheel, VisualizationType tire_vis, ChTire::CollisionType tire_coll) {
     wheel->m_tire = tire;
     tire->Initialize(wheel);
     tire->InitializeInertiaProperties();
@@ -475,14 +470,62 @@ void ChWheeledVehicle::LogSubsystemTypes(std::ostream& os) {
 
 // -----------------------------------------------------------------------------
 
+std::vector<std::shared_ptr<ChBody>> ChWheeledVehicle::GetBodyList() const {
+    std::vector<std::shared_ptr<ChBody>> bodies;
+
+    {
+        auto b = m_chassis->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    for (auto& c : m_chassis_rear) {
+        auto b = c->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    for (auto& sc : m_subchassis) {
+        auto b = sc->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    for (auto& axle : m_axles) {
+        {
+            auto b = axle->m_suspension->GetBodyList();
+            bodies.insert(bodies.end(), b.begin(), b.end());
+        }
+        for (auto& wheel : axle->GetWheels()) {
+            {
+                auto b = wheel->GetBodyList();
+                bodies.insert(bodies.end(), b.begin(), b.end());
+            }
+            if (wheel->GetTire()) {
+                auto b = wheel->GetTire()->GetBodyList();
+                bodies.insert(bodies.end(), b.begin(), b.end());
+            }
+        }
+        if (axle->m_antirollbar) {
+            auto b = axle->m_antirollbar->GetBodyList();
+            bodies.insert(bodies.end(), b.begin(), b.end());
+        }
+    }
+
+    for (auto& steering : m_steerings) {
+        auto b = steering->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    return bodies;
+}
+
+// -----------------------------------------------------------------------------
+
 std::string ChWheeledVehicle::ExportComponentList() const {
     rapidjson::Document jsonDocument;
     jsonDocument.SetObject();
 
     std::string template_name = GetTemplateName();
     jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
-    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
-                           jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(), jsonDocument.GetAllocator());
 
     {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
@@ -683,7 +726,6 @@ void ChWheeledVehicle::ReadCheckpoint(ChCheckpoint& database) {
         GetTransmission()->ReadCheckpoint(database);
     }
 }
-
 
 }  // end namespace vehicle
 }  // end namespace chrono

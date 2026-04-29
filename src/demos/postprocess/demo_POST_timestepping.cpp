@@ -452,13 +452,15 @@ void example4(const std::string& out_dir) {
         // nothing to do here- no constraints
         virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        // result: the Qc residual, Qc += c*C
                                       const double c,               // a scaling factor
+                                      const double c_vel,           // scaling factor for constraints at speed level
                                       const bool do_clamp = false,  // enable optional clamping of Qc
                                       const double mclam = 1e30     // clamping value
                                       ) override {}
 
         // nothing to do here- no constraints
         virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  // result: the Qc residual, Qc += c*Ct
-                                       const double c          // a scaling factor
+                                       const double c,         // a scaling factor
+                                       const double c_vel      // scaling factor for constraints at speed level
                                        ) override {}
     };
 
@@ -699,6 +701,7 @@ void example5(const std::string& out_dir) {
         //  Qc += c * C
         virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        // result: the Qc residual, Qc += c*C
                                       const double c,               // a scaling factor
+                                      const double c_vel,           // scaling factor for constraints at speed level
                                       const bool do_clamp = false,  // enable optional clamping of Qc
                                       const double mclam = 1e30     // clamping value
                                       ) override {
@@ -708,7 +711,8 @@ void example5(const std::string& out_dir) {
 
         // nothing to do here- no rheonomic part
         virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  // result: the Qc residual, Qc += c*Ct
-                                       const double c          // a scaling factor
+                                       const double c,         // a scaling factor
+                                       const double c_vel      // scaling factor for constraints at speed level
                                        ) override {}
     };
 

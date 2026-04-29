@@ -30,7 +30,7 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/cbtCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/cbtBroadphaseInterface.h"
 #include "BulletCollision/BroadphaseCollision/cbtDbvt.h"
-#include "BulletCollision/CollisionShapes/cbtCEtriangleShape.h" //***CHRONO***
+#include "BulletCollision/CollisionShapes/cbtChTriangleShape.h" //***CHRONO***
 #include "LinearMath/cbtAabbUtil2.h"
 #include "LinearMath/cbtQuickprof.h"
 #include "LinearMath/cbtSerializer.h"
@@ -1324,7 +1324,7 @@ void cbtCollisionWorld::debugDrawObject(const cbtTransform& worldTransform, cons
 		{
 			case CH_TRIANGLE_SHAPE_PROXYTYPE:	// ***CHRONO***
 			{
-				const cbtCEtriangleShape* triShape = static_cast<const cbtCEtriangleShape*>(shape);
+				const cbtChTriangleShape* triShape = static_cast<const cbtChTriangleShape*>(shape);
 				auto v1 = triShape->get_p1();
 				auto v2 = triShape->get_p2();
 				auto v3 = triShape->get_p3();

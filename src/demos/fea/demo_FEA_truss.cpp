@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
         // draw spring elements as lines
         for (auto mspring : springs) {
             if (mspring->GetSpringCoefficient() > 0) {
-                tools::drawSegment(vis.get(), std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNode(0))->GetPos(),
+                tools::DrawSegment(vis.get(), std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNode(0))->GetPos(),
                                    std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNode(1))->GetPos(),
                                    ChColor(1, 1, 1), true);
             }

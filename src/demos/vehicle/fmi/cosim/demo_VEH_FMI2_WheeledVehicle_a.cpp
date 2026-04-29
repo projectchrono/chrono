@@ -128,8 +128,7 @@ class DriverSystem {
     double braking;
 };
 
-DriverSystem::DriverSystem(ChSystem& sys, const std::string& path_filename)
-    : target_speed(10), steering(0), braking(0), throttle(0) {
+DriverSystem::DriverSystem(ChSystem& sys, const std::string& path_filename) : target_speed(10), steering(0), braking(0), throttle(0) {
     auto path = ChBezierCurve::Read(path_filename, false);
 
     speedPID = chrono_types::make_shared<ChSpeedController>();
@@ -288,19 +287,14 @@ class PowertrainSystem {
         virtual std::string GetTemplateName() const override { return ""; }
         virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsysd(); }
         virtual void EnableCollision(bool state) override {}
-        virtual void Construct(ChVehicle* vehicle,
-                               const ChCoordsys<>& chassisPos,
-                               double chassisFwdVel,
-                               int collision_family) override {}
+        virtual void OnInitialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family) override {}
         virtual double GetBodyMass() const override { return 1; }
         virtual ChFrame<> GetBodyCOMFrame() const override { return ChFramed(); }
         virtual ChMatrix33<> GetBodyInertia() const override { return ChMatrix33<>(1); }
     };
 };
 
-PowertrainSystem::PowertrainSystem(ChSystem& sys,
-                                   const std::string& engine_JSON,
-                                   const std::string& transmission_JSON) {
+PowertrainSystem::PowertrainSystem(ChSystem& sys, const std::string& engine_JSON, const std::string& transmission_JSON) {
     engine = ReadEngineJSON(engine_JSON);
     transmission = ReadTransmissionJSON(transmission_JSON);
     powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);

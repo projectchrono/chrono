@@ -19,7 +19,7 @@
 #define CH_SPH_LINEARSOLVER_GMRES_H
 
 #include <ctype.h>
-#include <cuda_runtime.h>
+#include "chrono_fsi/sph/ChSphGpuRuntime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

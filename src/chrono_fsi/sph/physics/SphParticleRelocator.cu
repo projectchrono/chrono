@@ -37,6 +37,7 @@
 
 #include "chrono/utils/ChUtils.h"
 
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #include "chrono_fsi/sph/physics/SphParticleRelocator.cuh"
 #include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"
 

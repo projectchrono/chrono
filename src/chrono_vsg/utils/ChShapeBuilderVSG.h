@@ -171,6 +171,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     std::unique_ptr<CylinderShapeData> m_cylinder_data;
     std::unique_ptr<ConeShapeData> m_cone_data;
     std::unique_ptr<CapsuleShapeData> m_capsule_data;
+
+    friend class ChVisualSystemVSG;
 };
 
 }  // namespace vsg3d

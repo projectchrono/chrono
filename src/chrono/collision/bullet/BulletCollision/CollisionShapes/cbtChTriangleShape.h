@@ -25,17 +25,16 @@ software.
 #include "LinearMath/cbtVector3.h"
 #include "chrono/core/ChVector3.h"
 
-/// cbtCEtriangleShape represents a triangle that is part of a collision mesh.
+/// cbtChTriangleShape represents a triangle that is part of a collision mesh.
 /// This because the default Bullet or GImpact triangle mesh system is not flexible enough to
 /// handle FEM problems where each triangle may have its collision model, and because
 /// of other limitations related to robustness etc.
 /// The idea is to use 'representative triangles' with additional info on neighbours as in
-/// "Fast Collision Detection for Deformable Models using Representative-Triangles"
-/// S.Rasmus Tamstorf, D.Manocha1
+/// "Fast Collision Detection for Deformable Models using Representative-Triangles", S.Rasmus Tamstorf, D.Manocha1.
 
-class cbtCEtriangleShape : public cbtConvexInternalShape {
+class cbtChTriangleShape : public cbtConvexInternalShape {
   public:
-    cbtCEtriangleShape(const chrono::ChVector3d* mp1,
+    cbtChTriangleShape(const chrono::ChVector3d* mp1,
                        const chrono::ChVector3d* mp2,
                        const chrono::ChVector3d* mp3,
                        const chrono::ChVector3d* me1,
@@ -50,15 +49,13 @@ class cbtCEtriangleShape : public cbtConvexInternalShape {
                        double msphereswept_rad = 0);
 
     // cbtCollisionShape interface
-    virtual const char* getName() const { return "CEtriangleShape"; }
+    virtual const char* getName() const { return "cbtChTriangleShape"; }
     virtual void calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const;
     virtual void getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const;
 
     /// cbtConvexShape interface
     virtual cbtVector3 localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const;
-    virtual void batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,
-                                                                   cbtVector3* supportVerticesOut,
-                                                                   int numVectors) const;
+    virtual void batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const;
 
     // access vertex points  of triangle
     const chrono::ChVector3d* get_p1() const { return p1; }

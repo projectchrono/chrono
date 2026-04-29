@@ -79,7 +79,7 @@ CH_VEHICLE_API std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::str
 ///  Load and return a steering subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename);
 
-/// Load and return a subchassis subsystem from the specified JSON file.
+/// Load and return a sub-chassis subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename);
 
 ///  Load and return a steering subsystem from the specified JSON file.
@@ -103,9 +103,7 @@ CH_VEHICLE_API std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::strin
 CH_VEHICLE_API std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename);
 
 /// Load and return a track suspension from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename,
-                                                                          bool has_shock,
-                                                                          bool lock_arm);
+CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename, bool has_shock, bool lock_arm);
 
 /// Load and return a road-wheel from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename);
