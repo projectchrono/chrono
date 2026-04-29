@@ -1037,12 +1037,14 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
 
     // Discard collisions between connected triangles
     //// TODO: use collision families to bypass during broadphase?
-    if (triA->get_p1() == triB->get_p1() || triA->get_p1() == triB->get_p2() || triA->get_p1() == triB->get_p3())
-        return;
-    if (triA->get_p2() == triB->get_p1() || triA->get_p2() == triB->get_p2() || triA->get_p2() == triB->get_p3())
-        return;
-    if (triA->get_p3() == triB->get_p1() || triA->get_p3() == triB->get_p2() || triA->get_p3() == triB->get_p3())
-        return;
+    if (triModelA == triModelB) {
+        if (triA->get_p1() == triB->get_p1() || triA->get_p1() == triB->get_p2() || triA->get_p1() == triB->get_p3())
+            return;
+        if (triA->get_p2() == triB->get_p1() || triA->get_p2() == triB->get_p2() || triA->get_p2() == triB->get_p3())
+            return;
+        if (triA->get_p3() == triB->get_p1() || triA->get_p3() == triB->get_p2() || triA->get_p3() == triB->get_p3())
+            return;
+    }
 
     // Interval boundaries for the distances between vertex-face or edge-edge,
     // these intervals are used to reject distances, where the distance here is assumed for the naked triangles, i.e.
@@ -1213,7 +1215,6 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                         }
                     }
                 }
-                // TODO (?): handle case of utils::ClosestLinesPoints() returning false (e.g. parallel lines)
             }
         }
     };
