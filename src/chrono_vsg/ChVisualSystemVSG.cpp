@@ -692,7 +692,7 @@ void ChVisualSystemVSG::Initialize() {
     m_label_font = vsg::read_cast<vsg::Font>(m_label_font_path, m_options);
     if (!m_label_font) {
         cout << "Failed to read font : " << m_label_font_path << endl;
-        return;
+        cout << "  Continuing without font — text labels will be disabled." << endl;
     }
 
     m_scene = vsg::Group::create();
