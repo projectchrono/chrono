@@ -116,42 +116,11 @@ int main(int argc, char* argv[]) {
     sys->Add(floor);
 
     // ------------------------------------------------------------------------
-    // Create a contact material, a visualization shape, and a collision shape,
-    // shared among all bodies
+    // Create a contact material
     // ------------------------------------------------------------------------
 
     ChContactMaterialData body_mat_data;
     auto body_mat = body_mat_data.CreateMaterial(contact_method);
-
-    // read mesh from file, scale, and repair
-    std::shared_ptr<ChTriangleMeshConnected> mesh = nullptr;
-    if (which_model == 1)
-        mesh = CreateShoe();
-    else if (which_model == 2)
-        mesh = CreateBox();
-    else
-        return 1;
-
-    // compute mass properties from mesh
-    double mass;
-    ChVector3d cog;
-    ChMatrix33<> inertia;
-    double density = 1000;
-    mesh->ComputeMassProperties(true, mass, cog, inertia);
-    ChMatrix33<> principal_inertia_rot;
-    ChVector3d principal_I;
-    ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
-
-    // visualization shape
-    auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-    vis_shape->SetMesh(mesh);
-    vis_shape->SetColor(ChColor(0.25f, 0.5f, 0.25f));
-    vis_shape->SetBackfaceCull(true);
-    auto vis_model = chrono_types::make_shared<ChVisualModel>();
-    vis_model->AddShape(vis_shape);
-
-    // collision shape
-    auto coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, mesh, false, false, 0.005);
 
     // ---------------------
     // Create falling bodies
@@ -162,15 +131,49 @@ int main(int argc, char* argv[]) {
         auto falling = chrono_types::make_shared<ChBodyAuxRef>();
         falling->SetFixed(false);
 
-        // set the COM coordinates to barycenter, without displacing the reference frame, and
+        // Read mesh from file, scale, and repair
+        std::shared_ptr<ChTriangleMeshConnected> mesh = nullptr;
+        if (which_model == 1)
+            mesh = CreateShoe();
+        else if (which_model == 2)
+            mesh = CreateBox();
+        else
+            return 1;
+
+        // Compute mass properties from mesh
+        double mass;
+        ChVector3d cog;
+        ChMatrix33<> inertia;
+        double density = 1000;
+        mesh->ComputeMassProperties(true, mass, cog, inertia);
+        ChMatrix33<> principal_inertia_rot;
+        ChVector3d principal_I;
+        ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
+
+        // Visualization shape
+        auto vis_model = chrono_types::make_shared<ChVisualModel>();
+        falling->AddVisualModel(vis_model);
+
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+        vis_shape->SetMesh(mesh);
+        vis_shape->SetColor(ChColor(0.25f, 0.5f, 0.25f));
+        vis_shape->SetBackfaceCull(true);
+        vis_model->AddShape(vis_shape);
+
+        // Collision shape
+        falling->EnableCollision(true);
+        auto coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, mesh, false, false, 0.005);
+        falling->AddCollisionShape(coll_shape);
+
+        // Set the COM coordinates to barycenter, without displacing the reference frame, and
         // make the COM frame a principal frame
         falling->SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
 
-        // set mass and inertia
+        // Set mass and inertia
         falling->SetMass(mass * density);
         falling->SetInertiaXX(density * principal_I);
 
-        // set the absolute position of the body
+        // Set the absolute position of the body
         int layer = j % 3;
         int ix = (j / 3) % 3;
         int iz = (j / 3) / 3;
@@ -183,11 +186,6 @@ int main(int argc, char* argv[]) {
                    QuatFromAngleZ(ChRandom::Get() * 0.3);
 
         falling->SetFrameRefToAbs(ChFrame<>(ChVector3d(x, y, z), rot));
-
-        // attach visualization and collision shapes
-        falling->AddVisualModel(vis_model);
-        falling->AddCollisionShape(coll_shape);
-        falling->EnableCollision(true);
 
         sys->Add(falling);
     }
