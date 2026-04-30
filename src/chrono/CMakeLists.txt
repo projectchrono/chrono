@@ -1719,6 +1719,11 @@ target_compile_features(Chrono_core PUBLIC ${CHRONO_CXX_STANDARD})
 target_compile_definitions(Chrono_core PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE>)
 target_compile_definitions(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
+# Embed the build-tree data path as the default fallback for macOS
+if(APPLE)
+    target_compile_definitions(Chrono_core PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CHRONO_DATA_DIR_DEFAULT=\"${CMAKE_BINARY_DIR}/data\">)
+endif()
+
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_link_directories(Chrono_core INTERFACE $<INSTALL_INTERFACE:lib>)
 endif()

@@ -24,7 +24,11 @@ static std::string chrono_data_path = []() -> std::string {
     const char* env = std::getenv("CHRONO_DATA_DIR");
     if (env)
         return std::string(env) + "/";
+#ifdef CHRONO_DATA_DIR_DEFAULT
+    return std::string(CHRONO_DATA_DIR_DEFAULT) + "/";
+#else
     return "../data/";
+#endif
 }();
 
 // Set the path to the Chrono data directory (ATTENTION: not thread safe)
