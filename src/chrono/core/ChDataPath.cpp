@@ -20,7 +20,12 @@ namespace chrono {
 // Functions for manipulating the Chrono data directory
 // -----------------------------------------------------------------------------
 
-static std::string chrono_data_path("../data/");
+static std::string chrono_data_path = []() -> std::string {
+    const char* env = std::getenv("CHRONO_DATA_DIR");
+    if (env)
+        return std::string(env) + "/";
+    return "../data/";
+}();
 
 // Set the path to the Chrono data directory (ATTENTION: not thread safe)
 void SetChronoDataPath(const std::string& path) {
