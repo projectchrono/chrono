@@ -87,10 +87,6 @@ target_compile_definitions(Chrono_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:IGN
 target_link_libraries(Chrono_irrlicht PRIVATE Chrono_core)
 target_link_libraries(Chrono_irrlicht PUBLIC Irrlicht::Irrlicht)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_libraries(Chrono_irrlicht PRIVATE ${MAC_LIBS})
-endif()
-
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif(MSVC)
   target_compile_options(Chrono_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4996>)  # deprecated function or class member

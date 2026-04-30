@@ -63,9 +63,11 @@ message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 message(STATUS "Building for a ${CMAKE_SYSTEM_NAME} system")
 message(STATUS "The target processor is ${CMAKE_SYSTEM_PROCESSOR}")
 
-# Get rid of cmake RPATH warning on OSX
+# Use default CMake RPATH behavior on macOS so that executables and libraries
+# can locate each other in the build tree without requiring a full install.
+# CMake's default (ON) embeds build-tree library paths into binaries.
 if(APPLE)
-    set(CMAKE_MACOSX_RPATH OFF)
+    set(CMAKE_MACOSX_RPATH ON)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -137,10 +139,6 @@ else()
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     set(CPACK_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-endif()
-
-if(XCODE_VERSION)
-    set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
 endif()
 
 #-----------------------------------------------------------------------------
