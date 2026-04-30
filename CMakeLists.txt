@@ -66,7 +66,7 @@ message(STATUS "The target processor is ${CMAKE_SYSTEM_PROCESSOR}")
 # Use default CMake RPATH behavior on macOS so that executables and libraries
 # can locate each other in the build tree without requiring a full install.
 # CMake's default (ON) embeds build-tree library paths into binaries.
-if(APPLE)
+if(APPLE AND NOT DEFINED CMAKE_MACOSX_RPATH)
     set(CMAKE_MACOSX_RPATH ON)
 endif()
 

@@ -67,6 +67,7 @@ fi
 # Pre-flight: verify required tools
 # ------------------------------------------------------------------------
 MISSING_DEPS=()
+WARN_DEPS=()
 
 if ! command -v cmake &> /dev/null; then
     MISSING_DEPS+=("cmake")
@@ -93,10 +94,26 @@ else
     BUILDSYSTEM="Ninja Multi-Config"
 fi
 
+if ! command -v swig &> /dev/null; then
+    WARN_DEPS+=("swig")
+fi
+
+if ! command -v python3 &> /dev/null; then
+    if ! command -v python &> /dev/null; then
+        WARN_DEPS+=("python3")
+    fi
+fi
+
 if [ ${#MISSING_DEPS[@]} -ne 0 ]; then
     echo "ERROR: Missing required tools: ${MISSING_DEPS[*]}"
     echo "Install with: brew install ${MISSING_DEPS[*]}"
     exit 1
+fi
+
+if [ ${#WARN_DEPS[@]} -ne 0 ]; then
+    echo "NOTE: Optional tools not found: ${WARN_DEPS[*]}"
+    echo "  PyChrono module may not build without them."
+    echo "  Install with: brew install ${WARN_DEPS[*]}"
 fi
 
 # ------------------------------------------------------------------------
@@ -106,8 +123,10 @@ SOURCE_DIR="${HOME}/Source/chrono"
 BUILD_DIR="${HOME}/Build/chrono"
 INSTALL_DIR="${HOME}/Install/chrono"
 
-EIGEN3_INSTALL_DIR="${HOMEBREW_PREFIX}/include/eigen3"
-IRRLICHT_ROOT="${HOMEBREW_PREFIX}/include/irrlicht"
+if [ -n "${HOMEBREW_PREFIX}" ]; then
+    EIGEN3_INSTALL_DIR="${HOMEBREW_PREFIX}/include/eigen3"
+    IRRLICHT_ROOT="${HOMEBREW_PREFIX}/include/irrlicht"
+fi
 
 BLAZE_ROOT="${HOME}/Packages/blaze-3.8"
 THRUST_INCLUDE_DIR="${HOME}/Packages/thrust"
@@ -123,29 +142,45 @@ SWIG_EXE="swig"
 
 # Detect OpenMP paths from Homebrew (version-independent)
 if [ -n "${HOMEBREW_PREFIX}" ] && brew list --formula libomp &> /dev/null; then
-    LIPOMP_DIR="${HOMEBREW_PREFIX}/opt/libomp"
-    LIPOMP_INCLUDE="${LIPOMP_DIR}/include"
-    LIPOMP_LIB="${LIPOMP_DIR}/lib/libomp.dylib"
-    if [ -f "${LIPOMP_LIB}" ]; then
-        echo "Found OpenMP: ${LIPOMP_DIR}"
+    LIBOMP_DIR="${HOMEBREW_PREFIX}/opt/libomp"
+    LIBOMP_INCLUDE="${LIBOMP_DIR}/include"
+    LIBOMP_LIB="${LIBOMP_DIR}/lib/libomp.dylib"
+    if [ -f "${LIBOMP_LIB}" ]; then
+        echo "Found OpenMP: ${LIBOMP_DIR}"
     else
-        echo "WARNING: libomp.dylib not found at ${LIPOMP_LIB}"
-        LIPOMP_DIR=""
+        echo "WARNING: libomp.dylib not found at ${LIBOMP_LIB}"
+        LIBOMP_DIR=""
     fi
 else
     echo "NOTE: OpenMP (libomp) not found — install with: brew install libomp"
-    LIPOMP_DIR=""
+    LIBOMP_DIR=""
 fi
 
 # Detect Python from Homebrew
 if [ -n "${HOMEBREW_PREFIX}" ]; then
     BREW_PYTHON_DIR=$(brew --prefix python@3 2>/dev/null || brew --prefix python@3.12 2>/dev/null || echo "")
     if [ -n "${BREW_PYTHON_DIR}" ] && [ -d "${BREW_PYTHON_DIR}" ]; then
-        PYTHON_EXECUTABLE="${HOMEBREW_PREFIX}/bin/python3"
-        BREW_PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-        PYTHON_INCLUDE_DIR="${HOMEBREW_PREFIX}/opt/python@${BREW_PY_VERSION}/Frameworks/Python.framework/Versions/${BREW_PY_VERSION}/include/python${BREW_PY_VERSION}"
-        PYTHON_LIBRARY="${HOMEBREW_PREFIX}/opt/python@${BREW_PY_VERSION}/Frameworks/Python.framework/Versions/${BREW_PY_VERSION}/lib/python${BREW_PY_VERSION}/config-${BREW_PY_VERSION}-darwin/libpython${BREW_PY_VERSION}.dylib"
-        echo "Found Python ${BREW_PY_VERSION}: ${PYTHON_EXECUTABLE}"
+        PYTHON_EXECUTABLE="${BREW_PYTHON_DIR}/bin/python3"
+        if [ -x "${PYTHON_EXECUTABLE}" ]; then
+            BREW_PY_VERSION=$("${PYTHON_EXECUTABLE}" -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
+            PYTHON_INCLUDE_DIR="${BREW_PYTHON_DIR}/Frameworks/Python.framework/Versions/${BREW_PY_VERSION}/include/python${BREW_PY_VERSION}"
+            PYTHON_LIBRARY="${BREW_PYTHON_DIR}/Frameworks/Python.framework/Versions/${BREW_PY_VERSION}/lib/python${BREW_PY_VERSION}/config-${BREW_PY_VERSION}-darwin/libpython${BREW_PY_VERSION}.dylib"
+            if [ -d "${PYTHON_INCLUDE_DIR}" ] && [ -f "${PYTHON_LIBRARY}" ]; then
+                echo "Found Python ${BREW_PY_VERSION}: ${PYTHON_EXECUTABLE}"
+            else
+                echo "WARNING: Homebrew Python detected, but include/library paths were not found:"
+                echo "  include: ${PYTHON_INCLUDE_DIR}"
+                echo "  library: ${PYTHON_LIBRARY}"
+                PYTHON_EXECUTABLE=""
+                PYTHON_INCLUDE_DIR=""
+                PYTHON_LIBRARY=""
+            fi
+        else
+            echo "WARNING: Homebrew Python executable not found at ${PYTHON_EXECUTABLE}"
+            PYTHON_EXECUTABLE=""
+            PYTHON_INCLUDE_DIR=""
+            PYTHON_LIBRARY=""
+        fi
     else
         echo "NOTE: Homebrew Python not found. PyChrono may not build."
     fi
@@ -157,8 +192,13 @@ fi
 rm -rf "${BUILD_DIR}"
 
 # Build CMake arguments array
-CMAKE_ARGS=(
-    -G "${BUILDSYSTEM}"
+CMAKE_ARGS=()
+
+if [ -n "${BUILDSYSTEM}" ]; then
+    CMAKE_ARGS+=(-G "${BUILDSYSTEM}")
+fi
+
+CMAKE_ARGS+=(
     -B "${BUILD_DIR}"
     -S "${SOURCE_DIR}"
     -DCMAKE_INSTALL_PREFIX:PATH="${INSTALL_DIR}"
@@ -175,7 +215,6 @@ CMAKE_ARGS=(
     -DCH_ENABLE_OPENCRG:BOOL=ON
     -DTHRUST_INCLUDE_DIR:PATH="${THRUST_INCLUDE_DIR}"
     -DBlaze_ROOT:PATH="${BLAZE_ROOT}"
-    -DIrrlicht_ROOT:PATH="${IRRLICHT_ROOT}"
     -DOpenCRG_INCLUDE_DIR:PATH="${CRG_INSTALL_DIR}/include"
     -DOpenCRG_LIBRARY:FILEPATH="${CRG_INSTALL_DIR}/lib/libOpenCRG.a"
     -DOpenCASCADE_DIR:PATH="${CASCADE_INSTALL_DIR}/lib/cmake/opencascade"
@@ -186,16 +225,21 @@ CMAKE_ARGS=(
     -DSWIG_EXECUTABLE:FILEPATH="${SWIG_EXE}"
 )
 
+# Add Homebrew-dependent paths only if HOMEBREW_PREFIX is defined
+if [ -n "${HOMEBREW_PREFIX}" ]; then
+    CMAKE_ARGS+=(-DIrrlicht_ROOT:PATH="${IRRLICHT_ROOT}")
+fi
+
 # Add OpenMP flags if libomp is available
-if [ -n "${LIPOMP_DIR}" ]; then
+if [ -n "${LIBOMP_DIR}" ]; then
     CMAKE_ARGS+=(
-        -DOpenMP_CXX_FLAGS:STRING="-Xclang -fopenmp -I${LIPOMP_INCLUDE}"
+        -DOpenMP_CXX_FLAGS:STRING="-Xclang -fopenmp -I${LIBOMP_INCLUDE}"
         -DOpenMP_C_FLAGS:STRING="-Xclang -fopenmp"
-        -DOpenMP_C_INCLUDE_DIR:PATH="${LIPOMP_INCLUDE}"
-        -DOpenMP_CXX_INCLUDE_DIR:PATH="${LIPOMP_INCLUDE}"
+        -DOpenMP_C_INCLUDE_DIR:PATH="${LIBOMP_INCLUDE}"
+        -DOpenMP_CXX_INCLUDE_DIR:PATH="${LIBOMP_INCLUDE}"
         -DOpenMP_C_LIB_NAMES:STRING=libomp
         -DOpenMP_CXX_LIB_NAMES:STRING=libomp
-        -DOpenMP_libomp_LIBRARY:FILEPATH="${LIPOMP_LIB}"
+        -DOpenMP_libomp_LIBRARY:FILEPATH="${LIBOMP_LIB}"
     )
 fi
 
