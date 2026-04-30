@@ -124,6 +124,7 @@ BUILD_DIR="${HOME}/Build/chrono"
 INSTALL_DIR="${HOME}/Install/chrono"
 
 if [ -n "${HOMEBREW_PREFIX}" ]; then
+    # shellcheck disable=SC2034
     EIGEN3_INSTALL_DIR="${HOMEBREW_PREFIX}/include/eigen3"
     IRRLICHT_ROOT="${HOMEBREW_PREFIX}/include/irrlicht"
 fi
@@ -131,6 +132,7 @@ fi
 BLAZE_ROOT="${HOME}/Packages/blaze-3.8"
 THRUST_INCLUDE_DIR="${HOME}/Packages/thrust"
 CRG_INSTALL_DIR="${HOME}/Packages/OpenCRG"
+# shellcheck disable=SC2034
 VSG_INSTALL_DIR="${HOME}/Packages/vsg"
 
 URDF_INSTALL_DIR="C:/Packages/urdf"
