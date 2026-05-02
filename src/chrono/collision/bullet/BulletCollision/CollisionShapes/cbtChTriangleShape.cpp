@@ -76,9 +76,7 @@ cbtVector3 cbtChTriangleShape::localGetSupportingVertexWithoutMargin(const cbtVe
     ////return sup + vec0.normalized() * sphereswept_rad;
 }
 
-void cbtChTriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,
-                                                                           cbtVector3* supportVerticesOut,
-                                                                           int numVectors) const {
+void cbtChTriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {
     printf("NOT SUPPORTED!! \n");
 }
 
@@ -94,13 +92,13 @@ void cbtChTriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inert
 
     cbtScalar margin = CONVEX_DISTANCE_MARGIN;
 
-    cbtScalar lx = cbtScalar(2.) * (halfExtents[0] + margin);
-    cbtScalar ly = cbtScalar(2.) * (halfExtents[1] + margin);
-    cbtScalar lz = cbtScalar(2.) * (halfExtents[2] + margin);
+    cbtScalar lx = 2 * (halfExtents[0] + margin);
+    cbtScalar ly = 2 * (halfExtents[1] + margin);
+    cbtScalar lz = 2 * (halfExtents[2] + margin);
     const cbtScalar x2 = lx * lx;
     const cbtScalar y2 = ly * ly;
     const cbtScalar z2 = lz * lz;
-    const cbtScalar scaledmass = mass * cbtScalar(.08333333);
+    const cbtScalar scaledmass = mass * cbtScalar(0.08333333);
 
     inertia[0] = scaledmass * (y2 + z2);
     inertia[1] = scaledmass * (x2 + z2);
@@ -112,18 +110,15 @@ void cbtChTriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbt
     cbtVector3 p2_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p2);
     cbtVector3 p3_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p3);
 
-    ChCollisionModelBullet* triModel = (ChCollisionModelBullet*)getUserPointer();
+    auto tri_data = (ChCollisionModelBullet::ShapeData*)getUserPointer();
+    ChCollisionModelBullet* bt_model = tri_data->bt_model;
 
-    cbtVector3 venvelope(triModel->GetEnvelope(), triModel->GetEnvelope(), triModel->GetEnvelope());
+    cbtVector3 venvelope(bt_model->GetEnvelope(), bt_model->GetEnvelope(), bt_model->GetEnvelope());
     cbtVector3 vsphereswept((cbtScalar)sphereswept_rad, (cbtScalar)sphereswept_rad, (cbtScalar)sphereswept_rad);
 
-    aabbMin =
-        cbtVector3(std::min(std::min(p1_w.x(), p2_w.x()), p3_w.x()), std::min(std::min(p1_w.y(), p2_w.y()), p3_w.y()),
-                   std::min(std::min(p1_w.z(), p2_w.z()), p3_w.z())) -
-        venvelope - vsphereswept;
+    aabbMin = cbtVector3(std::min(std::min(p1_w.x(), p2_w.x()), p3_w.x()), std::min(std::min(p1_w.y(), p2_w.y()), p3_w.y()), std::min(std::min(p1_w.z(), p2_w.z()), p3_w.z())) -
+              venvelope - vsphereswept;
 
-    aabbMax =
-        cbtVector3(std::max(std::max(p1_w.x(), p2_w.x()), p3_w.x()), std::max(std::max(p1_w.y(), p2_w.y()), p3_w.y()),
-                   std::max(std::max(p1_w.z(), p2_w.z()), p3_w.z())) +
-        venvelope + vsphereswept;
+    aabbMax = cbtVector3(std::max(std::max(p1_w.x(), p2_w.x()), p3_w.x()), std::max(std::max(p1_w.y(), p2_w.y()), p3_w.y()), std::max(std::max(p1_w.z(), p2_w.z()), p3_w.z())) +
+              venvelope + vsphereswept;
 }
